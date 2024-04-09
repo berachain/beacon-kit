@@ -29,6 +29,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
@@ -36,6 +37,8 @@ import (
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include deposit.go,withdrawal_credentials.go,../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
+
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
@@ -50,7 +53,7 @@ type BeaconBlockBodyDeneb struct {
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments [][48]byte `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []kzg.Commitment `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
@@ -59,7 +62,7 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() [][48]byte {
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() kzg.Commitments {
 	return b.BlobKzgCommitments
 }
 
@@ -81,12 +84,12 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayloa
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
+func (b *BeaconBlockBodyDeneb) GetDeposits() Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits Deposits) {
 	b.Deposits = deposits
 }
 
@@ -104,7 +107,9 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(commitments [][48]byte) {
+func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
+	commitments kzg.Commitments,
+) {
 	b.BlobKzgCommitments = commitments
 }
 
@@ -129,6 +134,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
+	// root, err = dep.HashTreeRoot()
 	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
@@ -146,7 +152,9 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
 	return layer, nil
 }
 
-func GetBlobKzgCommitmentsRoot(commitments [][48]byte) ([32]byte, error) {
+func GetBlobKzgCommitmentsRoot(
+	commitments []kzg.Commitment,
+) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
 	commitmentsSparse, err := trie.NewFromItems(
 		commitmentsLeaves,

@@ -43,7 +43,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		GenesisValidatorsRoot: primitives.Root{},
 
 		Slot: 0,
-		LatestBlockHeader: &types.BeaconBlockHeader{
+		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
 			ParentRoot:    primitives.Root{},
@@ -53,7 +53,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		BlockRoots: make([][32]byte, 1),
 		StateRoots: make([][32]byte, 1),
 		Eth1BlockHash: common.HexToHash(
-			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
+			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		Eth1DepositIndex: 0,
 		Validators:       make([]*types.Validator, 0),
@@ -68,6 +68,7 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 // rooting correctly?
 //
 //go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconStateDeneb -include ../types,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconStateDeneb struct {
 	// Versioning
@@ -77,9 +78,9 @@ type BeaconStateDeneb struct {
 	Slot                  primitives.Slot `json:"slot"`
 
 	// History
-	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        [][32]byte               `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        [][32]byte               `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        [][32]byte                    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
@@ -93,12 +94,17 @@ type BeaconStateDeneb struct {
 	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64 `json:"nextWithdrawalIndex"`
-	NextWithdrawalValidatorIndex uint64 `json:"nextWithdrawalValidatorIndex"`
+	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
+	NextWithdrawalValidatorIndex primitives.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
-	Slashings     []uint64 `json:"slashings"     ssz-max:"1099511627776"`
-	TotalSlashing uint64   `json:"totalSlashing"`
+	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
+	TotalSlashing primitives.Gwei `json:"totalSlashing"`
+}
+
+// String returns a string representation of BeaconStateDeneb.
+func (b *BeaconStateDeneb) String() string {
+	return "TODO: BeaconStateDeneb"
 }
 
 // beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal

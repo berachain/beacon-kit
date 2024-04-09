@@ -26,132 +26,227 @@
 package state
 
 import (
-	"context"
-
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/statedb"
 )
 
-// BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state consensus.
-type BeaconState interface {
-	Copy() BeaconState
-	Context() context.Context
-	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState
-	WriteOnlyBeaconState
+// beaconState is a wrapper around the state db that implements the BeaconState
+// interface.
+type beaconState struct {
+	*statedb.StateDB
+	cfg *params.BeaconChainConfig
 }
 
-// ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState interface {
-	ReadOnlyDeposits
-	ReadOnlyRandaoMixes
-	ReadOnlyStateRoots
-	ReadOnlyValidators
-	ReadOnlyWithdrawals
-
-	GetSlot() (primitives.Slot, error)
-	GetCurrentEpoch(uint64) (primitives.Epoch, error)
-	GetGenesisValidatorsRoot() (primitives.Root, error)
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
-	GetTotalSlashing() (primitives.Gwei, error)
+// NewBeaconState creates a new beacon state from an underlying state db.
+func NewBeaconStateFromDB(
+	sdb *statedb.StateDB,
+	cfg *params.BeaconChainConfig,
+) BeaconState {
+	return &beaconState{
+		StateDB: sdb,
+		cfg:     cfg,
+	}
 }
 
-// WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState interface {
-	WriteOnlyDeposits
-	WriteOnlyRandaoMixes
-	WriteOnlyStateRoots
-	WriteOnlyValidators
-	WriteOnlyWithdrawals
-	SetSlot(primitives.Slot) error
-	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*types.BeaconBlockHeader) error
-	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
-	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
+// Copy returns a copy of the beacon state.
+func (s *beaconState) Copy() BeaconState {
+	return NewBeaconStateFromDB(s.StateDB.Copy(), s.cfg)
 }
 
-// WriteOnlyStateRoots defines a struct which only has write access to state
-// roots methods.
-type WriteOnlyStateRoots interface {
-	UpdateStateRootAtIndex(uint64, primitives.Root) error
+// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
+//
+//nolint:lll
+func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+	var (
+		validator         *types.Validator
+		balance           primitives.Gwei
+		withdrawalAddress primitives.ExecutionAddress
+		withdrawals       = make([]*primitives.Withdrawal, 0)
+	)
+
+	slot, err := s.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
+	epoch := primitives.Epoch(uint64(slot) / s.cfg.SlotsPerEpoch)
+
+	withdrawalIndex, err := s.GetNextWithdrawalIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	validatorIndex, err := s.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	totalValidators, err := s.GetTotalValidators()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through indicies to find the next validators to withdraw.
+	for i := uint64(0); i < min(
+		s.cfg.MaxValidatorsPerWithdrawalsSweep, totalValidators,
+	); i++ {
+		validator, err = s.ValidatorByIndex(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		balance, err = s.GetBalance(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawalAddress, err = validator.
+			WithdrawalCredentials.ToExecutionAddress()
+		if err != nil {
+			return nil, err
+		}
+
+		// These fields are the same for both partial and full withdrawals.
+		withdrawal := &primitives.Withdrawal{
+			Index:     withdrawalIndex,
+			Validator: validatorIndex,
+			Address:   withdrawalAddress,
+		}
+
+		// Set the amount of the withdrawal depending on the balance of the
+		// validator.
+		if validator.IsFullyWithdrawable(balance, epoch) {
+			withdrawal.Amount = balance
+		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cfg.MaxEffectiveBalance)) {
+			withdrawal.Amount = balance - primitives.Gwei(s.cfg.MaxEffectiveBalance)
+		}
+		withdrawals = append(withdrawals, withdrawal)
+
+		// Increment the withdrawal index to process the next withdrawal.
+		withdrawalIndex++
+
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		//#nosec:G701 // won't overflow in practice.
+		if len(withdrawals) == int(s.cfg.MaxWithdrawalsPerPayload) {
+			break
+		}
+
+		// Increment the validator index to process the next validator.
+		validatorIndex = (validatorIndex + 1) % primitives.ValidatorIndex(
+			totalValidators,
+		)
+	}
+
+	return withdrawals, nil
 }
 
-// ReadOnlyStateRoots defines a struct which only has read access to state roots
-// methods.
-type ReadOnlyStateRoots interface {
-	StateRootAtIndex(uint64) (primitives.Root, error)
-}
+// Store is the interface for the beacon store.
+//
+//nolint:funlen // todo fix somehow
+func (s *beaconState) HashTreeRoot() ([32]byte, error) {
+	slot, err := s.GetSlot()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// WriteOnlyRandaoMixes defines a struct which only has write access to randao
-// mixes methods.
-type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, primitives.Bytes32) error
-}
+	genesisValidatorsRoot, err := s.GetGenesisValidatorsRoot()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// ReadOnlyRandaoMixes defines a struct which only has read access to randao
-// mixes methods.
-type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
-}
+	latestBlockHeader, err := s.GetLatestBlockHeader()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// WriteOnlyValidators has write access to validator methods.
-type WriteOnlyValidators interface {
-	// Add methods here
-	UpdateValidatorAtIndex(
-		primitives.ValidatorIndex,
-		*types.Validator,
-	) error
-}
+	var blockRoot [32]byte
+	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		blockRoot, err = s.GetBlockRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		blockRoots[i] = blockRoot
+	}
 
-// ReadOnlyValidators has read access to validator methods.
-type ReadOnlyValidators interface {
-	ValidatorIndexByPubkey(
-		[]byte,
-	) (primitives.ValidatorIndex, error)
+	var stateRoot [32]byte
+	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+		stateRoot, err = s.StateRootAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		stateRoots[i] = stateRoot
+	}
 
-	ValidatorByIndex(
-		primitives.ValidatorIndex,
-	) (*types.Validator, error)
-}
+	eth1BlockHash, err := s.GetEth1BlockHash()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// ReadWriteValidators has read and write access to validator methods.
-type ReadWriteDeposits interface {
-	ReadOnlyDeposits
-	WriteOnlyDeposits
-}
+	eth1DepositIndex, err := s.GetEth1DepositIndex()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// ReadWriteDepositQueue has read and write access to deposit queue.
-type WriteOnlyDeposits interface {
-	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
-	DequeueDeposits(uint64) ([]*types.Deposit, error)
-}
+	validators, err := s.GetValidators()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// ReadOnlyDeposits has read access to deposit queue.
-type ReadOnlyDeposits interface {
-	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) ([]*types.Deposit, error)
-}
+	balances, err := s.GetBalances()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// ReadWriteWithdrawals has read and write access to withdrawal methods.
-type ReadWriteWithdrawals interface {
-	ReadOnlyWithdrawals
-	WriteOnlyWithdrawals
-}
+	var randaoMix [32]byte
+	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
+	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
+		randaoMix, err = s.GetRandaoMixAtIndex(i)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		randaoMixes[i] = randaoMix
+	}
 
-// ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals(uint64) ([]*primitives.Withdrawal, error)
-}
+	nextWithdrawalIndex, err := s.GetNextWithdrawalIndex()
+	if err != nil {
+		return [32]byte{}, err
+	}
 
-// WriteOnlyWithdrawals only has write access to withdrawal methods.
-type WriteOnlyWithdrawals interface {
-	EnqueueWithdrawals([]*primitives.Withdrawal) error
-	DequeueWithdrawals(uint64) ([]*primitives.Withdrawal, error)
+	nextWithdrawalValidatorIndex, err := s.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	slashings, err := s.GetSlashings()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	totalSlashings, err := s.GetTotalSlashing()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	// TODO: handle hardforks.
+	return (&BeaconStateDeneb{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		Eth1BlockHash:                eth1BlockHash,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          nextWithdrawalIndex,
+		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
+		Slashings:                    slashings,
+		TotalSlashing:                totalSlashings,
+	}).HashTreeRoot()
 }

@@ -41,29 +41,41 @@ type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		ctx context.Context, slot primitives.Slot, b types.ReadOnlyBeaconBlock,
+		context.Context, primitives.Slot, types.ReadOnlyBeaconBlock,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(slot primitives.Slot, sc ...*datypes.BlobSidecar) error
+	Persist(primitives.Slot, *datypes.BlobSidecars) error
+}
+
+// BLSSigner defines an interface for cryptographic signing operations.
+// It uses generic type parameters Signature and Pubkey, both of which are
+// slices of bytes.
+type BLSSigner interface {
+	// PublicKey returns the public key of the signer.
+	PublicKey() primitives.BLSPubkey
+
+	// Sign takes a message as a slice of bytes and returns a signature as a
+	// slice of bytes and an error.
+	Sign([]byte) (primitives.BLSSignature, error)
 }
 
 // BlobsProcessor is the interface for the blobs processor.
 type BlobsProcessor interface {
 	ProcessBlobs(
-		avs AvailabilityStore,
-		blk types.BeaconBlock,
-		sidecars *datypes.BlobSidecars,
+		primitives.Slot,
+		AvailabilityStore,
+		*datypes.BlobSidecars,
 	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor interface {
 	ProcessRandao(
-		st state.BeaconState,
-		blk types.BeaconBlock,
+		state.BeaconState,
+		types.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
-		st state.BeaconState,
+		state.BeaconState,
 	) error
 }

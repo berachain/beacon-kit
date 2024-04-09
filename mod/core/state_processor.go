@@ -33,6 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/forks"
+	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -160,11 +163,16 @@ func (sp *StateProcessor) ProcessSlot(
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor) ProcessBlobs(
+	st state.BeaconState,
 	avs AvailabilityStore,
-	blk types.BeaconBlock,
 	sidecars *datypes.BlobSidecars,
 ) error {
-	return sp.bp.ProcessBlobs(avs, blk, sidecars)
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	return sp.bp.ProcessBlobs(slot, avs, sidecars)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
@@ -172,20 +180,15 @@ func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
 	blk types.BeaconBlock,
 ) error {
-	header, err := types.NewBeaconBlockHeader(blk)
-	if err != nil {
-		return err
-	}
-
 	// process the freshly created header.
-	if err = sp.processHeader(st, header); err != nil {
+	if err := sp.processHeader(st, blk); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
 	body := blk.GetBody()
-	if err = sp.processWithdrawals(
-		st, body.GetExecutionPayload().GetWithdrawals(),
+	if err := sp.processWithdrawals(
+		st, body.GetExecutionPayload(),
 	); err != nil {
 		return err
 	}
@@ -194,14 +197,14 @@ func (sp *StateProcessor) ProcessBlock(
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err = sp.processRandaoReveal(st, blk); err != nil {
+	if err := sp.processRandaoReveal(st, blk); err != nil {
 		return err
 	}
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
 	// process the deposits and ensure they match the local state.
-	if err = sp.processOperations(st, body); err != nil {
+	if err := sp.processOperations(st, body); err != nil {
 		return err
 	}
 
@@ -225,10 +228,17 @@ func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 // processHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processHeader(
 	st state.BeaconState,
-	header *types.BeaconBlockHeader,
+	blk types.BeaconBlock,
 ) error {
+	// TODO: this function is really confusing, can probably just
+	// be removed and the logic put in the ProcessBlock function.
+	header := blk.GetHeader()
+	if header == nil {
+		return types.ErrNilBlockHeader
+	}
+
 	// Store as the new latest block
-	headerRaw := &types.BeaconBlockHeader{
+	headerRaw := &primitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,
@@ -247,7 +257,6 @@ func (sp *StateProcessor) processOperations(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
-	// if len(body.GetDeposits()) == min(0, len(body.GetDeposits())) {
 	return sp.processDeposits(st, body.GetDeposits())
 }
 
@@ -255,7 +264,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits []*types.Deposit,
+	deposits types.Deposits,
 ) error {
 	// Dequeue and verify the logs.
 	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
@@ -299,23 +308,9 @@ func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
 	dep *types.Deposit,
 ) {
-	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey[:])
-	if err != nil {
-		_ = 0
-		// # Verify the deposit signature (proof of possession) which is not
-		// checked by the deposit contract
-		// deposit_message = DepositMessage(
-		//     pubkey=pubkey,
-		//     withdrawal_credentials=withdrawal_credentials,
-		//     amount=amount,
-		// )
-		// domain = compute_domain(DOMAIN_DEPOSIT)  # Fork-agnostic domain since
-		// deposits are valid across forks
-		// signing_root = compute_signing_root(deposit_message, domain)
-		// if bls.Verify(pubkey, signing_root, signature):
-		// add_validator_to_registry(state, pubkey, withdrawal_credentials,
-		// amount)
-	} else {
+	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
+	// If the validator already exists, we update the balance.
+	if err == nil {
 		var val *types.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -328,47 +323,161 @@ func (sp *StateProcessor) processDeposit(
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
+		// Exiting early because we only check signature on creation
+		return
+	}
+	// If the validator does not exist, we add the validator.
+	// Add the validator to the registry.
+	if err = sp.createValidator(st, dep); err != nil {
+		sp.logger.Error("failed to create validator", "error", err)
 	}
 }
 
-// processWithdrawals processes the withdrawals and ensures they match the
-// local state.
-func (sp *StateProcessor) processWithdrawals(
+// createValidator creates a validator if the deposit is valid.
+func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	withdrawals []*primitives.Withdrawal,
+	dep *types.Deposit,
 ) error {
-	// Dequeue and verify the withdrawals.
-	localWithdrawals, err := st.DequeueWithdrawals(uint64(len(withdrawals)))
+	var (
+		genesisValidatorsRoot primitives.Root
+		epoch                 primitives.Epoch
+		err                   error
+	)
+
+	// Get the genesis validators root to be used to find fork data later.
+	genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return err
 	}
 
-	// Ensure the deposits match the local state.
-	for i, wd := range withdrawals {
-		if wd == nil {
-			return types.ErrNilWithdrawal
-		}
-		if wd.Index != localWithdrawals[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localWithdrawals[i].Index, wd.Index)
-		}
+	// Get the current epoch.
+	// Get the current slot.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	epoch = sp.cfg.SlotToEpoch(slot)
 
-		var val *types.Validator
-		val, err = st.ValidatorByIndex(wd.Validator)
-		if err != nil {
-			continue
-		}
+	// Get the fork data for the current epoch.
+	fd := forks.NewForkData(
+		version.FromUint32(
+			sp.cfg.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
 
-		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance -= min(
-			val.EffectiveBalance, wd.Amount,
+	depositMessage := types.DepositMessage{
+		Pubkey:      dep.Pubkey,
+		Credentials: dep.Credentials,
+		Amount:      dep.Amount,
+	}
+	if err = depositMessage.VerifyCreateValidator(fd, dep.Signature); err != nil {
+		return err
+	}
+
+	// Add the validator to the registry.
+	return sp.addValidatorToRegistry(st, dep)
+}
+
+// addValidatorToRegistry adds a validator to the registry.
+func (sp *StateProcessor) addValidatorToRegistry(
+	st state.BeaconState,
+	dep *types.Deposit,
+) error {
+	val := types.NewValidatorFromDeposit(
+		dep.Pubkey,
+		dep.Credentials,
+		dep.Amount,
+		primitives.Gwei(sp.cfg.EffectiveBalanceIncrement),
+		primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+	)
+	if err := st.AddValidator(val); err != nil {
+		return err
+	}
+
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	if err != nil {
+		return err
+	}
+	return st.IncreaseBalance(idx, dep.Amount)
+}
+
+// processWithdrawals as per the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
+//
+//nolint:lll
+func (sp *StateProcessor) processWithdrawals(
+	st state.BeaconState,
+	payload enginetypes.ExecutionPayload,
+) error {
+	// Dequeue and verify the logs.
+	var nextValidatorIndex primitives.ValidatorIndex
+	payloadWithdrawals := payload.GetWithdrawals()
+	expectedWithdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the withdrawals have the same length
+	if len(expectedWithdrawals) != len(payloadWithdrawals) {
+		return fmt.Errorf(
+			"withdrawals do not match expected length %d, got %d",
+			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
-		if err = st.UpdateValidatorAtIndex(wd.Validator, val); err != nil {
+	}
+
+	// Compare and process each withdrawal.
+	for i, wd := range expectedWithdrawals {
+		// Ensure the withdrawals match the local state.
+		if !wd.Equals(payloadWithdrawals[i]) {
+			return fmt.Errorf(
+				"withdrawals do not match expected %s, got %s",
+				wd, payloadWithdrawals[i],
+			)
+		}
+
+		// Then we process the withdrawal.
+		if err = st.DecreaseBalance(wd.Validator, wd.Amount); err != nil {
 			return err
 		}
 	}
-	return nil
+
+	// Update the next withdrawal index if this block contained withdrawals
+	numWithdrawals := len(expectedWithdrawals)
+	if numWithdrawals != 0 {
+		// Next sweep starts after the latest withdrawal's validator index
+		if err = st.SetNextWithdrawalIndex(
+			expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1,
+		); err != nil {
+			return err
+		}
+	}
+
+	totalValidators, err := st.GetTotalValidators()
+	if err != nil {
+		return err
+	}
+
+	// Update the next validator index to start the next withdrawal sweep
+	//#nosec:G701 // won't overflow in practice.
+	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
+		// Next sweep starts after the latest withdrawal's validator index
+		nextValidatorIndex = primitives.ValidatorIndex(
+			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
+				totalValidators,
+		)
+	} else {
+		// Advance sweep by the max length of the sweep if there was not
+		// a full set of withdrawals
+		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
+		if err != nil {
+			return err
+		}
+		nextValidatorIndex += primitives.ValidatorIndex(
+			sp.cfg.MaxValidatorsPerWithdrawalsSweep)
+		nextValidatorIndex %= primitives.ValidatorIndex(totalValidators)
+	}
+
+	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }
 
 // processRandaoReveal processes the randao reveal and
@@ -397,12 +506,13 @@ func (sp *StateProcessor) processRandaoMixesReset(
 func (sp *StateProcessor) processSlashingsReset(
 	st state.BeaconState,
 ) error {
-	epoch, err := st.GetCurrentEpoch(sp.cfg.SlotsPerEpoch)
+	// Get the current epoch.
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
 
-	index := (uint64(epoch) + 1) % sp.cfg.EpochsPerSlashingsVector
+	index := (uint64(sp.cfg.SlotToEpoch(slot)) + 1) % sp.cfg.EpochsPerSlashingsVector
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -438,8 +548,7 @@ func (sp *StateProcessor) processAttesterSlashing(
 func (sp *StateProcessor) processSlashings(
 	st state.BeaconState,
 ) error {
-	slotsPerEpoch := sp.cfg.SlotsPerEpoch
-	totalBalance, err := st.GetTotalActiveBalances(slotsPerEpoch)
+	totalBalance, err := st.GetTotalActiveBalances(sp.cfg.SlotsPerEpoch)
 	if err != nil {
 		return err
 	}
@@ -458,8 +567,8 @@ func (sp *StateProcessor) processSlashings(
 		return err
 	}
 
-	// Get the current epoch
-	epoch, err := st.GetCurrentEpoch(slotsPerEpoch)
+	// Get the current slot.
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
@@ -468,7 +577,7 @@ func (sp *StateProcessor) processSlashings(
 	for _, val := range vals {
 		// Checks if the validator is slashable.
 		//nolint:gomnd // this is in the spec
-		slashableEpoch := (uint64(epoch) + sp.cfg.EpochsPerSlashingsVector) / 2
+		slashableEpoch := (uint64(sp.cfg.SlotToEpoch(slot)) + sp.cfg.EpochsPerSlashingsVector) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
 			if err = sp.processSlash(
@@ -500,7 +609,7 @@ func (sp *StateProcessor) processSlash(
 	penalty := penaltyNumerator / totalBalance * increment
 
 	// Get the val index and decrease the balance of the validator.
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey[:])
+	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
 	if err != nil {
 		return err
 	}

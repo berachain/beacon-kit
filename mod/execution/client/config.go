@@ -28,9 +28,6 @@ package client
 import (
 	"net/url"
 	"time"
-
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 )
 
 const (
@@ -60,59 +57,23 @@ func DefaultConfig() Config {
 }
 
 // Config is the configuration struct for the execution client.
+//
+//nolint:lll // struct tags.
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL *url.URL
+	RPCDialURL *url.URL `mapstructure:"rpc-dial-url"`
 	// RPCRetries is the number of retries before shutting down consensus
 	// client.
-	RPCRetries uint64
+	RPCRetries uint64 `mapstructure:"rpc-retries"`
 	// RPCTimeout is the RPC timeout for execution client calls.
-	RPCTimeout time.Duration
+	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
-	RPCStartupCheckInterval time.Duration
+	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`
 	// JWTRefreshInterval is the Interval for the JWT refresh.
-	RPCJWTRefreshInterval time.Duration
+	RPCJWTRefreshInterval time.Duration `mapstructure:"rpc-jwt-refresh-interval"`
 	// JWTSecretPath is the path to the JWT secret.
-	JWTSecretPath string
+	JWTSecretPath string `mapstructure:"jwt-secret-path"`
 	// RequiredChainID is the chain id that the consensus client must be
 	// connected to.
-	RequiredChainID uint64
-}
-
-// Parse parses the configuration.
-func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
-	var err error
-	if c.RPCDialURL, err = parser.GetURL(flags.RPCDialURL); err != nil {
-		return nil, err
-	}
-	if c.RPCRetries, err = parser.GetUint64(flags.RPCRetries); err != nil {
-		return nil, err
-	}
-	if c.RPCTimeout, err = parser.GetTimeDuration(
-		flags.RPCTimeout,
-	); err != nil {
-		return nil, err
-	}
-	if c.RPCStartupCheckInterval, err = parser.GetTimeDuration(
-		flags.RPCStartupCheckInterval,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.RPCJWTRefreshInterval, err = parser.GetTimeDuration(
-		flags.RPCJWTRefreshInterval,
-	); err != nil {
-		return nil, err
-	}
-	if c.JWTSecretPath, err = parser.GetString(
-		flags.JWTSecretPath,
-	); err != nil {
-		return nil, err
-	}
-	if c.RequiredChainID, err = parser.GetUint64(
-		flags.RequiredChainID,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	RequiredChainID uint64 `mapstructure:"required-chain-id"`
 }

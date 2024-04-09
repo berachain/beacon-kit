@@ -9,7 +9,7 @@
 // copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following
-// conditions:
+// conditions
 //
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
@@ -25,7 +25,12 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+// EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
+const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
@@ -47,7 +52,7 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 	primitives.ExecutionAddress,
 	error,
 ) {
-	if wc[0] != byte(EthSecp256k1CredentialPrefix) {
+	if wc[0] != EthSecp256k1CredentialPrefix {
 		return primitives.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
 	return primitives.ExecutionAddress(wc[12:]), nil

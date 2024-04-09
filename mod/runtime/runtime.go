@@ -32,18 +32,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/crypto"
+	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -74,9 +75,11 @@ func NewBeaconKitRuntime(
 // services.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
-	signer crypto.Signer[primitives.BLSSignature],
-	logger log.Logger,
+	signer core.BLSSigner,
+	jwtSecret *jwt.Secret,
+	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	bsb BeaconStorageBackend,
+	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
@@ -90,6 +93,7 @@ func NewDefaultBeaconKitRuntime(
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
 
@@ -120,8 +124,23 @@ func NewDefaultBeaconKitRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
+	// Build the Blobs Vierifer
+	blobProofVerifier, err := da.NewBlobProofVerifier(
+		cfg.KZG.Implementation, kzgTrustedSetup,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Info(
+		"successfully loaded blob verifier",
+		"impl",
+		cfg.KZG.Implementation,
+	)
+
 	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor()
+	blobsProcessor := blobs.NewProcessor(
+		da.NewBlobVerifier(blobProofVerifier), logger)
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(

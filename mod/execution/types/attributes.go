@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 //nolint:lll // struct tags.
@@ -51,6 +52,13 @@ type PayloadAttributes struct {
 	// prior)
 	// to the block currently being processed. This field was added in EIP-4788.
 	ParentBeaconBlockRoot [32]byte `json:"parentBeaconBlockRoot"`
+}
+
+// JSON type overrides for PayloadAttributes.
+type payloadAttributesJSONMarshaling struct {
+	Timestamp             hexutil.Uint64
+	PrevRandao            hexutil.Bytes
+	ParentBeaconBlockRoot hexutil.Bytes
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.

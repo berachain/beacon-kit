@@ -27,9 +27,9 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -62,21 +62,12 @@ const (
 // If the inclusion proof is valid, the function returns nil.
 // Otherwise, it returns an error indicating an invalid inclusion proof.
 func VerifyKZGInclusionProof(
-	root []byte,
 	blob *datypes.BlobSidecar,
-	index uint64,
 ) error { // TODO: add wrapped type with inclusion proofs
-	if len(root) != RootLength {
-		return errInvalidBodyRoot
-	}
-	chunks := make([][32]byte, Two)
-	copy(chunks[0][:], blob.KzgCommitment)
-	copy(chunks[1][:], blob.KzgCommitment[RootLength:])
-	gohashtree.HashChunks(chunks, chunks)
 	verified := trie.VerifyMerkleProof(
-		root,
-		chunks[0][:],
-		index+KZGOffset,
+		blob.BeaconBlockHeader.BodyRoot[:],
+		blob.KzgCommitment.ToHashChunks()[0][:],
+		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
 	if !verified {
@@ -129,7 +120,7 @@ func MerkleProofKZGCommitment(
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
 // commitment list.
-func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
+func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
@@ -147,14 +138,10 @@ func BodyProof(commitments [][48]byte, index uint64) ([][]byte, error) {
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments [][48]byte) [][]byte {
+func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
 	leaves := make([][]byte, len(commitments))
-	for i, kzg := range commitments {
-		chunk := make([][32]byte, Two)
-		copy(chunk[0][:], kzg[:])
-		copy(chunk[1][:], kzg[RootLength:])
-		gohashtree.HashChunks(chunk, chunk)
-		leaves[i] = chunk[0][:]
+	for i, commitment := range commitments {
+		leaves[i] = commitment.ToHashChunks()[0][:]
 	}
 	return leaves
 }

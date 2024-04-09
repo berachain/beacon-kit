@@ -30,13 +30,13 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	beaconstore "github.com/berachain/beacon-kit/beacond/store/beacon"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -45,17 +45,20 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beaconstore.Store
+	statedb           *statedb.StateDB
+	cfg               *params.BeaconChainConfig
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
+	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore(fdb),
-		beaconStore:       beaconstore.NewStore(env),
+		availabilityStore: da.NewStore(cfg, fdb),
+		statedb:           statedb.New(env.KVStoreService),
+		cfg:               cfg,
 	}
 }
 
@@ -68,7 +71,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -83,7 +86,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		if validator.EffectiveBalance == 0 {
 			var idx primitives.ValidatorIndex
 			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey[:])
+				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {
 				return nil, err
 			}
@@ -103,6 +106,9 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 			Power: int64(validator.EffectiveBalance),
 		})
 	}
+
+	// Save the store.
+	store.Save()
 	return validatorUpdates, nil
 }
 
@@ -118,12 +124,14 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return k.beaconStore.WithContext(ctx)
+	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
 //
 // TODO: This whole thing needs to be abstracted into mod/core/state
+//
+//nolint:gocognit,funlen // todo fix.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
@@ -139,12 +147,16 @@ func (k *Keeper) InitGenesis(
 		}
 	}
 
-	// Compare this snippet from beacon/keeper/keeper.go:
-	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
-		return nil, err
+	for i, root := range data.StateRoots {
+		if err := st.UpdateStateRootAtIndex(
+			//#nosec:G701 // will not cause a problem.
+			uint64(i), root,
+		); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := st.SetSlot(0); err != nil {
+	if err := st.SetSlot(data.Slot); err != nil {
 		return nil, err
 	}
 
@@ -153,7 +165,7 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
-	emptyHeader := &beacontypes.BeaconBlockHeader{
+	emptyHeader := &primitives.BeaconBlockHeader{
 		Slot:          0,
 		ProposerIndex: 0,
 		ParentRoot:    [32]byte{},
@@ -168,17 +180,27 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
+	// Set the genesis block roots.
+	for i, root := range data.BlockRoots {
+		if err := st.UpdateBlockRootAtIndex(
+			//#nosec:G701 // will not cause a problem.
+			uint64(i), root,
+		); err != nil {
+			return nil, err
+		}
+	}
+
 	headerHtr, err := emptyHeader.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the genesis block root.
+	// We set the block root at index 0 to the hash tree root of the genesis
 	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetEth1DepositIndex(0); err != nil {
+	if err = st.SetEth1DepositIndex(data.Eth1DepositIndex); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +208,7 @@ func (k *Keeper) InitGenesis(
 	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
 	// full initial update here.
 
-	store := k.beaconStore.WithContext(ctx)
+	store := k.statedb.WithContext(ctx)
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	for i, validator := range data.Validators {
 		if err = store.AddValidator(validator); err != nil {
@@ -210,10 +232,21 @@ func (k *Keeper) InitGenesis(
 		})
 	}
 
+	if err = store.SetNextWithdrawalIndex(data.NextWithdrawalIndex); err != nil {
+		return nil, err
+	}
+
+	if err = store.SetNextWithdrawalValidatorIndex(
+		data.NextWithdrawalValidatorIndex,
+	); err != nil {
+		return nil, err
+	}
 	// Set the genesis slashing data.
-	for i := range data.Slashings {
+	for i, v := range data.Slashings {
 		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
+		if err = store.UpdateSlashingAtIndex(
+			uint64(i), primitives.Gwei(v),
+		); err != nil {
 			return nil, err
 		}
 	}

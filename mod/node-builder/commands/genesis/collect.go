@@ -33,11 +33,12 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/trie/merkleize"
+	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -80,9 +81,17 @@ func CollectValidatorsCmd() *cobra.Command {
 			}
 
 			beaconState.Validators = validators
-			beaconState.GenesisValidatorsRoot, err = merkleize.VectorSSZ(
-				beaconState.Validators, uint64(len(beaconState.Validators)),
-			)
+
+			beaconState.GenesisValidatorsRoot, err = (&gentypes.ValidatorsMarshaling{
+				Validators: validators,
+			}).HashTreeRoot()
+			if err != nil {
+				return errors.Wrap(
+					err,
+					"failed to calculate genesis validators root",
+				)
+			}
+
 			for _, val := range validators {
 				beaconState.Balances = append(
 					beaconState.Balances,
@@ -90,9 +99,6 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			if err != nil {
-				return errors.Wrap(err, "failed to merkleize validators")
-			}
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
@@ -140,7 +146,10 @@ func CollectValidatorJSONFiles(
 		}
 
 		var bz []byte
-		bz, err = os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
+		bz, err = afero.ReadFile(
+			afero.NewOsFs(),
+			filepath.Join(genTxsDir, fo.Name()),
+		)
 		if err != nil {
 			return nil, err
 		}

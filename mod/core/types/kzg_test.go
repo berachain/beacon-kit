@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/trie"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
@@ -57,10 +58,10 @@ func mockBody() *types.BeaconBlockBodyDeneb {
 	return &types.BeaconBlockBodyDeneb{
 		RandaoReveal:     [96]byte{0x01},
 		ExecutionPayload: executionPayload,
-		BlobKzgCommitments: [][48]byte{
-			[48]byte(bytes.Repeat([]byte("1"), 48)),
-			[48]byte(bytes.Repeat([]byte("2"), 48)),
-			[48]byte(bytes.Repeat([]byte("3"), 48)),
+		BlobKzgCommitments: kzg.Commitments{
+			[48]byte(bytes.Repeat([]byte{0x01}, 48)),
+			[48]byte(bytes.Repeat([]byte{0x10}, 48)),
+			[48]byte(bytes.Repeat([]byte{0x11}, 48)),
 		},
 	}
 }
@@ -194,10 +195,10 @@ func Test_TopLevelRoots(t *testing.T) {
 }
 
 func Test_MerkleProofKZGCommitment(t *testing.T) {
-	kzgs := [][48]byte{
-		[48]byte(bytes.Repeat([]byte("1"), 48)),
-		[48]byte(bytes.Repeat([]byte("2"), 48)),
-		[48]byte(bytes.Repeat([]byte("3"), 48)),
+	kzgs := kzg.Commitments{
+		[48]byte(bytes.Repeat([]byte{0x01}, 48)),
+		[48]byte(bytes.Repeat([]byte{0x10}, 48)),
+		[48]byte(bytes.Repeat([]byte{0x11}, 48)),
 	}
 	body := mockBody()
 

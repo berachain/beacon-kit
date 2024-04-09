@@ -26,8 +26,6 @@
 package params
 
 import (
-	flags "github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -77,6 +75,11 @@ type BeaconChainConfig struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
+	// validator
+	// withdrawals allowed per sweep.
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
+
 	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
 
@@ -85,90 +88,10 @@ type BeaconChainConfig struct {
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
-}
 
-func (c BeaconChainConfig) Parse(
-	parser parser.AppOptionsParser,
-) (*BeaconChainConfig, error) {
-	var err error
-
-	if c.MinDepositAmount, err = parser.GetUint64(
-		flags.MinDepositAmount,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxEffectiveBalance, err = parser.GetUint64(
-		flags.MaxEffectiveBalance,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EffectiveBalanceIncrement, err = parser.GetUint64(
-		flags.EffectiveBalanceIncrement,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.SlotsPerEpoch, err = parser.GetUint64(
-		flags.SlotsPerEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.SlotsPerHistoricalRoot, err = parser.GetUint64(
-		flags.SlotsPerHistoricalRoot,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.DepositContractAddress, err = parser.GetExecutionAddress(
-		flags.DepositContractAddress,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.ElectraForkEpoch, err = parser.GetCurrentEpoch(
-		flags.ElectraForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EpochsPerHistoricalVector, err = parser.GetUint64(
-		flags.EpochsPerHistoricalVector,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EpochsPerSlashingsVector, err = parser.GetUint64(
-		flags.EpochsPerSlashingsVector,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxDepositsPerBlock, err = parser.GetUint64(
-		flags.MaxDepositsPerBlock,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
-		flags.MaxWithdrawalsPerPayload,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxBlobsPerBlock, err = parser.GetUint64(
-		flags.MaxBlobsPerBlock,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.ProportionalSlashingMultiplier, err = parser.GetUint64(
-		flags.ProportionalSlashingMultiplier,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	// Deneb Values
+	//
+	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
+	// will keep the blobs for.
+	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
 }

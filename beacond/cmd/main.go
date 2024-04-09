@@ -34,10 +34,10 @@ func main() {
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
 		WithAppInfo(
 			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:        "beacond",
-				Description: "beacond is a beacon node for any beacon-kit chain",
-				Creator:     app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				Config:      app.Config(),
+				Name:            "beacond",
+				Description:     "beacond is a beacon node for any beacon-kit chain",
+				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
+				DepInjectConfig: app.Config(),
 			},
 		)
 	nb.RunNode()

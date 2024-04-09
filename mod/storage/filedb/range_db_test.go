@@ -31,7 +31,9 @@ import (
 
 	"cosmossdk.io/log"
 	file "github.com/berachain/beacon-kit/mod/storage/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/mocks"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -190,6 +192,33 @@ func TestExtractIndex(t *testing.T) {
 			if tt.expectedErr != nil {
 				require.ErrorContains(t, err, tt.expectedErr.Error())
 			}
+		})
+	}
+}
+
+func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
+	tests := []struct {
+		name string
+		db   *mocks.DB
+	}{
+		{
+			name: "DeleteRangeNotSupported",
+			db:   new(mocks.DB),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
+				Return(errors.New("rangedb: delete range not supported for this db"))
+
+			rdb := file.NewRangeDB(tt.db)
+
+			err := rdb.DeleteRange(1, 4)
+			require.Error(t, err)
+			require.Equal(t,
+				"rangedb: delete range not supported for this db",
+				err.Error())
 		})
 	}
 }

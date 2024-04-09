@@ -32,6 +32,8 @@ import (
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,deposit.go,withdrawal_credentials.go,../../../mod/primitives/kzg,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
@@ -40,10 +42,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex primitives.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot primitives.Root `ssz-size:"32"`
+	ParentBlockRoot primitives.Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.Root `ssz-size:"32"`
+	StateRoot primitives.Root
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
@@ -83,4 +85,20 @@ func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.Root {
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
 func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
 	return b.StateRoot
+}
+
+// GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
+func (b BeaconBlockDeneb) GetHeader() *primitives.BeaconBlockHeader {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil
+	}
+
+	return &primitives.BeaconBlockHeader{
+		Slot:          b.Slot,
+		ProposerIndex: b.ProposerIndex,
+		ParentRoot:    b.ParentBlockRoot,
+		StateRoot:     b.StateRoot,
+		BodyRoot:      bodyRoot,
+	}
 }

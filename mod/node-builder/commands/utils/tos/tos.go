@@ -26,15 +26,16 @@
 package tos
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
 	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/logrusorgru/aurora"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -87,7 +88,12 @@ func VerifyTosAcceptedOrPrompt(
 ) error {
 	homedir := clientCtx.HomeDir
 	tosFilePath := filepath.Join(homedir, acceptTosFilename)
-	if file.Exists(tosFilePath) {
+
+	if exists, err := afero.Exists(
+		afero.NewOsFs(), tosFilePath,
+	); err != nil {
+		return err
+	} else if exists {
 		return nil
 	}
 
@@ -110,8 +116,8 @@ func VerifyTosAcceptedOrPrompt(
 			return nil
 		},
 	}
-	_, err := prompt.AskAndValidate()
-	if err != nil {
+
+	if _, err := prompt.AskAndValidate(); err != nil {
 		if err.Error() == DeclinedErrorString {
 			return err
 		}
@@ -124,19 +130,22 @@ func VerifyTosAcceptedOrPrompt(
 
 // saveTosAccepted creates a file when Tos accepted.
 func saveTosAccepted(dataDir string, cmd *cobra.Command) {
-	dataDirExists, err := file.HasDir(dataDir)
+	fs := afero.NewOsFs()
+	dataDirExists, err := afero.DirExists(fs, dataDir)
 	if err != nil {
 		cmd.PrintErrf("error checking directory: %s\n", dataDir)
 	}
 
 	if !dataDirExists {
-		if err = file.MkdirAll(dataDir); err != nil {
+		if err = fs.MkdirAll(dataDir, os.ModePerm); err != nil {
 			cmd.PrintErrf("error creating directory: %s\n", dataDir)
 		}
 	}
 
-	if err = file.Write(
-		filepath.Join(dataDir, acceptTosFilename), []byte("")); err != nil {
+	if err = afero.WriteFile(
+		fs, filepath.Join(dataDir, acceptTosFilename),
+		[]byte(""), os.ModePerm,
+	); err != nil {
 		cmd.PrintErrf(
 			"error writing %s to file: %s\n",
 			flags.BeaconKitAcceptTos,

@@ -96,15 +96,15 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-
 	beaconCfg := config.MustReadConfigFromAppOpts(appOpts)
-
 	if err := depinject.Inject(
 		depinject.Configs(
 			Config(),
 			depinject.Provide(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
+				bkcomponents.ProvideTrustedSetup,
+				bkcomponents.ProvideJWTSecret,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -113,6 +113,7 @@ func NewBeaconKitApp(
 				logger,
 				// supply the beaconConfig
 				beaconCfg,
+				&(beaconCfg.Beacon),
 			),
 		),
 		&appBuilder,

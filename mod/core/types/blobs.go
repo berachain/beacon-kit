@@ -28,6 +28,7 @@ package types
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,6 +41,8 @@ func BuildBlobSidecar(
 	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*datypes.BlobSidecar, numBlobs)
 	g := errgroup.Group{}
+
+	blkHeader := blk.GetHeader()
 	for i := uint64(0); i < numBlobs; i++ {
 		i := i // capture range variable
 		g.Go(func() error {
@@ -48,13 +51,13 @@ func BuildBlobSidecar(
 			if err != nil {
 				return err
 			}
-
 			sidecars[i] = &datypes.BlobSidecar{
-				Index:          i,
-				Blob:           blobs.Blobs[i],
-				KzgCommitment:  blobs.Commitments[i],
-				KzgProof:       blobs.Proofs[i],
-				InclusionProof: inclusionProof,
+				Index:             i,
+				Blob:              kzg.Blob(blobs.Blobs[i]),
+				KzgCommitment:     kzg.Commitment(blobs.Commitments[i]),
+				KzgProof:          kzg.Proof(blobs.Proofs[i]),
+				BeaconBlockHeader: blkHeader,
+				InclusionProof:    inclusionProof,
 			}
 			return nil
 		})

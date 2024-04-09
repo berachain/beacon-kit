@@ -26,7 +26,7 @@
 //nolint:lll // it's a template file.
 package config
 
-const configTemplate = `
+const Template = `
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
@@ -79,12 +79,19 @@ max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 # MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
 
+# MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals allowed per sweep.
+max-validators-per-withdrawals-sweep = {{.BeaconKit.Beacon.MaxValidatorsPerWithdrawalsSweep}}
+
 # MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
 
 ########### Rewards and Penalties ###########
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
-propotional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
+proportional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
+
+########### Deneb Values ###########
+# MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
+min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
 
 [beacon-kit.builder]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
@@ -123,4 +130,12 @@ jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
 # Required chain id for the execution client.
 required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
+
+[beacon-kit.kzg]
+# Path to the trusted setup path.
+trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
+
+# KZG implementation to use.
+# Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
+implementation = "{{.BeaconKit.KZG.Implementation}}"
 `
