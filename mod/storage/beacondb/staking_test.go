@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb_test
+package beacondb_test
 
 import (
 	"testing"
@@ -33,7 +33,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/bytes"
-	statedb "github.com/berachain/beacon-kit/mod/storage/statedb"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,7 +48,7 @@ func TestDeposits(t *testing.T) {
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 
-	sdb := statedb.New(
+	sdb := beacondb.New(
 		sdkruntime.NewKVStoreService(storeKey),
 	)
 	sdb = sdb.WithContext(ctx)
