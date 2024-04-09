@@ -23,12 +23,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-name: "Release"
+name: release
 
 on:
   pull_request:
     branches:
-      - '*'
+      - 'v*'
 
 jobs:
   build-linux:
@@ -38,7 +38,7 @@ jobs:
         arch: [amd64, arm64]
         targetos: [linux]
 
-    name: beacond ${{ matrix.arch }} for ${{ matrix.targetos }}
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -66,7 +66,7 @@ jobs:
         arch: [arm64]
         targetos: [darwin]
 
-    name: beacond ${{ matrix.arch }} for ${{ matrix.targetos }}
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -113,6 +113,5 @@ jobs:
             build/beacond-linux-arm64/beacond
             build/beacond-linux-amd64/beacond
             build/beacond-darwin-arm64/beacond
-            build/beacond-darwin-amd64/beacond
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
