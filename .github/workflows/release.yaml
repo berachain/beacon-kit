@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: /build/bin
+          path: build/bin
 
   build-mac:
     runs-on: macos-latest
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: /build/bin
+          path: build/bin
 
   draft-release:
     runs-on: ubuntu-latest
