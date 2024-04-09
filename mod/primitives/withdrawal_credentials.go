@@ -23,23 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
-
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+package primitives
 
 // EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
 const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
-type WithdrawalCredentials primitives.Bytes32
+type WithdrawalCredentials Bytes32
 
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
 func NewCredentialsFromExecutionAddress(
-	address primitives.ExecutionAddress,
+	address ExecutionAddress,
 ) WithdrawalCredentials {
 	credentials := WithdrawalCredentials{}
 	credentials[0] = 0x01
@@ -49,11 +45,11 @@ func NewCredentialsFromExecutionAddress(
 
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
 func (wc WithdrawalCredentials) ToExecutionAddress() (
-	primitives.ExecutionAddress,
+	ExecutionAddress,
 	error,
 ) {
 	if wc[0] != EthSecp256k1CredentialPrefix {
-		return primitives.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
+		return ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
-	return primitives.ExecutionAddress(wc[12:]), nil
+	return ExecutionAddress(wc[12:]), nil
 }

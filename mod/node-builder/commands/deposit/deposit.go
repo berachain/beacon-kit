@@ -29,8 +29,6 @@ import (
 	"encoding/hex"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/forks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -106,13 +104,13 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	depositMessage := types.DepositMessage{
+	depositMessage := primitives.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 	}
 
-	forkData := forks.NewForkData(currentVersion, genesisValidatorRoot)
+	forkData := primitives.NewForkData(currentVersion, genesisValidatorRoot)
 
 	return depositMessage.VerifyCreateValidator(
 		forkData,
@@ -136,18 +134,19 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
 func ConvertWithdrawalCredentials(credentials string) (
-	types.WithdrawalCredentials,
+	primitives.WithdrawalCredentials,
 	error,
 ) {
 	// Convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
-		return types.WithdrawalCredentials{}, err
+		return primitives.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return types.WithdrawalCredentials{}, ErrInvalidWithdrawalCredentialsLength
+		return primitives.WithdrawalCredentials{},
+			ErrInvalidWithdrawalCredentialsLength
 	}
-	return types.WithdrawalCredentials(credentialsBytes), nil
+	return primitives.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.

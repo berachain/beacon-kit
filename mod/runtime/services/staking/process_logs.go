@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -78,11 +77,12 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return st.EnqueueDeposits(beacontypes.Deposits{{
-		Index:       d.Index,
-		Pubkey:      primitives.BLSPubkey(d.Pubkey),
-		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
-		Amount:      primitives.Gwei(d.Amount),
-		Signature:   primitives.BLSSignature(d.Signature),
-	}})
+	return st.EnqueueDeposits(
+		primitives.Deposits{primitives.NewDeposit(
+			primitives.BLSPubkey(d.Pubkey),
+			primitives.WithdrawalCredentials(d.Credentials),
+			primitives.Gwei(d.Amount),
+			primitives.BLSSignature(d.Signature),
+			d.Index,
+		)})
 }

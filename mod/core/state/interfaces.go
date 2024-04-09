@@ -107,7 +107,6 @@ type ReadOnlyRandaoMixes interface {
 
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
-	// Add methods here
 	UpdateValidatorAtIndex(
 		primitives.ValidatorIndex,
 		*types.Validator,
@@ -130,14 +129,14 @@ type ReadOnlyValidators interface {
 // WriteOnlyDeposits has write access to deposit queue.
 type WriteOnlyDeposits interface {
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits(types.Deposits) error
-	DequeueDeposits(uint64) (types.Deposits, error)
+	EnqueueDeposits(primitives.Deposits) error
+	DequeueDeposits(uint64) (primitives.Deposits, error)
 }
 
 // ReadOnlyDeposits has read access to deposit queue.
 type ReadOnlyDeposits interface {
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) (types.Deposits, error)
+	ExpectedDeposits(uint64) (primitives.Deposits, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

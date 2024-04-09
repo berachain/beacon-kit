@@ -82,7 +82,7 @@ type KVStore struct {
 	balances sdkcollections.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*beacontypes.Deposit]
+	depositQueue *collections.Queue[*primitives.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
@@ -179,10 +179,10 @@ func New(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*beacontypes.Deposit](
+		depositQueue: collections.NewQueue[*primitives.Deposit](
 			schemaBuilder,
 			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*beacontypes.Deposit]{},
+			encoding.SSZValueCodec[*primitives.Deposit]{},
 		),
 		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,
