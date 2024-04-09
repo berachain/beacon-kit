@@ -75,7 +75,7 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = 3000 * time.Millisecond
 	consensus.TimeoutPrevote = 2000 * time.Millisecond
 	consensus.TimeoutPrecommit = 2000 * time.Millisecond
-	consensus.TimeoutCommit = 6000 * time.Millisecond
+	consensus.TimeoutCommit = 1500 * time.Millisecond
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.DBBackend = "pebbledb"

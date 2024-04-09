@@ -26,6 +26,9 @@
 package beacondb
 
 import (
+	"errors"
+
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -50,7 +53,9 @@ func (kv *KVStore) GetSlashings() ([]uint64, error) {
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
 func (kv *KVStore) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
-	if err != nil {
+	if errors.Is(err, collections.ErrNotFound) {
+		return 0, nil
+	} else if err != nil {
 		return 0, err
 	}
 	return primitives.Gwei(amount), nil
@@ -67,7 +72,9 @@ func (kv *KVStore) SetSlashingAtIndex(
 // TotalSlashing retrieves the total slashing amount from the store.
 func (kv *KVStore) GetTotalSlashing() (primitives.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
-	if err != nil {
+	if errors.Is(err, collections.ErrNotFound) {
+		return 0, nil
+	} else if err != nil {
 		return 0, err
 	}
 	return primitives.Gwei(total), nil
