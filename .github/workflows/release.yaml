@@ -104,7 +104,6 @@ jobs:
         with:
           path: .
 
-
       - name: List files in build
         run: ls -R .
 
@@ -113,11 +112,8 @@ jobs:
         with:
           draft: true
           files: |
-            ./beacond-linux-arm64
-            ./beacond-linux-amd64
-            ./beacond-darwin-arm64
             ./beacond-linux-arm64/beacond-linux-arm64
-            ./beacond-linux-amd64/beacond-linux-arm64
+            ./beacond-linux-amd64/beacond-linux-amd64
             ./beacond-darwin-arm64/beacond-darwin-arm64
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
