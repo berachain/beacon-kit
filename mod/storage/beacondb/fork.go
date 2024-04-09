@@ -23,20 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package forks
+package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
-// Fork as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../primitives -output fork.ssz.go
-//nolint:lll
-type Fork struct {
-	// PreviousVersion is the last version before the fork.
-	PreviousVersion primitives.Version `ssz-size:"32"`
-	// CurrentVersion is the first version after the fork.
-	CurrentVersion primitives.Version `ssz-size:"32"`
-	// Epoch is the epoch at which the fork occurred.
-	Epoch primitives.Epoch
+// SetFork sets the fork version for the given epoch.
+func (kv *KVStore) SetFork(fork *primitives.Fork) error {
+	return kv.fork.Set(kv.ctx, fork)
+}
+
+// GetFork gets the fork version for the given epoch.
+func (kv *KVStore) GetFork() (*primitives.Fork, error) {
+	return kv.fork.Get(kv.ctx)
 }

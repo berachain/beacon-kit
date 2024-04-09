@@ -23,50 +23,50 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *StateDB) UpdateBlockRootAtIndex(
+func (kv *KVStore) UpdateBlockRootAtIndex(
 	index uint64,
 	root primitives.Root,
 ) error {
-	return s.blockRoots.Set(s.ctx, index, root)
+	return kv.blockRoots.Set(kv.ctx, index, root)
 }
 
 // GetBlockRoot retrieves the block root from the BeaconStore.
-func (s *StateDB) GetBlockRootAtIndex(
+func (kv *KVStore) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.Root, error) {
-	return s.blockRoots.Get(s.ctx, index)
+	return kv.blockRoots.Get(kv.ctx, index)
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *StateDB) SetLatestBlockHeader(
+func (kv *KVStore) SetLatestBlockHeader(
 	header *primitives.BeaconBlockHeader,
 ) error {
-	return s.latestBlockHeader.Set(s.ctx, header)
+	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *StateDB) GetLatestBlockHeader() (
+func (kv *KVStore) GetLatestBlockHeader() (
 	*primitives.BeaconBlockHeader, error,
 ) {
-	return s.latestBlockHeader.Get(s.ctx)
+	return kv.latestBlockHeader.Get(kv.ctx)
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
-func (s *StateDB) UpdateStateRootAtIndex(
+func (kv *KVStore) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot primitives.Root,
 ) error {
-	return s.stateRoots.Set(s.ctx, idx, stateRoot)
+	return kv.stateRoots.Set(kv.ctx, idx, stateRoot)
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (s *StateDB) StateRootAtIndex(idx uint64) (primitives.Root, error) {
-	return s.stateRoots.Get(s.ctx, idx)
+func (kv *KVStore) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+	return kv.stateRoots.Get(kv.ctx, idx)
 }

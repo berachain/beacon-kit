@@ -66,4 +66,5 @@ rpc_endpoints:
       - el-full-reth-3:8545
       - el-full-geth-4:8545
       - el-full-erigon-5:8545
-additional_services: []
+additional_services: 
+  - "goomy_blob"

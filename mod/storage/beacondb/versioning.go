@@ -23,30 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (s *StateDB) UpdateEth1BlockHash(
-	hash primitives.ExecutionHash,
+// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
+// state.
+func (kv *KVStore) SetGenesisValidatorsRoot(
+	root primitives.Root,
 ) error {
-	return s.eth1BlockHash.Set(s.ctx, hash)
+	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
 }
 
-// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (s *StateDB) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return s.eth1BlockHash.Get(s.ctx)
+// GetGenesisValidatorsRoot retrieves the genesis validators root from the
+// beacon state.
+func (kv *KVStore) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	return kv.genesisValidatorsRoot.Get(kv.ctx)
 }
 
-// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (s *StateDB) GetEth1DepositIndex() (uint64, error) {
-	return s.eth1DepositIndex.Get(s.ctx)
+// GetSlot returns the current slot.
+func (kv *KVStore) GetSlot() (primitives.Slot, error) {
+	slot, err := kv.slot.Get(kv.ctx)
+	return primitives.Slot(slot), err
 }
 
-// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (s *StateDB) SetEth1DepositIndex(index uint64) error {
-	return s.eth1DepositIndex.Set(s.ctx, index)
+// SetSlot sets the current slot.
+func (kv *KVStore) SetSlot(slot primitives.Slot) error {
+	return kv.slot.Set(kv.ctx, uint64(slot))
 }

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
@@ -31,49 +31,49 @@ import (
 )
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (s *StateDB) GetNextWithdrawalIndex() (uint64, error) {
-	return s.nextWithdrawalIndex.Get(s.ctx)
+func (kv *KVStore) GetNextWithdrawalIndex() (uint64, error) {
+	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (s *StateDB) SetNextWithdrawalIndex(
+func (kv *KVStore) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
-	return s.nextWithdrawalIndex.Set(s.ctx, index)
+	return kv.nextWithdrawalIndex.Set(kv.ctx, index)
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (s *StateDB) GetNextWithdrawalValidatorIndex() (
+func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
 	primitives.ValidatorIndex, error,
 ) {
-	idx, err := s.nextWithdrawalValidatorIndex.Get(s.ctx)
+	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
 	return primitives.ValidatorIndex(idx), err
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (s *StateDB) SetNextWithdrawalValidatorIndex(
+func (kv *KVStore) SetNextWithdrawalValidatorIndex(
 	index primitives.ValidatorIndex,
 ) error {
-	return s.nextWithdrawalValidatorIndex.Set(s.ctx, uint64(index))
+	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
 }
 
 // ExpectedDeposits returns the first numPeek deposits in the queue.
-func (s *StateDB) ExpectedDeposits(
+func (kv *KVStore) ExpectedDeposits(
 	numView uint64,
 ) (beacontypes.Deposits, error) {
-	return s.depositQueue.PeekMulti(s.ctx, numView)
+	return kv.depositQueue.PeekMulti(kv.ctx, numView)
 }
 
 // EnqueueDeposits pushes the deposits to the queue.
-func (s *StateDB) EnqueueDeposits(
+func (kv *KVStore) EnqueueDeposits(
 	deposits beacontypes.Deposits,
 ) error {
-	return s.depositQueue.PushMulti(s.ctx, deposits)
+	return kv.depositQueue.PushMulti(kv.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (s *StateDB) DequeueDeposits(
+func (kv *KVStore) DequeueDeposits(
 	numDequeue uint64,
 ) (beacontypes.Deposits, error) {
-	return s.depositQueue.PopMulti(s.ctx, numDequeue)
+	return kv.depositQueue.PopMulti(kv.ctx, numDequeue)
 }
