@@ -30,7 +30,9 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	types0 "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/forks/version"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
@@ -200,9 +202,14 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 
 // Store is the interface for the beacon store.
 //
-//nolint:funlen // todo fix somehow
+//nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	fork, err := s.GetFork()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -237,15 +244,9 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		stateRoots[i] = stateRoot
 	}
 
-	latestExecutionPayload, err := s.StateDB.GetLatestExecutionPayload()
+	eth1BlockHash, err := s.GetEth1BlockHash()
 	if err != nil {
 		return [32]byte{}, err
-	}
-	payload, ok := latestExecutionPayload.(*types0.ExecutableDataDeneb)
-	if !ok {
-		return [32]byte{}, errors.New(
-			"latest execution payload is not of type ExecutableDataDeneb",
-		)
 	}
 
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
@@ -293,21 +294,27 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	// TODO: handle hardforks.
-	return (&deneb.BeaconState{
-		Slot:                         slot,
-		GenesisValidatorsRoot:        genesisValidatorsRoot,
-		LatestBlockHeader:            latestBlockHeader,
-		BlockRoots:                   blockRoots,
-		StateRoots:                   stateRoots,
-		LatestExecutionPayload:       payload,
-		Eth1DepositIndex:             eth1DepositIndex,
-		Validators:                   validators,
-		Balances:                     balances,
-		RandaoMixes:                  randaoMixes,
-		NextWithdrawalIndex:          nextWithdrawalIndex,
-		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-		Slashings:                    slashings,
-		TotalSlashing:                totalSlashings,
-	}).HashTreeRoot()
+	activeFork := s.cfg.ActiveForkVersionForSlot(slot)
+	switch activeFork {
+	case version.Deneb:
+		return (&deneb.BeaconState{
+			Slot:                         slot,
+			GenesisValidatorsRoot:        genesisValidatorsRoot,
+			Fork:                         fork,
+			LatestBlockHeader:            latestBlockHeader,
+			BlockRoots:                   blockRoots,
+			StateRoots:                   stateRoots,
+			Eth1BlockHash:                eth1BlockHash,
+			Eth1DepositIndex:             eth1DepositIndex,
+			Validators:                   validators,
+			Balances:                     balances,
+			RandaoMixes:                  randaoMixes,
+			NextWithdrawalIndex:          nextWithdrawalIndex,
+			NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
+			Slashings:                    slashings,
+			TotalSlashing:                totalSlashings,
+		}).HashTreeRoot()
+	default:
+		return [32]byte{}, errors.New("unknown fork version")
+	}
 }
