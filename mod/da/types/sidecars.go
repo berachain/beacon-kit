@@ -23,37 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package types
 
-import "github.com/ethereum/go-ethereum/common"
+// SideCars is a slice of blob side cars to be included in the block.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ./sidecar.go,../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecars.ssz.go
+type BlobSidecars struct {
+	// Sidecars is a slice of blob side cars to be included in the block.
+	Sidecars []*BlobSidecar `ssz-max:"6"`
+}
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
-		// Gwei value constants.
-		MinDepositAmount:          uint64(1e9),
-		MaxEffectiveBalance:       uint64(32e9),
-		EffectiveBalanceIncrement: uint64(1e9),
-		// Time parameters constants.
-		SlotsPerEpoch:          8,
-		SlotsPerHistoricalRoot: 1,
-		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
-			"0x00000000219ab540356cbb839cbe05303d7705fa",
-		),
-		// Fork-related values.
-		ElectraForkEpoch: 9999999999999999,
-		// State list length constants.
-		EpochsPerHistoricalVector: 8,
-		EpochsPerSlashingsVector:  1,
-		// Max operations per block constants.
-		MaxDepositsPerBlock:              16,
-		MaxWithdrawalsPerPayload:         16,
-		MaxBlobsPerBlock:                 6,
-		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
-		// Slashing
-		ProportionalSlashingMultiplier: 1,
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: 4096,
+// ValidateBlockRoots checks to make sure that
+// all blobs in the sidecar are from the same block.
+func (bs *BlobSidecars) ValidateBlockRoots() error {
+	// We only need to check if there is more than
+	// a single blob in the sidecar.
+	if sc := bs.Sidecars; len(sc) > 1 {
+		firstHtr, err := sc[0].BeaconBlockHeader.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+
+		var nextHtr [32]byte
+		for i := 1; i < len(sc); i++ {
+			nextHtr, err = sc[i].BeaconBlockHeader.HashTreeRoot()
+			if err != nil {
+				return err
+			}
+			if firstHtr != nextHtr {
+				return ErrSidecarContainsDifferingBlockRoots
+			}
+		}
 	}
+	return nil
 }

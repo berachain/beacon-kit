@@ -45,7 +45,6 @@ func (c BeaconChainConfig) ActiveForkVersionForEpoch(
 		return version.Electra
 	}
 
-	// In BeaconKit we assume the Deneb fork is always active.
 	return version.Deneb
 }
 

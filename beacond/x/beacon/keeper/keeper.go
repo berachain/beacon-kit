@@ -130,6 +130,8 @@ func (k *Keeper) BeaconState(
 // InitGenesis initializes the genesis state of the module.
 //
 // TODO: This whole thing needs to be abstracted into mod/core/state
+//
+//nolint:gocognit,funlen // todo fix.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data state.BeaconStateDeneb,
@@ -145,12 +147,16 @@ func (k *Keeper) InitGenesis(
 		}
 	}
 
-	// Compare this snippet from beacon/keeper/keeper.go:
-	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
-		return nil, err
+	for i, root := range data.StateRoots {
+		if err := st.UpdateStateRootAtIndex(
+			//#nosec:G701 // will not cause a problem.
+			uint64(i), root,
+		); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := st.SetSlot(0); err != nil {
+	if err := st.SetSlot(data.Slot); err != nil {
 		return nil, err
 	}
 
@@ -174,17 +180,27 @@ func (k *Keeper) InitGenesis(
 		return nil, err
 	}
 
+	// Set the genesis block roots.
+	for i, root := range data.BlockRoots {
+		if err := st.UpdateBlockRootAtIndex(
+			//#nosec:G701 // will not cause a problem.
+			uint64(i), root,
+		); err != nil {
+			return nil, err
+		}
+	}
+
 	headerHtr, err := emptyHeader.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the genesis block root.
+	// We set the block root at index 0 to the hash tree root of the genesis
 	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetEth1DepositIndex(0); err != nil {
+	if err = st.SetEth1DepositIndex(data.Eth1DepositIndex); err != nil {
 		return nil, err
 	}
 
@@ -216,10 +232,21 @@ func (k *Keeper) InitGenesis(
 		})
 	}
 
+	if err = store.SetNextWithdrawalIndex(data.NextWithdrawalIndex); err != nil {
+		return nil, err
+	}
+
+	if err = store.SetNextWithdrawalValidatorIndex(
+		data.NextWithdrawalValidatorIndex,
+	); err != nil {
+		return nil, err
+	}
 	// Set the genesis slashing data.
-	for i := range data.Slashings {
+	for i, v := range data.Slashings {
 		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
+		if err = store.UpdateSlashingAtIndex(
+			uint64(i), primitives.Gwei(v),
+		); err != nil {
 			return nil, err
 		}
 	}

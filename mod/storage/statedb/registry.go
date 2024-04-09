@@ -116,6 +116,15 @@ func (s *StateDB) GetValidators() (
 	return vals, nil
 }
 
+// GetTotalValidators returns the total number of validators.
+func (s *StateDB) GetTotalValidators() (uint64, error) {
+	validators, err := s.GetValidators()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(len(validators)), nil
+}
+
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
 func (s *StateDB) GetValidatorsByEffectiveBalance() (
@@ -160,6 +169,14 @@ func (s *StateDB) IncreaseBalance(
 	}
 	balance += uint64(delta)
 	return s.balances.Set(s.ctx, uint64(idx), balance)
+}
+
+// GetBalance returns the balance of a validator.
+func (s *StateDB) GetBalance(
+	idx primitives.ValidatorIndex,
+) (primitives.Gwei, error) {
+	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	return primitives.Gwei(balance), err
 }
 
 // DecreaseBalance decreases the balance of a validator.

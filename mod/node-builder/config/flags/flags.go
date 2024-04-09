@@ -25,33 +25,10 @@
 
 package flags
 
-//nolint:lll
 const (
 	// Beacon Kit Root Flag.
-	beaconKitRoot = "beacon-kit."
-
-	// ABCI Config.
-	abciRoot                  = beaconKitRoot + "abci."
-	BeaconBlockPosition       = abciRoot + "beacon-block-proposal-position"
-	BlobSidecarsBlockPosition = abciRoot + "blob-sidecars-block-proposal-position"
-
-	// Beacon Config.
-	BeaconKitAcceptTos               = beaconKitRoot + "accept-tos"
-	beaconChainRoot                  = beaconKitRoot + "beacon-chain."
-	MinDepositAmount                 = beaconChainRoot + "min-deposit-amount"
-	MaxEffectiveBalance              = beaconChainRoot + "max-effective-balance"
-	EffectiveBalanceIncrement        = beaconChainRoot + "effective-balance-increment"
-	SlotsPerEpoch                    = beaconChainRoot + "slots-per-epoch"
-	SlotsPerHistoricalRoot           = beaconChainRoot + "slots-per-historical-root"
-	DepositContractAddress           = beaconChainRoot + "deposit-contract-address"
-	ElectraForkEpoch                 = beaconChainRoot + "electra-fork-epoch"
-	EpochsPerHistoricalVector        = beaconChainRoot + "epochs-per-historical-vector"
-	EpochsPerSlashingsVector         = beaconChainRoot + "epochs-per-slashings-vector"
-	MaxDepositsPerBlock              = beaconChainRoot + "max-deposits-per-block"
-	MaxWithdrawalsPerPayload         = beaconChainRoot + "max-withdrawals-per-payload"
-	MaxBlobsPerBlock                 = beaconChainRoot + "max-blobs-per-block"
-	ProportionalSlashingMultiplier   = beaconChainRoot + "proportional-slashing-multiplier"
-	MinEpochsForBlobsSidecarsRequest = beaconChainRoot + "min-epochs-for-blobs-sidecars-request"
+	beaconKitRoot      = "beacon-kit."
+	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Builder Config.
 	builderRoot              = beaconKitRoot + "builder."

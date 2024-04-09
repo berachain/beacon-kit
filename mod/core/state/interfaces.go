@@ -59,6 +59,9 @@ type ReadOnlyBeaconState interface {
 	GetValidators() ([]*types.Validator, error)
 	GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetTotalSlashing() (primitives.Gwei, error)
+	GetNextWithdrawalIndex() (uint64, error)
+	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
+	GetTotalValidators() (uint64, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -74,6 +77,8 @@ type WriteOnlyBeaconState interface {
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
+	SetNextWithdrawalIndex(uint64) error
+	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -137,5 +142,5 @@ type ReadOnlyDeposits interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals(uint64) ([]*primitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
 }

@@ -16,11 +16,9 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the Deposit object to a target array
 func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(56)
 
-	// Offset (0) 'Pubkey'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(d.Pubkey)
+	// Field (0) 'Pubkey'
+	dst = append(dst, d.Pubkey[:]...)
 
 	// Field (1) 'Credentials'
 	dst = append(dst, d.Credentials[:]...)
@@ -28,17 +26,11 @@ func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Field (2) 'Amount'
 	dst = ssz.MarshalUint64(dst, uint64(d.Amount))
 
-	// Offset (3) 'Signature'
-	dst = ssz.WriteOffset(dst, offset)
+	// Field (3) 'Signature'
+	dst = append(dst, d.Signature[:]...)
 
 	// Field (4) 'Index'
 	dst = ssz.MarshalUint64(dst, d.Index)
-
-	// Field (0) 'Pubkey'
-	dst = append(dst, d.Pubkey[:]...)
-
-	// Field (3) 'Signature'
-	dst = append(dst, d.Signature[:]...)
 
 	return
 }
@@ -47,60 +39,31 @@ func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 56 {
+	if size != 192 {
 		return ssz.ErrSize
 	}
 
-	tail := buf
-	var o0, o3 uint64
-
-	// Offset (0) 'Pubkey'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 56 {
-		return ssz.ErrInvalidVariableOffset
-	}
+	// Field (0) 'Pubkey'
+	copy(d.Pubkey[:], buf[0:48])
 
 	// Field (1) 'Credentials'
-	copy(d.Credentials[:], buf[4:36])
+	copy(d.Credentials[:], buf[48:80])
 
 	// Field (2) 'Amount'
-	d.Amount = primitives.Gwei(ssz.UnmarshallUint64(buf[36:44]))
-
-	// Offset (3) 'Signature'
-	if o3 = ssz.ReadOffset(buf[44:48]); o3 > size || o0 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Field (4) 'Index'
-	d.Index = ssz.UnmarshallUint64(buf[48:56])
-
-	// Field (0) 'Pubkey'
-	{
-		buf = tail[o0:o3]
-		copy(d.Pubkey[:], buf)
-	}
+	d.Amount = primitives.Gwei(ssz.UnmarshallUint64(buf[80:88]))
 
 	// Field (3) 'Signature'
-	{
-		buf = tail[o3:]
-		copy(d.Signature[:], buf)
-	}
+	copy(d.Signature[:], buf[88:184])
+
+	// Field (4) 'Index'
+	d.Index = ssz.UnmarshallUint64(buf[184:192])
+
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the Deposit object
 func (d *Deposit) SizeSSZ() (size int) {
-	size = 56
-
-	// Field (0) 'Pubkey'
-	size += len(d.Pubkey)
-
-	// Field (3) 'Signature'
-	size += len(d.Signature)
-
+	size = 192
 	return
 }
 
@@ -114,16 +77,7 @@ func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(d.Pubkey[:]))
-		if byteLen > 48 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.Append(d.Pubkey[:])
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (48+31)/32)
-	}
+	hh.PutBytes(d.Pubkey[:])
 
 	// Field (1) 'Credentials'
 	hh.PutBytes(d.Credentials[:])
@@ -132,16 +86,7 @@ func (d *Deposit) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(d.Amount))
 
 	// Field (3) 'Signature'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(d.Signature[:]))
-		if byteLen > 96 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.Append(d.Signature[:])
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (96+31)/32)
-	}
+	hh.PutBytes(d.Signature[:])
 
 	// Field (4) 'Index'
 	hh.PutUint64(d.Index)
@@ -163,19 +108,15 @@ func (d *DepositMessage) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the DepositMessage object to a target array
 func (d *DepositMessage) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(44)
 
-	// Offset (0) 'Pubkey'
-	dst = ssz.WriteOffset(dst, offset)
+	// Field (0) 'Pubkey'
+	dst = append(dst, d.Pubkey[:]...)
 
 	// Field (1) 'Credentials'
 	dst = append(dst, d.Credentials[:]...)
 
 	// Field (2) 'Amount'
 	dst = ssz.MarshalUint64(dst, uint64(d.Amount))
-
-	// Field (0) 'Pubkey'
-	dst = append(dst, d.Pubkey[:]...)
 
 	return
 }
@@ -184,43 +125,25 @@ func (d *DepositMessage) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 44 {
+	if size != 88 {
 		return ssz.ErrSize
 	}
 
-	tail := buf
-	var o0 uint64
-
-	// Offset (0) 'Pubkey'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 44 {
-		return ssz.ErrInvalidVariableOffset
-	}
+	// Field (0) 'Pubkey'
+	copy(d.Pubkey[:], buf[0:48])
 
 	// Field (1) 'Credentials'
-	copy(d.Credentials[:], buf[4:36])
+	copy(d.Credentials[:], buf[48:80])
 
 	// Field (2) 'Amount'
-	d.Amount = primitives.Gwei(ssz.UnmarshallUint64(buf[36:44]))
+	d.Amount = primitives.Gwei(ssz.UnmarshallUint64(buf[80:88]))
 
-	// Field (0) 'Pubkey'
-	{
-		buf = tail[o0:]
-		copy(d.Pubkey[:], buf)
-	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the DepositMessage object
 func (d *DepositMessage) SizeSSZ() (size int) {
-	size = 44
-
-	// Field (0) 'Pubkey'
-	size += len(d.Pubkey)
-
+	size = 88
 	return
 }
 
@@ -234,16 +157,7 @@ func (d *DepositMessage) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(d.Pubkey[:]))
-		if byteLen > 48 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.Append(d.Pubkey[:])
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (48+31)/32)
-	}
+	hh.PutBytes(d.Pubkey[:])
 
 	// Field (1) 'Credentials'
 	hh.PutBytes(d.Credentials[:])
