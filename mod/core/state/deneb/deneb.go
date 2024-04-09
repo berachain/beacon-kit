@@ -23,11 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package state
+package deneb
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
-	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
@@ -35,14 +34,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// DefaultBeaconStateDeneb returns a default BeaconStateDeneb.
+// DefaultBeaconState returns a default BeaconState.
 //
 // TODO: take in BeaconConfig params to determine the
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
-func DefaultBeaconStateDeneb() *BeaconStateDeneb {
+func DefaultBeaconState() *BeaconState {
 	//nolint:gomnd // default allocs.
-	return &BeaconStateDeneb{
+	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		Fork: &primitives.Fork{
@@ -59,59 +58,27 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 		},
 		BlockRoots: make([][32]byte, 8),
 		StateRoots: make([][32]byte, 8),
-		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
-		Eth1DepositIndex:       0,
-		Validators:             make([]*types.Validator, 0),
-		Balances:               make([]uint64, 0),
+		Eth1BlockHash: common.HexToHash(
+			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
+		),
+		Eth1DepositIndex:             0,
+		Validators:                   make([]*types.Validator, 0),
+		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
-		RandaoMixes:            make([][32]byte, 8),
-		Slashings:              make([]uint64, 1),
-		TotalSlashing:          0,
-	}
-}
-
-// DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
-//
-//nolint:gomnd // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
-	baseFeePerGas := hexutil.MustDecode("0xca9a3b")
-	return &types0.ExecutableDataDeneb{
-		ParentHash:   primitives.ExecutionHash{},
-		FeeRecipient: primitives.ExecutionAddress{},
-		StateRoot: common.HexToHash(
-			"0xbbc1cb21b367c2d3cbb3fd58dafdbc4bd827ea097d72a42a2ab2da71e3d0cf64",
-		),
-		ReceiptsRoot: common.HexToHash(
-			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-		),
-		LogsBloom: make([]byte, 256),
-		Random:    primitives.ExecutionHash{},
-		Number:    0,
-		GasLimit:  hexutil.MustDecodeUint64("0x1c9c380"),
-		GasUsed:   0,
-		Timestamp: 0,
-		ExtraData: make([]byte, 32),
-		BaseFeePerGas: append(
-			baseFeePerGas,
-			make([]byte, 32-len(baseFeePerGas))...),
-		BlockHash: common.HexToHash(
-			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
-		),
-		Transactions:  [][]byte{},
-		Withdrawals:   []*primitives.Withdrawal{},
-		BlobGasUsed:   0,
-		ExcessBlobGas: 0,
+		RandaoMixes:                  make([][32]byte, 8),
+		Slashings:                    make([]uint64, 0),
+		TotalSlashing:                0,
 	}
 }
 
 // TODO: should we replace ? in ssz-size with values to ensure we are hash tree
 // rooting correctly?
 //
-//go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconStateDeneb -include ../types,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/fjl/gencodec -type BeaconState -field-override BeaconStateJSONMarshaling -out deneb.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
-type BeaconStateDeneb struct {
+type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
@@ -125,8 +92,8 @@ type BeaconStateDeneb struct {
 	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
+	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
+	Eth1DepositIndex uint64                   `json:"eth1DepositIndex"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
@@ -144,17 +111,16 @@ type BeaconStateDeneb struct {
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
 }
 
-// String returns a string representation of BeaconStateDeneb.
-func (b *BeaconStateDeneb) String() string {
+// String returns a string representation of BeaconState.
+func (b *BeaconState) String() string {
 	return spew.Sdump(b)
 }
 
-// beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
-// BeaconStateDeneb.
-type beaconStateDenebJSONMarshaling struct {
-	GenesisValidatorsRoot  hexutil.Bytes
-	LatestExecutionPayload *types0.ExecutableDataDeneb
-	BlockRoots             []primitives.Root
-	StateRoots             []primitives.Root
-	RandaoMixes            []primitives.Root
+// BeaconStateJSONMarshaling is a type used to marshal/unmarshal
+// BeaconState.
+type BeaconStateJSONMarshaling struct {
+	GenesisValidatorsRoot hexutil.Bytes
+	BlockRoots            []primitives.Root
+	StateRoots            []primitives.Root
+	RandaoMixes           []primitives.Root
 }

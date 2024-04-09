@@ -29,6 +29,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
@@ -293,7 +294,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	}
 
 	// TODO: handle hardforks.
-	return (&BeaconStateDeneb{
+	return (&deneb.BeaconState{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        genesisValidatorsRoot,
 		LatestBlockHeader:            latestBlockHeader,
