@@ -102,18 +102,18 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
-          path: build/
+          path: build/bin/
 
       - name: List files in build
-        run: ls -R build/
+        run: ls -R build/bin/
 
       - name: Draft Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           files: |
-            beacond-linux-arm64
-            beacond-linux-amd64
-            beacond-darwin-arm64
+            build/bin/beacond-linux-arm64
+            build/bin/beacond-linux-amd64
+            build/bin/beacond-darwin-arm64
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
