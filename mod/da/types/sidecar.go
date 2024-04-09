@@ -30,43 +30,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// SideCars is a slice of blob side cars to be included in the block.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BlobSidecar,BlobSidecars -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar `ssz-max:"6"`
-}
-
-// ValidateBlockRoots checks to make sure that
-// all blobs in the sidecar are from the same block.
-func (bs *BlobSidecars) ValidateBlockRoots() error {
-	// We only need to check if there is more than
-	// a single blob in the sidecar.
-	if sc := bs.Sidecars; len(sc) > 1 {
-		firstHtr, err := sc[0].BeaconBlockHeader.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
-		var nextHtr [32]byte
-		for i := 1; i < len(sc); i++ {
-			nextHtr, err = sc[i].BeaconBlockHeader.HashTreeRoot()
-			if err != nil {
-				return err
-			}
-			if firstHtr != nextHtr {
-				return ErrSidecarContainsDifferingBlockRoots
-			}
-		}
-	}
-	return nil
-}
-
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
 //nolint:lll
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
