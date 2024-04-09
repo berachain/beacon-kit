@@ -35,7 +35,7 @@ import (
 type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
-	AdditionalServices []interface{} `json:"additional_services"`
+	AdditionalServices []any `json:"additional_services"`
 	// Validators lists the configurations for each validator in the test.
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
@@ -71,7 +71,7 @@ type Node struct {
 
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []interface{}{},
+		AdditionalServices: []any{},
 		Validators: []Node{
 			{
 				ElType:   "nethermind",
