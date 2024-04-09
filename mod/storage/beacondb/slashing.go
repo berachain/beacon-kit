@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"errors"
 
-	sdkcollections "cosmossdk.io/collections"
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func (s *StateDB) GetSlashings() ([]uint64, error) {
+func (kv *KVStore) GetSlashings() ([]uint64, error) {
 	var slashings []uint64
-	iter, err := s.slashings.Iterate(s.ctx, nil)
+	iter, err := kv.slashings.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50,55 +50,37 @@ func (s *StateDB) GetSlashings() ([]uint64, error) {
 	return slashings, nil
 }
 
-// UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(
-	index uint64,
-	amount primitives.Gwei,
-) error {
-	// Update the total slashing amount before overwriting the old amount.
-	total, err := s.totalSlashing.Get(s.ctx)
-	if !errors.Is(err, sdkcollections.ErrNotFound) && err != nil {
-		return err
-	}
-
-	oldValue, err := s.GetSlashingAtIndex(index)
-	if !errors.Is(err, sdkcollections.ErrNotFound) && err != nil {
-		return err
-	}
-
-	// Defensive check but total - oldValue should never underflow.
-	if uint64(oldValue) > total {
-		return errors.New("count of total slashing is not up to date")
-	}
-	if err = s.totalSlashing.Set(
-		s.ctx,
-		total-uint64(oldValue)+uint64(amount),
-	); err != nil {
-		return err
-	}
-
-	return s.slashings.Set(s.ctx, index, uint64(amount))
-}
-
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
-func (s *StateDB) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
-	amount, err := s.slashings.Get(s.ctx, index)
-	if err != nil {
+func (kv *KVStore) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
+	amount, err := kv.slashings.Get(kv.ctx, index)
+	if errors.Is(err, collections.ErrNotFound) {
+		return 0, nil
+	} else if err != nil {
 		return 0, err
 	}
 	return primitives.Gwei(amount), nil
 }
 
+// SetSlashingAtIndex sets the slashing amount in the store.
+func (kv *KVStore) SetSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
+	return kv.slashings.Set(kv.ctx, index, uint64(amount))
+}
+
 // TotalSlashing retrieves the total slashing amount from the store.
-func (s *StateDB) GetTotalSlashing() (primitives.Gwei, error) {
-	total, err := s.totalSlashing.Get(s.ctx)
-	if err != nil {
+func (kv *KVStore) GetTotalSlashing() (primitives.Gwei, error) {
+	total, err := kv.totalSlashing.Get(kv.ctx)
+	if errors.Is(err, collections.ErrNotFound) {
+		return 0, nil
+	} else if err != nil {
 		return 0, err
 	}
 	return primitives.Gwei(total), nil
 }
 
 // SetTotalSlashing sets the total slashing amount in the store.
-func (s *StateDB) SetTotalSlashing(amount primitives.Gwei) error {
-	return s.totalSlashing.Set(s.ctx, uint64(amount))
+func (kv *KVStore) SetTotalSlashing(amount primitives.Gwei) error {
+	return kv.totalSlashing.Set(kv.ctx, uint64(amount))
 }

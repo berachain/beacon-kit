@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package beacondb
 
 import (
 	"cosmossdk.io/collections/indexes"
@@ -32,45 +32,45 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (s *StateDB) AddValidator(
+func (kv *KVStore) AddValidator(
 	val *beacontypes.Validator,
 ) error {
 	// Get the ne
-	idx, err := s.validatorIndex.Next(s.ctx)
+	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
 		return err
 	}
 
 	// Push onto the validators list.
-	if err = s.validators.Set(s.ctx, idx, val); err != nil {
+	if err = kv.validators.Set(kv.ctx, idx, val); err != nil {
 		return err
 	}
 
 	// Push onto the balances list.
-	return s.balances.Set(s.ctx, idx, uint64(val.EffectiveBalance))
+	return kv.balances.Set(kv.ctx, idx, uint64(val.EffectiveBalance))
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *StateDB) UpdateValidatorAtIndex(
+func (kv *KVStore) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
 	val *beacontypes.Validator,
 ) error {
-	return s.validators.Set(s.ctx, uint64(index), val)
+	return kv.validators.Set(kv.ctx, uint64(index), val)
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *StateDB) RemoveValidatorAtIndex(
+func (kv *KVStore) RemoveValidatorAtIndex(
 	idx primitives.ValidatorIndex,
 ) error {
-	return s.validators.Remove(s.ctx, uint64(idx))
+	return kv.validators.Remove(kv.ctx, uint64(idx))
 }
 
 // ValidatorPubKeyByIndex returns the validator address by index.
-func (s *StateDB) ValidatorIndexByPubkey(
+func (kv *KVStore) ValidatorIndexByPubkey(
 	pubkey primitives.BLSPubkey,
 ) (primitives.ValidatorIndex, error) {
-	idx, err := s.validators.Indexes.Pubkey.MatchExact(
-		s.ctx,
+	idx, err := kv.validators.Indexes.Pubkey.MatchExact(
+		kv.ctx,
 		pubkey[:],
 	)
 	if err != nil {
@@ -80,10 +80,10 @@ func (s *StateDB) ValidatorIndexByPubkey(
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (s *StateDB) ValidatorByIndex(
+func (kv *KVStore) ValidatorByIndex(
 	index primitives.ValidatorIndex,
 ) (*beacontypes.Validator, error) {
-	val, err := s.validators.Get(s.ctx, uint64(index))
+	val, err := kv.validators.Get(kv.ctx, uint64(index))
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (s *StateDB) ValidatorByIndex(
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (s *StateDB) GetValidators() (
+func (kv *KVStore) GetValidators() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -99,7 +99,7 @@ func (s *StateDB) GetValidators() (
 		val  *beacontypes.Validator
 	)
 
-	iter, err := s.validators.Iterate(s.ctx, nil)
+	iter, err := kv.validators.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +117,8 @@ func (s *StateDB) GetValidators() (
 }
 
 // GetTotalValidators returns the total number of validators.
-func (s *StateDB) GetTotalValidators() (uint64, error) {
-	validators, err := s.GetValidators()
+func (kv *KVStore) GetTotalValidators() (uint64, error) {
+	validators, err := kv.GetValidators()
 	if err != nil {
 		return 0, err
 	}
@@ -127,7 +127,7 @@ func (s *StateDB) GetTotalValidators() (uint64, error) {
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *StateDB) GetValidatorsByEffectiveBalance() (
+func (kv *KVStore) GetValidatorsByEffectiveBalance() (
 	[]*beacontypes.Validator, error,
 ) {
 	var (
@@ -136,8 +136,8 @@ func (s *StateDB) GetValidatorsByEffectiveBalance() (
 		idx  uint64
 	)
 
-	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
-		s.ctx,
+	iter, err := kv.validators.Indexes.EffectiveBalance.Iterate(
+		kv.ctx,
 		nil,
 	)
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *StateDB) GetValidatorsByEffectiveBalance() (
 		if err != nil {
 			return nil, err
 		}
-		if v, err = s.validators.Get(s.ctx, idx); err != nil {
+		if v, err = kv.validators.Get(kv.ctx, idx); err != nil {
 			return nil, err
 		}
 		vals = append(vals, v)
@@ -158,44 +158,26 @@ func (s *StateDB) GetValidatorsByEffectiveBalance() (
 	return vals, nil
 }
 
-// IncreaseBalance increases the balance of a validator.
-func (s *StateDB) IncreaseBalance(
-	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
-) error {
-	balance, err := s.balances.Get(s.ctx, uint64(idx))
-	if err != nil {
-		return err
-	}
-	balance += uint64(delta)
-	return s.balances.Set(s.ctx, uint64(idx), balance)
-}
-
 // GetBalance returns the balance of a validator.
-func (s *StateDB) GetBalance(
+func (kv *KVStore) GetBalance(
 	idx primitives.ValidatorIndex,
 ) (primitives.Gwei, error) {
-	balance, err := s.balances.Get(s.ctx, uint64(idx))
+	balance, err := kv.balances.Get(kv.ctx, uint64(idx))
 	return primitives.Gwei(balance), err
 }
 
-// DecreaseBalance decreases the balance of a validator.
-func (s *StateDB) DecreaseBalance(
+// SetBalance sets the balance of a validator.
+func (kv *KVStore) SetBalance(
 	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
+	balance primitives.Gwei,
 ) error {
-	balance, err := s.balances.Get(s.ctx, uint64(idx))
-	if err != nil {
-		return err
-	}
-	balance -= min(balance, uint64(delta))
-	return s.balances.Set(s.ctx, uint64(idx), balance)
+	return kv.balances.Set(kv.ctx, uint64(idx), uint64(balance))
 }
 
 // GetBalances returns the balancse of all validator.
-func (s *StateDB) GetBalances() ([]uint64, error) {
+func (kv *KVStore) GetBalances() ([]uint64, error) {
 	var balances []uint64
-	iter, err := s.balances.Iterate(s.ctx, nil)
+	iter, err := kv.balances.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -212,17 +194,18 @@ func (s *StateDB) GetBalances() ([]uint64, error) {
 	return balances, nil
 }
 
-// GetTotalActiveBalances returns the total active balances of all validators.
-// TODO: unhood this and probably store this as just a value changed on writes.
-func (s *StateDB) GetTotalActiveBalances(
+// GetTotalActiveBalances returns the total active balances of all validatorkv.
+// TODO: unhood this and probably store this as just a value changed on writekv.
+// TODO: this shouldn't live in KVStore
+func (kv *KVStore) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (primitives.Gwei, error) {
-	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(s.ctx, nil)
+	iter, err := kv.validators.Indexes.EffectiveBalance.Iterate(kv.ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 
-	slot, err := s.slot.Get(s.ctx)
+	slot, err := kv.slot.Get(kv.ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -230,7 +213,7 @@ func (s *StateDB) GetTotalActiveBalances(
 	totalActiveBalances := primitives.Gwei(0)
 	epoch := primitives.Epoch(slot / slotsPerEpoch)
 	return totalActiveBalances, indexes.ScanValues(
-		s.ctx, s.validators, iter, func(v *beacontypes.Validator,
+		kv.ctx, kv.validators, iter, func(v *beacontypes.Validator,
 		) bool {
 			if v.IsActive(epoch) {
 				totalActiveBalances += v.EffectiveBalance

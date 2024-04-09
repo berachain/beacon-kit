@@ -23,23 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package statedb
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
 )
 
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *StateDB) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix primitives.Bytes32,
-) error {
-	return s.randaoMix.Set(s.ctx, index, mix)
+// Fork as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ./primitives.go,./bytes.go -output fork.ssz.go
+//nolint:lll
+type Fork struct {
+	// PreviousVersion is the last version before the fork.
+	PreviousVersion Version
+	// CurrentVersion is the first version after the fork.
+	CurrentVersion Version
+	// Epoch is the epoch at which the fork occurred.
+	Epoch Epoch
 }
 
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *StateDB) GetRandaoMixAtIndex(
-	index uint64,
-) (primitives.Bytes32, error) {
-	return s.randaoMix.Get(s.ctx, index)
+// String returns a string representation of the fork.
+func (f *Fork) String() string {
+	return spew.Sdump(f)
 }

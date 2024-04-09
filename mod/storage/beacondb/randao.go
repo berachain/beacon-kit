@@ -23,50 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package beacondb
 
 import (
-	"context"
-	"encoding/json"
-
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// DefaultGenesis returns default genesis state as raw bytes
-// for the beacon module.
-func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(state.DefaultBeaconStateDeneb())
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-// ValidateGenesis performs genesis state validation for the evm module.
-func (AppModule) ValidateGenesis(
-	_ json.RawMessage,
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (kv *KVStore) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix primitives.Bytes32,
 ) error {
-	// TODO: implement.
-	return nil
+	return kv.randaoMix.Set(kv.ctx, index, mix)
 }
 
-// InitGenesis performs genesis initialization for the beacon module.
-func (am AppModule) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	var gs state.BeaconStateDeneb
-	if err := json.Unmarshal(bz, &gs); err != nil {
-		return nil, err
-	}
-	return am.keeper.InitGenesis(ctx, &gs)
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
-func (am AppModule) ExportGenesis(
-	ctx context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (kv *KVStore) GetRandaoMixAtIndex(
+	index uint64,
+) (primitives.Bytes32, error) {
+	return kv.randaoMix.Get(kv.ctx, index)
 }

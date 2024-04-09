@@ -26,40 +26,95 @@
 package state
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/statedb"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
-// beaconState is a wrapper around the state db that implements the BeaconState
-// interface.
-type beaconState struct {
-	*statedb.StateDB
+// StateDB is the underlying struct behind the BeaconState interface.
+//
+//nolint:revive // todo fix somehow
+type StateDB struct {
+	*beacondb.KVStore
 	cfg *params.BeaconChainConfig
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
-	sdb *statedb.StateDB,
+	bdb *beacondb.KVStore,
 	cfg *params.BeaconChainConfig,
-) BeaconState {
-	return &beaconState{
-		StateDB: sdb,
+) *StateDB {
+	return &StateDB{
+		KVStore: bdb,
 		cfg:     cfg,
 	}
 }
 
 // Copy returns a copy of the beacon state.
-func (s *beaconState) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.StateDB.Copy(), s.cfg)
+func (s *StateDB) Copy() BeaconState {
+	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cfg)
+}
+
+// IncreaseBalance increases the balance of a validator.
+func (s *StateDB) IncreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	return s.SetBalance(idx, balance+delta)
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (s *StateDB) DecreaseBalance(
+	idx primitives.ValidatorIndex,
+	delta primitives.Gwei,
+) error {
+	balance, err := s.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	return s.SetBalance(idx, balance-min(balance, delta))
+}
+
+// UpdateSlashingAtIndex sets the slashing amount in the store.
+func (s *StateDB) UpdateSlashingAtIndex(
+	index uint64,
+	amount primitives.Gwei,
+) error {
+	// Update the total slashing amount before overwriting the old amount.
+	total, err := s.GetTotalSlashing()
+	if err != nil {
+		return err
+	}
+
+	oldValue, err := s.GetSlashingAtIndex(index)
+	if err != nil {
+		return err
+	}
+
+	// Defensive check but total - oldValue should never underflow.
+	if oldValue > total {
+		return errors.New("count of total slashing is not up to date")
+	} else if err = s.SetTotalSlashing(
+		total - oldValue + amount,
+	); err != nil {
+		return err
+	}
+
+	return s.SetSlashingAtIndex(index, amount)
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           primitives.Gwei
@@ -146,7 +201,7 @@ func (s *beaconState) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 // Store is the interface for the beacon store.
 //
 //nolint:funlen // todo fix somehow
-func (s *beaconState) HashTreeRoot() ([32]byte, error) {
+func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
