@@ -1,9 +1,11 @@
 package cosmos
 
 import (
-	"github.com/berachain/beacon-kit/mod/api/beaconnode"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"strconv"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
+	"github.com/berachain/beacon-kit/mod/api/beaconnode"
 )
 
 func (c ChainQuerier) GetStateRandao(params beaconnode.GetStateRandaoParams) beaconnode.GetStateRandaoRes {
