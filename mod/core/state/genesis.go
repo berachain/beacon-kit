@@ -66,7 +66,7 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		}
 	}
 
-	if err := s.UpdateEth1BlockHash(st.Eth1BlockHash); err != nil {
+	if err := s.SetEth1Data(st.Eth1Data); err != nil {
 		return err
 	}
 

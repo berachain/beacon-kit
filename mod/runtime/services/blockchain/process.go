@@ -33,6 +33,8 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -170,7 +172,8 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	prevEth1Block, err := st.GetEth1BlockHash()
+	// Retrieve the old eth1 data.
+	eth1data, err := st.GetEth1Data()
 	if err != nil {
 		return err
 	}
@@ -179,14 +182,27 @@ func (s *Service) PostBlockProcess(
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
 		st,
-		prevEth1Block,
+		eth1data.BlockHash,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
-	payloadBlockHash := payload.GetBlockHash()
-	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+	// Calculate the new eth1 data.
+	deposits := body.GetDeposits()
+	depositLength := uint64(len(deposits))
+	depositRoot, err := merkleize.VectorSSZ(deposits, depositLength)
+	if err != nil {
+		return err
+	}
+	newEth1Data := &primitives.Eth1Data{
+		BlockHash:    payload.GetBlockHash(),
+		DepositRoot:  depositRoot,
+		DepositCount: depositLength + eth1data.DepositCount,
+	}
+
+	// Set the new eth1 data.
+	if err = st.SetEth1Data(newEth1Data); err != nil {
 		return err
 	}
 

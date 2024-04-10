@@ -62,10 +62,11 @@ func (pv *PayloadValidator) ValidatePayload(
 
 	// TODO: convert to:
 	// state.latest_execution_payload_header.block_hash
-	safeHash, err := st.GetEth1BlockHash()
+	eth1Data, err := st.GetEth1Data()
 	if err != nil {
 		return err
 	}
+	safeHash := eth1Data.BlockHash
 
 	if safeHash != payload.GetParentHash() {
 		return fmt.Errorf(

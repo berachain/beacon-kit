@@ -244,7 +244,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		stateRoots[i] = stateRoot
 	}
 
-	eth1BlockHash, err := s.GetEth1BlockHash()
+	eth1Data, err := s.GetEth1Data()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -304,7 +304,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			Eth1BlockHash:                eth1BlockHash,
+			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,
 			Balances:                     balances,
