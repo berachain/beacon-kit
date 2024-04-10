@@ -23,8 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// package tree defines utilities for sparse merkle tries for Ethereum
-// consensus.
 package tree
 
 import (
@@ -39,7 +37,7 @@ import (
 
 const (
 	// 2^63 would overflow.
-	MaxTrieDepth = 62
+	MaxDepth = 62
 )
 
 // SparseMerkleTree implements a sparse, general purpose Merkle tree
@@ -58,7 +56,7 @@ func NewFromItems(items [][]byte, depth uint64) (*SparseMerkleTree, error) {
 		return nil, ErrEmptyItems
 	case depth == 0:
 		return nil, ErrZeroDepth
-	case depth > MaxTrieDepth:
+	case depth > MaxDepth:
 		return nil, ErrExceededDepth
 	}
 
@@ -109,7 +107,6 @@ func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 	numItems := uint64(len(m.originalItems))
 	if len(m.originalItems) == 1 &&
 		bytes.Equal(m.originalItems[0], tree.ZeroHashes[0][:]) {
-		// Accounting for empty tries
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)

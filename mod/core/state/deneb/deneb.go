@@ -97,7 +97,7 @@ type BeaconState struct {
 	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash" ssz-size:"32"`
+	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
 	Eth1Data         *primitives.Eth1Data     `json:"eth1Data"`
 	Eth1DepositIndex uint64                   `json:"eth1DepositIndex"`
 

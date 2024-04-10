@@ -54,17 +54,17 @@ func TestNewFromItems_DepthSupport(t *testing.T) {
 		[]byte("GGGGGGG"),
 	}
 	// Supported depth
-	m1, err := tree.NewFromItems(items, tree.MaxTrieDepth)
+	m1, err := tree.NewFromItems(items, tree.MaxDepth)
 	require.NoError(t, err)
 	proof, err := m1.MerkleProof(2)
 	require.NoError(t, err)
-	require.Len(t, proof, int(tree.MaxTrieDepth)+1)
+	require.Len(t, proof, int(tree.MaxDepth)+1)
 	// Unsupported depth
-	_, err = tree.NewFromItems(items, tree.MaxTrieDepth+1)
+	_, err = tree.NewFromItems(items, tree.MaxDepth+1)
 	require.ErrorIs(t, err, tree.ErrExceededDepth)
 }
 
-func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProofWithDepth(t *testing.T) {
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("B"),
@@ -118,7 +118,7 @@ func TestMerkleTrie_VerifyMerkleProofWithDepth(t *testing.T) {
 	)
 }
 
-func TestMerkleTrie_VerifyMerkleProof(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProof(t *testing.T) {
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("B"),
@@ -156,7 +156,7 @@ func TestMerkleTrie_VerifyMerkleProof(t *testing.T) {
 	)
 }
 
-func TestMerkleTrie_NegativeIndexes(t *testing.T) {
+func TestMerkleTree_NegativeIndexes(t *testing.T) {
 	items := [][]byte{
 		[]byte("A"),
 		[]byte("B"),
@@ -179,7 +179,7 @@ func TestMerkleTrie_NegativeIndexes(t *testing.T) {
 	)
 }
 
-func TestMerkleTrie_VerifyMerkleProof_TrieUpdated(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	items := [][]byte{
 		{1},
 		{2},
