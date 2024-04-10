@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/forks/version"
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	bkuint256 "github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/beacon/engine"
