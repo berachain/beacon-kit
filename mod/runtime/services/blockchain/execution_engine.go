@@ -42,10 +42,12 @@ func (s *Service) sendFCU(
 	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
 ) error {
-	eth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	eth1BlockHash := latestExecutionPayload.GetBlockHash()
+
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&execution.ForkchoiceUpdateRequest{
@@ -96,13 +98,15 @@ func (s *Service) sendPostBlockFCU(
 	if payload != nil {
 		headHash = payload.GetBlockHash()
 	} else {
-		var err error
-		headHash, err = st.GetEth1BlockHash()
+		latestExecutionPayload, err := st.GetLatestExecutionPayload()
 		if err != nil {
-			s.Logger().
-				Error("failed to get eth1 block hash in postBlockProcess", "error", err)
+			s.Logger().Error(
+				"failed to get latest execution payload in postBlockProcess",
+				"error", err,
+			)
 			return
 		}
+		headHash = latestExecutionPayload.GetBlockHash()
 	}
 
 	// If we are the local builder and we are not in init sync

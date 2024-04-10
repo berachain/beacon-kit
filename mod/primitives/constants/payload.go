@@ -23,32 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacondb
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/mod/execution/types"
+const (
+	ExtraDataLength = 32
 )
-
-// GetLatestExecutionPayload retrieves the latest execution payload from the
-// BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (types.ExecutionPayload, error) {
-	return kv.latestExecutionPayload.Get(kv.ctx)
-}
-
-// UpdateLatestExecutionPayload sets the latest execution payload in the
-// BeaconStore.
-func (kv *KVStore) UpdateLatestExecutionPayload(
-	payload types.ExecutionPayload,
-) error {
-	return kv.latestExecutionPayload.Set(kv.ctx, payload)
-}
-
-// GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
-	return kv.eth1DepositIndex.Get(kv.ctx)
-}
-
-// SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
-	return kv.eth1DepositIndex.Set(kv.ctx, index)
-}
