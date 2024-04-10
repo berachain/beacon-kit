@@ -72,6 +72,7 @@ func Config() depinject.Config {
 					Name: "tx",
 					Config: appconfig.WrapAny(&txconfigv1.Config{
 						SkipAnteHandler: true,
+						SkipPostHandler: true,
 					}),
 				},
 			},
