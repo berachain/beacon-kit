@@ -33,8 +33,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -187,6 +185,8 @@ func (s *Service) PostBlockProcess(
 
 	payloadBlockHash := payload.GetBlockHash()
 	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+		return err
+	}
 
 	return nil
 }
