@@ -33,7 +33,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/trie"
+	"github.com/berachain/beacon-kit/mod/tree"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/gohashtree"
@@ -112,13 +112,13 @@ func Test_BodyProof(t *testing.T) {
 	// Generate leaves from commitments
 	leaves := types.LeavesFromCommitments(commitments)
 
-	// Calculate the depth the given trie will have.
+	// Calculate the depth the given tree will have.
 	// depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
 	depth := types.LogMaxBlobCommitments
 
 	// Generate a sparse Merkle tree from the leaves.
-	sparse, err := trie.NewFromItems(leaves, depth)
-	require.NoError(t, err, "Failed to generate trie from items")
+	sparse, err := tree.NewFromItems(leaves, depth)
+	require.NoError(t, err, "Failed to generate tree from items")
 	require.Equal(t, len(leaves), sparse.NumOfItems())
 
 	// Get the root of the tree.
@@ -134,7 +134,7 @@ func Test_BodyProof(t *testing.T) {
 		require.Len(t, proof, int(depth)+1)
 
 		// Verify the Merkle proof
-		valid := trie.VerifyMerkleProof(
+		valid := tree.VerifyMerkleProof(
 			root[:],
 			leaves[index],
 			index,
@@ -147,7 +147,7 @@ func Test_BodyProof(t *testing.T) {
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)
 
-		valid = trie.VerifyMerkleProof(
+		valid = tree.VerifyMerkleProof(
 			root[:],
 			leaves[index],
 			index,
@@ -172,11 +172,11 @@ func Test_TopLevelRoots(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := trie.NewFromItems(
+	bodySparse, err := tree.NewFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
-	require.NoError(t, err, "Failed to generate trie from member roots")
+	require.NoError(t, err, "Failed to generate tree from member roots")
 	bodySparseRoot, err := bodySparse.HashTreeRoot()
 	require.NoError(t, err, "Failed to generate root hash")
 	require.Equal(t, types.BodyLength, bodySparse.NumOfItems())
@@ -185,7 +185,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	require.NoError(t, err, "Failed to generate Merkle proof")
 
 	// Verify the Merkle proof
-	valid := trie.VerifyMerkleProof(
+	valid := tree.VerifyMerkleProof(
 		bodySparseRoot[:],
 		commitmentsRoot[:],
 		uint64(types.KZGPosition),
@@ -229,7 +229,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	require.True(t,
-		trie.VerifyMerkleProofWithDepth(
+		tree.VerifyMerkleProofWithDepth(
 			commitmentsRoot[:],
 			chunk[0][:],
 			index,
@@ -245,11 +245,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	// bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := trie.NewFromItems(
+	bodySparse, err := tree.NewFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
-	require.NoError(t, err, "Failed to generate trie from member roots")
+	require.NoError(t, err, "Failed to generate tree from member roots")
 	require.Equal(t, types.BodyLength, bodySparse.NumOfItems())
 	topProof, err := bodySparse.MerkleProof(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
@@ -263,7 +263,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		int(types.LogBodyLength),
 	)
 	require.True(t,
-		trie.VerifyMerkleProof(
+		tree.VerifyMerkleProof(
 			root[:],
 			commitmentsRoot[:],
 			uint64(types.KZGPosition),
@@ -272,7 +272,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	)
 
 	require.True(t,
-		trie.VerifyMerkleProof(
+		tree.VerifyMerkleProof(
 			root[:],
 			chunk[0][:],
 			index+types.KZGOffset,
@@ -309,7 +309,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 // 	require.NoError(t, err)
 // 	kzgOffset := 54 * 4096
 // 	for i := 0; i <= 54; i++ {
-// 		ok := trie.VerifyMerkleProof(
+// 		ok := tree.VerifyMerkleProof(
 // 			root[:],
 // 			chunk[0][:],
 // 			uint64(index+i*4096),
@@ -320,7 +320,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 
 // 	require.True(
 // 		t,
-// 		trie.VerifyMerkleProof(
+// 		tree.VerifyMerkleProof(
 // 			root[:],
 // 			chunk[0][:],
 // 			uint64(index+kzgOffset),

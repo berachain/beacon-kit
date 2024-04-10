@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/trie"
-	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
+	"github.com/berachain/beacon-kit/mod/tree"
+	merkleize "github.com/berachain/beacon-kit/mod/tree/merkleize"
 	"github.com/cockroachdb/errors"
 )
 
@@ -156,7 +156,7 @@ func GetBlobKzgCommitmentsRoot(
 	commitments []kzg.Commitment,
 ) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := trie.NewFromItems(
+	commitmentsSparse, err := tree.NewFromItems(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)

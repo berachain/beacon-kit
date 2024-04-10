@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package trie
+package tree
 
 import (
 	"bytes"
@@ -35,8 +35,8 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
-// VerifyMerkleProof given a trie root, a leaf, the generalized merkle index
-// of the leaf in the trie, and the proof itself.
+// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
+// of the leaf in the tree, and the proof itself.
 func VerifyMerkleProof(
 	root, leaf []byte,
 	merkleIndex uint64,
@@ -54,7 +54,7 @@ func VerifyMerkleProof(
 	)
 }
 
-// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a trie.
+// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a tree.
 func VerifyMerkleProofWithDepth(
 	root, item []byte,
 	merkleIndex uint64,
@@ -76,12 +76,12 @@ func VerifyMerkleProofWithDepth(
 	return bytes.Equal(root, node[:])
 }
 
-// MerkleProof computes a proof from a trie's branches using a Merkle index.
-func (m *SparseMerkleTrie) MerkleProof(index uint64) ([][]byte, error) {
+// MerkleProof computes a proof from a tree's branches using a Merkle index.
+func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if index >= numLeaves {
 		return nil, fmt.Errorf(
-			"merkle index out of range in trie, max range: %d, received: %d",
+			"merkle index out of range in tree, max range: %d, received: %d",
 			numLeaves,
 			index,
 		)
