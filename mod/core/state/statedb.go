@@ -249,6 +249,11 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
+	eth1Data, err := s.GetEth1Data()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
 	if err != nil {
 		return [32]byte{}, err
@@ -305,6 +310,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
 			Eth1BlockHash:                eth1BlockHash,
+			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,
 			Balances:                     balances,

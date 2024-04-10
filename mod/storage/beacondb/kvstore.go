@@ -45,39 +45,37 @@ type KVStore struct {
 	ctx   context.Context
 	write func()
 
+	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
-
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
-
 	// fork is the current fork
 	fork sdkcollections.Item[*primitives.Fork]
 
+	// History
 	// latestBlockHeader stores the latest beacon block header.
 	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
-
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
-
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
+	// Eth1
 	// eth1BlockHash stores the block hash of the latest eth1 block.
 	eth1BlockHash sdkcollections.Item[[32]byte]
-
+	// eth1Data stores the latest eth1 data.
+	eth1Data sdkcollections.Item[*primitives.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
-	// validatorIndex is a sequence that provides the next
-	// available index for a new validator.
+	// Registry
+	// validatorIndex provides the next available index for a new validator.
 	validatorIndex sdkcollections.Sequence
-
 	// validators stores the list of validators.
 	validators *sdkcollections.IndexedMap[
 		uint64, *beacontypes.Validator, index.ValidatorsIndex,
 	]
-
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
 
@@ -87,9 +85,6 @@ type KVStore struct {
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
 
-	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Map[uint64, [32]byte]
-
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
 
@@ -97,9 +92,13 @@ type KVStore struct {
 	// for each validator.
 	nextWithdrawalValidatorIndex sdkcollections.Item[uint64]
 
+	// Randomness
+	// randaoMix stores the randao mix for the current epoch.
+	randaoMix sdkcollections.Map[uint64, [32]byte]
+
+	// Slashings
 	// slashings stores the slashings for the current epoch.
 	slashings sdkcollections.Map[uint64, uint64]
-
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
 }
@@ -150,6 +149,12 @@ func New(
 			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
 			keys.Eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
+		),
+		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
+			keys.Eth1DataPrefix,
+			encoding.SSZValueCodec[*primitives.Eth1Data]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
