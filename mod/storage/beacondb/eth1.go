@@ -29,6 +29,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
+func (kv *KVStore) UpdateEth1Data(
+	data *primitives.Eth1Data,
+) error {
+	return kv.eth1Data.Set(kv.ctx, data)
+}
+
+func (kv *KVStore) GetEth1Data() (*primitives.Eth1Data, error) {
+	return kv.eth1Data.Get(kv.ctx)
+}
+
 // UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
 func (kv *KVStore) UpdateEth1BlockHash(
 	hash primitives.ExecutionHash,

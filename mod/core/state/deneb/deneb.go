@@ -93,6 +93,7 @@ type BeaconState struct {
 
 	// Eth1
 	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
+	Eth1Data         *primitives.Eth1Data     `json:"eth1Data"`
 	Eth1DepositIndex uint64                   `json:"eth1DepositIndex"`
 
 	// Registry

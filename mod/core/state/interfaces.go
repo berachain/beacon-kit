@@ -51,6 +51,7 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
+	GetBalance(primitives.ValidatorIndex) (primitives.Gwei, error)
 	GetSlot() (primitives.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
@@ -70,15 +71,20 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
+	SetFork(*primitives.Fork) error
 	SetSlot(primitives.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
+	UpdateEth1Data(*primitives.Eth1Data) error
 	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
+	SetGenesisValidatorsRoot(
+		root primitives.Root,
+	) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state

@@ -30,16 +30,15 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -131,19 +130,27 @@ func (k *Keeper) BeaconState(
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data *deneb.BeaconState,
+	data *core.Genesis,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Load the store.
 	store := k.beaconStore.WithContext(ctx)
 	sdb := state.NewBeaconStateFromDB(store, k.cfg)
-	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
+
+	sp := core.NewStateProcessor(k.cfg, nil, nil, log.NewNopLogger())
+
+	if err := sp.InitializeBeaconStateFromEth1(sdb, data, 0); err != nil {
+		return nil, err
+	}
+
+	validators, err := sdb.GetValidators()
+	if err != nil {
 		return nil, err
 	}
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	blsType := (&bls12381.PubKey{}).Type()
-	for _, validator := range data.Validators {
+	for _, validator := range validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: blsType,
@@ -155,8 +162,6 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
-	return &deneb.BeaconState{
-		Eth1BlockHash: common.Hash{},
-	}
+func (k *Keeper) ExportGenesis(context.Context) (*core.Genesis, error) {
+	return new(core.Genesis), nil
 }

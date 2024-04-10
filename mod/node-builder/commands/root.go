@@ -73,10 +73,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(
-			genesis.AddPubkeyCmd(),
-			genesis.CollectValidatorsCmd(),
-		),
+		genesis.Commands(),
 		// `jwt`
 		jwt.Commands(),
 		// `keys`

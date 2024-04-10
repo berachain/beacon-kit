@@ -63,6 +63,9 @@ type KVStore struct {
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
+	// eth1Data stores the latest eth1 data.
+	eth1Data sdkcollections.Item[*primitives.Eth1Data]
+
 	// eth1BlockHash stores the block hash of the latest eth1 block.
 	eth1BlockHash sdkcollections.Item[[32]byte]
 
@@ -150,6 +153,12 @@ func New(
 			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
 			keys.Eth1BlockHashPrefix,
 			encoding.Bytes32ValueCodec{},
+		),
+		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
+			keys.Eth1DataPrefix,
+			encoding.SSZValueCodec[*primitives.Eth1Data]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,

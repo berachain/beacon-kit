@@ -27,6 +27,7 @@ package primitives
 
 import (
 	"github.com/davecgh/go-spew/spew"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
@@ -36,7 +37,8 @@ type Deposits []*Deposit
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit,DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit,DepositData,DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/fjl/gencodec -type DepositData -field-override depositDataJSONMarshaling -formats json -out deposit_data.json.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -55,6 +57,27 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
+type DepositData struct {
+	// Public key of the validator specified in the deposit.
+	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+
+	// A staking credentials with
+	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+
+	// Deposit amount in gwei.
+	Amount Gwei `json:"amount"`
+
+	// Signature of the deposit data.
+	Signature BLSSignature `json:"signature" ssz-max:"96"`
+}
+
+type depositDataJSONMarshaling struct {
+	Pubkey      hexutil.Bytes
+	Credentials hexutil.Bytes
+	Signature   hexutil.Bytes
+}
+
 // NewDeposit creates a new Deposit instance.
 func NewDeposit(
 	pubkey BLSPubkey,
@@ -68,7 +91,6 @@ func NewDeposit(
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
-		Index:       index,
 	}
 }
 
