@@ -130,11 +130,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 		return nil, err
 	}
 
-	proof, err := sparse.MerkleProof(index)
-	if err != nil {
-		return nil, err
-	}
-	return proof, err
+	return sparse.MerkleProof(index)
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
