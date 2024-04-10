@@ -27,14 +27,11 @@ package merkleize
 
 import (
 	"encoding/binary"
-	"errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
-
-var errInvalidNilSlice = errors.New("invalid empty slice")
 
 // Vector uses our optimized routine to hash a list of 32-byte
 // elements.
@@ -69,7 +66,7 @@ func ByteSliceSSZ(input []byte) ([32]byte, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
 	numChunks := (uint64(len(input)) + 31) / constants.RootLength
 	if numChunks == 0 {
-		return [32]byte{}, errInvalidNilSlice
+		return [32]byte{}, ErrInvalidNilSlice
 	}
 	chunks := make([][32]byte, numChunks)
 	for i := range chunks {
