@@ -52,46 +52,46 @@ type SparseMerkleTrie struct {
 	originalItems [][]byte
 }
 
-// NewFromItems constructs a Merkle trie
-// from a sequence of byte slices.
-func NewFromItems(
-	items [][]byte,
-	depth uint64,
-) (*SparseMerkleTrie, error) {
+// NewFromItems constructs a Merkle trie from a sequence of byte slices.
+func NewFromItems(items [][]byte, depth uint64) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
-		return &SparseMerkleTrie{}, errors.New(
-			"no items provided to generate Merkle trie",
-		)
+		return nil, errors.New("no items provided to generate Merkle trie")
 	}
 	if depth == 0 {
-		return &SparseMerkleTrie{}, errors.New("depth must be greater than 0")
+		return nil, errors.New("depth must be greater than 0")
 	}
 	if depth > MaxTrieDepth {
-		// PowerOf2 would overflow
-		return &SparseMerkleTrie{}, errors.New(
-			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
-				"theoretical max sparse merkle trie depth is 64)")
+		return nil, errors.New("supported merkle trie depth exceeded")
 	}
 
-	leaves := items
+	transformedLeaves := make([][]byte, len(items))
+	for i, item := range items {
+		tl := byteslib.ToBytes32(item)
+		transformedLeaves[i] = tl[:]
+	}
+
 	layers := make([][][]byte, depth+1)
-	transformedLeaves := make([][]byte, len(leaves))
-	for i := range leaves {
-		arr := byteslib.ToBytes32(leaves[i])
-		transformedLeaves[i] = arr[:]
-	}
 	layers[0] = transformedLeaves
+
 	for i := uint64(0); i < depth; i++ {
-		if len(layers[i])%2 == 1 {
-			layers[i] = append(layers[i], tree.ZeroHashes[i][:])
+		currentLayer := layers[i]
+		nextLayerSize := (len(currentLayer) + 1) / 2
+		nextLayer := make([][]byte, nextLayerSize)
+		for j := 0; j < len(currentLayer); j += 2 {
+			left := currentLayer[j]
+			var right []byte
+			if j+1 < len(currentLayer) {
+				right = currentLayer[j+1]
+			} else {
+				right = tree.ZeroHashes[i][:]
+			}
+			concat := append(left, right...)
+			h := sha256.Sum256(concat)
+			nextLayer[j/2] = h[:]
 		}
-		updatedValues := make([][]byte, 0)
-		for j := 0; j < len(layers[i]); j += 2 {
-			concat := sha256.Sum256(append(layers[i][j], layers[i][j+1]...))
-			updatedValues = append(updatedValues, concat[:])
-		}
-		layers[i+1] = updatedValues
+		layers[i+1] = nextLayer
 	}
+
 	return &SparseMerkleTrie{
 		branches:      layers,
 		originalItems: items,
