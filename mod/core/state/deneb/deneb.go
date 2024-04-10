@@ -64,7 +64,7 @@ func DefaultBeaconState() *BeaconState {
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
-			BlockHash:    common.Hash{},
+			BlockHash:    primitives.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
 		Validators:                   make([]*types.Validator, 0),
