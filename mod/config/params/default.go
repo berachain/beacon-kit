@@ -46,14 +46,20 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		// State list length constants.
 		EpochsPerHistoricalVector: 8,
 		EpochsPerSlashingsVector:  1,
+		HistoricalRootsLimit:      1,
+		ValidatorRegistryLimit:    1099511627776,
 		// Max operations per block constants.
-		MaxDepositsPerBlock:              16,
-		MaxWithdrawalsPerPayload:         16,
-		MaxBlobsPerBlock:                 6,
-		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
+		MaxDepositsPerBlock: 16,
 		// Slashing
 		ProportionalSlashingMultiplier: 1,
+		// Capella values.
+		MaxWithdrawalsPerPayload:         16,
+		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,
+		FieldElementsPerBlob:             4096,
+		MaxBlobCommitmentsPerBlock:       4096,
+		MaxBlobsPerBlock:                 6,
+		KZGInclusionProofDepth:           17,
 	}
 }

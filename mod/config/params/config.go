@@ -66,12 +66,25 @@ type BeaconChainConfig struct {
 	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
 	// EpochsPerSlashingsVector is the number of epochs in the slashings vector.
 	EpochsPerSlashingsVector uint64 `mapstructure:"epochs-per-slashings-vector"`
-
+	// HistoricalRootsLimit is the maximum number of historical roots.
+	HistoricalRootsLimit uint64 `mapstructure:"historical-roots-limit"`
+	// ValidatorRegistryLimit is the maximum number of validators in the
+	// registry.
+	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
 	// Max operations per block constants.
 	//
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
+
+	// Rewards and penalties constants.
+	//
+	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
+	// base penalty.
+	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
+
+	// Capella Values
+	//
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
@@ -80,18 +93,20 @@ type BeaconChainConfig struct {
 	// withdrawals allowed per sweep.
 	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
 
-	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
-
-	// Rewards and penalties constants.
-	//
-	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
-	// base penalty.
-	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
-
 	// Deneb Values
 	//
 	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
 	// will keep the blobs for.
 	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
+	// FieldElementsPerBlob specifies the number of field elements per blob.
+	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
+	// MaxBlobCommitmentsPerBlock specifies the maximum number of blob
+	// commitments. `floorlog2(get_generalized_index(BeaconBlockBody,
+	// 'blob_kzg_commitments')) + 1 + ceillog2(MAX_BLOB_COMMITMENTS_PER_BLOCK)`
+	// = 4 + 1 + 12 = 17
+	MaxBlobCommitmentsPerBlock uint64 `mapstructure:"max-blob-commitments-per-block"`
+	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
+	// KZGIncludeProofDepth is the depth of the KZG inclusion proof.
+	KZGInclusionProofDepth uint64 `mapstructure:"kzg-inclusion-proof-depth"`
 }
