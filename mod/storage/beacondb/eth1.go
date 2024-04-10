@@ -50,3 +50,13 @@ func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
 func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
+
+// GetEth1Data retrieves the eth1 data from the beacon state.
+func (kv *KVStore) GetEth1Data() (*primitives.Eth1Data, error) {
+	return kv.eth1Data.Get(kv.ctx)
+}
+
+// SetEth1Data sets the eth1 data in the beacon state.
+func (kv *KVStore) SetEth1Data(data *primitives.Eth1Data) error {
+	return kv.eth1Data.Set(kv.ctx, data)
+}

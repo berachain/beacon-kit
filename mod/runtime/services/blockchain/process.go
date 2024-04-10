@@ -163,7 +163,6 @@ func (s *Service) PostBlockProcess(
 	if body.IsNil() {
 		return nil
 	}
-
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
@@ -174,7 +173,6 @@ func (s *Service) PostBlockProcess(
 	if err != nil {
 		return err
 	}
-
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,

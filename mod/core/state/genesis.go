@@ -70,6 +70,10 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		return err
 	}
 
+	if err := s.SetEth1Data(st.Eth1Data); err != nil {
+		return err
+	}
+
 	if err := s.SetEth1DepositIndex(st.Eth1DepositIndex); err != nil {
 		return err
 	}
