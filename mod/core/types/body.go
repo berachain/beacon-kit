@@ -37,7 +37,7 @@ import (
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include deposit.go,withdrawal_credentials.go,../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
 
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
@@ -47,7 +47,7 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `ssz-max:"16"`
+	Deposits []*primitives.Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
@@ -67,7 +67,7 @@ func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() kzg.Commitments {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
+func (b *BeaconBlockBodyDeneb) GetGraffiti() primitives.Bytes32 {
 	return b.Graffiti
 }
 
@@ -84,12 +84,12 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayloa
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() Deposits {
+func (b *BeaconBlockBodyDeneb) GetDeposits() primitives.Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits Deposits) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits primitives.Deposits) {
 	b.Deposits = deposits
 }
 

@@ -74,7 +74,7 @@ func AddPubkeyCmd() *cobra.Command {
 			// TODO: Should we do deposits here?
 			validator := beacontypes.NewValidatorFromDeposit(
 				primitives.BLSPubkey(valPubKey.Bytes()),
-				beacontypes.NewCredentialsFromExecutionAddress(
+				primitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				1e9,  //nolint:gomnd // temp.

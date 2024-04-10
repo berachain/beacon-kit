@@ -9,7 +9,7 @@
 // copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following
-// conditions:
+// conditions
 //
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
@@ -23,50 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacon
+package primitives
 
-import (
-	"context"
-	"encoding/json"
+// EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
+const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-)
+// WithdrawalCredentials is a staking credential that is used to identify a
+// validator.
+type WithdrawalCredentials Bytes32
 
-// DefaultGenesis returns default genesis state as raw bytes
-// for the beacon module.
-func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(deneb.DefaultBeaconState())
-	if err != nil {
-		panic(err)
+// NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
+// an.
+func NewCredentialsFromExecutionAddress(
+	address ExecutionAddress,
+) WithdrawalCredentials {
+	credentials := WithdrawalCredentials{}
+	credentials[0] = 0x01
+	copy(credentials[12:], address[:])
+	return credentials
+}
+
+// ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
+func (wc WithdrawalCredentials) ToExecutionAddress() (
+	ExecutionAddress,
+	error,
+) {
+	if wc[0] != EthSecp256k1CredentialPrefix {
+		return ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
-	return bz
-}
-
-// ValidateGenesis performs genesis state validation for the evm module.
-func (AppModule) ValidateGenesis(
-	_ json.RawMessage,
-) error {
-	// TODO: implement.
-	return nil
-}
-
-// InitGenesis performs genesis initialization for the beacon module.
-func (am AppModule) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	var gs deneb.BeaconState
-	if err := json.Unmarshal(bz, &gs); err != nil {
-		return nil, err
-	}
-	return am.keeper.InitGenesis(ctx, &gs)
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
-func (am AppModule) ExportGenesis(
-	ctx context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+	return ExecutionAddress(wc[12:]), nil
 }

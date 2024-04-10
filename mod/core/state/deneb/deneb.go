@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package state
+package deneb
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
@@ -34,14 +34,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// DefaultBeaconStateDeneb returns a default BeaconStateDeneb.
+// DefaultBeaconState returns a default BeaconState.
 //
 // TODO: take in BeaconConfig params to determine the
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
-func DefaultBeaconStateDeneb() *BeaconStateDeneb {
+func DefaultBeaconState() *BeaconState {
 	//nolint:gomnd // default allocs.
-	return &BeaconStateDeneb{
+	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		Fork: &primitives.Fork{
@@ -75,10 +75,10 @@ func DefaultBeaconStateDeneb() *BeaconStateDeneb {
 // TODO: should we replace ? in ssz-size with values to ensure we are hash tree
 // rooting correctly?
 //
-//go:generate go run github.com/fjl/gencodec -type BeaconStateDeneb -field-override beaconStateDenebJSONMarshaling -out deneb.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconStateDeneb -include ../types,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/fjl/gencodec -type BeaconState -field-override BeaconStateJSONMarshaling -out deneb.json.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
-type BeaconStateDeneb struct {
+type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
@@ -111,14 +111,14 @@ type BeaconStateDeneb struct {
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
 }
 
-// String returns a string representation of BeaconStateDeneb.
-func (b *BeaconStateDeneb) String() string {
+// String returns a string representation of BeaconState.
+func (b *BeaconState) String() string {
 	return spew.Sdump(b)
 }
 
-// beaconStateDenebJSONMarshaling is a type used to marshal/unmarshal
-// BeaconStateDeneb.
-type beaconStateDenebJSONMarshaling struct {
+// BeaconStateJSONMarshaling is a type used to marshal/unmarshal
+// BeaconState.
+type BeaconStateJSONMarshaling struct {
 	GenesisValidatorsRoot hexutil.Bytes
 	BlockRoots            []primitives.Root
 	StateRoots            []primitives.Root

@@ -82,8 +82,7 @@ max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
 # MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals allowed per sweep.
 max-validators-per-withdrawals-sweep = {{.BeaconKit.Beacon.MaxValidatorsPerWithdrawalsSweep}}
 
-# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
+
 
 ########### Rewards and Penalties ###########
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
@@ -92,6 +91,18 @@ proportional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMulti
 ########### Deneb Values ###########
 # MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
 min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
+
+# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
+
+# FieldElementsPerBlob specifies the number of field elements per blob.
+field-elements-per-blob = {{.BeaconKit.Beacon.FieldElementsPerBlob}}
+
+# MaxBlobCommitmentsPerBlock specifies the maximum number of blob commitments allowed per block.
+max-blob-commitments-per-block = {{.BeaconKit.Beacon.MaxBlobCommitmentsPerBlock}}
+
+# KZGInclusionProofDepth is the depth of the KZG inclusion proof.
+kzg-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGInclusionProofDepth}}
 
 [beacon-kit.builder]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
