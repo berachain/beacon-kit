@@ -163,7 +163,6 @@ func (s *Service) PostBlockProcess(
 	if body.IsNil() {
 		return nil
 	}
-
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {

@@ -46,7 +46,7 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyDeposits
+	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -67,7 +67,7 @@ type ReadOnlyBeaconState interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyDeposits
+	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -127,15 +127,19 @@ type ReadOnlyValidators interface {
 	) (*types.Validator, error)
 }
 
-// WriteOnlyDeposits has write access to deposit queue.
-type WriteOnlyDeposits interface {
+// WriteOnlyEth1Data has write access to eth1 data.
+type WriteOnlyEth1Data interface {
+	UpdateEth1BlockHash(primitives.ExecutionHash) error
+	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
 	DequeueDeposits(uint64) (primitives.Deposits, error)
 }
 
-// ReadOnlyDeposits has read access to deposit queue.
-type ReadOnlyDeposits interface {
+// ReadOnlyDeposits has read access to eth1 data.
+type ReadOnlyEth1Data interface {
+	GetEth1BlockHash() (primitives.ExecutionHash, error)
+	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)
 }

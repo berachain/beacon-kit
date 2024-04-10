@@ -29,6 +29,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
@@ -252,6 +253,11 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	//nolint: errcheck // the underlying execution payload type is known.
 	executionPayload := latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
 
+	eth1Data, err := s.GetEth1Data()
+	if err != nil {
+		return [32]byte{}, err
+	}
+
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
 	if err != nil {
 		return [32]byte{}, err
@@ -308,6 +314,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
 			LatestExecutionPayload:       executionPayload,
+			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,
 			Balances:                     balances,

@@ -26,6 +26,7 @@
 package deneb
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/forks/version"
@@ -60,6 +61,11 @@ func DefaultBeaconState() *BeaconState {
 		BlockRoots:                   make([][32]byte, 8),
 		StateRoots:                   make([][32]byte, 8),
 		LatestExecutionPayload:       DefaultGenesisExecutionPayload(),
+		Eth1Data: &primitives.Eth1Data{
+			DepositRoot:  primitives.Root{},
+			DepositCount: 0,
+			BlockHash:    primitives.ExecutionHash{},
+		},
 		Eth1DepositIndex:             0,
 		Validators:                   make([]*types.Validator, 0),
 		Balances:                     make([]uint64, 0),
@@ -126,6 +132,7 @@ type BeaconState struct {
 
 	// Eth1
 	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
+	Eth1Data         *primitives.Eth1Data     `json:"eth1Data"`
 	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
 
 	// Registry
