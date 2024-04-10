@@ -63,7 +63,7 @@ func (s *Service) BuildLocalPayload(
 		"parent_block_root", parentBlockRoot,
 	)
 
-	eth1Data, err := st.GetEth1Data()
+	parentEth1BlockHash, err := st.GetEth1BlockHash()
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func (s *Service) BuildLocalPayload(
 		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &engine.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
-				SafeBlockHash:      eth1Data.BlockHash,
-				FinalizedBlockHash: eth1Data.BlockHash,
+				SafeBlockHash:      parentEth1BlockHash,
+				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
 			ForkVersion:       s.BeaconCfg().ActiveForkVersionForSlot(slot),

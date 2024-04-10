@@ -62,6 +62,8 @@ type KVStore struct {
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// Eth1
+	// eth1BlockHash stores the block hash of the latest eth1 block.
+	eth1BlockHash sdkcollections.Item[[32]byte]
 	// eth1Data stores the latest eth1 data.
 	eth1Data sdkcollections.Item[*primitives.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.

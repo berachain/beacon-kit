@@ -157,10 +157,6 @@ func (k *Keeper) InitGenesis(
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
 	return &deneb.BeaconState{
-		Eth1Data: &primitives.Eth1Data{
-			BlockHash:    common.Hash{},
-			DepositRoot:  primitives.Root{},
-			DepositCount: 0,
-		},
+		Eth1BlockHash: common.Hash{},
 	}
 }

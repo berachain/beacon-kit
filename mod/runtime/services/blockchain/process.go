@@ -165,46 +165,28 @@ func (s *Service) PostBlockProcess(
 	if body.IsNil() {
 		return nil
 	}
-
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
 		return nil
 	}
 
-	// Retrieve the old eth1 data.
-	eth1data, err := st.GetEth1Data()
+	prevEth1Block, err := st.GetEth1BlockHash()
 	if err != nil {
 		return err
 	}
-
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
 		st,
-		eth1data.BlockHash,
+		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
-	// Calculate the new eth1 data.
-	deposits := body.GetDeposits()
-	depositLength := uint64(len(deposits))
-	depositRoot, err := merkleize.VectorSSZ(deposits, depositLength)
-	if err != nil {
-		return err
-	}
-	newEth1Data := &primitives.Eth1Data{
-		BlockHash:    payload.GetBlockHash(),
-		DepositRoot:  depositRoot,
-		DepositCount: depositLength + eth1data.DepositCount,
-	}
-
-	// Set the new eth1 data.
-	if err = st.SetEth1Data(newEth1Data); err != nil {
-		return err
-	}
+	payloadBlockHash := payload.GetBlockHash()
+	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
 
 	return nil
 }

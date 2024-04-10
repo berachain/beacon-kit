@@ -131,11 +131,10 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
-	eth1Data, err := st.GetEth1Data()
+	parentEth1BlockHash, err := st.GetEth1BlockHash()
 	if err != nil {
 		return nil, nil, err
 	}
-	parentEth1BlockHash := eth1Data.BlockHash
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(

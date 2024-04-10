@@ -126,6 +126,7 @@ type ReadOnlyValidators interface {
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
+	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
@@ -134,6 +135,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
+	GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)
