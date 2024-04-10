@@ -29,7 +29,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/trie/merkleize"
+	"github.com/berachain/beacon-kit/mod/tree/merkleize"
 )
 
 func FuzzHashTreeRoot(f *testing.F) {

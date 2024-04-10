@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/trie/merkleize"
+	"github.com/berachain/beacon-kit/mod/tree/merkleize"
 	"github.com/stretchr/testify/require"
 )
 

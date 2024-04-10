@@ -119,7 +119,7 @@ test-unit-fuzz: ## run fuzz tests
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
 	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
+	go test -fuzz=FuzzHashTreeRoot ./mod/tree/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
 	go test -fuzz=FuzzQueueSimple ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 

@@ -23,14 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package trie defines utilities for sparse merkle tries for Ethereum
-// consensus.
-package trie
+package tree
 
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
@@ -40,78 +37,76 @@ import (
 
 const (
 	// 2^63 would overflow.
-	MaxTrieDepth = 62
+	MaxDepth = 62
 )
 
-// SparseMerkleTrie implements a sparse, general purpose Merkle trie
+// SparseMerkleTree implements a sparse, general purpose Merkle tree
 // to be used across Ethereum consensus functionality.
-type SparseMerkleTrie struct {
+type SparseMerkleTree struct {
 	depth    uint64
 	branches [][][]byte
 	// list of provided items before hashing them into leaves.
 	originalItems [][]byte
 }
 
-// NewFromItems constructs a Merkle trie
-// from a sequence of byte slices.
-func NewFromItems(
-	items [][]byte,
-	depth uint64,
-) (*SparseMerkleTrie, error) {
-	if len(items) == 0 {
-		return &SparseMerkleTrie{}, errors.New(
-			"no items provided to generate Merkle trie",
-		)
-	}
-	if depth == 0 {
-		return &SparseMerkleTrie{}, errors.New("depth must be greater than 0")
-	}
-	if depth > MaxTrieDepth {
-		// PowerOf2 would overflow
-		return &SparseMerkleTrie{}, errors.New(
-			"supported merkle trie depth exceeded (max uint64 depth is 63, " +
-				"theoretical max sparse merkle trie depth is 64)")
+// NewFromItems constructs a Merkle tree from a sequence of byte slices.
+func NewFromItems(items [][]byte, depth uint64) (*SparseMerkleTree, error) {
+	switch {
+	case len(items) == 0:
+		return nil, ErrEmptyItems
+	case depth == 0:
+		return nil, ErrZeroDepth
+	case depth > MaxDepth:
+		return nil, ErrExceededDepth
 	}
 
-	leaves := items
+	transformedLeaves := make([][]byte, len(items))
+	for i, item := range items {
+		tl := byteslib.ToBytes32(item)
+		transformedLeaves[i] = tl[:]
+	}
+
 	layers := make([][][]byte, depth+1)
-	transformedLeaves := make([][]byte, len(leaves))
-	for i := range leaves {
-		arr := byteslib.ToBytes32(leaves[i])
-		transformedLeaves[i] = arr[:]
-	}
 	layers[0] = transformedLeaves
+
 	for i := uint64(0); i < depth; i++ {
-		if len(layers[i])%2 == 1 {
-			layers[i] = append(layers[i], tree.ZeroHashes[i][:])
+		currentLayer := layers[i]
+		//nolint:gomnd // we divide by 2 to get the next layer size.
+		nextLayerSize := (len(currentLayer) + 1) / 2
+		nextLayer := make([][]byte, nextLayerSize)
+		for j := 0; j < len(currentLayer); j += 2 {
+			left := currentLayer[j]
+			var right []byte
+			if j+1 < len(currentLayer) {
+				right = currentLayer[j+1]
+			} else {
+				right = tree.ZeroHashes[i][:]
+			}
+			h := sha256.Sum256(append(left, right...))
+			nextLayer[j/2] = h[:]
 		}
-		updatedValues := make([][]byte, 0)
-		for j := 0; j < len(layers[i]); j += 2 {
-			concat := sha256.Sum256(append(layers[i][j], layers[i][j+1]...))
-			updatedValues = append(updatedValues, concat[:])
-		}
-		layers[i+1] = updatedValues
+		layers[i+1] = nextLayer
 	}
-	return &SparseMerkleTrie{
+
+	return &SparseMerkleTree{
 		branches:      layers,
 		originalItems: items,
 		depth:         depth,
 	}, nil
 }
 
-// Items returns the original items passed in when creating the Merkle trie.
-func (m *SparseMerkleTrie) Items() [][]byte {
+// Items returns the original items passed in when creating the Merkle tree.
+func (m *SparseMerkleTree) Items() [][]byte {
 	return m.originalItems
 }
 
-// HashTreeRoot returns the hash root of the Merkle trie
+// HashTreeRoot returns the hash root of the Merkle tree
 // defined in the deposit contract.
-func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
+func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.originalItems))
 	if len(m.originalItems) == 1 &&
 		bytes.Equal(m.originalItems[0], tree.ZeroHashes[0][:]) {
-		// Accounting for empty tries
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
@@ -120,8 +115,8 @@ func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 	), nil
 }
 
-// Insert an item into the trie.
-func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
+// Insert an item into the tree.
+func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 	if index < 0 {
 		return fmt.Errorf("negative index provided: %d", index)
 	}
@@ -167,14 +162,14 @@ func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	return nil
 }
 
-// Copy performs a deep copy of the trie.
-func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
+// Copy performs a deep copy of the tree.
+func (m *SparseMerkleTree) Copy() *SparseMerkleTree {
 	dstBranches := make([][][]byte, len(m.branches))
 	for i1, srcB1 := range m.branches {
 		dstBranches[i1] = byteslib.SafeCopy2D(srcB1)
 	}
 
-	return &SparseMerkleTrie{
+	return &SparseMerkleTree{
 		depth:         m.depth,
 		branches:      dstBranches,
 		originalItems: byteslib.SafeCopy2D(m.originalItems),
@@ -182,10 +177,10 @@ func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
 }
 
 // NumOfItems returns the num of items stored in
-// the sparse merkle trie. We handle a special case
+// the sparse merkle tree. We handle a special case
 // where if there is only one item stored and it is an
 // empty 32-byte root.
-func (m *SparseMerkleTrie) NumOfItems() int {
+func (m *SparseMerkleTree) NumOfItems() int {
 	var zeroBytes [32]byte
 	if len(m.originalItems) == 1 &&
 		bytes.Equal(m.originalItems[0], zeroBytes[:]) {

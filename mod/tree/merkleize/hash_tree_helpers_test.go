@@ -30,7 +30,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/trie/merkleize"
+	"github.com/berachain/beacon-kit/mod/tree/merkleize"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
