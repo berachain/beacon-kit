@@ -26,7 +26,7 @@
 package params
 
 import (
-	"github.com/berachain/beacon-kit/mod/forks/version"
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
