@@ -144,6 +144,12 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
+		eth1BlockHash: sdkcollections.NewItem[[32]byte](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
+			keys.Eth1BlockHashPrefix,
+			encoding.Bytes32ValueCodec{},
+		),
 		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
