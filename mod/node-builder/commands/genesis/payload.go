@@ -69,7 +69,6 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				nil,
 			).ExecutionPayload
 
-			// ethGenesis.ToBlock().
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
