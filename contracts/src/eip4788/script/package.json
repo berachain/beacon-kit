@@ -1,0 +1,18 @@
+{
+  "name": "script",
+  "version": "0.0.1",
+  "description": "Scripts for getting proofs of block structures",
+  "main": "index.js",
+  "author": "madlabman",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@chainsafe/persistent-merkle-tree": "^0.6.1",
+    "@chainsafe/ssz": "^0.11.1",
+    "@lodestar/api": "^1.11.0",
+    "@lodestar/config": "^1.11.0",
+    "@lodestar/params": "^1.11.0",
+    "@lodestar/types": "^1.11.0"
+  }
+}
