@@ -119,11 +119,6 @@ func (m *Tree) HashTreeRoot() ([32]byte, error) {
 	return sha256.Sum256(hashInput), nil
 }
 
-// Items returns the original items passed in when creating the Merkle tree.
-func (m *Tree) Items() [][32]byte {
-	return m.leaves
-}
-
 // Insert an item into the tree.
 func (m *Tree) Insert(item []byte, index int) error {
 	if index < 0 {
