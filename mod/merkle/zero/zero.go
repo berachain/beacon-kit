@@ -27,15 +27,17 @@ package zero
 
 import sha256 "github.com/minio/sha256-simd"
 
+// NumZeroHashes is the number of pre-computed zero-hashes.
+const NumZeroHashes = 64
+
 // Hashes is a pre-computed list of zero-hashes for each depth level.
 //
-//nolint:gochecknoglobals // saves recomputing every time.
-var Hashes [][32]byte
+//nolint:gochecknoglobals // saves recomputing.
+var Hashes [NumZeroHashes][32]byte
 
 // initialize the zero-hashes pre-computed data with the given hash-function.
 func InitZeroHashes(zeroHashesLevels uint) {
-	Hashes = make([][32]byte, zeroHashesLevels+1)
-	for i := uint(0); i < zeroHashesLevels; i++ {
+	for i := uint(0); i < zeroHashesLevels-1; i++ {
 		v := [64]byte{}
 		copy(v[:32], Hashes[i][:])
 		copy(v[32:], Hashes[i][:])
@@ -45,6 +47,5 @@ func InitZeroHashes(zeroHashesLevels uint) {
 
 //nolint:gochecknoinits // required.
 func init() {
-	//nolint:gomnd
-	InitZeroHashes(64)
+	InitZeroHashes(NumZeroHashes)
 }

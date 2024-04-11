@@ -65,13 +65,13 @@ func NewTreeFromLeavesWithDepth(
 	numLeaves := len(leaves)
 	switch {
 	case numLeaves == 0:
-		return nil, ErrEmptyLeaves
+		return &Tree{}, ErrEmptyLeaves
 	case depth == 0:
-		return nil, ErrZeroDepth
+		return &Tree{}, ErrZeroDepth
 	case depth > MaxTreeDepth:
-		return nil, ErrExceededDepth
+		return &Tree{}, ErrExceededDepth
 	case numLeaves > (1 << depth):
-		return nil, errors.Wrap(
+		return &Tree{}, errors.Wrap(
 			ErrInsufficientDepthForLeaves,
 			fmt.Sprintf("attempted to store %d leaves with depth %d",
 				numLeaves, depth))
@@ -88,7 +88,7 @@ func NewTreeFromLeavesWithDepth(
 		}
 		layers[i+1], err = htr.BuildParentTreeRoots(currentLayer)
 		if err != nil {
-			return nil, err
+			return &Tree{}, err
 		}
 	}
 
