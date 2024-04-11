@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize
+package htr
 
 import "github.com/cockroachdb/errors"
 
@@ -37,4 +37,7 @@ var (
 	ErrMaxRootsExceeded = errors.New(
 		"number of roots exceeds the maximum allowed",
 	)
+
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
 )

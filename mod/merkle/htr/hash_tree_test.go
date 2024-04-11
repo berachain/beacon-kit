@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize_test
+package htr_test
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/tree/merkleize"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,20 +43,20 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(
-			fmt.Sprintf("Size%d", size*merkleize.MinParallelizationSize),
+			fmt.Sprintf("Size%d", size*htr.MinParallelizationSize),
 			func(t *testing.T) {
 				largeSlice := make(
 					[][32]byte,
-					size*merkleize.MinParallelizationSize,
+					size*htr.MinParallelizationSize,
 				)
 				secondLargeSlice := make(
 					[][32]byte,
-					size*merkleize.MinParallelizationSize,
+					size*htr.MinParallelizationSize,
 				)
 				// Assuming hash reduces size by half
 				hash1 := make(
 					[][32]byte,
-					size*merkleize.MinParallelizationSize/2,
+					size*htr.MinParallelizationSize/2,
 				)
 				var hash2 [][32]byte
 				var err error
@@ -66,13 +66,13 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 				go func() {
 					defer wg.Done()
 					var tempHash [][32]byte
-					tempHash, err = merkleize.BuildParentTreeRoots(largeSlice)
+					tempHash, err = htr.BuildParentTreeRoots(largeSlice)
 					copy(hash1, tempHash)
 				}()
 				wg.Wait()
 				require.NoError(t, err)
 
-				hash2, err = merkleize.BuildParentTreeRoots(secondLargeSlice)
+				hash2, err = htr.BuildParentTreeRoots(secondLargeSlice)
 				require.NoError(t, err)
 
 				require.Equal(
@@ -104,13 +104,13 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	}{
 		{
 			"BelowMinParallelizationSize",
-			merkleize.MinParallelizationSize / 2,
+			htr.MinParallelizationSize / 2,
 			false,
 		},
-		{"AtMinParallelizationSize", merkleize.MinParallelizationSize, false},
+		{"AtMinParallelizationSize", htr.MinParallelizationSize, false},
 		{
 			"AboveMinParallelizationSize",
-			merkleize.MinParallelizationSize * 2,
+			htr.MinParallelizationSize * 2,
 			false,
 		},
 		{"SmallSize", 16, false},
@@ -118,15 +118,15 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		{"LargeSize", 128, false},
 		{
 			"TestRemainderStartIndexSmall",
-			merkleize.MinParallelizationSize + 6,
+			htr.MinParallelizationSize + 6,
 			false,
 		},
 		{
 			"TestRemainderStartIndexBig",
-			merkleize.MinParallelizationSize - 2,
+			htr.MinParallelizationSize - 2,
 			false,
 		},
-		{"TestOddLength", merkleize.MinParallelizationSize + 1, true},
+		{"TestOddLength", htr.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -154,7 +154,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := merkleize.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	_, err := htr.BuildParentTreeRootsWithNRoutines(inputList, 0)
 	require.NoError(
 		t,
 		err,

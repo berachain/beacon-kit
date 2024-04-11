@@ -27,8 +27,8 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/tree"
 	"github.com/cockroachdb/errors"
 )
 
@@ -64,9 +64,9 @@ const (
 func VerifyKZGInclusionProof(
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
-	verified := tree.VerifyMerkleProof(
-		blob.BeaconBlockHeader.BodyRoot[:],
-		blob.KzgCommitment.ToHashChunks()[0][:],
+	verified := merkle.VerifyMerkleProof(
+		blob.BeaconBlockHeader.BodyRoot,
+		blob.KzgCommitment.ToHashChunks()[0],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
@@ -82,62 +82,65 @@ func VerifyKZGInclusionProof(
 // the Merkle proof. If an error occurs during the generation of the proof, it
 // returns nil and the error. The function internally calls the `BodyProof`
 // function to generate the body proof, and the `topLevelRoots` function to
-// obtain the top level roots. It then uses the `tree.NewFromItems`
+// obtain the top level roots. It then uses the `merkle.NewTreeFromLeaves`
 // function to generate a sparse Merkle tree from the top level roots. Finally,
 // it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top
 // proof, and appends it to the body proof. Note that the last element of the
 // top proof is removed before returning the final proof, as it is not needed.
 func MerkleProofKZGCommitment(
-	blk BeaconBlock,
+	body BeaconBlockBody,
 	index uint64,
-) ([][]byte, error) {
-	commitments := blk.GetBody().GetBlobKzgCommitments()
+) ([][32]byte, error) {
+	commitments := body.GetBlobKzgCommitments()
 
 	proof, err := BodyProof(commitments, index)
 	if err != nil {
 		return nil, err
 	}
 
-	membersRoots, err := GetTopLevelRoots(blk.GetBody())
+	membersRoots, err := GetTopLevelRoots(body)
 	if err != nil {
 		return nil, err
 	}
 
-	sparse, err := tree.NewFromItems(membersRoots, LogBodyLength)
+	tree, err := merkle.NewTreeFromLeavesWithDepth(
+		membersRoots,
+		LogBodyLength,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	topProof, err := sparse.MerkleProof(KZGPosition)
+	topProof, err := tree.MerkleProof(KZGPosition)
 	if err != nil {
 		return nil, err
 	}
-	// sparse.MerkleProof always includes the length of the slice this is
-	// why we remove the last element that is not needed in topProof
-	proof = append(proof, topProof[:len(topProof)-1]...)
-	return proof, nil
+	return append(proof, topProof...), nil
 }
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
 // commitment list.
-func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
+func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := tree.NewFromItems(leaves, LogMaxBlobCommitments)
+	bodyTree, err := merkle.NewTreeFromLeavesWithDepth(
+		leaves,
+		LogMaxBlobCommitments,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	return sparse.MerkleProof(index)
+	return bodyTree.MerkleProofWithMixin(index)
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
-	leaves := make([][]byte, len(commitments))
+func LeavesFromCommitments(commitments kzg.Commitments) [][32]byte {
+	leaves := make([][32]byte, len(commitments))
 	for i, commitment := range commitments {
-		leaves[i] = commitment.ToHashChunks()[0][:]
+		leaves[i] = commitment.ToHashChunks()[0]
 	}
 	return leaves
 }
