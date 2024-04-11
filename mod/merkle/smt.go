@@ -29,6 +29,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	sha256 "github.com/minio/sha256-simd"
 	"github.com/protolambda/ztyp/tree"
@@ -64,21 +65,18 @@ func NewTreeFromItems(
 	layers := make([][][32]byte, depth+1)
 	layers[0] = items
 
+	var err error
 	for i := uint64(0); i < depth; i++ {
 		currentLayer := layers[i]
-		//nolint:gomnd // div 2.
-		nextLayerSize := (len(currentLayer) + 1) / 2
-		nextLayer := make([][32]byte, nextLayerSize)
-		for j := 0; j < len(currentLayer); j += 2 {
-			left := currentLayer[j]
-			right := tree.ZeroHashes[i]
-			if j+1 < len(currentLayer) {
-				right = currentLayer[j+1]
-			}
-			hashInput := append(left[:], right[:]...)
-			nextLayer[j/2] = sha256.Sum256(hashInput)
+		//nolint:gomnd // divded by 2 is reasonable.
+		if oddNodeLength := len(currentLayer)%2 == 1; oddNodeLength {
+			zerohash := tree.ZeroHashes[i]
+			currentLayer = append(currentLayer, zerohash)
 		}
-		layers[i+1] = nextLayer
+		layers[i+1], err = htr.BuildParentTreeRoots(currentLayer)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SparseMerkleTree{
