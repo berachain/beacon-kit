@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize_test
+package htr_test
 
 import (
 	"runtime"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/tree/merkleize"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 )
 
 func FuzzHashTreeRoot(f *testing.F) {
@@ -48,14 +48,14 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Larger input
 	f.Add(make([]byte, 1024), 3)
 	// Just below MinParallelizationSize
-	f.Add(make([]byte, merkleize.MinParallelizationSize-2), 300)
+	f.Add(make([]byte, htr.MinParallelizationSize-2), 300)
 	// Exactly MinParallelizationSize
-	f.Add(make([]byte, merkleize.MinParallelizationSize), 1)
+	f.Add(make([]byte, htr.MinParallelizationSize), 1)
 	// Just above MinParallelizationSize
-	f.Add(make([]byte, merkleize.MinParallelizationSize+2), 64)
+	f.Add(make([]byte, htr.MinParallelizationSize+2), 64)
 	// Double MinParallelizationSize
 	f.Add(
-		make([]byte, 2*merkleize.MinParallelizationSize),
+		make([]byte, 2*htr.MinParallelizationSize),
 		runtime.GOMAXPROCS(0)-1,
 	)
 

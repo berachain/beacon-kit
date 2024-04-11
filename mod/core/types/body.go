@@ -28,9 +28,9 @@ package types
 import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	merkleize "github.com/berachain/beacon-kit/mod/tree/merkleize"
 	"github.com/cockroachdb/errors"
 )
 
@@ -116,7 +116,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
 	layer := make([][32]byte, BodyLength)
 	var err error
 	randao := b.GetRandaoReveal()
-	layer[0], err = merkleize.ByteSliceSSZ(randao[:])
+	layer[0], err = htr.ByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	layer[2], err = merkleize.ListSSZ(b.GetDeposits(), maxDepositsPerBlock)
+	layer[2], err = htr.ListSSZ(b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}
