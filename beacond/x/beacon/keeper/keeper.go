@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -156,7 +155,5 @@ func (k *Keeper) InitGenesis(
 
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
-	return &deneb.BeaconState{
-		Eth1BlockHash: common.Hash{},
-	}
+	return &deneb.BeaconState{}
 }

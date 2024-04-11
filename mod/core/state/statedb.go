@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
@@ -244,7 +245,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		stateRoots[i] = stateRoot
 	}
 
-	eth1BlockHash, err := s.GetEth1BlockHash()
+	latestExecutionPayload, err := s.GetLatestExecutionPayload()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -302,6 +303,12 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	activeFork := s.cfg.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
+		executionPayload, ok :=
+			latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
+		if !ok {
+			return [32]byte{}, errors.New(
+				"latest execution payload is not of type ExecutableDataDeneb")
+		}
 		return (&deneb.BeaconState{
 			Slot:                         slot,
 			GenesisValidatorsRoot:        genesisValidatorsRoot,
@@ -309,7 +316,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			Eth1BlockHash:                eth1BlockHash,
+			LatestExecutionPayload:       executionPayload,
 			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,
