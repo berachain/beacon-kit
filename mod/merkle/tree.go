@@ -30,7 +30,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 	"github.com/protolambda/ztyp/tree"
@@ -100,44 +99,24 @@ func NewTreeFromLeavesWithDepth(
 	}, nil
 }
 
-// Root returns the root of the Merkle tree.
-func (m *Tree) Root() ([32]byte, error) {
-	return sha256.Sum256(m.branches[len(m.branches)-1][0][:]), nil
-}
-
-// HashTreeRoot returns the Root of the Merkle tree with the
-// number of leaves mixed in.
-func (m *Tree) HashTreeRoot() ([32]byte, error) {
-	var enc [32]byte
-	numItems := uint64(len(m.leaves))
-	if len(m.leaves) == 1 &&
-		m.leaves[0] == tree.ZeroHashes[0] {
-		numItems = 0
-	}
-	binary.LittleEndian.PutUint64(enc[:], numItems)
-	hashInput := append(m.branches[len(m.branches)-1][0][:], enc[:]...)
-	return sha256.Sum256(hashInput), nil
-}
-
 // Insert an item into the tree.
-func (m *Tree) Insert(item []byte, index int) error {
+func (m *Tree) Insert(item [32]byte, index int) error {
 	if index < 0 {
 		return errors.Wrap(ErrNegativeIndex, fmt.Sprintf("index: %d", index))
 	}
 	for index >= len(m.branches[0]) {
 		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0])
 	}
-	someItem := byteslib.ToBytes32(item)
-	m.branches[0][index] = someItem
+	m.branches[0][index] = item
 	if index >= len(m.leaves) {
-		m.leaves = append(m.leaves, someItem)
+		m.leaves = append(m.leaves, item)
 	} else {
-		m.leaves[index] = someItem
+		m.leaves[index] = item
 	}
 	neighbor := [32]byte{}
 	input := [64]byte{}
 	currentIndex := index
-	root := byteslib.ToBytes32(item)
+	root := item
 	for i := uint64(0); i < m.depth; i++ {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
 			neighbor = tree.ZeroHashes[i]
@@ -165,6 +144,25 @@ func (m *Tree) Insert(item []byte, index int) error {
 		currentIndex = parentIdx
 	}
 	return nil
+}
+
+// Root returns the root of the Merkle tree.
+func (m *Tree) Root() ([32]byte, error) {
+	return sha256.Sum256(m.branches[len(m.branches)-1][0][:]), nil
+}
+
+// HashTreeRoot returns the Root of the Merkle tree with the
+// number of leaves mixed in.
+func (m *Tree) HashTreeRoot() ([32]byte, error) {
+	var enc [32]byte
+	numItems := uint64(len(m.leaves))
+	if len(m.leaves) == 1 &&
+		m.leaves[0] == tree.ZeroHashes[0] {
+		numItems = 0
+	}
+	binary.LittleEndian.PutUint64(enc[:], numItems)
+	hashInput := append(m.branches[len(m.branches)-1][0][:], enc[:]...)
+	return sha256.Sum256(hashInput), nil
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.

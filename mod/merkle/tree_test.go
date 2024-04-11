@@ -174,7 +174,7 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 		TreeDepth,
 	)
 	require.NoError(t, err)
-	err = m.Insert([]byte{'J'}, -1)
+	err = m.Insert(byteslib.ToBytes32([]byte{'J'}), -1)
 	require.ErrorIs(t, err, merkle.ErrNegativeIndex)
 }
 
@@ -203,7 +203,7 @@ func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	)
 
 	// Now we update the merkle.
-	require.NoError(t, m.Insert([]byte{5}, 3))
+	require.NoError(t, m.Insert(byteslib.ToBytes32([]byte{5}), 3))
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	root, err = m.HashTreeRoot()
@@ -216,7 +216,7 @@ func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	), "Old item should not verify")
 
 	// Now we update the tree at an index larger than the number of items.
-	require.NoError(t, m.Insert([]byte{6}, 15))
+	require.NoError(t, m.Insert(byteslib.ToBytes32([]byte{6}), 15))
 }
 
 func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
@@ -254,7 +254,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	someItem := byteslib.ToBytes32([]byte("hello-world"))
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		require.NoError(b, tr.Insert(someItem[:], i%numDeposits))
+		require.NoError(b, tr.Insert(someItem, i%numDeposits))
 	}
 }
 
