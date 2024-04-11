@@ -36,14 +36,16 @@ import (
 const depth = uint64(16)
 
 func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
-	splitProofs := func(proofRaw []byte) [][]byte {
-		var proofs [][]byte
+	splitProofs := func(proofRaw []byte) [][32]byte {
+		var proofs [][32]byte
 		for i := 0; i < len(proofRaw); i += 32 {
 			end := i + 32
 			if end >= len(proofRaw) {
 				end = len(proofRaw) - 1
 			}
-			proofs = append(proofs, (proofRaw[i:end]))
+			var proofSegment [32]byte
+			copy(proofSegment[:], proofRaw[i:end])
+			proofs = append(proofs, proofSegment)
 		}
 		return proofs
 	}
@@ -67,7 +69,7 @@ func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
 	require.NoError(f, err)
 	var proofRaw []byte
 	for _, p := range proof {
-		proofRaw = append(proofRaw, p...)
+		proofRaw = append(proofRaw, p[:]...)
 	}
 	f.Add(root[:], items[0][:], uint64(0), proofRaw, depth)
 

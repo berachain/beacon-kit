@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/types"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,15 +48,15 @@ func TestSidecarMarshalling(t *testing.T) {
 		KzgCommitment:     [48]byte{},
 		KzgProof:          [48]byte{},
 		BeaconBlockHeader: &primitives.BeaconBlockHeader{},
-		InclusionProof: [][]byte{
-			[]byte("00000000000000000000000000000001"),
-			[]byte("00000000000000000000000000000002"),
-			[]byte("00000000000000000000000000000003"),
-			[]byte("00000000000000000000000000000004"),
-			[]byte("00000000000000000000000000000005"),
-			[]byte("00000000000000000000000000000006"),
-			[]byte("00000000000000000000000000000007"),
-			[]byte("00000000000000000000000000000008"),
+		InclusionProof: [][32]byte{
+			byteslib.ToBytes32([]byte("00000000000000000000000000000001")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000002")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000003")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000004")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000005")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000006")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000007")),
+			byteslib.ToBytes32([]byte("00000000000000000000000000000008")),
 		},
 	}
 

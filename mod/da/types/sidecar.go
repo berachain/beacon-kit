@@ -50,5 +50,5 @@ type BlobSidecar struct {
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block.
-	InclusionProof [][]byte `ssz-size:"8,32"`
+	InclusionProof [][32]byte `ssz-size:"8,32"`
 }

@@ -90,7 +90,7 @@ func VerifyKZGInclusionProof(
 func MerkleProofKZGCommitment(
 	body BeaconBlockBody,
 	index uint64,
-) ([][]byte, error) {
+) ([][32]byte, error) {
 	commitments := body.GetBlobKzgCommitments()
 
 	proof, err := BodyProof(commitments, index)
@@ -117,7 +117,7 @@ func MerkleProofKZGCommitment(
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
 // commitment list.
-func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
+func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}

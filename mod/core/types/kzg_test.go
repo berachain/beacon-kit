@@ -125,7 +125,7 @@ func Test_BodyProof(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Generate a proof for the index.
-	var proof [][]byte
+	var proof [][32]byte
 	for index := uint64(0); index < uint64(len(leaves)); index++ {
 		proof, err = sparse.MerkleProofWithMixin(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")

@@ -39,7 +39,7 @@ import (
 func VerifyMerkleProof(
 	root, leaf [32]byte,
 	merkleIndex uint64,
-	proof [][]byte,
+	proof [][32]byte,
 ) bool {
 	if len(proof) == 0 {
 		return false
@@ -57,7 +57,7 @@ func VerifyMerkleProof(
 func VerifyMerkleProofWithDepth(
 	root, item [32]byte,
 	merkleIndex uint64,
-	proof [][]byte,
+	proof [][32]byte,
 	depth uint64,
 ) bool {
 	if uint64(len(proof)) != depth+1 {
@@ -65,9 +65,9 @@ func VerifyMerkleProofWithDepth(
 	}
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
-			item = sha256.Sum256(append(proof[i], item[:]...))
+			item = sha256.Sum256(append(proof[i][:], item[:]...))
 		} else {
-			item = sha256.Sum256(append(item[:], proof[i]...))
+			item = sha256.Sum256(append(item[:], proof[i][:]...))
 		}
 		merkleIndex /= 2
 	}
@@ -75,7 +75,7 @@ func VerifyMerkleProofWithDepth(
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
-func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
+func (m *SparseMerkleTree) MerkleProof(index uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if index >= numLeaves {
 		return nil, fmt.Errorf(
@@ -84,15 +84,14 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
 			index,
 		)
 	}
-	merkleIndex := index
-	proof := make([][]byte, m.depth)
+	proof := make([][32]byte, m.depth)
 	for i := uint64(0); i < m.depth; i++ {
-		subIndex := (merkleIndex / (1 << i)) ^ 1
-		if subIndex < uint64(len(m.branches[i])) {
-			item := byteslib.ToBytes32(m.branches[i][subIndex])
-			proof[i] = item[:]
+		subIndex := (index >> i) ^ 1
+		layer := m.branches[i]
+		if subIndex < uint64(len(layer)) {
+			proof[i] = byteslib.ToBytes32(layer[subIndex])
 		} else {
-			proof[i] = tree.ZeroHashes[i][:]
+			proof[i] = tree.ZeroHashes[i]
 		}
 	}
 	return proof, nil
@@ -102,7 +101,7 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
 // index.
 func (m *SparseMerkleTree) MerkleProofWithMixin(
 	index uint64,
-) ([][]byte, error) {
+) ([][32]byte, error) {
 	proof, err := m.MerkleProof(index)
 	if err != nil {
 		return nil, err
@@ -110,5 +109,5 @@ func (m *SparseMerkleTree) MerkleProofWithMixin(
 
 	var mixin [32]byte
 	binary.LittleEndian.PutUint64(mixin[:], uint64(len(m.originalItems)))
-	return append(proof, mixin[:]), nil
+	return append(proof, mixin), nil
 }
