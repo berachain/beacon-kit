@@ -28,7 +28,15 @@ package merkle
 import "errors"
 
 var (
-	ErrEmptyItems    = errors.New("no items provided to generate Merkle tree")
-	ErrZeroDepth     = errors.New("depth must be greater than 0")
+	// ErrEmptyItems indicates that no items were provided to generate a Merkle
+	// tree.
+	ErrEmptyItems = errors.New("no items provided to generate Merkle tree")
+
+	// ErrZeroDepth indicates that the depth provided for the Merkle tree is
+	// zero, which is invalid.
+	ErrZeroDepth = errors.New("depth must be greater than 0")
+
+	// ErrExceededDepth indicates that the provided depth exceeds the supported
+	// maximum depth for a Merkle tree.
 	ErrExceededDepth = errors.New("supported merkle tree depth exceeded")
 )

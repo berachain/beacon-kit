@@ -151,11 +151,9 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 		//nolint:gomnd
 		parentIdx := currentIndex / 2
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
-			newItem := root
-			m.branches[i+1] = append(m.branches[i+1], newItem)
+			m.branches[i+1] = append(m.branches[i+1], root)
 		} else {
-			newItem := root
-			m.branches[i+1][parentIdx] = newItem
+			copy(m.branches[i+1][parentIdx][:], root[:])
 		}
 		currentIndex = parentIdx
 	}
