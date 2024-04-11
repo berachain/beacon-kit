@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/merkle"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
@@ -51,4 +52,15 @@ type BlobSidecar struct {
 	BeaconBlockHeader *primitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block.
 	InclusionProof [][32]byte `ssz-size:"8,32"`
+}
+
+// HasValidInclusionProof verifies the inclusion proof of the
+// blob in the beacon body.
+func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
+	return !merkle.VerifyMerkleProof(
+		b.BeaconBlockHeader.BodyRoot,
+		b.KzgCommitment.ToHashChunks()[0],
+		kzgOffset+b.Index,
+		b.InclusionProof,
+	)
 }

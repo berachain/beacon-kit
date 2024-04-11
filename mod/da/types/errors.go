@@ -27,8 +27,9 @@ package types
 
 import "errors"
 
-// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains
-// blobs with differing block roots.
-var ErrSidecarContainsDifferingBlockRoots = errors.New(
-	"sidecar contains blobs with differing block roots",
+var (
+	// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains
+	// blobs with differing block roots.
+	ErrSidecarContainsDifferingBlockRoots = errors.New(
+		"sidecar contains blobs with differing block roots")
 )

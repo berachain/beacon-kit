@@ -65,9 +65,6 @@ func NewTreeWithMaxLeaves(
 	leaves [][32]byte,
 	maxLeaves uint64,
 ) (*Tree, error) {
-	for len(leaves) < int(maxLeaves) {
-		leaves = append(leaves, tree.ZeroHashes[0])
-	}
 	return NewTreeFromLeavesWithDepth(leaves, tree.CoverDepth(maxLeaves))
 }
 

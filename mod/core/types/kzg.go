@@ -26,7 +26,6 @@
 package types
 
 import (
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
@@ -34,38 +33,11 @@ import (
 
 const (
 	MaxBlobCommitmentsPerBlock = 16
-	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
-	LogMaxBlobCommitments uint64 = 4
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	KZGMerkleIndex        = 24
 	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
 )
-
-// VerifyKZGInclusionProof verifies the inclusion proof for a commitment in a
-// Merkle tree. It takes the commitment, root hash, inclusion proof, and index
-// as input parameters.
-// The commitment is the value being proven to be included in the Merkle tree.
-// The root is the root hash of the Merkle tree.
-// The proof is a list of intermediate hashes that prove the inclusion of the
-// commitment in the Merkle tree.
-// The index is the position of the commitment in the Merkle tree.
-// If the inclusion proof is valid, the function returns nil.
-// Otherwise, it returns an error indicating an invalid inclusion proof.
-func VerifyKZGInclusionProof(
-	blob *datypes.BlobSidecar,
-) error { // TODO: add wrapped type with inclusion proofs
-	verified := merkle.VerifyMerkleProof(
-		blob.BeaconBlockHeader.BodyRoot,
-		blob.KzgCommitment.ToHashChunks()[0],
-		KZGOffset+blob.Index,
-		blob.InclusionProof,
-	)
-	if !verified {
-		return errInvalidInclusionProof
-	}
-	return nil
-}
 
 // MerkleProofKZGCommitment generates a Merkle proof for a given index in a list
 // of commitments using the KZG algorithm. It takes a 2D byte slice of
@@ -115,9 +87,9 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	bodyTree, err := merkle.NewTreeFromLeavesWithDepth(
+	bodyTree, err := merkle.NewTreeWithMaxLeaves(
 		leaves,
-		uint8(LogMaxBlobCommitments),
+		MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {
 		return nil, err

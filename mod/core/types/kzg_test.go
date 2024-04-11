@@ -40,6 +40,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const LogMaxBlobCommitments = 4
+
 func mockBody() *types.BeaconBlockBodyDeneb {
 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
 	executionPayload := &enginetypes.ExecutableDataDeneb{
@@ -114,7 +116,7 @@ func Test_BodyProof(t *testing.T) {
 
 	// Calculate the depth the given tree will have.
 	// depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
-	depth := uint8(types.LogMaxBlobCommitments)
+	depth := uint8(LogMaxBlobCommitments)
 
 	// Generate a sparse Merkle tree from the leaves.
 	tree, err := merkle.NewTreeFromLeavesWithDepth(leaves, depth)
@@ -206,7 +208,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t,
 		proof,
-		int(types.LogMaxBlobCommitments)+1+int(types.LogBodyLengthDeneb))
+		int(LogMaxBlobCommitments)+1+int(types.LogBodyLengthDeneb))
 
 	chunk := make([][32]byte, 2)
 	copy(chunk[0][:], kzgs[index][:])
@@ -225,7 +227,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 			commitmentsRoot,
 			chunk[0],
 			index,
-			proof[:types.LogMaxBlobCommitments+1],
+			proof[:LogMaxBlobCommitments+1],
 		),
 	)
 
@@ -245,11 +247,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err, "Failed to generate Merkle proof")
 	require.Equal(t,
 		topProof[:len(topProof)-1],
-		proof[types.LogMaxBlobCommitments+1:],
+		proof[LogMaxBlobCommitments+1:],
 	)
 
 	require.Len(t,
-		proof[types.LogMaxBlobCommitments+1:],
+		proof[LogMaxBlobCommitments+1:],
 		int(types.LogBodyLengthDeneb),
 	)
 	require.True(t,
@@ -257,7 +259,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 			root,
 			commitmentsRoot,
 			types.KZGPositionDeneb,
-			proof[types.LogMaxBlobCommitments+1:],
+			proof[LogMaxBlobCommitments+1:],
 		),
 	)
 
