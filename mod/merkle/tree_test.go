@@ -64,7 +64,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 	require.ErrorIs(t, err, merkle.ErrExceededDepth)
 }
 
-func TestTree_VerifyMerkleProofWithDepth(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProofWithDepth(t *testing.T) {
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -89,21 +89,18 @@ func TestTree_VerifyMerkleProofWithDepth(t *testing.T) {
 	)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
-	if ok := merkle.VerifyMerkleProofWithDepth(
-		root, items[0], 0, proof, TreeDepth,
-	); !ok {
-		t.Error("First Merkle proof did not verify")
-	}
+	require.True(t, merkle.VerifyMerkleProof(
+		root, items[0], 0, proof,
+	), "First Merkle proof did not verify")
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	require.True(
 		t,
-		merkle.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProof(
 			root,
 			items[3],
 			3,
 			proof,
-			TreeDepth,
 		),
 	)
 	require.False(
@@ -118,7 +115,7 @@ func TestTree_VerifyMerkleProofWithDepth(t *testing.T) {
 	)
 }
 
-func TestTree_VerifyMerkleProof(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProof(t *testing.T) {
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -161,7 +158,7 @@ func TestTree_VerifyMerkleProof(t *testing.T) {
 	)
 }
 
-func TestTree_NegativeIndexes(t *testing.T) {
+func TestMerkleTree_NegativeIndexes(t *testing.T) {
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -184,7 +181,7 @@ func TestTree_NegativeIndexes(t *testing.T) {
 	)
 }
 
-func TestTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
+func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	items := [][32]byte{
 		{1},
 		{2},
@@ -200,12 +197,11 @@ func TestTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	require.True(
 		t,
-		merkle.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProof(
 			root,
 			items[0],
 			0,
 			proof,
-			treeDepth,
 		),
 	)
 
@@ -215,11 +211,11 @@ func TestTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	root, err = m.HashTreeRoot()
 	require.NoError(t, err)
-	require.True(t, merkle.VerifyMerkleProofWithDepth(
-		root, [32]byte{5}, 3, proof, treeDepth,
+	require.True(t, merkle.VerifyMerkleProof(
+		root, [32]byte{5}, 3, proof,
 	), "Second Merkle proof did not verify")
-	require.False(t, merkle.VerifyMerkleProofWithDepth(
-		root, [32]byte{4}, 3, proof, treeDepth,
+	require.False(t, merkle.VerifyMerkleProof(
+		root, [32]byte{4}, 3, proof,
 	), "Old item should not verify")
 
 	// Now we update the tree at an index larger than the number of items.

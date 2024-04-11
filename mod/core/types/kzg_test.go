@@ -218,12 +218,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	require.True(t,
-		merkle.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProof(
 			commitmentsRoot,
 			chunk[0],
 			index,
 			proof[:types.LogMaxBlobCommitments+1],
-			types.LogMaxBlobCommitments,
 		),
 	)
 

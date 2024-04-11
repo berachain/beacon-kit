@@ -125,7 +125,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	tree, err := merkle.NewTreeFromLeavesWithDepth(
+	sparse, err := merkle.NewTreeFromLeavesWithDepth(
 		leaves,
 		LogMaxBlobCommitments,
 	)
@@ -133,7 +133,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, err
 	}
 
-	return tree.MerkleProofWithMixin(index)
+	return sparse.MerkleProofWithMixin(index)
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
