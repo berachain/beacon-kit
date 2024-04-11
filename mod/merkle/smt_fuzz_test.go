@@ -60,7 +60,7 @@ func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeaves(items, depth)
+	m, err := merkle.NewTreeFromLeavesWithDepth(items, depth)
 	require.NoError(f, err)
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(f, err)

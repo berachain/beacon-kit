@@ -49,8 +49,16 @@ type SparseMerkleTree struct {
 	leaves   [][32]byte
 }
 
-// NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+// NewTreeFromLeaves constructs a Merkle tree, with the minimum
+// depth required to support the number of leaves.
 func NewTreeFromLeaves(
+	leaves [][32]byte,
+) (*SparseMerkleTree, error) {
+	return NewTreeFromLeavesWithDepth(leaves, uint64(len(leaves)))
+}
+
+// NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+func NewTreeFromLeavesWithDepth(
 	leaves [][32]byte,
 	depth uint64,
 ) (*SparseMerkleTree, error) {
@@ -58,15 +66,15 @@ func NewTreeFromLeaves(
 	switch {
 	case numLeaves == 0:
 		return nil, ErrEmptyLeaves
+	case depth == 0:
+		return nil, ErrZeroDepth
+	case depth > MaxTreeDepth:
+		return nil, ErrExceededDepth
 	case numLeaves > (1 << depth):
 		return nil, errors.Wrap(
 			ErrInsufficientDepthForLeaves,
 			fmt.Sprintf("attempted to store %d leaves with depth %d",
 				numLeaves, depth))
-	case depth == 0:
-		return nil, ErrZeroDepth
-	case depth > MaxTreeDepth:
-		return nil, ErrExceededDepth
 	}
 
 	layers := make([][][32]byte, depth+1)

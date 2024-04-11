@@ -103,7 +103,10 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	sparse, err := merkle.NewTreeFromLeaves(membersRoots, LogBodyLength)
+	sparse, err := merkle.NewTreeFromLeavesWithDepth(
+		membersRoots,
+		LogBodyLength,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +125,10 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := merkle.NewTreeFromLeaves(leaves, LogMaxBlobCommitments)
+	sparse, err := merkle.NewTreeFromLeavesWithDepth(
+		leaves,
+		LogMaxBlobCommitments,
+	)
 	if err != nil {
 		return nil, err
 	}
