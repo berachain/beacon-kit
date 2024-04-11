@@ -1,16 +1,5 @@
 #!/usr/bin/make -f
 ## DevTools:
-tidy: ## run go mod tidy in all modules
-	@echo "Running go mod tidy in all modules"
-	@find . -name 'go.mod' -execdir go mod tidy \;
-
-sync: 
-	@echo "Running go mod download && go work sync"
-	@go mod download
-	@go work sync
-
-yap: ## the yap cave
-	@go run ./mod/node-builder/utils/yap/yap.go
 
 bet: format build test-unit ## yo bet
 	@git add .
@@ -28,5 +17,19 @@ repo-rinse: | ## dangerous!!! make sure you know what you are doing
 	git submodule foreach --recursive git clean -xfd
 	git submodule foreach --recursive git reset --hard
 	git submodule update --init --recursive
+
+sync: 
+	@echo "Running go mod download && go work sync"
+	@go mod download
+	@go work sync
+
+tidy: ## run go mod tidy in all modules
+	@echo "Running go mod tidy in all modules"
+	@find . -name 'go.mod' -execdir go mod tidy \;
+
+
+yap: ## the yap cave
+	@go run ./mod/node-builder/utils/yap/yap.go
+
 
 .PHONY: format build test-unit bet
