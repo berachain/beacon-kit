@@ -1,5 +1,6 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 execution = import_module("../../execution/execution.star")
+init = import_module("../../../lib/init.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -98,12 +99,18 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         if n == 0:
             exec_recipe = ExecRecipe(
                 # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init.sh", "-f"],
+                # TODO : In the current approach, figure out to how the make the function call here `init_beacond`
+                # init.init_beacond(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True),
+                # Other approach is : directly calling the binary commands here instead of the shell script
+                # "/usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos".format(
+                #     "$BEACOND_CHAIN_ID",
+                #     "$BEACOND_MONIKER",
+                #     "$BEACOND_HOME",
             )
         else:
             exec_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init.sh"],
+                        # Initialize the Cosmos genesis file
+                        command = ["/usr/bin/init.sh"],
             )
 
         plan.exec(
@@ -124,7 +131,9 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         if n == num_validators - 1:
             finalize_recipe = ExecRecipe(
                 # Initialize the Cosmos genesis file
-                command = ["/usr/bin/finalize.sh"],
+                # Collect genesis tx
+                # /usr/bin/beacond genesis collect-validators --home "$BEACOND_HOME" > /dev/null 2>&1
+                command = ["/usr/bin/beacond", "genesis","collect-validators", "--home", "$BEACOND_HOME"],
             )
             result = plan.exec(
                 service_name = cl_service_name,
