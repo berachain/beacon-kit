@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	types0 "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
@@ -58,9 +57,9 @@ func DefaultBeaconState() *BeaconState {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots:                   make([][32]byte, 8),
-		StateRoots:                   make([][32]byte, 8),
-		LatestExecutionPayload:       DefaultGenesisExecutionPayload(),
+		BlockRoots:             make([][32]byte, 8),
+		StateRoots:             make([][32]byte, 8),
+		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
@@ -132,7 +131,7 @@ type BeaconState struct {
 
 	// Eth1
 	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data         *primitives.Eth1Data     `json:"eth1Data"`
+	Eth1Data               *primitives.Eth1Data        `json:"eth1Data"`
 	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
 
 	// Registry

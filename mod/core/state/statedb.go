@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )

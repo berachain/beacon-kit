@@ -58,7 +58,6 @@ type ReadOnlyBeaconState interface {
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
-	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
@@ -76,7 +75,6 @@ type WriteOnlyBeaconState interface {
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
@@ -129,7 +127,7 @@ type ReadOnlyValidators interface {
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
+	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
@@ -138,7 +136,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
+	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)

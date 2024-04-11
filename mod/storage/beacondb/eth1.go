@@ -27,6 +27,7 @@ package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // GetLatestExecutionPayload retrieves the latest execution payload from the
