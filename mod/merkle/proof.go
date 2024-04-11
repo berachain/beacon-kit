@@ -29,9 +29,9 @@ import (
 	sha256 "github.com/minio/sha256-simd"
 )
 
-// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
+// VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyMerkleProof(
+func VerifyProof(
 	root, leaf [32]byte,
 	merkleIndex uint64,
 	proof [][32]byte,

@@ -40,8 +40,6 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	// TODO: Wrangle fastssz to allow us to use a pointer here to avoid
-	// copying the blob around all the time. Benchmark this as well.
 	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment
@@ -57,7 +55,7 @@ type BlobSidecar struct {
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
-	return merkle.VerifyMerkleProof(
+	return merkle.VerifyProof(
 		b.BeaconBlockHeader.BodyRoot,
 		b.KzgCommitment.ToHashChunks()[0],
 		kzgOffset+b.Index,
