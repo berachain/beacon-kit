@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -126,7 +127,7 @@ type ReadOnlyValidators interface {
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
+	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
@@ -135,7 +136,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
+	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)

@@ -169,10 +169,12 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	prevEth1Block, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	prevEth1Block := latestExecutionPayload.GetBlockHash()
+
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
@@ -183,8 +185,8 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
-	payloadBlockHash := payload.GetBlockHash()
-	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+	// Update the latest execution payload.
+	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
 		return err
 	}
 

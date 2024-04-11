@@ -31,6 +31,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
@@ -62,8 +63,9 @@ type KVStore struct {
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// Eth1
-	// eth1BlockHash stores the block hash of the latest eth1 block.
-	eth1BlockHash sdkcollections.Item[[32]byte]
+	// latestExecutionPayload stores the latest execution payload.
+	latestExecutionPayload sdkcollections.Item[types.ExecutionPayload]
+
 	// eth1Data stores the latest eth1 data.
 	eth1Data sdkcollections.Item[*primitives.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
@@ -144,11 +146,15 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-		eth1BlockHash: sdkcollections.NewItem[[32]byte](
+		latestExecutionPayload: sdkcollections.NewItem[types.ExecutionPayload](
 			schemaBuilder,
-			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
-			keys.Eth1BlockHashPrefix,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
+			keys.LatestExecutionPayloadPrefix,
+			encoding.SSZInterfaceCodec[types.ExecutionPayload]{
+				Factory: func() types.ExecutionPayload {
+					return &types.ExecutableDataDeneb{}
+				},
+			},
 		),
 		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
 			schemaBuilder,

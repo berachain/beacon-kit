@@ -28,6 +28,7 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
@@ -56,11 +57,9 @@ func DefaultBeaconState() *BeaconState {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots: make([][32]byte, 8),
-		StateRoots: make([][32]byte, 8),
-		Eth1BlockHash: common.HexToHash(
-			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
-		),
+		BlockRoots:             make([][32]byte, 8),
+		StateRoots:             make([][32]byte, 8),
+		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
@@ -74,6 +73,40 @@ func DefaultBeaconState() *BeaconState {
 		RandaoMixes:                  make([][32]byte, 8),
 		Slashings:                    make([]uint64, 0),
 		TotalSlashing:                0,
+	}
+}
+
+// DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
+//
+//nolint:gomnd // default values pulled from current eth-genesis.json file.
+func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
+	baseFeePerGas := hexutil.MustDecode("0x3b9aca")
+	return &types0.ExecutableDataDeneb{
+		ParentHash:   primitives.ExecutionHash{},
+		FeeRecipient: primitives.ExecutionAddress{},
+		StateRoot: common.HexToHash(
+			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
+		),
+		ReceiptsRoot: common.HexToHash(
+			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+		),
+		LogsBloom: make([]byte, 256),
+		Random:    primitives.ExecutionHash{},
+		Number:    0,
+		GasLimit:  hexutil.MustDecodeUint64("0x1c9c380"),
+		GasUsed:   0,
+		Timestamp: 0,
+		ExtraData: make([]byte, 32),
+		BaseFeePerGas: append(
+			baseFeePerGas,
+			make([]byte, 32-len(baseFeePerGas))...),
+		BlockHash: common.HexToHash(
+			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
+		),
+		Transactions:  [][]byte{},
+		Withdrawals:   []*primitives.Withdrawal{},
+		BlobGasUsed:   0,
+		ExcessBlobGas: 0,
 	}
 }
 
@@ -97,9 +130,9 @@ type BeaconState struct {
 	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1BlockHash    primitives.ExecutionHash `json:"eth1BlockHash"    ssz-size:"32"`
-	Eth1Data         *primitives.Eth1Data     `json:"eth1Data"`
-	Eth1DepositIndex uint64                   `json:"eth1DepositIndex"`
+	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
+	Eth1Data               *primitives.Eth1Data        `json:"eth1Data"`
+	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`

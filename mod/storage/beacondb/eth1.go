@@ -26,19 +26,22 @@
 package beacondb
 
 import (
+	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// UpdateEth1BlockHash sets the Eth1 hash in the BeaconStore.
-func (kv *KVStore) UpdateEth1BlockHash(
-	hash primitives.ExecutionHash,
-) error {
-	return kv.eth1BlockHash.Set(kv.ctx, hash)
+// GetLatestExecutionPayload retrieves the latest execution payload from the
+// BeaconStore.
+func (kv *KVStore) GetLatestExecutionPayload() (types.ExecutionPayload, error) {
+	return kv.latestExecutionPayload.Get(kv.ctx)
 }
 
-// GetEth1Hash retrieves the Eth1 hash from the BeaconStore.
-func (kv *KVStore) GetEth1BlockHash() (primitives.ExecutionHash, error) {
-	return kv.eth1BlockHash.Get(kv.ctx)
+// UpdateLatestExecutionPayload sets the latest execution payload in the
+// BeaconStore.
+func (kv *KVStore) UpdateLatestExecutionPayload(
+	payload types.ExecutionPayload,
+) error {
+	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.

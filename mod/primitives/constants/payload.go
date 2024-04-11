@@ -23,37 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package genesis
+package constants
 
-import (
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
+const (
+	ExtraDataLength = 32
 )
-
-// Commands builds the genesis-related command. Users may
-// provide application specific commands as a parameter.
-func Commands(
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "genesis",
-		Short:                      "Application's genesis-related subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	// Adding subcommands for genesis-related operations.
-	cmd.AddCommand(
-		AddPubkeyCmd(),
-		CollectValidatorsCmd(),
-		AddExecutionPayloadCmd(),
-	)
-
-	// Add additional commands
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-
-	return cmd
-}
