@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
@@ -160,7 +161,8 @@ func Test_TopLevelRoots(t *testing.T) {
 
 	// Commitments
 	commitments := body.GetBlobKzgCommitments()
-	commitmentsRoot, err := types.GetBlobKzgCommitmentsRoot(commitments)
+	commitmentsRoot, err := htr.ListSSZ[kzg.Commitment](
+		commitments, types.MaxBlobCommitmentsPerBlock)
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Body
@@ -214,7 +216,8 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err)
 
 	commitments := body.GetBlobKzgCommitments()
-	commitmentsRoot, err := types.GetBlobKzgCommitmentsRoot(commitments)
+	commitmentsRoot, err := htr.ListSSZ[kzg.Commitment](
+		commitments, types.MaxBlobCommitmentsPerBlock)
 	require.NoError(t, err, "Failed to generate root hash")
 
 	require.True(t,

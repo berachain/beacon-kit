@@ -30,7 +30,6 @@ import (
 	"reflect"
 
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
@@ -156,20 +155,6 @@ func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
 
 	// KZG commitments is not needed
 	return layer, nil
-}
-
-func GetBlobKzgCommitmentsRoot(
-	commitments []kzg.Commitment,
-) ([32]byte, error) {
-	commitmentsLeaves := LeavesFromCommitments(commitments)
-	tree, err := merkle.NewTreeFromLeavesWithDepth(
-		commitmentsLeaves,
-		LogMaxBlobCommitments,
-	)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return tree.HashTreeRoot()
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(
