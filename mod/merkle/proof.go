@@ -26,7 +26,6 @@
 package merkle
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 
@@ -35,17 +34,17 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
-// VerifyProof given a tree root, a leaf, the generalized merkle index
+// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyProof(
-	root, leaf []byte,
+func VerifyMerkleProof(
+	root, leaf [32]byte,
 	merkleIndex uint64,
 	proof [][]byte,
 ) bool {
 	if len(proof) == 0 {
 		return false
 	}
-	return VerifyProofWithDepth(
+	return VerifyMerkleProofWithDepth(
 		root,
 		leaf,
 		merkleIndex,
@@ -54,9 +53,9 @@ func VerifyProof(
 	)
 }
 
-// VerifyProofWithDepth verifies a Merkle branch against a root of a tree.
-func VerifyProofWithDepth(
-	root, item []byte,
+// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a tree.
+func VerifyMerkleProofWithDepth(
+	root, item [32]byte,
 	merkleIndex uint64,
 	proof [][]byte,
 	depth uint64,
@@ -64,16 +63,15 @@ func VerifyProofWithDepth(
 	if uint64(len(proof)) != depth+1 {
 		return false
 	}
-	node := byteslib.ToBytes32(item)
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
-			node = sha256.Sum256(append(proof[i], node[:]...))
+			item = sha256.Sum256(append(proof[i], item[:]...))
 		} else {
-			node = sha256.Sum256(append(node[:], proof[i]...))
+			item = sha256.Sum256(append(item[:], proof[i]...))
 		}
 		merkleIndex /= 2
 	}
-	return bytes.Equal(root, node[:])
+	return root == item
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
@@ -87,7 +85,7 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
 		)
 	}
 	merkleIndex := index
-	proof := make([][]byte, m.depth+1)
+	proof := make([][]byte, m.depth)
 	for i := uint64(0); i < m.depth; i++ {
 		subIndex := (merkleIndex / (1 << i)) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
@@ -97,8 +95,20 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][]byte, error) {
 			proof[i] = tree.ZeroHashes[i][:]
 		}
 	}
-	var enc [32]byte
-	binary.LittleEndian.PutUint64(enc[:], uint64(len(m.originalItems)))
-	proof[len(proof)-1] = enc[:]
 	return proof, nil
+}
+
+// MerkleProofWithMixin computes a proof from a tree's branches using a Merkle
+// index.
+func (m *SparseMerkleTree) MerkleProofWithMixin(
+	index uint64,
+) ([][]byte, error) {
+	proof, err := m.MerkleProof(index)
+	if err != nil {
+		return nil, err
+	}
+
+	var mixin [32]byte
+	binary.LittleEndian.PutUint64(mixin[:], uint64(len(m.originalItems)))
+	return append(proof, mixin[:]), nil
 }

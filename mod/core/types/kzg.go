@@ -64,9 +64,9 @@ const (
 func VerifyKZGInclusionProof(
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
-	verified := merkle.VerifyProof(
-		blob.BeaconBlockHeader.BodyRoot[:],
-		blob.KzgCommitment.ToHashChunks()[0][:],
+	verified := merkle.VerifyMerkleProof(
+		blob.BeaconBlockHeader.BodyRoot,
+		blob.KzgCommitment.ToHashChunks()[0],
 		blob.Index+KZGOffset,
 		blob.InclusionProof,
 	)
@@ -88,17 +88,17 @@ func VerifyKZGInclusionProof(
 // proof, and appends it to the body proof. Note that the last element of the
 // top proof is removed before returning the final proof, as it is not needed.
 func MerkleProofKZGCommitment(
-	blk BeaconBlock,
+	body BeaconBlockBody,
 	index uint64,
 ) ([][]byte, error) {
-	commitments := blk.GetBody().GetBlobKzgCommitments()
+	commitments := body.GetBlobKzgCommitments()
 
 	proof, err := BodyProof(commitments, index)
 	if err != nil {
 		return nil, err
 	}
 
-	membersRoots, err := GetTopLevelRoots(blk.GetBody())
+	membersRoots, err := GetTopLevelRoots(body)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +112,7 @@ func MerkleProofKZGCommitment(
 	if err != nil {
 		return nil, err
 	}
-	// sparse.MerkleProof always includes the length of the slice this is
-	// why we remove the last element that is not needed in topProof
-	proof = append(proof, topProof[:len(topProof)-1]...)
-	return proof, nil
+	return append(proof, topProof...), nil
 }
 
 // BodyProof returns the Merkle proof of the subtree up to the root of the KZG
@@ -130,14 +127,14 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 		return nil, err
 	}
 
-	return sparse.MerkleProof(index)
+	return sparse.MerkleProofWithMixin(index)
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments kzg.Commitments) [][]byte {
-	leaves := make([][]byte, len(commitments))
+func LeavesFromCommitments(commitments kzg.Commitments) [][32]byte {
+	leaves := make([][32]byte, len(commitments))
 	for i, commitment := range commitments {
-		leaves[i] = commitment.ToHashChunks()[0][:]
+		leaves[i] = commitment.ToHashChunks()[0]
 	}
 	return leaves
 }

@@ -29,12 +29,13 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/merkle"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/stretchr/testify/require"
 )
 
 const depth = uint64(16)
 
-func FuzzSparseMerkleTree_VerifyProofWithDepth(f *testing.F) {
+func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
 	splitProofs := func(proofRaw []byte) [][]byte {
 		var proofs [][]byte
 		for i := 0; i < len(proofRaw); i += 32 {
@@ -42,24 +43,24 @@ func FuzzSparseMerkleTree_VerifyProofWithDepth(f *testing.F) {
 			if end >= len(proofRaw) {
 				end = len(proofRaw) - 1
 			}
-			proofs = append(proofs, proofRaw[i:end])
+			proofs = append(proofs, (proofRaw[i:end]))
 		}
 		return proofs
 	}
 
-	items := [][]byte{
-		[]byte("A"),
-		[]byte("B"),
-		[]byte("C"),
-		[]byte("D"),
-		[]byte("E"),
-		[]byte("F"),
-		[]byte("G"),
-		[]byte("H"),
+	items := [][32]byte{
+		byteslib.ToBytes32([]byte("A")),
+		byteslib.ToBytes32([]byte("B")),
+		byteslib.ToBytes32([]byte("C")),
+		byteslib.ToBytes32([]byte("D")),
+		byteslib.ToBytes32([]byte("E")),
+		byteslib.ToBytes32([]byte("F")),
+		byteslib.ToBytes32([]byte("G")),
+		byteslib.ToBytes32([]byte("H")),
 	}
 	m, err := merkle.NewTreeFromItems(items, depth)
 	require.NoError(f, err)
-	proof, err := m.MerkleProof(0)
+	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(f, err)
 	require.Len(f, proof, int(depth)+1)
 	root, err := m.HashTreeRoot()
@@ -68,16 +69,16 @@ func FuzzSparseMerkleTree_VerifyProofWithDepth(f *testing.F) {
 	for _, p := range proof {
 		proofRaw = append(proofRaw, p...)
 	}
-	f.Add(root[:], items[0], uint64(0), proofRaw, depth)
+	f.Add(root[:], items[0][:], uint64(0), proofRaw, depth)
 
 	f.Fuzz(
 		func(_ *testing.T,
 			root, item []byte, merkleIndex uint64,
 			proofRaw []byte, depth uint64,
 		) {
-			merkle.VerifyProofWithDepth(
-				root,
-				item,
+			merkle.VerifyMerkleProofWithDepth(
+				byteslib.ToBytes32(root),
+				byteslib.ToBytes32(item),
 				merkleIndex,
 				splitProofs(proofRaw),
 				depth,

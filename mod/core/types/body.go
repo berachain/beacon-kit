@@ -29,7 +29,6 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	merkleize "github.com/berachain/beacon-kit/mod/tree/merkleize"
 	"github.com/cockroachdb/errors"
@@ -113,40 +112,31 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
-	layer := make([][]byte, BodyLength)
-	for i := range layer {
-		layer[i] = make([]byte, constants.RootLength)
-	}
-
+func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
+	layer := make([][32]byte, BodyLength)
+	var err error
 	randao := b.GetRandaoReveal()
-	root, err := merkleize.ByteSliceSSZ(randao[:])
+	layer[0], err = merkleize.ByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[0], root[:])
 
 	// graffiti
-	root = b.GetGraffiti()
-	copy(layer[1], root[:])
+	layer[1] = b.GetGraffiti()
 
-	// Deposits
-	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
+	layer[2], err = merkleize.ListSSZ(b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[2], root[:])
 
 	// Execution Payload
-	rt, err := b.GetExecutionPayload().HashTreeRoot()
+	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[3], rt[:])
 
 	// KZG commitments is not needed
 	return layer, nil
