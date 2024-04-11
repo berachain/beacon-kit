@@ -27,8 +27,15 @@ package blobs
 
 import "errors"
 
-// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to store a
-// nil sidecar.
-var ErrAttemptedToVerifyNilSidecar = errors.New(
-	"attempted to verify nil sidecar",
+var (
+	// ErrAttemptedToVerifyNilSidecar is returned when
+	// an attempt is made to store a nil sidecar.
+	ErrAttemptedToVerifyNilSidecar = errors.New(
+		"attempted to verify nil sidecar",
+	)
+
+	// ErrInvalidInclusionProof is returned when an invalid KZG commitment
+	// inclusion.
+	ErrInvalidInclusionProof = errors.New(
+		"invalid KZG commitment inclusion proof")
 )

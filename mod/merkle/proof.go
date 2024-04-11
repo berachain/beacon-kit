@@ -29,17 +29,23 @@ import (
 	sha256 "github.com/minio/sha256-simd"
 )
 
-// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
+// VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyMerkleProof(
+func VerifyProof(
 	root, leaf [32]byte,
 	merkleIndex uint64,
 	proof [][32]byte,
 ) bool {
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
+	if len(proof) > int(^uint8(0)) {
+		return false
+	}
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
-		uint64(len(proof)),
+		//#nosec:G701 // we check the length of the proof above.
+		uint8(len(proof)),
 		merkleIndex,
 		root,
 	)
@@ -50,9 +56,11 @@ func VerifyMerkleProof(
 //
 //nolint:lll
 func IsValidMerkleBranch(
-	leaf [32]byte, branch [][32]byte, depth, index uint64, root [32]byte,
+	leaf [32]byte, branch [][32]byte, depth uint8, index uint64, root [32]byte,
 ) bool {
-	if uint64(len(branch)) != depth {
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
+	if len(branch) != int(depth) {
 		return false
 	}
 	return RootFromBranch(leaf, branch, depth, index) == root
@@ -66,12 +74,12 @@ func IsValidMerkleBranch(
 func RootFromBranch(
 	leaf [32]byte,
 	branch [][32]byte,
-	depth uint64,
+	depth uint8,
 	index uint64,
 ) [32]byte {
 	merkleRoot := leaf
 	var hashInput [64]byte
-	for i := uint64(0); i < depth; i++ {
+	for i := uint8(0); i < depth; i++ {
 		//nolint:gomnd // from spec.
 		ithBit := (index >> i) & 0x01
 		if ithBit == 1 {

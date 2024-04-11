@@ -43,7 +43,7 @@ const (
 // Tree implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
 type Tree struct {
-	depth    uint64
+	depth    uint8
 	branches [][][32]byte
 	leaves   [][32]byte
 }
@@ -53,14 +53,26 @@ type Tree struct {
 func NewTreeFromLeaves(
 	leaves [][32]byte,
 ) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(leaves, uint64(len(leaves)))
+	return NewTreeFromLeavesWithDepth(
+		leaves,
+		tree.CoverDepth(uint64(len(leaves))),
+	)
+}
+
+// NewTreeWithMaxLeaves constructs a Merkle tree with a maximum number of
+// leaves.
+func NewTreeWithMaxLeaves(
+	leaves [][32]byte,
+	maxLeaves uint64,
+) (*Tree, error) {
+	return NewTreeFromLeavesWithDepth(leaves, tree.CoverDepth(maxLeaves))
 }
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
 // It will fill the tree with zero hashes to create the required depth.
 func NewTreeFromLeavesWithDepth(
 	leaves [][32]byte,
-	depth uint64,
+	depth uint8,
 ) (*Tree, error) {
 	numLeaves := len(leaves)
 	switch {
@@ -81,7 +93,7 @@ func NewTreeFromLeavesWithDepth(
 	layers[0] = leaves
 
 	var err error
-	for i := uint64(0); i < depth; i++ {
+	for i := uint8(0); i < depth; i++ {
 		currentLayer := layers[i]
 		if len(currentLayer)%2 == 1 {
 			currentLayer = append(currentLayer, tree.ZeroHashes[i])
@@ -117,7 +129,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 	input := [64]byte{}
 	currentIndex := index
 	root := item
-	for i := uint64(0); i < m.depth; i++ {
+	for i := uint8(0); i < m.depth; i++ {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
 			neighbor = tree.ZeroHashes[i]
 		} else {
@@ -139,7 +151,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			m.branches[i+1] = append(m.branches[i+1], root)
 		} else {
-			copy(m.branches[i+1][parentIdx][:], root[:])
+			m.branches[i+1][parentIdx] = root
 		}
 		currentIndex = parentIdx
 	}
@@ -176,7 +188,7 @@ func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 		)
 	}
 	proof := make([][32]byte, m.depth)
-	for i := uint64(0); i < m.depth; i++ {
+	for i := uint8(0); i < m.depth; i++ {
 		subIndex := (leafIndex >> i) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
 			proof[i] = m.branches[i][subIndex]

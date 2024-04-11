@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/merkle"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
@@ -39,8 +40,6 @@ type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	// TODO: Wrangle fastssz to allow us to use a pointer here to avoid
-	// copying the blob around all the time. Benchmark this as well.
 	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment
@@ -51,4 +50,15 @@ type BlobSidecar struct {
 	BeaconBlockHeader *primitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block.
 	InclusionProof [][32]byte `ssz-size:"8,32"`
+}
+
+// HasValidInclusionProof verifies the inclusion proof of the
+// blob in the beacon body.
+func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
+	return merkle.VerifyProof(
+		b.BeaconBlockHeader.BodyRoot,
+		b.KzgCommitment.ToHashChunks()[0],
+		kzgOffset+b.Index,
+		b.InclusionProof,
+	)
 }
