@@ -33,13 +33,9 @@ import (
 )
 
 const (
-	Two                        = 2
-	RootLength                 = 32
 	MaxBlobCommitmentsPerBlock = 16
 	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
 	LogMaxBlobCommitments uint64 = 4
-	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPosition = 4
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	KZGMerkleIndex        = 24
@@ -99,13 +95,13 @@ func MerkleProofKZGCommitment(
 	}
 	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		membersRoots,
-		LogBodyLength,
+		LogBodyLengthDeneb,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	topProof, err := tree.MerkleProof(KZGPosition)
+	topProof, err := tree.MerkleProof(KZGPositionDeneb)
 	if err != nil {
 		return nil, err
 	}

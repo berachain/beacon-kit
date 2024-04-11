@@ -43,11 +43,11 @@ var (
 	// struct.
 	BodyLengthDeneb = reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField()
 
-	// LogBodyLength is the Log_2 of BodyLength (6).
-	LogBodyLength = uint64(math.Ceil(math.Sqrt(float64(BodyLengthDeneb))))
+	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
+	LogBodyLengthDeneb = uint64(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPositionDeneb = 4
+	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)
 )
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
