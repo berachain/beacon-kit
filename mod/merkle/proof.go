@@ -39,7 +39,7 @@ func VerifyMerkleProof(
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
-		uint64(len(proof)),
+		uint8(len(proof)),
 		merkleIndex,
 		root,
 	)
@@ -50,9 +50,9 @@ func VerifyMerkleProof(
 //
 //nolint:lll
 func IsValidMerkleBranch(
-	leaf [32]byte, branch [][32]byte, depth, index uint64, root [32]byte,
+	leaf [32]byte, branch [][32]byte, depth uint8, index uint64, root [32]byte,
 ) bool {
-	if uint64(len(branch)) != depth {
+	if uint8(len(branch)) != depth {
 		return false
 	}
 	return RootFromBranch(leaf, branch, depth, index) == root
@@ -66,12 +66,12 @@ func IsValidMerkleBranch(
 func RootFromBranch(
 	leaf [32]byte,
 	branch [][32]byte,
-	depth uint64,
+	depth uint8,
 	index uint64,
 ) [32]byte {
 	merkleRoot := leaf
 	var hashInput [64]byte
-	for i := uint64(0); i < depth; i++ {
+	for i := uint8(0); i < depth; i++ {
 		//nolint:gomnd // from spec.
 		ithBit := (index >> i) & 0x01
 		if ithBit == 1 {

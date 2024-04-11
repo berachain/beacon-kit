@@ -43,7 +43,7 @@ var (
 	BodyLengthDeneb = reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField()
 
 	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
-	LogBodyLengthDeneb = uint64(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
+	LogBodyLengthDeneb = uint8(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)

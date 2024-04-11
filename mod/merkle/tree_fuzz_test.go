@@ -33,7 +33,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const depth = uint64(16)
+const depth = uint8(16)
 
 func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	splitProofs := func(proofRaw []byte) [][32]byte {
@@ -76,7 +76,7 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	f.Fuzz(
 		func(_ *testing.T,
 			root, item []byte, merkleIndex uint64,
-			proofRaw []byte, depth uint64,
+			proofRaw []byte, depth uint8,
 		) {
 			merkle.IsValidMerkleBranch(
 				byteslib.ToBytes32(item),

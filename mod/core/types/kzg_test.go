@@ -114,7 +114,7 @@ func Test_BodyProof(t *testing.T) {
 
 	// Calculate the depth the given tree will have.
 	// depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
-	depth := types.LogMaxBlobCommitments
+	depth := uint8(types.LogMaxBlobCommitments)
 
 	// Generate a sparse Merkle tree from the leaves.
 	tree, err := merkle.NewTreeFromLeavesWithDepth(leaves, depth)

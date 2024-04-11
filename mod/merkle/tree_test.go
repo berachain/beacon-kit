@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	TreeDepth uint64 = 32
+	TreeDepth uint8 = 32
 )
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {

@@ -117,7 +117,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 	leaves := LeavesFromCommitments(commitments)
 	bodyTree, err := merkle.NewTreeFromLeavesWithDepth(
 		leaves,
-		LogMaxBlobCommitments,
+		uint8(LogMaxBlobCommitments),
 	)
 	if err != nil {
 		return nil, err
