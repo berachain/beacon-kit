@@ -28,9 +28,8 @@ package blobs
 import "errors"
 
 var (
-	// ErrAttemptedToVerifyNilSidecar is returned when an attempt is made to
-	// store a
-	// nil sidecar.
+	// ErrAttemptedToVerifyNilSidecar is returned when
+	// an attempt is made to store a nil sidecar.
 	ErrAttemptedToVerifyNilSidecar = errors.New(
 		"attempted to verify nil sidecar",
 	)
