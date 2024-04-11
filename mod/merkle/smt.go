@@ -179,9 +179,8 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][32]byte, error) {
 	proof := make([][32]byte, m.depth)
 	for i := uint64(0); i < m.depth; i++ {
 		subIndex := (index >> i) ^ 1
-		layer := m.branches[i]
-		if subIndex < uint64(len(layer)) {
-			proof[i] = layer[subIndex]
+		if subIndex < uint64(len(m.branches[i])) {
+			proof[i] = m.branches[i][subIndex]
 		} else {
 			proof[i] = tree.ZeroHashes[i]
 		}
@@ -199,7 +198,8 @@ func (m *SparseMerkleTree) MerkleProofWithMixin(
 		return nil, err
 	}
 
-	mixin := [32]byte{}
-	binary.LittleEndian.PutUint64(mixin[:], uint64(len(m.originalItems)))
-	return append(proof, mixin), nil
+	var mixin [32]byte
+	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.originalItems)))
+	proof = append(proof, mixin)
+	return proof, nil
 }
