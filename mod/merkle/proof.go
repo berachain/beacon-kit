@@ -55,15 +55,19 @@ func VerifyMerkleProofWithDepth(
 	proof [][32]byte,
 	depth uint64,
 ) bool {
-	if uint64(len(proof)) != depth+1 {
+	if proof == nil || uint64(len(proof)) != depth+1 {
 		return false
 	}
+	hashInput := [64]byte{}
 	for i := uint64(0); i <= depth; i++ {
 		if (merkleIndex & 1) == 1 {
-			item = sha256.Sum256(append(proof[i][:], item[:]...))
+			copy(hashInput[:32], proof[i][:])
+			copy(hashInput[32:], item[:])
 		} else {
-			item = sha256.Sum256(append(item[:], proof[i][:]...))
+			copy(hashInput[:32], item[:])
+			copy(hashInput[32:], proof[i][:])
 		}
+		item = sha256.Sum256(hashInput[:])
 		merkleIndex /= 2
 	}
 	return root == item

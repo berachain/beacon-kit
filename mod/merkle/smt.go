@@ -66,21 +66,17 @@ func NewTreeFromItems(
 
 	for i := uint64(0); i < depth; i++ {
 		currentLayer := layers[i]
-		//nolint:gomnd // we divide by 2 to get the next layer size.
+		//nolint:gomnd // div 2.
 		nextLayerSize := (len(currentLayer) + 1) / 2
 		nextLayer := make([][32]byte, nextLayerSize)
 		for j := 0; j < len(currentLayer); j += 2 {
 			left := currentLayer[j]
-			var right [32]byte
+			right := tree.ZeroHashes[i]
 			if j+1 < len(currentLayer) {
 				right = currentLayer[j+1]
-			} else {
-				right = tree.ZeroHashes[i]
 			}
-			hashInput := [64]byte{}
-			copy(hashInput[0:32], left[:])
-			copy(hashInput[32:64], right[:])
-			nextLayer[j/2] = sha256.Sum256(hashInput[:])
+			hashInput := append(left[:], right[:]...)
+			nextLayer[j/2] = sha256.Sum256(hashInput)
 		}
 		layers[i+1] = nextLayer
 	}
@@ -198,8 +194,7 @@ func (m *SparseMerkleTree) MerkleProofWithMixin(
 		return nil, err
 	}
 
-	var mixin [32]byte
+	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.originalItems)))
-	proof = append(proof, mixin)
-	return proof, nil
+	return append(proof, mixin), nil
 }
