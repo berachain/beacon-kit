@@ -68,10 +68,8 @@ func NewTreeFromItems(
 	var err error
 	for i := uint64(0); i < depth; i++ {
 		currentLayer := layers[i]
-		//nolint:gomnd // divded by 2 is reasonable.
-		if oddNodeLength := len(currentLayer)%2 == 1; oddNodeLength {
-			zerohash := tree.ZeroHashes[i]
-			currentLayer = append(currentLayer, zerohash)
+		if len(currentLayer)%2 == 1 {
+			currentLayer = append(currentLayer, tree.ZeroHashes[i])
 		}
 		layers[i+1], err = htr.BuildParentTreeRoots(currentLayer)
 		if err != nil {
