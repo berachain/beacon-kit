@@ -38,11 +38,6 @@ const (
 	MaxBlobCommitmentsPerBlock = 16
 	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
 	LogMaxBlobCommitments uint64 = 4
-	// If you are adding values to the BeaconBlockBodyDeneb struct,
-	// the body length must be increased and GetTopLevelRoots updated.
-	BodyLength = 5
-	// LogBodyLength is the Log_2 of BodyLength (6).
-	LogBodyLength = 3
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
 	KZGPosition = 4
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
@@ -67,7 +62,7 @@ func VerifyKZGInclusionProof(
 	verified := merkle.VerifyMerkleProof(
 		blob.BeaconBlockHeader.BodyRoot,
 		blob.KzgCommitment.ToHashChunks()[0],
-		blob.Index+KZGOffset,
+		KZGOffset+blob.Index,
 		blob.InclusionProof,
 	)
 	if !verified {
@@ -102,7 +97,6 @@ func MerkleProofKZGCommitment(
 	if err != nil {
 		return nil, err
 	}
-
 	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		membersRoots,
 		LogBodyLength,

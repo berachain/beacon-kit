@@ -26,12 +26,28 @@
 package types
 
 import (
+	"math"
+	"reflect"
+
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
+)
+
+//nolint:gochecknoglobals // I'd prefer globals over magic numbers.
+var (
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
+	// struct.
+	BodyLengthDeneb = reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField()
+
+	// LogBodyLength is the Log_2 of BodyLength (6).
+	LogBodyLength = uint64(math.Ceil(math.Sqrt(float64(BodyLengthDeneb))))
+
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPositionDeneb = 4
 )
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
@@ -113,7 +129,7 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 }
 
 func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
-	layer := make([][32]byte, BodyLength)
+	layer := make([][32]byte, BodyLengthDeneb)
 	var err error
 	randao := b.GetRandaoReveal()
 	layer[0], err = htr.ByteSliceSSZ(randao[:])

@@ -90,7 +90,7 @@ func ceilLog2(x uint32) (uint32, error) {
 // index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
 	// Level of the KZG commitment root's parent.
-	kzgParentRootLevel, err := ceilLog2(types.BodyLength)
+	kzgParentRootLevel, err := ceilLog2(uint32(types.BodyLengthDeneb))
 	require.NoError(t, err)
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,

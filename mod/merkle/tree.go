@@ -139,7 +139,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			m.branches[i+1] = append(m.branches[i+1], root)
 		} else {
-			copy(m.branches[i+1][parentIdx][:], root[:])
+			m.branches[i+1][parentIdx] = root
 		}
 		currentIndex = parentIdx
 	}
