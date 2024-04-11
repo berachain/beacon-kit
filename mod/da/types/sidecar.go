@@ -57,7 +57,7 @@ type BlobSidecar struct {
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
-	return !merkle.VerifyMerkleProof(
+	return merkle.VerifyMerkleProof(
 		b.BeaconBlockHeader.BodyRoot,
 		b.KzgCommitment.ToHashChunks()[0],
 		kzgOffset+b.Index,
