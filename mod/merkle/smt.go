@@ -43,7 +43,7 @@ const (
 // to be used across Ethereum consensus functionality.
 type SparseMerkleTree struct {
 	depth         uint64
-	branches      [][][]byte
+	branches      [][][32]byte
 	originalItems [][32]byte
 }
 
@@ -61,30 +61,26 @@ func NewTreeFromItems(
 		return nil, ErrExceededDepth
 	}
 
-	// Pad all the inputs to 32 bytes if they are not already.
-	transformedLeaves := make([][]byte, len(items))
-	for i, item := range items {
-		transformedLeaves[i] = item[:]
-	}
-
-	layers := make([][][]byte, depth+1)
-	layers[0] = transformedLeaves
+	layers := make([][][32]byte, depth+1)
+	layers[0] = items
 
 	for i := uint64(0); i < depth; i++ {
 		currentLayer := layers[i]
 		//nolint:gomnd // we divide by 2 to get the next layer size.
 		nextLayerSize := (len(currentLayer) + 1) / 2
-		nextLayer := make([][]byte, nextLayerSize)
+		nextLayer := make([][32]byte, nextLayerSize)
 		for j := 0; j < len(currentLayer); j += 2 {
 			left := currentLayer[j]
-			var right []byte
+			var right [32]byte
 			if j+1 < len(currentLayer) {
 				right = currentLayer[j+1]
 			} else {
-				right = tree.ZeroHashes[i][:]
+				right = tree.ZeroHashes[i]
 			}
-			h := sha256.Sum256(append(left, right...))
-			nextLayer[j/2] = h[:]
+			hashInput := [64]byte{}
+			copy(hashInput[0:32], left[:])
+			copy(hashInput[32:64], right[:])
+			nextLayer[j/2] = sha256.Sum256(hashInput[:])
 		}
 		layers[i+1] = nextLayer
 	}
@@ -98,7 +94,7 @@ func NewTreeFromItems(
 
 // Root returns the root of the Merkle tree.
 func (m *SparseMerkleTree) Root() ([32]byte, error) {
-	return sha256.Sum256(m.branches[len(m.branches)-1][0]), nil
+	return sha256.Sum256(m.branches[len(m.branches)-1][0][:]), nil
 }
 
 // HashTreeRoot returns the Root of the Merkle tree with the
@@ -111,9 +107,8 @@ func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
-	return sha256.Sum256(
-		append(m.branches[len(m.branches)-1][0], enc[:]...),
-	), nil
+	hashInput := append(m.branches[len(m.branches)-1][0][:], enc[:]...)
+	return sha256.Sum256(hashInput), nil
 }
 
 // Items returns the original items passed in when creating the Merkle tree.
@@ -127,41 +122,44 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 		return fmt.Errorf("negative index provided: %d", index)
 	}
 	for index >= len(m.branches[0]) {
-		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0][:])
+		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0])
 	}
 	someItem := byteslib.ToBytes32(item)
-	m.branches[0][index] = someItem[:]
+	m.branches[0][index] = someItem
 	if index >= len(m.originalItems) {
 		m.originalItems = append(m.originalItems, someItem)
 	} else {
 		m.originalItems[index] = someItem
 	}
+	neighbor := [32]byte{}
+	input := [64]byte{}
 	currentIndex := index
 	root := byteslib.ToBytes32(item)
-	two := 2
 	for i := uint64(0); i < m.depth; i++ {
-		isLeft := currentIndex%two == 0
-		neighborIdx := currentIndex ^ 1
-		var neighbor []byte
-		if neighborIdx >= len(m.branches[i]) {
-			neighbor = tree.ZeroHashes[i][:]
+		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
+			neighbor = tree.ZeroHashes[i]
 		} else {
 			neighbor = m.branches[i][neighborIdx]
 		}
-		if isLeft {
-			parentHash := sha256.Sum256(append(root[:], neighbor...))
-			root = parentHash
+
+		//nolint:gomnd
+		if isLeft := currentIndex%2 == 0; isLeft {
+			copy(input[0:32], root[:])
+			copy(input[32:64], neighbor[:])
 		} else {
-			parentHash := sha256.Sum256(append(neighbor, root[:]...))
-			root = parentHash
+			copy(input[0:32], neighbor[:])
+			copy(input[32:64], root[:])
 		}
-		parentIdx := currentIndex / two
+		root = sha256.Sum256(input[:])
+
+		//nolint:gomnd
+		parentIdx := currentIndex / 2
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			newItem := root
-			m.branches[i+1] = append(m.branches[i+1], newItem[:])
+			m.branches[i+1] = append(m.branches[i+1], newItem)
 		} else {
 			newItem := root
-			m.branches[i+1][parentIdx] = newItem[:]
+			m.branches[i+1][parentIdx] = newItem
 		}
 		currentIndex = parentIdx
 	}
@@ -183,7 +181,7 @@ func (m *SparseMerkleTree) MerkleProof(index uint64) ([][32]byte, error) {
 		subIndex := (index >> i) ^ 1
 		layer := m.branches[i]
 		if subIndex < uint64(len(layer)) {
-			proof[i] = byteslib.ToBytes32(layer[subIndex])
+			proof[i] = layer[subIndex]
 		} else {
 			proof[i] = tree.ZeroHashes[i]
 		}
