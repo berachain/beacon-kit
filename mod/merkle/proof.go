@@ -36,6 +36,8 @@ func VerifyProof(
 	merkleIndex uint64,
 	proof [][32]byte,
 ) bool {
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
 	if len(proof) > int(^uint8(0)) {
 		return false
 	}
@@ -56,9 +58,8 @@ func VerifyProof(
 func IsValidMerkleBranch(
 	leaf [32]byte, branch [][32]byte, depth uint8, index uint64, root [32]byte,
 ) bool {
-	//#nosec: only an issue on a CPU with an 8 bit word size.
-	// If you are running on a CPU with an 8 bit word size,
-	// you are living in 1955 and this CPU is the size of a trailer park.
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
 	if len(branch) != int(depth) {
 		return false
 	}
