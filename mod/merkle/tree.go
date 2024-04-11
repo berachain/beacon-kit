@@ -41,9 +41,9 @@ const (
 	MaxTreeDepth = 62
 )
 
-// SparseMerkleTree implements a sparse, general purpose Merkle tree
+// Tree implements a general purpose Merkle tree
 // to be used across Ethereum consensus functionality.
-type SparseMerkleTree struct {
+type Tree struct {
 	depth    uint64
 	branches [][][32]byte
 	leaves   [][32]byte
@@ -53,15 +53,16 @@ type SparseMerkleTree struct {
 // depth required to support the number of leaves.
 func NewTreeFromLeaves(
 	leaves [][32]byte,
-) (*SparseMerkleTree, error) {
+) (*Tree, error) {
 	return NewTreeFromLeavesWithDepth(leaves, uint64(len(leaves)))
 }
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+// It will fill the tree with zero hashes to create the required depth.
 func NewTreeFromLeavesWithDepth(
 	leaves [][32]byte,
 	depth uint64,
-) (*SparseMerkleTree, error) {
+) (*Tree, error) {
 	numLeaves := len(leaves)
 	switch {
 	case numLeaves == 0:
@@ -92,7 +93,7 @@ func NewTreeFromLeavesWithDepth(
 		}
 	}
 
-	return &SparseMerkleTree{
+	return &Tree{
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
@@ -100,13 +101,13 @@ func NewTreeFromLeavesWithDepth(
 }
 
 // Root returns the root of the Merkle tree.
-func (m *SparseMerkleTree) Root() ([32]byte, error) {
+func (m *Tree) Root() ([32]byte, error) {
 	return sha256.Sum256(m.branches[len(m.branches)-1][0][:]), nil
 }
 
 // HashTreeRoot returns the Root of the Merkle tree with the
 // number of leaves mixed in.
-func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
+func (m *Tree) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
@@ -119,12 +120,12 @@ func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 }
 
 // Items returns the original items passed in when creating the Merkle tree.
-func (m *SparseMerkleTree) Items() [][32]byte {
+func (m *Tree) Items() [][32]byte {
 	return m.leaves
 }
 
 // Insert an item into the tree.
-func (m *SparseMerkleTree) Insert(item []byte, index int) error {
+func (m *Tree) Insert(item []byte, index int) error {
 	if index < 0 {
 		return fmt.Errorf("negative index provided: %d", index)
 	}
@@ -172,7 +173,7 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
-func (m *SparseMerkleTree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
+func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
 		return nil, fmt.Errorf(
@@ -195,7 +196,7 @@ func (m *SparseMerkleTree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 
 // MerkleProofWithMixin computes a proof from a tree's branches using a Merkle
 // index.
-func (m *SparseMerkleTree) MerkleProofWithMixin(
+func (m *Tree) MerkleProofWithMixin(
 	index uint64,
 ) ([][32]byte, error) {
 	proof, err := m.MerkleProof(index)

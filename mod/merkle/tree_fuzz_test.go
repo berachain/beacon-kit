@@ -35,7 +35,7 @@ import (
 
 const depth = uint64(16)
 
-func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
+func FuzzTree_VerifyMerkleProofWithDepth(f *testing.F) {
 	splitProofs := func(proofRaw []byte) [][32]byte {
 		var proofs [][32]byte
 		for i := 0; i < len(proofRaw); i += 32 {
