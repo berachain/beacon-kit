@@ -38,29 +38,38 @@ var errInvalidNilSlice = errors.New("invalid empty slice")
 
 // Vector uses our optimized routine to hash a list of 32-byte
 // elements.
+
 func Vector(elements [][32]byte, length uint64) [32]byte {
+	tree2 := VectorTree(elements, length)
+	if len(tree2) == 0 {
+		return [32]byte{}
+	}
+	return tree2[tree.CoverDepth(length)-1][0]
+}
+
+func VectorTree(elements [][32]byte, length uint64) [][][32]byte {
 	depth := tree.CoverDepth(length)
 	// Return zerohash at depth
 	if len(elements) == 0 {
-		return tree.ZeroHashes[depth]
+		return nil
 	}
+	layers := make([][][32]byte, depth+1)
+	layers[0] = elements
+
 	for i := uint8(0); i < depth; i++ {
-		layerLen := len(elements)
+		layerLen := len(layers[i])
 		oddNodeLength := layerLen%two == 1
 		if oddNodeLength {
 			zerohash := tree.ZeroHashes[i]
-			elements = append(elements, zerohash)
+			layers[i] = append(layers[i], zerohash)
 		}
 		var err error
-		elements, err = BuildParentTreeRoots(elements)
+		layers[i+1], err = BuildParentTreeRoots(layers[i])
 		if err != nil {
-			return tree.ZeroHashes[depth]
+			return nil
 		}
 	}
-	if len(elements) != 1 {
-		return tree.ZeroHashes[depth]
-	}
-	return elements[0]
+	return layers
 }
 
 // ByteSliceSSZ hashes a byteslice by chunkifying it and returning the
