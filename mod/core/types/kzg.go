@@ -103,7 +103,7 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	sparse, err := merkle.NewTreeFromLeavesWithDepth(
+	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		membersRoots,
 		LogBodyLength,
 	)
@@ -111,7 +111,7 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	topProof, err := sparse.MerkleProof(KZGPosition)
+	topProof, err := tree.MerkleProof(KZGPosition)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := merkle.NewTreeFromLeavesWithDepth(
+	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		leaves,
 		LogMaxBlobCommitments,
 	)
@@ -133,7 +133,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 		return nil, err
 	}
 
-	return sparse.MerkleProofWithMixin(index)
+	return tree.MerkleProofWithMixin(index)
 }
 
 // LeavesFromCommitments hashes each commitment to construct a slice of roots.
