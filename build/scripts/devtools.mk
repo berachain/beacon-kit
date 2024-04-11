@@ -12,11 +12,7 @@ sync:
 yap: ## the yap cave
 	@go run ./mod/node-builder/utils/yap/yap.go
 
-
-.PHONY: format build test-unit bet
-
-bet:
-	$(MAKE) format build test-unit
+bet: format build test-unit ## yo bet
 	@git add .
 	@git commit -m 'bet'
 	@git push
@@ -32,3 +28,5 @@ repo-rinse: | ## dangerous!!! make sure you know what you are doing
 	git submodule foreach --recursive git clean -xfd
 	git submodule foreach --recursive git reset --hard
 	git submodule update --init --recursive
+
+.PHONY: format build test-unit bet
