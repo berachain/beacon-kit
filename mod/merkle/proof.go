@@ -36,38 +36,39 @@ func VerifyMerkleProof(
 	merkleIndex uint64,
 	proof [][32]byte,
 ) bool {
-	return VerifyMerkleProofWithDepth(
-		root,
+	return IsValidMerkleBranch(
 		leaf,
-		merkleIndex,
 		proof,
 		uint64(len(proof)),
+		merkleIndex,
+		root,
 	)
 }
 
-// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a tree.
-func VerifyMerkleProofWithDepth(
-	root, leaf [32]byte,
-	index uint64,
-	proof [][32]byte,
-	depth uint64,
+// IsValidMerkleBranch as per the Ethereum 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
+//
+//nolint:lll
+func IsValidMerkleBranch(
+	leaf [32]byte, branch [][32]byte, depth, index uint64, root [32]byte,
 ) bool {
-	if uint64(len(proof)) != depth {
+	if uint64(len(branch)) != depth {
 		return false
 	}
-	return merkleRootFromBranch(leaf, proof, depth, index) == root
+	return RootFromBranch(leaf, branch, depth, index) == root
 }
 
-// Compute a root hash from a leaf and a Merkle proof.
-func merkleRootFromBranch(
+// RootFromBranch calculates the Merkle root from a leaf and a branch.
+// Inspired by:
+// https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
+//
+//nolint:lll
+func RootFromBranch(
 	leaf [32]byte,
 	branch [][32]byte,
 	depth uint64,
 	index uint64,
 ) [32]byte {
-	if uint64(len(branch)) != depth {
-		panic("proof length should equal depth")
-	}
 	merkleRoot := leaf
 	var hashInput [64]byte
 	for i := uint64(0); i < depth; i++ {
@@ -84,17 +85,3 @@ func merkleRootFromBranch(
 	}
 	return merkleRoot
 }
-
-// def is_valid_merkle_branch(leaf: Bytes32, branch: Sequence[Bytes32], depth:
-// uint64, index: uint64, root: Root) -> bool:
-//     """
-// Check if ``leaf`` at ``index`` verifies against the Merkle ``root`` and
-// ``branch``.
-//     """
-//     value = leaf
-//     for i in range(depth):
-//         if index // (2**i) % 2:
-//             value = hash(branch[i] + value)
-//         else:
-//             value = hash(value + branch[i])
-//     return value == root
