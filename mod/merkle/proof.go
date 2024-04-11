@@ -35,9 +35,9 @@ import (
 	"github.com/protolambda/ztyp/tree"
 )
 
-// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
+// VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyMerkleProof(
+func VerifyProof(
 	root, leaf []byte,
 	merkleIndex uint64,
 	proof [][]byte,
@@ -45,7 +45,7 @@ func VerifyMerkleProof(
 	if len(proof) == 0 {
 		return false
 	}
-	return VerifyMerkleProofWithDepth(
+	return VerifyProofWithDepth(
 		root,
 		leaf,
 		merkleIndex,
@@ -54,8 +54,8 @@ func VerifyMerkleProof(
 	)
 }
 
-// VerifyMerkleProofWithDepth verifies a Merkle branch against a root of a tree.
-func VerifyMerkleProofWithDepth(
+// VerifyProofWithDepth verifies a Merkle branch against a root of a tree.
+func VerifyProofWithDepth(
 	root, item []byte,
 	merkleIndex uint64,
 	proof [][]byte,

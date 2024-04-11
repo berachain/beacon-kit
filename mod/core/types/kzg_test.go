@@ -134,7 +134,7 @@ func Test_BodyProof(t *testing.T) {
 		require.Len(t, proof, int(depth)+1)
 
 		// Verify the Merkle proof
-		valid := merkle.VerifyMerkleProof(
+		valid := merkle.VerifyProof(
 			root[:],
 			leaves[index],
 			index,
@@ -147,7 +147,7 @@ func Test_BodyProof(t *testing.T) {
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)
 
-		valid = merkle.VerifyMerkleProof(
+		valid = merkle.VerifyProof(
 			root[:],
 			leaves[index],
 			index,
@@ -185,7 +185,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	require.NoError(t, err, "Failed to generate Merkle proof")
 
 	// Verify the Merkle proof
-	valid := merkle.VerifyMerkleProof(
+	valid := merkle.VerifyProof(
 		bodySparseRoot[:],
 		commitmentsRoot[:],
 		uint64(types.KZGPosition),
@@ -229,7 +229,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	require.True(t,
-		merkle.VerifyMerkleProofWithDepth(
+		merkle.VerifyProofWithDepth(
 			commitmentsRoot[:],
 			chunk[0][:],
 			index,
@@ -263,7 +263,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		int(types.LogBodyLength),
 	)
 	require.True(t,
-		merkle.VerifyMerkleProof(
+		merkle.VerifyProof(
 			root[:],
 			commitmentsRoot[:],
 			uint64(types.KZGPosition),
@@ -272,7 +272,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	)
 
 	require.True(t,
-		merkle.VerifyMerkleProof(
+		merkle.VerifyProof(
 			root[:],
 			chunk[0][:],
 			index+types.KZGOffset,
@@ -309,7 +309,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 // 	require.NoError(t, err)
 // 	kzgOffset := 54 * 4096
 // 	for i := 0; i <= 54; i++ {
-// 		ok := tree.VerifyMerkleProof(
+// 		ok := tree.VerifyProof(
 // 			root[:],
 // 			chunk[0][:],
 // 			uint64(index+i*4096),
@@ -320,7 +320,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 
 // 	require.True(
 // 		t,
-// 		tree.VerifyMerkleProof(
+// 		tree.VerifyProof(
 // 			root[:],
 // 			chunk[0][:],
 // 			uint64(index+kzgOffset),

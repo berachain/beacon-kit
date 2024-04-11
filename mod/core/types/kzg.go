@@ -64,7 +64,7 @@ const (
 func VerifyKZGInclusionProof(
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
-	verified := merkle.VerifyMerkleProof(
+	verified := merkle.VerifyProof(
 		blob.BeaconBlockHeader.BodyRoot[:],
 		blob.KzgCommitment.ToHashChunks()[0][:],
 		blob.Index+KZGOffset,
