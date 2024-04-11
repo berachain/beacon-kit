@@ -23,12 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package tree
+package merkle
 
 import "errors"
 
 var (
-	ErrEmptyItems    = errors.New("no items provided to generate Merkle tree")
-	ErrZeroDepth     = errors.New("depth must be greater than 0")
+	// ErrNegativeIndex indicates that a negative index was provided.
+	ErrNegativeIndex = errors.New("negative index provided")
+
+	// ErrEmptyLeaves indicates that no items were provided to generate a Merkle
+	// tree.
+	ErrEmptyLeaves = errors.New("no items provided to generate Merkle tree")
+
+	// ErrInsufficientDepthForLeaves indicates that the depth provided for the
+	// Merkle tree is insufficient to store the provided leaves.
+	ErrInsufficientDepthForLeaves = errors.New(
+		"insufficient depth to store leaves",
+	)
+
+	// ErrZeroDepth indicates that the depth provided for the Merkle tree is
+	// zero, which is invalid.
+	ErrZeroDepth = errors.New("depth must be greater than 0")
+
+	// ErrExceededDepth indicates that the provided depth exceeds the supported
+	// maximum depth for a Merkle tree.
 	ErrExceededDepth = errors.New("supported merkle tree depth exceeded")
 )

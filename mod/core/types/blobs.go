@@ -43,11 +43,12 @@ func BuildBlobSidecar(
 	g := errgroup.Group{}
 
 	blkHeader := blk.GetHeader()
+	body := blk.GetBody()
 	for i := uint64(0); i < numBlobs; i++ {
 		i := i // capture range variable
 		g.Go(func() error {
 			// Create Inclusion Proof
-			inclusionProof, err := MerkleProofKZGCommitment(blk, i)
+			inclusionProof, err := MerkleProofKZGCommitment(body, i)
 			if err != nil {
 				return err
 			}

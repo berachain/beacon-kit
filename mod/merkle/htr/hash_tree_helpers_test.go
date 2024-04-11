@@ -23,14 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize_test
+package htr_test
 
 import (
 	"fmt"
 	"sync"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/tree/merkleize"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
@@ -51,7 +51,7 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = merkleize.BuildParentTreeRootsWithNRoutines(
+		output, err = htr.BuildParentTreeRootsWithNRoutines(
 			inputList,
 			numRoutines,
 		)
