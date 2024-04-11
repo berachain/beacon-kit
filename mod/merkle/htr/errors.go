@@ -37,4 +37,7 @@ var (
 	ErrMaxRootsExceeded = errors.New(
 		"number of roots exceeds the maximum allowed",
 	)
+
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
 )
