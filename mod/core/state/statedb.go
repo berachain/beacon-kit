@@ -249,8 +249,6 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	if err != nil {
 		return [32]byte{}, err
 	}
-	//nolint: errcheck // the underlying execution payload type is known.
-	executionPayload := latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
 
 	eth1Data, err := s.GetEth1Data()
 	if err != nil {
@@ -305,6 +303,12 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	activeFork := s.cfg.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
+		executionPayload, ok :=
+			latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
+		if !ok {
+			return [32]byte{}, errors.New(
+				"latest execution payload is not of type ExecutableDataDeneb")
+		}
 		return (&deneb.BeaconState{
 			Slot:                         slot,
 			GenesisValidatorsRoot:        genesisValidatorsRoot,
