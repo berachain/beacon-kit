@@ -14,6 +14,7 @@ yap: ## the yap cave
 
 
 .PHONY: format build test-unit bet
+
 bet:
 	$(MAKE) format build test-unit
 	@git add .
