@@ -168,15 +168,40 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 	return nil
 }
 
-// NumOfItems returns the num of items stored in
-// the sparse merkle tree. We handle a special case
-// where if there is only one item stored and it is an
-// empty 32-byte root.
-func (m *SparseMerkleTree) NumOfItems() int {
-	var zeroBytes [32]byte
-	if len(m.originalItems) == 1 &&
-		m.originalItems[0] == zeroBytes {
-		return 0
+// MerkleProof computes a proof from a tree's branches using a Merkle index.
+func (m *SparseMerkleTree) MerkleProof(index uint64) ([][32]byte, error) {
+	numLeaves := uint64(len(m.branches[0]))
+	if index >= numLeaves {
+		return nil, fmt.Errorf(
+			"merkle index out of range in tree, max range: %d, received: %d",
+			numLeaves,
+			index,
+		)
 	}
-	return len(m.originalItems)
+	proof := make([][32]byte, m.depth)
+	for i := uint64(0); i < m.depth; i++ {
+		subIndex := (index >> i) ^ 1
+		layer := m.branches[i]
+		if subIndex < uint64(len(layer)) {
+			proof[i] = byteslib.ToBytes32(layer[subIndex])
+		} else {
+			proof[i] = tree.ZeroHashes[i]
+		}
+	}
+	return proof, nil
+}
+
+// MerkleProofWithMixin computes a proof from a tree's branches using a Merkle
+// index.
+func (m *SparseMerkleTree) MerkleProofWithMixin(
+	index uint64,
+) ([][32]byte, error) {
+	proof, err := m.MerkleProof(index)
+	if err != nil {
+		return nil, err
+	}
+
+	var mixin [32]byte
+	binary.LittleEndian.PutUint64(mixin[:], uint64(len(m.originalItems)))
+	return append(proof, mixin), nil
 }

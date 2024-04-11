@@ -118,7 +118,6 @@ func Test_BodyProof(t *testing.T) {
 	// Generate a sparse Merkle tree from the leaves.
 	sparse, err := merkle.NewTreeFromItems(leaves, depth)
 	require.NoError(t, err, "Failed to generate tree from items")
-	require.Equal(t, len(leaves), sparse.NumOfItems())
 
 	// Get the root of the tree.
 	root, err := sparse.HashTreeRoot()
@@ -178,7 +177,6 @@ func Test_TopLevelRoots(t *testing.T) {
 	require.NoError(t, err, "Failed to generate tree from member roots")
 	bodySparseRoot, err := bodySparse.HashTreeRoot()
 	require.NoError(t, err, "Failed to generate root hash")
-	require.Equal(t, types.BodyLength, bodySparse.NumOfItems())
 
 	topProof, err := bodySparse.MerkleProofWithMixin(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
@@ -241,7 +239,6 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		types.LogBodyLength,
 	)
 	require.NoError(t, err, "Failed to generate tree from member roots")
-	require.Equal(t, types.BodyLength, bodySparse.NumOfItems())
 	topProof, err := bodySparse.MerkleProofWithMixin(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
 	require.Equal(t,
