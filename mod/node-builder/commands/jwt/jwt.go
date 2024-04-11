@@ -26,11 +26,12 @@
 package jwt
 
 import (
+	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/file"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -139,14 +140,15 @@ func getFilePath(cmd *cobra.Command, path string) (string, error) {
 // to a specified file.
 func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	var err error
+	fs := afero.NewOsFs()
 	fileDir := filepath.Dir(fileName)
-	exists, err := file.HasDir(fileDir)
+	exists, err := afero.DirExists(fs, fileDir)
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		if err = file.MkdirAll(fileDir); err != nil {
+		if err = fs.MkdirAll(fileDir, os.ModePerm); err != nil {
 			return err
 		}
 	}
@@ -156,7 +158,9 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 		return err
 	}
 
-	if err = file.Write(fileName, []byte(secret.Hex())); err != nil {
+	if err = afero.WriteFile(
+		fs, fileName, []byte(secret.Hex()), os.ModePerm,
+	); err != nil {
 		return err
 	}
 

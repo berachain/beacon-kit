@@ -27,17 +27,16 @@ package types
 
 import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/trie"
-	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
 )
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include deposit.go,withdrawal_credentials.go,../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
 
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
@@ -47,7 +46,7 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `ssz-max:"16"`
+	Deposits []*primitives.Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *enginetypes.ExecutableDataDeneb
@@ -67,7 +66,7 @@ func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() kzg.Commitments {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyDeneb) GetGraffiti() [32]byte {
+func (b *BeaconBlockBodyDeneb) GetGraffiti() primitives.Bytes32 {
 	return b.Graffiti
 }
 
@@ -84,12 +83,12 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayloa
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
+func (b *BeaconBlockBodyDeneb) GetDeposits() primitives.Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits primitives.Deposits) {
 	b.Deposits = deposits
 }
 
@@ -113,39 +112,31 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
-	layer := make([][]byte, BodyLength)
-	for i := range layer {
-		layer[i] = make([]byte, constants.RootLength)
-	}
-
+func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
+	layer := make([][32]byte, BodyLength)
+	var err error
 	randao := b.GetRandaoReveal()
-	root, err := merkleize.ByteSliceSSZ(randao[:])
+	layer[0], err = htr.ByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[0], root[:])
 
 	// graffiti
-	root = b.GetGraffiti()
-	copy(layer[1], root[:])
+	layer[1] = b.GetGraffiti()
 
-	// Deposits
-	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
-	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
+	// root, err = dep.HashTreeRoot()
+	layer[2], err = htr.ListSSZ(b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[2], root[:])
 
 	// Execution Payload
-	rt, err := b.GetExecutionPayload().HashTreeRoot()
+	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[3], rt[:])
 
 	// KZG commitments is not needed
 	return layer, nil
@@ -155,14 +146,14 @@ func GetBlobKzgCommitmentsRoot(
 	commitments []kzg.Commitment,
 ) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := trie.NewFromItems(
+	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return commitmentsSparse.HashTreeRoot()
+	return tree.HashTreeRoot()
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(

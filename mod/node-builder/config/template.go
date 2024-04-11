@@ -26,7 +26,7 @@
 //nolint:lll // it's a template file.
 package config
 
-const configTemplate = `
+const Template = `
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
@@ -79,12 +79,30 @@ max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
 # MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
 max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
 
-# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
+# MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals allowed per sweep.
+max-validators-per-withdrawals-sweep = {{.BeaconKit.Beacon.MaxValidatorsPerWithdrawalsSweep}}
+
+
 
 ########### Rewards and Penalties ###########
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
-propotional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
+proportional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
+
+########### Deneb Values ###########
+# MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
+min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
+
+# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
+
+# FieldElementsPerBlob specifies the number of field elements per blob.
+field-elements-per-blob = {{.BeaconKit.Beacon.FieldElementsPerBlob}}
+
+# MaxBlobCommitmentsPerBlock specifies the maximum number of blob commitments allowed per block.
+max-blob-commitments-per-block = {{.BeaconKit.Beacon.MaxBlobCommitmentsPerBlock}}
+
+# KZGInclusionProofDepth is the depth of the KZG inclusion proof.
+kzg-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGInclusionProofDepth}}
 
 [beacon-kit.builder]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
@@ -130,5 +148,5 @@ trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 
 # KZG implementation to use.
 # Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
-kzg-implementation = "{{.BeaconKit.KZG.KZGImplementation}}"
+implementation = "{{.BeaconKit.KZG.Implementation}}"
 `

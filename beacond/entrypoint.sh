@@ -26,23 +26,14 @@
 
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
-# Remember to change to other types of keyring like 'file' in-case exposing to outside world,
-# otherwise your balance will be wiped quickly
-# The keyring test does not require private key to steal tokens from you
-KEYRING="test"
-KEYALGO="secp256k1"
 LOGLEVEL="info"
 # Set dedicated home directory for the ./build/bin/beacond instance
 HOMEDIR="./.tmp/beacond"
-# to trace evm
-#TRACE="--trace"
-TRACE=""
 
 # Path variables
-CONFIG_TOML=$HOMEDIR/config/config.toml
-APP_TOML=$HOMEDIR/config/app.toml
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
+ETH_GENESIS=./beacond/eth-genesis.json # TODO: Fix this to not use a relative path or make it configurable
 
 # used to exit on first error (any non-zero exit code)
 set -e
@@ -79,6 +70,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 
 	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
 	./build/bin/beacond genesis collect-validators --home "$HOMEDIR" 
+	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home "$HOMEDIR"
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m

@@ -26,14 +26,14 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/forks/version"
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,deposit.go,withdrawal_credentials.go,../../../mod/primitives/kzg,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output block.ssz.go
-
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../../mod/primitives/kzg,../../../mod/primitives,../../../mod/execution/types,$GETH_PKG_INCLUDE/common -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
@@ -42,10 +42,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex primitives.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot primitives.Root `ssz-size:"32"`
+	ParentBlockRoot primitives.Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.Root `ssz-size:"32"`
+	StateRoot primitives.Root
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.

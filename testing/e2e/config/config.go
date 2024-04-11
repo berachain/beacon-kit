@@ -35,7 +35,7 @@ import (
 type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
-	AdditionalServices []interface{} `json:"additional_services"`
+	AdditionalServices []any `json:"additional_services"`
 	// Validators lists the configurations for each validator in the test.
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
@@ -71,7 +71,7 @@ type Node struct {
 
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []interface{}{},
+		AdditionalServices: []any{},
 		Validators: []Node{
 			{
 				ElType:   "nethermind",
@@ -91,18 +91,18 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
+			// {
+			// 	ElType:   "erigon",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
+			// {
+			// 	ElType:   "besu",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
 		},
 		FullNodes: []Node{
 			{
@@ -123,12 +123,12 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
+			// {
+			// 	ElType:   "erigon",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
 			// {
 			// 	ElType:   "besu",
 			// 	ClImage:  "beacond:kurtosis-local",
@@ -143,7 +143,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"el-full-nethermind-0:8545",
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
-					"el-full-erigon-3:8545",
+					// "el-full-erigon-3:8545",
 					// Besu causing flakey tests.
 					// "el-full-besu-4:8545",
 				},

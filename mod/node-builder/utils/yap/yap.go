@@ -23,43 +23,52 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package yap
+package main
 
-// Deep in the heart of an impenetrable jungle, cloaked in the whispers of
-// ancient spirits, loomed the Yap Temple; an enigma frozen in time. It's
-// towering spires pierced the canopy above, its walls adorned with faded
-// symbols of forgotten gods. To the outside world, it was a mere legend, a
-// cautionary tale told in hushed tones. Five intrepid souls, drawn by the
-// allure of the temple's mysteries, embarked on a perilous journey. Dr. Emily
-// Parker, Professor David Smith, Sarah, Michael, and Mark were united by their
-// thirst for knowledge and adventure. Little did they know the fateful path
-// their curiosity would lead them down. Guided by fragmented maps and cryptic
-// clues, they pressed forward, hacking through the jungle's thick foliage. The
-// closer they came to their destination, the heavier the air became, thick with
-// a sense of foreboding. Entering the temple, they were greeted by an eerie
-// silence broken only by the echoes of their footsteps. The corridors stretched
-// out before them like a labyrinth, twisting and turning in on themselves. They
-// wandered deeper into the temple's depths, mesmerized by the ancient carvings
-// that adorned its walls. Hours turned into days as they ventured further into
-// the heart of the temple, their supplies dwindling with each passing moment.
-// Yet, they pressed on, driven by a thirst for discovery that bordered on
-// obsession. But as they delved deeper, the temple seemed to come alive, its
-// walls shifting and changing, trapping them in a maze of endless corridors.
-// Panic gripped their hearts as they realized the gravity of their situation.
-// With each wrong turn, they descended further into the temple's grasp. One by
-// one, they succumbed to the temple's relentless grip. Sarah and Michael
-// vanished without a trace, swallowed by the darkness that lurked in the
-// temple's shadows. Professor Smith, consumed by madness, wandered deeper into
-// the maze, never to be seen again. And Mark, the fearless photographer, fell
-// victim to a trap laid by the temple's ancient guardians. Only Dr. Parker
-// remained, her resolve unbroken despite the overwhelming odds stacked against
-// her. With each passing moment, she felt the weight of the temple's secrets
-// pressing down upon her, threatening to consume her whole. In a final act of
-// desperation, Dr. Parker stumbled upon a hidden chamber, its walls adorned
-// with cryptic symbols. With trembling hands, she deciphered the ancient
-// script, unlocking the secrets of the temple's true purpose. But as she raced
-// to escape the temple's clutches, she found herself trapped once more, the
-// exit sealed shut by an unseen force. And so, Dr. Parker joined her fallen
-// comrades, destined to wander the halls of the Yap Temple for all eternity, a
-// cautionary tale for those who dared to tread where mortals were not meant to
-// go.
+import (
+	"fmt"
+	"time"
+)
+
+const story = `In an age long forgotten, shrouded by the mists of time and
+hidden beneath the emerald canopy of an ancient forest, lies the enigmatic
+"Yap Cave". A place of legend, where the very essence of productivity is said
+to vanish into the shadows. The whispers of its existence have echoed through
+the ages, yet few have the courage to seek it out, for the allure of the Yap
+Cave is as enigmatic as it is foreboding. The origins of the Yap Cave are
+lost to history, discovered by a band of intrepid explorers seeking the
+thrill of the unknown. Drawn to the cave's mysterious presence, they ventured
+into its depths, lured by the promise of undiscovered wonders. Yet, what they
+found was not treasure, but a darkness that clung to their souls. Within the
+twisting tunnels of the cave, time itself seemed to distort, ensnaring the
+explorers in a web of lethargy from which there was no escape. Their ambition
+dulled, their senses numbed, they became prisoners of their own unspent
+potential, trapped in an endless cycle of inertia. As the years passed, the
+tale of the Yap Cave spread, its legend growing with each telling. Many
+sought to uncover its secrets, to break the curse that lingered within its
+walls. Scholars, adventurers, monarchs - all who entered were swallowed by
+the cave's oppressive gloom, their vibrant spirits extinguished by the
+overwhelming force of stagnation that pervaded its air. The Yap Cave stood as
+a stark warning against the perils of surrendering to complacency, its name a
+byword for the death of ambition. Yet, despite the warnings, the allure of
+the Yap Cave persists. It remains a beacon for those who dare to challenge
+its curse, a testament to the human spirit's unyielding quest for knowledge.
+But let it be known, the Yap Cave is no mere legend. It is a reminder of the
+dark recesses within us all, where productivity goes to perish, smothered by
+the shadows of apathy. The legacy of the Yap Cave endures, a chilling
+testament to the dangers that lie in wait when ambition fades into the mist.`
+
+// printSlowly prints a string one character at a
+// time with a delay between each character.
+func printSlowly(text string, delay time.Duration) {
+	for _, char := range text {
+		//nolint:forbidigo // yap.
+		fmt.Printf("\x1b[38;5;16m%c\x1b[0m", char)
+		time.Sleep(delay)
+	}
+}
+
+func main() {
+	//nolint:gomnd // yapping takes time y'know.
+	printSlowly(story, 25*time.Millisecond)
+}

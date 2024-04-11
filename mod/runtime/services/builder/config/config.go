@@ -28,8 +28,6 @@ package config
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -42,25 +40,27 @@ const (
 )
 
 // Builder is the configuration for the payload builder.
+//
+//nolint:lll // struct tags.
 type Config struct {
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
-	SuggestedFeeRecipient primitives.ExecutionAddress
+	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
-	Graffiti string
+	Graffiti string `mapstructure:"graffiti"`
 
 	// LocalBuilderEnabled determines if the local builder is enabled.
-	LocalBuilderEnabled bool
+	LocalBuilderEnabled bool `mapstructure:"local-builder-enabled"`
 
 	// LocalBuildPayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
 	// timeout on your
 	// execution client. It also must be less than timeout_proposal in the
 	// CometBFT configuration.
-	LocalBuildPayloadTimeout time.Duration
+	LocalBuildPayloadTimeout time.Duration `mapstructure:"local-build-payload-timeout"`
 }
 
 // DefaultBuilderConfig returns the default fork configuration.
@@ -71,32 +71,4 @@ func DefaultBuilderConfig() Config {
 		LocalBuilderEnabled:      defaultLocalBuilderEnabled,
 		LocalBuildPayloadTimeout: defaultLocalBuildPayloadTimeout,
 	}
-}
-
-// Parse parses the configuration.
-func (c Config) Parse(parser parser.AppOptionsParser) (*Config, error) {
-	var err error
-	if c.SuggestedFeeRecipient, err = parser.GetExecutionAddress(
-		flags.SuggestedFeeRecipient,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.Graffiti, err = parser.GetString(flags.Graffiti); err != nil {
-		return nil, err
-	}
-
-	c.LocalBuilderEnabled, err = parser.GetBool(flags.LocalBuilderEnabled)
-	if err != nil {
-		return nil, err
-	}
-
-	c.LocalBuildPayloadTimeout, err = parser.GetTimeDuration(
-		flags.LocalBuildPayloadTimeout,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &c, nil
 }

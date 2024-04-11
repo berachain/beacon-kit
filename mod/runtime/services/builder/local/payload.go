@@ -63,10 +63,12 @@ func (s *Service) BuildLocalPayload(
 		"parent_block_root", parentBlockRoot,
 	)
 
-	parentEth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, err
 	}
+	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
+
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &engine.ForkchoiceState{
@@ -256,9 +258,7 @@ func (s *Service) getPayloadAttribute(
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals(
-		s.BeaconCfg().MaxWithdrawalsPerPayload,
-	)
+	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		s.Logger().Error(
 			"Could not get expected withdrawals to get payload attribute", "error", err)

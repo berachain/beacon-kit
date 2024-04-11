@@ -33,19 +33,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/statedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	statedb           *statedb.StateDB
+	beaconStore       *beacondb.KVStore
 	cfg               *params.BeaconChainConfig
 }
 
@@ -56,8 +56,8 @@ func NewKeeper(
 	cfg *params.BeaconChainConfig,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore(fdb),
-		statedb:           statedb.New(env.KVStoreService),
+		availabilityStore: da.NewStore(cfg, fdb),
+		beaconStore:       beacondb.New(env.KVStoreService),
 		cfg:               cfg,
 	}
 }
@@ -71,7 +71,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.statedb.WithContext(ctx)
+	store := k.beaconStore.WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -124,117 +124,36 @@ func (k *Keeper) AvailabilityStore(
 func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.statedb.WithContext(ctx), k.cfg)
+	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
 }
 
 // InitGenesis initializes the genesis state of the module.
-//
-// TODO: This whole thing needs to be abstracted into mod/core/state
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data state.BeaconStateDeneb,
+	data *deneb.BeaconState,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Set the genesis RANDAO mix.
-	st := k.BeaconState(ctx)
-	for i, mix := range data.RandaoMixes {
-		if err := st.UpdateRandaoMixAtIndex(
-			//#nosec:G701 // will not cause a problem.
-			uint64(i), mix,
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	// Compare this snippet from beacon/keeper/keeper.go:
-	if err := st.UpdateStateRootAtIndex(0, [32]byte{}); err != nil {
+	// Load the store.
+	store := k.beaconStore.WithContext(ctx)
+	sdb := state.NewBeaconStateFromDB(store, k.cfg)
+	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetSlot(0); err != nil {
-		return nil, err
-	}
-
-	// Set the genesis block header.
-	if err := st.UpdateEth1BlockHash(data.Eth1BlockHash); err != nil {
-		return nil, err
-	}
-
-	emptyHeader := &primitives.BeaconBlockHeader{
-		Slot:          0,
-		ProposerIndex: 0,
-		ParentRoot:    [32]byte{},
-		StateRoot:     [32]byte{},
-		BodyRoot:      [32]byte{},
-	}
-
-	// Set the genesis block header.
-	if err := st.SetLatestBlockHeader(
-		emptyHeader,
-	); err != nil {
-		return nil, err
-	}
-
-	headerHtr, err := emptyHeader.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the genesis block root.
-	if err = st.UpdateBlockRootAtIndex(0, headerHtr); err != nil {
-		return nil, err
-	}
-
-	if err = st.SetEth1DepositIndex(0); err != nil {
-		return nil, err
-	}
-
-	// TODO: don't need to set any validators here if we are setting in
-	// EndBlock. TODO: we should only do updates in EndBlock and actually do the
-	// full initial update here.
-
-	store := k.statedb.WithContext(ctx)
+	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for i, validator := range data.Validators {
-		if err = store.AddValidator(validator); err != nil {
-			return nil, err
-		}
-
-		if err = store.IncreaseBalance(
-			primitives.ValidatorIndex(i), validator.EffectiveBalance,
-		); err != nil {
-			return nil, err
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
+	blsType := (&bls12381.PubKey{}).Type()
+	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
-			PubKeyType: (&bls12381.PubKey{}).Type(),
+			PubKeyType: blsType,
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
-	}
-
-	// Set the genesis slashing data.
-	for i := range data.Slashings {
-		//#nosec:G701 // will not realistically cause a problem.
-		if err = store.UpdateSlashingAtIndex(uint64(i), 0); err != nil {
-			return nil, err
-		}
-	}
-
-	if err = store.SetGenesisValidatorsRoot(
-		data.GenesisValidatorsRoot,
-	); err != nil {
-		return nil, err
 	}
 	return validatorUpdates, nil
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *state.BeaconStateDeneb {
-	return &state.BeaconStateDeneb{
-		Eth1BlockHash: common.Hash{},
-	}
+func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
+	return &deneb.BeaconState{}
 }

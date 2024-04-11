@@ -30,30 +30,25 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// SideCars is a slice of blob side cars to be included in the block.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs BlobSidecar,BlobSidecars -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar `ssz-max:"6"`
-}
-
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
 //nolint:lll
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	Blob *kzg.Blob
+	// TODO: Wrangle fastssz to allow us to use a pointer here to avoid
+	// copying the blob around all the time. Benchmark this as well.
+	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment kzg.Commitment `ssz-size:"48"`
+	KzgCommitment kzg.Commitment
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof kzg.Proof `ssz-size:"48"`
+	KzgProof kzg.Proof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block.
-	InclusionProof [][]byte `ssz-size:"8,32"`
+	InclusionProof [][32]byte `ssz-size:"8,32"`
 }

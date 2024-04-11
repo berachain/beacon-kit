@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -52,8 +51,6 @@ func (s *Service) ProcessBlockEvents(
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
 			err = s.processDepositLog(ctx, st, log)
-		case logSig == WithdrawalEventSig:
-			err = s.processWithdrawalLog(ctx, st, log)
 		default:
 			continue
 		}
@@ -80,46 +77,12 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
-	return st.EnqueueDeposits([]*beacontypes.Deposit{{
-		Index:       d.Index,
-		Pubkey:      primitives.BLSPubkey(d.Pubkey),
-		Credentials: beacontypes.WithdrawalCredentials(d.Credentials),
-		Amount:      primitives.Gwei(d.Amount),
-		Signature:   primitives.BLSSignature(d.Signature),
-	}})
-}
-
-// processWithdrawalLog adds a withdrawal to the queue.
-func (s *Service) processWithdrawalLog(
-	_ context.Context,
-	st state.BeaconState,
-	log coretypes.Log,
-) error {
-	w := &abi.BeaconDepositContractWithdrawal{}
-	if err := s.abi.UnpackLogs(w, WithdrawalEventName, log); err != nil {
-		return err
-	}
-
-	// Get the validator index from the pubkey.
-	valIdx, err := st.ValidatorIndexByPubkey(primitives.BLSPubkey(w.FromPubkey))
-	if err != nil {
-		return err
-	}
-
-	executionAddr, err := beacontypes.
-		WithdrawalCredentials(w.Credentials).ToExecutionAddress()
-	if err != nil {
-		return err
-	}
-
-	s.Logger().Info(
-		"she said, \"see you later, boi\" 💅", "deposit", w.Index, "amount", w.Amount,
-	)
-
-	return st.EnqueueWithdrawals([]*primitives.Withdrawal{{
-		Index:     w.Index,
-		Validator: valIdx,
-		Address:   executionAddr,
-		Amount:    primitives.Gwei(w.Amount),
-	}})
+	return st.EnqueueDeposits(
+		primitives.Deposits{primitives.NewDeposit(
+			primitives.BLSPubkey(d.Pubkey),
+			primitives.WithdrawalCredentials(d.Credentials),
+			primitives.Gwei(d.Amount),
+			primitives.BLSSignature(d.Signature),
+			d.Index,
+		)})
 }

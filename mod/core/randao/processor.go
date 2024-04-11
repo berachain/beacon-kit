@@ -29,11 +29,10 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/forks"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -195,7 +194,7 @@ func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
-	fd := forks.NewForkData(
+	fd := primitives.NewForkData(
 		version.FromUint32(
 			p.cfg.Beacon.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,

@@ -9,6 +9,8 @@ networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
+constants = import_module("./src/constants.star")
+goomy_blob = import_module("./src/services/goomy/launcher.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
     """
@@ -66,6 +68,20 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         )
 
     # 6. Start RPCs
-    rpc_configs = {}
     for n, rpc in enumerate(rpc_endpoints):
         nginx.get_config(plan, rpc["services"])
+
+    # 7. Start additional services
+    for s in additional_services:
+        if s == "goomy_blob":
+            plan.print("Launching Goomy the Blob Spammer")
+            goomy_blob_args = {"goomy_blob_args": []}
+            goomy_blob.launch_goomy_blob(
+                plan,
+                constants.PRE_FUNDED_ACCOUNTS[0],
+                plan.get_service("nginx").ports["http"].url,
+                goomy_blob_args,
+            )
+            plan.print("Successfully launched goomy the blob spammer")
+
+    plan.print("Successfully launched development network")

@@ -55,7 +55,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
 # Copy the rest of the source code
-COPY . .
+COPY ./mod ./mod
+COPY ./beacond ./beacond
 
 # Build args
 ARG NAME
@@ -95,15 +96,11 @@ ARG APP_NAME
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
-COPY ./beacond/init_first.sh /usr/bin/init_first.sh
-COPY ./beacond/init_others.sh /usr/bin/init_others.sh
-COPY ./beacond/init_full.sh /usr/bin/init_full.sh
+COPY ./beacond/init.sh /usr/bin/init.sh
 COPY ./beacond/finalize.sh /usr/bin/finalize.sh
 COPY ./beacond/start.sh /usr/bin/start.sh
 
-RUN chmod +x /usr/bin/init_first.sh
-RUN chmod +x /usr/bin/init_others.sh
-RUN chmod +x /usr/bin/init_full.sh
+RUN chmod +x /usr/bin/init.sh
 RUN chmod +x /usr/bin/finalize.sh
 RUN chmod +x /usr/bin/start.sh
 

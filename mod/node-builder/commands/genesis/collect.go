@@ -31,13 +31,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +73,7 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			beaconState := &state.BeaconStateDeneb{}
+			beaconState := &deneb.BeaconState{}
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
 			); err != nil {
@@ -145,7 +146,10 @@ func CollectValidatorJSONFiles(
 		}
 
 		var bz []byte
-		bz, err = os.ReadFile(filepath.Join(genTxsDir, fo.Name()))
+		bz, err = afero.ReadFile(
+			afero.NewOsFs(),
+			filepath.Join(genTxsDir, fo.Name()),
+		)
 		if err != nil {
 			return nil, err
 		}

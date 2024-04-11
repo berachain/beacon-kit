@@ -28,6 +28,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -35,7 +36,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/http"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum"
@@ -91,6 +91,8 @@ func New(opts ...Option) *EngineClient {
 // Start starts the engine client.
 func (s *EngineClient) Start(ctx context.Context) {
 	for {
+		s.logger.Info("waiting for execution client to start 🍺🕔",
+			"dial-url", s.cfg.RPCDialURL)
 		if err := s.setupExecutionClientConnection(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
@@ -281,12 +283,17 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 		err    error
 	)
 
+	// Build an http.Header with the JWT token attached.
+	header, err := s.buildJWTHeader()
+	if err != nil {
+		return err
+	}
+
 	// Dial the execution client based on the URL scheme.
 	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
 		client, err = rpc.DialOptions(
-			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(
-				http.NewHeaderWithJWT(s.jwtSecret)),
+			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 		)
 	case "", "ipc":
 		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
@@ -304,4 +311,21 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 	s.Client = ethclient.NewClient(client)
 	return nil
+}
+
+// buildJWTHeader builds an http.Header that has the JWT token
+// attached for authorization.
+func (s *EngineClient) buildJWTHeader() (http.Header, error) {
+	header := make(http.Header)
+
+	// Build the JWT token.
+	token, err := s.jwtSecret.BuildSignedJWT()
+	if err != nil {
+		s.logger.Error("failed to build JWT token", "err", err)
+		return header, err
+	}
+
+	// Add the JWT token to the headers.
+	header.Set("Authorization", "Bearer "+token)
+	return header, nil
 }

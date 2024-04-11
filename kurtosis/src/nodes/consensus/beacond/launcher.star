@@ -97,12 +97,12 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         if n == 0:
             exec_recipe = ExecRecipe(
                 # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init_first.sh"],
+                command = ["/usr/bin/init.sh", "-f"],
             )
         else:
             exec_recipe = ExecRecipe(
                 # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init_others.sh"],
+                command = ["/usr/bin/init.sh"],
             )
 
         plan.exec(
@@ -213,7 +213,7 @@ def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_fi
         engine_dial_url,
         cl_service_name,
         entrypoint = ["bash", "-c"],
-        cmd = ["/usr/bin/init_full.sh && /usr/bin/start.sh"],
+        cmd = ["/usr/bin/init.sh && /usr/bin/start.sh"],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,

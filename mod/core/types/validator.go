@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -36,12 +37,12 @@ import (
 //
 //nolint:lll
 //go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives,withdrawal_credentials.go -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials primitives.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -71,7 +72,7 @@ type validatorJSONMarshaling struct {
 //nolint:lll
 func NewValidatorFromDeposit(
 	pubkey primitives.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
+	withdrawalCredentials primitives.WithdrawalCredentials,
 	amount primitives.Gwei,
 	effectiveBalanceIncrement primitives.Gwei,
 	maxEffectiveBalance primitives.Gwei,
@@ -130,7 +131,47 @@ func (v Validator) IsSlashable(epoch primitives.Epoch) bool {
 		epoch < v.WithdrawableEpoch
 }
 
+// IsFullyWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
+//
+//nolint:lll
+func (v Validator) IsFullyWithdrawable(
+	balance primitives.Gwei,
+	epoch primitives.Epoch,
+) bool {
+	return v.HasEth1WithdrawalCredentials() && v.WithdrawableEpoch <= epoch &&
+		balance > 0
+}
+
+// IsPartiallyWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
+//
+//nolint:lll
+func (v Validator) IsPartiallyWithdrawable(
+	balance, maxEffectiveBalance primitives.Gwei,
+) bool {
+	hasExcessBalance := balance > maxEffectiveBalance
+	return v.HasEth1WithdrawalCredentials() &&
+		v.HasMaxEffectiveBalance(maxEffectiveBalance) && hasExcessBalance
+}
+
+// IsWithdrawable as defined in the Ethereum 2.0 specfication:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
+//
+//nolint:lll
+func (v Validator) HasEth1WithdrawalCredentials() bool {
+	return v.WithdrawalCredentials[0] == primitives.EthSecp256k1CredentialPrefix
+}
+
+// HasMaxEffectiveBalance determines if the validator has the maximum effective
+// balance.
+func (v Validator) HasMaxEffectiveBalance(
+	maxEffectiveBalance primitives.Gwei,
+) bool {
+	return v.EffectiveBalance == maxEffectiveBalance
+}
+
 // String returns a string representation of the Validator.
 func (v Validator) String() string {
-	return string(v.Pubkey[:])
+	return spew.Sdump(v)
 }

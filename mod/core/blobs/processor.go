@@ -26,55 +26,92 @@
 package blobs
 
 import (
+	"context"
 	"errors"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/da"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
-
-type BlobVerifier interface{}
 
 // Processor is the processor for blobs.
 type Processor struct {
-	bv BlobVerifier
+	bv     *da.BlobVerifier
+	logger log.Logger
 }
 
 // NewProcessor creates a new processor.
-func NewProcessor(bv BlobVerifier) *Processor {
+func NewProcessor(
+	bv *da.BlobVerifier,
+	logger log.Logger,
+) *Processor {
 	return &Processor{
-		bv: bv,
+		bv:     bv,
+		logger: logger,
 	}
 }
 
 // ProcessBlob processes a blob.
-func (sp *Processor) ProcessBlobs(
+func (p *Processor) ProcessBlobs(
+	slot primitives.Slot,
 	avs core.AvailabilityStore,
-	blk types.BeaconBlock,
 	sidecars *datypes.BlobSidecars,
 ) error {
-	// Verify the KZG inclusion proofs.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
+	// If there are no blobs to verify, return early.
+	numBlobs := len(sidecars.Sidecars)
+	if numBlobs == 0 {
+		p.logger.Info(
+			"no blobs to verify, skipping verifier 🧢",
+			"slot",
+			slot,
+		)
+		return nil
+	}
+
+	g, _ := errgroup.WithContext(context.Background())
+
+	// Verify the inclusion proofs on the blobs.
+	g.Go(func() error {
+		if err := errors.Join(iter.Map(
+			sidecars.Sidecars,
+			func(sidecar **datypes.BlobSidecar) error {
+				sc := *sidecar
+				if sc == nil {
+					return ErrAttemptedToVerifyNilSidecar
+				}
+
+				// Verify the KZG inclusion proof.
+				return types.VerifyKZGInclusionProof(sc)
+			},
+		)...); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	// Verify the KZG proofs on the blobs.
+	g.Go(func() error {
+		return p.bv.VerifyKZGProofs(sidecars)
+	})
+
+	// Wait for the goroutines to finish.
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
-	// Ensure the blobs are available.
-	if err = errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **datypes.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToVerifyNilSidecar
-			}
-			// Store the blobs under a single height.
-			return types.VerifyKZGInclusionProof(
-				bodyRoot, *sidecar,
-			)
-		},
-	)...); err != nil {
-		return err
-	}
+	p.logger.Info(
+		"successfully verified all blob sidecars 💦",
+		"num_blobs",
+		numBlobs,
+		"slot",
+		slot,
+	)
 
-	return avs.Persist(blk.GetSlot(), sidecars.Sidecars...)
+	// Persist the blobs to the availability store.
+	return avs.Persist(slot, sidecars)
 }

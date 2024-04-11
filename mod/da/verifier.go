@@ -26,44 +26,42 @@
 package da
 
 import (
-	"errors"
-
-	verifier "github.com/berachain/beacon-kit/mod/da/verifier"
-	kzg "github.com/berachain/beacon-kit/mod/primitives/kzg"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/da/types"
 )
 
-// BlobVerifier is a verifier for blobs.
-type BlobVerifier interface {
-	// VerifyProof verifies the KZG proof that the polynomial represented by the
-	// blob
-	// evaluated at the given point is the claimed value.
-	VerifyKZGProof(
-		commitment kzg.Commitment,
-		point kzg.Point,
-		claim kzg.Claim,
-		proof kzg.Proof,
-	) error
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *kzg.Blob,
-		commitment kzg.Commitment,
-		proof kzg.Proof,
-	) error
+// BlobProofVerifier is a verifier for blobs.
+type BlobVerifier struct {
+	proofVerifier proof.BlobProofVerifier
 }
 
-// NewBlobVerifier creates a new BlobVerifier.
+// NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
 func NewBlobVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (BlobVerifier, error) {
-	switch impl {
-	case "crate-crypto/go-kzg-4844":
-		return verifier.NewGoKZGVerifier(ts)
-	case "ethereum/c-kzg-4844":
-		return nil, errors.New("ethereum/c-kzg-4844 is not yet supported")
+	proofVerifier proof.BlobProofVerifier,
+) *BlobVerifier {
+	return &BlobVerifier{
+		proofVerifier: proofVerifier,
+	}
+}
+
+// VerifyKZGProofs verifies the sidecars.
+func (bv *BlobVerifier) VerifyKZGProofs(
+	scs *types.BlobSidecars,
+) error {
+	switch len(scs.Sidecars) {
+	case 0:
+		return nil
+	case 1:
+		// This method is fastest for a single blob.
+		return bv.proofVerifier.VerifyBlobProof(
+			&scs.Sidecars[0].Blob,
+			scs.Sidecars[0].KzgProof,
+			scs.Sidecars[0].KzgCommitment,
+		)
 	default:
-		return nil, errors.New("unsupported KZG implementation")
+		// For multiple blobs batch verification is more performant
+		// than verifying each blob individually (even when done in parallel).
+		return bv.proofVerifier.VerifyBlobProofBatch(
+			proof.ArgsFromSidecars(scs))
 	}
 }

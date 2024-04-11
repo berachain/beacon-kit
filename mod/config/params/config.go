@@ -26,8 +26,6 @@
 package params
 
 import (
-	flags "github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -68,107 +66,47 @@ type BeaconChainConfig struct {
 	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
 	// EpochsPerSlashingsVector is the number of epochs in the slashings vector.
 	EpochsPerSlashingsVector uint64 `mapstructure:"epochs-per-slashings-vector"`
-
+	// HistoricalRootsLimit is the maximum number of historical roots.
+	HistoricalRootsLimit uint64 `mapstructure:"historical-roots-limit"`
+	// ValidatorRegistryLimit is the maximum number of validators in the
+	// registry.
+	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
 	// Max operations per block constants.
 	//
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
-	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
-	// operations allowed in a single payload.
-	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
-	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
 
 	// Rewards and penalties constants.
 	//
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
-}
 
-func (c BeaconChainConfig) Parse(
-	parser parser.AppOptionsParser,
-) (*BeaconChainConfig, error) {
-	var err error
+	// Capella Values
+	//
+	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
+	// operations allowed in a single payload.
+	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
+	// validator
+	// withdrawals allowed per sweep.
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
 
-	if c.MinDepositAmount, err = parser.GetUint64(
-		flags.MinDepositAmount,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxEffectiveBalance, err = parser.GetUint64(
-		flags.MaxEffectiveBalance,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EffectiveBalanceIncrement, err = parser.GetUint64(
-		flags.EffectiveBalanceIncrement,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.SlotsPerEpoch, err = parser.GetUint64(
-		flags.SlotsPerEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.SlotsPerHistoricalRoot, err = parser.GetUint64(
-		flags.SlotsPerHistoricalRoot,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.DepositContractAddress, err = parser.GetExecutionAddress(
-		flags.DepositContractAddress,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.ElectraForkEpoch, err = parser.GetCurrentEpoch(
-		flags.ElectraForkEpoch,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EpochsPerHistoricalVector, err = parser.GetUint64(
-		flags.EpochsPerHistoricalVector,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.EpochsPerSlashingsVector, err = parser.GetUint64(
-		flags.EpochsPerSlashingsVector,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxDepositsPerBlock, err = parser.GetUint64(
-		flags.MaxDepositsPerBlock,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxWithdrawalsPerPayload, err = parser.GetUint64(
-		flags.MaxWithdrawalsPerPayload,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.MaxBlobsPerBlock, err = parser.GetUint64(
-		flags.MaxBlobsPerBlock,
-	); err != nil {
-		return nil, err
-	}
-
-	if c.ProportionalSlashingMultiplier, err = parser.GetUint64(
-		flags.ProportionalSlashingMultiplier,
-	); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	// Deneb Values
+	//
+	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
+	// will keep the blobs for.
+	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
+	// FieldElementsPerBlob specifies the number of field elements per blob.
+	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
+	// MaxBlobCommitmentsPerBlock specifies the maximum number of blob
+	// commitments. `floorlog2(get_generalized_index(BeaconBlockBody,
+	// 'blob_kzg_commitments')) + 1 + ceillog2(MAX_BLOB_COMMITMENTS_PER_BLOCK)`
+	// = 4 + 1 + 12 = 17
+	MaxBlobCommitmentsPerBlock uint64 `mapstructure:"max-blob-commitments-per-block"`
+	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
+	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
+	// KZGIncludeProofDepth is the depth of the KZG inclusion proof.
+	KZGInclusionProofDepth uint64 `mapstructure:"kzg-inclusion-proof-depth"`
 }

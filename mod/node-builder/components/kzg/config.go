@@ -27,59 +27,39 @@ package kzg
 
 import (
 	"encoding/json"
-	"os"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/cli/parser"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/afero"
 )
 
 const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
 	defaultTrustedSetupPath = "./beacond/kzg-trusted-setup.json"
 
-	// defaultKZGImplementation is the default KZG implementation to use.
+	// defaultImplementation is the default KZG implementation to use.
 	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
-	defaultKZGImplementation = "crate-crypto/go-kzg-4844"
+	defaultImplementation = "crate-crypto/go-kzg-4844"
 )
 
 type Config struct {
 	// TrustedSetupPath is the path to the trusted setup.
-	TrustedSetupPath string `json:"trustedSetupPath"`
+	TrustedSetupPath string `mapstructure:"trusted-setup-path"`
 
-	// KZGImplementation is the KZG implementation to use.
-	KZGImplementation string `json:"kzgImplementation"`
+	// Implementation is the KZG implementation to use.
+	Implementation string `mapstructure:"implementation"`
 }
 
 // DefaultConfig returns the default configuration.
 func DefaultConfig() Config {
 	return Config{
-		TrustedSetupPath:  defaultTrustedSetupPath,
-		KZGImplementation: defaultKZGImplementation,
+		TrustedSetupPath: defaultTrustedSetupPath,
+		Implementation:   defaultImplementation,
 	}
-}
-
-// Parse parses the configuration from the provided parser.
-func (c Config) Parse(
-	parser parser.AppOptionsParser,
-) (*Config, error) {
-	var err error
-	if c.TrustedSetupPath, err = parser.GetString(
-		flags.KZGTrustedSetupPath,
-	); err != nil {
-		return nil, err
-	}
-	if c.KZGImplementation, err = parser.GetString(
-		flags.KZGImplementation,
-	); err != nil {
-		return nil, err
-	}
-	return &c, nil
 }
 
 // ReadTrustedSetup reads the trusted setup from the file system.
 func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
-	config, err := os.ReadFile(filePath)
+	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	if err != nil {
 		return nil, err
 	}
