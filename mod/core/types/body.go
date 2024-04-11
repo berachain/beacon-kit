@@ -40,9 +40,11 @@ import (
 var (
 	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
 	// struct.
-	BodyLengthDeneb = reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField()
+	//#nosec:G701 // realistically won't exceed 255 fields.
+	BodyLengthDeneb = uint8(reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField())
 
 	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
+	//#nosec:G701 // realistically won't exceed 255 fields.
 	LogBodyLengthDeneb = uint8(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
@@ -51,8 +53,8 @@ var (
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
+//
 //go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
-
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`

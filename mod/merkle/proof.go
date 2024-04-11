@@ -36,9 +36,13 @@ func VerifyProof(
 	merkleIndex uint64,
 	proof [][32]byte,
 ) bool {
+	if len(proof) > int(^uint8(0)) {
+		return false
+	}
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
+		//#nosec:G701 // we check the length of the proof above.
 		uint8(len(proof)),
 		merkleIndex,
 		root,
@@ -52,7 +56,10 @@ func VerifyProof(
 func IsValidMerkleBranch(
 	leaf [32]byte, branch [][32]byte, depth uint8, index uint64, root [32]byte,
 ) bool {
-	if uint8(len(branch)) != depth {
+	//#nosec: only an issue on a CPU with an 8 bit word size.
+	// If you are running on a CPU with an 8 bit word size,
+	// you are living in 1955 and this CPU is the size of a trailer park.
+	if len(branch) != int(depth) {
 		return false
 	}
 	return RootFromBranch(leaf, branch, depth, index) == root
