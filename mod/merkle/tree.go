@@ -40,8 +40,8 @@ const (
 	MaxTreeDepth = 62
 )
 
-// Tree implements a general purpose Merkle tree
-// to be used across Ethereum consensus functionality.
+// Tree implements a Merkle tree that has been optimized to
+// handle leaves that are 32 bytes in size.
 type Tree struct {
 	depth    uint64
 	branches [][][32]byte
