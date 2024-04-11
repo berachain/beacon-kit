@@ -146,14 +146,14 @@ func GetBlobKzgCommitmentsRoot(
 	commitments []kzg.Commitment,
 ) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := merkle.NewTreeFromLeavesWithDepth(
+	tree, err := merkle.NewTreeFromLeavesWithDepth(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return commitmentsSparse.HashTreeRoot()
+	return tree.HashTreeRoot()
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(

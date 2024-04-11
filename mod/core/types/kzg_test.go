@@ -116,17 +116,17 @@ func Test_BodyProof(t *testing.T) {
 	depth := types.LogMaxBlobCommitments
 
 	// Generate a sparse Merkle tree from the leaves.
-	sparse, err := merkle.NewTreeFromLeavesWithDepth(leaves, depth)
+	tree, err := merkle.NewTreeFromLeavesWithDepth(leaves, depth)
 	require.NoError(t, err, "Failed to generate tree from items")
 
 	// Get the root of the tree.
-	root, err := sparse.HashTreeRoot()
+	root, err := tree.HashTreeRoot()
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Generate a proof for the index.
 	var proof [][32]byte
 	for index := uint64(0); index < uint64(len(leaves)); index++ {
-		proof, err = sparse.MerkleProofWithMixin(index)
+		proof, err = tree.MerkleProofWithMixin(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)
@@ -170,15 +170,15 @@ func Test_TopLevelRoots(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	bodyMembersRoots[types.KZGPosition] = commitmentsRoot
-	bodySparse, err := merkle.NewTreeFromLeavesWithDepth(
+	bodyTree, err := merkle.NewTreeFromLeavesWithDepth(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
 	require.NoError(t, err, "Failed to generate tree from member roots")
-	bodySparseRoot, err := bodySparse.HashTreeRoot()
+	bodySparseRoot, err := bodyTree.HashTreeRoot()
 	require.NoError(t, err, "Failed to generate root hash")
 
-	topProof, err := bodySparse.MerkleProofWithMixin(types.KZGPosition)
+	topProof, err := bodyTree.MerkleProofWithMixin(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
 
 	// Verify the Merkle proof
@@ -233,12 +233,12 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	// bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := merkle.NewTreeFromLeavesWithDepth(
+	bodyTree, err := merkle.NewTreeFromLeavesWithDepth(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
 	require.NoError(t, err, "Failed to generate tree from member roots")
-	topProof, err := bodySparse.MerkleProofWithMixin(types.KZGPosition)
+	topProof, err := bodyTree.MerkleProofWithMixin(types.KZGPosition)
 	require.NoError(t, err, "Failed to generate Merkle proof")
 	require.Equal(t,
 		topProof[:len(topProof)-1],
