@@ -23,7 +23,7 @@ func (b BeaconState) MarshalJSON() ([]byte, error) {
 		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash" ssz-size:"32"`
+		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash"    ssz-size:"32"`
 		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
 		Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
@@ -78,7 +78,7 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash" ssz-size:"32"`
+		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash"    ssz-size:"32"`
 		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
 		Eth1DepositIndex             *uint64                       `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
