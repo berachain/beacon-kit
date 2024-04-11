@@ -40,7 +40,7 @@ const (
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
 	_, err := merkle.NewTreeFromLeavesWithDepth(nil, TreeDepth)
-	require.ErrorContains(t, err, "no items provided to generate Merkle tree")
+	require.ErrorIs(t, err, merkle.ErrEmptyLeaves)
 }
 
 func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
@@ -174,11 +174,8 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 		TreeDepth,
 	)
 	require.NoError(t, err)
-	require.ErrorContains(
-		t,
-		m.Insert([]byte{'J'}, -1),
-		"negative index provided",
-	)
+	err = m.Insert([]byte{'J'}, -1)
+	require.ErrorIs(t, err, merkle.ErrNegativeIndex)
 }
 
 func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {

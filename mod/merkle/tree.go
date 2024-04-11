@@ -30,10 +30,10 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
+	"github.com/protolambda/ztyp/tree"
 )
 
 const (
@@ -85,10 +85,10 @@ func NewTreeFromLeavesWithDepth(
 	for i := uint64(0); i < depth; i++ {
 		currentLayer := layers[i]
 		if len(currentLayer)%2 == 1 {
-			currentLayer = append(currentLayer, zero.Hashes[i])
+			currentLayer = append(currentLayer, tree.ZeroHashes[i])
 		}
-		if layers[i+1], err =
-			htr.BuildParentTreeRoots(currentLayer); err != nil {
+		layers[i+1], err = htr.BuildParentTreeRoots(currentLayer)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -111,7 +111,7 @@ func (m *Tree) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
-		m.leaves[0] == zero.Hashes[0] {
+		m.leaves[0] == tree.ZeroHashes[0] {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
@@ -122,10 +122,10 @@ func (m *Tree) HashTreeRoot() ([32]byte, error) {
 // Insert an item into the tree.
 func (m *Tree) Insert(item []byte, index int) error {
 	if index < 0 {
-		return fmt.Errorf("negative index provided: %d", index)
+		return errors.Wrap(ErrNegativeIndex, fmt.Sprintf("index: %d", index))
 	}
 	for index >= len(m.branches[0]) {
-		m.branches[0] = append(m.branches[0], zero.Hashes[0])
+		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0])
 	}
 	someItem := byteslib.ToBytes32(item)
 	m.branches[0][index] = someItem
@@ -140,7 +140,7 @@ func (m *Tree) Insert(item []byte, index int) error {
 	root := byteslib.ToBytes32(item)
 	for i := uint64(0); i < m.depth; i++ {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
-			neighbor = zero.Hashes[i]
+			neighbor = tree.ZeroHashes[i]
 		} else {
 			neighbor = m.branches[i][neighborIdx]
 		}
@@ -183,7 +183,7 @@ func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 		if subIndex < uint64(len(m.branches[i])) {
 			proof[i] = m.branches[i][subIndex]
 		} else {
-			proof[i] = zero.Hashes[i]
+			proof[i] = tree.ZeroHashes[i]
 		}
 	}
 	return proof, nil

@@ -28,6 +28,9 @@ package merkle
 import "errors"
 
 var (
+	// ErrNegativeIndex indicates that a negative index was provided.
+	ErrNegativeIndex = errors.New("negative index provided")
+
 	// ErrEmptyLeaves indicates that no items were provided to generate a Merkle
 	// tree.
 	ErrEmptyLeaves = errors.New("no items provided to generate Merkle tree")
