@@ -33,11 +33,11 @@ const NumZeroHashes = 64
 // Hashes is a pre-computed list of zero-hashes for each depth level.
 //
 //nolint:gochecknoglobals // saves recomputing.
-var Hashes [NumZeroHashes][32]byte
+var Hashes [NumZeroHashes + 1][32]byte
 
 // initialize the zero-hashes pre-computed data with the given hash-function.
 func InitZeroHashes(zeroHashesLevels uint) {
-	for i := uint(0); i < zeroHashesLevels-1; i++ {
+	for i := uint(0); i < zeroHashesLevels; i++ {
 		v := [64]byte{}
 		copy(v[:32], Hashes[i][:])
 		copy(v[32:], Hashes[i][:])
