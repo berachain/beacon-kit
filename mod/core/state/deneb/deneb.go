@@ -80,12 +80,12 @@ func DefaultBeaconState() *BeaconState {
 //
 //nolint:gomnd // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
-	baseFeePerGas := hexutil.MustDecode("0xca9a3b")
+	baseFeePerGas := hexutil.MustDecode("0x3b9aca")
 	return &types0.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: common.HexToHash(
-			"0xbbc1cb21b367c2d3cbb3fd58dafdbc4bd827ea097d72a42a2ab2da71e3d0cf64",
+			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 		),
 		ReceiptsRoot: common.HexToHash(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -101,7 +101,7 @@ func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
 			baseFeePerGas,
 			make([]byte, 32-len(baseFeePerGas))...),
 		BlockHash: common.HexToHash(
-			"0xa63c365d92faa4de2a64a80ed4759c3e9dfa939065c10af08d2d8d017a29f5f4",
+			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		Transactions:  [][]byte{},
 		Withdrawals:   []*primitives.Withdrawal{},
