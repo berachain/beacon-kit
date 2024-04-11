@@ -49,14 +49,14 @@ func TestSidecarMarshalling(t *testing.T) {
 		KzgProof:          [48]byte{},
 		BeaconBlockHeader: &primitives.BeaconBlockHeader{},
 		InclusionProof: [][32]byte{
-			byteslib.ToBytes32([]byte("00000000000000000000000000000001")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000002")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000003")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000004")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000005")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000006")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000007")),
-			byteslib.ToBytes32([]byte("00000000000000000000000000000008")),
+			byteslib.ToBytes32([]byte("1")),
+			byteslib.ToBytes32([]byte("2")),
+			byteslib.ToBytes32([]byte("3")),
+			byteslib.ToBytes32([]byte("4")),
+			byteslib.ToBytes32([]byte("5")),
+			byteslib.ToBytes32([]byte("6")),
+			byteslib.ToBytes32([]byte("7")),
+			byteslib.ToBytes32([]byte("8")),
 		},
 	}
 
