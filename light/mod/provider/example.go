@@ -31,8 +31,8 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/light/mod/state/codec"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/collections/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/statedb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
 )
 
 // NOTE: THIS FILE IS TEMPORARY AND IS USED TO DEMONSTRATE HOW
