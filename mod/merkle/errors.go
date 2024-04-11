@@ -28,9 +28,15 @@ package merkle
 import "errors"
 
 var (
-	// ErrEmptyItems indicates that no items were provided to generate a Merkle
+	// ErrEmptyLeaves indicates that no items were provided to generate a Merkle
 	// tree.
-	ErrEmptyItems = errors.New("no items provided to generate Merkle tree")
+	ErrEmptyLeaves = errors.New("no items provided to generate Merkle tree")
+
+	// ErrInsufficientDepthForLeaves indicates that the depth provided for the
+	// Merkle tree is insufficient to store the provided leaves.
+	ErrInsufficientDepthForLeaves = errors.New(
+		"insufficient depth to store leaves",
+	)
 
 	// ErrZeroDepth indicates that the depth provided for the Merkle tree is
 	// zero, which is invalid.

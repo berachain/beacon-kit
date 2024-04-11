@@ -146,7 +146,7 @@ func GetBlobKzgCommitmentsRoot(
 	commitments []kzg.Commitment,
 ) ([32]byte, error) {
 	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := merkle.NewTreeFromItems(
+	commitmentsSparse, err := merkle.NewTreeFromLeaves(
 		commitmentsLeaves,
 		LogMaxBlobCommitments,
 	)

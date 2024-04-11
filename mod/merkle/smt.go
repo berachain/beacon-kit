@@ -29,6 +29,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"cosmossdk.io/errors"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	sha256 "github.com/minio/sha256-simd"
@@ -43,19 +44,25 @@ const (
 // SparseMerkleTree implements a sparse, general purpose Merkle tree
 // to be used across Ethereum consensus functionality.
 type SparseMerkleTree struct {
-	depth         uint64
-	branches      [][][32]byte
-	originalItems [][32]byte
+	depth    uint64
+	branches [][][32]byte
+	leaves   [][32]byte
 }
 
-// NewTreeFromItems constructs a Merkle tree from a sequence of byte slices.
-func NewTreeFromItems(
-	items [][32]byte,
+// NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+func NewTreeFromLeaves(
+	leaves [][32]byte,
 	depth uint64,
 ) (*SparseMerkleTree, error) {
+	numLeaves := len(leaves)
 	switch {
-	case len(items) == 0:
-		return nil, ErrEmptyItems
+	case numLeaves == 0:
+		return nil, ErrEmptyLeaves
+	case numLeaves > (1 << depth):
+		return nil, errors.Wrap(
+			ErrInsufficientDepthForLeaves,
+			fmt.Sprintf("attempted to store %d leaves with depth %d",
+				numLeaves, depth))
 	case depth == 0:
 		return nil, ErrZeroDepth
 	case depth > MaxTreeDepth:
@@ -63,7 +70,7 @@ func NewTreeFromItems(
 	}
 
 	layers := make([][][32]byte, depth+1)
-	layers[0] = items
+	layers[0] = leaves
 
 	var err error
 	for i := uint64(0); i < depth; i++ {
@@ -78,9 +85,9 @@ func NewTreeFromItems(
 	}
 
 	return &SparseMerkleTree{
-		branches:      layers,
-		originalItems: items,
-		depth:         depth,
+		branches: layers,
+		leaves:   leaves,
+		depth:    depth,
 	}, nil
 }
 
@@ -93,9 +100,9 @@ func (m *SparseMerkleTree) Root() ([32]byte, error) {
 // number of leaves mixed in.
 func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
-	numItems := uint64(len(m.originalItems))
-	if len(m.originalItems) == 1 &&
-		m.originalItems[0] == tree.ZeroHashes[0] {
+	numItems := uint64(len(m.leaves))
+	if len(m.leaves) == 1 &&
+		m.leaves[0] == tree.ZeroHashes[0] {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
@@ -105,7 +112,7 @@ func (m *SparseMerkleTree) HashTreeRoot() ([32]byte, error) {
 
 // Items returns the original items passed in when creating the Merkle tree.
 func (m *SparseMerkleTree) Items() [][32]byte {
-	return m.originalItems
+	return m.leaves
 }
 
 // Insert an item into the tree.
@@ -118,10 +125,10 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 	}
 	someItem := byteslib.ToBytes32(item)
 	m.branches[0][index] = someItem
-	if index >= len(m.originalItems) {
-		m.originalItems = append(m.originalItems, someItem)
+	if index >= len(m.leaves) {
+		m.leaves = append(m.leaves, someItem)
 	} else {
-		m.originalItems[index] = someItem
+		m.leaves[index] = someItem
 	}
 	neighbor := [32]byte{}
 	input := [64]byte{}
@@ -157,18 +164,18 @@ func (m *SparseMerkleTree) Insert(item []byte, index int) error {
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
-func (m *SparseMerkleTree) MerkleProof(index uint64) ([][32]byte, error) {
+func (m *SparseMerkleTree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
-	if index >= numLeaves {
+	if leafIndex >= numLeaves {
 		return nil, fmt.Errorf(
 			"merkle index out of range in tree, max range: %d, received: %d",
 			numLeaves,
-			index,
+			leafIndex,
 		)
 	}
 	proof := make([][32]byte, m.depth)
 	for i := uint64(0); i < m.depth; i++ {
-		subIndex := (index >> i) ^ 1
+		subIndex := (leafIndex >> i) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
 			proof[i] = m.branches[i][subIndex]
 		} else {
@@ -189,6 +196,6 @@ func (m *SparseMerkleTree) MerkleProofWithMixin(
 	}
 
 	mixin := [32]byte{}
-	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.originalItems)))
+	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.leaves)))
 	return append(proof, mixin), nil
 }

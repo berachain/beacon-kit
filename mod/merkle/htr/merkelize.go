@@ -66,7 +66,7 @@ func Vector(elements [][32]byte, length uint64) [32]byte {
 // ByteSliceSSZ hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func ByteSliceSSZ(input []byte) ([32]byte, error) {
-	//nolint:gomnd // we add 31 in order to round up the division.
+	//nolint:gomnd // we add 31 in9 order to round up the division.
 	numChunks := (uint64(len(input)) + 31) / constants.RootLength
 	if numChunks == 0 {
 		return [32]byte{}, errInvalidNilSlice
