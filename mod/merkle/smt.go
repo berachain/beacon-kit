@@ -201,7 +201,7 @@ func (m *SparseMerkleTree) MerkleProofWithMixin(
 		return nil, err
 	}
 
-	var mixin [32]byte
+	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:], uint64(len(m.originalItems)))
 	return append(proof, mixin), nil
 }
