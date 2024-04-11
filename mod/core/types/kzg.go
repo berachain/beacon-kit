@@ -27,8 +27,8 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/tree"
 	"github.com/cockroachdb/errors"
 )
 
@@ -64,7 +64,7 @@ const (
 func VerifyKZGInclusionProof(
 	blob *datypes.BlobSidecar,
 ) error { // TODO: add wrapped type with inclusion proofs
-	verified := tree.VerifyMerkleProof(
+	verified := merkle.VerifyMerkleProof(
 		blob.BeaconBlockHeader.BodyRoot[:],
 		blob.KzgCommitment.ToHashChunks()[0][:],
 		blob.Index+KZGOffset,
@@ -82,7 +82,7 @@ func VerifyKZGInclusionProof(
 // the Merkle proof. If an error occurs during the generation of the proof, it
 // returns nil and the error. The function internally calls the `BodyProof`
 // function to generate the body proof, and the `topLevelRoots` function to
-// obtain the top level roots. It then uses the `tree.NewFromItems`
+// obtain the top level roots. It then uses the `merkle.NewTreeFromItems`
 // function to generate a sparse Merkle tree from the top level roots. Finally,
 // it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top
 // proof, and appends it to the body proof. Note that the last element of the
@@ -103,7 +103,7 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	sparse, err := tree.NewFromItems(membersRoots, LogBodyLength)
+	sparse, err := merkle.NewTreeFromItems(membersRoots, LogBodyLength)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][]byte, error) {
 		return nil, errors.New("index out of range")
 	}
 	leaves := LeavesFromCommitments(commitments)
-	sparse, err := tree.NewFromItems(leaves, LogMaxBlobCommitments)
+	sparse, err := merkle.NewTreeFromItems(leaves, LogMaxBlobCommitments)
 	if err != nil {
 		return nil, err
 	}

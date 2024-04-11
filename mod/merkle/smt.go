@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package tree
+package merkle
 
 import (
 	"bytes"
@@ -37,7 +37,7 @@ import (
 
 const (
 	// 2^63 would overflow.
-	MaxDepth = 62
+	MaxTreeDepth = 62
 )
 
 // SparseMerkleTree implements a sparse, general purpose Merkle tree
@@ -49,14 +49,14 @@ type SparseMerkleTree struct {
 	originalItems [][]byte
 }
 
-// NewFromItems constructs a Merkle tree from a sequence of byte slices.
-func NewFromItems(items [][]byte, depth uint64) (*SparseMerkleTree, error) {
+// NewTreeFromItems constructs a Merkle tree from a sequence of byte slices.
+func NewTreeFromItems(items [][]byte, depth uint64) (*SparseMerkleTree, error) {
 	switch {
 	case len(items) == 0:
 		return nil, ErrEmptyItems
 	case depth == 0:
 		return nil, ErrZeroDepth
-	case depth > MaxDepth:
+	case depth > MaxTreeDepth:
 		return nil, ErrExceededDepth
 	}
 

@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package tree_test
+package merkle_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/tree"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,7 +57,7 @@ func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
 		[]byte("G"),
 		[]byte("H"),
 	}
-	m, err := tree.NewFromItems(items, depth)
+	m, err := merkle.NewTreeFromItems(items, depth)
 	require.NoError(f, err)
 	proof, err := m.MerkleProof(0)
 	require.NoError(f, err)
@@ -75,7 +75,7 @@ func FuzzSparseMerkleTree_VerifyMerkleProofWithDepth(f *testing.F) {
 			root, item []byte, merkleIndex uint64,
 			proofRaw []byte, depth uint64,
 		) {
-			tree.VerifyMerkleProofWithDepth(
+			merkle.VerifyMerkleProofWithDepth(
 				root,
 				item,
 				merkleIndex,

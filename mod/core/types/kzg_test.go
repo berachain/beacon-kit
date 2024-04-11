@@ -31,9 +31,9 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/tree"
 	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/gohashtree"
@@ -117,7 +117,7 @@ func Test_BodyProof(t *testing.T) {
 	depth := types.LogMaxBlobCommitments
 
 	// Generate a sparse Merkle tree from the leaves.
-	sparse, err := tree.NewFromItems(leaves, depth)
+	sparse, err := merkle.NewTreeFromItems(leaves, depth)
 	require.NoError(t, err, "Failed to generate tree from items")
 	require.Equal(t, len(leaves), sparse.NumOfItems())
 
@@ -134,7 +134,7 @@ func Test_BodyProof(t *testing.T) {
 		require.Len(t, proof, int(depth)+1)
 
 		// Verify the Merkle proof
-		valid := tree.VerifyMerkleProof(
+		valid := merkle.VerifyMerkleProof(
 			root[:],
 			leaves[index],
 			index,
@@ -147,7 +147,7 @@ func Test_BodyProof(t *testing.T) {
 		require.NotNil(t, proof, "Merkle proof should not be nil")
 		require.Len(t, proof, int(depth)+1)
 
-		valid = tree.VerifyMerkleProof(
+		valid = merkle.VerifyMerkleProof(
 			root[:],
 			leaves[index],
 			index,
@@ -172,7 +172,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := tree.NewFromItems(
+	bodySparse, err := merkle.NewTreeFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
@@ -185,7 +185,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	require.NoError(t, err, "Failed to generate Merkle proof")
 
 	// Verify the Merkle proof
-	valid := tree.VerifyMerkleProof(
+	valid := merkle.VerifyMerkleProof(
 		bodySparseRoot[:],
 		commitmentsRoot[:],
 		uint64(types.KZGPosition),
@@ -229,7 +229,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	require.NoError(t, err, "Failed to generate root hash")
 
 	require.True(t,
-		tree.VerifyMerkleProofWithDepth(
+		merkle.VerifyMerkleProofWithDepth(
 			commitmentsRoot[:],
 			chunk[0][:],
 			index,
@@ -245,7 +245,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	// For this test only. We don't need to do this when
 	// generating the proof.
 	// bodyMembersRoots[types.KZGPosition] = commitmentsRoot[:]
-	bodySparse, err := tree.NewFromItems(
+	bodySparse, err := merkle.NewTreeFromItems(
 		bodyMembersRoots,
 		types.LogBodyLength,
 	)
@@ -263,7 +263,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 		int(types.LogBodyLength),
 	)
 	require.True(t,
-		tree.VerifyMerkleProof(
+		merkle.VerifyMerkleProof(
 			root[:],
 			commitmentsRoot[:],
 			uint64(types.KZGPosition),
@@ -272,7 +272,7 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	)
 
 	require.True(t,
-		tree.VerifyMerkleProof(
+		merkle.VerifyMerkleProof(
 			root[:],
 			chunk[0][:],
 			index+types.KZGOffset,
