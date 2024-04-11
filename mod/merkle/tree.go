@@ -29,10 +29,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"cosmossdk.io/errors"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 )
 
