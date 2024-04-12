@@ -48,7 +48,7 @@ type BlobSidecar struct {
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader
-	// InclusionProof is the inclusion proof of the blob in the beacon block.
+	// InclusionProof is the inclusion proof of the blob in the beacon block body.
 	InclusionProof [][32]byte `ssz-size:"8,32"`
 }
 

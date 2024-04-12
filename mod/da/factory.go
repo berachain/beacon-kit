@@ -65,21 +65,22 @@ func (f *SidecarFactory[BBB]) BuildSidecars(
 	g := errgroup.Group{}
 	for i := range numBlobs {
 		g.Go(func() error {
-			var err error
-			blob := kzg.Blob(blobs.Blobs[i])
-			inclusionProof, err := f.BuildKZGInclusionProof(body, i)
-			if err != nil {
+			if inclusionProof, err := f.BuildKZGInclusionProof(
+				body, i,
+			); err != nil {
 				return err
+			} else {
+				blob := kzg.Blob(blobs.Blobs[i])
+				sidecars[i] = datypes.BuildBlobSidecar(
+					i,
+					blk.GetHeader(),
+					&blob,
+					kzg.Commitment(blobs.Commitments[i]),
+					kzg.Proof(blobs.Proofs[i]),
+					inclusionProof,
+				)
 			}
-			sidecars[i] = datypes.BuildBlobSidecar(
-				i,
-				blk.GetHeader(),
-				&blob,
-				kzg.Commitment(blobs.Commitments[i]),
-				kzg.Proof(blobs.Proofs[i]),
-				inclusionProof,
-			)
-			return err
+			return nil
 		})
 	}
 
