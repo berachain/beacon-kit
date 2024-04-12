@@ -109,7 +109,7 @@ func NewBeaconKitApp(
 	); err != nil {
 		panic(err)
 	}
-	// Build the app using the app builder.
+	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Components.
