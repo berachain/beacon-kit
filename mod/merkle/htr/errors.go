@@ -23,9 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize
+package htr
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable interface {
-	HashTreeRoot() ([32]byte, error)
-}
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrOddLengthTreeRoots is returned when the input list length must be
+	// even.
+	ErrOddLengthTreeRoots = errors.New("input list length must be even")
+
+	// ErrMaxRootsExceeded is returned when the number of roots exceeds the
+	// maximum allowed.
+	ErrMaxRootsExceeded = errors.New(
+		"number of roots exceeds the maximum allowed",
+	)
+
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
+)

@@ -63,10 +63,12 @@ func (s *Service) BuildLocalPayload(
 		"parent_block_root", parentBlockRoot,
 	)
 
-	parentEth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, err
 	}
+	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
+
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &engine.ForkchoiceState{

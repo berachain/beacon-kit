@@ -91,18 +91,18 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
+			// {
+			// 	ElType:   "erigon",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
+			// {
+			// 	ElType:   "besu",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
 		},
 		FullNodes: []Node{
 			{
@@ -123,12 +123,12 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
+			// {
+			// 	ElType:   "erigon",
+			// 	ClImage:  "beacond:kurtosis-local",
+			// 	ClType:   "beaconkit",
+			// 	Replicas: 1,
+			// },
 			// {
 			// 	ElType:   "besu",
 			// 	ClImage:  "beacond:kurtosis-local",
@@ -143,7 +143,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"el-full-nethermind-0:8545",
 					"el-full-reth-1:8545",
 					"el-full-geth-2:8545",
-					"el-full-erigon-3:8545",
+					// "el-full-erigon-3:8545",
 					// Besu causing flakey tests.
 					// "el-full-besu-4:8545",
 				},

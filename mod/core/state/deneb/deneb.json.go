@@ -7,8 +7,8 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
+	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -23,7 +23,8 @@ func (b BeaconState) MarshalJSON() ([]byte, error) {
 		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1BlockHash                common.Hash                   `json:"eth1BlockHash"    ssz-size:"32"`
+		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
+		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
 		Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
@@ -50,7 +51,8 @@ func (b BeaconState) MarshalJSON() ([]byte, error) {
 			enc.StateRoots[k] = v
 		}
 	}
-	enc.Eth1BlockHash = b.Eth1BlockHash
+	enc.LatestExecutionPayload = b.LatestExecutionPayload
+	enc.Eth1Data = b.Eth1Data
 	enc.Eth1DepositIndex = b.Eth1DepositIndex
 	enc.Validators = b.Validators
 	enc.Balances = b.Balances
@@ -76,7 +78,8 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
 		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
 		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		Eth1BlockHash                *common.Hash                  `json:"eth1BlockHash"    ssz-size:"32"`
+		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
+		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
 		Eth1DepositIndex             *uint64                       `json:"eth1DepositIndex"`
 		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
 		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
@@ -117,8 +120,11 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 			b.StateRoots[k] = v
 		}
 	}
-	if dec.Eth1BlockHash != nil {
-		b.Eth1BlockHash = *dec.Eth1BlockHash
+	if dec.LatestExecutionPayload != nil {
+		b.LatestExecutionPayload = dec.LatestExecutionPayload
+	}
+	if dec.Eth1Data != nil {
+		b.Eth1Data = dec.Eth1Data
 	}
 	if dec.Eth1DepositIndex != nil {
 		b.Eth1DepositIndex = *dec.Eth1DepositIndex

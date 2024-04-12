@@ -47,6 +47,7 @@ func Commands(
 	cmd.AddCommand(
 		AddPubkeyCmd(),
 		CollectValidatorsCmd(),
+		AddExecutionPayloadCmd(),
 	)
 
 	// Add additional commands

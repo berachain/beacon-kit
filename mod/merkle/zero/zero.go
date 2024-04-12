@@ -23,13 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package zero
 
-import "errors"
+import sha256 "github.com/minio/sha256-simd"
 
-var (
-	// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains
-	// blobs with differing block roots.
-	ErrSidecarContainsDifferingBlockRoots = errors.New(
-		"sidecar contains blobs with differing block roots")
-)
+// NumZeroHashes is the number of pre-computed zero-hashes.
+const NumZeroHashes = 64
+
+// Hashes is a pre-computed list of zero-hashes for each depth level.
+//
+//nolint:gochecknoglobals // saves recomputing.
+var Hashes [NumZeroHashes + 1][32]byte
+
+// initialize the zero-hashes pre-computed data with the given hash-function.
+func InitZeroHashes(zeroHashesLevels uint) {
+	for i := uint(0); i < zeroHashesLevels; i++ {
+		v := [64]byte{}
+		copy(v[:32], Hashes[i][:])
+		copy(v[32:], Hashes[i][:])
+		Hashes[i+1] = sha256.Sum256(v[:])
+	}
+}
+
+//nolint:gochecknoinits // required.
+func init() {
+	InitZeroHashes(NumZeroHashes)
+}

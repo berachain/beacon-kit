@@ -23,39 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkleize
+package htr
 
 import (
 	"encoding/binary"
 
+	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/protolambda/ztyp/tree"
+	ztyp "github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
 // Vector uses our optimized routine to hash a list of 32-byte
 // elements.
 func Vector(elements [][32]byte, length uint64) [32]byte {
-	depth := tree.CoverDepth(length)
+	depth := ztyp.CoverDepth(length)
 	// Return zerohash at depth
 	if len(elements) == 0 {
-		return tree.ZeroHashes[depth]
+		return zero.Hashes[depth]
 	}
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(elements)
 		oddNodeLength := layerLen%two == 1
 		if oddNodeLength {
-			zerohash := tree.ZeroHashes[i]
+			zerohash := zero.Hashes[i]
 			elements = append(elements, zerohash)
 		}
 		var err error
 		elements, err = BuildParentTreeRoots(elements)
 		if err != nil {
-			return tree.ZeroHashes[depth]
+			return zero.Hashes[depth]
 		}
 	}
 	if len(elements) != 1 {
-		return tree.ZeroHashes[depth]
+		return zero.Hashes[depth]
 	}
 	return elements[0]
 }

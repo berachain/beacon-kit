@@ -23,13 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package constants
 
-import "errors"
-
-var (
-	// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains
-	// blobs with differing block roots.
-	ErrSidecarContainsDifferingBlockRoots = errors.New(
-		"sidecar contains blobs with differing block roots")
+const (
+	ExtraDataLength = 32
 )

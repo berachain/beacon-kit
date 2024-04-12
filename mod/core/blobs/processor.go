@@ -41,6 +41,7 @@ import (
 
 // Processor is the processor for blobs.
 type Processor struct {
+	// cfg    *params.BeaconChainConfig
 	bv     *da.BlobVerifier
 	logger log.Logger
 }
@@ -86,7 +87,11 @@ func (p *Processor) ProcessBlobs(
 				}
 
 				// Verify the KZG inclusion proof.
-				return types.VerifyKZGInclusionProof(sc)
+				// TODO: modularize KZGOffset
+				if !sc.HasValidInclusionProof(types.KZGOffset) {
+					return ErrInvalidInclusionProof
+				}
+				return nil
 			},
 		)...); err != nil {
 			return err

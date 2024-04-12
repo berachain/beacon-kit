@@ -26,19 +26,35 @@
 package types
 
 import (
+	"math"
+	"reflect"
+
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/trie"
-	merkleize "github.com/berachain/beacon-kit/mod/trie/merkleize"
 	"github.com/cockroachdb/errors"
+)
+
+//nolint:gochecknoglobals // I'd prefer globals over magic numbers.
+var (
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
+	// struct.
+	//#nosec:G701 // realistically won't exceed 255 fields.
+	BodyLengthDeneb = uint8(reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField())
+
+	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
+	//#nosec:G701 // realistically won't exceed 255 fields.
+	LogBodyLengthDeneb = uint8(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
+
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)
 )
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
+//
 //go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
-
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
@@ -113,57 +129,34 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-func GetTopLevelRoots(b BeaconBlockBody) ([][]byte, error) {
-	layer := make([][]byte, BodyLength)
-	for i := range layer {
-		layer[i] = make([]byte, constants.RootLength)
-	}
-
+func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
+	layer := make([][32]byte, BodyLengthDeneb)
+	var err error
 	randao := b.GetRandaoReveal()
-	root, err := merkleize.ByteSliceSSZ(randao[:])
+	layer[0], err = htr.ByteSliceSSZ(randao[:])
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[0], root[:])
 
 	// graffiti
-	root = b.GetGraffiti()
-	copy(layer[1], root[:])
+	layer[1] = b.GetGraffiti()
 
-	// Deposits
-	dep := b.GetDeposits()
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	root, err = merkleize.ListSSZ(dep, maxDepositsPerBlock)
+	layer[2], err = htr.ListSSZ(b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[2], root[:])
 
 	// Execution Payload
-	rt, err := b.GetExecutionPayload().HashTreeRoot()
+	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
-	copy(layer[3], rt[:])
 
 	// KZG commitments is not needed
 	return layer, nil
-}
-
-func GetBlobKzgCommitmentsRoot(
-	commitments []kzg.Commitment,
-) ([32]byte, error) {
-	commitmentsLeaves := LeavesFromCommitments(commitments)
-	commitmentsSparse, err := trie.NewFromItems(
-		commitmentsLeaves,
-		LogMaxBlobCommitments,
-	)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return commitmentsSparse.HashTreeRoot()
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(

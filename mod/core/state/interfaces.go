@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
+	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -45,7 +46,7 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyDeposits
+	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -57,7 +58,6 @@ type ReadOnlyBeaconState interface {
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
 	GetValidators() ([]*types.Validator, error)
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
@@ -66,7 +66,7 @@ type ReadOnlyBeaconState interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyDeposits
+	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -75,7 +75,6 @@ type WriteOnlyBeaconState interface {
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
 	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
 	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
 	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
@@ -126,15 +125,19 @@ type ReadOnlyValidators interface {
 	) (*types.Validator, error)
 }
 
-// WriteOnlyDeposits has write access to deposit queue.
-type WriteOnlyDeposits interface {
+// WriteOnlyEth1Data has write access to eth1 data.
+type WriteOnlyEth1Data interface {
+	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
+	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
 	DequeueDeposits(uint64) (primitives.Deposits, error)
 }
 
-// ReadOnlyDeposits has read access to deposit queue.
-type ReadOnlyDeposits interface {
+// ReadOnlyDeposits has read access to eth1 data.
+type ReadOnlyEth1Data interface {
+	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
+	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)
 }
