@@ -56,7 +56,9 @@ func (bv *BlobVerifier) VerifyBlobs(
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
-		return sidecars.VerifyInclusionProofs(kzgOffset)
+		// TODO: KZGOffset needs to be configurable and not
+		// passed in.
+		return bv.VerifyInclusionProofs(sidecars, kzgOffset)
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
@@ -66,6 +68,13 @@ func (bv *BlobVerifier) VerifyBlobs(
 
 	// Wait for all goroutines to finish and return the result.
 	return g.Wait()
+}
+
+func (bv *BlobVerifier) VerifyInclusionProofs(
+	scs *types.BlobSidecars,
+	kzgOffset uint64,
+) error {
+	return scs.VerifyInclusionProofs(kzgOffset)
 }
 
 // VerifyKZGProofs verifies the sidecars.
