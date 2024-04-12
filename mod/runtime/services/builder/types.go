@@ -29,10 +29,20 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/da"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
 )
+
+// BlobFactory is the interface for building blobs.
+type BlobFactory[BBB da.BeaconBlockBody] interface {
+	BuildSidecars(
+		blk da.BeaconBlock[BBB],
+		blobs *engine.BlobsBundleV1,
+	) (*datypes.BlobSidecars, error)
+}
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor interface {

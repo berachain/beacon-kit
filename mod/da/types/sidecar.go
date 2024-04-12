@@ -52,6 +52,26 @@ type BlobSidecar struct {
 	InclusionProof [][32]byte `ssz-size:"8,32"`
 }
 
+// BuildBlobSidecar creates a blob sidecar from the given blobs and
+// beacon block.
+func BuildBlobSidecar(
+	index uint64,
+	header *primitives.BeaconBlockHeader,
+	blob *kzg.Blob,
+	commitment kzg.Commitment,
+	proof kzg.Proof,
+	inclusionProof [][32]byte,
+) *BlobSidecar {
+	return &BlobSidecar{
+		Index:             index,
+		Blob:              *blob,
+		KzgCommitment:     commitment,
+		KzgProof:          proof,
+		BeaconBlockHeader: header,
+		InclusionProof:    inclusionProof,
+	}
+}
+
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {

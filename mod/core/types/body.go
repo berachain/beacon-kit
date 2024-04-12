@@ -129,7 +129,8 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-func GetTopLevelRoots(b BeaconBlockBody) ([][32]byte, error) {
+// GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	layer := make([][32]byte, BodyLengthDeneb)
 	var err error
 	randao := b.GetRandaoReveal()

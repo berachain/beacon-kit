@@ -30,7 +30,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -47,6 +46,9 @@ type Service struct {
 
 	// signer is used to retrieve the public key of this node.
 	signer core.BLSSigner
+
+	// blobFactory is used to create blob sidecars for blocks.
+	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -185,9 +187,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	// Build the blob sidecars.
-	factory := blobs.NewSidecarFactory(s.BeaconCfg())
-	blobSidecars, err := factory.BuildSidecars(blk, blobsBundle)
+	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
 	if err != nil {
 		return nil, nil, err
 	}

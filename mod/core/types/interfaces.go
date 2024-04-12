@@ -84,4 +84,5 @@ type ReadOnlyBeaconBlockBody interface {
 	GetRandaoReveal() primitives.BLSSignature
 	GetExecutionPayload() enginetypes.ExecutionPayload
 	GetBlobKzgCommitments() kzg.Commitments
+	GetTopLevelRoots() ([][32]byte, error)
 }

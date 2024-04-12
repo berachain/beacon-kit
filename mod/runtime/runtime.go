@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
@@ -73,6 +74,8 @@ func NewBeaconKitRuntime(
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
+//
+//nolint:funlen // bullish.
 func NewDefaultBeaconKitRuntime(
 	cfg *config.Config,
 	signer core.BLSSigner,
@@ -150,9 +153,14 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the builder service.
+	blobFactory := da.NewSidecarFactory[types.BeaconBlockBody](
+		&cfg.Beacon,
+		types.KZGPositionDeneb,
+	)
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
+		builder.WithBlobFactory(blobFactory),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
 		builder.WithSigner(signer),
