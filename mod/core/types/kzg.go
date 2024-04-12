@@ -40,16 +40,7 @@ const (
 )
 
 // MerkleProofKZGCommitment generates a Merkle proof for a given index in a list
-// of commitments using the KZG algorithm. It takes a 2D byte slice of
-// commitments and an index as input, and returns a 2D byte slice representing
-// the Merkle proof. If an error occurs during the generation of the proof, it
-// returns nil and the error. The function internally calls the `BodyProof`
-// function to generate the body proof, and the `topLevelRoots` function to
-// obtain the top level roots. It then uses the `merkle.NewTreeFromLeaves`
-// function to generate a sparse Merkle tree from the top level roots. Finally,
-// it calls the `MerkleProof` method on the sparse Merkle tree to obtain the top
-// proof, and appends it to the body proof. Note that the last element of the
-// top proof is removed before returning the final proof, as it is not needed.
+// of commitments using the KZG algorithm.
 func MerkleProofKZGCommitment(
 	body BeaconBlockBody,
 	index uint64,
@@ -86,9 +77,8 @@ func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
 	if index >= uint64(len(commitments)) {
 		return nil, errors.New("index out of range")
 	}
-	leaves := LeavesFromCommitments(commitments)
 	bodyTree, err := merkle.NewTreeWithMaxLeaves(
-		leaves,
+		LeavesFromCommitments(commitments),
 		MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {

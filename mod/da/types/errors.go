@@ -32,4 +32,15 @@ var (
 	// blobs with differing block roots.
 	ErrSidecarContainsDifferingBlockRoots = errors.New(
 		"sidecar contains blobs with differing block roots")
+
+	// ErrAttemptedToVerifyNilSidecar is returned when
+	// an attempt is made to store a nil sidecar.
+	ErrAttemptedToVerifyNilSidecar = errors.New(
+		"attempted to verify nil sidecar",
+	)
+
+	// ErrInvalidInclusionProof is returned when an invalid KZG commitment
+	// inclusion.
+	ErrInvalidInclusionProof = errors.New(
+		"invalid KZG commitment inclusion proof")
 )

@@ -27,7 +27,6 @@ package blobs
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
@@ -35,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -78,25 +76,8 @@ func (p *Processor) ProcessBlobs(
 
 	// Verify the inclusion proofs on the blobs.
 	g.Go(func() error {
-		if err := errors.Join(iter.Map(
-			sidecars.Sidecars,
-			func(sidecar **datypes.BlobSidecar) error {
-				sc := *sidecar
-				if sc == nil {
-					return ErrAttemptedToVerifyNilSidecar
-				}
-
-				// Verify the KZG inclusion proof.
-				// TODO: modularize KZGOffset
-				if !sc.HasValidInclusionProof(types.KZGOffset) {
-					return ErrInvalidInclusionProof
-				}
-				return nil
-			},
-		)...); err != nil {
-			return err
-		}
-		return nil
+		// TODO: modularize KZGOffset / build from cfg.
+		return sidecars.VerifyInclusionProofs(types.KZGOffset)
 	})
 
 	// Verify the KZG proofs on the blobs.

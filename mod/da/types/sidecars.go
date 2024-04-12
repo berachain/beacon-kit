@@ -25,6 +25,12 @@
 
 package types
 
+import (
+	"errors"
+
+	"github.com/sourcegraph/conc/iter"
+)
+
 // SideCars is a slice of blob side cars to be included in the block.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ./sidecar.go,../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecars.ssz.go
@@ -56,4 +62,23 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 		}
 	}
 	return nil
+}
+
+// VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
+func (bs *BlobSidecars) VerifyInclusionProofs(kzgOffset uint64) error {
+	return errors.Join(iter.Map(
+		bs.Sidecars,
+		func(sidecar **BlobSidecar) error {
+			sc := *sidecar
+			if sc == nil {
+				return ErrAttemptedToVerifyNilSidecar
+			}
+
+			// Verify the KZG inclusion proof.
+			if !sc.HasValidInclusionProof(kzgOffset) {
+				return ErrInvalidInclusionProof
+			}
+			return nil
+		},
+	)...)
 }
