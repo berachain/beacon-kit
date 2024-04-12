@@ -95,24 +95,11 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
             config = beacond_config,
         )
 
-        exec_recipe = None
-
         # Initialize the Cosmos genesis file
         if n == 0:
-            init.init_beacond_add_val(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
-            exec_recipe = ExecRecipe(
-                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"],
-            )
+            init.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
         else:
-            init.init_beacond_add_val(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
-            exec_recipe = ExecRecipe(
-                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"],
-            )
-
-        plan.exec(
-            service_name = cl_service_name,
-            recipe = exec_recipe,
-        )
+            init.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
 
         peer_result = plan.exec(
             service_name = cl_service_name,

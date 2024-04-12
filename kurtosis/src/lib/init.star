@@ -1,4 +1,4 @@
-def init_beacond_add_val(plan, chain_id, moniker, home, is_first_validator, cl_service_name):
+def init_beacond(plan, chain_id, moniker, home, is_first_validator, cl_service_name):
     genesis_file = "{}/config/genesis.json".format(home)
 
     # Check if genesis file exists, if not then initialize the beacond
@@ -12,6 +12,7 @@ def init_beacond_add_val(plan, chain_id, moniker, home, is_first_validator, cl_s
     if is_first_validator == True:
         create_beacond_config_directory(plan, home, cl_service_name)
     add_validator(plan, home, cl_service_name)
+    collect_validator(plan, home, cl_service_name)
 
 def create_beacond_config_directory(plan, home, cl_service_name):
     GENESIS = "{}/config/genesis.json".format(home)
@@ -33,6 +34,15 @@ def create_beacond_config_directory(plan, home, cl_service_name):
 
 def add_validator(plan, home, cl_service_name):
     command = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format(home)
+    plan.exec(
+        service_name = cl_service_name,
+        recipe = ExecRecipe(
+            command = ["bash", "-c", command],
+        ),
+    )
+
+def collect_validator(plan, home, cl_service_name):
+    command = "/usr/bin/beacond genesis collect-validators --home {}".format(home)
     plan.exec(
         service_name = cl_service_name,
         recipe = ExecRecipe(
