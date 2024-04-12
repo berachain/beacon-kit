@@ -56,14 +56,15 @@ func (f *SidecarFactory) BuildSidecars(
 	blk types.BeaconBlock,
 	blobs *engine.BlobsBundleV1,
 ) (*datypes.BlobSidecars, error) {
-	sidecars := make([]*datypes.BlobSidecar, uint64(len(blobs.Blobs)))
+	numBlobs := uint64(len(blobs.Blobs))
+	sidecars := make([]*datypes.BlobSidecar, numBlobs)
 	g := errgroup.Group{}
-	for i := range sidecars {
+	for i := range numBlobs {
 		g.Go(func() error {
 			var err error
 			blob := kzg.Blob(blobs.Blobs[i])
 			sidecars[i], err = types.BuildBlobSidecar(
-				uint64(i),
+				i,
 				blk,
 				f.kzgPosition,
 				&blob,
