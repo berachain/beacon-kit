@@ -29,15 +29,12 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/light/mod/provider"
 	"github.com/berachain/beacon-kit/light/mod/storage/codec"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -75,20 +72,20 @@ type KVStore struct {
 	eth1DepositIndex codec.Item[uint64]
 
 	// Registry
-	// validatorIndex provides the next available index for a new validator.
-	validatorIndex sdkcollections.Sequence
-	// validators stores the list of validators.
-	validators *sdkcollections.IndexedMap[
-		uint64, *beacontypes.Validator, index.ValidatorsIndex,
-	]
+	// // validatorIndex provides the next available index for a new validator.
+	// validatorIndex sdkcollections.Sequence
+	// // validators stores the list of validators.
+	// validators *sdkcollections.IndexedMap[
+	// 	uint64, *beacontypes.Validator, index.ValidatorsIndex,
+	// ]
 	// balances stores the list of balances.
 	balances codec.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
 	depositQueue *collections.Queue[*primitives.Deposit]
 
-	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
+	// // withdrawalQueue is a list of withdrawals that are queued to be processed.
+	// withdrawalQueue *collections.Queue[*primitives.Withdrawal]
 
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex codec.Item[uint64]
@@ -112,11 +109,11 @@ type KVStore struct {
 //
 //nolint:funlen // its not overly complex.
 func New(
-	kss store.KVStoreService,
+	provider *provider.Provider,
 ) *KVStore {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore{
-		ctx: nil,
+		ctx:      nil,
+		provider: provider,
 		genesisValidatorsRoot: codec.NewItem[[32]byte](
 			keys.GenesisValidatorsRootPrefix,
 			encoding.Bytes32ValueCodec{},
@@ -155,36 +152,36 @@ func New(
 			keys.Eth1DepositIndexPrefix,
 			sdkcollections.Uint64Value,
 		),
-		validatorIndex: sdkcollections.NewSequence(
-			schemaBuilder,
-			sdkcollections.NewPrefix(keys.ValidatorIndexPrefix),
-			keys.ValidatorIndexPrefix,
-		),
-		validators: sdkcollections.NewIndexedMap[
-			uint64, *beacontypes.Validator,
-		](
-			schemaBuilder,
-			sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
-			keys.ValidatorByIndexPrefix,
-			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*beacontypes.Validator]{},
-			index.NewValidatorsIndex(schemaBuilder),
-		),
+		// validatorIndex: sdkcollections.NewSequence(
+		// 	schemaBuilder,
+		// 	sdkcollections.NewPrefix(keys.ValidatorIndexPrefix),
+		// 	keys.ValidatorIndexPrefix,
+		// ),
+		// validators: sdkcollections.NewIndexedMap[
+		// 	uint64, *beacontypes.Validator,
+		// ](
+		// 	schemaBuilder,
+		// 	sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
+		// 	keys.ValidatorByIndexPrefix,
+		// 	sdkcollections.Uint64Key,
+		// 	encoding.SSZValueCodec[*beacontypes.Validator]{},
+		// 	index.NewValidatorsIndex(schemaBuilder),
+		// ),
 		balances: codec.NewMap[uint64, uint64](
 			keys.BalancesPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*primitives.Deposit](
-			schemaBuilder,
-			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Deposit]{},
-		),
-		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
-			schemaBuilder,
-			keys.WithdrawalQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Withdrawal]{},
-		),
+		// depositQueue: collections.NewQueue[*primitives.Deposit](
+		// 	schemaBuilder,
+		// 	keys.DepositQueuePrefix,
+		// 	encoding.SSZValueCodec[*primitives.Deposit]{},
+		// ),
+		// withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
+		// 	schemaBuilder,
+		// 	keys.WithdrawalQueuePrefix,
+		// 	encoding.SSZValueCodec[*primitives.Withdrawal]{},
+		// ),
 		randaoMix: codec.NewMap[uint64, [32]byte](
 			keys.RandaoMixPrefix,
 			sdkcollections.Uint64Key,

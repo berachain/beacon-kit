@@ -27,9 +27,19 @@ package app
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"os"
 
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/light/mod/core/state"
 	"github.com/berachain/beacon-kit/light/mod/provider"
+	"github.com/berachain/beacon-kit/light/mod/runtime"
+	"github.com/berachain/beacon-kit/light/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/core"
+	beaconstate "github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/da"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 )
 
 // RunLightNode starts the light node with the given configuration.
@@ -40,24 +50,96 @@ func RunLightNode(ctx context.Context, config *Config) {
 	if err := client.Start(); err != nil {
 		panic(err)
 	}
+	// if err := client.Start(); err != nil {
+	// 	panic(err)
+	// }
+	// time.Sleep(3 * time.Second)
 
-	// subscribe to light block
-	ch, err := client.SubscribeToLightBlock(ctx)
+	kvStore := beacondb.New(client).WithContext(ctx)
+
+	// for {
+	// 	payload, err := kvStore.GetLatestExecutionPayload()
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+
+	// 	fmt.Println("block hash", payload.GetBlockHash())
+	// 	time.Sleep(5 * time.Second)
+	// }
+
+	fdb := filedb.NewDB(
+		filedb.WithRootDirectory(config.Comet.Directory),
+		filedb.WithDirectoryPermissions(os.ModePerm),
+	)
+	availabilityStore := da.NewStore(nil, fdb)
+
+	backend := NewLightStorageBackend(kvStore, availabilityStore)
+
+	secret, err := jwt.LoadFromFile(config.Beacon.Engine.JWTSecretPath)
 	if err != nil {
 		panic(err)
 	}
 
-	for {
-		select {
-		case block := <-ch:
-			// process the light block
-			log.Println(block)
-			log.Println("trustedEth1Hash", client.GetEth1BlockHash(ctx))
-			log.Println("latestBlockHeader", client.GetLatestBlockHeader(ctx))
-			log.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx, 0))
-		case <-ctx.Done():
-			// context cancelled, exit the loop
-			return
-		}
+	// create the runtime
+	rt, err := runtime.NewDefaultBeaconLightRuntime(
+		config.Beacon,
+		secret,
+		backend,
+		client,
+		log.NewLogger(os.Stdout),
+	)
+	if err != nil {
+		panic(err)
 	}
+
+	fmt.Println("starting runtime")
+
+	go rt.StartServices(ctx)
+
+	<-ctx.Done()
+	// subscribe to light block
+	// ch, err := client.SubscribeToLightBlock(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// for {
+	// 	select {
+	// 	case block := <-ch:
+	// 		// process the light block
+	// 		log.Println(block)
+	// 		log.Println("trustedEth1Hash", client.GetEth1BlockHash(ctx))
+	// 		log.Println("latestBlockHeader", client.GetLatestBlockHeader(ctx))
+	// 		log.Println("blockRootAtIndex", client.GetBlockRootAtIndex(ctx, 0))
+	// 	case <-ctx.Done():
+	// 		// context cancelled, exit the loop
+	// 		return
+	// 	}
+	// }
+}
+
+type LightStorageBackend struct {
+	// BeaconDB is the backend for the beacon chain.
+	beaconDB *beacondb.KVStore
+
+	// AvailabilityDB is the backend for the availability store.
+	availabilityDB *da.Store
+}
+
+func NewLightStorageBackend(
+	beaconDB *beacondb.KVStore,
+	availabilityDB *da.Store,
+) *LightStorageBackend {
+	return &LightStorageBackend{
+		beaconDB:       beaconDB,
+		availabilityDB: availabilityDB,
+	}
+}
+
+func (l *LightStorageBackend) AvailabilityStore(ctx context.Context) core.AvailabilityStore {
+	return l.availabilityDB
+}
+
+func (l *LightStorageBackend) BeaconState(ctx context.Context) beaconstate.BeaconState {
+	return state.NewBeaconStateFromDB(l.beaconDB)
 }

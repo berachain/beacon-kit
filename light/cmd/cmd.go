@@ -67,6 +67,7 @@ func LightClientCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(listenAddr, defaultListeningAddress, listenAddrDesc)
+	cmd.Flags().String(engineURL, defaultEngineURL, engineURLDesc)
 	cmd.Flags().String(primaryAddr, defaultPrimaryAddress, primaryAddrDesc)
 	cmd.Flags().
 		String(witnessAddrsJoined, defaultWitnessAddresses, witnessAddrsJoinedDesc)
@@ -79,6 +80,7 @@ func LightClientCmd() *cobra.Command {
 	cmd.Flags().String(logLevel, defaultLogLevel, logLevelDesc)
 	cmd.Flags().String(trustLevel, defaultTrustLevel, trustLevelDesc)
 	cmd.Flags().Bool(sequential, defaultSequential, sequentialDesc)
+	cmd.Flags().String(jwtSecretPath, defaultJWTSecretPath, jwtSecretDesc)
 
 	return cmd
 }

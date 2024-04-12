@@ -28,17 +28,26 @@ package app
 import (
 	"github.com/berachain/beacon-kit/light/mod/provider"
 	"github.com/berachain/beacon-kit/light/mod/provider/comet"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 )
 
 // Config is the configuration for the light node.
 type Config struct {
+	Beacon   *config.Config
 	Comet    *comet.Config
 	Provider *provider.Config
 }
 
 // NewConfig returns a new light node configuration.
-func NewConfig(comet *comet.Config, provider *provider.Config) *Config {
+func NewConfig(
+	comet *comet.Config, provider *provider.Config, engine *engineclient.Config,
+) *Config {
+	beacon := config.DefaultConfig()
+	beacon.Engine = *engine
+
 	return &Config{
+		Beacon:   beacon,
 		Comet:    comet,
 		Provider: provider,
 	}

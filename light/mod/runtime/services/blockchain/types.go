@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -55,40 +54,40 @@ type ExecutionEngine interface {
 	) (bool, error)
 }
 
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	BuildLocalPayload(
-		ctx context.Context,
-		st state.BeaconState,
-		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
-		timestamp uint64,
-		parentBlockRoot primitives.Root,
-	) (*engine.PayloadID, error)
-}
+// // LocalBuilder is the interface for the builder service.
+// type LocalBuilder interface {
+// 	BuildLocalPayload(
+// 		ctx context.Context,
+// 		st state.BeaconState,
+// 		parentEth1Hash primitives.ExecutionHash,
+// 		slot primitives.Slot,
+// 		timestamp uint64,
+// 		parentBlockRoot primitives.Root,
+// 	) (*engine.PayloadID, error)
+// }
 
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
-}
+// // RandaoProcessor is the interface for the randao processor.
+// type RandaoProcessor interface {
+// 	BuildReveal(
+// 		st state.BeaconState,
+// 	) (primitives.BLSSignature, error)
+// 	MixinNewReveal(
+// 		st state.BeaconState,
+// 		reveal primitives.BLSSignature,
+// 	) error
+// 	VerifyReveal(
+// 		st state.BeaconState,
+// 		proposerPubkey primitives.BLSPubkey,
+// 		reveal primitives.BLSSignature,
+// 	) error
+// }
 
-// StakingService is the interface for the staking service.
-type StakingService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		st state.BeaconState,
-		blockHash primitives.ExecutionHash,
-	) error
-}
+// // StakingService is the interface for the staking service.
+// type StakingService interface {
+// 	// ProcessLogsInETH1Block processes logs in an eth1 block.
+// 	ProcessLogsInETH1Block(
+// 		ctx context.Context,
+// 		st state.BeaconState,
+// 		blockHash primitives.ExecutionHash,
+// 	) error
+// }

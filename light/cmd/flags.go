@@ -30,7 +30,7 @@ import "time"
 // Flag Names.
 const (
 	listenAddr         = "listening-address"
-	engineURL          = "engine-url"
+	engineURL          = "engine"
 	primaryAddr        = "primary-addr"
 	witnessAddrsJoined = "witness-addr"
 	dir                = "dir"
@@ -42,12 +42,14 @@ const (
 	trustedHash    = "hash"
 	trustLevel     = "trust-level"
 
-	logLevel = "log-level"
+	jwtSecretPath = "jwt-secret"
+	logLevel      = "log-level"
 )
 
 // Default Flag Values.
 const (
 	defaultListeningAddress = "tcp://localhost:26658"
+	defaultEngineURL        = "http://localhost:8552"
 	defaultPrimaryAddress   = "tcp://localhost:26657"
 	defaultWitnessAddresses = "http://localhost:26657"
 	defaultDir              = ".tmp/.beacon-light"
@@ -57,11 +59,13 @@ const (
 	defaultLogLevel         = "info"
 	defaultTrustLevel       = "1/3"
 	defaultSequential       = false
+	defaultJWTSecretPath    = "./beacond/jwt.hex"
 )
 
 // Flag Descriptions.
 const (
 	listenAddrDesc         = "serve the proxy on the given address"
+	engineURLDesc          = "connect to the execution client at this address"
 	primaryAddrDesc        = "connect to a beacond node at this address"
 	witnessAddrsJoinedDesc = `beacond nodes to cross-check the primary node,
 	comma-separated`
@@ -76,6 +80,7 @@ const (
 	trustLevelDesc    = "trust level. Must be between 1/3 and 3/3"
 	sequentialDesc    = `sequential verification.
 	Verify all headers sequentially as opposed to using skipping verification`
+	jwtSecretDesc = "Path to the JWT secret file"
 )
 
 // Log Level Flags.

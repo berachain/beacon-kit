@@ -26,16 +26,19 @@
 package cmd
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/berachain/beacon-kit/light/app"
 	"github.com/berachain/beacon-kit/light/mod/provider"
 	"github.com/berachain/beacon-kit/light/mod/provider/comet"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/spf13/cobra"
 )
 
+// ConfigFromCmd returns a new light node configuration from the given command.
 func ConfigFromCmd(
 	logger log.Logger,
 	chainID string,
@@ -87,6 +90,21 @@ func ConfigFromCmd(
 		witnessesAddrs = strings.Split(witnesses, ",")
 	}
 
+	engine, err := cmd.Flags().GetString(engineURL)
+	if err != nil {
+		return nil, err
+	}
+
+	engineCfg := engineclient.DefaultConfig()
+	engineCfg.RPCDialURL, err = url.Parse(engine)
+	if err != nil {
+		return nil, err
+	}
+	engineCfg.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
+	if err != nil {
+		return nil, err
+	}
+
 	return app.NewConfig(
 		comet.NewConfig(
 			logger, chainID, trustingPeriod,
@@ -97,6 +115,7 @@ func ConfigFromCmd(
 			NewConfirmationFunc(cmd),
 		),
 		provider.NewConfig(chainID, listeningAddr, "/websocket"),
+		&engineCfg,
 	), nil
 }
 

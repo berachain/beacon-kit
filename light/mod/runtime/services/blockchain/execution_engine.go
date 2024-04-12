@@ -27,7 +27,9 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
@@ -47,6 +49,7 @@ func (s *Service) sendFCU(
 	}
 	eth1BlockHash := latestExecutionPayload.GetBlockHash()
 
+	fmt.Println("LIGHT SEND FCU")
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&execution.ForkchoiceUpdateRequest{
@@ -55,6 +58,7 @@ func (s *Service) sendFCU(
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
 			},
+			ForkVersion: version.Deneb,
 		},
 	)
 	return err

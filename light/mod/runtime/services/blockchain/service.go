@@ -26,6 +26,8 @@
 package blockchain
 
 import (
+	"context"
+
 	lightcore "github.com/berachain/beacon-kit/light/mod/core"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
@@ -40,4 +42,9 @@ type Service struct {
 	bv *core.BlockValidator
 	sp *lightcore.StateProcessor
 	pv *lightcore.PayloadValidator
+}
+
+func (s *Service) Start(ctx context.Context) {
+	s.initialSync(ctx)
+	s.BaseService.Start(ctx)
 }

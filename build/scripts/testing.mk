@@ -24,9 +24,9 @@ start: ## start an ephemeral `beacond` node
 start-reth: ## start an ephemeral `reth` node
 	@rm -rf .tmp/eth-home
 	@docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
+	-p 30304:30304 \
+	-p 8546:8546 \
+	-p 8552:8552 \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
