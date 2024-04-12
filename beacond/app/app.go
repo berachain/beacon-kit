@@ -37,8 +37,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -56,13 +54,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	legacyAmino       *codec.LegacyAmino
-	appCodec          codec.Codec
-	txConfig          client.TxConfig
-	interfaceRegistry codectypes.InterfaceRegistry
-
-	// TODO: should we restructure the relationship between
-	// the BeaconKeeper BeaconKitRuntime?
 	BeaconKeeper          *beaconkeeper.Keeper
 	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
@@ -112,10 +103,6 @@ func NewBeaconKitApp(
 			),
 		),
 		&appBuilder,
-		&app.appCodec,
-		&app.legacyAmino,
-		&app.txConfig,
-		&app.interfaceRegistry,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
