@@ -26,8 +26,11 @@
 package da
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/da/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // BlobProofVerifier is a verifier for blobs.
@@ -42,6 +45,27 @@ func NewBlobVerifier(
 	return &BlobVerifier{
 		proofVerifier: proofVerifier,
 	}
+}
+
+// VerifyBlobs verifies the blobs for both inclusion as well
+// as the KZG proofs.
+func (bv *BlobVerifier) VerifyBlobs(
+	sidecars *types.BlobSidecars, kzgOffset uint64,
+) error {
+	g, _ := errgroup.WithContext(context.Background())
+
+	// Verify the inclusion proofs on the blobs concurrently.
+	g.Go(func() error {
+		return sidecars.VerifyInclusionProofs(kzgOffset)
+	})
+
+	// Verify the KZG proofs on the blobs concurrently.
+	g.Go(func() error {
+		return bv.VerifyKZGProofs(sidecars)
+	})
+
+	// Wait for all goroutines to finish and return the result.
+	return g.Wait()
 }
 
 // VerifyKZGProofs verifies the sidecars.

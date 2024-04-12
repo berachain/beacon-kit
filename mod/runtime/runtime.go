@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -141,13 +140,6 @@ func NewDefaultBeaconKitRuntime(
 		cfg.KZG.Implementation,
 	)
 
-	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor(
-		&cfg.Beacon,
-		da.NewBlobVerifier(blobProofVerifier),
-		logger,
-	)
-
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(
 		randao.WithSigner(signer),
@@ -180,7 +172,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
 				&cfg.Beacon,
-				blobsProcessor,
+				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
 				logger,
 			)),

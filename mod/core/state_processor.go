@@ -42,7 +42,7 @@ import (
 // main state transition for the beacon chain.
 type StateProcessor struct {
 	cfg    *params.BeaconChainConfig
-	bp     BlobsProcessor
+	bv     BlobVerifier
 	rp     RandaoProcessor
 	logger log.Logger
 }
@@ -50,13 +50,13 @@ type StateProcessor struct {
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	cfg *params.BeaconChainConfig,
-	bp BlobsProcessor,
+	bv BlobVerifier,
 	rp RandaoProcessor,
 	logger log.Logger,
 ) *StateProcessor {
 	return &StateProcessor{
 		cfg:    cfg,
-		bp:     bp,
+		bv:     bv,
 		rp:     rp,
 		logger: logger.With("module", "state-processor"),
 	}
@@ -171,7 +171,35 @@ func (sp *StateProcessor) ProcessBlobs(
 		return err
 	}
 
-	return sp.bp.ProcessBlobs(slot, avs, sidecars)
+	// If there are no blobs to verify, return early.
+	numBlobs := len(sidecars.Sidecars)
+	if numBlobs == 0 {
+		sp.logger.Info(
+			"no blobs to verify, skipping verifier 🧢",
+			"slot",
+			slot,
+		)
+		return nil
+	}
+
+	// Otherwise, we run the verification checks on the blobs.
+	if err = sp.bv.VerifyBlobs(
+		sidecars,
+		types.KZGOffset(sp.cfg.MaxBlobCommitmentsPerBlock),
+	); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"successfully verified all blob sidecars 💦",
+		"num_blobs",
+		numBlobs,
+		"slot",
+		slot,
+	)
+
+	// Lastly, we store the blobs in the availability store.
+	return avs.Persist(slot, sidecars)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
