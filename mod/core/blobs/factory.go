@@ -84,5 +84,5 @@ func (f *SidecarFactory) BuildInclusionProof(
 	index uint64,
 ) ([][32]byte, error) {
 	return types.MerkleProofKZGCommitment(
-		body, types.KZGPositionDeneb, index)
+		body, f.kzgPosition, index)
 }
