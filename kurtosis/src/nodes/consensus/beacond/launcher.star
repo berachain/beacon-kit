@@ -96,16 +96,17 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         )
 
         exec_recipe = None
+
         # Initialize the Cosmos genesis file
         if n == 0:
-            init.init_beacond_add_val(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
+            init.init_beacond_add_val(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
             exec_recipe = ExecRecipe(
-                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"]
+                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"],
             )
         else:
-            init.init_beacond_add_val(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
+            init.init_beacond_add_val(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
             exec_recipe = ExecRecipe(
-                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"]         
+                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"],
             )
 
         plan.exec(
