@@ -26,8 +26,6 @@
 package da
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -139,13 +137,8 @@ func (f *SidecarFactory[BBB]) BuildCommitmentProof(
 	body BeaconBlockBody,
 	index uint64,
 ) ([][32]byte, error) {
-	commitments := body.GetBlobKzgCommitments()
-	if index >= uint64(len(commitments)) {
-		return nil, errors.New("index out of range")
-	}
-
 	bodyTree, err := merkle.NewTreeWithMaxLeaves(
-		commitments.Leafify(),
+		body.GetBlobKzgCommitments().Leafify(),
 		f.cfg.MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {
