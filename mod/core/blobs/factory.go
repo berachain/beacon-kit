@@ -36,8 +36,8 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory struct {
-	cfg       *params.BeaconChainConfig
-	kzgOffset uint64
+	cfg         *params.BeaconChainConfig
+	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
@@ -47,7 +47,7 @@ func NewSidecarFactory(
 	return &SidecarFactory{
 		cfg: cfg,
 		// TODO: This should be configurable / modular.
-		kzgOffset: types.KZGPositionDeneb,
+		kzgPosition: types.KZGPositionDeneb,
 	}
 }
 
@@ -65,7 +65,7 @@ func (f *SidecarFactory) BuildSidecars(
 			sidecars[i], err = types.BuildBlobSidecar(
 				uint64(i),
 				blk,
-				f.kzgOffset,
+				f.kzgPosition,
 				&blob,
 				kzg.Commitment(blobs.Commitments[i]),
 				kzg.Proof(blobs.Proofs[i]),
