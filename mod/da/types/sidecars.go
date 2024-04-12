@@ -75,7 +75,6 @@ func (bs *BlobSidecars) VerifyInclusionProofs(kzgOffset uint64) error {
 			}
 
 			// Verify the KZG inclusion proof.
-			// TODO: modularize KZGOffset
 			if !sc.HasValidInclusionProof(kzgOffset) {
 				return ErrInvalidInclusionProof
 			}

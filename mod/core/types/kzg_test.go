@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
@@ -68,33 +67,13 @@ func mockBody() *types.BeaconBlockBodyDeneb {
 	}
 }
 
-// ceilLog2 returns the smallest integer greater than or equal to
-// the base-2 logarithm of x.
-func ceilLog2(x uint32) (uint32, error) {
-	if x == 0 {
-		return 0, errors.New("log2(0) is undefined")
-	}
-	var y uint32
-	if (x & (x - 1)) == 0 {
-		y = 0
-	} else {
-		y = 1
-	}
-	for x > 1 {
-		x >>= 1
-		y++
-	}
-	return y, nil
-}
-
 // This test explains the calculation of the
 // KZG commitment root's Merkle index
 // in the Body's Merkle tree based on the
 // index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
 	// Level of the KZG commitment root's parent.
-	kzgParentRootLevel, err := ceilLog2(uint32(types.BodyLengthDeneb))
-	require.NoError(t, err)
+	kzgParentRootLevel := types.LogBodyLengthDeneb
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.

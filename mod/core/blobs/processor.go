@@ -76,6 +76,7 @@ func (p *Processor) ProcessBlobs(
 
 	// Verify the inclusion proofs on the blobs.
 	g.Go(func() error {
+		// TODO: modularize KZGOffset / build from cfg.
 		return sidecars.VerifyInclusionProofs(types.KZGOffset)
 	})
 
