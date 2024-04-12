@@ -26,9 +26,11 @@
 package types
 
 const (
-	MaxBlobCommitmentsPerBlock = 16
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndex        = 24
-	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
+	KZGMerkleIndex = 24
 )
+
+func KZGOffset(maxBlobCommitmentsPerBlock uint64) uint64 {
+	return KZGMerkleIndex * maxBlobCommitmentsPerBlock
+}

@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -39,17 +40,19 @@ import (
 
 // Processor is the processor for blobs.
 type Processor struct {
-	// cfg    *params.BeaconChainConfig
+	cfg    *params.BeaconChainConfig
 	bv     *da.BlobVerifier
 	logger log.Logger
 }
 
 // NewProcessor creates a new processor.
 func NewProcessor(
+	cfg *params.BeaconChainConfig,
 	bv *da.BlobVerifier,
 	logger log.Logger,
 ) *Processor {
 	return &Processor{
+		cfg:    cfg,
 		bv:     bv,
 		logger: logger,
 	}
@@ -76,8 +79,9 @@ func (p *Processor) ProcessBlobs(
 
 	// Verify the inclusion proofs on the blobs.
 	g.Go(func() error {
-		// TODO: modularize KZGOffset / build from cfg.
-		return sidecars.VerifyInclusionProofs(types.KZGOffset)
+		return sidecars.VerifyInclusionProofs(
+			types.KZGOffset(p.cfg.MaxBlobCommitmentsPerBlock),
+		)
 	})
 
 	// Verify the KZG proofs on the blobs.

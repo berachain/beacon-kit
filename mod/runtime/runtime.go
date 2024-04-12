@@ -143,7 +143,10 @@ func NewDefaultBeaconKitRuntime(
 
 	// Build the Blobs Processor.
 	blobsProcessor := blobs.NewProcessor(
-		da.NewBlobVerifier(blobProofVerifier), logger)
+		&cfg.Beacon,
+		da.NewBlobVerifier(blobProofVerifier),
+		logger,
+	)
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor(

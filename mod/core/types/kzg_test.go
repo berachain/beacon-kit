@@ -142,7 +142,7 @@ func Test_TopLevelRoots(t *testing.T) {
 	// Commitments
 	commitments := body.GetBlobKzgCommitments()
 	commitmentsRoot, err := htr.ListSSZ[kzg.Commitment](
-		commitments, types.MaxBlobCommitmentsPerBlock)
+		commitments, 16)
 	require.NoError(t, err, "Failed to generate root hash")
 
 	// Body
