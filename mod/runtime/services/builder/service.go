@@ -30,6 +30,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -185,7 +186,8 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Build the blob sidecars.
-	blobSidecars, err := beacontypes.BuildBlobSidecar(blk, blobsBundle)
+	factory := blobs.NewSidecarFactory(s.BeaconCfg())
+	blobSidecars, err := factory.BuildSidecars(blk, blobsBundle)
 	if err != nil {
 		return nil, nil, err
 	}
