@@ -29,15 +29,17 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	lightcore "github.com/berachain/beacon-kit/light/mod/core"
 	"github.com/berachain/beacon-kit/light/mod/provider"
+	"github.com/berachain/beacon-kit/light/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
-	. "github.com/berachain/beacon-kit/mod/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
+
+	"github.com/berachain/beacon-kit/mod/runtime"
 )
 
 // NewDefaultBeaconLightRuntime creates a new BeaconKitRuntime with the default
@@ -47,10 +49,10 @@ func NewDefaultBeaconLightRuntime(
 	// signer core.BLSSigner,
 	jwtSecret *jwt.Secret,
 	// kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	bsb BeaconStorageBackend,
+	bsb runtime.BeaconStorageBackend,
 	provider *provider.Provider,
 	logger log.Logger,
-) (*BeaconKitRuntime, error) {
+) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
@@ -133,14 +135,12 @@ func NewDefaultBeaconLightRuntime(
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
 		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
 		blockchain.WithExecutionEngine(executionEngine),
-		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
-		blockchain.WithStakingService(stakingService),
+		// blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithPayloadValidator(lightcore.NewPayloadValidator(&cfg.Beacon)),
+		// blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(
+			lightcore.NewStateProcessor(
 				&cfg.Beacon,
-				blobsProcessor,
-				randaoProcessor,
 				logger,
 			)),
 	)
@@ -148,16 +148,16 @@ func NewDefaultBeaconLightRuntime(
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
-		service.WithService(builderService),
+		// service.WithService(builderService),
 		service.WithService(chainService),
-		service.WithService(stakingService),
+		// service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
-	return NewBeaconKitRuntime(
-		WithBeaconStorageBackend(bsb),
-		WithConfig(cfg),
-		WithLogger(logger),
-		WithServiceRegistry(svcRegistry),
+	return runtime.NewBeaconKitRuntime(
+		runtime.WithBeaconStorageBackend(bsb),
+		runtime.WithConfig(cfg),
+		runtime.WithLogger(logger),
+		runtime.WithServiceRegistry(svcRegistry),
 	)
 }

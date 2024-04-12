@@ -32,7 +32,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -53,7 +52,7 @@ func (s *Service) ProcessBeaconBlock(
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
-		avs  = s.AvailabilityStore(ctx)
+		// avs  = s.AvailabilityStore(ctx)
 		g, _ = errgroup.WithContext(ctx)
 		err  error
 	)
@@ -96,15 +95,15 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
-	g.Go(func() error {
-		return s.sp.ProcessBlobs(
-			st,
-			avs,
-			blobs,
-		)
-	})
+	// // We want to get a headstart on blob processing since it
+	// // is a relatively expensive operation.
+	// g.Go(func() error {
+	// 	return s.sp.ProcessBlobs(
+	// 		st,
+	// 		avs,
+	// 		blobs,
+	// 	)
+	// })
 
 	g.Go(func() error {
 		return s.sp.ProcessBlock(
@@ -144,16 +143,6 @@ func (s *Service) PostBlockProcess(
 	st state.BeaconState,
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
-	var (
-		payload enginetypes.ExecutionPayload
-	)
-
-	// No matter what happens we always want to forkchoice at the end of post
-	// block processing.
-	defer func(payloadPtr *enginetypes.ExecutionPayload) {
-		s.sendPostBlockFCU(ctx, st, *payloadPtr)
-	}(&payload)
-
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return nil
@@ -164,31 +153,28 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 	// Update the forkchoice.
-	payload = blk.GetBody().GetExecutionPayload()
+	payload := blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
 		return nil
 	}
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
-	if err != nil {
-		return err
-	}
-	prevEth1Block := latestExecutionPayload.GetBlockHash()
+	s.sendPostBlockFCU(ctx, st, payload)
 
-	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(
-		ctx,
-		st,
-		prevEth1Block,
-	); err != nil {
-		s.Logger().Error("failed to process logs", "error", err)
-		return err
-	}
+	// latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	// if err != nil {
+	// 	return err
+	// }
+	// prevEth1Block := latestExecutionPayload.GetBlockHash()
 
-	// Update the latest execution payload.
-	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
-		return err
-	}
+	// // Process the logs in the block.
+	// if err = s.sks.ProcessLogsInETH1Block(
+	// 	ctx,
+	// 	st,
+	// 	prevEth1Block,
+	// ); err != nil {
+	// 	s.Logger().Error("failed to process logs", "error", err)
+	// 	return err
+	// }
 
 	return nil
 }

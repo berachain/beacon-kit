@@ -74,27 +74,27 @@ func (pv *PayloadValidator) ValidatePayload(
 		)
 	}
 
-	// Get the current epoch.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
+	// // Get the current epoch.
+	// slot, err := st.GetSlot()
+	// if err != nil {
+	// 	return err
+	// }
 
-	// When we are validating a payload we expect that it was produced by
-	// the proposer for the slot that it is for.
-	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(pv.cfg.SlotToEpoch(slot)) % pv.cfg.EpochsPerHistoricalVector)
-	if err != nil {
-		return err
-	}
+	// // When we are validating a payload we expect that it was produced by
+	// // the proposer for the slot that it is for.
+	// expectedMix, err := st.GetRandaoMixAtIndex(
+	// 	uint64(pv.cfg.SlotToEpoch(slot)) % pv.cfg.EpochsPerHistoricalVector)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// Ensure the prev randao matches the local state.
-	if payload.GetPrevRandao() != expectedMix {
-		return fmt.Errorf(
-			"prev randao does not match, expected: %x, got: %x",
-			expectedMix, payload.GetPrevRandao(),
-		)
-	}
+	// // Ensure the prev randao matches the local state.
+	// if payload.GetPrevRandao() != expectedMix {
+	// 	return fmt.Errorf(
+	// 		"prev randao does not match, expected: %x, got: %x",
+	// 		expectedMix, payload.GetPrevRandao(),
+	// 	)
+	// }
 
 	// TODO: Verify timestamp data once Clock is done.
 	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
@@ -106,23 +106,23 @@ func (pv *PayloadValidator) ValidatePayload(
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
 
-	if uint64(len(body.GetBlobKzgCommitments())) > pv.cfg.MaxBlobsPerBlock {
-		return fmt.Errorf(
-			"too many blob kzg commitments, expected: %d, got: %d",
-			pv.cfg.MaxBlobsPerBlock,
-			len(body.GetBlobKzgCommitments()),
-		)
-	}
+	// if uint64(len(body.GetBlobKzgCommitments())) > pv.cfg.MaxBlobsPerBlock {
+	// 	return fmt.Errorf(
+	// 		"too many blob kzg commitments, expected: %d, got: %d",
+	// 		pv.cfg.MaxBlobsPerBlock,
+	// 		len(body.GetBlobKzgCommitments()),
+	// 	)
+	// }
 
-	// Verify the number of withdrawals.
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(payload.GetWithdrawals()),
-	) > pv.cfg.MaxWithdrawalsPerPayload {
-		return fmt.Errorf(
-			"too many withdrawals, expected: %d, got: %d",
-			pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
-		)
-	}
+	// // Verify the number of withdrawals.
+	// if withdrawals := payload.GetWithdrawals(); uint64(
+	// 	len(payload.GetWithdrawals()),
+	// ) > pv.cfg.MaxWithdrawalsPerPayload {
+	// 	return fmt.Errorf(
+	// 		"too many withdrawals, expected: %d, got: %d",
+	// 		pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
+	// 	)
+	// }
 
 	return nil
 }

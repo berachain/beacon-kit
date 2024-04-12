@@ -26,6 +26,7 @@
 package blockchain
 
 import (
+	lightcore "github.com/berachain/beacon-kit/light/mod/core"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 )
@@ -56,34 +57,34 @@ func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
 	}
 }
 
-// WithLocalBuilder is a function that returns an Option.
-// It sets the BuilderService of the Service to the provided Service.
-func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
-	return func(s *Service) error {
-		s.lb = lb
-		return nil
-	}
-}
+// // WithLocalBuilder is a function that returns an Option.
+// // It sets the BuilderService of the Service to the provided Service.
+// func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.lb = lb
+// 		return nil
+// 	}
+// }
 
 // WithPayloadValidator is a function that returns an Option.
-func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
+func WithPayloadValidator(pv *lightcore.PayloadValidator) service.Option[Service] {
 	return func(s *Service) error {
 		s.pv = pv
 		return nil
 	}
 }
 
-// WithExecutionService is a function that returns an Option.
-// It sets the ExecutionService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
-	return func(s *Service) error {
-		s.sks = sks
-		return nil
-	}
-}
+// // WithExecutionService is a function that returns an Option.
+// // It sets the ExecutionService of the Service to the provided Service.
+// func WithStakingService(sks StakingService) service.Option[Service] {
+// 	return func(s *Service) error {
+// 		s.sks = sks
+// 		return nil
+// 	}
+// }
 
 // WithStateProcessor is a function that returns an Option.
-func WithStateProcessor(sp *core.StateProcessor) service.Option[Service] {
+func WithStateProcessor(sp *lightcore.StateProcessor) service.Option[Service] {
 	return func(s *Service) error {
 		s.sp = sp
 		return nil
