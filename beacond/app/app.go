@@ -33,7 +33,6 @@ import (
 	"cosmossdk.io/log"
 	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -95,7 +94,6 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-	beaconCfg := config.MustReadConfigFromAppOpts(appOpts)
 	if err := depinject.Inject(
 		depinject.Configs(
 			Config(),
@@ -104,15 +102,13 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideJWTSecret,
+				bkcomponents.ProvideConfig,
 			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
-				// supply the beaconConfig
-				beaconCfg,
-				&(beaconCfg.Beacon),
 			),
 		),
 		&appBuilder,
