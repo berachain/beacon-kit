@@ -23,17 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package codec
+package keys
 
-import "cosmossdk.io/collections/codec"
-
-// None is a placeholder type for when no codec is needed.
-type None struct{}
-
-// Codec is a wrapper around a key and value codec.
-// It is used to wrap the encoding and decoding of keys and values
-// that are used to access state data.
-type Codec[K, V any] struct {
-	Key   codec.KeyCodec[K]
-	Value codec.ValueCodec[V]
-}
+const (
+	BeaconStoreKey = "/store/beacon/key"
+)

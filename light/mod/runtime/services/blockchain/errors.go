@@ -23,8 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package provider
+package blockchain
 
-const (
-	beaconStoreKey = "/store/beacon/key"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrInvalidPayload indicates that the payload of a beacon block is
+	// invalid.
+	ErrInvalidPayload = errors.New("invalid payload")
+	// ErrNoPayloadInBeaconBlock indicates that a beacon block was expected to
+	// have a payload, but none was found.
+	ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")
 )

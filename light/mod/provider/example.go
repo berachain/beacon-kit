@@ -29,7 +29,8 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/light/mod/state/codec"
+	lightkeys "github.com/berachain/beacon-kit/light/mod/storage/beacondb/keys"
+	"github.com/berachain/beacon-kit/light/mod/storage/codec"
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
@@ -41,38 +42,42 @@ import (
 
 //nolint:gochecknoglobals // this will be removed in a later pr
 var (
-	latestExecutionPayloadCodec = codec.Codec[
-		codec.None, types.ExecutionPayload,
-	]{
-		Value: encoding.SSZInterfaceCodec[types.ExecutionPayload]{
+	latestExecutionPayloadCodec = codec.NewItem[types.ExecutionPayload](
+		keys.LatestExecutionPayloadPrefix,
+		encoding.SSZInterfaceCodec[types.ExecutionPayload]{
 			Factory: func() types.ExecutionPayload {
 				return &types.ExecutableDataDeneb{}
 			},
 		},
-	}
+	)
 
-	latestBeaconBlockHeaderCodec = codec.Codec[
-		codec.None, *primitives.BeaconBlockHeader,
-	]{
-		Value: encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
-	}
+	latestBeaconBlockHeaderCodec = codec.NewItem[*primitives.BeaconBlockHeader](
+		keys.LatestBeaconBlockHeaderPrefix,
+		encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
+	)
 
-	blockRootsCodec = codec.Codec[uint64, [32]byte]{
-		Key:   sdkcollections.Uint64Key,
-		Value: encoding.Bytes32ValueCodec{},
-	}
+	blockRootsCodec = codec.NewMap[uint64, [32]byte](
+		keys.BlockRootsPrefix,
+		sdkcollections.Uint64Key,
+		encoding.Bytes32ValueCodec{},
+	)
 )
 
 // Querying from sdkcollections.Item.
 func (p *Provider) GetEth1BlockHash(
 	ctx context.Context,
 ) primitives.ExecutionHash {
-	res, err := p.Query(ctx, []byte(keys.LatestExecutionPayloadPrefix), 0)
+	res, err := p.Query(
+		ctx,
+		lightkeys.BeaconStoreKey,
+		[]byte(keys.LatestExecutionPayloadPrefix),
+		0,
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	payload, err := latestExecutionPayloadCodec.Value.Decode(res)
+	payload, err := latestExecutionPayloadCodec.Decode(res)
 	if err != nil {
 		panic(err)
 	}
@@ -84,12 +89,17 @@ func (p *Provider) GetEth1BlockHash(
 func (p *Provider) GetLatestBlockHeader(
 	ctx context.Context,
 ) *primitives.BeaconBlockHeader {
-	res, err := p.Query(ctx, []byte(keys.LatestBeaconBlockHeaderPrefix), 0)
+	res, err := p.Query(
+		ctx,
+		lightkeys.BeaconStoreKey,
+		[]byte(keys.LatestBeaconBlockHeaderPrefix),
+		0,
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	header, err := latestBeaconBlockHeaderCodec.Value.Decode(res)
+	header, err := latestBeaconBlockHeaderCodec.Decode(res)
 	if err != nil {
 		panic(err)
 	}
@@ -100,14 +110,12 @@ func (p *Provider) GetLatestBlockHeader(
 func (p *Provider) GetBlockRootAtIndex(
 	ctx context.Context, index uint64,
 ) primitives.Root {
-	bytesKey, err := sdkcollections.EncodeKeyWithPrefix(
-		[]byte(keys.BlockRootsPrefix), blockRootsCodec.Key, index,
-	)
+	key, err := blockRootsCodec.Key(index)
 	if err != nil {
 		panic(err)
 	}
 
-	res, err := p.Query(ctx, bytesKey, 0)
+	res, err := p.Query(ctx, lightkeys.BeaconStoreKey, key, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -115,7 +123,7 @@ func (p *Provider) GetBlockRootAtIndex(
 		return primitives.Root{}
 	}
 
-	blockRoot, err := blockRootsCodec.Value.Decode(res)
+	blockRoot, err := blockRootsCodec.Decode(res)
 	if err != nil {
 		panic(err)
 	}

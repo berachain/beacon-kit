@@ -32,8 +32,11 @@ import (
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 )
 
+// Query performs a query to the store at path at a given height and
+// returns the result.
 func (p *Provider) Query(
 	ctx context.Context,
+	path string,
 	key []byte,
 	height int64,
 ) ([]byte, error) {
@@ -49,7 +52,7 @@ func (p *Provider) Query(
 	resp, err := p.QueryABCI(
 		ctx,
 		abci.RequestQuery{
-			Path:   beaconStoreKey,
+			Path:   path,
 			Data:   key,
 			Height: height,
 		},
