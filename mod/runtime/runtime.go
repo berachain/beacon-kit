@@ -30,10 +30,10 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/blobs"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
+	"github.com/berachain/beacon-kit/mod/da/proof"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -128,7 +128,7 @@ func NewDefaultBeaconKitRuntime(
 	)
 
 	// Build the Blobs Vierifer
-	blobProofVerifier, err := da.NewBlobProofVerifier(
+	blobProofVerifier, err := proof.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
 	if err != nil {
@@ -139,13 +139,6 @@ func NewDefaultBeaconKitRuntime(
 		"successfully loaded blob verifier",
 		"impl",
 		cfg.KZG.Implementation,
-	)
-
-	// Build the Blobs Processor.
-	blobsProcessor := blobs.NewProcessor(
-		&cfg.Beacon,
-		da.NewBlobVerifier(blobProofVerifier),
-		logger,
 	)
 
 	// Build the Randao Processor.
@@ -180,7 +173,7 @@ func NewDefaultBeaconKitRuntime(
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
 				&cfg.Beacon,
-				blobsProcessor,
+				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
 				logger,
 			)),
