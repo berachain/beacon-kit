@@ -47,7 +47,7 @@ type TrustedSetupOutput struct {
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(in BlsSignerInput) TrustedSetupOutput {
+func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
 	trustedSetup, err := kzg.ReadTrustedSetup(
 		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
 	if err != nil {
