@@ -59,6 +59,15 @@ func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
 	return hashes
 }
 
+// Leafify converts the commitments to a slice of leaves.
+func (c Commitments) Leafify() [][32]byte {
+	leaves := make([][32]byte, len(c))
+	for i, commitment := range c {
+		leaves[i] = commitment.ToHashChunks()[0]
+	}
+	return leaves
+}
+
 // Commitment is a KZG commitment.
 type Commitment [48]byte
 

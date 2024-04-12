@@ -145,7 +145,7 @@ func (f *SidecarFactory[BBB]) BuildCommitmentProof(
 	}
 
 	bodyTree, err := merkle.NewTreeWithMaxLeaves(
-		LeavesFromCommitments(commitments),
+		commitments.Leafify(),
 		f.cfg.MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {
@@ -153,13 +153,4 @@ func (f *SidecarFactory[BBB]) BuildCommitmentProof(
 	}
 
 	return bodyTree.MerkleProofWithMixin(index)
-}
-
-// LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments kzg.Commitments) [][32]byte {
-	leaves := make([][32]byte, len(commitments))
-	for i, commitment := range commitments {
-		leaves[i] = commitment.ToHashChunks()[0]
-	}
-	return leaves
 }

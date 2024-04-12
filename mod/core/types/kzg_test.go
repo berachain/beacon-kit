@@ -90,7 +90,7 @@ func Test_KZGRootIndex(t *testing.T) {
 // 	commitments := body.GetBlobKzgCommitments()
 
 // 	// Generate leaves from commitments
-// 	leaves := types.LeavesFromCommitments(commitments)
+// 	leaves := commitments.Leafify()
 
 // 	// Calculate the depth the given tree will have.
 // 	// depth := uint64(math.Ceil(math.Sqrt(float64(len(commitments)))))
