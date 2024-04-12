@@ -26,12 +26,12 @@
 package proof
 
 import (
-	"cosmossdk.io/errors"
 	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
 	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/cockroachdb/errors"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 

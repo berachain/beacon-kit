@@ -64,7 +64,6 @@ type NodeBuilder[
 ] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
-	config  *config.Config
 }
 
 // NewNodeBuilder creates a new NodeBuilder.
