@@ -26,8 +26,13 @@
 package proof
 
 import (
+	"cosmossdk.io/errors"
+	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
+	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // BlobProofVerifier is a verifier for blobs.
@@ -46,25 +51,42 @@ type BlobProofVerifier interface {
 	// For most implementations it is more efficient than VerifyBlobProof when
 	// verifying multiple proofs.
 	VerifyBlobProofBatch(
-		*BlobProofArgs,
+		*prooftypes.BlobProofArgs,
 	) error
 }
 
-// BlobProofArgs represents the arguments for a blob proof.
-type BlobProofArgs struct {
-	// Blob is the blob.
-	Blobs []*kzg.Blob
-	// Proof is the KZG proof.
-	Proofs []kzg.Proof
-	// Commitment is the KZG commitment.
-	Commitments []kzg.Commitment
+const (
+	// crateCryptoGoKzg4844 is the crate-crypto/go-kzg-4844 implementation.
+	crateCryptoGoKzg4844 = "crate-crypto/go-kzg-4844"
+	// ethereumCKzg4844 is the ethereum/c-kzg-4844 implementation.
+	ethereumCKzg4844 = "ethereum/c-kzg-4844"
+)
+
+// NewBlobProofVerifier creates a new BlobVerifier with the given
+// implementation.
+func NewBlobProofVerifier(
+	impl string,
+	ts *gokzg4844.JSONTrustedSetup,
+) (BlobProofVerifier, error) {
+	switch impl {
+	case crateCryptoGoKzg4844:
+		return gokzg.NewVerifier(ts)
+	case ethereumCKzg4844:
+		return ckzg.NewVerifier(ts)
+	default:
+		return nil, errors.Wrapf(
+			ErrUnsupportedKzgImplementation,
+			"supplied: %s, supported: %s, %s",
+			impl, crateCryptoGoKzg4844, ethereumCKzg4844,
+		)
+	}
 }
 
 // ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
 func ArgsFromSidecars(
 	scs *types.BlobSidecars,
-) *BlobProofArgs {
-	proofArgs := &BlobProofArgs{
+) *prooftypes.BlobProofArgs {
+	proofArgs := &prooftypes.BlobProofArgs{
 		Blobs:       make([]*kzg.Blob, len(scs.Sidecars)),
 		Proofs:      make([]kzg.Proof, len(scs.Sidecars)),
 		Commitments: make([]kzg.Commitment, len(scs.Sidecars)),

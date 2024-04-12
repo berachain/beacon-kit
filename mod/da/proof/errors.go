@@ -23,39 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/da/proof"
-	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
-	"github.com/cockroachdb/errors"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+import "errors"
+
+var (
+
+	// ErrUnsupportedKzgImplementation is returned when an unsupported KZG
+	// implementation is requested.
+	ErrUnsupportedKzgImplementation = errors.New(
+		"unsupported KZG implementation",
+	)
 )
-
-const (
-	// crateCryptoGoKzg4844 is the crate-crypto/go-kzg-4844 implementation.
-	crateCryptoGoKzg4844 = "crate-crypto/go-kzg-4844"
-	// ethereumCKzg4844 is the ethereum/c-kzg-4844 implementation.
-	ethereumCKzg4844 = "ethereum/c-kzg-4844"
-)
-
-// NewBlobProofVerifier creates a new BlobVerifier with the given
-// implementation.
-func NewBlobProofVerifier(
-	impl string,
-	ts *gokzg4844.JSONTrustedSetup,
-) (proof.BlobProofVerifier, error) {
-	switch impl {
-	case crateCryptoGoKzg4844:
-		return gokzg.NewVerifier(ts)
-	case ethereumCKzg4844:
-		return ckzg.NewVerifier(ts)
-	default:
-		return nil, errors.Wrapf(
-			ErrUnsupportedKzgImplementation,
-			"supplied: %s, supported: %s, %s",
-			impl, crateCryptoGoKzg4844, ethereumCKzg4844,
-		)
-	}
-}

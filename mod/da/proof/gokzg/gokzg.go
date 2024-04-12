@@ -28,7 +28,7 @@ package gokzg
 import (
 	"unsafe"
 
-	proof "github.com/berachain/beacon-kit/mod/da/proof"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -65,7 +65,7 @@ func (v Verifier) VerifyBlobProof(
 // by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
-	args *proof.BlobProofArgs,
+	args *prooftypes.BlobProofArgs,
 ) error {
 	blobs := make([]gokzg4844.Blob, len(args.Blobs))
 	for i := range args.Blobs {

@@ -23,20 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package types
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/primitives/kzg"
 
-var (
-	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to
-	// store a
-	// nil sidecar.
-	ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
-
-	// ErrAttemptedToVerifyNilSidecars is returned when an attempt is made to
-	// verify
-	// nil sidecars.
-	ErrAttemptedToVerifyNilSidecars = errors.New(
-		"attempted to verify nil sidecars",
-	)
-)
+// BlobProofArgs represents the arguments for a blob proof.
+type BlobProofArgs struct {
+	// Blob is the blob.
+	Blobs []*kzg.Blob
+	// Proof is the KZG proof.
+	Proofs []kzg.Proof
+	// Commitment is the KZG commitment.
+	Commitments []kzg.Commitment
+}
