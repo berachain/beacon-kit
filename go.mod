@@ -59,7 +59,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/vektra/mockery/v2 v2.42.2
 	go.uber.org/automaxprocs v1.5.3
-	go.uber.org/nilaway v0.0.0-20240224031343-67945fb5199f
+	go.uber.org/nilaway v0.0.0-20240403175823-755a685ab68b
 	golang.org/x/sync v0.7.0
 	google.golang.org/protobuf v1.33.0
 )
