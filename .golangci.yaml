@@ -308,8 +308,8 @@ linters:
     - gosmopolitan # reports certain i18n/l10n anti-patterns in your Go codebase
     - grouper # analyzes expression groups
     - importas # enforces consistent import aliases
-    #- maintidx # measures the maintainability index of each function
-    #- misspell # [useless] finds commonly misspelled English words in comments
+    - maintidx # measures the maintainability index of each function
+    - misspell # [useless] finds commonly misspelled English words in comments
     #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
     #- paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
     - tagliatelle # checks the struct tags
