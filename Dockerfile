@@ -98,7 +98,6 @@ ARG APP_NAME
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 
 COPY ./beacond/init.sh /usr/bin/init.sh
-COPY ./beacond/finalize.sh /usr/bin/finalize.sh
 COPY ./beacond/start.sh /usr/bin/start.sh
 
 # Consolidate chmod commands

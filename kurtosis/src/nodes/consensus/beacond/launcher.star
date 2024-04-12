@@ -96,21 +96,16 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         )
 
         exec_recipe = None
+        # Initialize the Cosmos genesis file
         if n == 0:
+            init.init_beacond_add_val(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
             exec_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                # TODO : In the current approach, figure out to how the make the function call here `init_beacond`
-                # init.init_beacond(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True),
-                # Other approach is : directly calling the binary commands here instead of the shell script
-                # "/usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos".format(
-                #     "$BEACOND_CHAIN_ID",
-                #     "$BEACOND_MONIKER",
-                #     "$BEACOND_HOME",
+                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"]
             )
         else:
+            init.init_beacond_add_val(plan,"$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
             exec_recipe = ExecRecipe(
-                        # Initialize the Cosmos genesis file
-                        command = ["/usr/bin/init.sh"],
+                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME | tr -d '\n'"]         
             )
 
         plan.exec(
@@ -129,11 +124,10 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
 
         file_suffix = "{}".format(n)
         if n == num_validators - 1:
+            # Initialize the Cosmos genesis file
+            # Collect genesis tx
             finalize_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                # Collect genesis tx
-                # /usr/bin/beacond genesis collect-validators --home "$BEACOND_HOME" > /dev/null 2>&1
-                command = ["/usr/bin/beacond", "genesis","collect-validators", "--home", "$BEACOND_HOME"],
+                command = ["bash", "-c", "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME"],
             )
             result = plan.exec(
                 service_name = cl_service_name,
