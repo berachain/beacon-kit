@@ -93,12 +93,12 @@ func NewTreeFromLeavesWithDepth(
 	layers[0] = leaves
 
 	var err error
-	for i := uint8(0); i < depth; i++ {
-		currentLayer := layers[i]
+	for d := range depth {
+		currentLayer := layers[d]
 		if len(currentLayer)%2 == 1 {
-			currentLayer = append(currentLayer, tree.ZeroHashes[i])
+			currentLayer = append(currentLayer, tree.ZeroHashes[d])
 		}
-		layers[i+1], err = htr.BuildParentTreeRoots(currentLayer)
+		layers[d+1], err = htr.BuildParentTreeRoots(currentLayer)
 		if err != nil {
 			return &Tree{}, err
 		}
@@ -129,14 +129,14 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 	input := [64]byte{}
 	currentIndex := index
 	root := item
-	for i := uint8(0); i < m.depth; i++ {
+	for i := range m.depth {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
 			neighbor = tree.ZeroHashes[i]
 		} else {
 			neighbor = m.branches[i][neighborIdx]
 		}
 
-		//nolint:gomnd
+		//nolint:gomnd // 2 is allowed.
 		if isLeft := currentIndex%2 == 0; isLeft {
 			copy(input[0:32], root[:])
 			copy(input[32:64], neighbor[:])
@@ -146,7 +146,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 		}
 		root = sha256.Sum256(input[:])
 
-		//nolint:gomnd
+		//nolint:gomnd // 2 is allowed.
 		parentIdx := currentIndex / 2
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			m.branches[i+1] = append(m.branches[i+1], root)
@@ -188,7 +188,7 @@ func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 		)
 	}
 	proof := make([][32]byte, m.depth)
-	for i := uint8(0); i < m.depth; i++ {
+	for i := range m.depth {
 		subIndex := (leafIndex >> i) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
 			proof[i] = m.branches[i][subIndex]

@@ -242,7 +242,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	b.StopTimer()
 	numDeposits := 16000
 	items := make([][32]byte, numDeposits)
-	for i := 0; i < numDeposits; i++ {
+	for i := range numDeposits {
 		items[i] = byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 	}
 	tr, err := merkle.NewTreeFromLeavesWithDepth(
@@ -253,7 +253,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 
 	someItem := byteslib.ToBytes32([]byte("hello-world"))
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for i := range b.N {
 		require.NoError(b, tr.Insert(someItem, i%numDeposits))
 	}
 }

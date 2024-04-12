@@ -148,9 +148,9 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	}
 
 	// Iterate through indicies to find the next validators to withdraw.
-	for i := uint64(0); i < min(
+	for range min(
 		s.cfg.MaxValidatorsPerWithdrawalsSweep, totalValidators,
-	); i++ {
+	) {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -227,7 +227,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 
 	var blockRoot [32]byte
 	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
-	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+	for i := range s.cfg.SlotsPerHistoricalRoot {
 		blockRoot, err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
@@ -237,7 +237,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 
 	var stateRoot [32]byte
 	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
-	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
+	for i := range s.cfg.SlotsPerHistoricalRoot {
 		stateRoot, err = s.StateRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
@@ -272,7 +272,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 
 	var randaoMix [32]byte
 	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
-	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
+	for i := range s.cfg.EpochsPerHistoricalVector {
 		randaoMix, err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err

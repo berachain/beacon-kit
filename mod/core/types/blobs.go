@@ -44,8 +44,7 @@ func BuildBlobSidecar(
 
 	blkHeader := blk.GetHeader()
 	body := blk.GetBody()
-	for i := uint64(0); i < numBlobs; i++ {
-		i := i // capture range variable
+	for i := range uint64(len(blobs.Blobs)) {
 		g.Go(func() error {
 			// Create Inclusion Proof
 			inclusionProof, err := MerkleProofKZGCommitment(body, i)
