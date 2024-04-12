@@ -42,7 +42,7 @@ func Vector(elements [][32]byte, length uint64) [32]byte {
 	if len(elements) == 0 {
 		return zero.Hashes[depth]
 	}
-	for i := uint8(0); i < depth; i++ {
+	for i := range depth {
 		layerLen := len(elements)
 		oddNodeLength := layerLen%two == 1
 		if oddNodeLength {

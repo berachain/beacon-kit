@@ -43,6 +43,7 @@ const (
 // of commitments using the KZG algorithm.
 func MerkleProofKZGCommitment(
 	body BeaconBlockBody,
+	kzgPosition uint64,
 	index uint64,
 ) ([][32]byte, error) {
 	commitments := body.GetBlobKzgCommitments()
@@ -64,7 +65,7 @@ func MerkleProofKZGCommitment(
 		return nil, err
 	}
 
-	topProof, err := tree.MerkleProof(KZGPositionDeneb)
+	topProof, err := tree.MerkleProof(kzgPosition)
 	if err != nil {
 		return nil, err
 	}

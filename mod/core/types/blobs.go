@@ -27,42 +27,32 @@ package types
 
 import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"golang.org/x/sync/errgroup"
 )
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
 func BuildBlobSidecar(
+	index uint64,
 	blk BeaconBlock,
-	blobs *engine.BlobsBundleV1,
-) (*datypes.BlobSidecars, error) {
-	numBlobs := uint64(len(blobs.Blobs))
-	sidecars := make([]*datypes.BlobSidecar, numBlobs)
-	g := errgroup.Group{}
-
-	blkHeader := blk.GetHeader()
-	body := blk.GetBody()
-	for i := uint64(0); i < numBlobs; i++ {
-		i := i // capture range variable
-		g.Go(func() error {
-			// Create Inclusion Proof
-			inclusionProof, err := MerkleProofKZGCommitment(body, i)
-			if err != nil {
-				return err
-			}
-			sidecars[i] = &datypes.BlobSidecar{
-				Index:             i,
-				Blob:              kzg.Blob(blobs.Blobs[i]),
-				KzgCommitment:     kzg.Commitment(blobs.Commitments[i]),
-				KzgProof:          kzg.Proof(blobs.Proofs[i]),
-				BeaconBlockHeader: blkHeader,
-				InclusionProof:    inclusionProof,
-			}
-			return nil
-		})
+	kzgPosition uint64,
+	blob *kzg.Blob,
+	commitment kzg.Commitment,
+	proof kzg.Proof,
+) (*datypes.BlobSidecar, error) {
+	// Create Inclusion Proof
+	inclusionProof, err := MerkleProofKZGCommitment(
+		blk.GetBody(), kzgPosition, index,
+	)
+	if err != nil {
+		return nil, err
 	}
-
-	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return &datypes.BlobSidecar{
+		Index:             index,
+		Blob:              *blob,
+		KzgCommitment:     commitment,
+		KzgProof:          proof,
+		BeaconBlockHeader: blk.GetHeader(),
+		InclusionProof:    inclusionProof,
+	}, nil
 }

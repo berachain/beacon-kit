@@ -81,7 +81,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
 		// Set multiple entries
-		for i := uint8(0); i < 5; i++ {
+		for i := range uint8(5) {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			pid := engine.PayloadID{
@@ -92,7 +92,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 		// Prune and check if only the last two entries exist
 		cacheUnderTest.UnsafePrunePrior(3)
-		for i := uint8(0); i < 3; i++ {
+		for i := range uint8(3) {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)

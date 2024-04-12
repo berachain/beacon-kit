@@ -79,7 +79,7 @@ func RootFromBranch(
 ) [32]byte {
 	merkleRoot := leaf
 	var hashInput [64]byte
-	for i := uint8(0); i < depth; i++ {
+	for i := range depth {
 		//nolint:gomnd // from spec.
 		ithBit := (index >> i) & 0x01
 		if ithBit == 1 {

@@ -107,7 +107,7 @@ func Test_BodyProof(t *testing.T) {
 
 	// Generate a proof for the index.
 	var proof [][32]byte
-	for index := uint64(0); index < uint64(len(leaves)); index++ {
+	for index := range uint64(len(leaves)) {
 		proof, err = tree.MerkleProofWithMixin(index)
 		require.NoError(t, err, "Failed to generate Merkle proof")
 		require.NotNil(t, proof, "Merkle proof should not be nil")
@@ -183,7 +183,11 @@ func Test_MerkleProofKZGCommitment(t *testing.T) {
 	body := mockBody()
 
 	index := uint64(1)
-	proof, err := types.MerkleProofKZGCommitment(body, index)
+	proof, err := types.MerkleProofKZGCommitment(
+		body,
+		types.KZGPositionDeneb,
+		index,
+	)
 	require.NoError(t, err)
 	require.Len(t,
 		proof,

@@ -98,15 +98,15 @@ type BeaconChainConfig struct {
 	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
 	// will keep the blobs for.
 	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
-	// FieldElementsPerBlob specifies the number of field elements per blob.
-	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// MaxBlobCommitmentsPerBlock specifies the maximum number of blob
-	// commitments. `floorlog2(get_generalized_index(BeaconBlockBody,
-	// 'blob_kzg_commitments')) + 1 + ceillog2(MAX_BLOB_COMMITMENTS_PER_BLOCK)`
-	// = 4 + 1 + 12 = 17
+	// commitments allowed per block.
 	MaxBlobCommitmentsPerBlock uint64 `mapstructure:"max-blob-commitments-per-block"`
 	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
+	// FieldElementsPerBlob specifies the number of field elements per blob.
+	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
+	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
+	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
 	// KZGIncludeProofDepth is the depth of the KZG inclusion proof.
 	KZGInclusionProofDepth uint64 `mapstructure:"kzg-inclusion-proof-depth"`
 }

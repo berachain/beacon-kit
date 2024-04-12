@@ -83,12 +83,9 @@ func BuildParentTreeRootsWithNRoutines(
 	// if n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
-		// capture loop variable
-		cj := j
-
 		// Define the segment of the inputList each goroutine will process.
-		segmentStart := cj * twiceGroupSize
-		segmentEnd := min((cj+1)*twiceGroupSize, inputLength)
+		segmentStart := j * twiceGroupSize
+		segmentEnd := min((j+1)*twiceGroupSize, inputLength)
 
 		// inputList:  [---------------------2*groupSize---------------------]
 		//              ^                    ^                    ^          ^
@@ -106,7 +103,7 @@ func BuildParentTreeRootsWithNRoutines(
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[cj*groupSize:min((cj+1)*groupSize, outputLength)],
+				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
