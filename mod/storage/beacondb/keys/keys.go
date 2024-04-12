@@ -43,7 +43,6 @@ const (
 	SlotPrefix                             = "slot"
 	BalancesPrefix                         = "balances"
 	LatestExecutionPayloadPrefix           = "latest_execution_payload"
-	Eth1BlockHashPrefix                    = "eth1_block_hash"
 	Eth1DataPrefix                         = "eth1_data"
 	Eth1DepositIndexPrefix                 = "eth1_deposit_idx"
 	GenesisValidatorsRootPrefix            = "genesis_validators_root"

@@ -30,6 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/light/mod/state/codec"
+	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
@@ -40,10 +41,14 @@ import (
 
 //nolint:gochecknoglobals // this will be removed in a later pr
 var (
-	eth1BlockHashCodec = codec.Codec[
-		codec.None, [32]byte,
+	latestExecutionPayloadCodec = codec.Codec[
+		codec.None, types.ExecutionPayload,
 	]{
-		Value: encoding.Bytes32ValueCodec{},
+		Value: encoding.SSZInterfaceCodec[types.ExecutionPayload]{
+			Factory: func() types.ExecutionPayload {
+				return &types.ExecutableDataDeneb{}
+			},
+		},
 	}
 
 	latestBeaconBlockHeaderCodec = codec.Codec[
@@ -62,17 +67,17 @@ var (
 func (p *Provider) GetEth1BlockHash(
 	ctx context.Context,
 ) primitives.ExecutionHash {
-	res, err := p.Query(ctx, []byte(keys.Eth1BlockHashPrefix), 0)
+	res, err := p.Query(ctx, []byte(keys.LatestExecutionPayloadPrefix), 0)
 	if err != nil {
 		panic(err)
 	}
 
-	hash, err := eth1BlockHashCodec.Value.Decode(res)
+	payload, err := latestExecutionPayloadCodec.Value.Decode(res)
 	if err != nil {
 		panic(err)
 	}
 
-	return hash
+	return payload.GetBlockHash()
 }
 
 // Another example of querying from sdkcollections.Item.

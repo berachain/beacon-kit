@@ -63,10 +63,9 @@ func (p *Provider) Query(
 
 // QueryABCI performs an ABCI query and returns the appropriate response and
 // error sdk error code.
-func (p *Provider) QueryABCI(
-	ctx context.Context,
-	req abci.RequestQuery,
-) (abci.ResponseQuery, error) {
+func (p *Provider) QueryABCI(ctx context.Context, req abci.RequestQuery) (
+	abci.ResponseQuery, error,
+) {
 	opts := rpcclient.ABCIQueryOptions{
 		Height: req.Height,
 	}
