@@ -38,6 +38,7 @@ type BeaconBlock[B BeaconBlockBody] interface {
 
 // BeaconBlockBody is the body of a beacon block.
 type BeaconBlockBody interface {
+	HashTreeRoot() ([32]byte, error)
 	GetTopLevelRoots() ([][32]byte, error)
 	GetBlobKzgCommitments() kzg.Commitments
 }

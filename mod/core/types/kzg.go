@@ -31,6 +31,7 @@ const (
 	KZGMerkleIndex = 24
 )
 
+// TODO: depreacate.
 func KZGOffset(maxBlobCommitmentsPerBlock uint64) uint64 {
 	return KZGMerkleIndex * maxBlobCommitmentsPerBlock
 }
