@@ -23,36 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package da
 
 import (
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// BuildBlobSidecar creates a blob sidecar from the given blobs and
-// beacon block.
-func BuildBlobSidecar(
-	index uint64,
-	blk BeaconBlock,
-	kzgPosition uint64,
-	blob *kzg.Blob,
-	commitment kzg.Commitment,
-	proof kzg.Proof,
-) (*datypes.BlobSidecar, error) {
-	// Create Inclusion Proof
-	inclusionProof, err := MerkleProofKZGCommitment(
-		blk.GetBody(), kzgPosition, index,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &datypes.BlobSidecar{
-		Index:             index,
-		Blob:              *blob,
-		KzgCommitment:     commitment,
-		KzgProof:          proof,
-		BeaconBlockHeader: blk.GetHeader(),
-		InclusionProof:    inclusionProof,
-	}, nil
+// BeaconBlock is a beacon block.
+type BeaconBlock[B BeaconBlockBody] interface {
+	GetBody() B
+	GetHeader() *primitives.BeaconBlockHeader
+}
+
+// BeaconBlockBody is the body of a beacon block.
+type BeaconBlockBody interface {
+	HashTreeRoot() ([32]byte, error)
+	GetTopLevelRoots() ([][32]byte, error)
+	GetBlobKzgCommitments() kzg.Commitments
 }

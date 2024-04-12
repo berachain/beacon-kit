@@ -23,53 +23,61 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blobs
+package da
 
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory struct {
+type SidecarFactory[BBB BeaconBlockBody] struct {
 	cfg         *params.BeaconChainConfig
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory(
+func NewSidecarFactory[BBB BeaconBlockBody](
 	cfg *params.BeaconChainConfig,
-) *SidecarFactory {
-	return &SidecarFactory{
+	// todo: calculate from config.
+	kzgPosition uint64,
+) *SidecarFactory[BBB] {
+	return &SidecarFactory[BBB]{
 		cfg: cfg,
 		// TODO: This should be configurable / modular.
-		kzgPosition: types.KZGPositionDeneb,
+		kzgPosition: kzgPosition,
 	}
 }
 
 // BuildSidecar builds a sidecar.
-func (f *SidecarFactory) BuildSidecars(
-	blk types.BeaconBlock,
+func (f *SidecarFactory[BBB]) BuildSidecars(
+	blk BeaconBlock[BBB],
 	blobs *engine.BlobsBundleV1,
 ) (*datypes.BlobSidecars, error) {
 	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*datypes.BlobSidecar, numBlobs)
+	body := blk.GetBody()
 	g := errgroup.Group{}
 	for i := range numBlobs {
 		g.Go(func() error {
 			var err error
 			blob := kzg.Blob(blobs.Blobs[i])
-			sidecars[i], err = types.BuildBlobSidecar(
+			inclusionProof, err := f.BuildKZGInclusionProof(body, i)
+			if err != nil {
+				return err
+			}
+			sidecars[i] = datypes.BuildBlobSidecar(
 				i,
-				blk,
-				f.kzgPosition,
+				blk.GetHeader(),
 				&blob,
 				kzg.Commitment(blobs.Commitments[i]),
 				kzg.Proof(blobs.Proofs[i]),
+				inclusionProof,
 			)
 			return err
 		})
@@ -78,11 +86,64 @@ func (f *SidecarFactory) BuildSidecars(
 	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
 }
 
-// BuildInclusionProof builds an inclusion proof.
-func (f *SidecarFactory) BuildInclusionProof(
-	body types.BeaconBlockBody,
+// BuildKZGInclusionProof builds a KZG inclusion proof.
+func (f *SidecarFactory[BBB]) BuildKZGInclusionProof(
+	body BeaconBlockBody,
 	index uint64,
 ) ([][32]byte, error) {
-	return types.MerkleProofKZGCommitment(
-		body, types.KZGPositionDeneb, index)
+	// Build the merkle proof to the commitment within the
+	// list of commitments.
+	commitmentsProof, err := f.BuildCommitmentProof(body, index)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the merkle proof for the body root.
+	bodyProof, err := f.BuildBlockBodyProof(body)
+	if err != nil {
+		return nil, err
+	}
+
+	// By property of the merkle tree, we can concatenate the
+	// two proofs to get the final proof.
+	return append(commitmentsProof, bodyProof...), nil
+}
+
+// BuildBlockBodyProof builds a block body proof.
+func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
+	body BeaconBlockBody,
+) ([][32]byte, error) {
+	membersRoots, err := body.GetTopLevelRoots()
+	if err != nil {
+		return nil, err
+	}
+	tree, err := merkle.NewTreeWithMaxLeaves(
+		membersRoots,
+		uint64(types.BodyLengthDeneb),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	topProof, err := tree.MerkleProof(f.kzgPosition)
+	if err != nil {
+		return nil, err
+	}
+	return topProof, nil
+}
+
+// BuildCommitmentProof builds a commitment proof.
+func (f *SidecarFactory[BBB]) BuildCommitmentProof(
+	body BeaconBlockBody,
+	index uint64,
+) ([][32]byte, error) {
+	bodyTree, err := merkle.NewTreeWithMaxLeaves(
+		body.GetBlobKzgCommitments().Leafify(),
+		f.cfg.MaxBlobCommitmentsPerBlock,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return bodyTree.MerkleProofWithMixin(index)
 }

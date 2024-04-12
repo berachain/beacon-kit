@@ -27,6 +27,7 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
@@ -43,6 +44,16 @@ func WithBaseService(svc service.BaseService) service.Option[Service] {
 func WithBuilderConfig(cfg *config.Config) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithBlobFactory sets the blob factory.
+func WithBlobFactory(
+	factory BlobFactory[types.BeaconBlockBody],
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.blobFactory = factory
 		return nil
 	}
 }

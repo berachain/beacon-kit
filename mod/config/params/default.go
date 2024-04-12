@@ -57,7 +57,7 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,
-		MaxBlobCommitmentsPerBlock:       4096,
+		MaxBlobCommitmentsPerBlock:       16,
 		MaxBlobsPerBlock:                 6,
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,

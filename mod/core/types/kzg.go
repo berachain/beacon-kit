@@ -25,75 +25,13 @@
 
 package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/cockroachdb/errors"
-)
-
 const (
-	MaxBlobCommitmentsPerBlock = 16
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndex        = 24
-	KZGOffset      uint64 = KZGMerkleIndex * MaxBlobCommitmentsPerBlock
+	KZGMerkleIndex = 24
 )
 
-// MerkleProofKZGCommitment generates a Merkle proof for a given index in a list
-// of commitments using the KZG algorithm.
-func MerkleProofKZGCommitment(
-	body BeaconBlockBody,
-	kzgPosition uint64,
-	index uint64,
-) ([][32]byte, error) {
-	commitments := body.GetBlobKzgCommitments()
-
-	proof, err := BodyProof(commitments, index)
-	if err != nil {
-		return nil, err
-	}
-
-	membersRoots, err := GetTopLevelRoots(body)
-	if err != nil {
-		return nil, err
-	}
-	tree, err := merkle.NewTreeFromLeavesWithDepth(
-		membersRoots,
-		LogBodyLengthDeneb,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	topProof, err := tree.MerkleProof(kzgPosition)
-	if err != nil {
-		return nil, err
-	}
-	return append(proof, topProof...), nil
-}
-
-// BodyProof returns the Merkle proof of the subtree up to the root of the KZG
-// commitment list.
-func BodyProof(commitments kzg.Commitments, index uint64) ([][32]byte, error) {
-	if index >= uint64(len(commitments)) {
-		return nil, errors.New("index out of range")
-	}
-	bodyTree, err := merkle.NewTreeWithMaxLeaves(
-		LeavesFromCommitments(commitments),
-		MaxBlobCommitmentsPerBlock,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return bodyTree.MerkleProofWithMixin(index)
-}
-
-// LeavesFromCommitments hashes each commitment to construct a slice of roots.
-func LeavesFromCommitments(commitments kzg.Commitments) [][32]byte {
-	leaves := make([][32]byte, len(commitments))
-	for i, commitment := range commitments {
-		leaves[i] = commitment.ToHashChunks()[0]
-	}
-	return leaves
+// TODO: depreacate.
+func KZGOffset(maxBlobCommitmentsPerBlock uint64) uint64 {
+	return KZGMerkleIndex * maxBlobCommitmentsPerBlock
 }
