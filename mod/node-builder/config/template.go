@@ -92,14 +92,17 @@ proportional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMulti
 # MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
 min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
 
+# MaxBlobCommitmentsPerBlock specifies the maximum number of blob commitments allowed per block.
+max-blob-commitments-per-block = {{.BeaconKit.Beacon.MaxBlobCommitmentsPerBlock}}
+
 # MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
 max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
 
 # FieldElementsPerBlob specifies the number of field elements per blob.
 field-elements-per-blob = {{.BeaconKit.Beacon.FieldElementsPerBlob}}
 
-# MaxBlobCommitmentsPerBlock specifies the maximum number of blob commitments allowed per block.
-max-blob-commitments-per-block = {{.BeaconKit.Beacon.MaxBlobCommitmentsPerBlock}}
+# BytesPerBlob specifies the number of bytes per blob.
+bytes-per-blob = {{.BeaconKit.Beacon.BytesPerBlob}}
 
 # KZGInclusionProofDepth is the depth of the KZG inclusion proof.
 kzg-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGInclusionProofDepth}}
