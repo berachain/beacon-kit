@@ -30,6 +30,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/config/params"
+	// TODO: Create a mock such that core/types doesn't need
+	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
