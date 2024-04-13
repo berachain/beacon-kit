@@ -11,7 +11,6 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413210113-0ddaffdc1fdb

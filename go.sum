@@ -70,8 +70,8 @@ cosmossdk.io/x/bank v0.0.0-20240412212305-037cf98f7eea h1:Yp4scazaqtda/wmOBNv2lI
 cosmossdk.io/x/bank v0.0.0-20240412212305-037cf98f7eea/go.mod h1:FMJBYlR4+oFydgaOHO/Zp75rVmt08okSCG/SIcVKTMc=
 cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea h1:ex/r6P3WR8OBsMfsxtaRt4ziTIuAb/ARvSDrhhpUNm4=
 cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea/go.mod h1:bO52rB0Zh3EU0JbKvn2XMQJR2ksoPg1LHSMrA0dE43g=
-cosmossdk.io/x/protocolpool v0.0.0-20240412212305-037cf98f7eea h1:CKYnHgCjnY6ib3CUYPDyJesNHcGhaIDV08OCUR1UDC8=
-cosmossdk.io/x/protocolpool v0.0.0-20240412212305-037cf98f7eea/go.mod h1:4GLHoxZS8p+jWPrEGZXsvIfCM9LlIduiR0YF9wfufC0=
+cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 h1:XQJj9Dv9Gtze0l2TF79BU5lkP6MkUveTUuKICmxoz+o=
+cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190/go.mod h1:7WUGupOvmlHJoIMBz1JbObQxeo6/TDiuDBxmtod8HRg=
 cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea h1:fS6TVp2YPiSTkJOtYfuoKbyOIvxXCXrmuj60i1dR5Es=
 cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea/go.mod h1:93OvCcGgHUFd4o8Gh8/F9dQLYlwRHcH3sAx8a9POgjk=
 cosmossdk.io/x/tx v0.13.1 h1:Mg+EMp67Pz+NukbJqYxuo8uRp7N/a9uR+oVS9pONtj8=
