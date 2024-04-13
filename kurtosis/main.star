@@ -11,7 +11,6 @@ nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
 goomy_blob = import_module("./src/services/goomy/launcher.star")
-init = import_module("./src/lib/init.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
     """
@@ -68,8 +67,6 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
             configs = full_node_configs,
         )
 
-    # for cl_service_name, full_node_config in full_node_configs.items():
-    #     init.init_beacond(plan, full_node_config.env_vars["BEACOND_CHAIN_ID"], full_node_config.env_vars["BEACOND_MONIKER"],full_node_config.env_vars["BEACOND_HOME"], False, cl_service_name)
     # 6. Start RPCs
     for n, rpc in enumerate(rpc_endpoints):
         nginx.get_config(plan, rpc["services"])
