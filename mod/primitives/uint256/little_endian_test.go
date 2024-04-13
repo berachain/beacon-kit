@@ -23,51 +23,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package uint256_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"testing"
+
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
-	ssz "github.com/ferranbt/fastssz"
+	holimanuint256 "github.com/holiman/uint256"
+	"github.com/stretchr/testify/require"
 )
 
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	String() string
-	Version() uint32
-	IsBlinded() bool
-	GetPrevRandao() [32]byte
-	GetBlockHash() primitives.ExecutionHash
-	GetParentHash() primitives.ExecutionHash
-	GetNumber() uint64
-	GetGasLimit() uint64
-	GetGasUsed() uint64
-	GetTimestamp() uint64
-	GetExtraData() []byte
-	GetBaseFeePerGas() uint256.LittleEndian
-	GetFeeRecipient() primitives.ExecutionAddress
-	GetStateRoot() primitives.ExecutionHash
-	GetReceiptsRoot() primitives.ExecutionHash
-	GetLogsBloom() []byte
-	GetBlobGasUsed() *uint64
-	GetExcessBlobGas() *uint64
+func TestLittleEndian_UInt256(t *testing.T) {
+	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := new(holimanuint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
+	require.Equal(t, expected, le.UInt256())
 }
 
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*primitives.Withdrawal
+func TestLittleEndian_Big(t *testing.T) {
+	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := new(holimanuint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
+	require.Equal(t, expected.ToBig(), le.ToBig())
 }
 
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	Version() uint32
-	Validate() error
+func TestLittleEndian_MarshalJSON(t *testing.T) {
+	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := []byte("\"0x504030201\"")
+	result, err := le.MarshalJSON()
+	require.NoError(t, err)
+	require.JSONEq(t, string(expected), string(result))
+}
+
+func TestLittleEndian_UnmarshalJSON(t *testing.T) {
+	le := new(uint256.LittleEndian)
+	err := le.UnmarshalJSON([]byte("\"0x504030201\""))
+	require.NoError(t, err)
+	o := byteslib.ToBytes32([]byte{1, 2, 3, 4, 5})
+	expected := uint256.LittleEndian(o[:])
+	require.Equal(t, expected, *le)
 }

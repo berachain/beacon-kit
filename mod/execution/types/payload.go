@@ -31,11 +31,11 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	bkuint256 "github.com/berachain/beacon-kit/mod/primitives/uint256"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/holiman/uint256"
+	huint256 "github.com/holiman/uint256"
 )
 
 // ExecutionPayloadEnvelope is an interface for the execution payload envelope.
@@ -71,7 +71,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
-	val, ok := uint256.FromBig(e.BlockValue)
+	val, ok := huint256.FromBig(e.BlockValue)
 	if !ok {
 		return primitives.Wei{}
 	}
@@ -128,7 +128,6 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
-	BaseFeePerGas bkuint256.LittleEndian
 	Random        primitives.ExecutionHash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes
@@ -208,7 +207,7 @@ func (d *ExecutableDataDeneb) GetExtraData() []byte {
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBaseFeePerGas() []byte {
+func (d *ExecutableDataDeneb) GetBaseFeePerGas() uint256.LittleEndian {
 	return d.BaseFeePerGas
 }
 
