@@ -70,26 +70,29 @@ func BuildNewPayloadRequest(
 //
 //nolint:lll
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	// TODO: Refactor off of Deneb hardcode.
-	payload, _ := n.ExecutionPayload.(*types.ExecutableDataDeneb)
+	payload := n.ExecutionPayload
+	withdrawals := payload.GetWithdrawals()
+	blobGasUsed := payload.GetBlobGasUsed()
+	excessBlobGas := payload.GetExcessBlobGas()
 	data := gengine.ExecutableData{
-		ParentHash:    payload.ParentHash,
-		FeeRecipient:  payload.FeeRecipient,
-		StateRoot:     payload.StateRoot,
-		ReceiptsRoot:  payload.ReceiptsRoot,
-		LogsBloom:     payload.LogsBloom,
-		Random:        payload.Random,
-		Number:        payload.Number,
-		GasLimit:      payload.GasLimit,
-		GasUsed:       payload.GasUsed,
-		Timestamp:     payload.Timestamp,
-		ExtraData:     payload.ExtraData,
-		BaseFeePerGas: uint256.LittleFromBigEndian(payload.BaseFeePerGas).Big(),
-		BlockHash:     payload.BlockHash,
-		Transactions:  payload.Transactions,
-		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&payload.Withdrawals)),
-		BlobGasUsed:   &payload.BlobGasUsed,
-		ExcessBlobGas: &payload.ExcessBlobGas,
+		ParentHash:   payload.GetParentHash(),
+		FeeRecipient: payload.GetFeeRecipient(),
+		StateRoot:    payload.GetStateRoot(),
+		ReceiptsRoot: payload.GetReceiptsRoot(),
+		LogsBloom:    payload.GetLogsBloom(),
+		Random:       payload.GetPrevRandao(),
+		Number:       payload.GetNumber(),
+		GasLimit:     payload.GetGasLimit(),
+		GasUsed:      payload.GetGasUsed(),
+		Timestamp:    payload.GetTimestamp(),
+		ExtraData:    payload.GetExtraData(),
+		BaseFeePerGas: uint256.LittleFromBigEndian(payload.GetBaseFeePerGas()).
+			Big(),
+		BlockHash:     payload.GetBlockHash(),
+		Transactions:  payload.GetTransactions(),
+		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
+		BlobGasUsed:   &blobGasUsed,
+		ExcessBlobGas: &excessBlobGas,
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,

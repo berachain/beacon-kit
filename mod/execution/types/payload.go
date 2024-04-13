@@ -157,6 +157,61 @@ func (d *ExecutableDataDeneb) GetParentHash() primitives.ExecutionHash {
 	return d.ParentHash
 }
 
+// GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetFeeRecipient() primitives.ExecutionAddress {
+	return d.FeeRecipient
+}
+
+// GetStateRoot returns the state root of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetStateRoot() primitives.ExecutionHash {
+	return d.StateRoot
+}
+
+// GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetReceiptsRoot() primitives.ExecutionHash {
+	return d.ReceiptsRoot
+}
+
+// GetLogsBloom returns the logs bloom of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
+	return d.LogsBloom
+}
+
+// GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
+	return d.Random
+}
+
+// GetNumber returns the block number of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetNumber() uint64 {
+	return d.Number
+}
+
+// GetGasLimit returns the gas limit of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetGasLimit() uint64 {
+	return d.GasLimit
+}
+
+// GetGasUsed returns the gas used of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetGasUsed() uint64 {
+	return d.GasUsed
+}
+
+// GetTimestamp returns the timestamp of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetTimestamp() uint64 {
+	return d.Timestamp
+}
+
+// GetExtraData returns the extra data of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetExtraData() []byte {
+	return d.ExtraData
+}
+
+// GetBaseFeePerGas returns the base fee per gas of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetBaseFeePerGas() []byte {
+	return d.BaseFeePerGas
+}
+
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
 	return d.BlockHash
@@ -167,14 +222,19 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 	return d.Transactions
 }
 
-// GetGasUsed returns the gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
-	return d.Random
-}
-
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetWithdrawals() []*primitives.Withdrawal {
 	return d.Withdrawals
+}
+
+// GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetBlobGasUsed() uint64 {
+	return d.BlobGasUsed
+}
+
+// GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
+func (d *ExecutableDataDeneb) GetExcessBlobGas() uint64 {
+	return d.ExcessBlobGas
 }
 
 // String returns the string representation of the ExecutableDataDeneb.
