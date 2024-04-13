@@ -38,7 +38,10 @@ while getopts 'f' flag; do
 done
 
 # Init the chain
-/usr/bin/beacond init --chain-id "$BEACOND_CHAIN_ID" "$BEACOND_MONIKER" --home "$BEACOND_HOME" --beacon-kit.accept-tos --consensus-key-algo "bls_12381"
+/usr/bin/beacond init "$BEACOND_MONIKER" \ 
+  --home "$BEACOND_HOME" \
+  --chain-id "$BEACOND_CHAIN_ID" \ 
+  --consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO"
 
 
 # Create beacond config directory
