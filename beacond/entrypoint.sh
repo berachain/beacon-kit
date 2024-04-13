@@ -27,7 +27,7 @@
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
-CONSENSUS_KEY_TYPE="bls12_381"
+CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
 # Path variables
@@ -42,8 +42,8 @@ set -e
 make build
 
 overwrite="N"
-if [ -d "$HOMEDIR" ]; then
-	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" "$HOMEDIR"
+if [ -d $HOMEDIR ]; then
+	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
 	echo "Overwrite the existing configuration and start a new local node? [y/n]"
 	read -r overwrite
 else	
@@ -52,15 +52,19 @@ fi
 
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
-	rm -rf "$HOMEDIR"
-	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos --consensus-key-algo $CONSENSUS_KEY_TYPE
-	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
-	./build/bin/beacond genesis collect-validators --home "$HOMEDIR" 
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home "$HOMEDIR"
+	rm -rf $HOMEDIR
+	./build/bin/beacond init $MONIKER \
+		--chain-id $CHAINID \
+		--home $HOMEDIR \
+		--beacon-kit.accept-tos \
+		--consensus-key-algo $CONSENSUS_KEY_ALGO
+	./build/bin/beacond genesis add-validator --home $HOMEDIR
+	./build/bin/beacond genesis collect-validators --home $HOMEDIR 
+	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m
 ./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
---home "$HOMEDIR" --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
+--home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
