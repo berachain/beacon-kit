@@ -307,6 +307,8 @@ func (s *Service) getPayloadFromExecutionClient(
 	)
 	if err != nil {
 		return nil, nil, false, err
+	} else if envelope == nil {
+		return nil, nil, false, ErrNilPayloadEnvelope
 	}
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
