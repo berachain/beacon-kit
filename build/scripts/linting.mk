@@ -13,14 +13,12 @@ lint: ## run all configured linters
 #################
 
 golangci:
-	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
-		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --concurrency 8 -v 
+	@echo "--> Running linter on all modules"
+	@find . -name 'go.mod' -execdir sh -c 'echo "Linting in $$(pwd)" && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v' \;
 
 golangci-fix:
-	@echo "--> Running linter"
-	@go list -f '{{.Dir}}/...' -m | grep -v '**/contracts' | \
-		xargs go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m --fix --concurrency 8 -v 
+	@echo "--> Running linter with fixes on all modules"
+	@find . -name 'go.mod' -execdir sh -c 'echo "Applying fixes in $$(pwd)" && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v' \;
 
 #################
 #    golines    #
@@ -49,9 +47,9 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	@go run go.uber.org/nilaway/cmd/nilaway \
-		-exclude-errors-in-files beacond/x/beacon/api,mod/runtime/services/staking/abi \
-		-v ./...
+	@find . -name 'go.mod' -execdir go run go.uber.org/nilaway/cmd/nilaway \
+		-exclude-errors-in-files "beacond/x/beacon/api,mod/runtime/services/staking/abi" \
+		-v ./... \;
 
 #################
 #     gosec     #
