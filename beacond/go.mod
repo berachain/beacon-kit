@@ -13,6 +13,8 @@ replace (
 	github.com/berachain/beacon-kit/mod => ../mod
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413213708-414fdac6561d
+	// Remove once v1.13.5 is released.
+	github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218
 )
 
 require (
@@ -89,7 +91,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.1 // indirect
-	github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218 // indirect
+	github.com/ethereum/go-ethereum v1.13.14 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065 // indirect
