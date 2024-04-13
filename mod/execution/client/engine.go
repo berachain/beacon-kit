@@ -38,8 +38,10 @@ import (
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
+	ctx context.Context,
+	payload enginetypes.ExecutionPayload,
+	versionedHashes []primitives.ExecutionHash,
+	parentBlockRoot *primitives.Root,
 ) (*primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -72,8 +74,10 @@ func (s *EngineClient) NewPayload(
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
+	ctx context.Context,
+	payload enginetypes.ExecutionPayload,
+	versionedHashes []primitives.ExecutionHash,
+	parentBlockRoot *primitives.Root,
 ) (*engine.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
 	case *enginetypes.ExecutableDataDeneb:
@@ -127,7 +131,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
 	ctx context.Context, payloadID engine.PayloadID, forkVersion uint32,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (enginetypes.ExecutionPayloadEnvelope, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -138,24 +142,23 @@ func (s *EngineClient) GetPayload(
 	case version.Deneb:
 		fn = s.GetPayloadV3
 	default:
-		return nil, nil, false, ErrInvalidGetPayloadVersion
+		return nil, ErrInvalidGetPayloadVersion
 	}
 
 	// Call and check for errors.
 	result, err := fn(dctx, payloadID)
 	switch {
 	case err != nil:
-		return nil, nil, false, s.handleRPCError(err)
+		return result, s.handleRPCError(err)
 	case result == nil:
-		return nil, nil, false, ErrNilExecutionPayloadEnvelope
+		return result, ErrNilExecutionPayloadEnvelope
 	case result.GetExecutionPayload() == nil:
-		return nil, nil, false, ErrNilExecutionPayload
+		return result, ErrNilExecutionPayload
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
-		return nil, nil, false, ErrNilBlobsBundle
+		return result, ErrNilBlobsBundle
 	}
 
-	return result.GetExecutionPayload(),
-		result.GetBlobsBundle(), result.ShouldOverrideBuilder(), nil
+	return result, nil
 }
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via

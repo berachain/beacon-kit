@@ -26,9 +26,14 @@
 package execution
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
+	gengine "github.com/ethereum/go-ethereum/beacon/engine"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -55,6 +60,45 @@ func BuildNewPayloadRequest(
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
+}
+
+// HasHValidVersionAndBlockHashes checks if the version and block hashes are
+// valid.
+// As per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
+//
+//nolint:lll
+func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
+	payload := n.ExecutionPayload
+	withdrawals := payload.GetWithdrawals()
+	data := gengine.ExecutableData{
+		ParentHash:   payload.GetParentHash(),
+		FeeRecipient: payload.GetFeeRecipient(),
+		StateRoot:    payload.GetStateRoot(),
+		ReceiptsRoot: payload.GetReceiptsRoot(),
+		LogsBloom:    payload.GetLogsBloom(),
+		Random:       payload.GetPrevRandao(),
+		Number:       payload.GetNumber(),
+		GasLimit:     payload.GetGasLimit(),
+		GasUsed:      payload.GetGasUsed(),
+		Timestamp:    payload.GetTimestamp(),
+		ExtraData:    payload.GetExtraData(),
+		BaseFeePerGas: uint256.LittleFromBigEndian(payload.GetBaseFeePerGas()).
+			Big(),
+		BlockHash:    payload.GetBlockHash(),
+		Transactions: payload.GetTransactions(),
+		//#nosec:G103 // henlo I am the captain now.
+		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
+		BlobGasUsed:   payload.GetBlobGasUsed(),
+		ExcessBlobGas: payload.GetExcessBlobGas(),
+	}
+	_, err := gengine.ExecutableDataToBlock(
+		data,
+		n.VersionedHashes,
+		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
+	)
+	return err
 }
 
 // ForkchoiceUpdateRequest.

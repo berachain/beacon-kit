@@ -43,14 +43,20 @@ const UInt256ByteLength = 32
 // for compatibility with.
 type LittleEndian []byte
 
+// LittleFromBigEndian creates a new LittleEndian from a big-endian
+// byte slice.
+func LittleFromBigEndian(b []byte) LittleEndian {
+	return LittleEndian(byteslib.CopyAndReverseEndianess(b))
+}
+
 // UInt256 converts an LittleEndian to a uint256.Int.
-func (s *LittleEndian) UInt256() *uint256.Int {
-	return new(uint256.Int).SetBytes([]byte(*s))
+func (s LittleEndian) UInt256() *uint256.Int {
+	return new(uint256.Int).SetBytes([]byte(s))
 }
 
 // Big converts an LittleEndian to a big.Int.
-func (s *LittleEndian) Big() *big.Int {
-	return new(big.Int).SetBytes([]byte(*s))
+func (s LittleEndian) Big() *big.Int {
+	return new(big.Int).SetBytes([]byte(s))
 }
 
 // MarshalJSON marshals a LittleEndian to JSON, it flips the endianness

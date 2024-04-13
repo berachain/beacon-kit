@@ -44,6 +44,18 @@ type ExecutionPayloadBody interface {
 	GetPrevRandao() [32]byte
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
+	GetNumber() uint64
+	GetGasLimit() uint64
+	GetGasUsed() uint64
+	GetTimestamp() uint64
+	GetExtraData() []byte
+	GetBaseFeePerGas() []byte
+	GetFeeRecipient() primitives.ExecutionAddress
+	GetStateRoot() primitives.ExecutionHash
+	GetReceiptsRoot() primitives.ExecutionHash
+	GetLogsBloom() []byte
+	GetBlobGasUsed() *uint64
+	GetExcessBlobGas() *uint64
 }
 
 // ExecutionPayload represents the execution data of a block.

@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/log"
@@ -35,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/cockroachdb/errors"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -79,7 +79,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (types.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (types.ExecutionPayloadEnvelope, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -132,28 +132,29 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return payloadID, latestValidHash, nil
 }
 
-// VerifyAndNotifyNewPayload verifies the new payload and notifies the execution
-// client.
-// It implictly handles:
-// - IsValidBlockHash
-// - IsValidVersionedHashes
-// from the Ethereum 2.0 Specification from within the NewPayload call.
+// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+// execution client.
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *NewPayloadRequest,
 ) (bool, error) {
-	payload := req.ExecutionPayload
+	// First we verify the block hash and versioned hashes are valid.
+	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
+		return false, err
+	}
+
+	// Then we can ask the EL to process the new payload.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
-		payload,
+		req.ExecutionPayload,
 		req.VersionedHashes,
-		(*[32]byte)(req.ParentBeaconBlockRoot),
+		req.ParentBeaconBlockRoot,
 	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
-			"payload_block_hash", (payload.GetBlockHash()),
-			"parent_hash", (payload.GetParentHash()),
+			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
+			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
 		return false, nil
 	case errors.Is(err, client.ErrInvalidPayloadStatus):
