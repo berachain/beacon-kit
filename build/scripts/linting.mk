@@ -47,9 +47,9 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	@go run go.uber.org/nilaway/cmd/nilaway \e
-		-exclude-errors-in-files beacond/x/beacon/api,mod/runtime/services/staking/abi \
-		-v ./...
+	@find . -name 'go.mod' -execdir go run go.uber.org/nilaway/cmd/nilaway \
+		-exclude-errors-in-files "beacond/x/beacon/api,mod/runtime/services/staking/abi" \
+		-v ./... \;
 
 #################
 #     gosec     #

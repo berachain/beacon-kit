@@ -27,7 +27,7 @@ require (
 	github.com/cometbft/cometbft v0.38.6
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.51.0
-	github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218
+	github.com/ethereum/go-ethereum v1.13.14
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
