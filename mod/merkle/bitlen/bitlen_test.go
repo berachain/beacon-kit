@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package merkle_test
+package bitlen_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,7 +72,7 @@ func TestCoverDepth(t *testing.T) {
 			require.Equal(
 				t,
 				tc.d,
-				merkle.CoverDepth(tc.v),
+				bitlen.CoverDepth(tc.v),
 				"Expected depth for v %d (bin %b)",
 				tc.v,
 				tc.v,
@@ -87,7 +87,7 @@ func TestBitLength(t *testing.T) {
 			require.Equal(
 				t,
 				tc.l,
-				merkle.BitLength(tc.v),
+				bitlen.BitLength(tc.v),
 				"Expected length for v %d (bin %b)",
 				tc.v,
 				tc.v,
@@ -102,7 +102,7 @@ func TestBitIndex(t *testing.T) {
 			require.Equal(
 				t,
 				tc.i,
-				merkle.BitIndex(tc.v),
+				bitlen.BitIndex(tc.v),
 				"Expected index for v %d (bin %b)",
 				tc.v,
 				tc.v,

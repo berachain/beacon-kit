@@ -48,7 +48,6 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/segmentio/golines v0.12.2
 	github.com/sourcegraph/conc v0.3.0
