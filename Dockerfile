@@ -18,8 +18,8 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.1
-ARG RUNNER_IMAGE=alpine
+ARG GO_VERSION=1.22.2
+ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -31,7 +31,7 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.18 as builder
+FROM golang:${GO_VERSION}-alpine3.19 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
