@@ -39,9 +39,10 @@ done
 
 # Init the chain
 /usr/bin/beacond init "$BEACOND_MONIKER" \ 
---home "$BEACOND_HOME" \
---chain-id "$BEACOND_CHAIN_ID" \ 
---consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO"
+  --home "$BEACOND_HOME" \
+  --chain-id "$BEACOND_CHAIN_ID" \ 
+  --consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO" \
+  --beacon-kit.accept-tos
 
 # Create beacond config directory
 if [ "$flag_first_validator" = true ]; then
