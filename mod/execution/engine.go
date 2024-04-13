@@ -27,7 +27,6 @@ package execution
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/log"
@@ -35,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/cockroachdb/errors"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -132,22 +132,29 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return payloadID, latestValidHash, nil
 }
 
-// VerifyAndNotifyNewPayload verifies the new payload and notifies the execution
-// client.
-// It implictly handles:
-// - IsValidBlockHash
-// - IsValidVersionedHashes
-// from the Ethereum 2.0 Specification from within the NewPayload call.
+// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+// execution client.
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *NewPayloadRequest,
 ) (bool, error) {
 	payload := req.ExecutionPayload
+	// First we verify the block hash and versioned hashes are valid.
+	if err := types.IsValidVersionAndBlockHashes(
+		// TODO handle properly.
+		payload.(*types.ExecutableDataDeneb),
+		req.ParentBeaconBlockRoot,
+		req.VersionedHashes,
+	); err != nil {
+		return false, err
+	}
+
+	// Lastly, we need to check if the payload is valid.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
 		payload,
 		req.VersionedHashes,
-		(*[32]byte)(req.ParentBeaconBlockRoot),
+		req.ParentBeaconBlockRoot,
 	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):

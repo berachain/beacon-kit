@@ -41,12 +41,14 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
 	) (enginetypes.ExecutionPayloadEnvelope, error)
+
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *execution.ForkchoiceUpdateRequest,
 	) (*engine.PayloadID, *primitives.ExecutionHash, error)
+
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
 	VerifyAndNotifyNewPayload(
