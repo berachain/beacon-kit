@@ -39,9 +39,9 @@ done
 
 # Init the chain
 /usr/bin/beacond init "$BEACOND_MONIKER" \ 
-  --home "$BEACOND_HOME" \
-  --chain-id "$BEACOND_CHAIN_ID" \ 
-  --consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO"
+--home "$BEACOND_HOME" \
+--chain-id "$BEACOND_CHAIN_ID" \ 
+--consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO"
 
 
 # Create beacond config directory
