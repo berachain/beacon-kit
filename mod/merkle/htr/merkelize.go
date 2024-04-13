@@ -28,16 +28,16 @@ package htr
 import (
 	"encoding/binary"
 
+	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	ztyp "github.com/protolambda/ztyp/tree"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
 // Vector uses our optimized routine to hash a list of 32-byte
 // elements.
 func Vector(elements [][32]byte, length uint64) [32]byte {
-	depth := ztyp.CoverDepth(length)
+	depth := bitlen.CoverDepth(length)
 	// Return zerohash at depth
 	if len(elements) == 0 {
 		return zero.Hashes[depth]
