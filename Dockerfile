@@ -37,11 +37,9 @@ ARG GIT_VERSION
 ARG GIT_COMMIT
 ARG BUILD_TAGS
 
-RUN apk add --no-cache ca-certificates build-base linux-headers
-
-# Setup some alpine stuff that nobody really knows how or why it works.
-RUN set -eux; \
-    apk add --no-cache git linux-headers ca-certificates build-base
+# Consolidate RUN commands to reduce layers
+RUN apk add --no-cache ca-certificates build-base linux-headers git && \
+    set -eux
 
 # Set the working directory
 WORKDIR /workdir
@@ -67,9 +65,7 @@ ARG CMD_PATH
 # Build beacond
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
-    env APP_NAME=${APP_NAME} && \
-    env CGO_ENABLED=1 && \
+    env NAME=${NAME} DB_BACKEND=${DB_BACKEND} APP_NAME=${APP_NAME} CGO_ENABLED=1 && \
     go build \
     -mod=readonly \
     -tags ${BUILD_TAGS} \
@@ -100,13 +96,9 @@ COPY ./beacond/init.sh /usr/bin/init.sh
 COPY ./beacond/finalize.sh /usr/bin/finalize.sh
 COPY ./beacond/start.sh /usr/bin/start.sh
 
-RUN chmod +x /usr/bin/init.sh
-RUN chmod +x /usr/bin/finalize.sh
-RUN chmod +x /usr/bin/start.sh
-
-RUN mkdir -p /root/jwt
-RUN mkdir -p /root/kzg 
-
-RUN apk add bash jq sed curl
+# Consolidate chmod commands
+RUN chmod +x /usr/bin/init.sh /usr/bin/finalize.sh /usr/bin/start.sh && \
+    mkdir -p /root/jwt /root/kzg && \
+    apk add --no-cache bash jq sed curl
 
 #ENTRYPOINT [ "./beacond" ]
