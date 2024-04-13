@@ -26,9 +26,14 @@
 package execution
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
+	gengine "github.com/ethereum/go-ethereum/beacon/engine"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -55,6 +60,43 @@ func BuildNewPayloadRequest(
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
+}
+
+// HasHValidVersionAndBlockHashes checks if the version and block hashes are
+// valid.
+// As per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
+//
+//nolint:lll
+func (n *NewPayloadRequest) HasValidVersionAndBlockHashes() error {
+	// TODO: Refactor off of Deneb hardcode.
+	payload, _ := n.ExecutionPayload.(*types.ExecutableDataDeneb)
+	data := gengine.ExecutableData{
+		ParentHash:    payload.ParentHash,
+		FeeRecipient:  payload.FeeRecipient,
+		StateRoot:     payload.StateRoot,
+		ReceiptsRoot:  payload.ReceiptsRoot,
+		LogsBloom:     payload.LogsBloom,
+		Random:        payload.Random,
+		Number:        payload.Number,
+		GasLimit:      payload.GasLimit,
+		GasUsed:       payload.GasUsed,
+		Timestamp:     payload.Timestamp,
+		ExtraData:     payload.ExtraData,
+		BaseFeePerGas: uint256.LittleFromBigEndian(payload.BaseFeePerGas).Big(),
+		BlockHash:     payload.BlockHash,
+		Transactions:  payload.Transactions,
+		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&payload.Withdrawals)),
+		BlobGasUsed:   &payload.BlobGasUsed,
+		ExcessBlobGas: &payload.ExcessBlobGas,
+	}
+	_, err := gengine.ExecutableDataToBlock(
+		data,
+		n.VersionedHashes,
+		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
+	)
+	return err
 }
 
 // ForkchoiceUpdateRequest.

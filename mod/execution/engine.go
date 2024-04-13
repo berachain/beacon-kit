@@ -138,29 +138,23 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *NewPayloadRequest,
 ) (bool, error) {
-	payload := req.ExecutionPayload
 	// First we verify the block hash and versioned hashes are valid.
-	if err := types.IsValidVersionAndBlockHashes(
-		// TODO handle properly.
-		payload.(*types.ExecutableDataDeneb),
-		req.ParentBeaconBlockRoot,
-		req.VersionedHashes,
-	); err != nil {
+	if err := req.HasValidVersionAndBlockHashes(); err != nil {
 		return false, err
 	}
 
 	// Lastly, we need to check if the payload is valid.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
-		payload,
+		req.ExecutionPayload,
 		req.VersionedHashes,
 		req.ParentBeaconBlockRoot,
 	)
 	switch {
 	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
-			"payload_block_hash", (payload.GetBlockHash()),
-			"parent_hash", (payload.GetParentHash()),
+			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
+			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
 		return false, nil
 	case errors.Is(err, client.ErrInvalidPayloadStatus):
