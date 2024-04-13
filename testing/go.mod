@@ -9,7 +9,7 @@ require (
 	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218
 	github.com/kurtosis-tech/kurtosis/api/golang v0.88.16
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
