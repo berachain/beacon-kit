@@ -29,10 +29,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
+	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
-	"github.com/protolambda/ztyp/tree"
 )
 
 const (
@@ -55,7 +56,7 @@ func NewTreeFromLeaves(
 ) (*Tree, error) {
 	return NewTreeFromLeavesWithDepth(
 		leaves,
-		tree.CoverDepth(uint64(len(leaves))),
+		bitlen.CoverDepth(uint64(len(leaves))),
 	)
 }
 
@@ -65,7 +66,7 @@ func NewTreeWithMaxLeaves(
 	leaves [][32]byte,
 	maxLeaves uint64,
 ) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(leaves, tree.CoverDepth(maxLeaves))
+	return NewTreeFromLeavesWithDepth(leaves, bitlen.CoverDepth(maxLeaves))
 }
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
@@ -96,7 +97,7 @@ func NewTreeFromLeavesWithDepth(
 	for d := range depth {
 		currentLayer := layers[d]
 		if len(currentLayer)%2 == 1 {
-			currentLayer = append(currentLayer, tree.ZeroHashes[d])
+			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
 		layers[d+1], err = htr.BuildParentTreeRoots(currentLayer)
 		if err != nil {
@@ -117,7 +118,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 		return errors.Wrap(ErrNegativeIndex, fmt.Sprintf("index: %d", index))
 	}
 	for index >= len(m.branches[0]) {
-		m.branches[0] = append(m.branches[0], tree.ZeroHashes[0])
+		m.branches[0] = append(m.branches[0], zero.Hashes[0])
 	}
 	m.branches[0][index] = item
 	if index >= len(m.leaves) {
@@ -131,7 +132,7 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 	root := item
 	for i := range m.depth {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
-			neighbor = tree.ZeroHashes[i]
+			neighbor = zero.Hashes[i]
 		} else {
 			neighbor = m.branches[i][neighborIdx]
 		}
@@ -169,7 +170,7 @@ func (m *Tree) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
-		m.leaves[0] == tree.ZeroHashes[0] {
+		m.leaves[0] == zero.Hashes[0] {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
@@ -193,7 +194,7 @@ func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 		if subIndex < uint64(len(m.branches[i])) {
 			proof[i] = m.branches[i][subIndex]
 		} else {
-			proof[i] = tree.ZeroHashes[i]
+			proof[i] = zero.Hashes[i]
 		}
 	}
 	return proof, nil
