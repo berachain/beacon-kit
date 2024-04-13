@@ -40,7 +40,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error)
+	) (enginetypes.ExecutionPayloadEnvelope, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.

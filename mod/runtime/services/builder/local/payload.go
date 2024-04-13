@@ -296,7 +296,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, ErrNilPayloadID
 	}
 
-	payload, blobsBundle, overrideBuilder, err := s.ee.GetPayload(
+	envelope, err := s.ee.GetPayload(
 		ctx,
 		&execution.GetPayloadRequest{
 			PayloadID: *payloadID,
@@ -309,11 +309,13 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, err
 	}
 
+	overrideBuilder := envelope.ShouldOverrideBuilder()
 	args := []any{
 		"for_slot", slot,
 		"override_builder", overrideBuilder,
 	}
 
+	payload := envelope.GetExecutionPayload()
 	if payload != nil && !payload.IsNil() {
 		args = append(args,
 			"payload_block_hash", payload.GetBlockHash(),
@@ -321,6 +323,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		)
 	}
 
+	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle != nil {
 		args = append(args, "num_blobs", len(blobsBundle.Blobs))
 	}

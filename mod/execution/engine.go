@@ -79,7 +79,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (types.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (types.ExecutionPayloadEnvelope, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
