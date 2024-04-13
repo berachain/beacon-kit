@@ -171,17 +171,12 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, k
     # Get peers for the cl node
     persistent_peers = get_persistent_peers(plan, peers)
 
-    # command = start.change_config_toml()
-    # command_2 = start.start()
-    # command_new = "{} && {}".format(command, co))
-    # plan.print("Command: {}".format(command_2))
     beacond_config = get_config(
         cl_image,
         engine_dial_url,
         cl_service_name,
-        entrypoint = ["bash"],
-        # cmd = ["-c", command, command_2],
-        cmd = ["-c", "/usr/bin/start.sh"],
+        entrypoint = ["bash","-c"],
+        cmd= [start.start(plan,persistent_peers)],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,
@@ -200,28 +195,28 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, k
         config = beacond_config,
     )
 
+def init_consensus_nodes():
+    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
+    # Check if genesis file exists, if not then initialize the beacond
+    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    collect_gentx = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
+
 def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
     cl_service_name = "cl-full-beaconkit-{}".format(index)
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
 
+    init_and_start = "{} && {}".format(init_consensus_nodes(), start.start(plan,persistent_peers))
 
-    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
-    # Check if genesis file exists, if not then initialize the beacond
-    command_check = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    command = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
-    command_collect = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
-    # start_commmand = start.start()
-    start_commmand = "/usr/bin/start.sh"
-    merged_command = "{} && {} && {} && {}".format(command_check, command, command_collect, start_commmand)
-    plan.print("Command: {}".format(merged_command))
     beacond_config = get_config(
         cl_image,
         engine_dial_url,
         cl_service_name,
         entrypoint = ["bash", "-c"],
-        cmd = [merged_command],
+        cmd = [init_and_start],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,
