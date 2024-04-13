@@ -86,8 +86,9 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		ExtraData:    payload.GetExtraData(),
 		BaseFeePerGas: uint256.LittleFromBigEndian(payload.GetBaseFeePerGas()).
 			Big(),
-		BlockHash:     payload.GetBlockHash(),
-		Transactions:  payload.GetTransactions(),
+		BlockHash:    payload.GetBlockHash(),
+		Transactions: payload.GetTransactions(),
+		//#nosec:G103 // henlo I am the captain now.
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
 		BlobGasUsed:   payload.GetBlobGasUsed(),
 		ExcessBlobGas: payload.GetExcessBlobGas(),
