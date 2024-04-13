@@ -143,7 +143,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		return false, err
 	}
 
-	// Then we need to check if the payload is valid.
+	// Then we can ask the EL to process the new payload.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
 		req.ExecutionPayload,
