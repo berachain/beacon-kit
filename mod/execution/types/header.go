@@ -40,12 +40,10 @@ import (
 //
 //nolint:lll
 func IsValidVersionAndBlockHashes(
-	// TODO: move to a generic and/or interface.
 	payload *ExecutableDataDeneb,
 	parentBeaconBlockRoot *primitives.Root,
 	versionedHashes []primitives.ExecutionHash,
 ) error {
-	// We have to convert the withdrawals to the geth type.
 	withdrawals := make([]*types.Withdrawal, len(payload.Withdrawals))
 	for i, wd := range payload.Withdrawals {
 		withdrawals[i] = &types.Withdrawal{
@@ -56,6 +54,7 @@ func IsValidVersionAndBlockHashes(
 		}
 	}
 
+	// bigEndianBaseFeePerGas := big.NewInt(0).SetBytes(payload.BaseFeePerGas)
 	data := engine.ExecutableData{
 		ParentHash:    payload.ParentHash,
 		FeeRecipient:  payload.FeeRecipient,
@@ -68,14 +67,13 @@ func IsValidVersionAndBlockHashes(
 		GasUsed:       payload.GasUsed,
 		Timestamp:     payload.Timestamp,
 		ExtraData:     payload.ExtraData,
-		BaseFeePerGas: uint256.LittleEndian(payload.BaseFeePerGas).Big(),
+		BaseFeePerGas: uint256.LittleFromBigEndian(payload.BaseFeePerGas).Big(),
 		BlockHash:     payload.BlockHash,
 		Transactions:  payload.Transactions,
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   &payload.BlobGasUsed,
 		ExcessBlobGas: &payload.ExcessBlobGas,
 	}
-
 	// Check to see if the parent beacon block root is empty.
 	_, err := engine.ExecutableDataToBlock(
 		data,
