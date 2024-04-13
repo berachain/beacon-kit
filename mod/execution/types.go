@@ -69,7 +69,7 @@ func BuildNewPayloadRequest(
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 //
 //nolint:lll
-func (n *NewPayloadRequest) HasValidVersionAndBlockHashes() error {
+func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	// TODO: Refactor off of Deneb hardcode.
 	payload, _ := n.ExecutionPayload.(*types.ExecutableDataDeneb)
 	data := gengine.ExecutableData{

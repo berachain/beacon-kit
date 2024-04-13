@@ -139,11 +139,11 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	req *NewPayloadRequest,
 ) (bool, error) {
 	// First we verify the block hash and versioned hashes are valid.
-	if err := req.HasValidVersionAndBlockHashes(); err != nil {
+	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
 		return false, err
 	}
 
-	// Lastly, we need to check if the payload is valid.
+	// Then we need to check if the payload is valid.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
 		req.ExecutionPayload,
