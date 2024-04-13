@@ -31,7 +31,7 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.18 as builder
+FROM golang:${GO_VERSION}-alpine3.19 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
