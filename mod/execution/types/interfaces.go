@@ -54,8 +54,8 @@ type ExecutionPayloadBody interface {
 	GetStateRoot() primitives.ExecutionHash
 	GetReceiptsRoot() primitives.ExecutionHash
 	GetLogsBloom() []byte
-	GetBlobGasUsed() uint64
-	GetExcessBlobGas() uint64
+	GetBlobGasUsed() *uint64
+	GetExcessBlobGas() *uint64
 }
 
 // ExecutionPayload represents the execution data of a block.

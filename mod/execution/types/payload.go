@@ -228,13 +228,13 @@ func (d *ExecutableDataDeneb) GetWithdrawals() []*primitives.Withdrawal {
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlobGasUsed() uint64 {
-	return d.BlobGasUsed
+func (d *ExecutableDataDeneb) GetBlobGasUsed() *uint64 {
+	return &d.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetExcessBlobGas() uint64 {
-	return d.ExcessBlobGas
+func (d *ExecutableDataDeneb) GetExcessBlobGas() *uint64 {
+	return &d.ExcessBlobGas
 }
 
 // String returns the string representation of the ExecutableDataDeneb.

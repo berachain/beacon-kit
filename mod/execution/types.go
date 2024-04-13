@@ -72,8 +72,6 @@ func BuildNewPayloadRequest(
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
-	blobGasUsed := payload.GetBlobGasUsed()
-	excessBlobGas := payload.GetExcessBlobGas()
 	data := gengine.ExecutableData{
 		ParentHash:   payload.GetParentHash(),
 		FeeRecipient: payload.GetFeeRecipient(),
@@ -91,8 +89,8 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		BlockHash:     payload.GetBlockHash(),
 		Transactions:  payload.GetTransactions(),
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
-		BlobGasUsed:   &blobGasUsed,
-		ExcessBlobGas: &excessBlobGas,
+		BlobGasUsed:   payload.GetBlobGasUsed(),
+		ExcessBlobGas: payload.GetExcessBlobGas(),
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,
