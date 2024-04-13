@@ -38,20 +38,13 @@ while getopts 'f' flag; do
 done
 
 # Init the chain
-/usr/bin/beacond init --chain-id "$BEACOND_CHAIN_ID" "$BEACOND_MONIKER" --home "$BEACOND_HOME" --beacon-kit.accept-tos
-
+/usr/bin/beacond init --chain-id "$BEACOND_CHAIN_ID" "$BEACOND_MONIKER" --consensus-key-algo "$BEACOND_CONSENSUS_KEY_ALGO" --home "$BEACOND_HOME" --beacon-kit.accept-tos
 
 # Create beacond config directory
 if [ "$flag_first_validator" = true ]; then
     GENESIS=$BEACOND_HOME/config/genesis.json
     TMP_GENESIS=$BEACOND_HOME/config/tmp_genesis.json
-
-	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 fi
-
 
 /usr/bin/beacond genesis add-validator --home "$BEACOND_HOME"
 /usr/bin/beacond genesis collect-validators --home "$BEACOND_HOME"
-
-
-

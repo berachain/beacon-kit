@@ -53,6 +53,7 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
             "BEACOND_ETH_CHAIN_ID": "80087",
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
+            "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         },
         ports = exposed_ports,
     )
