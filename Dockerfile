@@ -45,7 +45,12 @@ RUN apk add --no-cache ca-certificates build-base linux-headers git && \
 WORKDIR /workdir
 
 # Copy the go.mod and go.sum files for each module
-COPY ./go.mod ./go.sum ./
+COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
+COPY ./mod/go.mod ./mod/go.sum ./mod/
+RUN go work init
+RUN go work use ./beacond
+RUN go work use ./mod
+
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
