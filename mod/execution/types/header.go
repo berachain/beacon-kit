@@ -26,6 +26,8 @@
 package types
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/beacon/engine"
@@ -44,17 +46,6 @@ func IsValidVersionAndBlockHashes(
 	parentBeaconBlockRoot *primitives.Root,
 	versionedHashes []primitives.ExecutionHash,
 ) error {
-	withdrawals := make([]*types.Withdrawal, len(payload.Withdrawals))
-	for i, wd := range payload.Withdrawals {
-		withdrawals[i] = &types.Withdrawal{
-			Index:     wd.Index,
-			Validator: uint64(wd.Validator),
-			Amount:    uint64(wd.Amount),
-			Address:   wd.Address,
-		}
-	}
-
-	// bigEndianBaseFeePerGas := big.NewInt(0).SetBytes(payload.BaseFeePerGas)
 	data := engine.ExecutableData{
 		ParentHash:    payload.ParentHash,
 		FeeRecipient:  payload.FeeRecipient,
@@ -70,11 +61,10 @@ func IsValidVersionAndBlockHashes(
 		BaseFeePerGas: uint256.LittleFromBigEndian(payload.BaseFeePerGas).Big(),
 		BlockHash:     payload.BlockHash,
 		Transactions:  payload.Transactions,
-		Withdrawals:   withdrawals,
+		Withdrawals:   *(*[]*types.Withdrawal)(unsafe.Pointer(&payload.Withdrawals)),
 		BlobGasUsed:   &payload.BlobGasUsed,
 		ExcessBlobGas: &payload.ExcessBlobGas,
 	}
-	// Check to see if the parent beacon block root is empty.
 	_, err := engine.ExecutableDataToBlock(
 		data,
 		versionedHashes,
