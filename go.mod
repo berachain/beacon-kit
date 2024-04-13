@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.22.1
+go 1.22.2
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
@@ -11,7 +11,7 @@ replace (
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413212330-df33fccc2a5b
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413213708-414fdac6561d
 )
 
 require (
@@ -58,6 +58,14 @@ require (
 	go.uber.org/nilaway v0.0.0-20240403175823-755a685ab68b
 	golang.org/x/sync v0.7.0
 	google.golang.org/protobuf v1.33.0
+)
+
+require (
+	github.com/cometbft/cometbft-db v0.12.0 // indirect
+	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/google/flatbuffers v1.12.1 // indirect
+	go.opencensus.io v0.24.0 // indirect
 )
 
 require (
@@ -124,7 +132,6 @@ require (
 	github.com/catenacyber/perfsprint v0.7.1 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
@@ -135,7 +142,6 @@ require (
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft-db v0.11.0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect
@@ -161,9 +167,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.6.0 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/cli v26.0.0+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
@@ -420,7 +424,7 @@ require (
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go-simpler.org/musttag v0.9.0 // indirect
 	go-simpler.org/sloglint v0.5.0 // indirect
-	go.etcd.io/bbolt v1.3.8 // indirect
+	go.etcd.io/bbolt v1.4.0-alpha.0.0.20240404170359-43604f3112c5 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.24.0 // indirect
