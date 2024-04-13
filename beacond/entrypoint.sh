@@ -27,7 +27,7 @@
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
-# Set dedicated home directory for the ./build/bin/beacond instance
+CONSENSUS_KEY_TYPE="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
 # Path variables
@@ -41,13 +41,6 @@ set -e
 # Reinstall daemon
 make build
 
-if !command -v jq &> /dev/null
-then
-    echo "jq could not be found. Please install jq to continue."
-    exit 1
-fi
-
-
 overwrite="N"
 if [ -d "$HOMEDIR" ]; then
 	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" "$HOMEDIR"
@@ -59,15 +52,8 @@ fi
 
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
-	# # Remove the previous folder
 	rm -rf "$HOMEDIR"
-
-	# # Set moniker and chain-id (Moniker can be anything, chain-id must be an integer)
-	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos
-	
-	# Change parameter token denominations to abgt
-	jq '.consensus.params.validator.pub_key_types += ["bls12_381"] | .consensus.params.validator.pub_key_types -= ["ed25519"]' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
-
+	./build/bin/beacond init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR" --beacon-kit.accept-tos --consensus-key-algo $CONSENSUS_KEY_TYPE
 	./build/bin/beacond genesis add-validator --home "$HOMEDIR"
 	./build/bin/beacond genesis collect-validators --home "$HOMEDIR" 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home "$HOMEDIR"
