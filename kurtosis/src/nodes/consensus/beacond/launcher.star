@@ -1,8 +1,7 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 execution = import_module("../../execution/execution.star")
-init = import_module("../../../lib/init_node.star")
-start = import_module("../../../lib/start_node.star")
-helper = import_module("../../../lib/helper.star")
+node = import_module("../../../lib/node.star")
+bash = import_module("../../../lib/bash.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -99,12 +98,12 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
 
         # Initialize the Cosmos genesis file
         if n == 0:
-            init.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
+            node.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
 
         else:
-            init.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
+            node.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
 
-        peer_result = helper.bash_exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
+        peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
 
         node_peering_info.append(peer_result["output"])
 
@@ -112,7 +111,7 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         if n == num_validators - 1:
             # Initialize the Cosmos genesis file
             # Collect genesis tx
-            helper.bash_exec_on_service(plan, cl_service_name, "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME")
+            bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME")
             file_suffix = "final"
 
         node_beacond_config = plan.store_service_files(
@@ -165,7 +164,7 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, k
         engine_dial_url,
         cl_service_name,
         entrypoint = ["bash", "-c"],
-        cmd = [start.start(persistent_peers)],
+        cmd = [node.start(persistent_peers)],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,
@@ -199,7 +198,7 @@ def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_fi
 
     persistent_peers = get_persistent_peers(plan, peers)
 
-    init_and_start = "{} && {}".format(init_consensus_nodes(), start.start(persistent_peers))
+    init_and_start = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers))
 
     beacond_config = get_config(
         cl_image,
