@@ -38,7 +38,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 	// Define a struct for the custom app configuration.
 	type CustomAppConfig struct {
 		serverconfig.Config
-		BeaconKit config.Config `mapstructure:"beacon-kit"`
+		BeaconKit *config.Config `mapstructure:"beacon-kit"`
 	}
 
 	// Start with the default server configuration.
@@ -52,7 +52,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
-		BeaconKit: *config.DefaultConfig(),
+		BeaconKit: config.DefaultConfig(),
 	}
 
 	return customAppConfig

@@ -32,7 +32,6 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
@@ -41,9 +40,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,7 +59,9 @@ type AppInfo[T servertypes.Application] struct {
 }
 
 // NodeBuilder is a struct that holds the application information.
-type NodeBuilder[T servertypes.Application] struct {
+type NodeBuilder[
+	T servertypes.Application,
+] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
 }
@@ -94,13 +95,13 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 		depinject.Configs(
 			nb.appInfo.DepInjectConfig,
 			depinject.Supply(
-				log.NewNopLogger(),
-				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
-				&params.BeaconChainConfig{},
+				log.NewLogger(os.Stdout),
+				viper.GetViper(),
 			),
 			depinject.Provide(
 				components.ProvideClientContext,
 				components.ProvideKeyring,
+				components.ProvideConfig,
 			),
 		),
 		&autoCliOpts,

@@ -27,34 +27,25 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
-type TrustedSetupInput struct {
+// ConfigInput is the input for the dependency injection framework.
+type ConfigInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
 }
 
-// TrustedSetupOutput is the output for the dep inject framework.
-type TrustedSetupOutput struct {
+// ConfigOutput is the output for the dependency injection framework.
+type ConfigOutput struct {
 	depinject.Out
-	TrustedSetup *gokzg4844.JSONTrustedSetup
+	Config *config.Config
 }
 
-// ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
-	trustedSetup, err := kzg.ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
-	if err != nil {
-		panic(err)
-	}
-
-	return TrustedSetupOutput{
-		TrustedSetup: trustedSetup,
+// ProvideConfig is a function that provides the JWT secret to the application.
+func ProvideConfig(in ConfigInput) ConfigOutput {
+	return ConfigOutput{
+		Config: config.MustReadConfigFromAppOpts(in.AppOpts),
 	}
 }

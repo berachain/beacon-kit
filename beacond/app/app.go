@@ -33,13 +33,10 @@ import (
 	"cosmossdk.io/log"
 	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -57,13 +54,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	legacyAmino       *codec.LegacyAmino
-	appCodec          codec.Codec
-	txConfig          client.TxConfig
-	interfaceRegistry codectypes.InterfaceRegistry
-
-	// TODO: should we restructure the relationship between
-	// the BeaconKeeper BeaconKitRuntime?
 	BeaconKeeper          *beaconkeeper.Keeper
 	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
@@ -95,7 +85,6 @@ func NewBeaconKitApp(
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
-	beaconCfg := config.MustReadConfigFromAppOpts(appOpts)
 	if err := depinject.Inject(
 		depinject.Configs(
 			Config(),
@@ -104,29 +93,23 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideJWTSecret,
+				bkcomponents.ProvideConfig,
 			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
-				// supply the beaconConfig
-				beaconCfg,
-				&(beaconCfg.Beacon),
 			),
 		),
 		&appBuilder,
-		&app.appCodec,
-		&app.legacyAmino,
-		&app.txConfig,
-		&app.interfaceRegistry,
 		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
-	// Build the app using the app builder.
+	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Components.
