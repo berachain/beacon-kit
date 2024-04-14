@@ -46,7 +46,12 @@ type LittleEndian [32]byte
 // LittleFromBigEndian creates a new LittleEndian from a big-endian
 // byte slice.
 func LittleFromBigEndian(b []byte) LittleEndian {
-	return LittleEndian(byteslib.CopyAndReverseEndianess(b))
+	return LittleEndian(
+		byteslib.ExtendToSize(
+			byteslib.CopyAndReverseEndianess(b),
+			UInt256Bytes,
+		),
+	)
 }
 
 // LittleFromBigInt creates a new LittleEndian from a big.Int.
