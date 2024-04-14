@@ -26,52 +26,149 @@
 package components
 
 import (
-	"os"
+	"context"
 
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/da"
+	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/execution"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
+	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
+	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
+	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
-// RuntimeInjectInput is the input for the dep inject framework.
-type RuntimeInjectInput struct {
-	depinject.In
+// NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
+// services.
+//
+//nolint:funlen // bullish.
+func ProvideRuntime(
+	cfg *config.Config,
+	signer runtime.BLSSigner,
+	jwtSecret *jwt.Secret,
+	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
+	bsb runtime.BeaconStorageBackend,
+	logger log.Logger,
+) (*runtime.BeaconKitRuntime, error) {
+	// Set the module as beacon-kit to override the cosmos-sdk naming.
+	logger = logger.With("module", "beacon-kit")
 
-	BeaconCfg       *config.Config
-	Logger          log.Logger
-	JWTSecret       *jwt.Secret
-	Signer          core.BLSSigner
-	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
-	Bsp             runtime.BeaconStorageBackend
-}
+	// Create the base service, we will the create shallow copies for each
+	// service.
+	baseService := service.NewBaseService(
+		cfg, bsb, logger,
+	)
 
-// RuntimeInjectOutput is the output for the dep inject framework.
-type RuntimeInjectOutput struct {
-	depinject.Out
-	Runtime *runtime.BeaconKitRuntime
-}
+	// Build the client to interact with the Engine API.
+	engineClient := engineclient.New(
+		engineclient.WithEngineConfig(&cfg.Engine),
+		engineclient.WithJWTSecret(jwtSecret),
+		engineclient.WithLogger(logger),
+	)
 
-// ProvideRuntime is a function that provides the module to the application.
-func ProvideRuntime(in RuntimeInjectInput) RuntimeInjectOutput {
-	r, err := runtime.NewDefaultBeaconKitRuntime(
-		in.BeaconCfg,
-		in.Signer,
-		in.JWTSecret,
-		in.KZGTrustedSetup,
-		in.Bsp,
-		in.Logger,
+	// TODO: move.
+	engineClient.Start(context.Background())
+
+	// Extrac the staking ABI.
+	depositABI, err := abi.BeaconDepositContractMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the execution engine.
+	executionEngine := execution.NewEngine(engineClient, logger)
+
+	// Build the staking service.
+	stakingService := service.New[staking.Service](
+		staking.WithBaseService(baseService.ShallowCopy("staking")),
+		staking.WithDepositABI(depositABI),
+		staking.WithExecutionEngine(executionEngine),
+	)
+
+	// Build the local builder service.
+	localBuilder := service.New[localbuilder.Service](
+		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
+		localbuilder.WithBuilderConfig(&cfg.Builder),
+		localbuilder.WithExecutionEngine(executionEngine),
+		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+	)
+
+	// Build the Blobs Vierifer
+	blobProofVerifier, err := proof.NewBlobProofVerifier(
+		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
 	if err != nil {
-		in.Logger.Error(
-			"failed to create beacon-kit runtime, exiting...", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	return RuntimeInjectOutput{
-		Runtime: r,
-	}
+	logger.Info(
+		"successfully loaded blob verifier",
+		"impl",
+		cfg.KZG.Implementation,
+	)
+
+	// Build the Randao Processor.
+	randaoProcessor := randao.NewProcessor(
+		randao.WithSigner(signer),
+		randao.WithLogger(logger.With("service", "randao")),
+		randao.WithConfig(cfg),
+	)
+
+	// Build the builder service.
+	blobFactory := da.NewSidecarFactory[types.BeaconBlockBody](
+		&cfg.Beacon,
+		types.KZGPositionDeneb,
+	)
+	builderService := service.New[builder.Service](
+		builder.WithBaseService(baseService.ShallowCopy("builder")),
+		builder.WithBuilderConfig(&cfg.Builder),
+		builder.WithBlobFactory(blobFactory),
+		builder.WithLocalBuilder(localBuilder),
+		builder.WithRandaoProcessor(randaoProcessor),
+		builder.WithSigner(signer),
+	)
+
+	// Build the blockchain service.
+	chainService := service.New[blockchain.Service](
+		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
+		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
+		blockchain.WithExecutionEngine(executionEngine),
+		blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
+		blockchain.WithStakingService(stakingService),
+		blockchain.WithStateProcessor(
+			core.NewStateProcessor(
+				&cfg.Beacon,
+				da.NewBlobVerifier(blobProofVerifier),
+				randaoProcessor,
+				logger,
+			)),
+	)
+
+	// Build the service registry.
+	svcRegistry := service.NewRegistry(
+		service.WithLogger(logger),
+		service.WithService(builderService),
+		service.WithService(chainService),
+		service.WithService(stakingService),
+	)
+
+	// Pass all the services and options into the BeaconKitRuntime.
+	return runtime.NewBeaconKitRuntime(
+		runtime.WithBeaconStorageBackend(bsb),
+		runtime.WithConfig(cfg),
+		runtime.WithLogger(logger),
+		runtime.WithServiceRegistry(svcRegistry),
+	)
 }
