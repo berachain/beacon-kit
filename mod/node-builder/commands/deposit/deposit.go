@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 )
 
@@ -115,6 +116,7 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 	return depositMessage.VerifyCreateValidator(
 		forkData,
 		signature,
+		blst.VerifySignaturePubkeyBytes,
 	)
 }
 

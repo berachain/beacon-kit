@@ -25,7 +25,8 @@
 
 package primitives
 
-import "github.com/itsdevbear/comet-bls12-381/bls/blst"
+// SigVerificationFn is a function that verifies a signature.
+type SigVerificationFn func(pubkey, message, signature []byte) bool
 
 // DepositMessage as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
@@ -49,6 +50,7 @@ type DepositMessage struct {
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature BLSSignature,
+	isSignatureValid SigVerificationFn,
 ) error {
 	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
 	if err != nil {
@@ -60,7 +62,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	if !blst.VerifySignaturePubkeyBytes(
+	if !isSignatureValid(
 		d.Pubkey[:],
 		signingRoot[:],
 		signature[:],
