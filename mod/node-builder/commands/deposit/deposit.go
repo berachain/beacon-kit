@@ -30,6 +30,7 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -105,16 +106,14 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	depositMessage := primitives.DepositMessage{
+	depositMessage := consensusprimitives.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 	}
 
-	forkData := primitives.NewForkData(currentVersion, genesisValidatorRoot)
-
 	return depositMessage.VerifyCreateValidator(
-		forkData,
+		primitives.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
 		blst.VerifySignaturePubkeyBytes,
 	)

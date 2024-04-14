@@ -106,7 +106,9 @@ func (b *BeaconBlockBodyDeneb) GetDeposits() consensusprimitives.Deposits {
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits consensusprimitives.Deposits) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(
+	deposits consensusprimitives.Deposits,
+) {
 	b.Deposits = deposits
 }
 
