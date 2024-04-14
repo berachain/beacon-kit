@@ -27,7 +27,6 @@ package consensusprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // BeaconBlockHeader is the header of a beacon block.
@@ -47,9 +46,4 @@ type BeaconBlockHeader struct {
 	StateRoot primitives.Root `json:"stateRoot"     ssz-size:"32"`
 	// 	// BodyRoot is the root of the block body.
 	BodyRoot primitives.Root `json:"bodyRoot"      ssz-size:"32"`
-}
-
-// String returns a string representation of the beacon block header.
-func (h *BeaconBlockHeader) String() string {
-	return spew.Sdump(h)
 }

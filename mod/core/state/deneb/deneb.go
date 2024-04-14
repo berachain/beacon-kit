@@ -32,7 +32,6 @@ import (
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -148,11 +147,6 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
-}
-
-// String returns a string representation of BeaconState.
-func (b *BeaconState) String() string {
-	return spew.Sdump(b)
 }
 
 // BeaconStateJSONMarshaling is a type used to marshal/unmarshal

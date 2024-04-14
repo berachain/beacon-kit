@@ -25,10 +25,6 @@
 
 package primitives
 
-import (
-	"github.com/davecgh/go-spew/spew"
-)
-
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
@@ -41,9 +37,4 @@ type Fork struct {
 	CurrentVersion Version
 	// Epoch is the epoch at which the fork occurred.
 	Epoch Epoch
-}
-
-// String returns a string representation of the fork.
-func (f *Fork) String() string {
-	return spew.Sdump(f)
 }

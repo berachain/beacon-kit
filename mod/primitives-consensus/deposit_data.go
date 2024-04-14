@@ -27,7 +27,6 @@ package consensusprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
@@ -60,9 +59,4 @@ func NewDepositData(
 		Amount:      amount,
 		Signature:   signature,
 	}
-}
-
-// String returns a string representation of the Deposit.
-func (d *DepositData) String() string {
-	return spew.Sdump(d)
 }

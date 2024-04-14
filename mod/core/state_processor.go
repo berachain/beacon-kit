@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
@@ -462,7 +463,7 @@ func (sp *StateProcessor) processWithdrawals(
 		if !wd.Equals(payloadWithdrawals[i]) {
 			return fmt.Errorf(
 				"withdrawals do not match expected %s, got %s",
-				wd, payloadWithdrawals[i],
+				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)
 		}
 
