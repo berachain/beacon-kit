@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
@@ -292,7 +293,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits primitives.Deposits,
+	deposits consensusprimitives.Deposits,
 ) error {
 	// Dequeue and verify the logs.
 	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
@@ -334,7 +335,7 @@ func (sp *StateProcessor) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) {
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
@@ -364,7 +365,7 @@ func (sp *StateProcessor) processDeposit(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -393,7 +394,7 @@ func (sp *StateProcessor) createValidator(
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := primitives.DepositMessage{
+	depositMessage := consensusprimitives.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
@@ -411,7 +412,7 @@ func (sp *StateProcessor) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) error {
 	val := types.NewValidatorFromDeposit(
 		dep.Pubkey,

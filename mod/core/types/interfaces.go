@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	ssz "github.com/ferranbt/fastssz"
@@ -65,7 +66,7 @@ type BeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits(primitives.Deposits)
+	SetDeposits(consensusprimitives.Deposits)
 	SetExecutionData(engineprimitives.ExecutionPayload) error
 	SetBlobKzgCommitments(kzg.Commitments)
 }
@@ -79,7 +80,7 @@ type ReadOnlyBeaconBlockBody interface {
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() primitives.Deposits
+	GetDeposits() consensusprimitives.Deposits
 	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() primitives.BLSSignature
 	GetExecutionPayload() engineprimitives.ExecutionPayload

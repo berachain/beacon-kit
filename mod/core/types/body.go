@@ -31,6 +31,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
@@ -54,7 +55,7 @@ var (
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/uint256,../../primitives/kzg,../../primitives-engine,$GETH_PKG_INCLUDE/common -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/uint256,../../primitives/kzg,../../primitives-engine,../../primitives-consensus,$GETH_PKG_INCLUDE/common -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
@@ -63,7 +64,7 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*primitives.Deposit `ssz-max:"16"`
+	Deposits []*consensusprimitives.Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *engineprimitives.ExecutableDataDeneb
@@ -100,12 +101,14 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionP
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() primitives.Deposits {
+func (b *BeaconBlockBodyDeneb) GetDeposits() consensusprimitives.Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits primitives.Deposits) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(
+	deposits consensusprimitives.Deposits,
+) {
 	b.Deposits = deposits
 }
 

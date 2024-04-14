@@ -23,9 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensusprimitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -33,25 +34,25 @@ import (
 // layer.
 type DepositData struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount primitives.Gwei `json:"amount"`
 
 	// Signature of the deposit data.
-	Signature BLSSignature `json:"signature" ssz-max:"96"`
+	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
 }
 
 // NewDeposit creates a new Deposit instance.
 func NewDepositData(
-	pubkey BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount Gwei,
-	signature BLSSignature,
+	pubkey primitives.BLSPubkey,
+	credentials primitives.WithdrawalCredentials,
+	amount primitives.Gwei,
+	signature primitives.BLSSignature,
 ) *DepositData {
 	return &DepositData{
 		Pubkey:      pubkey,

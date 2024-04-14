@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
@@ -130,8 +131,8 @@ type WriteOnlyEth1Data interface {
 	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits(primitives.Deposits) error
-	DequeueDeposits(uint64) (primitives.Deposits, error)
+	EnqueueDeposits(consensusprimitives.Deposits) error
+	DequeueDeposits(uint64) (consensusprimitives.Deposits, error)
 }
 
 // ReadOnlyDeposits has read access to eth1 data.
@@ -139,7 +140,7 @@ type ReadOnlyEth1Data interface {
 	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) (primitives.Deposits, error)
+	ExpectedDeposits(uint64) (consensusprimitives.Deposits, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

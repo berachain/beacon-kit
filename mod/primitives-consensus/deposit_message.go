@@ -23,7 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensusprimitives
+
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 // SigVerificationFn is a function that verifies a signature.
 type SigVerificationFn func(pubkey, message, signature []byte) bool
@@ -32,32 +34,32 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ../primitives/withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount primitives.Gwei `json:"amount"`
 }
 
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
-	forkData *ForkData,
-	signature BLSSignature,
+	forkData *primitives.ForkData,
+	signature primitives.BLSSignature,
 	isSignatureValid SigVerificationFn,
 ) error {
-	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
+	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
 	if err != nil {
 		return err
 	}
 
-	signingRoot, err := ComputeSigningRoot(d, domain)
+	signingRoot, err := primitives.ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}
@@ -67,7 +69,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		signingRoot[:],
 		signature[:],
 	) {
-		return ErrDepositMessage
+		return primitives.ErrDepositMessage
 	}
 
 	return nil

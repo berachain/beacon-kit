@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
@@ -83,7 +84,7 @@ type KVStore struct {
 	balances sdkcollections.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*primitives.Deposit]
+	depositQueue *collections.Queue[*consensusprimitives.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
 	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
@@ -192,10 +193,10 @@ func New(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*primitives.Deposit](
+		depositQueue: collections.NewQueue[*consensusprimitives.Deposit](
 			schemaBuilder,
 			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Deposit]{},
+			encoding.SSZValueCodec[*consensusprimitives.Deposit]{},
 		),
 		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
 			schemaBuilder,
