@@ -38,20 +38,21 @@ type PayloadAttributes struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
-	Timestamp hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
+	Timestamp hexutil.Uint64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
-	PrevRandao primitives.Bytes32 `json:"prevRandao"            gencodec:"required"`
+	PrevRandao primitives.Bytes32 `json:"prevRandao"`
 	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
 	// the execution client has a different fee recipient, it will typically
 	// ignore this value.
-	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
+	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
 	Withdrawals []*primitives.Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
-	// to the block currently being processed. This field was added for EIP-4788.
+	// to the block currently being processed. This field was added for
+	// EIP-4788.
 	ParentBeaconBlockRoot primitives.Root `json:"parentBeaconBlockRoot"`
 }
 
