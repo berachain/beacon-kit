@@ -33,7 +33,7 @@ import (
 
 // SideCars is a slice of blob side cars to be included in the block.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ./sidecar.go,../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecars.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ./sidecar.go,../../primitives/kzg,../../primitives,../../primitives-consensus,$GETH_PKG_INCLUDE/common -output sidecars.ssz.go
 type BlobSidecars struct {
 	// Sidecars is a slice of blob side cars to be included in the block.
 	Sidecars []*BlobSidecar `ssz-max:"6"`

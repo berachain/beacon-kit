@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
@@ -51,7 +52,7 @@ func DefaultBeaconState() *BeaconState {
 			CurrentVersion:  version.FromUint32(version.Deneb),
 			Epoch:           0,
 		},
-		LatestBlockHeader: &primitives.BeaconBlockHeader{
+		LatestBlockHeader: &consensusprimitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
 			ParentRoot:    primitives.Root{},
@@ -113,7 +114,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 // TODO: should we replace ? in ssz-size with values to ensure we are hash tree
 // rooting correctly?
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../primitives-engine,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
@@ -124,9 +125,9 @@ type BeaconState struct {
 	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
-	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []primitives.Root             `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *consensusprimitives.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        []primitives.Root                      `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []primitives.Root                      `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`

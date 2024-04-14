@@ -27,6 +27,7 @@ package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
@@ -46,14 +47,14 @@ func (kv *KVStore) GetBlockRootAtIndex(
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore) SetLatestBlockHeader(
-	header *primitives.BeaconBlockHeader,
+	header *consensusprimitives.BeaconBlockHeader,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore) GetLatestBlockHeader() (
-	*primitives.BeaconBlockHeader, error,
+	*consensusprimitives.BeaconBlockHeader, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }
