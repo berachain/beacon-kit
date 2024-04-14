@@ -26,6 +26,7 @@
 package genesis
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -133,7 +134,7 @@ func writeValidatorStruct(
 	//#nosec:G307 // Ignore errors on this line.
 	defer outputFile.Close()
 
-	bz, err := validator.MarshalJSON()
+	bz, err := json.Marshal(validator)
 	if err != nil {
 		return err
 	}

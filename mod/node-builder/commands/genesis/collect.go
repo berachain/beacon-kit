@@ -157,7 +157,7 @@ func CollectValidatorJSONFiles(
 		}
 
 		val := &beacontypes.Validator{}
-		if err = val.UnmarshalJSON(bz); err != nil {
+		if err = json.Unmarshal(bz, val); err != nil {
 			return nil, err
 		}
 
