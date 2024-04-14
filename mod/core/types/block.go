@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during
@@ -88,13 +89,13 @@ func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
-func (b BeaconBlockDeneb) GetHeader() *primitives.BeaconBlockHeader {
+func (b BeaconBlockDeneb) GetHeader() *consensusprimitives.BeaconBlockHeader {
 	bodyRoot, err := b.GetBody().HashTreeRoot()
 	if err != nil {
 		return nil
 	}
 
-	return &primitives.BeaconBlockHeader{
+	return &consensusprimitives.BeaconBlockHeader{
 		Slot:          b.Slot,
 		ProposerIndex: b.ProposerIndex,
 		ParentRoot:    b.ParentBlockRoot,

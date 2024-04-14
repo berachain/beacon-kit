@@ -57,7 +57,7 @@ type KVStore struct {
 
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
+	latestBlockHeader sdkcollections.Item[*consensusprimitives.BeaconBlockHeader]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
 	// stateRoots stores the state roots for the current epoch.
@@ -237,11 +237,11 @@ func New(
 			sdkcollections.Uint64Value,
 		),
 
-		latestBlockHeader: sdkcollections.NewItem[*primitives.BeaconBlockHeader](
+		latestBlockHeader: sdkcollections.NewItem[*consensusprimitives.BeaconBlockHeader](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
-			encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*consensusprimitives.BeaconBlockHeader]{},
 		),
 	}
 }

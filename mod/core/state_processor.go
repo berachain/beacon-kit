@@ -267,7 +267,7 @@ func (sp *StateProcessor) processHeader(
 	}
 
 	// Store as the new latest block
-	headerRaw := &primitives.BeaconBlockHeader{
+	headerRaw := &consensusprimitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,

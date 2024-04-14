@@ -27,7 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/merkle"
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
@@ -35,7 +35,7 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/kzg,../../primitives,../../primitives-consensus,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
@@ -47,7 +47,7 @@ type BlobSidecar struct {
 	KzgProof kzg.Proof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *primitives.BeaconBlockHeader
+	BeaconBlockHeader *consensusprimitives.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof [][32]byte `ssz-size:"8,32"`
@@ -57,7 +57,7 @@ type BlobSidecar struct {
 // beacon block.
 func BuildBlobSidecar(
 	index uint64,
-	header *primitives.BeaconBlockHeader,
+	header *consensusprimitives.BeaconBlockHeader,
 	blob *kzg.Blob,
 	commitment kzg.Commitment,
 	proof kzg.Proof,
