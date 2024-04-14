@@ -53,7 +53,7 @@ import (
 // services.
 //
 //nolint:funlen // bullish.
-func ProvideBeaconKitRuntime(
+func ProvideRuntime(
 	cfg *config.Config,
 	signer runtime.BLSSigner,
 	jwtSecret *jwt.Secret,
