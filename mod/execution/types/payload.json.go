@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -27,7 +28,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 		GasUsed       hexutil.Uint64           `json:"gasUsed"                      gencodec:"required"`
 		Timestamp     hexutil.Uint64           `json:"timestamp"                    gencodec:"required"`
 		ExtraData     hexutil.Bytes            `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas []byte                   `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BaseFeePerGas uint256.LittleEndian     `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 		BlockHash     common.Hash              `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []hexutil.Bytes          `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*primitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
@@ -74,7 +75,7 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 		GasUsed       *hexutil.Uint64          `json:"gasUsed"                      gencodec:"required"`
 		Timestamp     *hexutil.Uint64          `json:"timestamp"                    gencodec:"required"`
 		ExtraData     *hexutil.Bytes           `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas []byte                   `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BaseFeePerGas *uint256.LittleEndian    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 		BlockHash     *common.Hash             `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []hexutil.Bytes          `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*primitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
@@ -132,7 +133,7 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutableDataDeneb")
 	}
-	e.BaseFeePerGas = dec.BaseFeePerGas
+	e.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New("missing required field 'blockHash' for ExecutableDataDeneb")
 	}

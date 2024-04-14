@@ -41,7 +41,7 @@ const UInt256Bytes = 32
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
 // for compatibility with the SSZ spec.
-type LittleEndian []byte
+type LittleEndian [32]byte
 
 // LittleFromBigEndian creates a new LittleEndian from a big-endian
 // byte slice.
