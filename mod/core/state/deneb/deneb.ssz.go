@@ -6,7 +6,7 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -53,7 +53,7 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (6) 'LatestExecutionPayload'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.LatestExecutionPayload == nil {
-		b.LatestExecutionPayload = new(enginetypes.ExecutableDataDeneb)
+		b.LatestExecutionPayload = new(engineprimitives.ExecutableDataDeneb)
 	}
 	offset += b.LatestExecutionPayload.SizeSSZ()
 
@@ -278,7 +278,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o6:o9]
 		if b.LatestExecutionPayload == nil {
-			b.LatestExecutionPayload = new(enginetypes.ExecutableDataDeneb)
+			b.LatestExecutionPayload = new(engineprimitives.ExecutableDataDeneb)
 		}
 		if err = b.LatestExecutionPayload.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -356,7 +356,7 @@ func (b *BeaconState) SizeSSZ() (size int) {
 
 	// Field (6) 'LatestExecutionPayload'
 	if b.LatestExecutionPayload == nil {
-		b.LatestExecutionPayload = new(enginetypes.ExecutableDataDeneb)
+		b.LatestExecutionPayload = new(engineprimitives.ExecutableDataDeneb)
 	}
 	size += b.LatestExecutionPayload.SizeSSZ()
 

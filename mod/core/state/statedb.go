@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
@@ -304,7 +304,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	switch activeFork {
 	case version.Deneb:
 		executionPayload, ok :=
-			latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
+			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")

@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
@@ -80,8 +80,8 @@ func DefaultBeaconState() *BeaconState {
 // DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
 //
 //nolint:gomnd // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayload() *enginetypes.ExecutableDataDeneb {
-	return &enginetypes.ExecutableDataDeneb{
+func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
+	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: common.HexToHash(
@@ -130,9 +130,9 @@ type BeaconState struct {
 	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	LatestExecutionPayload *enginetypes.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *primitives.Eth1Data             `json:"eth1Data"`
-	Eth1DepositIndex       uint64                           `json:"eth1DepositIndex"`
+	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
+	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
+	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`

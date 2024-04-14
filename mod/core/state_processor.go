@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
@@ -437,7 +437,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 //nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.
 	var nextValidatorIndex primitives.ValidatorIndex
