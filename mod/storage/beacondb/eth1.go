@@ -32,7 +32,9 @@ import (
 
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error) {
+func (kv *KVStore) GetLatestExecutionPayload() (
+	engineprimitives.ExecutionPayload, error,
+) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
 }
 

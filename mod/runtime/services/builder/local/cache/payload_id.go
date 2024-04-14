@@ -45,7 +45,7 @@ type PayloadIDCache struct {
 	mu sync.RWMutex
 
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
-
+	//nolint:lll
 	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]engineprimitives.PayloadID
 }
 

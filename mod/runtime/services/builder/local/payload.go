@@ -117,7 +117,8 @@ func (s *Service) GetBestPayload(
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (engineprimitives.ExecutionPayload, *engineprimitives.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -164,7 +165,8 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload, *engineprimitives.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.pc.Get(slot, parentBlockRoot)
@@ -198,7 +200,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload, *engineprimitives.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -223,24 +226,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	}
 
 	// Get the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err :=
-		s.getPayloadFromExecutionClient(
-			ctx, payloadID, slot,
-		)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	// TODO: Dencun
-	_ = blobsBundle
-	// bundleCache.add(slot, bundle)
-	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
-
-	// s.Logger().Debug(
-	// 	"received execution payload from local engine", "value",
-	// payload.GetValue(),
-	// )
-	return payload, blobsBundle, overrideBuilder, nil
+	return s.getPayloadFromExecutionClient(
+		ctx, payloadID, slot)
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and
@@ -290,7 +277,8 @@ func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
 	slot primitives.Slot,
-) (engineprimitives.ExecutionPayload, *engineprimitives.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	if payloadID == nil {
 		return nil, nil, false, ErrNilPayloadID
 	}
@@ -300,7 +288,8 @@ func (s *Service) getPayloadFromExecutionClient(
 		&execution.GetPayloadRequest{
 			PayloadID: *payloadID,
 			ForkVersion: s.BeaconCfg().ActiveForkVersionForEpoch(
-				primitives.Epoch(uint64(slot) / s.BeaconCfg().SlotsPerEpoch),
+				primitives.Epoch(uint64(slot) /
+					s.BeaconCfg().SlotsPerEpoch),
 			),
 		},
 	)

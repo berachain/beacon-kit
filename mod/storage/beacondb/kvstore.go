@@ -64,6 +64,7 @@ type KVStore struct {
 
 	// Eth1
 	// latestExecutionPayload stores the latest execution payload.
+
 	latestExecutionPayload sdkcollections.Item[engineprimitives.ExecutionPayload]
 
 	// eth1Data stores the latest eth1 data.
@@ -146,6 +147,7 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
+		//nolint:lll
 		latestExecutionPayload: sdkcollections.NewItem[engineprimitives.ExecutionPayload](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
