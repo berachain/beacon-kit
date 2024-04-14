@@ -23,45 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consenssuprimitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/davecgh/go-spew/spew"
 )
 
+// Deposits is a typealias for a slice of Deposit.
+type Deposits []*Deposit
+
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-type DepositData struct {
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../primitives/withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount primitives.Gwei `json:"amount"`
 
 	// Signature of the deposit data.
-	Signature BLSSignature `json:"signature" ssz-max:"96"`
+	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
+
+	// Index of the deposit in the deposit contract.
+	Index uint64 `json:"index"`
 }
 
 // NewDeposit creates a new Deposit instance.
-func NewDepositData(
-	pubkey BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount Gwei,
-	signature BLSSignature,
-) *DepositData {
-	return &DepositData{
+func NewDeposit(
+	pubkey primitives.BLSPubkey,
+	credentials primitives.WithdrawalCredentials,
+	amount primitives.Gwei,
+	signature primitives.BLSSignature,
+	index uint64,
+) *Deposit {
+	return &Deposit{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
+		Index:       index,
 	}
 }
 
 // String returns a string representation of the Deposit.
-func (d *DepositData) String() string {
+func (d *Deposit) String() string {
 	return spew.Sdump(d)
 }

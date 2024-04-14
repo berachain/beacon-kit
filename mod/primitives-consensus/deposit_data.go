@@ -23,52 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consenssuprimitives
 
-// SigVerificationFn is a function that verifies a signature.
-type SigVerificationFn func(pubkey, message, signature []byte) bool
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/davecgh/go-spew/spew"
+)
 
-// DepositMessage as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
-//
-//nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
-type DepositMessage struct {
+// Deposit into the consensus layer from the deposit contract in the execution
+// layer.
+type DepositData struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount primitives.Gwei `json:"amount"`
+
+	// Signature of the deposit data.
+	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
 }
 
-// VerifyDeposit verifies the deposit data when attempting to create a
-// new validator from a given deposit.
-func (d *DepositMessage) VerifyCreateValidator(
-	forkData *ForkData,
-	signature BLSSignature,
-	isSignatureValid SigVerificationFn,
-) error {
-	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
-	if err != nil {
-		return err
+// NewDeposit creates a new Deposit instance.
+func NewDepositData(
+	pubkey primitives.BLSPubkey,
+	credentials primitives.WithdrawalCredentials,
+	amount primitives.Gwei,
+	signature primitives.BLSSignature,
+) *DepositData {
+	return &DepositData{
+		Pubkey:      pubkey,
+		Credentials: credentials,
+		Amount:      amount,
+		Signature:   signature,
 	}
+}
 
-	signingRoot, err := ComputeSigningRoot(d, domain)
-	if err != nil {
-		return err
-	}
-
-	if !isSignatureValid(
-		d.Pubkey[:],
-		signingRoot[:],
-		signature[:],
-	) {
-		return ErrDepositMessage
-	}
-
-	return nil
+// String returns a string representation of the Deposit.
+func (d *DepositData) String() string {
+	return spew.Sdump(d)
 }

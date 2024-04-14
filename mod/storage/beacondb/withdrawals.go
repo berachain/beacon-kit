@@ -27,6 +27,7 @@ package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 )
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
@@ -59,13 +60,13 @@ func (kv *KVStore) SetNextWithdrawalValidatorIndex(
 // ExpectedDeposits returns the first numPeek deposits in the queue.
 func (kv *KVStore) ExpectedDeposits(
 	numView uint64,
-) (primitives.Deposits, error) {
+) (consensusprimitives.Deposits, error) {
 	return kv.depositQueue.PeekMulti(kv.ctx, numView)
 }
 
 // EnqueueDeposits pushes the deposits to the queue.
 func (kv *KVStore) EnqueueDeposits(
-	deposits primitives.Deposits,
+	deposits consensusprimitives.Deposits,
 ) error {
 	return kv.depositQueue.PushMulti(kv.ctx, deposits)
 }
@@ -73,6 +74,6 @@ func (kv *KVStore) EnqueueDeposits(
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (kv *KVStore) DequeueDeposits(
 	numDequeue uint64,
-) (primitives.Deposits, error) {
+) (consensusprimitives.Deposits, error) {
 	return kv.depositQueue.PopMulti(kv.ctx, numDequeue)
 }
