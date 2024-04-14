@@ -25,8 +25,6 @@
 
 package primitives
 
-import "github.com/davecgh/go-spew/spew"
-
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include execution.go,primitives.go,bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
@@ -35,9 +33,4 @@ type Eth1Data struct {
 	DepositCount uint64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
 	BlockHash ExecutionHash `json:"blockHash"    ssz-size:"32"`
-}
-
-// String returns a string representation of the Eth1Data.
-func (e *Eth1Data) String() string {
-	return spew.Sdump(e)
 }

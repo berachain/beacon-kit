@@ -26,8 +26,6 @@
 package primitives
 
 import (
-	"encoding/json"
-
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -48,13 +46,6 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 		w.Validator == other.Validator &&
 		w.Address == other.Address &&
 		w.Amount == other.Amount
-}
-
-// String returns a string representation of the Withdrawal.
-func (w *Withdrawal) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(w)
-	return string(output)
 }
 
 // field type overrides for gencodec.
