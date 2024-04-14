@@ -36,7 +36,7 @@ import (
 //nolint:lll // struct tags.
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
-	version uint32
+	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp hexutil.Uint64 `json:"timestamp"             gencodec:"required"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -51,7 +51,7 @@ type PayloadAttributes struct {
 	Withdrawals []*primitives.Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
-	// to the block currently being processed. This field was added in EIP-4788.
+	// to the block currently being processed. This field was added for EIP-4788.
 	ParentBeaconBlockRoot primitives.Root `json:"parentBeaconBlockRoot"`
 }
 
