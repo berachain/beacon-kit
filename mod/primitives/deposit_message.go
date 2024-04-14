@@ -32,7 +32,7 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
