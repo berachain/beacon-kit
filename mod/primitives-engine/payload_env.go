@@ -50,11 +50,9 @@ type ExecutionPayloadEnvelope interface {
 // TODO: this can be updated with generics to allow for different types of
 // execution payloads based on the current hardfork. This should reduce
 // code-duplication.
-//
-//nolint:lll // struct tags.
 type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
-	BlockValue       primitives.Wei        `json:"blockValue"            gencodec:"required"`
+	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"`
+	BlockValue       primitives.Wei        `json:"blockValue"`
 	BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 	Override         bool                  `json:"shouldOverrideBuilder"`
 }
