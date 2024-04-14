@@ -29,14 +29,9 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
-
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
-type Deposit struct {
+type DepositData struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
@@ -49,29 +44,24 @@ type Deposit struct {
 
 	// Signature of the deposit data.
 	Signature BLSSignature `json:"signature" ssz-max:"96"`
-
-	// Index of the deposit in the deposit contract.
-	Index uint64 `json:"index"`
 }
 
 // NewDeposit creates a new Deposit instance.
-func NewDeposit(
+func NewDepositData(
 	pubkey BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount Gwei,
 	signature BLSSignature,
-	index uint64,
-) *Deposit {
-	return &Deposit{
+) *DepositData {
+	return &DepositData{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
-		Index:       index,
 	}
 }
 
 // String returns a string representation of the Deposit.
-func (d *Deposit) String() string {
+func (d *DepositData) String() string {
 	return spew.Sdump(d)
 }

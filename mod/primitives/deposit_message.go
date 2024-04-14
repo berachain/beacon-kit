@@ -25,18 +25,14 @@
 
 package primitives
 
-import (
-	"github.com/davecgh/go-spew/spew"
-)
+import "github.com/itsdevbear/comet-bls12-381/bls/blst"
 
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
-
-// Deposit into the consensus layer from the deposit contract in the execution
-// layer.
+// DepositMessage as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
-type Deposit struct {
+//nolint:lll
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
+type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
@@ -46,32 +42,31 @@ type Deposit struct {
 
 	// Deposit amount in gwei.
 	Amount Gwei `json:"amount"`
-
-	// Signature of the deposit data.
-	Signature BLSSignature `json:"signature" ssz-max:"96"`
-
-	// Index of the deposit in the deposit contract.
-	Index uint64 `json:"index"`
 }
 
-// NewDeposit creates a new Deposit instance.
-func NewDeposit(
-	pubkey BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount Gwei,
+// VerifyDeposit verifies the deposit data when attempting to create a
+// new validator from a given deposit.
+func (d *DepositMessage) VerifyCreateValidator(
+	forkData *ForkData,
 	signature BLSSignature,
-	index uint64,
-) *Deposit {
-	return &Deposit{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
-		Index:       index,
+) error {
+	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
+	if err != nil {
+		return err
 	}
-}
 
-// String returns a string representation of the Deposit.
-func (d *Deposit) String() string {
-	return spew.Sdump(d)
+	signingRoot, err := ComputeSigningRoot(d, domain)
+	if err != nil {
+		return err
+	}
+
+	if !blst.VerifySignaturePubkeyBytes(
+		d.Pubkey[:],
+		signingRoot[:],
+		signature[:],
+	) {
+		return ErrDepositMessage
+	}
+
+	return nil
 }
