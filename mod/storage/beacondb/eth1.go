@@ -26,20 +26,22 @@
 package beacondb
 
 import (
-	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (types.ExecutionPayload, error) {
+func (kv *KVStore) GetLatestExecutionPayload() (
+	engineprimitives.ExecutionPayload, error,
+) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
 }
 
 // UpdateLatestExecutionPayload sets the latest execution payload in the
 // BeaconStore.
 func (kv *KVStore) UpdateLatestExecutionPayload(
-	payload types.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) error {
 	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }

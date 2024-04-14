@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -47,8 +47,11 @@ type ExecutionPayloadEnvelope interface {
 	ShouldOverrideBuilder() bool
 }
 
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -out payload_env.json.go
-//nolint:lll
+// TODO: this can be updated with generics to allow for different types of
+// execution payloads based on the current hardfork. This should reduce
+// code-duplication.
+//
+//nolint:lll // struct tags.
 type ExecutionPayloadEnvelopeDeneb struct {
 	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
 	BlockValue       primitives.Wei        `json:"blockValue"            gencodec:"required"`

@@ -30,9 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 type ExecutionEngine interface {
@@ -40,14 +39,14 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (enginetypes.ExecutionPayloadEnvelope, error)
+	) (engineprimitives.ExecutionPayloadEnvelope, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *execution.ForkchoiceUpdateRequest,
-	) (*engine.PayloadID, *primitives.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
@@ -66,7 +65,7 @@ type LocalBuilder interface {
 		slot primitives.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-	) (*engine.PayloadID, error)
+	) (*engineprimitives.PayloadID, error)
 }
 
 // RandaoProcessor is the interface for the randao processor.
