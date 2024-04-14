@@ -35,7 +35,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	huint256 "github.com/holiman/uint256"
 )
 
 // ExecutionPayloadEnvelope is an interface for the execution payload envelope.
@@ -71,11 +70,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
-	val, ok := huint256.FromBig(e.BlockValue)
-	if !ok {
-		return primitives.Wei{}
-	}
-	return primitives.Wei{Int: val}
+	return uint256.LittleFromBigInt(e.BlockValue)
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
@@ -114,7 +109,7 @@ type ExecutableDataDeneb struct {
 	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
 	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
 	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas uint256.LittleEndian        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BaseFeePerGas primitives.Wei              `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*primitives.Withdrawal    `json:"withdrawals"                                      ssz-max:"16"`
@@ -207,7 +202,7 @@ func (d *ExecutableDataDeneb) GetExtraData() []byte {
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBaseFeePerGas() uint256.LittleEndian {
+func (d *ExecutableDataDeneb) GetBaseFeePerGas() primitives.Wei {
 	return d.BaseFeePerGas
 }
 
