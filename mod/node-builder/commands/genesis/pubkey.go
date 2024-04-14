@@ -32,6 +32,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -74,7 +75,7 @@ func AddPubkeyCmd() *cobra.Command {
 			// TODO: Should we do deposits here?
 			validator := beacontypes.NewValidatorFromDeposit(
 				primitives.BLSPubkey(valPubKey.Bytes()),
-				primitives.NewCredentialsFromExecutionAddress(
+				consensusprimitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				1e9,  //nolint:gomnd // temp.

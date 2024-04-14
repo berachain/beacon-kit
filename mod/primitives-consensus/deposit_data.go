@@ -37,7 +37,7 @@ type DepositData struct {
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
 	Amount primitives.Gwei `json:"amount"`
@@ -49,7 +49,7 @@ type DepositData struct {
 // NewDeposit creates a new Deposit instance.
 func NewDepositData(
 	pubkey primitives.BLSPubkey,
-	credentials primitives.WithdrawalCredentials,
+	credentials WithdrawalCredentials,
 	amount primitives.Gwei,
 	signature primitives.BLSSignature,
 ) *DepositData {

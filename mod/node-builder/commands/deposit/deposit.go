@@ -135,19 +135,19 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
 func ConvertWithdrawalCredentials(credentials string) (
-	primitives.WithdrawalCredentials,
+	consensusprimitives.WithdrawalCredentials,
 	error,
 ) {
 	// Convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
-		return primitives.WithdrawalCredentials{}, err
+		return consensusprimitives.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return primitives.WithdrawalCredentials{},
+		return consensusprimitives.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return primitives.WithdrawalCredentials(credentialsBytes), nil
+	return consensusprimitives.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.
