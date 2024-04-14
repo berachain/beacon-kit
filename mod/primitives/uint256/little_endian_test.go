@@ -34,29 +34,72 @@ import (
 )
 
 func TestLittleEndian_UInt256(t *testing.T) {
-	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
-	expected := new(huint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
-	require.Equal(t, expected, le.UInt256())
+	testCases := []struct {
+		input    []byte
+		expected []byte
+	}{
+		{[]byte{1, 2, 3, 4, 5}, []byte{5, 4, 3, 2, 1}},
+		{[]byte{0, 0, 0, 0}, []byte{0, 0, 0, 0}},
+		{[]byte{255, 255, 255, 255}, []byte{255, 255, 255, 255}},
+	}
+
+	for _, tc := range testCases {
+		le := uint256.NewLittleEndian(tc.input)
+		expected := new(huint256.Int).SetBytes(tc.expected)
+		require.Equal(t, expected, le.ToUInt256())
+	}
 }
 
 func TestLittleEndian_Big(t *testing.T) {
-	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
-	expected := new(huint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
-	require.Equal(t, expected.ToBig(), le.ToBig())
+	testCases := []struct {
+		input    []byte
+		expected []byte
+	}{
+		{[]byte{1, 2, 3, 4, 5}, []byte{5, 4, 3, 2, 1}},
+		{[]byte{0, 0, 0, 0}, []byte{0, 0, 0, 0}},
+		{[]byte{255, 255, 255, 255}, []byte{255, 255, 255, 255}},
+	}
+
+	for _, tc := range testCases {
+		le := uint256.NewLittleEndian(tc.input)
+		expected := new(huint256.Int).SetBytes(tc.expected)
+		require.Equal(t, expected.ToBig(), le.ToBig())
+	}
 }
 
 func TestLittleEndian_MarshalJSON(t *testing.T) {
-	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
-	expected := []byte("\"0x504030201\"")
-	result, err := le.MarshalJSON()
-	require.NoError(t, err)
-	require.JSONEq(t, string(expected), string(result))
+	testCases := []struct {
+		input    []byte
+		expected string
+	}{
+		{[]byte{1, 2, 3, 4, 5}, "\"0x504030201\""},
+		{[]byte{0, 0, 0, 0}, "\"0x0\""},
+		{[]byte{255, 255, 255, 255}, "\"0xffffffff\""},
+	}
+
+	for _, tc := range testCases {
+		le := uint256.NewLittleEndian(tc.input)
+		result, err := le.MarshalJSON()
+		require.NoError(t, err)
+		require.JSONEq(t, tc.expected, string(result))
+	}
 }
 
 func TestLittleEndian_UnmarshalJSON(t *testing.T) {
-	le := new(uint256.LittleEndian)
-	err := le.UnmarshalJSON([]byte("\"0x504030201\""))
-	require.NoError(t, err)
-	expected := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
-	require.Equal(t, expected, *le)
+	testCases := []struct {
+		json     string
+		expected []byte
+	}{
+		{"\"0x504030201\"", []byte{1, 2, 3, 4, 5}},
+		{"\"0x0\"", []byte{0, 0, 0, 0}},
+		{"\"0xffffffff\"", []byte{255, 255, 255, 255}},
+	}
+
+	for _, tc := range testCases {
+		le := new(uint256.LittleEndian)
+		err := le.UnmarshalJSON([]byte(tc.json))
+		require.NoError(t, err)
+		expected := uint256.NewLittleEndian(tc.expected)
+		require.Equal(t, expected, *le)
+	}
 }

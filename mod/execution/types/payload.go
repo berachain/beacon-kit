@@ -27,71 +27,11 @@ package types
 
 import (
 	"encoding/json"
-	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-// ExecutionPayloadEnvelope is an interface for the execution payload envelope.
-type ExecutionPayloadEnvelope interface {
-	// GetExecutionPayload retrieves the execution payload associated with the
-	// envelope.
-	GetExecutionPayload() ExecutionPayload
-	// GetValue returns the Wei value of the block within the execution payload
-	// envelope.
-	GetValue() primitives.Wei
-	// GetBlobsBundle fetches the BlobsBundleV1 associated with the execution
-	// payload, if available.
-	GetBlobsBundle() *engine.BlobsBundleV1
-	// ShouldOverrideBuilder indicates whether the builder should be overridden
-	// in the execution environment.
-	ShouldOverrideBuilder() bool
-}
-
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
-//nolint:lll
-type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
-	BlockValue       *big.Int              `json:"blockValue"            gencodec:"required"`
-	BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
-	Override         bool                  `json:"shouldOverrideBuilder"`
-}
-
-// GetExecutionPayload returns the execution payload of the
-// ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
-	return e.ExecutionPayload
-}
-
-// GetValue returns the value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
-	return uint256.LittleFromBigInt(e.BlockValue)
-}
-
-// GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *engine.BlobsBundleV1 {
-	return e.BlobsBundle
-}
-
-// ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
-	return e.Override
-}
-
-// String returns the string representation of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) String() string {
-	return spew.Sdump(e)
-}
-
-// JSON type overrides for ExecutionPayloadEnvelope.
-type executionPayloadEnvelopeMarshaling struct {
-	BlockValue *hexutil.Big
-}
 
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go

@@ -68,7 +68,7 @@ func LittleFromBigInt(b *big.Int) LittleEndian {
 }
 
 // UInt256 converts an LittleEndian to a uint256.Int.
-func (s LittleEndian) UInt256() *uint256.Int {
+func (s LittleEndian) ToUInt256() *uint256.Int {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
@@ -97,4 +97,9 @@ func (s *LittleEndian) UnmarshalJSON(input []byte) error {
 				baseFee.Bytes()), UInt256Bytes),
 	)
 	return nil
+}
+
+// String returns the string representation of a LittleEndian.
+func (s *LittleEndian) String() string {
+	return s.ToUInt256().String()
 }
