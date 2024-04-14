@@ -29,15 +29,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/fjl/gencodec -type Validator -field-override validatorJSONMarshaling -out validator.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives,../../consenus-primitives -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives,../../primitives-consensus -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
@@ -56,11 +54,6 @@ type Validator struct {
 	ExitEpoch primitives.Epoch `json:"exitEpoch"`
 	// WithdrawableEpoch is the epoch in which the validator can withdraw.
 	WithdrawableEpoch primitives.Epoch `json:"withdrawableEpoch"`
-}
-
-// JSON type overrides for ExecutionPayloadEnvelope.
-type validatorJSONMarshaling struct {
-	WithdrawalCredentials hexutil.Bytes
 }
 
 // NewValidatorFromDeposit creates a new Validator from the
