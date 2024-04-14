@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 //nolint:gochecknoglobals // alias.
-package engine
+package engineprimitives
 
 import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
@@ -37,6 +37,7 @@ type (
 	ForkchoiceState    = engine.ForkchoiceStateV1
 	PayloadID          = engine.PayloadID
 	PayloadStatus      = engine.PayloadStatusV1
+	ClientVersionV1    = engine.ClientVersionV1
 )
 
 type PayloadStatusStr = string

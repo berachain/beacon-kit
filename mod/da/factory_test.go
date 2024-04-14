@@ -34,9 +34,9 @@ import (
 	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"

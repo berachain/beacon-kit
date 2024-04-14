@@ -30,8 +30,8 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/cockroachdb/errors"

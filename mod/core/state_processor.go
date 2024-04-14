@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 

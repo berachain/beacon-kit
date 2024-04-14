@@ -7,8 +7,8 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
-	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -17,22 +17,22 @@ var _ = (*BeaconStateJSONMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (b BeaconState) MarshalJSON() ([]byte, error) {
 	type BeaconState struct {
-		GenesisValidatorsRoot        hexutil.Bytes                 `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         primitives.Slot               `json:"slot"`
-		Fork                         *primitives.Fork              `json:"fork"`
-		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
-		Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
-		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
-		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
-		RandaoMixes                  []primitives.Bytes32          `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
-		NextWithdrawalIndex          uint64                        `json:"nextWithdrawalIndex"`
-		NextWithdrawalValidatorIndex primitives.ValidatorIndex     `json:"nextWithdrawalValidatorIndex"`
-		Slashings                    []uint64                      `json:"slashings"     ssz-max:"1099511627776"`
-		TotalSlashing                primitives.Gwei               `json:"totalSlashing"`
+		GenesisValidatorsRoot        hexutil.Bytes                         `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Slot                         primitives.Slot                       `json:"slot"`
+		Fork                         *primitives.Fork                      `json:"fork"`
+		LatestBlockHeader            *primitives.BeaconBlockHeader         `json:"latestBlockHeader"`
+		BlockRoots                   []primitives.Bytes32                  `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Bytes32                  `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		LatestExecutionPayload       *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
+		Eth1Data                     *primitives.Eth1Data                  `json:"eth1Data"`
+		Eth1DepositIndex             uint64                                `json:"eth1DepositIndex"`
+		Validators                   []*types.Validator                    `json:"validators" ssz-max:"1099511627776"`
+		Balances                     []uint64                              `json:"balances"   ssz-max:"1099511627776"`
+		RandaoMixes                  []primitives.Bytes32                  `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		NextWithdrawalIndex          uint64                                `json:"nextWithdrawalIndex"`
+		NextWithdrawalValidatorIndex primitives.ValidatorIndex             `json:"nextWithdrawalValidatorIndex"`
+		Slashings                    []uint64                              `json:"slashings"     ssz-max:"1099511627776"`
+		TotalSlashing                primitives.Gwei                       `json:"totalSlashing"`
 	}
 	var enc BeaconState
 	enc.GenesisValidatorsRoot = b.GenesisValidatorsRoot[:]
@@ -72,22 +72,22 @@ func (b BeaconState) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (b *BeaconState) UnmarshalJSON(input []byte) error {
 	type BeaconState struct {
-		GenesisValidatorsRoot        *hexutil.Bytes                `json:"genesisValidatorsRoot" ssz-size:"32"`
-		Slot                         *primitives.Slot              `json:"slot"`
-		Fork                         *primitives.Fork              `json:"fork"`
-		LatestBlockHeader            *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
-		BlockRoots                   []primitives.Bytes32          `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		StateRoots                   []primitives.Bytes32          `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
-		LatestExecutionPayload       *types0.ExecutableDataDeneb   `json:"latestExecutionPayload"`
-		Eth1Data                     *primitives.Eth1Data          `json:"eth1Data"`
-		Eth1DepositIndex             *uint64                       `json:"eth1DepositIndex"`
-		Validators                   []*types.Validator            `json:"validators" ssz-max:"1099511627776"`
-		Balances                     []uint64                      `json:"balances"   ssz-max:"1099511627776"`
-		RandaoMixes                  []primitives.Bytes32          `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
-		NextWithdrawalIndex          *uint64                       `json:"nextWithdrawalIndex"`
-		NextWithdrawalValidatorIndex *primitives.ValidatorIndex    `json:"nextWithdrawalValidatorIndex"`
-		Slashings                    []uint64                      `json:"slashings"     ssz-max:"1099511627776"`
-		TotalSlashing                *primitives.Gwei              `json:"totalSlashing"`
+		GenesisValidatorsRoot        *hexutil.Bytes                        `json:"genesisValidatorsRoot" ssz-size:"32"`
+		Slot                         *primitives.Slot                      `json:"slot"`
+		Fork                         *primitives.Fork                      `json:"fork"`
+		LatestBlockHeader            *primitives.BeaconBlockHeader         `json:"latestBlockHeader"`
+		BlockRoots                   []primitives.Bytes32                  `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		StateRoots                   []primitives.Bytes32                  `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+		LatestExecutionPayload       *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
+		Eth1Data                     *primitives.Eth1Data                  `json:"eth1Data"`
+		Eth1DepositIndex             *uint64                               `json:"eth1DepositIndex"`
+		Validators                   []*types.Validator                    `json:"validators" ssz-max:"1099511627776"`
+		Balances                     []uint64                              `json:"balances"   ssz-max:"1099511627776"`
+		RandaoMixes                  []primitives.Bytes32                  `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+		NextWithdrawalIndex          *uint64                               `json:"nextWithdrawalIndex"`
+		NextWithdrawalValidatorIndex *primitives.ValidatorIndex            `json:"nextWithdrawalValidatorIndex"`
+		Slashings                    []uint64                              `json:"slashings"     ssz-max:"1099511627776"`
+		TotalSlashing                *primitives.Gwei                      `json:"totalSlashing"`
 	}
 	var dec BeaconState
 	if err := json.Unmarshal(input, &dec); err != nil {

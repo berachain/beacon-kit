@@ -28,8 +28,8 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
@@ -114,7 +114,7 @@ func DefaultGenesisExecutionPayload() *enginetypes.ExecutableDataDeneb {
 // rooting correctly?
 //
 //go:generate go run github.com/fjl/gencodec -type BeaconState -field-override BeaconStateJSONMarshaling -out deneb.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../primitives-engine,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning

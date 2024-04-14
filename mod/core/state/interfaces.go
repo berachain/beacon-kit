@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	enginetypes "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // BeaconState is the interface for the beacon state. It

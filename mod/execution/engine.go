@@ -31,9 +31,8 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/client"
-	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/cockroachdb/errors"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -79,7 +78,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (types.ExecutionPayloadEnvelope, error) {
+) (engineprimitives.ExecutionPayloadEnvelope, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -90,7 +89,7 @@ func (ee *Engine) GetPayload(
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ForkchoiceUpdateRequest,
-) (*engine.PayloadID, *primitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
 	ee.logger.Info("notifying forkchoice update",
 		"head_eth1_hash", req.State.HeadBlockHash,
 		"safe_eth1_hash", req.State.SafeBlockHash,
