@@ -32,9 +32,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 
@@ -47,7 +46,7 @@ func (s *Service) BuildLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (*engine.PayloadID, error) {
+) (*engineprimitives.PayloadID, error) {
 	// Assemble the payload attributes.
 	attrs, err := s.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
@@ -55,7 +54,7 @@ func (s *Service) BuildLocalPayload(
 	}
 
 	// Notify the execution client of the forkchoice update.
-	var payloadID *engine.PayloadID
+	var payloadID *engineprimitives.PayloadID
 	s.Logger().Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
@@ -71,7 +70,7 @@ func (s *Service) BuildLocalPayload(
 
 	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.ForkchoiceUpdateRequest{
-			State: &engine.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
 				SafeBlockHash:      parentEth1BlockHash,
 				FinalizedBlockHash: parentEth1BlockHash,
@@ -118,7 +117,8 @@ func (s *Service) GetBestPayload(
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -165,11 +165,12 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.pc.Get(slot, parentBlockRoot)
-	if found && (payloadID != engine.PayloadID{}) {
+	if found && (payloadID != engineprimitives.PayloadID{}) {
 		// Payload ID is cache hit.
 		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
 		payload, blobsBundle, overrideBuilder, err :=
@@ -199,7 +200,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	slot primitives.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -224,24 +226,8 @@ func (s *Service) buildAndWaitForLocalPayload(
 	}
 
 	// Get the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err :=
-		s.getPayloadFromExecutionClient(
-			ctx, payloadID, slot,
-		)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	// TODO: Dencun
-	_ = blobsBundle
-	// bundleCache.add(slot, bundle)
-	// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
-
-	// s.Logger().Debug(
-	// 	"received execution payload from local engine", "value",
-	// payload.GetValue(),
-	// )
-	return payload, blobsBundle, overrideBuilder, nil
+	return s.getPayloadFromExecutionClient(
+		ctx, payloadID, slot)
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and
@@ -252,7 +238,7 @@ func (s *Service) getPayloadAttribute(
 	slot primitives.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
-) (enginetypes.PayloadAttributer, error) {
+) (engineprimitives.PayloadAttributer, error) {
 	var (
 		prevRandao [32]byte
 	)
@@ -275,7 +261,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	return enginetypes.NewPayloadAttributes(
+	return engineprimitives.NewPayloadAttributes(
 		s.BeaconCfg().ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
@@ -289,9 +275,10 @@ func (s *Service) getPayloadAttribute(
 // given slot.
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
-	payloadID *engine.PayloadID,
+	payloadID *engineprimitives.PayloadID,
 	slot primitives.Slot,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+) (engineprimitives.ExecutionPayload,
+	*engineprimitives.BlobsBundleV1, bool, error) {
 	if payloadID == nil {
 		return nil, nil, false, ErrNilPayloadID
 	}
@@ -301,7 +288,8 @@ func (s *Service) getPayloadFromExecutionClient(
 		&execution.GetPayloadRequest{
 			PayloadID: *payloadID,
 			ForkVersion: s.BeaconCfg().ActiveForkVersionForEpoch(
-				primitives.Epoch(uint64(slot) / s.BeaconCfg().SlotsPerEpoch),
+				primitives.Epoch(uint64(slot) /
+					s.BeaconCfg().SlotsPerEpoch),
 			),
 		},
 	)

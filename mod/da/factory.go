@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"golang.org/x/sync/errgroup"
 )
@@ -57,7 +57,7 @@ func NewSidecarFactory[BBB BeaconBlockBody](
 // BuildSidecar builds a sidecar.
 func (f *SidecarFactory[BBB]) BuildSidecars(
 	blk BeaconBlock[BBB],
-	blobs *engine.BlobsBundleV1,
+	blobs *engineprimitives.BlobsBundleV1,
 ) (*datypes.BlobSidecars, error) {
 	numBlobs := uint64(len(blobs.Blobs))
 	sidecars := make([]*datypes.BlobSidecar, numBlobs)

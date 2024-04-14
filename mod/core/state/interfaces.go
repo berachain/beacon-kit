@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -127,7 +127,7 @@ type ReadOnlyValidators interface {
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
+	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(primitives.Deposits) error
@@ -136,7 +136,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
+	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (primitives.Deposits, error)

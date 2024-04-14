@@ -26,8 +26,8 @@
 package types
 
 import (
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	ssz "github.com/ferranbt/fastssz"
 )
@@ -66,7 +66,7 @@ type BeaconBlockBody interface {
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits(primitives.Deposits)
-	SetExecutionData(enginetypes.ExecutionPayload) error
+	SetExecutionData(engineprimitives.ExecutionPayload) error
 	SetBlobKzgCommitments(kzg.Commitments)
 }
 
@@ -82,7 +82,7 @@ type ReadOnlyBeaconBlockBody interface {
 	GetDeposits() primitives.Deposits
 	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() primitives.BLSSignature
-	GetExecutionPayload() enginetypes.ExecutionPayload
+	GetExecutionPayload() engineprimitives.ExecutionPayload
 	GetBlobKzgCommitments() kzg.Commitments
 	GetTopLevelRoots() ([][32]byte, error)
 }

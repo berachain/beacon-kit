@@ -23,18 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engineprimitives
 
-import "github.com/cockroachdb/errors"
+import (
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+)
 
-var (
-	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
-	ErrInvalidTimestamp = errors.New("invalid timestamp")
-	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
-	ErrInvalidRandao = errors.New("invalid randao")
-	// ErrNilWithdrawals indicates that the withdrawals are in a
-	// Capella versioned payload.
-	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
-	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
-	ErrEmptyPrevRandao = errors.New("empty randao")
+type (
+	// Block represents a block on the execution layer.
+	Block = coretypes.Block
+
+	// Header represents a header on the execution layer.
+	Header = coretypes.Header
 )

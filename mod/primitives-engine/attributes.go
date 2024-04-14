@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/config/version"
@@ -31,47 +31,43 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// PayloadAttributes is the attributes of a block payload.
+//
 //nolint:lll // struct tags.
-//go:generate go run github.com/fjl/gencodec -type PayloadAttributes -field-override payloadAttributesJSONMarshaling -out attributes.json.go
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
-	version uint32
+	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
-	Timestamp uint64 `json:"timestamp"             gencodec:"required"`
+	Timestamp hexutil.Uint64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
-	PrevRandao [32]byte `json:"prevRandao"            gencodec:"required"`
+	PrevRandao primitives.Bytes32 `json:"prevRandao"`
 	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
 	// the execution client has a different fee recipient, it will typically
 	// ignore this value.
-	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient" gencodec:"required"`
+	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
 	Withdrawals []*primitives.Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
-	// to the block currently being processed. This field was added in EIP-4788.
-	ParentBeaconBlockRoot [32]byte `json:"parentBeaconBlockRoot"`
-}
-
-// JSON type overrides for PayloadAttributes.
-type payloadAttributesJSONMarshaling struct {
-	Timestamp             hexutil.Uint64
-	PrevRandao            hexutil.Bytes
-	ParentBeaconBlockRoot hexutil.Bytes
+	// to the block currently being processed. This field was added for
+	// EIP-4788.
+	ParentBeaconBlockRoot primitives.Root `json:"parentBeaconBlockRoot"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes(
 	forkVersion uint32,
-	timestamp uint64, prevRandao [32]byte,
+	timestamp uint64,
+	prevRandao primitives.Bytes32,
 	suggestedFeeReceipient primitives.ExecutionAddress,
 	withdrawals []*primitives.Withdrawal,
-	parentBeaconBlockRoot [32]byte,
+	parentBeaconBlockRoot primitives.Root,
 ) (*PayloadAttributes, error) {
 	p := &PayloadAttributes{
 		version:               forkVersion,
-		Timestamp:             timestamp,
+		Timestamp:             hexutil.Uint64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
@@ -83,6 +79,11 @@ func NewPayloadAttributes(
 	}
 
 	return p, nil
+}
+
+// Version returns the version of the PayloadAttributes.
+func (p *PayloadAttributes) Version() uint32 {
+	return p.version
 }
 
 // Validate validates the PayloadAttributes.
@@ -108,9 +109,4 @@ func (p *PayloadAttributes) Validate() error {
 	// }
 
 	return nil
-}
-
-// Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
-	return p.version
 }

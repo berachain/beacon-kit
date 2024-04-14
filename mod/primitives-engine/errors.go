@@ -23,27 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:gochecknoglobals // alias.
-package engine
+package engineprimitives
 
-import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
-)
-
-// There are some types we can borrow from geth.
-type (
-	BlobsBundleV1      = engine.BlobsBundleV1
-	ForkchoiceResponse = engine.ForkChoiceResponse
-	ForkchoiceState    = engine.ForkchoiceStateV1
-	PayloadID          = engine.PayloadID
-	PayloadStatus      = engine.PayloadStatusV1
-)
-
-type PayloadStatusStr = string
+import "errors"
 
 var (
-	PayloadStatusValid    PayloadStatusStr = engine.VALID
-	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
-	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
-	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
+	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
+	ErrInvalidTimestamp = errors.New("invalid timestamp")
+	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
+	ErrInvalidRandao = errors.New("invalid randao")
+	// ErrNilWithdrawals indicates that the withdrawals are in a
+	// Capella versioned payload.
+	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
+	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
+	ErrEmptyPrevRandao = errors.New("empty randao")
 )

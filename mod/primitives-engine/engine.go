@@ -23,20 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+//nolint:gochecknoglobals // alias.
+package engineprimitives
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
+// There are some types we can borrow from geth.
 type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
+	BlobsBundleV1      = engine.BlobsBundleV1
+	ForkchoiceResponse = engine.ForkChoiceResponse
+	ForkchoiceState    = engine.ForkchoiceStateV1
+	PayloadID          = engine.PayloadID
+	PayloadStatus      = engine.PayloadStatusV1
+	ClientVersionV1    = engine.ClientVersionV1
+)
 
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash = common.Hash
+type PayloadStatusStr = string
+
+var (
+	PayloadStatusValid    PayloadStatusStr = engine.VALID
+	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
+	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
+	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
 )

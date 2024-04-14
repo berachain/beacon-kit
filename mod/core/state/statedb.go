@@ -32,8 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
@@ -225,24 +225,20 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	var blockRoot [32]byte
-	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	blockRoots := make([]primitives.Root, s.cfg.SlotsPerHistoricalRoot)
 	for i := range s.cfg.SlotsPerHistoricalRoot {
-		blockRoot, err = s.GetBlockRootAtIndex(i)
+		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		blockRoots[i] = blockRoot
 	}
 
-	var stateRoot [32]byte
-	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
+	stateRoots := make([]primitives.Root, s.cfg.SlotsPerHistoricalRoot)
 	for i := range s.cfg.SlotsPerHistoricalRoot {
-		stateRoot, err = s.StateRootAtIndex(i)
+		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		stateRoots[i] = stateRoot
 	}
 
 	latestExecutionPayload, err := s.GetLatestExecutionPayload()
@@ -270,14 +266,12 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	var randaoMix [32]byte
-	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
+	randaoMixes := make([]primitives.Bytes32, s.cfg.EpochsPerHistoricalVector)
 	for i := range s.cfg.EpochsPerHistoricalVector {
-		randaoMix, err = s.GetRandaoMixAtIndex(i)
+		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		randaoMixes[i] = randaoMix
 	}
 
 	nextWithdrawalIndex, err := s.GetNextWithdrawalIndex()
@@ -304,7 +298,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	switch activeFork {
 	case version.Deneb:
 		executionPayload, ok :=
-			latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
+			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")

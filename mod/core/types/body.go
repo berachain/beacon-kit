@@ -29,9 +29,9 @@ import (
 	"math"
 	"reflect"
 
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
 )
@@ -54,7 +54,7 @@ var (
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/uint256,../../primitives/kzg,../../execution/types,$GETH_PKG_INCLUDE/common -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/uint256,../../primitives/kzg,../../primitives-engine,$GETH_PKG_INCLUDE/common -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
@@ -66,7 +66,7 @@ type BeaconBlockBodyDeneb struct {
 	Deposits []*primitives.Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
-	ExecutionPayload *enginetypes.ExecutableDataDeneb
+	ExecutionPayload *engineprimitives.ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []kzg.Commitment `ssz-size:"?,48" ssz-max:"16"`
@@ -95,7 +95,7 @@ func (b *BeaconBlockBodyDeneb) GetRandaoReveal() primitives.BLSSignature {
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 //
 //nolint:lll
-func (b *BeaconBlockBodyDeneb) GetExecutionPayload() enginetypes.ExecutionPayload {
+func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionPayload {
 	return b.ExecutionPayload
 }
 
@@ -111,10 +111,10 @@ func (b *BeaconBlockBodyDeneb) SetDeposits(deposits primitives.Deposits) {
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
-	executionData enginetypes.ExecutionPayload,
+	executionData engineprimitives.ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.(*enginetypes.ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.(*engineprimitives.ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}
@@ -161,10 +161,10 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData enginetypes.ExecutionPayload,
+	executionData engineprimitives.ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.(*enginetypes.ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.(*engineprimitives.ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}
