@@ -27,7 +27,6 @@ package consensusprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Deposits is a typealias for a slice of Deposit.
@@ -70,9 +69,4 @@ func NewDeposit(
 		Signature:   signature,
 		Index:       index,
 	}
-}
-
-// String returns a string representation of the Deposit.
-func (d *Deposit) String() string {
-	return spew.Sdump(d)
 }

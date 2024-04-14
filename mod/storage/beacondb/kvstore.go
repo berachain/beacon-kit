@@ -236,7 +236,7 @@ func New(
 			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
-
+		//nolint:lll
 		latestBlockHeader: sdkcollections.NewItem[*consensusprimitives.BeaconBlockHeader](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),

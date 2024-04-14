@@ -28,7 +28,6 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -169,9 +168,4 @@ func (v Validator) HasMaxEffectiveBalance(
 	maxEffectiveBalance primitives.Gwei,
 ) bool {
 	return v.EffectiveBalance == maxEffectiveBalance
-}
-
-// String returns a string representation of the Validator.
-func (v Validator) String() string {
-	return spew.Sdump(v)
 }
