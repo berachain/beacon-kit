@@ -25,7 +25,7 @@
 
 package engineprimitives
 
-import "github.com/cockroachdb/errors"
+import "errors"
 
 var (
 	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
