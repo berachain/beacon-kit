@@ -89,7 +89,7 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			Config(),
 			depinject.Provide(
-				bkcomponents.ProvideRuntime,
+				bkcomponents.ProvideBeaconKitRuntime,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideJWTSecret,

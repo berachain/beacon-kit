@@ -23,24 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package nodebuilder
 
-import "github.com/berachain/beacon-kit/mod/primitives"
-
-// AppOptions is an interface that provides the ability to
-// retrieve options from the application.
-type AppOptions interface {
-	Get(string) interface{}
-}
-
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() primitives.BLSPubkey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (primitives.BLSSignature, error)
+func (nb *NodeBuilder[T]) BuildABCIComponents() error {
+	return nil
 }
