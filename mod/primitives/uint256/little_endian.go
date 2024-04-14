@@ -49,6 +49,14 @@ func LittleFromBigEndian(b []byte) LittleEndian {
 	return LittleEndian(byteslib.CopyAndReverseEndianess(b))
 }
 
+// LittleFromBigInt creates a new LittleEndian from a big.Int.
+func LittleFromBigInt(b *big.Int) LittleEndian {
+	if b == nil {
+		return LittleEndian{}
+	}
+	return LittleFromBigEndian(b.Bytes())
+}
+
 // UInt256 converts an LittleEndian to a uint256.Int.
 func (s LittleEndian) UInt256() *uint256.Int {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
