@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -80,7 +81,6 @@ func DefaultBeaconState() *BeaconState {
 //
 //nolint:gomnd // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayload() *enginetypes.ExecutableDataDeneb {
-	baseFeePerGas := hexutil.MustDecode("0x3b9aca")
 	return &enginetypes.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
@@ -97,9 +97,9 @@ func DefaultGenesisExecutionPayload() *enginetypes.ExecutableDataDeneb {
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: append(
-			baseFeePerGas,
-			make([]byte, 32-len(baseFeePerGas))...),
+		BaseFeePerGas: uint256.LittleFromBigEndian(
+			hexutil.MustDecode("0x3b9aca"),
+		),
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
@@ -114,7 +114,7 @@ func DefaultGenesisExecutionPayload() *enginetypes.ExecutableDataDeneb {
 // rooting correctly?
 //
 //go:generate go run github.com/fjl/gencodec -type BeaconState -field-override BeaconStateJSONMarshaling -out deneb.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning

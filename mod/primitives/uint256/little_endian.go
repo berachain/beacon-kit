@@ -34,51 +34,67 @@ import (
 	"github.com/holiman/uint256"
 )
 
-// UInt256ByteLength is the length of a uint256 in bytes.
-const UInt256ByteLength = 32
+// UInt256Bytes is the number of bytes in a uint256.
+const UInt256Bytes = 32
 
 // LittleEndian represents a uint256 number. It
-// is designed to marshal and unmarshal JSON in little-endian
-// format, while under the hood storing the value as big-endian
-// for compatibility with.
-type LittleEndian []byte
+// is designed to marshal and unmarshal JSON in big-endian
+// format, while under the hood storing the value as little-endian
+// for compatibility with the SSZ spec.
+type LittleEndian [32]byte
+
+// NewLittleEndian creates a new LittleEndian from a byte slice.
+func NewLittleEndian(bz []byte) LittleEndian {
+	return LittleEndian(byteslib.ExtendToSize(bz, UInt256Bytes))
+}
 
 // LittleFromBigEndian creates a new LittleEndian from a big-endian
 // byte slice.
 func LittleFromBigEndian(b []byte) LittleEndian {
-	return LittleEndian(byteslib.CopyAndReverseEndianess(b))
+	return LittleEndian(
+		byteslib.ExtendToSize(
+			byteslib.CopyAndReverseEndianess(b),
+			UInt256Bytes,
+		),
+	)
+}
+
+// LittleFromBigInt creates a new LittleEndian from a big.Int.
+func LittleFromBigInt(b *big.Int) LittleEndian {
+	if b == nil {
+		return LittleEndian{}
+	}
+	return LittleFromBigEndian(b.Bytes())
 }
 
 // UInt256 converts an LittleEndian to a uint256.Int.
 func (s LittleEndian) UInt256() *uint256.Int {
-	return new(uint256.Int).SetBytes([]byte(s))
+	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
 // Big converts an LittleEndian to a big.Int.
-func (s LittleEndian) Big() *big.Int {
-	return new(big.Int).SetBytes([]byte(s))
+func (s LittleEndian) ToBig() *big.Int {
+	return new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
 // MarshalJSON marshals a LittleEndian to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
 func (s LittleEndian) MarshalJSON() ([]byte, error) {
-	baseFee := new(big.Int).
-		SetBytes(byteslib.CopyAndReverseEndianess(s))
-	return []byte("\"" + hexutil.EncodeBig(baseFee) + "\""), nil
+	return []byte("\"" + hexutil.EncodeBig(s.ToBig()) + "\""), nil
 }
 
 // UnmarshalJSON unmarshals a LittleEndian from JSON by decoding the hex
 // string and flipping the endianness, such that it is unmarshalled as
 // big-endian.
 func (s *LittleEndian) UnmarshalJSON(input []byte) error {
-	input = bytes.Trim(input, "\"")
-	baseFee, err := hexutil.DecodeBig(string(input))
+	baseFee, err := hexutil.DecodeBig(string(bytes.Trim(input, "\"")))
 	if err != nil {
 		return err
 	}
-	*s = LittleEndian(byteslib.ExtendToSize(
-		byteslib.CopyAndReverseEndianess(baseFee.Bytes()),
-		UInt256ByteLength,
-	))
+	*s = LittleEndian(
+		byteslib.ExtendToSize(
+			byteslib.CopyAndReverseEndianess(
+				baseFee.Bytes()), UInt256Bytes),
+	)
 	return nil
 }

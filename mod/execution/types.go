@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/engine"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	gengine "github.com/ethereum/go-ethereum/beacon/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -73,21 +72,20 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
 	data := gengine.ExecutableData{
-		ParentHash:   payload.GetParentHash(),
-		FeeRecipient: payload.GetFeeRecipient(),
-		StateRoot:    payload.GetStateRoot(),
-		ReceiptsRoot: payload.GetReceiptsRoot(),
-		LogsBloom:    payload.GetLogsBloom(),
-		Random:       payload.GetPrevRandao(),
-		Number:       payload.GetNumber(),
-		GasLimit:     payload.GetGasLimit(),
-		GasUsed:      payload.GetGasUsed(),
-		Timestamp:    payload.GetTimestamp(),
-		ExtraData:    payload.GetExtraData(),
-		BaseFeePerGas: uint256.LittleFromBigEndian(payload.GetBaseFeePerGas()).
-			Big(),
-		BlockHash:    payload.GetBlockHash(),
-		Transactions: payload.GetTransactions(),
+		ParentHash:    payload.GetParentHash(),
+		FeeRecipient:  payload.GetFeeRecipient(),
+		StateRoot:     payload.GetStateRoot(),
+		ReceiptsRoot:  payload.GetReceiptsRoot(),
+		LogsBloom:     payload.GetLogsBloom(),
+		Random:        payload.GetPrevRandao(),
+		Number:        payload.GetNumber(),
+		GasLimit:      payload.GetGasLimit(),
+		GasUsed:       payload.GetGasUsed(),
+		Timestamp:     payload.GetTimestamp(),
+		ExtraData:     payload.GetExtraData(),
+		BaseFeePerGas: payload.GetBaseFeePerGas().ToBig(),
+		BlockHash:     payload.GetBlockHash(),
+		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
 		BlobGasUsed:   payload.GetBlobGasUsed(),

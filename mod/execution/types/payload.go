@@ -31,11 +31,11 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	bkuint256 "github.com/berachain/beacon-kit/mod/primitives/uint256"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/holiman/uint256"
+	huint256 "github.com/holiman/uint256"
 )
 
 // ExecutionPayloadEnvelope is an interface for the execution payload envelope.
@@ -71,7 +71,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
-	val, ok := uint256.FromBig(e.BlockValue)
+	val, ok := huint256.FromBig(e.BlockValue)
 	if !ok {
 		return primitives.Wei{}
 	}
@@ -100,7 +100,7 @@ type executionPayloadEnvelopeMarshaling struct {
 
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../primitives,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../primitives,../../primitives/uint256,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
@@ -114,7 +114,7 @@ type ExecutableDataDeneb struct {
 	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
 	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
 	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas []byte                      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BaseFeePerGas uint256.LittleEndian        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*primitives.Withdrawal    `json:"withdrawals"                                      ssz-max:"16"`
@@ -128,7 +128,6 @@ type executableDataDenebMarshaling struct {
 	GasLimit      hexutil.Uint64
 	GasUsed       hexutil.Uint64
 	Timestamp     hexutil.Uint64
-	BaseFeePerGas bkuint256.LittleEndian
 	Random        primitives.ExecutionHash
 	ExtraData     hexutil.Bytes
 	LogsBloom     hexutil.Bytes
@@ -208,7 +207,7 @@ func (d *ExecutableDataDeneb) GetExtraData() []byte {
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBaseFeePerGas() []byte {
+func (d *ExecutableDataDeneb) GetBaseFeePerGas() uint256.LittleEndian {
 	return d.BaseFeePerGas
 }
 

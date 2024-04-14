@@ -37,6 +37,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -107,7 +108,7 @@ func mockBody() da.BeaconBlockBody {
 		ReceiptsRoot:  common.HexToHash("0x04"),
 		LogsBloom:     bytes.Repeat([]byte("b"), 256),
 		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: bytes.Repeat([]byte("f"), 32),
+		BaseFeePerGas: uint256.LittleEndian(bytes.Repeat([]byte("f"), 32)),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		ExtraData:     []byte("extra"),

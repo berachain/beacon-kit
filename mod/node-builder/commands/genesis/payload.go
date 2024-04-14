@@ -33,6 +33,7 @@ import (
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -129,11 +130,6 @@ func executableDataToExecutionPayload(
 		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
 	}
 
-	var baseFeePerGas []byte
-	if data.BaseFeePerGas != nil {
-		baseFeePerGas = data.BaseFeePerGas.Bytes()
-	}
-
 	var blobGasUsed uint64
 	if data.BlobGasUsed != nil {
 		blobGasUsed = *data.BlobGasUsed
@@ -156,7 +152,7 @@ func executableDataToExecutionPayload(
 		GasUsed:       data.GasUsed,
 		Timestamp:     data.Timestamp,
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: baseFeePerGas,
+		BaseFeePerGas: uint256.LittleFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,

@@ -25,29 +25,38 @@
 
 package uint256_test
 
-// func TestLittleEndian_UInt256(t *testing.T) {
-// 	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
-// 	expected := new(holimanuint256.Int).SetBytes([]byte{1, 2, 3, 4, 5})
-// 	assert.Equal(t, expected, le.UInt256())
-// }
+import (
+	"testing"
 
-// func TestLittleEndian_Big(t *testing.T) {
-// 	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
-// 	expected := new(holimanuint256.Int).SetBytes([]byte{1, 2, 3, 4, 5})
-// 	assert.Equal(t, expected, le.Big())
-// }
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
+	huint256 "github.com/holiman/uint256"
+	"github.com/stretchr/testify/require"
+)
 
-// func TestLittleEndian_MarshalJSON(t *testing.T) {
-// 	le := uint256.LittleEndian([]byte{1, 2, 3, 4, 5})
-// 	expected := []byte("\"0x0504030201\"")
-// 	result, err := le.MarshalJSON()
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, expected, result)
-// }
+func TestLittleEndian_UInt256(t *testing.T) {
+	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := new(huint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
+	require.Equal(t, expected, le.UInt256())
+}
 
-// func TestLittleEndian_UnmarshalJSON(t *testing.T) {
-// 	le := new(uint256.LittleEndian)
-// 	err := le.UnmarshalJSON([]byte("0x0504030201"))
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, uint256.LittleEndian([]byte{1, 2, 3, 4, 5}), *le)
-// }
+func TestLittleEndian_Big(t *testing.T) {
+	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := new(huint256.Int).SetBytes([]byte{5, 4, 3, 2, 1})
+	require.Equal(t, expected.ToBig(), le.ToBig())
+}
+
+func TestLittleEndian_MarshalJSON(t *testing.T) {
+	le := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
+	expected := []byte("\"0x504030201\"")
+	result, err := le.MarshalJSON()
+	require.NoError(t, err)
+	require.JSONEq(t, string(expected), string(result))
+}
+
+func TestLittleEndian_UnmarshalJSON(t *testing.T) {
+	le := new(uint256.LittleEndian)
+	err := le.UnmarshalJSON([]byte("\"0x504030201\""))
+	require.NoError(t, err)
+	expected := uint256.NewLittleEndian([]byte{1, 2, 3, 4, 5})
+	require.Equal(t, expected, *le)
+}
