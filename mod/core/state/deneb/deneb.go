@@ -71,7 +71,7 @@ func DefaultBeaconState() *BeaconState {
 		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
-		RandaoMixes:                  make([]primitives.Root, 8),
+		RandaoMixes:                  make([]primitives.Bytes32, 8),
 		Slashings:                    make([]uint64, 0),
 		TotalSlashing:                0,
 	}
@@ -138,7 +138,7 @@ type BeaconState struct {
 	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
-	RandaoMixes []primitives.Root `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
