@@ -43,6 +43,11 @@ const UInt256Bytes = 32
 // for compatibility with the SSZ spec.
 type LittleEndian [32]byte
 
+// NewLittleEndian creates a new LittleEndian from a byte slice.
+func NewLittleEndian(bz []byte) LittleEndian {
+	return LittleEndian(byteslib.ExtendToSize(bz, UInt256Bytes))
+}
+
 // LittleFromBigEndian creates a new LittleEndian from a big-endian
 // byte slice.
 func LittleFromBigEndian(b []byte) LittleEndian {
