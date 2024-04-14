@@ -27,7 +27,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -50,7 +49,7 @@ type ExecutionPayloadBody interface {
 	GetGasUsed() uint64
 	GetTimestamp() uint64
 	GetExtraData() []byte
-	GetBaseFeePerGas() uint256.LittleEndian
+	GetBaseFeePerGas() primitives.Wei
 	GetFeeRecipient() primitives.ExecutionAddress
 	GetStateRoot() primitives.ExecutionHash
 	GetReceiptsRoot() primitives.ExecutionHash

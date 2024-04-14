@@ -25,6 +25,8 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/mod/primitives/uint256"
+
 //nolint:lll
 type (
 	// Slot as per the Ethereum 2.0 Specification:
@@ -66,4 +68,11 @@ type (
 	// BLSSignature as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	BLSSignature = Bytes96
+
+	// Wei is the smallest unit of Ether, we store the value as LittlEndian for
+	// the best compatibility with the SSZ spec.
+	Wei = uint256.LittleEndian
+
+	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	Gwei uint64
 )

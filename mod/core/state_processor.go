@@ -36,6 +36,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -397,7 +398,9 @@ func (sp *StateProcessor) createValidator(
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
 	}
-	if err = depositMessage.VerifyCreateValidator(fd, dep.Signature); err != nil {
+	if err = depositMessage.VerifyCreateValidator(
+		fd, dep.Signature, blst.VerifySignaturePubkeyBytes,
+	); err != nil {
 		return err
 	}
 

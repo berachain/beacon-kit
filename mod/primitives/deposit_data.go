@@ -26,56 +26,42 @@
 package primitives
 
 import (
-	"fmt"
-
-	"github.com/holiman/uint256"
+	"github.com/davecgh/go-spew/spew"
 )
 
-const (
-	// WeiPerEther is the number of Wei in an Eth.
-	WeiPerEther = 1e18
+// Deposit into the consensus layer from the deposit contract in the execution
+// layer.
+type DepositData struct {
+	// Public key of the validator specified in the deposit.
+	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
-	// GweiPerEther is the number of Gwei in an Eth.
-	GweiPerEther = 1e9
+	// A staking credentials with
+	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
-	// WeiPerGwei is the number of Wei in a Gwei.
-	WeiPerGwei = 1e9
-)
+	// Deposit amount in gwei.
+	Amount Gwei `json:"amount"`
 
-type (
-	// Wei is the smallest unit of Ether, represented as a pointer to a Uint256.
-	Wei struct {
-		*uint256.Int
+	// Signature of the deposit data.
+	Signature BLSSignature `json:"signature" ssz-max:"96"`
+}
+
+// NewDeposit creates a new Deposit instance.
+func NewDepositData(
+	pubkey BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount Gwei,
+	signature BLSSignature,
+) *DepositData {
+	return &DepositData{
+		Pubkey:      pubkey,
+		Credentials: credentials,
+		Amount:      amount,
+		Signature:   signature,
 	}
-
-	// Gwei is a denomination of 1e9 Wei represented as an uint64.
-	Gwei uint64
-)
-
-// ZeroWei returns a zero Wei.
-func ZeroWei() Wei {
-	return Wei{uint256.NewInt(0)}
 }
 
-// WeiFromBytes converts a Wei to a byte slice.
-func WeiFromBytes(bz []byte) Wei {
-	return Wei{uint256.NewInt(0).SetBytes(bz)}
-}
-
-// ToGwei converts Wei to uint64 gwei.
-// It DOES not modify the underlying value.
-func (w Wei) ToGwei() Gwei {
-	if w.Int == nil {
-		return 0
-	}
-	copied := new(uint256.Int).Set(w.Int)
-	copied.Div(copied, uint256.NewInt(WeiPerGwei))
-	return Gwei(copied.Uint64())
-}
-
-// WeiToEther returns the value of a Wei as an Ether.
-// FOR DISPLAY PURPOSES ONLY. Do not use for actual
-// blockchain things.
-func (w Wei) ToEther() string {
-	return fmt.Sprintf("%.4f", w.Int.Float64()/WeiPerEther)
+// String returns a string representation of the Deposit.
+func (d *DepositData) String() string {
+	return spew.Sdump(d)
 }

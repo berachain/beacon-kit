@@ -34,7 +34,7 @@ import (
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
 //go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include execution.go,math.go,primitives.go,$GETH_PKG_INCLUDE/common -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include execution.go,primitives.go,$GETH_PKG_INCLUDE/common -output withdrawal.ssz.go
 type Withdrawal struct {
 	Index     uint64           `json:"index"          ssz-size:"8"`
 	Validator ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
