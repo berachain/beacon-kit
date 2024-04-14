@@ -26,13 +26,9 @@
 package types
 
 import (
-	"math/big"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // ExecutionPayloadEnvelope is an interface for the execution payload envelope.
@@ -51,11 +47,11 @@ type ExecutionPayloadEnvelope interface {
 	ShouldOverrideBuilder() bool
 }
 
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -field-override executionPayloadEnvelopeMarshaling -out payload_env.json.go
+//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelopeDeneb -out payload_env.json.go
 //nolint:lll
 type ExecutionPayloadEnvelopeDeneb struct {
 	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
-	BlockValue       *big.Int              `json:"blockValue"            gencodec:"required"`
+	BlockValue       primitives.Wei        `json:"blockValue"            gencodec:"required"`
 	BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 	Override         bool                  `json:"shouldOverrideBuilder"`
 }
@@ -68,7 +64,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
-	return uint256.LittleFromBigInt(e.BlockValue)
+	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
@@ -84,9 +80,4 @@ func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
 // String returns the string representation of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelopeDeneb) String() string {
 	return spew.Sdump(e)
-}
-
-// JSON type overrides for ExecutionPayloadEnvelope.
-type executionPayloadEnvelopeMarshaling struct {
-	BlockValue *hexutil.Big
 }

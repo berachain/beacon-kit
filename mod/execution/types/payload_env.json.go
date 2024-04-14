@@ -5,25 +5,22 @@ package types
 import (
 	"encoding/json"
 	"errors"
-	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-var _ = (*executionPayloadEnvelopeMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayloadEnvelopeDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadEnvelopeDeneb struct {
 		ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
-		BlockValue       *hexutil.Big          `json:"blockValue"            gencodec:"required"`
+		BlockValue       uint256.LittleEndian  `json:"blockValue"            gencodec:"required"`
 		BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 		Override         bool                  `json:"shouldOverrideBuilder"`
 	}
 	var enc ExecutionPayloadEnvelopeDeneb
 	enc.ExecutionPayload = e.ExecutionPayload
-	enc.BlockValue = (*hexutil.Big)(e.BlockValue)
+	enc.BlockValue = e.BlockValue
 	enc.BlobsBundle = e.BlobsBundle
 	enc.Override = e.Override
 	return json.Marshal(&enc)
@@ -33,7 +30,7 @@ func (e ExecutionPayloadEnvelopeDeneb) MarshalJSON() ([]byte, error) {
 func (e *ExecutionPayloadEnvelopeDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutionPayloadEnvelopeDeneb struct {
 		ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"      gencodec:"required"`
-		BlockValue       *hexutil.Big          `json:"blockValue"            gencodec:"required"`
+		BlockValue       *uint256.LittleEndian `json:"blockValue"            gencodec:"required"`
 		BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
 		Override         *bool                 `json:"shouldOverrideBuilder"`
 	}
@@ -48,7 +45,7 @@ func (e *ExecutionPayloadEnvelopeDeneb) UnmarshalJSON(input []byte) error {
 	if dec.BlockValue == nil {
 		return errors.New("missing required field 'blockValue' for ExecutionPayloadEnvelopeDeneb")
 	}
-	e.BlockValue = (*big.Int)(dec.BlockValue)
+	e.BlockValue = *dec.BlockValue
 	if dec.BlobsBundle != nil {
 		e.BlobsBundle = dec.BlobsBundle
 	}
