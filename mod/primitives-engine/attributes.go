@@ -34,7 +34,9 @@ import (
 // PayloadAttributes is the attributes of a block payload.
 //
 //nolint:lll // struct tags.
-type PayloadAttributes struct {
+type PayloadAttributes[
+	Withdrawal primitives.SSZMarshallable,
+] struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
@@ -48,7 +50,7 @@ type PayloadAttributes struct {
 	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
-	Withdrawals []*primitives.Withdrawal `json:"withdrawals"`
+	Withdrawals []Withdrawal `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
 	// to the block currently being processed. This field was added for
@@ -57,15 +59,17 @@ type PayloadAttributes struct {
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
-func NewPayloadAttributes(
+func NewPayloadAttributes[
+	Withdrawal primitives.SSZMarshallable,
+](
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
 	suggestedFeeReceipient primitives.ExecutionAddress,
-	withdrawals []*primitives.Withdrawal,
+	withdrawals []Withdrawal,
 	parentBeaconBlockRoot primitives.Root,
-) (*PayloadAttributes, error) {
-	p := &PayloadAttributes{
+) (*PayloadAttributes[Withdrawal], error) {
+	p := &PayloadAttributes[Withdrawal]{
 		version:               forkVersion,
 		Timestamp:             hexutil.Uint64(timestamp),
 		PrevRandao:            prevRandao,
@@ -82,12 +86,12 @@ func NewPayloadAttributes(
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
+func (p *PayloadAttributes[Withdrawal]) Version() uint32 {
 	return p.version
 }
 
 // Validate validates the PayloadAttributes.
-func (p *PayloadAttributes) Validate() error {
+func (p *PayloadAttributes[Withdrawal]) Validate() error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
