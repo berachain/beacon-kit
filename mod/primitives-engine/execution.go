@@ -23,20 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package engineprimitives
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
+	// Block represents a block on the execution layer.
+	Block = coretypes.Block
 
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash = common.Hash
+	// Header represents a header on the execution layer.
+	Header = coretypes.Header
 )

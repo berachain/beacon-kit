@@ -129,7 +129,9 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID engineprimitives.PayloadID, forkVersion uint32,
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
+	forkVersion uint32,
 ) (engineprimitives.ExecutionPayloadEnvelope, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()

@@ -32,7 +32,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
