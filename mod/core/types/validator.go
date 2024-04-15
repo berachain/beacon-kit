@@ -85,6 +85,16 @@ func NewValidatorFromDeposit(
 	}
 }
 
+// GetPubkey returns the public key of the validator.
+func (v *Validator) GetPubkey() primitives.BLSPubkey {
+	return v.Pubkey
+}
+
+// GetEffectiveBalance returns the effective balance of the validator.
+func (v *Validator) GetEffectiveBalance() primitives.Gwei {
+	return v.EffectiveBalance
+}
+
 // IsActive as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
 //

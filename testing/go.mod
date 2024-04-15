@@ -6,6 +6,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
+	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 )
 
 require (
@@ -15,7 +16,7 @@ require (
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
 	github.com/ethereum/go-ethereum v1.13.14
-	github.com/kurtosis-tech/kurtosis/api/golang v0.88.16
+	github.com/kurtosis-tech/kurtosis/api/golang v0.88.17
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 )
@@ -70,9 +71,9 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20231031173452-349f1ec9a443 // indirect
-	github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20240411165849-6a7f28985a6e // indirect
-	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20240411165849-6a7f28985a6e // indirect
-	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240411165849-6a7f28985a6e // indirect
+	github.com/kurtosis-tech/kurtosis/contexts-config-store v0.0.0-20240415200132-cd0c3c405d11 // indirect
+	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20240415200132-cd0c3c405d11 // indirect
+	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240415200132-cd0c3c405d11 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.14 // indirect
@@ -116,8 +117,8 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240412170617-26222e5d3d56 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240412170617-26222e5d3d56 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
