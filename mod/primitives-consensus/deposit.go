@@ -35,7 +35,7 @@ type Deposits []*Deposit
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
