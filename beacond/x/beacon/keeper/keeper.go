@@ -59,6 +59,11 @@ type Keeper struct {
 	cfg *params.BeaconChainConfig
 }
 
+// TODO: move this.
+func DenebPayloadFactory() engineprimitives.ExecutionPayload {
+	return &engineprimitives.ExecutableDataDeneb{}
+}
+
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
@@ -74,7 +79,7 @@ func NewKeeper(
 			engineprimitives.ExecutionPayload,
 			*consensusprimitives.Eth1Data,
 			*types.Validator,
-		](env.KVStoreService),
+		](env.KVStoreService, DenebPayloadFactory),
 		cfg: cfg,
 	}
 }

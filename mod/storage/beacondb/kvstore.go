@@ -137,6 +137,7 @@ func New[
 	ValidatorT SSZMarshallable,
 ](
 	kss store.KVStoreService,
+	executionPayloadFactory func() ExecutionPayloadT,
 ) *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
@@ -185,10 +186,7 @@ func New[
 			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
 			keys.LatestExecutionPayloadPrefix,
 			encoding.SSZInterfaceCodec[ExecutionPayloadT]{
-				Factory: func() ExecutionPayloadT {
-					var t ExecutionPayloadT
-					return t
-				},
+				Factory: executionPayloadFactory,
 			},
 		),
 		eth1Data: sdkcollections.NewItem[Eth1DataT](

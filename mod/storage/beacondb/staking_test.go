@@ -38,6 +38,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testFactory() *primitives.U64 {
+	return (*primitives.U64)(nil)
+}
+
 func TestDeposits(t *testing.T) {
 	testName := "test"
 	logger := log.NewTestLogger(t)
@@ -51,6 +55,7 @@ func TestDeposits(t *testing.T) {
 		*primitives.U64, *primitives.U64, *primitives.U64,
 	](
 		sdkruntime.NewKVStoreService(storeKey),
+		testFactory,
 	)
 	sdb = sdb.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {
