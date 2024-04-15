@@ -34,14 +34,14 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ../primitives/withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
 	Amount primitives.Gwei `json:"amount"`
@@ -69,7 +69,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		signingRoot[:],
 		signature[:],
 	) {
-		return primitives.ErrDepositMessage
+		return ErrDepositMessage
 	}
 
 	return nil

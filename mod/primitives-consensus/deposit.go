@@ -35,14 +35,14 @@ type Deposits []*Deposit
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../primitives/withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,../primitives/bytes.go,../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials primitives.WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
 	Amount primitives.Gwei `json:"amount"`
@@ -57,7 +57,7 @@ type Deposit struct {
 // NewDeposit creates a new Deposit instance.
 func NewDeposit(
 	pubkey primitives.BLSPubkey,
-	credentials primitives.WithdrawalCredentials,
+	credentials WithdrawalCredentials,
 	amount primitives.Gwei,
 	signature primitives.BLSSignature,
 	index uint64,

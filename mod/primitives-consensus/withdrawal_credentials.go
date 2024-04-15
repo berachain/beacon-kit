@@ -9,7 +9,7 @@
 // copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following
-// conditions:
+// conditions
 //
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
@@ -23,11 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package consensusprimitives
 
-import "github.com/berachain/beacon-kit/mod/core/types"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../primitives-consensus,../../../../core/types -output validators.ssz.go
-type ValidatorsMarshaling struct {
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+// EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
+const EthSecp256k1CredentialPrefix = byte(iota + 1)
+
+// WithdrawalCredentials is a staking credential that is used to identify a
+// validator.
+type WithdrawalCredentials primitives.Bytes32
+
+// NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
+// an.
+func NewCredentialsFromExecutionAddress(
+	address primitives.ExecutionAddress,
+) WithdrawalCredentials {
+	credentials := WithdrawalCredentials{}
+	credentials[0] = 0x01
+	copy(credentials[12:], address[:])
+	return credentials
+}
+
+// ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
+func (wc WithdrawalCredentials) ToExecutionAddress() (
+	primitives.ExecutionAddress,
+	error,
+) {
+	if wc[0] != EthSecp256k1CredentialPrefix {
+		return primitives.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
+	}
+	return primitives.ExecutionAddress(wc[12:]), nil
 }
