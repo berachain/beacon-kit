@@ -31,6 +31,29 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// Bytes represents a byte array.
+type Bytes []byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes4.
+func (h Bytes) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h, input)
+}
+
+// String returns the hex string representation of Bytes4.
+func (h Bytes) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes4.
+func (h Bytes) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes4.
+func (h Bytes) UnmarshalText(text []byte) error {
+	return unmarshalTextHelper(h, text)
+}
+
 // ------------------------------ Bytes4 ------------------------------
 
 // Bytes4 represents a 4-byte array.
