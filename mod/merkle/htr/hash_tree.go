@@ -28,6 +28,8 @@ package htr
 import (
 	"runtime"
 
+	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
+	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -43,6 +45,36 @@ const (
 	// two is a constant to make the linter happy.
 	two = 2
 )
+
+// Build tree root builds the merkle tree root from a set of
+// 32 byte leaves and a length. The length is used to determine
+// the depth of the tree. Depending on the combination of leaves
+// and length passed in, the tree may be padded with additional
+// empty leaves.
+func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
+	depth := bitlen.CoverDepth(length)
+	// Return zerohash at depth
+	if len(leaves) == 0 {
+		return zero.Hashes[depth]
+	}
+	for i := range depth {
+		layerLen := len(leaves)
+		oddNodeLength := layerLen%two == 1
+		if oddNodeLength {
+			zerohash := zero.Hashes[i]
+			leaves = append(leaves, zerohash)
+		}
+		var err error
+		leaves, err = BuildParentTreeRoots(leaves)
+		if err != nil {
+			return zero.Hashes[depth]
+		}
+	}
+	if len(leaves) != 1 {
+		return zero.Hashes[depth]
+	}
+	return leaves[0]
+}
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.

@@ -46,7 +46,7 @@ const (
 type Tree struct {
 	depth    uint8
 	branches [][][32]byte
-	leaves   [][32]byte
+	leaves   [][]byte
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
