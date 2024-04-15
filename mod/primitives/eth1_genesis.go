@@ -35,7 +35,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/params"
@@ -47,7 +46,10 @@ import (
 
 //go:generate go run github.com/fjl/gencodec -type Genesis -field-override genesisSpecMarshaling -out eth1_genesis.json.go
 
-// var errGenesisNoConfig = errors.New("genesis has no chain configuration")
+// var errGenesisNoConfig = errors.New("genesis has no chain configuration"
+
+// TODO: replace this with the core/tracing constant when its included in latest
+const BalanceIncreaseGenesisBalance = 4
 
 // Deprecated: use types.Account instead.
 type GenesisAccount = types.Account
@@ -145,7 +147,7 @@ func hashAlloc(ga *types.GenesisAlloc, isVerkle bool) (common.Hash, error) {
 			statedb.AddBalance(
 				addr,
 				uint256.MustFromBig(account.Balance),
-				tracing.BalanceIncreaseGenesisBalance,
+				BalanceIncreaseGenesisBalance,
 			)
 		}
 		statedb.SetCode(addr, account.Code)
@@ -172,7 +174,7 @@ func hashAlloc(ga *types.GenesisAlloc, isVerkle bool) (common.Hash, error) {
 // 			// This is not actually logged via tracer because OnGenesisBlock
 // 			// already captures the allocations.
 // 			statedb.AddBalance(addr, uint256.MustFromBig(account.Balance),
-// tracing.BalanceIncreaseGenesisBalance)
+// BalanceIncreaseGenesisBalance)
 // 		}
 // 		statedb.SetCode(addr, account.Code)
 // 		statedb.SetNonce(addr, account.Nonce)

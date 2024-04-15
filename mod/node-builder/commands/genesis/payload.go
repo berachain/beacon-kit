@@ -38,7 +38,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	ethengineprimitives "github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
