@@ -43,7 +43,7 @@ func (s *Service) ProcessBlockEvents(
 ) error {
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
-		if log.Address != s.BeaconCfg().DepositContractAddress {
+		if log.Address != s.ChainSpec().DepositContractAddress() {
 			continue
 		}
 

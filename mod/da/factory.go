@@ -36,18 +36,18 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[BBB BeaconBlockBody] struct {
-	cfg         *params.BeaconChainConfig
+	cs          params.ChainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[BBB BeaconBlockBody](
-	cfg *params.BeaconChainConfig,
+	cs params.ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BBB] {
 	return &SidecarFactory[BBB]{
-		cfg: cfg,
+		cs: cs,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
 	}
@@ -144,7 +144,7 @@ func (f *SidecarFactory[BBB]) BuildCommitmentProof(
 ) ([][32]byte, error) {
 	bodyTree, err := merkle.NewTreeWithMaxLeaves(
 		body.GetBlobKzgCommitments().Leafify(),
-		f.cfg.MaxBlobCommitmentsPerBlock,
+		f.cs.MaxBlobCommitmentsPerBlock(),
 	)
 	if err != nil {
 		return nil, err

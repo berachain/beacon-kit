@@ -28,7 +28,6 @@ package config
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
@@ -45,7 +44,6 @@ import (
 func DefaultConfig() *Config {
 	return &Config{
 		ABCI:    abci.DefaultABCIConfig(),
-		Beacon:  params.DefaultBeaconConfig(),
 		Builder: builderconfig.DefaultBuilderConfig(),
 		Engine:  engineclient.DefaultConfig(),
 		KZG:     kzg.DefaultConfig(),
@@ -56,9 +54,6 @@ func DefaultConfig() *Config {
 type Config struct {
 	// ABCI is the configuration for ABCI related settings.
 	ABCI abci.Config `mapstructure:"abci"`
-
-	// Beacon is the configuration for the fork epochs.
-	Beacon params.BeaconChainConfig `mapstructure:"beacon-chain"`
 
 	// Builder is the configuration for the local build payload timeout.
 	Builder builderconfig.Config `mapstructure:"builder"`

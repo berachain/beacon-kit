@@ -25,12 +25,12 @@
 
 package params
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
+// ChainSpecData is the underlying data structure for chain-specific parameters.
+//
 //nolint:lll // struct tags may create long lines.
-type BeaconChainConfig struct {
+type ChainSpecData struct {
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
@@ -39,6 +39,8 @@ type BeaconChainConfig struct {
 	// MaxEffectiveBalance is the maximum effective balance allowed for a
 	// validator.
 	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
+	// EjectionBalance is the balance at which a validator is ejected.
+	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 
@@ -71,6 +73,7 @@ type BeaconChainConfig struct {
 	// ValidatorRegistryLimit is the maximum number of validators in the
 	// registry.
 	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
+
 	// Max operations per block constants.
 	//
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
@@ -107,6 +110,6 @@ type BeaconChainConfig struct {
 	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
-	// KZGIncludeProofDepth is the depth of the KZG inclusion proof.
-	KZGInclusionProofDepth uint64 `mapstructure:"kzg-inclusion-proof-depth"`
+	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
+	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 }

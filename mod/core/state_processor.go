@@ -44,7 +44,7 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg    *params.BeaconChainConfig
+	cs     params.ChainSpec
 	bv     BlobVerifier
 	rp     RandaoProcessor
 	logger log.Logger
@@ -52,13 +52,13 @@ type StateProcessor struct {
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cfg *params.BeaconChainConfig,
+	cs params.ChainSpec,
 	bv BlobVerifier,
 	rp RandaoProcessor,
 	logger log.Logger,
 ) *StateProcessor {
 	return &StateProcessor{
-		cfg:    cfg,
+		cs:     cs,
 		bv:     bv,
 		rp:     rp,
 		logger: logger.With("module", "state-processor"),
@@ -113,7 +113,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -143,20 +143,20 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
 		return err
 	}
 
 	// Process the Epoch Boundary.
-	if uint64(slot+1)%sp.cfg.SlotsPerEpoch == 0 {
+	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
 		if err = sp.processEpoch(st); err != nil {
 			return err
 		}
 		sp.logger.Info(
 			"processed epoch transition ⏰ ",
-			"old", uint64(slot)/sp.cfg.SlotsPerEpoch,
-			"new", uint64(slot+1)/sp.cfg.SlotsPerEpoch,
+			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
+			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
 		)
 	}
 
@@ -188,7 +188,7 @@ func (sp *StateProcessor) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err = sp.bv.VerifyBlobs(
 		sidecars,
-		types.KZGOffset(sp.cfg.MaxBlobCommitmentsPerBlock),
+		types.KZGOffset(sp.cs.MaxBlobCommitmentsPerBlock()),
 	); err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func (sp *StateProcessor) processDeposit(
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cfg.MaxEffectiveBalance))
+			primitives.Gwei(sp.cs.MaxEffectiveBalance()))
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
@@ -386,12 +386,12 @@ func (sp *StateProcessor) createValidator(
 	if err != nil {
 		return err
 	}
-	epoch = sp.cfg.SlotToEpoch(slot)
+	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
 	fd := consensusprimitives.NewForkData(
 		version.FromUint32(
-			sp.cfg.ActiveForkVersionForEpoch(epoch),
+			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
@@ -419,8 +419,8 @@ func (sp *StateProcessor) addValidatorToRegistry(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
-		primitives.Gwei(sp.cfg.EffectiveBalanceIncrement),
-		primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+		primitives.Gwei(sp.cs.EffectiveBalanceIncrement()),
+		primitives.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 	if err := st.AddValidator(val); err != nil {
 		return err
@@ -491,7 +491,7 @@ func (sp *StateProcessor) processWithdrawals(
 
 	// Update the next validator index to start the next withdrawal sweep
 	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
@@ -504,7 +504,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return err
 		}
 		nextValidatorIndex += primitives.ValidatorIndex(
-			sp.cfg.MaxValidatorsPerWithdrawalsSweep)
+			sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= primitives.ValidatorIndex(totalValidators)
 	}
 
@@ -543,7 +543,7 @@ func (sp *StateProcessor) processSlashingsReset(
 		return err
 	}
 
-	index := (uint64(sp.cfg.SlotToEpoch(slot)) + 1) % sp.cfg.EpochsPerSlashingsVector
+	index := (uint64(sp.cs.SlotToEpoch(slot)) + 1) % sp.cs.EpochsPerSlashingsVector()
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -579,7 +579,7 @@ func (sp *StateProcessor) processAttesterSlashing(
 func (sp *StateProcessor) processSlashings(
 	st state.BeaconState,
 ) error {
-	totalBalance, err := st.GetTotalActiveBalances(sp.cfg.SlotsPerEpoch)
+	totalBalance, err := st.GetTotalActiveBalances(sp.cs.SlotsPerEpoch())
 	if err != nil {
 		return err
 	}
@@ -588,9 +588,9 @@ func (sp *StateProcessor) processSlashings(
 	if err != nil {
 		return err
 	}
-	proportionalSlashingMultiplier := sp.cfg.ProportionalSlashingMultiplier
+	proportionalSlashingMultiplier := sp.cs.ProportionalSlashingMultiplier
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*proportionalSlashingMultiplier,
+		uint64(totalSlashings)*proportionalSlashingMultiplier(),
 		uint64(totalBalance),
 	)
 	vals, err := st.GetValidators()
@@ -608,7 +608,7 @@ func (sp *StateProcessor) processSlashings(
 	for _, val := range vals {
 		// Checks if the validator is slashable.
 		//nolint:gomnd // this is in the spec
-		slashableEpoch := (uint64(sp.cfg.SlotToEpoch(slot)) + sp.cfg.EpochsPerSlashingsVector) / 2
+		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
 			if err = sp.processSlash(
@@ -634,8 +634,8 @@ func (sp *StateProcessor) processSlash(
 	totalBalance uint64,
 ) error {
 	// Calculate the penalty.
-	increment := sp.cfg.EffectiveBalanceIncrement
-	balDivIncrement := uint64(val.EffectiveBalance) / increment
+	increment := sp.cs.EffectiveBalanceIncrement()
+	balDivIncrement := uint64(val.GetEffectiveBalance()) / increment
 	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
 	penalty := penaltyNumerator / totalBalance * increment
 

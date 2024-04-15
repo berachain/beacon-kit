@@ -50,7 +50,7 @@ type StateDB struct {
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	]
-	cfg *params.BeaconChainConfig
+	cs params.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
@@ -63,17 +63,17 @@ func NewBeaconStateFromDB(
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	],
-	cfg *params.BeaconChainConfig,
+	cs params.ChainSpec,
 ) *StateDB {
 	return &StateDB{
 		KVStore: bdb,
-		cfg:     cfg,
+		cs:      cs,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cfg)
+	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
@@ -145,7 +145,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		return nil, err
 	}
 
-	epoch := primitives.Epoch(uint64(slot) / s.cfg.SlotsPerEpoch)
+	epoch := primitives.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -164,7 +164,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 
 	// Iterate through indicies to find the next validators to withdraw.
 	for range min(
-		s.cfg.MaxValidatorsPerWithdrawalsSweep, totalValidators,
+		s.cs.MaxValidatorsPerWithdrawalsSweep(), totalValidators,
 	) {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
@@ -193,8 +193,8 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		// validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawal.Amount = balance
-		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cfg.MaxEffectiveBalance)) {
-			withdrawal.Amount = balance - primitives.Gwei(s.cfg.MaxEffectiveBalance)
+		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cs.MaxEffectiveBalance())) {
+			withdrawal.Amount = balance - primitives.Gwei(s.cs.MaxEffectiveBalance())
 		}
 		withdrawals = append(withdrawals, withdrawal)
 
@@ -203,7 +203,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
 		//#nosec:G701 // won't overflow in practice.
-		if len(withdrawals) == int(s.cfg.MaxWithdrawalsPerPayload) {
+		if len(withdrawals) == int(s.cs.MaxWithdrawalsPerPayload()) {
 			break
 		}
 
@@ -240,16 +240,16 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	blockRoots := make([]primitives.Root, s.cfg.SlotsPerHistoricalRoot)
-	for i := range s.cfg.SlotsPerHistoricalRoot {
+	blockRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
 	}
 
-	stateRoots := make([]primitives.Root, s.cfg.SlotsPerHistoricalRoot)
-	for i := range s.cfg.SlotsPerHistoricalRoot {
+	stateRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
@@ -281,8 +281,8 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	randaoMixes := make([]primitives.Bytes32, s.cfg.EpochsPerHistoricalVector)
-	for i := range s.cfg.EpochsPerHistoricalVector {
+	randaoMixes := make([]primitives.Bytes32, s.cs.EpochsPerHistoricalVector())
+	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
@@ -309,7 +309,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	activeFork := s.cfg.ActiveForkVersionForSlot(slot)
+	activeFork := s.cs.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
 		executionPayload, ok :=

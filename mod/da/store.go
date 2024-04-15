@@ -40,17 +40,17 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
-	beaconCfg *params.BeaconChainConfig
+	chainSpec params.ChainSpec
 	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
 func NewStore(
-	beaconCfg *params.BeaconChainConfig,
+	chainSpec params.ChainSpec,
 	db db.DB,
 ) *Store {
 	return &Store{
-		beaconCfg: beaconCfg,
+		chainSpec: chainSpec,
 		RangeDB:   filedb.NewRangeDB(db),
 	}
 }
@@ -86,7 +86,7 @@ func (s *Store) Persist(
 
 	// Check to see if we are required to store the sidecar anymore, if
 	// this sidecar is from outside the required DA period, we can skip it.
-	if !s.beaconCfg.WithinDAPeriod(
+	if !s.chainSpec.WithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
 		sidecars.Sidecars[0].BeaconBlockHeader.Slot,

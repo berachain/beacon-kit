@@ -44,7 +44,7 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	cfg    *params.BeaconChainConfig
+	cs     params.ChainSpec
 	signer core.BLSSigner
 	logger log.Logger
 }
@@ -85,7 +85,7 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	epoch := p.cfg.SlotToEpoch(slot)
+	epoch := p.cs.SlotToEpoch(slot)
 	signingRoot, err := p.computeSigningRoot(epoch, root)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (p *Processor) ProcessRandao(
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cfg.EpochsPerHistoricalVector,
+		uint64(epoch) % p.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (p *Processor) ProcessRandao(
 	mix := p.buildMix(prevMix, blk.GetBody().GetRandaoReveal())
 	p.logger.Info("randao mix updated 🎲", "new_mix", mix)
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%p.cfg.EpochsPerHistoricalVector,
+		uint64(epoch)%p.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
@@ -141,7 +141,7 @@ func (p *Processor) BuildReveal(
 
 	return p.buildReveal(
 		genesisValidatorsRoot,
-		p.cfg.SlotToEpoch(slot),
+		p.cs.SlotToEpoch(slot),
 	)
 }
 
@@ -153,15 +153,15 @@ func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 		return err
 	}
 
-	epoch := p.cfg.SlotToEpoch(slot)
+	epoch := p.cs.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cfg.EpochsPerHistoricalVector,
+		uint64(epoch) % p.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%p.cfg.EpochsPerHistoricalVector,
+		uint64(epoch+1)%p.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
@@ -197,7 +197,7 @@ func (p *Processor) computeSigningRoot(
 ) (primitives.Root, error) {
 	fd := consensusprimitives.NewForkData(
 		version.FromUint32(
-			p.cfg.ActiveForkVersionForEpoch(epoch),
+			p.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
