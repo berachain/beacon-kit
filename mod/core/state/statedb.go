@@ -28,7 +28,6 @@ package state
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -50,7 +49,7 @@ type StateDB struct {
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	]
-	cs params.ChainSpec
+	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
@@ -63,7 +62,7 @@ func NewBeaconStateFromDB(
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	],
-	cs params.ChainSpec,
+	cs primitives.ChainSpec,
 ) *StateDB {
 	return &StateDB{
 		KVStore: bdb,

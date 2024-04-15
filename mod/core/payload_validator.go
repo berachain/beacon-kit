@@ -28,19 +28,19 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // PayloadValidator is responsible for validating incoming execution
 // payloads to ensure they are valid.
 type PayloadValidator struct {
-	cs params.ChainSpec
+	cs primitives.ChainSpec
 }
 
 // NewPayloadValidator creates a new payload validator.
-func NewPayloadValidator(cs params.ChainSpec) *PayloadValidator {
+func NewPayloadValidator(cs primitives.ChainSpec) *PayloadValidator {
 	return &PayloadValidator{
 		cs: cs,
 	}

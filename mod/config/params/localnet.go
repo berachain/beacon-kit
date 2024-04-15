@@ -25,10 +25,13 @@
 
 package params
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/ethereum/go-ethereum/common"
+)
 
 // LocalnetChainSpec is the ChainSpec for the localnet.
-func LocalnetChainSpec() ChainSpec {
+func LocalnetChainSpec() primitives.ChainSpec {
 	//nolint:gomnd // default config.
 	return NewChainSpec(&ChainSpecData{
 		// Gwei value constants.

@@ -54,14 +54,14 @@ func NewForkData(
 //
 //nolint:lll
 func (fv ForkData) ComputeDomain(
-	domainType DomainType,
-) (Domain, error) {
+	domainType primitives.DomainType,
+) (primitives.Domain, error) {
 	forkDataRoot, err := fv.HashTreeRoot()
 	if err != nil {
-		return Domain{}, err
+		return primitives.Domain{}, err
 	}
 
-	return Domain(
+	return primitives.Domain(
 		append(
 			domainType[:],
 			forkDataRoot[:28]...),

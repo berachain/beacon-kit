@@ -30,10 +30,10 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
@@ -43,7 +43,7 @@ type BaseService struct {
 	bsb       BeaconStorageBackend
 	name      string
 	cfg       *config.Config
-	chainSpec params.ChainSpec
+	chainSpec primitives.ChainSpec
 	logger    log.Logger
 
 	// statusErrMu protects statusErr.
@@ -57,7 +57,7 @@ type BaseService struct {
 func NewBaseService(
 	cfg *config.Config,
 	bsp BeaconStorageBackend,
-	chainSpec params.ChainSpec,
+	chainSpec primitives.ChainSpec,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
@@ -93,7 +93,7 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 
 // ChainSpec returns the configuration settings of the beacon node from
 // the BaseService.
-func (s *BaseService) ChainSpec() params.ChainSpec {
+func (s *BaseService) ChainSpec() primitives.ChainSpec {
 	return s.chainSpec
 }
 

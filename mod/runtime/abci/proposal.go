@@ -30,7 +30,6 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -63,7 +62,7 @@ type BlockchainService interface {
 		state.BeaconState,
 		beacontypes.ReadOnlyBeaconBlock,
 	) error
-	ChainSpec() params.ChainSpec
+	ChainSpec() primitives.ChainSpec
 }
 
 // Handler is a struct that encapsulates the necessary components to handle
