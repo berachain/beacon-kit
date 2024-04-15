@@ -28,7 +28,6 @@ package engineprimitives
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -66,7 +65,7 @@ type executableDataDenebMarshaling struct {
 
 // Version returns the version of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) Version() uint32 {
-	return version.Deneb
+	return 4
 }
 
 // IsNil checks if the ExecutableDataDeneb is nil.
