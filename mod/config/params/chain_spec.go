@@ -127,7 +127,8 @@ var _ ChainSpec = (*chainSpec)(nil)
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
 // the actual data.
 type chainSpec struct {
-	Data *ChainSpecData // Data contains the actual chain-specific parameter values.
+	// Data contains the actual chain-specific parameter values.
+	Data *ChainSpecData
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
