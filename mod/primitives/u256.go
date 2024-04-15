@@ -39,22 +39,22 @@ const UInt256Bytes = 32
 
 // U256 represents a uint256 number stored in big-endian
 // format.
-type U256 = uint256.Int
+type U256 = *uint256.Int
 
 // U256L represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
 // for compatibility with the SSZ spec.
-type U256L [32]byte
+type U256L *[32]byte
 
 // NewU256L creates a new LittleEndian from a byte slice.
 func NewU256L(bz []byte) U256L {
 	return U256L(byteslib.ExtendToSize(bz, UInt256Bytes))
 }
 
-// U256LFromBigEndian creates a new LittleEndian from a big-endian
+// NewU256LFromBigEndian creates a new LittleEndian from a big-endian
 // byte slice.
-func U256LFromBigEndian(b []byte) U256L {
+func NewU256LFromBigEndian(b []byte) U256L {
 	return U256L(
 		byteslib.ExtendToSize(
 			byteslib.CopyAndReverseEndianess(b),
@@ -63,16 +63,16 @@ func U256LFromBigEndian(b []byte) U256L {
 	)
 }
 
-// U256LFromBigInt creates a new LittleEndian from a big.Int.
-func U256LFromBigInt(b *big.Int) U256L {
+// NewU256LFromBigInt creates a new LittleEndian from a big.Int.
+func NewU256LFromBigInt(b *big.Int) U256L {
 	if b == nil {
 		return U256L{}
 	}
-	return U256LFromBigEndian(b.Bytes())
+	return NewU256LFromBigEndian(b.Bytes())
 }
 
 // UInt256 converts an LittleEndian to a uint256.Int.
-func (s U256L) ToBigEndian() *uint256.Int {
+func (s U256L) ToU256() *uint256.Int {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
@@ -105,5 +105,5 @@ func (s *U256L) UnmarshalJSON(input []byte) error {
 
 // String returns the string representation of a LittleEndian.
 func (s *U256L) String() string {
-	return s.ToBigEndian().String()
+	return s.ToU256().String()
 }
