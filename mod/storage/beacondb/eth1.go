@@ -26,7 +26,7 @@
 package beacondb
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
@@ -57,11 +57,11 @@ func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore) GetEth1Data() (*primitives.Eth1Data, error) {
+func (kv *KVStore) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(data *primitives.Eth1Data) error {
+func (kv *KVStore) SetEth1Data(data *consensusprimitives.Eth1Data) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }

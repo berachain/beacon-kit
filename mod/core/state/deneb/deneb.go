@@ -61,7 +61,7 @@ func DefaultBeaconState() *BeaconState {
 		BlockRoots:             make([]primitives.Root, 8),
 		StateRoots:             make([]primitives.Root, 8),
 		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
-		Eth1Data: &primitives.Eth1Data{
+		Eth1Data: &consensusprimitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
 			BlockHash:    primitives.ExecutionHash{},
@@ -130,7 +130,7 @@ type BeaconState struct {
 
 	// Eth1
 	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
+	Eth1Data               *consensusprimitives.Eth1Data         `json:"eth1Data"`
 	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry

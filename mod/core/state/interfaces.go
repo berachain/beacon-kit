@@ -129,7 +129,7 @@ type ReadOnlyValidators interface {
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
 	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
-	SetEth1Data(*primitives.Eth1Data) error
+	SetEth1Data(*consensusprimitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	EnqueueDeposits(consensusprimitives.Deposits) error
 	DequeueDeposits(uint64) (consensusprimitives.Deposits, error)
@@ -138,7 +138,7 @@ type WriteOnlyEth1Data interface {
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
 	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
-	GetEth1Data() (*primitives.Eth1Data, error)
+	GetEth1Data() (*consensusprimitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	ExpectedDeposits(uint64) (consensusprimitives.Deposits, error)
 }

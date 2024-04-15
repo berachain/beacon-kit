@@ -69,7 +69,7 @@ type KVStore struct {
 	latestExecutionPayload sdkcollections.Item[engineprimitives.ExecutionPayload]
 
 	// eth1Data stores the latest eth1 data.
-	eth1Data sdkcollections.Item[*primitives.Eth1Data]
+	eth1Data sdkcollections.Item[*consensusprimitives.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
@@ -159,11 +159,11 @@ func New(
 				},
 			},
 		),
-		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
+		eth1Data: sdkcollections.NewItem[*consensusprimitives.Eth1Data](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
 			keys.Eth1DataPrefix,
-			encoding.SSZValueCodec[*primitives.Eth1Data]{},
+			encoding.SSZValueCodec[*consensusprimitives.Eth1Data]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
