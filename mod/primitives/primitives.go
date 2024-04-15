@@ -39,7 +39,7 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	CommitteeIndex = U64
 
-	// ValidatorIndex as per the Ethereum 2.0 Specification:
+	// ValidatorIndex as per the Ethereum 2.0  Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ValidatorIndex = U64
 

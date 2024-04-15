@@ -10,7 +10,10 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea
+
+	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
+	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413213708-414fdac6561d
 	// Remove once v1.13.5 is released.
@@ -24,6 +27,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.6
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
