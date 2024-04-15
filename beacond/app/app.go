@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
 	dbm "github.com/cosmos/cosmos-db"
@@ -100,6 +101,8 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
+				// TODO: allow nodebuilder to inject.
+				params.LocalnetChainSpec(),
 			),
 		),
 		&appBuilder,

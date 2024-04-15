@@ -56,7 +56,7 @@ type Keeper struct {
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	]
-	cfg *params.ChainSpec
+	cfg params.ChainSpec
 }
 
 // TODO: move this.
@@ -68,7 +68,7 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayload {
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg *params.ChainSpec,
+	cfg params.ChainSpec,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),

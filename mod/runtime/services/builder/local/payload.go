@@ -255,7 +255,7 @@ func (s *Service) getPayloadAttribute(
 
 	// Get the previous randao mix.
 	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % s.ChainSpec().EpochsPerHistoricalVector,
+		uint64(epoch) % s.ChainSpec().EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return nil, err
@@ -286,11 +286,8 @@ func (s *Service) getPayloadFromExecutionClient(
 	envelope, err := s.ee.GetPayload(
 		ctx,
 		&execution.GetPayloadRequest{
-			PayloadID: *payloadID,
-			ForkVersion: s.ChainSpec().ActiveForkVersionForEpoch(
-				primitives.Epoch(uint64(slot) /
-					s.ChainSpec().SlotsPerEpoch),
-			),
+			PayloadID:   *payloadID,
+			ForkVersion: s.ChainSpec().ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {

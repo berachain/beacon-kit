@@ -88,7 +88,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot,
+		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -172,7 +172,7 @@ func (s *Service) RequestBestBlock(
 
 	// Dequeue deposits from the state.
 	deposits, err := st.ExpectedDeposits(
-		s.ChainSpec().MaxDepositsPerBlock,
+		s.ChainSpec().MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return nil, nil, err

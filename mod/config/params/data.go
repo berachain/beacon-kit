@@ -25,12 +25,12 @@
 
 package params
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives"
 
+// ChainSpecData is the underlying data structure for chain-specific parameters.
+//
 //nolint:lll // struct tags may create long lines.
-type ChainSpec struct {
+type ChainSpecData struct {
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit

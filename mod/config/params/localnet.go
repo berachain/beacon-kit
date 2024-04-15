@@ -27,9 +27,10 @@ package params
 
 import "github.com/ethereum/go-ethereum/common"
 
-func DefaultBeaconConfig() ChainSpec {
-	//nolint:gomnd // default settings.
-	return ChainSpec{
+// LocalnetChainSpec is the ChainSpec for the localnet.
+func LocalnetChainSpec() ChainSpec {
+	//nolint:gomnd // default config.
+	return NewChainSpec(ChainSpecData{
 		// Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
@@ -62,5 +63,5 @@ func DefaultBeaconConfig() ChainSpec {
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
 		KZGCommitmentInclusionProofDepth: 17,
-	}
+	})
 }

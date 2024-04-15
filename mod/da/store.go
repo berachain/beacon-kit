@@ -40,13 +40,13 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
-	chainSpec *params.ChainSpec
+	chainSpec params.ChainSpec
 	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
 func NewStore(
-	chainSpec *params.ChainSpec,
+	chainSpec params.ChainSpec,
 	db db.DB,
 ) *Store {
 	return &Store{
