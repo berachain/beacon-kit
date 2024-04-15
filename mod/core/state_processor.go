@@ -493,10 +493,9 @@ func (sp *StateProcessor) processWithdrawals(
 	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
 		// Next sweep starts after the latest withdrawal's validator index
-		nextValidatorIndex = primitives.ValidatorIndex(
+		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
-				primitives.U64(totalValidators),
-		)
+				primitives.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not
 		// a full set of withdrawals

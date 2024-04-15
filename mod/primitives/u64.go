@@ -34,7 +34,7 @@ import (
 // U64NumBytes is the number of bytes in a U64.
 const U64NumBytes = 8
 
-// U64 represents a 64-bit unsigned integer.
+// U64 represents a 64-bit unsigned integer that is both SSZ and JSON marshallable.
 type U64 uint64
 
 // -------------------------- SSZMarshallable --------------------------
