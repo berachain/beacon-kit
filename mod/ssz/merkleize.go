@@ -23,47 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr
+package ssz
 
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
+	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
-// Vector uses our optimized routine to hash a list of 32-byte
-// elements.
-func Vector(elements [][32]byte, length uint64) [32]byte {
-	depth := bitlen.CoverDepth(length)
-	// Return zerohash at depth
-	if len(elements) == 0 {
-		return zero.Hashes[depth]
-	}
-	for i := range depth {
-		layerLen := len(elements)
-		oddNodeLength := layerLen%two == 1
-		if oddNodeLength {
-			zerohash := zero.Hashes[i]
-			elements = append(elements, zerohash)
-		}
-		var err error
-		elements, err = BuildParentTreeRoots(elements)
-		if err != nil {
-			return zero.Hashes[depth]
-		}
-	}
-	if len(elements) != 1 {
-		return zero.Hashes[depth]
-	}
-	return elements[0]
-}
+// two is a commonly used constant.
+const two = 2
 
-// ByteSliceSSZ hashes a byteslice by chunkifying it and returning the
+// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-func ByteSliceSSZ(input []byte) ([32]byte, error) {
+func MerkleizeByteSlice(input []byte) ([32]byte, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
 	numChunks := (uint64(len(input)) + 31) / constants.RootLength
 	if numChunks == 0 {
@@ -73,16 +48,15 @@ func ByteSliceSSZ(input []byte) ([32]byte, error) {
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return Vector(chunks, numChunks), nil
+	return htr.BuildTreeRoot(chunks, numChunks), nil
 }
 
-// ListSSZ hashes each element in the list and then returns the HTR of
+// MerkleizeList hashes each element in the list and then returns the HTR of
 // the list of corresponding roots, with the length mixed in.
-func ListSSZ[T Hashable](
-	elements []T,
-	limit uint64,
+func MerkleizeList[T Hashable[[32]byte]](
+	elements []T, limit uint64,
 ) ([32]byte, error) {
-	body, err := VectorSSZ(elements, limit)
+	body, err := MerkleizeVector(elements, limit)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -95,11 +69,10 @@ func ListSSZ[T Hashable](
 	return chunks[0], err
 }
 
-// VectorSSZ hashes each element in the list and then returns the HTR
+// MerkleizeVector hashes each element in the list and then returns the HTR
 // of the corresponding list of roots.
-func VectorSSZ[T Hashable](
-	elements []T,
-	length uint64,
+func MerkleizeVector[T Hashable[[32]byte]](
+	elements []T, length uint64,
 ) ([32]byte, error) {
 	roots := make([][32]byte, len(elements))
 	var err error
@@ -109,5 +82,5 @@ func VectorSSZ[T Hashable](
 			return [32]byte{}, err
 		}
 	}
-	return Vector(roots, length), nil
+	return htr.BuildTreeRoot(roots, length), nil
 }

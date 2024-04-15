@@ -28,6 +28,7 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/ssz"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -35,7 +36,7 @@ import (
 //
 //nolint:lll // struct tags.
 type PayloadAttributes[
-	Withdrawal primitives.SSZMarshallable,
+	Withdrawal ssz.Marshallable,
 ] struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
@@ -60,7 +61,7 @@ type PayloadAttributes[
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes[
-	Withdrawal primitives.SSZMarshallable,
+	Withdrawal ssz.Marshallable,
 ](
 	forkVersion uint32,
 	timestamp uint64,
