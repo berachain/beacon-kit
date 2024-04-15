@@ -23,21 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package ssz
 
-// SSZMarshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type SSZMarshallable interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo(buf []byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
-	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalSSZ([]byte) error
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
-}
+import "errors"
+
+var (
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
+)
