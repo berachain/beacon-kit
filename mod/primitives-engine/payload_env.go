@@ -27,7 +27,6 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
@@ -76,9 +75,4 @@ func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *engine.BlobsBundleV1 {
 // ShouldOverrideBuilder returns whether the builder should be overridden.
 func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
 	return e.Override
-}
-
-// String returns the string representation of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) String() string {
-	return spew.Sdump(e)
 }
