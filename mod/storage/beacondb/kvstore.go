@@ -31,8 +31,8 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
@@ -52,11 +52,11 @@ type KVStore struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
-	fork sdkcollections.Item[*primitives.Fork]
+	fork sdkcollections.Item[*consensusprimitives.Fork]
 
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
+	latestBlockHeader sdkcollections.Item[*consensusprimitives.BeaconBlockHeader]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
 	// stateRoots stores the state roots for the current epoch.
@@ -64,10 +64,11 @@ type KVStore struct {
 
 	// Eth1
 	// latestExecutionPayload stores the latest execution payload.
-	latestExecutionPayload sdkcollections.Item[types.ExecutionPayload]
+
+	latestExecutionPayload sdkcollections.Item[engineprimitives.ExecutionPayload]
 
 	// eth1Data stores the latest eth1 data.
-	eth1Data sdkcollections.Item[*primitives.Eth1Data]
+	eth1Data sdkcollections.Item[*consensusprimitives.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
@@ -82,10 +83,10 @@ type KVStore struct {
 	balances sdkcollections.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*primitives.Deposit]
+	depositQueue *collections.Queue[*consensusprimitives.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
+	withdrawalQueue *collections.Queue[*engineprimitives.Withdrawal]
 
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
@@ -126,11 +127,11 @@ func New(
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
-		fork: sdkcollections.NewItem[*primitives.Fork](
+		fork: sdkcollections.NewItem[*consensusprimitives.Fork](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ForkPrefix),
 			keys.ForkPrefix,
-			encoding.SSZValueCodec[*primitives.Fork]{},
+			encoding.SSZValueCodec[*consensusprimitives.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -146,21 +147,22 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-		latestExecutionPayload: sdkcollections.NewItem[types.ExecutionPayload](
+		//nolint:lll
+		latestExecutionPayload: sdkcollections.NewItem[engineprimitives.ExecutionPayload](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
 			keys.LatestExecutionPayloadPrefix,
-			encoding.SSZInterfaceCodec[types.ExecutionPayload]{
-				Factory: func() types.ExecutionPayload {
-					return &types.ExecutableDataDeneb{}
+			encoding.SSZInterfaceCodec[engineprimitives.ExecutionPayload]{
+				Factory: func() engineprimitives.ExecutionPayload {
+					return &engineprimitives.ExecutableDataDeneb{}
 				},
 			},
 		),
-		eth1Data: sdkcollections.NewItem[*primitives.Eth1Data](
+		eth1Data: sdkcollections.NewItem[*consensusprimitives.Eth1Data](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
 			keys.Eth1DataPrefix,
-			encoding.SSZValueCodec[*primitives.Eth1Data]{},
+			encoding.SSZValueCodec[*consensusprimitives.Eth1Data]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
@@ -190,15 +192,15 @@ func New(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*primitives.Deposit](
+		depositQueue: collections.NewQueue[*consensusprimitives.Deposit](
 			schemaBuilder,
 			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Deposit]{},
+			encoding.SSZValueCodec[*consensusprimitives.Deposit]{},
 		),
-		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
+		withdrawalQueue: collections.NewQueue[*engineprimitives.Withdrawal](
 			schemaBuilder,
 			keys.WithdrawalQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Withdrawal]{},
+			encoding.SSZValueCodec[*engineprimitives.Withdrawal]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -233,12 +235,12 @@ func New(
 			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
-
-		latestBlockHeader: sdkcollections.NewItem[*primitives.BeaconBlockHeader](
+		//nolint:lll
+		latestBlockHeader: sdkcollections.NewItem[*consensusprimitives.BeaconBlockHeader](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
-			encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*consensusprimitives.BeaconBlockHeader]{},
 		),
 	}
 }

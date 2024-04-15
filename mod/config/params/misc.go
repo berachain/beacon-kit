@@ -27,7 +27,6 @@ package params
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
 // This file contains various constants as defined:
@@ -40,5 +39,5 @@ const (
 	// GenesisEpoch represents the initial epoch in the system.
 	GenesisEpoch = primitives.Epoch(0)
 	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = primitives.Epoch(constants.Uint64Max)
+	FarFutureEpoch = primitives.Epoch(^uint64(0))
 )

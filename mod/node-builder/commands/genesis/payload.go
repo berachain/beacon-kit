@@ -30,14 +30,15 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-	ethenginetypes "github.com/ethereum/go-ethereum/beacon/engine"
+	ethengineprimitives "github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +63,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			genesisBlock := ethGenesis.ToBlock()
 
 			// Create the execution payload.
-			payload := ethenginetypes.BlockToExecutableData(
+			payload := ethengineprimitives.BlockToExecutableData(
 				genesisBlock,
 				nil,
 				nil,
@@ -83,6 +84,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			beaconState := &deneb.BeaconState{}
+			//nolint:musttag // false positive?
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
 			); err != nil {
@@ -94,6 +96,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				payload,
 			)
 
+			//nolint:musttag // false positive?
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
@@ -115,22 +118,19 @@ func AddExecutionPayloadCmd() *cobra.Command {
 // Converts the eth executable data type to the beacon execution payload
 // interface.
 func executableDataToExecutionPayload(
-	data *ethenginetypes.ExecutableData,
-) *enginetypes.ExecutableDataDeneb {
-	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
+	data *ethengineprimitives.ExecutableData,
+) *engineprimitives.ExecutableDataDeneb {
+	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*primitives.Withdrawal)(unsafe.Pointer(withdrawal))
+		withdrawals[i] = (*engineprimitives.Withdrawal)(
+			unsafe.Pointer(withdrawal),
+		)
 	}
 
 	if len(data.ExtraData) > constants.ExtraDataLength {
 		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
-	}
-
-	var baseFeePerGas []byte
-	if data.BaseFeePerGas != nil {
-		baseFeePerGas = data.BaseFeePerGas.Bytes()
 	}
 
 	var blobGasUsed uint64
@@ -143,7 +143,7 @@ func executableDataToExecutionPayload(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
-	return &enginetypes.ExecutableDataDeneb{
+	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:    data.ParentHash,
 		FeeRecipient:  data.FeeRecipient,
 		StateRoot:     data.StateRoot,
@@ -155,7 +155,7 @@ func executableDataToExecutionPayload(
 		GasUsed:       data.GasUsed,
 		Timestamp:     data.Timestamp,
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: baseFeePerGas,
+		BaseFeePerGas: primitives.NewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,

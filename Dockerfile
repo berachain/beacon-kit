@@ -18,8 +18,8 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.1
-ARG RUNNER_IMAGE=alpine
+ARG GO_VERSION=1.22.2
+ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -31,23 +31,26 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.18 as builder
+FROM golang:${GO_VERSION}-alpine3.19 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
 ARG BUILD_TAGS
 
-RUN apk add --no-cache ca-certificates build-base linux-headers
-
-# Setup some alpine stuff that nobody really knows how or why it works.
-RUN set -eux; \
-    apk add --no-cache git linux-headers ca-certificates build-base
+# Consolidate RUN commands to reduce layers
+RUN apk add --no-cache ca-certificates build-base linux-headers git && \
+    set -eux
 
 # Set the working directory
 WORKDIR /workdir
 
 # Copy the go.mod and go.sum files for each module
-COPY ./go.mod ./go.sum ./
+COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
+COPY ./mod/go.mod ./mod/go.sum ./mod/
+RUN go work init
+RUN go work use ./beacond
+RUN go work use ./mod
+
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
@@ -67,9 +70,7 @@ ARG CMD_PATH
 # Build beacond
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    env NAME=${NAME} DB_BACKEND=${DB_BACKEND} && \
-    env APP_NAME=${APP_NAME} && \
-    env CGO_ENABLED=1 && \
+    env NAME=${NAME} DB_BACKEND=${DB_BACKEND} APP_NAME=${APP_NAME} CGO_ENABLED=1 && \
     go build \
     -mod=readonly \
     -tags ${BUILD_TAGS} \
@@ -95,18 +96,7 @@ ARG APP_NAME
 
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
-
-COPY ./beacond/init.sh /usr/bin/init.sh
-COPY ./beacond/finalize.sh /usr/bin/finalize.sh
-COPY ./beacond/start.sh /usr/bin/start.sh
-
-RUN chmod +x /usr/bin/init.sh
-RUN chmod +x /usr/bin/finalize.sh
-RUN chmod +x /usr/bin/start.sh
-
-RUN mkdir -p /root/jwt
-RUN mkdir -p /root/kzg 
-
-RUN apk add bash jq sed curl
+RUN mkdir -p /root/jwt /root/kzg && \
+    apk add --no-cache bash sed curl
 
 #ENTRYPOINT [ "./beacond" ]

@@ -31,17 +31,28 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/da"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[BBB da.BeaconBlockBody] interface {
 	BuildSidecars(
 		blk da.BeaconBlock[BBB],
-		blobs *engine.BlobsBundleV1,
+		blobs *engineprimitives.BlobsBundleV1,
 	) (*datypes.BlobSidecars, error)
+}
+
+// BLSSigner defines an interface for cryptographic signing operations.
+// It uses generic type parameters Signature and Pubkey, both of which are
+// slices of bytes.
+type BLSSigner interface {
+	// PublicKey returns the public key of the signer.
+	PublicKey() primitives.BLSPubkey
+
+	// Sign takes a message as a slice of bytes and returns a signature as a
+	// slice of bytes and an error.
+	Sign([]byte) (primitives.BLSSignature, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
@@ -60,5 +71,6 @@ type PayloadBuilder interface {
 		slot primitives.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
-	) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error)
+	) (engineprimitives.ExecutionPayload,
+		*engineprimitives.BlobsBundleV1, bool, error)
 }

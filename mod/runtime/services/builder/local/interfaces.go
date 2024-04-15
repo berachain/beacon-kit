@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
@@ -40,7 +40,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (enginetypes.ExecutionPayloadEnvelope, error)
+	) (engineprimitives.ExecutionPayloadEnvelope, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.

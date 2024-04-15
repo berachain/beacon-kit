@@ -28,10 +28,8 @@ package ethclient
 import (
 	"context"
 
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
-	ethengine "github.com/ethereum/go-ethereum/beacon/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -54,11 +52,11 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context,
-	payload *enginetypes.ExecutableDataDeneb,
+	payload *engineprimitives.ExecutableDataDeneb,
 	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot *primitives.Root,
-) (*engine.PayloadStatus, error) {
-	result := &engine.PayloadStatus{}
+) (*engineprimitives.PayloadStatus, error) {
+	result := &engineprimitives.PayloadStatus{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
 		(*primitives.ExecutionHash)(parentBlockRoot),
@@ -71,9 +69,9 @@ func (s *Eth1Client) NewPayloadV3(
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
-	state *engine.ForkchoiceState,
-	attrs enginetypes.PayloadAttributer,
-) (*engine.ForkchoiceResponse, error) {
+	state *engineprimitives.ForkchoiceState,
+	attrs engineprimitives.PayloadAttributer,
+) (*engineprimitives.ForkchoiceResponse, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
@@ -82,10 +80,10 @@ func (s *Eth1Client) ForkchoiceUpdatedV3(
 func (s *Eth1Client) forkchoiceUpdateCall(
 	ctx context.Context,
 	method string,
-	state *engine.ForkchoiceState,
+	state *engineprimitives.ForkchoiceState,
 	attrs any,
-) (*engine.ForkchoiceResponse, error) {
-	result := &engine.ForkchoiceResponse{}
+) (*engineprimitives.ForkchoiceResponse, error) {
+	result := &engineprimitives.ForkchoiceResponse{}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,
@@ -93,7 +91,7 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 		return nil, err
 	}
 
-	if (result.PayloadStatus == engine.PayloadStatus{}) {
+	if (result.PayloadStatus == engineprimitives.PayloadStatus{}) {
 		return nil, ErrNilResponse
 	}
 
@@ -102,9 +100,9 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
-	ctx context.Context, payloadID engine.PayloadID,
-) (enginetypes.ExecutionPayloadEnvelope, error) {
-	result := &enginetypes.ExecutionPayloadEnvelopeDeneb{}
+	ctx context.Context, payloadID engineprimitives.PayloadID,
+) (engineprimitives.ExecutionPayloadEnvelope, error) {
+	result := &engineprimitives.ExecutionPayloadEnvelopeDeneb{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
@@ -117,8 +115,8 @@ func (s *Eth1Client) GetPayloadV3(
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByHash(
 	ctx context.Context, hash primitives.ExecutionHash, withTxs bool,
-) (*primitives.ExecutionBlock, error) {
-	result := &primitives.ExecutionBlock{}
+) (*engineprimitives.Block, error) {
+	result := &engineprimitives.Block{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, err
@@ -128,8 +126,8 @@ func (s *Eth1Client) ExecutionBlockByHash(
 // by calling eth_getBlockByNumber via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
-) (*primitives.ExecutionBlock, error) {
-	result := &primitives.ExecutionBlock{}
+) (*engineprimitives.Block, error) {
+	result := &engineprimitives.Block{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
@@ -138,8 +136,8 @@ func (s *Eth1Client) ExecutionBlockByNumber(
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
 func (s *Eth1Client) GetClientVersionV1(
 	ctx context.Context,
-) ([]ethengine.ClientVersionV1, error) {
-	result := make([]ethengine.ClientVersionV1, 0)
+) ([]engineprimitives.ClientVersionV1, error) {
+	result := make([]engineprimitives.ClientVersionV1, 0)
 	if err := s.Client.Client().CallContext(
 		ctx, &result, GetClientVersionV1, nil,
 	); err != nil {

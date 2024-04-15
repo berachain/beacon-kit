@@ -26,20 +26,22 @@
 package beacondb
 
 import (
-	"github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (types.ExecutionPayload, error) {
+func (kv *KVStore) GetLatestExecutionPayload() (
+	engineprimitives.ExecutionPayload, error,
+) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
 }
 
 // UpdateLatestExecutionPayload sets the latest execution payload in the
 // BeaconStore.
 func (kv *KVStore) UpdateLatestExecutionPayload(
-	payload types.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) error {
 	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }
@@ -55,11 +57,11 @@ func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore) GetEth1Data() (*primitives.Eth1Data, error) {
+func (kv *KVStore) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(data *primitives.Eth1Data) error {
+func (kv *KVStore) SetEth1Data(data *consensusprimitives.Eth1Data) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }

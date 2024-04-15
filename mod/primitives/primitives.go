@@ -66,4 +66,11 @@ type (
 	// BLSSignature as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	BLSSignature = Bytes96
+
+	// Wei is the smallest unit of Ether, we store the value as LittleEndian for
+	// the best compatibility with the SSZ spec.
+	Wei = U256L
+
+	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	Gwei uint64
 )

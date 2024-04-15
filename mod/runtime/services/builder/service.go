@@ -29,7 +29,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -45,7 +44,7 @@ type Service struct {
 	cfg *config.Config
 
 	// signer is used to retrieve the public key of this node.
-	signer core.BLSSigner
+	signer BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]

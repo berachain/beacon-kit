@@ -34,8 +34,9 @@ import (
 	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -100,14 +101,14 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 
 func mockBody() da.BeaconBlockBody {
 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
-	executionPayload := &enginetypes.ExecutableDataDeneb{
+	executionPayload := &engineprimitives.ExecutableDataDeneb{
 		ParentHash:    common.HexToHash("0x01"),
 		FeeRecipient:  common.HexToAddress("0x02"),
 		StateRoot:     common.HexToHash("0x03"),
 		ReceiptsRoot:  common.HexToHash("0x04"),
 		LogsBloom:     bytes.Repeat([]byte("b"), 256),
 		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: bytes.Repeat([]byte("f"), 32),
+		BaseFeePerGas: primitives.Wei(bytes.Repeat([]byte("f"), 32)),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		ExtraData:     []byte("extra"),
