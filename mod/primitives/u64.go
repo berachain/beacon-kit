@@ -35,7 +35,7 @@ import (
 const U64NumBytes = 8
 
 // U64 represents a 64-bit unsigned integer.
-type U64 hexutil.Uint64
+type U64 uint64
 
 // -------------------------- SSZMarshallable --------------------------
 
@@ -68,7 +68,19 @@ func (u U64) SizeSSZ() int {
 	return U64NumBytes
 }
 
-// -------------------------- U64 Methods --------------------------
+// -------------------------- JSONMarshallable -------------------------
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (u *U64) UnmarshalJSON(input []byte) error {
+	return (*hexutil.Uint64)(u).UnmarshalJSON(input)
+}
+
+// MarshalText returns the hex representation of b.
+func (u U64) MarshalText() ([]byte, error) {
+	return hexutil.Uint64(u).MarshalText()
+}
+
+// ---------------------------- U64 Methods ----------------------------
 
 // Unwrap returns the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {
