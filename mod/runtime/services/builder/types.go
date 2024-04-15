@@ -39,7 +39,7 @@ import (
 type BlobFactory[BBB da.BeaconBlockBody] interface {
 	BuildSidecars(
 		blk da.BeaconBlock[BBB],
-		blobs *engineprimitives.BlobsBundleV1,
+		blobs engineprimitives.BlobsBundle,
 	) (*datypes.BlobSidecars, error)
 }
 
@@ -72,5 +72,5 @@ type PayloadBuilder interface {
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
 	) (engineprimitives.ExecutionPayload,
-		*engineprimitives.BlobsBundleV1, bool, error)
+		engineprimitives.BlobsBundle, bool, error)
 }

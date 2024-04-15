@@ -31,10 +31,10 @@ import (
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyProof[R, P ~[32]byte](
-	root, leaf R,
+func VerifyProof[RootT, ProofT ~[32]byte](
+	root, leaf RootT,
 	merkleIndex uint64,
-	proof []P,
+	proof []ProofT,
 ) bool {
 	//#nosec:G701 `int`` is at minimum 32-bits and thus a
 	// uint8 will always fit.
@@ -55,8 +55,8 @@ func VerifyProof[R, P ~[32]byte](
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
 //
 //nolint:lll
-func IsValidMerkleBranch[R, B ~[32]byte](
-	leaf R, branch []B, depth uint8, index uint64, root R,
+func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
+	leaf RootT, branch []BranchT, depth uint8, index uint64, root RootT,
 ) bool {
 	//#nosec:G701 `int`` is at minimum 32-bits and thus a
 	// uint8 will always fit.
@@ -71,12 +71,12 @@ func IsValidMerkleBranch[R, B ~[32]byte](
 // https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
 //
 //nolint:lll
-func RootFromBranch[R, B ~[32]byte](
-	leaf R,
-	branch []B,
+func RootFromBranch[RootT, BranchT ~[32]byte](
+	leaf RootT,
+	branch []BranchT,
 	depth uint8,
 	index uint64,
-) R {
+) RootT {
 	merkleRoot := leaf
 	var hashInput [64]byte
 	for i := range depth {

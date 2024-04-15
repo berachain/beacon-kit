@@ -27,18 +27,16 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
-//go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     uint64                      `json:"index"          ssz-size:"8"`
+	Index     primitives.U64              `json:"index"`
 	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
 	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    primitives.Gwei             `json:"amount"         ssz-size:"8"`
+	Amount    primitives.Gwei             `json:"amount"`
 }
 
 // Equals returns true if the Withdrawal is equal to the other.
@@ -47,11 +45,4 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 		w.Validator == other.Validator &&
 		w.Address == other.Address &&
 		w.Amount == other.Amount
-}
-
-// field type overrides for gencodec.
-type withdrawalJSONMarshaling struct {
-	Index     hexutil.Uint64
-	Validator hexutil.Uint64
-	Amount    hexutil.Uint64
 }

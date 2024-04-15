@@ -23,9 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package engineprimitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import "github.com/berachain/beacon-kit/mod/primitives/kzg"
 
-// Proof is a KZG proof.
-type Proof = primitives.Bytes48
+// BlobsBundleV1 represents a collection of commitments, proofs, and blobs.
+// Each field is a slice of bytes that are serialized for transmission or
+// storage.
+type BlobsBundleV1 struct {
+	// Commitments are the KZG commitments included in the bundle.
+	Commitments []kzg.Commitment `json:"commitments"`
+	// Proofs are the KZG proofs corresponding to the commitments.
+	Proofs []kzg.Proof `json:"proofs"`
+	// Blobs are arbitrary data blobs included in the bundle.
+	Blobs []*kzg.Blob `json:"blobs"`
+}
+
+// GetCommitments returns the slice of commitments in the bundle.
+func (b *BlobsBundleV1) GetCommitments() []kzg.Commitment {
+	return b.Commitments
+}
+
+// GetProofs returns the slice of proofs in the bundle.
+func (b *BlobsBundleV1) GetProofs() []kzg.Proof {
+	return b.Proofs
+}
+
+// GetBlobs returns the slice of data blobs in the bundle.
+func (b *BlobsBundleV1) GetBlobs() []*kzg.Blob {
+	return b.Blobs
+}
