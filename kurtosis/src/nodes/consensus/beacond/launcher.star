@@ -1,5 +1,7 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 execution = import_module("../../execution/execution.star")
+node = import_module("../../../lib/node.star")
+bash = import_module("../../../lib/bash.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -94,42 +96,20 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
             config = beacond_config,
         )
 
-        exec_recipe = None
+        # Initialize the Cosmos genesis file
         if n == 0:
-            exec_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init.sh", "-f"],
-            )
+            is_first_validator = True
+
         else:
-            exec_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                command = ["/usr/bin/init.sh"],
-            )
+            is_first_validator = False
+        node.init_beacond(plan, is_first_validator, cl_service_name)
 
-        plan.exec(
-            service_name = cl_service_name,
-            recipe = exec_recipe,
-        )
-
-        peer_result = plan.exec(
-            service_name = cl_service_name,
-            recipe = ExecRecipe(
-                command = ["bash", "-c", "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'"],
-            ),
-        )
+        peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
 
         node_peering_info.append(peer_result["output"])
 
         file_suffix = "{}".format(n)
         if n == num_validators - 1:
-            finalize_recipe = ExecRecipe(
-                # Initialize the Cosmos genesis file
-                command = ["/usr/bin/finalize.sh"],
-            )
-            result = plan.exec(
-                service_name = cl_service_name,
-                recipe = finalize_recipe,
-            )
             file_suffix = "final"
 
         node_beacond_config = plan.store_service_files(
@@ -141,11 +121,9 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         genesis_artifact = plan.store_service_files(
             # The service name of a preexisting service from which the file will be copied.
             service_name = cl_service_name,
-
             # The path on the service's container that will be copied into a files artifact.
             # MANDATORY
             src = "/root/.beacond/config/genesis.json",
-
             # The name to give the files artifact that will be produced.
             # If not specified, it will be auto-generated.
             # OPTIONAL
@@ -183,8 +161,8 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, k
         cl_image,
         engine_dial_url,
         cl_service_name,
-        entrypoint = ["bash"],
-        cmd = ["-c", "/usr/bin/start.sh"],
+        entrypoint = ["bash", "-c"],
+        cmd = [node.start(persistent_peers)],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,
@@ -203,18 +181,29 @@ def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, k
         config = beacond_config,
     )
 
+def init_consensus_nodes():
+    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
+
+    # Check if genesis file exists, if not then initialize the beacond
+    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    collect_gentx = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
+
 def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
     cl_service_name = "cl-full-beaconkit-{}".format(index)
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
 
+    init_and_start = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers))
+
     beacond_config = get_config(
         cl_image,
         engine_dial_url,
         cl_service_name,
         entrypoint = ["bash", "-c"],
-        cmd = ["/usr/bin/init.sh && /usr/bin/start.sh"],
+        cmd = [init_and_start],
         persistent_peers = persistent_peers,
         jwt_file = jwt_file,
         kzg_trusted_setup_file = kzg_trusted_setup_file,

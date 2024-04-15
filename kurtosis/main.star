@@ -17,8 +17,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     Initiates the execution plan with the specified number of validators and arguments.
 
     Args:
-      plan: The execution plan to be run.
-      args: Additional arguments to configure the plan. Defaults to an empty dictionary.
+    plan: The execution plan to be run.
+    args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
 
     validators = nodes.parse_nodes_from_dict(validators)
