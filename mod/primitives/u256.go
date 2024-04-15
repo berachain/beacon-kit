@@ -39,13 +39,13 @@ const UInt256Bytes = 32
 
 // U256 represents a uint256 number stored in big-endian
 // format.
-type U256 = *uint256.Int
+type U256 = uint256.Int
 
 // U256L represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
 // for compatibility with the SSZ spec.
-type U256L *[32]byte
+type U256L [32]byte
 
 // NewU256L creates a new LittleEndian from a byte slice.
 func NewU256L(bz []byte) U256L {
@@ -72,7 +72,7 @@ func NewU256LFromBigInt(b *big.Int) U256L {
 }
 
 // UInt256 converts an LittleEndian to a uint256.Int.
-func (s U256L) ToU256() *uint256.Int {
+func (s U256L) ToU256() *U256 {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
