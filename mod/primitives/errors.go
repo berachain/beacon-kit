@@ -27,7 +27,5 @@ package primitives
 
 import "errors"
 
-var (
-	// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
-	ErrInvalidBufferSize = errors.New("invalid buffer size")
-)
+// ErrInvalidSSZLength is returned when an invalid SSZ length is encountered.
+var ErrInvalidSSZLength = errors.New("invalid ssz length")
