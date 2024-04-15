@@ -50,13 +50,21 @@ type ChainSpec interface {
 
 	// Signature Domains
 	//
+	// DomainTypeProposer returns the domain for proposer signatures.
 	DomainTypeProposer() DomainType
+	// DomainTypeAttester returns the domain for attester signatures.
 	DomainTypeAttester() DomainType
+	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
 	DomainTypeRandao() DomainType
+	// DomainTypeDeposit returns the domain for deposit signatures.
 	DomainTypeDeposit() DomainType
+	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
 	DomainTypeVoluntaryExit() DomainType
+	// DomainTypeSelectionProof returns the domain for selection proof
 	DomainTypeSelectionProof() DomainType
+	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
 	DomainTypeAggregateAndProof() DomainType
+	// DomainTypeApplicationMask returns the domain for application signatures.
 	DomainTypeApplicationMask() DomainType
 
 	// Eth1-related values.
