@@ -79,7 +79,7 @@ func (s *Service) processDepositLog(
 	)
 
 	return st.EnqueueDeposits(
-		consensusprimitives.Deposits{consensusprimitives.NewDeposit(
+		[]*consensusprimitives.Deposit{consensusprimitives.NewDeposit(
 			primitives.BLSPubkey(d.Pubkey),
 			consensusprimitives.WithdrawalCredentials(d.Credentials),
 			primitives.Gwei(d.Amount),

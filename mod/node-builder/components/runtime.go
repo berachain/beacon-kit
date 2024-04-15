@@ -104,7 +104,7 @@ func ProvideRuntime(
 		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
 	)
 
-	// Build the Blobs Vierifer
+	// Build the Blobs Verifier
 	blobProofVerifier, err := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
@@ -122,7 +122,7 @@ func ProvideRuntime(
 	randaoProcessor := randao.NewProcessor(
 		randao.WithSigner(signer),
 		randao.WithLogger(logger.With("service", "randao")),
-		randao.WithConfig(cfg),
+		randao.WithConfig(&cfg.Beacon),
 	)
 
 	// Build the builder service.

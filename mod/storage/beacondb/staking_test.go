@@ -31,14 +31,38 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
+
+type mockValidator struct {
+	*primitives.U64
+}
+
+func (m *mockValidator) IsActive(_ primitives.Epoch) bool {
+	// Assuming a simple active status check based on a condition
+	// This is a mock implementation and should be replaced with actual logic
+	return true
+}
+
+func (m *mockValidator) GetPubkey() primitives.BLSPubkey {
+	// Return a mock BLS public key
+	// This is a mock implementation and should be replaced with actual logic
+	return primitives.BLSPubkey{}
+}
+
+func (m *mockValidator) GetEffectiveBalance() primitives.Gwei {
+	// Return a mock effective balance
+	// This is a mock implementation and should be replaced with actual logic
+	return 1000000 // 1 million Gwei as a placeholder
+}
+
+func testFactory() *primitives.U64 {
+	return (*primitives.U64)(nil)
+}
 
 func TestDeposits(t *testing.T) {
 	testName := "test"
@@ -48,26 +72,20 @@ func TestDeposits(t *testing.T) {
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 
-	sdb := beacondb.New(
+	sdb := beacondb.New[
+		*primitives.U64, *primitives.U64, *primitives.U64,
+		*primitives.U64, *primitives.U64, *mockValidator,
+	](
 		sdkruntime.NewKVStoreService(storeKey),
+		testFactory,
 	)
 	sdb = sdb.WithContext(ctx)
 	t.Run("should work with deposit", func(t *testing.T) {
-		cred := []byte("12345678901234567890123456789012")
-		deposit := &consensusprimitives.Deposit{
-			Pubkey: primitives.BLSPubkey(
-				bytes.ToBytes48([]byte("pubkey")),
-			),
-			Credentials: consensusprimitives.WithdrawalCredentials(cred),
-			Amount:      100,
-			Signature: primitives.BLSSignature(
-				bytes.ToBytes96([]byte("signature")),
-			),
-		}
-		err := sdb.EnqueueDeposits(consensusprimitives.Deposits{deposit})
+		fakeDeposit := primitives.U64(69420)
+		err := sdb.EnqueueDeposits([]*primitives.U64{&fakeDeposit})
 		require.NoError(t, err)
 		deposits, err := sdb.DequeueDeposits(1)
 		require.NoError(t, err)
-		require.Equal(t, deposit, deposits[0])
+		require.Equal(t, fakeDeposit, *deposits[0])
 	})
 }

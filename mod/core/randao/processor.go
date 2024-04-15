@@ -29,11 +29,11 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -44,7 +44,7 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	cfg    *config.Config
+	cfg    *params.BeaconChainConfig
 	signer core.BLSSigner
 	logger log.Logger
 }
@@ -85,7 +85,7 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	epoch := p.cfg.Beacon.SlotToEpoch(slot)
+	epoch := p.cfg.SlotToEpoch(slot)
 	signingRoot, err := p.computeSigningRoot(epoch, root)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (p *Processor) ProcessRandao(
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch) % p.cfg.EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (p *Processor) ProcessRandao(
 	mix := p.buildMix(prevMix, blk.GetBody().GetRandaoReveal())
 	p.logger.Info("randao mix updated 🎲", "new_mix", mix)
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch)%p.cfg.EpochsPerHistoricalVector,
 		mix,
 	)
 }
@@ -141,7 +141,7 @@ func (p *Processor) BuildReveal(
 
 	return p.buildReveal(
 		genesisValidatorsRoot,
-		p.cfg.Beacon.SlotToEpoch(slot),
+		p.cfg.SlotToEpoch(slot),
 	)
 }
 
@@ -153,15 +153,15 @@ func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 		return err
 	}
 
-	epoch := p.cfg.Beacon.SlotToEpoch(slot)
+	epoch := p.cfg.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch) % p.cfg.EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%p.cfg.Beacon.EpochsPerHistoricalVector,
+		uint64(epoch+1)%p.cfg.EpochsPerHistoricalVector,
 		mix,
 	)
 }
@@ -197,7 +197,7 @@ func (p *Processor) computeSigningRoot(
 ) (primitives.Root, error) {
 	fd := consensusprimitives.NewForkData(
 		version.FromUint32(
-			p.cfg.Beacon.ActiveForkVersionForEpoch(epoch),
+			p.cfg.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 

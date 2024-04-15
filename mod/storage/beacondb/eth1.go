@@ -25,43 +25,60 @@
 
 package beacondb
 
-import (
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-)
-
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (
-	engineprimitives.ExecutionPayload, error,
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetLatestExecutionPayload() (
+	ExecutionPayloadT, error,
 ) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
 }
 
 // UpdateLatestExecutionPayload sets the latest execution payload in the
 // BeaconStore.
-func (kv *KVStore) UpdateLatestExecutionPayload(
-	payload engineprimitives.ExecutionPayload,
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) UpdateLatestExecutionPayload(
+	payload ExecutionPayloadT,
 ) error {
 	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetEth1DepositIndex(
+	index uint64,
+) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetEth1Data() (Eth1DataT, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(data *consensusprimitives.Eth1Data) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetEth1Data(
+	data Eth1DataT,
+) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }
