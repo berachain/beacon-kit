@@ -29,9 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
-
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //

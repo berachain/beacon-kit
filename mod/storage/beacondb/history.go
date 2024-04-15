@@ -27,7 +27,6 @@ package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
@@ -56,7 +55,7 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetLatestBlockHeader(
-	header *consensusprimitives.BeaconBlockHeader,
+	header BeaconBlockHeaderT,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
@@ -66,7 +65,7 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetLatestBlockHeader() (
-	*consensusprimitives.BeaconBlockHeader, error,
+	BeaconBlockHeaderT, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }

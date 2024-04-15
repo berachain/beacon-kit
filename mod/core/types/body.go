@@ -101,13 +101,13 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionP
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() consensusprimitives.Deposits {
+func (b *BeaconBlockBodyDeneb) GetDeposits() []*consensusprimitives.Deposit {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetDeposits(
-	deposits consensusprimitives.Deposits,
+	deposits []*consensusprimitives.Deposit,
 ) {
 	b.Deposits = deposits
 }

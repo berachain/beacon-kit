@@ -25,18 +25,13 @@
 
 package beacondb
 
-import (
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-)
-
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
 func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetLatestExecutionPayload() (
-	engineprimitives.ExecutionPayload, error,
+	ExecutionPayloadT, error,
 ) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
 }
@@ -47,7 +42,7 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) UpdateLatestExecutionPayload(
-	payload engineprimitives.ExecutionPayload,
+	payload ExecutionPayloadT,
 ) error {
 	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }
@@ -74,7 +69,7 @@ func (kv *KVStore[
 func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
+]) GetEth1Data() (Eth1DataT, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
@@ -83,7 +78,7 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetEth1Data(
-	data *consensusprimitives.Eth1Data,
+	data Eth1DataT,
 ) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }

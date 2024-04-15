@@ -31,8 +31,6 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
@@ -76,11 +74,11 @@ type KVStore[
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
-	fork sdkcollections.Item[*consensusprimitives.Fork]
+	fork sdkcollections.Item[ForkT]
 
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*consensusprimitives.BeaconBlockHeader]
+	latestBlockHeader sdkcollections.Item[BeaconBlockHeaderT]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
 	// stateRoots stores the state roots for the current epoch.
@@ -89,10 +87,10 @@ type KVStore[
 	// Eth1
 	// latestExecutionPayload stores the latest execution payload.
 
-	latestExecutionPayload sdkcollections.Item[engineprimitives.ExecutionPayload]
+	latestExecutionPayload sdkcollections.Item[ExecutionPayloadT]
 
 	// eth1Data stores the latest eth1 data.
-	eth1Data sdkcollections.Item[*consensusprimitives.Eth1Data]
+	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
@@ -107,10 +105,7 @@ type KVStore[
 	balances sdkcollections.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*consensusprimitives.Deposit]
-
-	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*engineprimitives.Withdrawal]
+	depositQueue *collections.Queue[DepositT]
 
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
@@ -142,9 +137,15 @@ func New[
 	ValidatorT SSZMarshallable,
 ](
 	kss store.KVStoreService,
-) *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
+) *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT]{
+	return &KVStore[
+		DepositT, ForkT, BeaconBlockHeaderT,
+		ExecutionPayloadT, Eth1DataT, ValidatorT,
+	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
@@ -158,11 +159,11 @@ func New[
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
-		fork: sdkcollections.NewItem[*consensusprimitives.Fork](
+		fork: sdkcollections.NewItem[ForkT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ForkPrefix),
 			keys.ForkPrefix,
-			encoding.SSZValueCodec[*consensusprimitives.Fork]{},
+			encoding.SSZValueCodec[ForkT]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -178,22 +179,23 @@ func New[
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-		//nolint:lll
-		latestExecutionPayload: sdkcollections.NewItem[engineprimitives.ExecutionPayload](
+
+		latestExecutionPayload: sdkcollections.NewItem[ExecutionPayloadT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
 			keys.LatestExecutionPayloadPrefix,
-			encoding.SSZInterfaceCodec[engineprimitives.ExecutionPayload]{
-				Factory: func() engineprimitives.ExecutionPayload {
-					return &engineprimitives.ExecutableDataDeneb{}
+			encoding.SSZInterfaceCodec[ExecutionPayloadT]{
+				Factory: func() ExecutionPayloadT {
+					var t ExecutionPayloadT
+					return t
 				},
 			},
 		),
-		eth1Data: sdkcollections.NewItem[*consensusprimitives.Eth1Data](
+		eth1Data: sdkcollections.NewItem[Eth1DataT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
 			keys.Eth1DataPrefix,
-			encoding.SSZValueCodec[*consensusprimitives.Eth1Data]{},
+			encoding.SSZValueCodec[Eth1DataT]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
@@ -223,15 +225,10 @@ func New[
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*consensusprimitives.Deposit](
+		depositQueue: collections.NewQueue[DepositT](
 			schemaBuilder,
 			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*consensusprimitives.Deposit]{},
-		),
-		withdrawalQueue: collections.NewQueue[*engineprimitives.Withdrawal](
-			schemaBuilder,
-			keys.WithdrawalQueuePrefix,
-			encoding.SSZValueCodec[*engineprimitives.Withdrawal]{},
+			encoding.SSZValueCodec[DepositT]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -266,12 +263,12 @@ func New[
 			keys.TotalSlashingPrefix,
 			sdkcollections.Uint64Value,
 		),
-		//nolint:lll
-		latestBlockHeader: sdkcollections.NewItem[*consensusprimitives.BeaconBlockHeader](
+
+		latestBlockHeader: sdkcollections.NewItem[BeaconBlockHeaderT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
-			encoding.SSZValueCodec[*consensusprimitives.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),
 	}
 }
@@ -280,7 +277,10 @@ func New[
 func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) Copy() *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
+]) Copy() *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
@@ -302,7 +302,10 @@ func (kv *KVStore[
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) WithContext(
 	ctx context.Context,
-) *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
+) *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy

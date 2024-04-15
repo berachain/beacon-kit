@@ -25,16 +25,12 @@
 
 package beacondb
 
-import (
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
-)
-
 // SetFork sets the fork version for the given epoch.
 func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetFork(
-	fork *consensusprimitives.Fork,
+	fork ForkT,
 ) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
@@ -43,6 +39,6 @@ func (kv *KVStore[
 func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetFork() (*consensusprimitives.Fork, error) {
+]) GetFork() (ForkT, error) {
 	return kv.fork.Get(kv.ctx)
 }
