@@ -24,10 +24,3 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package primitives
-
-import "errors"
-
-var (
-	// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
-	ErrInvalidBufferSize = errors.New("invalid buffer size")
-)
