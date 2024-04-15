@@ -43,6 +43,6 @@ type Marshallable interface {
 }
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable[T [32]byte] interface {
-	HashTreeRoot() (T, error)
+type Hashable[Root ~[32]byte] interface {
+	HashTreeRoot() (Root, error)
 }
