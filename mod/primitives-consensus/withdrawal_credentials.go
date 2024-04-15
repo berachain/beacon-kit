@@ -60,24 +60,24 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
-func (h *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*primitives.Bytes32)(h).UnmarshalJSON(input)
+func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
+	return (*primitives.Bytes32)(wc).UnmarshalJSON(input)
 }
 
 // String returns the hex string representation of Bytes32.
 // TODO: Figure out how to not have to do this.
-func (h WithdrawalCredentials) String() string {
-	return primitives.Bytes32(h).String()
+func (wc WithdrawalCredentials) String() string {
+	return primitives.Bytes32(wc).String()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
-func (h WithdrawalCredentials) MarshalText() ([]byte, error) {
-	return primitives.Bytes32(h).MarshalText()
+func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
+	return primitives.Bytes32(wc).MarshalText()
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
-func (h *WithdrawalCredentials) UnmarshalText(text []byte) error {
-	return (*primitives.Bytes32)(h).UnmarshalText(text)
+func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
+	return (*primitives.Bytes32)(wc).UnmarshalText(text)
 }
