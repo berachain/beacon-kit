@@ -132,13 +132,13 @@ func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.ExecutionPayloadEnvelope, error) {
+) (engineprimitives.BuiltExecutionPayload, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
-	) (engineprimitives.ExecutionPayloadEnvelope, error)
+	) (engineprimitives.BuiltExecutionPayload, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3

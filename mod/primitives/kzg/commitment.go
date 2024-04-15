@@ -38,15 +38,6 @@ import (
 // Commitments represents a slice of KZG commitments.
 type Commitments []Commitment
 
-// CommitmentsFromBz converts byte slices to commitments.
-func CommitmentsFromBz[T ~[]byte](slices []T) Commitments {
-	commitments := make([]Commitment, len(slices))
-	for i, slice := range slices {
-		copy(commitments[i][:], slice)
-	}
-	return commitments
-}
-
 // ToVersionedHashes converts the commitments to a set of
 // versioned hashes. It is simplify a convenience method
 // for converting a slice of commitments to a slice of
