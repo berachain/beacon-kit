@@ -155,7 +155,7 @@ func executableDataToExecutionPayload(
 		GasUsed:       data.GasUsed,
 		Timestamp:     data.Timestamp,
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: primitives.U256LFromBigInt(data.BaseFeePerGas),
+		BaseFeePerGas: primitives.NewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,

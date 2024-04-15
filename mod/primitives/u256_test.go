@@ -46,7 +46,7 @@ func TestLittleEndian_UInt256(t *testing.T) {
 	for _, tc := range testCases {
 		le := primitives.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
-		require.Equal(t, expected, le.ToBigEndian())
+		require.Equal(t, expected, le.ToU256())
 	}
 }
 
