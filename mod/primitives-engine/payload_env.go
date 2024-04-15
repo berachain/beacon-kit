@@ -57,40 +57,40 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	Payload ExecutionPayload,
-	Blobs BlobsBundle,
+	ExecutionPayloadT ExecutionPayload,
+	BlobsBundleT BlobsBundle,
 ] struct {
-	ExecutionPayload Payload        `json:"executionPayload"`
-	BlockValue       primitives.Wei `json:"blockValue"`
-	BlobsBundle      Blobs          `json:"blobsBundle"`
-	Override         bool           `json:"shouldOverrideBuilder"`
+	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
+	BlockValue       primitives.Wei    `json:"blockValue"`
+	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
+	Override         bool              `json:"shouldOverrideBuilder"`
 }
 
 // GetExecutionPayload returns the execution payload of the
 // ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
-	Payload, Blobs,
+	ExecutionPayloadT, BlobsBundleT,
 ]) GetExecutionPayload() ExecutionPayload {
 	return e.ExecutionPayload
 }
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
-	Payload, Blobs,
+	ExecutionPayloadT, BlobsBundleT,
 ]) GetValue() primitives.Wei {
 	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
-	Payload, Blobs,
+	ExecutionPayloadT, BlobsBundleT,
 ]) GetBlobsBundle() BlobsBundle {
 	return e.BlobsBundle
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
 func (e *ExecutionPayloadEnvelope[
-	Payload, Blobs,
+	ExecutionPayloadT, BlobsBundleT,
 ]) ShouldOverrideBuilder() bool {
 	return e.Override
 }
