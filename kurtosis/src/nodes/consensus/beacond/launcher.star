@@ -98,10 +98,11 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
 
         # Initialize the Cosmos genesis file
         if n == 0:
-            node.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", True, cl_service_name)
+            is_first_validator = True
 
         else:
-            node.init_beacond(plan, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", False, cl_service_name)
+            is_first_validator = False
+        node.init_beacond(plan, is_first_validator, cl_service_name)
 
         peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
 
@@ -109,9 +110,6 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
 
         file_suffix = "{}".format(n)
         if n == num_validators - 1:
-            # Initialize the Cosmos genesis file
-            # Collect genesis tx
-            bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond genesis collect-validators --home $BEACOND_HOME")
             file_suffix = "final"
 
         node_beacond_config = plan.store_service_files(

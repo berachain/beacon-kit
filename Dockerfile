@@ -96,8 +96,7 @@ ARG APP_NAME
 
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
-# Consolidate chmod commands
 RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash jq sed curl
+    apk add --no-cache bash sed curl
 
 #ENTRYPOINT [ "./beacond" ]
