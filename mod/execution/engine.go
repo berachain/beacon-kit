@@ -78,7 +78,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (engineprimitives.ExecutionPayloadEnvelope, error) {
+) (engineprimitives.BuiltExecutionPayload, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
