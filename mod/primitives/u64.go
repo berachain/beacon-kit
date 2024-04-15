@@ -34,7 +34,10 @@ import (
 // U64NumBytes is the number of bytes in a U64.
 const U64NumBytes = 8
 
-// U64 represents a 64-bit unsigned integer that is both SSZ and JSON marshallable.
+// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
+// marshallable. We marshal U64 as hex strings in JSON in order to keep the
+// execution client apis happy, and we marshal U64 as little-endian in SSZ to be
+// compatible with the spec.
 type U64 uint64
 
 // -------------------------- SSZMarshallable --------------------------
@@ -58,6 +61,9 @@ func (u U64) MarshalSSZ() ([]byte, error) {
 func (u *U64) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U64NumBytes {
 		return ErrInvalidSSZLength
+	}
+	if u == nil {
+		u = new(U64)
 	}
 	*u = U64(binary.LittleEndian.Uint64(buf))
 	return nil
