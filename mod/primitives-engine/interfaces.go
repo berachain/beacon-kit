@@ -38,7 +38,6 @@ type ExecutionPayloadBody interface {
 	ssz.Unmarshaler
 	ssz.HashRoot
 	IsNil() bool
-	String() string
 	Version() uint32
 	IsBlinded() bool
 	GetPrevRandao() [32]byte
