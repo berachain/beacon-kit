@@ -86,7 +86,7 @@ func NewPayloadAttributes[
 
 // Version returns the version of the PayloadAttributes.
 func (p *PayloadAttributes[Withdrawal]) Version() uint32 {
-	return 4
+	return p.version
 }
 
 // Validate validates the PayloadAttributes.

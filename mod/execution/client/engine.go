@@ -28,10 +28,10 @@ package client
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/config/version"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/cockroachdb/errors"
 )
 

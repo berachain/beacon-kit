@@ -26,8 +26,8 @@
 package params
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // ActiveForkVersion returns the active fork version for a given slot.

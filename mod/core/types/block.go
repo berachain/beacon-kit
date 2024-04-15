@@ -26,9 +26,9 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during
