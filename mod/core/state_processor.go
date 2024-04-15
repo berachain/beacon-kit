@@ -389,7 +389,7 @@ func (sp *StateProcessor) createValidator(
 	epoch = sp.cfg.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := primitives.NewForkData(
+	fd := consensusprimitives.NewForkData(
 		version.FromUint32(
 			sp.cfg.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
