@@ -11,8 +11,10 @@ nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
 goomy_blob = import_module("./src/services/goomy/launcher.star")
+prometheus = import_module("./src/observability/prometheus/prometheus.star")
+grafana = import_module("./src/observability/grafana/grafana.star")
 
-def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = []):
+def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -42,14 +44,26 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
+    metrics_enabled_services = metrics_enabled_services[:]
 
     # 4. Start network validators
     for n, validator in enumerate(validators):
         el_client = execution.create_node(plan, node_modules, validator, "validator", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
+        metrics_enabled_services.append({
+            "name": el_client["name"],
+            "service": el_client["service"],
+            "metrics_path": node_modules[validator.el_type].METRICS_PATH,
+        })
+
         # 4b. Launch CL
-        beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
+        beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
+        metrics_enabled_services.append({
+            "name": beacond_service.name,
+            "service": beacond_service,
+            "metrics_path": beacond.METRICS_PATH,
+        })
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
@@ -57,15 +71,28 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_client = execution.create_node(plan, node_modules, full, "full", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
+        metrics_enabled_services.append({
+            "name": el_client["name"],
+            "service": el_client["service"],
+            "metrics_path": node_modules[full.el_type].METRICS_PATH,
+        })
+
         # 4b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
         full_node_config = beacond.create_full_node_config(plan, full.cl_image, node_peering_info, el_client["name"], jwt_file, kzg_trusted_setup, n)
         full_node_configs[cl_service_name] = full_node_config
 
     if full_node_configs != {}:
-        plan.add_services(
+        services = plan.add_services(
             configs = full_node_configs,
         )
+
+        for name, service in services.items():
+            metrics_enabled_services.append({
+                "name": name,
+                "service": service,
+                "metrics_path": beacond.METRICS_PATH,
+            })
 
     # 6. Start RPCs
     for n, rpc in enumerate(rpc_endpoints):
@@ -83,5 +110,11 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
+
+    if "prometheus" in additional_services:
+        prometheus_url = prometheus.start(plan, metrics_enabled_services)
+
+        if "grafana" in additional_services:
+            grafana.start(plan, prometheus_url)
 
     plan.print("Successfully launched development network")

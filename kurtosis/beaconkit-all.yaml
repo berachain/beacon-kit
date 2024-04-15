@@ -68,3 +68,5 @@ rpc_endpoints:
       - el-full-erigon-5:8545
 additional_services: 
   - "goomy_blob"
+  - "prometheus"
+  - "grafana"
