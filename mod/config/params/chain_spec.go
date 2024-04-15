@@ -127,60 +127,121 @@ var _ ChainSpec = (*chainSpec)(nil)
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
 // the actual data.
 type chainSpec struct {
-	Data ChainSpecData // Data contains the actual chain-specific parameter values.
+	Data *ChainSpecData // Data contains the actual chain-specific parameter values.
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
-func NewChainSpec(data ChainSpecData) ChainSpec {
+func NewChainSpec(data *ChainSpecData) ChainSpec {
 	return &chainSpec{
 		Data: data,
 	}
 }
 
-// Implementation of ChainSpec interface methods, providing access to the
-// chain-specific parameters.
-func (c *chainSpec) MinDepositAmount() uint64 { return c.Data.MinDepositAmount }
+// MinDepositAmount returns the minimum deposit amount required.
+func (c *chainSpec) MinDepositAmount() uint64 {
+	return c.Data.MinDepositAmount
+}
 
-func (c *chainSpec) MaxEffectiveBalance() uint64 { return c.Data.MaxEffectiveBalance }
+// MaxEffectiveBalance returns the maximum effective balance.
+func (c *chainSpec) MaxEffectiveBalance() uint64 {
+	return c.Data.MaxEffectiveBalance
+}
 
-func (c *chainSpec) EjectionBalance() uint64 { return c.Data.EjectionBalance }
+// EjectionBalance returns the balance below which a validator is ejected.
+func (c *chainSpec) EjectionBalance() uint64 {
+	return c.Data.EjectionBalance
+}
 
-func (c *chainSpec) EffectiveBalanceIncrement() uint64 { return c.Data.EffectiveBalanceIncrement }
+// EffectiveBalanceIncrement returns the increment of effective balance.
+func (c *chainSpec) EffectiveBalanceIncrement() uint64 {
+	return c.Data.EffectiveBalanceIncrement
+}
 
-func (c *chainSpec) SlotsPerEpoch() uint64 { return c.Data.SlotsPerEpoch }
+// SlotsPerEpoch returns the number of slots per epoch.
+func (c *chainSpec) SlotsPerEpoch() uint64 {
+	return c.Data.SlotsPerEpoch
+}
 
-func (c *chainSpec) SlotsPerHistoricalRoot() uint64 { return c.Data.SlotsPerHistoricalRoot }
+// SlotsPerHistoricalRoot returns the number of slots per historical root.
+func (c *chainSpec) SlotsPerHistoricalRoot() uint64 {
+	return c.Data.SlotsPerHistoricalRoot
+}
+
+// DepositContractAddress returns the address of the deposit contract.
 func (c *chainSpec) DepositContractAddress() primitives.ExecutionAddress {
 	return c.Data.DepositContractAddress
 }
 
-func (c *chainSpec) ElectraForkEpoch() primitives.Epoch { return c.Data.ElectraForkEpoch }
+// ElectraForkEpoch returns the epoch of the Electra fork.
+func (c *chainSpec) ElectraForkEpoch() primitives.Epoch {
+	return c.Data.ElectraForkEpoch
+}
 
-func (c *chainSpec) EpochsPerHistoricalVector() uint64 { return c.Data.EpochsPerHistoricalVector }
+// EpochsPerHistoricalVector returns the number of epochs per historical vector.
+func (c *chainSpec) EpochsPerHistoricalVector() uint64 {
+	return c.Data.EpochsPerHistoricalVector
+}
 
-func (c *chainSpec) EpochsPerSlashingsVector() uint64 { return c.Data.EpochsPerSlashingsVector }
+// EpochsPerSlashingsVector returns the number of epochs per slashings vector.
+func (c *chainSpec) EpochsPerSlashingsVector() uint64 {
+	return c.Data.EpochsPerSlashingsVector
+}
 
-func (c *chainSpec) HistoricalRootsLimit() uint64 { return c.Data.HistoricalRootsLimit }
+// HistoricalRootsLimit returns the limit of historical roots.
+func (c *chainSpec) HistoricalRootsLimit() uint64 {
+	return c.Data.HistoricalRootsLimit
+}
 
-func (c *chainSpec) ValidatorRegistryLimit() uint64 { return c.Data.ValidatorRegistryLimit }
+// ValidatorRegistryLimit returns the limit of the validator registry.
+func (c *chainSpec) ValidatorRegistryLimit() uint64 {
+	return c.Data.ValidatorRegistryLimit
+}
 
-func (c *chainSpec) MaxDepositsPerBlock() uint64 { return c.Data.MaxDepositsPerBlock }
+// MaxDepositsPerBlock returns the maximum number of deposits per block.
+func (c *chainSpec) MaxDepositsPerBlock() uint64 {
+	return c.Data.MaxDepositsPerBlock
+}
+
+// ProportionalSlashingMultiplier returns the proportional slashing multiplier.
 func (c *chainSpec) ProportionalSlashingMultiplier() uint64 {
 	return c.Data.ProportionalSlashingMultiplier
 }
 
-func (c *chainSpec) MaxWithdrawalsPerPayload() uint64 { return c.Data.MaxWithdrawalsPerPayload }
+// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
+// payload.
+func (c *chainSpec) MaxWithdrawalsPerPayload() uint64 {
+	return c.Data.MaxWithdrawalsPerPayload
+}
+
+// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
+// withdrawals sweep.
 func (c *chainSpec) MaxValidatorsPerWithdrawalsSweep() uint64 {
 	return c.Data.MaxValidatorsPerWithdrawalsSweep
 }
+
+// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
+// blobs sidecars request.
 func (c *chainSpec) MinEpochsForBlobsSidecarsRequest() uint64 {
 	return c.Data.MinEpochsForBlobsSidecarsRequest
 }
 
-func (c *chainSpec) MaxBlobCommitmentsPerBlock() uint64 { return c.Data.MaxBlobCommitmentsPerBlock }
+// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
+// block.
+func (c *chainSpec) MaxBlobCommitmentsPerBlock() uint64 {
+	return c.Data.MaxBlobCommitmentsPerBlock
+}
 
-func (c *chainSpec) MaxBlobsPerBlock() uint64 { return c.Data.MaxBlobsPerBlock }
+// MaxBlobsPerBlock returns the maximum number of blobs per block.
+func (c *chainSpec) MaxBlobsPerBlock() uint64 {
+	return c.Data.MaxBlobsPerBlock
+}
 
-func (c *chainSpec) FieldElementsPerBlob() uint64 { return c.Data.FieldElementsPerBlob }
+// FieldElementsPerBlob returns the number of field elements per blob.
+func (c *chainSpec) FieldElementsPerBlob() uint64 {
+	return c.Data.FieldElementsPerBlob
+}
 
-func (c *chainSpec) BytesPerBlob() uint64 { return c.Data.BytesPerBlob }
+// BytesPerBlob returns the number of bytes per blob.
+func (c *chainSpec) BytesPerBlob() uint64 {
+	return c.Data.BytesPerBlob
+}

@@ -30,7 +30,7 @@ import "github.com/ethereum/go-ethereum/common"
 // LocalnetChainSpec is the ChainSpec for the localnet.
 func LocalnetChainSpec() ChainSpec {
 	//nolint:gomnd // default config.
-	return NewChainSpec(ChainSpecData{
+	return NewChainSpec(&ChainSpecData{
 		// Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
