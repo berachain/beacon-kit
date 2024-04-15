@@ -23,21 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package engineprimitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
 //go:generate go run github.com/fjl/gencodec -type Withdrawal -field-override withdrawalJSONMarshaling -out withdrawal.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include execution.go,primitives.go,$GETH_PKG_INCLUDE/common -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives/execution.go,../primitives/primitives.go,$GETH_PKG_INCLUDE/common -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     uint64           `json:"index"          ssz-size:"8"`
-	Validator ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
-	Address   ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    Gwei             `json:"amount"         ssz-size:"8"`
+	Index     uint64                      `json:"index"          ssz-size:"8"`
+	Validator primitives.ValidatorIndex   `json:"validatorIndex" ssz-size:"8"`
+	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Amount    primitives.Gwei             `json:"amount"         ssz-size:"8"`
 }
 
 // Equals returns true if the Withdrawal is equal to the other.

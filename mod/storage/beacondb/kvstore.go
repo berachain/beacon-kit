@@ -87,7 +87,7 @@ type KVStore struct {
 	depositQueue *collections.Queue[*consensusprimitives.Deposit]
 
 	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
+	withdrawalQueue *collections.Queue[*engineprimitives.Withdrawal]
 
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
@@ -198,10 +198,10 @@ func New(
 			keys.DepositQueuePrefix,
 			encoding.SSZValueCodec[*consensusprimitives.Deposit]{},
 		),
-		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
+		withdrawalQueue: collections.NewQueue[*engineprimitives.Withdrawal](
 			schemaBuilder,
 			keys.WithdrawalQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Withdrawal]{},
+			encoding.SSZValueCodec[*engineprimitives.Withdrawal]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,

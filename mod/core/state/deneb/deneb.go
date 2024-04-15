@@ -104,7 +104,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		Transactions:  [][]byte{},
-		Withdrawals:   []*primitives.Withdrawal{},
+		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   0,
 		ExcessBlobGas: 0,
 	}

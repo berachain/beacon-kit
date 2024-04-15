@@ -30,7 +30,6 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/uint256"
@@ -121,11 +120,13 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayload(
 	data *ethengineprimitives.ExecutableData,
 ) *engineprimitives.ExecutableDataDeneb {
-	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
+	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*primitives.Withdrawal)(unsafe.Pointer(withdrawal))
+		withdrawals[i] = (*engineprimitives.Withdrawal)(
+			unsafe.Pointer(withdrawal),
+		)
 	}
 
 	if len(data.ExtraData) > constants.ExtraDataLength {

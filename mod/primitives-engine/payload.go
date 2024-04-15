@@ -35,7 +35,7 @@ import (
 
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,../primitives/uint256,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,../primitives/uint256,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
@@ -52,7 +52,7 @@ type ExecutableDataDeneb struct {
 	BaseFeePerGas primitives.Wei              `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*primitives.Withdrawal    `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   uint64                      `json:"blobGasUsed"`
 	ExcessBlobGas uint64                      `json:"excessBlobGas"`
 }
@@ -157,7 +157,7 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*primitives.Withdrawal {
+func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
 }
 
