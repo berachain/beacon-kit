@@ -26,6 +26,7 @@
 package primitives_test
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -46,7 +47,7 @@ func TestLittleEndian_UInt256(t *testing.T) {
 	for _, tc := range testCases {
 		le := primitives.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
-		require.Equal(t, expected, le.ToU256())
+		require.Equal(t, expected, le.UnwrapU256())
 	}
 }
 
@@ -63,7 +64,7 @@ func TestLittleEndian_Big(t *testing.T) {
 	for _, tc := range testCases {
 		le := primitives.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
-		require.Equal(t, expected.ToBig(), le.ToBig())
+		require.Equal(t, expected.ToBig(), le.UnwrapBig())
 	}
 }
 
@@ -101,5 +102,246 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 		require.NoError(t, err)
 		expected := primitives.NewU256L(tc.expected)
 		require.Equal(t, expected, *le)
+	}
+}
+
+func TestU256L_MarshalSSZ(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    primitives.U256L
+		expected []byte
+	}{
+		{
+			name: "zero",
+			input: primitives.NewU256L(
+				[]byte{
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+				},
+			),
+			expected: make([]byte, 32),
+		},
+		{
+			name:     "max value",
+			input:    primitives.NewU256L(bytes.Repeat([]byte{255}, 32)),
+			expected: bytes.Repeat([]byte{255}, 32),
+		},
+		{
+			name: "arbitrary value",
+			input: primitives.NewU256L(
+				[]byte{
+					1,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+				},
+			),
+			expected: []byte{
+				1,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.MarshalSSZ()
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestU256L_UnmarshalSSZ(t *testing.T) {
+	tests := []struct {
+		name     string
+		data     []byte
+		expected primitives.U256L
+		err      error
+	}{
+		{
+			name: "valid data",
+			data: []byte{
+				1,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+			expected: primitives.NewU256L(
+				[]byte{
+					1,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+				},
+			),
+		},
+		{
+			name: "invalid data - short buffer",
+			data: []byte{0, 0},
+			err:  primitives.ErrInvalidSSZLength,
+		},
+		{
+			name:     "valid data - zero",
+			data:     make([]byte, 32),
+			expected: primitives.NewU256L(make([]byte, 32)),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var u primitives.U256L
+			err := u.UnmarshalSSZ(tt.data)
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, u)
+			}
+		})
 	}
 }

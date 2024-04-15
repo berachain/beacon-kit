@@ -31,7 +31,6 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
@@ -53,7 +52,7 @@ type KVStore struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
-	fork sdkcollections.Item[*primitives.Fork]
+	fork sdkcollections.Item[*consensusprimitives.Fork]
 
 	// History
 	// latestBlockHeader stores the latest beacon block header.
@@ -128,11 +127,11 @@ func New(
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
-		fork: sdkcollections.NewItem[*primitives.Fork](
+		fork: sdkcollections.NewItem[*consensusprimitives.Fork](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ForkPrefix),
 			keys.ForkPrefix,
-			encoding.SSZValueCodec[*primitives.Fork]{},
+			encoding.SSZValueCodec[*consensusprimitives.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
