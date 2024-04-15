@@ -30,7 +30,7 @@ package ssz
 type Marshallable interface {
 	// MarshalSSZTo marshals the object into the provided byte slice and returns
 	// it along with any error.
-	MarshalSSZTo(buf []byte) ([]byte, error)
+	MarshalSSZTo([]byte) ([]byte, error)
 	// MarshalSSZ marshals the object into a new byte slice and returns it along
 	// with any error.
 	MarshalSSZ() ([]byte, error)
