@@ -200,7 +200,7 @@ func (p *Processor) computeSigningRoot(
 		), genesisValidatorsRoot,
 	)
 
-	signingDomain, err := fd.ComputeDomain(consensusprimitives.DomainTypeRandao)
+	signingDomain, err := fd.ComputeDomain(p.cs.DomainTypeRandao())
 	if err != nil {
 		return primitives.Root{}, err
 	}

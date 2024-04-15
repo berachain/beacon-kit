@@ -48,6 +48,17 @@ type ChainSpec interface {
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
 
+	// Signature Domains
+	//
+	DomainTypeProposer() DomainType
+	DomainTypeAttester() DomainType
+	DomainTypeRandao() DomainType
+	DomainTypeDeposit() DomainType
+	DomainTypeVoluntaryExit() DomainType
+	DomainTypeSelectionProof() DomainType
+	DomainTypeAggregateAndProof() DomainType
+	DomainTypeApplicationMask() DomainType
+
 	// Eth1-related values.
 	//
 	// DepositContractAddress returns the deposit contract address.

@@ -75,6 +75,47 @@ func (c *chainSpec) SlotsPerHistoricalRoot() uint64 {
 	return c.Data.SlotsPerHistoricalRoot
 }
 
+// DomainProposer returns the domain for beacon proposer signatures.
+func (c *chainSpec) DomainTypeProposer() primitives.DomainType {
+	return c.Data.DomainTypeProposer
+}
+
+// DomainAttester returns the domain for beacon attester signatures.
+func (c *chainSpec) DomainTypeAttester() primitives.DomainType {
+	return c.Data.DomainTypeAttester
+}
+
+// DomainRandao returns the domain for RANDAO reveal signatures.
+func (c *chainSpec) DomainTypeRandao() primitives.DomainType {
+	return c.Data.DomainTypeRandao
+}
+
+// DomainDeposit returns the domain for deposit contract signatures.
+func (c *chainSpec) DomainTypeDeposit() primitives.DomainType {
+	return c.Data.DomainTypeDeposit
+}
+
+// DomainVoluntaryExit returns the domain for voluntary exit signatures.
+func (c *chainSpec) DomainTypeVoluntaryExit() primitives.DomainType {
+	return c.Data.DomainTypeVoluntaryExit
+}
+
+// DomainSelectionProof returns the domain for selection proof signatures.
+func (c *chainSpec) DomainTypeSelectionProof() primitives.DomainType {
+	return c.Data.DomainTypeSelectionProof
+}
+
+// DomainAggregateAndProof returns the domain for aggregate and proof
+// signatures.
+func (c *chainSpec) DomainTypeAggregateAndProof() primitives.DomainType {
+	return c.Data.DomainTypeAggregateAndProof
+}
+
+// DomainTypeApplicationMask returns the domain for the application mask.
+func (c *chainSpec) DomainTypeApplicationMask() primitives.DomainType {
+	return c.Data.DomainTypeApplicationMask
+}
+
 // DepositContractAddress returns the address of the deposit contract.
 func (c *chainSpec) DepositContractAddress() primitives.ExecutionAddress {
 	return c.Data.DepositContractAddress

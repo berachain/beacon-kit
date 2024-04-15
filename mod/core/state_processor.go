@@ -400,7 +400,7 @@ func (sp *StateProcessor) createValidator(
 		Amount:      dep.Amount,
 	}
 	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.Signature, blst.VerifySignaturePubkeyBytes,
+		fd, dep.Signature, blst.VerifySignaturePubkeyBytes, sp.cs.DomainTypeDeposit(),
 	); err != nil {
 		return err
 	}

@@ -51,6 +51,27 @@ type ChainSpecData struct {
 	// SlotsPerHistoricalRoot is the number of slots per historical root.
 	SlotsPerHistoricalRoot uint64 `mapstructure:"slots-per-historical-root"`
 
+	// Signature domains.
+	//
+	// DomainDomainTypeProposerProposer is the domain for beacon proposer
+	// signatures.
+	DomainTypeProposer primitives.DomainType `mapstructure:"domain-type-beacon-proposer"`
+	// DomainTypeAttester is the domain for beacon attester signatures.
+	DomainTypeAttester primitives.DomainType `mapstructure:"domain-type-beacon-attester"`
+	// DomainTypeRandao is the domain for RANDAO reveal signatures.
+	DomainTypeRandao primitives.DomainType `mapstructure:"domain-type-randao"`
+	// DomainTypeDeposit is the domain for deposit contract signatures.
+	DomainTypeDeposit primitives.DomainType `mapstructure:"domain-type-deposit"`
+	// DomainTypeVoluntaryExit is the domain for voluntary exit signatures.
+	DomainTypeVoluntaryExit primitives.DomainType `mapstructure:"domain-type-voluntary-exit"`
+	// DomainTypeSelectionProof is the domain for selection proof signatures.
+	DomainTypeSelectionProof primitives.DomainType `mapstructure:"domain-type-selection-proof"`
+	// DomainTypeAggregateAndProof is the domain for aggregate and proof
+	// signatures.
+	DomainTypeAggregateAndProof primitives.DomainType `mapstructure:"domain-type-aggregate-and-proof"`
+	// DomainTypeApplicationMask is the domain for the application mask.
+	DomainTypeApplicationMask primitives.DomainType `mapstructure:"domain-type-application-mask"`
+
 	// Eth1-related values.
 	//
 	// DepositContractAddress is the address of the deposit contract.
