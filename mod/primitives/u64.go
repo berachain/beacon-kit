@@ -68,3 +68,10 @@ func (u *U64) UnmarshalSSZ(buf []byte) error {
 func (u U64) SizeSSZ() int {
 	return U64NumBytes
 }
+
+// -------------------------- U64 Methods --------------------------
+
+// Unwrap returns the underlying uint64 value of U64.
+func (u U64) Unwrap() uint64 {
+	return uint64(u)
+}

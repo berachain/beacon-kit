@@ -82,7 +82,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		GasUsed:       payload.GetGasUsed(),
 		Timestamp:     payload.GetTimestamp(),
 		ExtraData:     payload.GetExtraData(),
-		BaseFeePerGas: payload.GetBaseFeePerGas().ToBig(),
+		BaseFeePerGas: payload.GetBaseFeePerGas().UnwrapBig(),
 		BlockHash:     payload.GetBlockHash(),
 		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.

@@ -76,15 +76,15 @@ func NewU256LFromBigInt(b *big.Int) U256L {
 	return NewU256LFromBigEndian(b.Bytes())
 }
 
-// ---------------------------- Conversions ----------------------------
+// ------------------------------ Unwraps ------------------------------
 
-// ToU256 converts an U256L to a *U256.
-func (s U256L) ToU256() *U256 {
+// UnwrapU256 converts an U256L to a *U256.
+func (s U256L) UnwrapU256() *U256 {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
-// ToBig converts a U256 to a big.Int.
-func (s U256L) ToBig() *big.Int {
+// UnwrapBig converts a U256 to a big.Int.
+func (s U256L) UnwrapBig() *big.Int {
 	return new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
@@ -93,7 +93,7 @@ func (s U256L) ToBig() *big.Int {
 // MarshalJSON marshals a U256L to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
 func (s U256L) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + hexutil.EncodeBig(s.ToBig()) + "\""), nil
+	return []byte("\"" + hexutil.EncodeBig(s.UnwrapBig()) + "\""), nil
 }
 
 // UnmarshalJSON unmarshals a U256L from JSON by decoding the hex
@@ -141,5 +141,5 @@ func (s U256L) SizeSSZ() int {
 
 // String returns the string representation of a U256L.
 func (s *U256L) String() string {
-	return s.ToU256().String()
+	return s.UnwrapU256().String()
 }
