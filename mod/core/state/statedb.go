@@ -169,7 +169,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 
 		// These fields are the same for both partial and full withdrawals.
 		withdrawal := &engineprimitives.Withdrawal{
-			Index:     withdrawalIndex,
+			Index:     primitives.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
 		}

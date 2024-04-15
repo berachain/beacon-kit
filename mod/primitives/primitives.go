@@ -37,11 +37,11 @@ type (
 
 	// CommitteeIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	CommitteeIndex uint64
+	CommitteeIndex = U64
 
 	// ValidatorIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ValidatorIndex uint64
+	ValidatorIndex = U64
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -72,5 +72,5 @@ type (
 	Wei = U256L
 
 	// Gwei is a denomination of 1e9 Wei represented as an uint64.
-	Gwei uint64
+	Gwei = U64
 )
