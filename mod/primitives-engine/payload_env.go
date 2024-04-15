@@ -32,17 +32,13 @@ import (
 
 // BuiltExecutionPayload is an interface for the execution payload envelope.
 type BuiltExecutionPayload interface {
-	// GetExecutionPayload retrieves the execution payload associated with the
-	// envelope.
+	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() ExecutionPayload
-	// GetValue returns the Wei value of the block within the execution payload
-	// envelope.
+	// GetValue returns the Wei value of the block in the execution payload.
 	GetValue() primitives.Wei
-	// GetBlobsBundle fetches the BlobsBundleV1 associated with the execution
-	// payload, if available.
+	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
 	GetBlobsBundle() BlobsBundle
-	// ShouldOverrideBuilder indicates whether the builder should be overridden
-	// in the execution environment.
+	// ShouldOverrideBuilder indicates if the builder should be overridden.
 	ShouldOverrideBuilder() bool
 }
 
@@ -72,21 +68,29 @@ type ExecutionPayloadEnvelope[
 
 // GetExecutionPayload returns the execution payload of the
 // ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetExecutionPayload() ExecutionPayload {
+func (e *ExecutionPayloadEnvelope[
+	Payload, Blobs,
+]) GetExecutionPayload() ExecutionPayload {
 	return e.ExecutionPayload
 }
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetValue() primitives.Wei {
+func (e *ExecutionPayloadEnvelope[
+	Payload, Blobs,
+]) GetValue() primitives.Wei {
 	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetBlobsBundle() BlobsBundle {
+func (e *ExecutionPayloadEnvelope[
+	Payload, Blobs,
+]) GetBlobsBundle() BlobsBundle {
 	return e.BlobsBundle
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelope[Payload, Blobs]) ShouldOverrideBuilder() bool {
+func (e *ExecutionPayloadEnvelope[
+	Payload, Blobs,
+]) ShouldOverrideBuilder() bool {
 	return e.Override
 }
