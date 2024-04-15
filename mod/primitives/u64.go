@@ -51,8 +51,10 @@ func (u U64) MarshalSSZTo(buf []byte) ([]byte, error) {
 // MarshalSSZ serializes the U64 into a byte slice.
 func (u U64) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, U64NumBytes)
-	if dst, err := u.MarshalSSZTo(buf)
-	return dst, nil
+	if _, err := u.MarshalSSZTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
 }
 
 // UnmarshalSSZ deserializes the U64 from a byte slice.
