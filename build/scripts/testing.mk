@@ -105,12 +105,15 @@ test:
 test-unit: ## run golang unit tests
 	@$(MAKE)
 	@echo "Running unit tests..."
-	@find . -name 'go.mod' -execdir sh -c 'echo "Testing in $$(pwd)" && go test ./...' \;
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test
 
 test-unit-cover: ## run golang unit tests with coverage
 	@$(MAKE)
 	@echo "Running unit tests with coverage..."
-	@find . -name 'go.mod' -execdir sh -c 'echo "Testing in $$(pwd)" && go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...' \;
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test -race -coverprofile=test-unit-cover.txt 
+
 
 # On MacOS, if there is a linking issue on the fuzz tests, 
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
