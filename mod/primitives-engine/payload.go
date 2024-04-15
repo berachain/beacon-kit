@@ -35,7 +35,7 @@ import (
 
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
@@ -44,30 +44,24 @@ type ExecutableDataDeneb struct {
 	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
 	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        uint64                      `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      uint64                      `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       uint64                      `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     uint64                      `json:"timestamp"                    gencodec:"required"`
+	Number        primitives.U64              `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      primitives.U64              `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       primitives.U64              `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     primitives.U64              `json:"timestamp"                    gencodec:"required"`
 	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas primitives.Wei              `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   uint64                      `json:"blobGasUsed"`
-	ExcessBlobGas uint64                      `json:"excessBlobGas"`
+	BlobGasUsed   primitives.U64              `json:"blobGasUsed"`
+	ExcessBlobGas primitives.U64              `json:"excessBlobGas"`
 }
 
 // JSON type overrides for ExecutableDataDeneb.
 type executableDataDenebMarshaling struct {
-	Number        hexutil.Uint64
-	GasLimit      hexutil.Uint64
-	GasUsed       hexutil.Uint64
-	Timestamp     hexutil.Uint64
-	ExtraData     hexutil.Bytes
-	LogsBloom     hexutil.Bytes
-	Transactions  []hexutil.Bytes
-	BlobGasUsed   hexutil.Uint64
-	ExcessBlobGas hexutil.Uint64
+	ExtraData    hexutil.Bytes
+	LogsBloom    hexutil.Bytes
+	Transactions []hexutil.Bytes
 }
 
 // Version returns the version of the ExecutableDataDeneb.
@@ -117,22 +111,22 @@ func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
 
 // GetNumber returns the block number of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetNumber() uint64 {
-	return d.Number
+	return d.Number.Unwrap()
 }
 
 // GetGasLimit returns the gas limit of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetGasLimit() uint64 {
-	return d.GasLimit
+	return d.GasLimit.Unwrap()
 }
 
 // GetGasUsed returns the gas used of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetGasUsed() uint64 {
-	return d.GasUsed
+	return d.GasUsed.Unwrap()
 }
 
 // GetTimestamp returns the timestamp of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetTimestamp() uint64 {
-	return d.Timestamp
+	return d.Timestamp.Unwrap()
 }
 
 // GetExtraData returns the extra data of the ExecutableDataDeneb.
@@ -162,12 +156,14 @@ func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 
 // GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetBlobGasUsed() *uint64 {
-	return &d.BlobGasUsed
+	v := d.BlobGasUsed.Unwrap()
+	return &v
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
 func (d *ExecutableDataDeneb) GetExcessBlobGas() *uint64 {
-	return &d.ExcessBlobGas
+	v := d.ExcessBlobGas.Unwrap()
+	return &v
 }
 
 // String returns the string representation of the ExecutableDataDeneb.

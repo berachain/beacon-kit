@@ -34,7 +34,7 @@ import (
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives,../.././primitives-engine,../../primitives-consensus,$GETH_PKG_INCLUDE/common -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives,../.././primitives-engine,../../primitives-consensus,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot primitives.Slot
@@ -42,7 +42,7 @@ type BeaconBlockDeneb struct {
 	// ProposerIndex is the index of the validator who proposed the block.
 	ProposerIndex primitives.ValidatorIndex
 
-	// ParentBlockRoot is the hash of the parent block.
+	// ParentBlockRoot is the hash of the parent block
 	ParentBlockRoot primitives.Root
 
 	// StateRoot is the hash of the state at the block.

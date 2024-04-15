@@ -478,7 +478,7 @@ func (sp *StateProcessor) processWithdrawals(
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
-			expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1,
+			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1).Unwrap(),
 		); err != nil {
 			return err
 		}
@@ -495,7 +495,7 @@ func (sp *StateProcessor) processWithdrawals(
 		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex = primitives.ValidatorIndex(
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
-				totalValidators,
+				primitives.U64(totalValidators),
 		)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not
