@@ -23,27 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:gochecknoglobals // alias.
 package engineprimitives
 
-import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/kzg"
 
-// There are some types we can borrow from geth.
-type (
-	ForkchoiceResponse = engine.ForkChoiceResponse
-	ForkchoiceState    = engine.ForkchoiceStateV1
-	PayloadID          = engine.PayloadID
-	PayloadStatus      = engine.PayloadStatusV1
-	ClientVersionV1    = engine.ClientVersionV1
-)
+// BlobsBundleV1 represents a collection of commitments, proofs, and blobs.
+// Each field is a slice of bytes that are serialized for transmission or
+// storage.
+type BlobsBundleV1 struct {
+	// Commitments are the KZG commitments included in the bundle.
+	Commitments []kzg.Commitment `json:"commitments"`
+	// Proofs are the KZG proofs corresponding to the commitments.
+	Proofs []kzg.Proof `json:"proofs"`
+	// Blobs are arbitrary data blobs included in the bundle.
+	Blobs []*kzg.Blob `json:"blobs"`
+}
 
-type PayloadStatusStr = string
+// GetCommitments returns the slice of commitments in the bundle.
+func (b *BlobsBundleV1) GetCommitments() []kzg.Commitment {
+	return b.Commitments
+}
 
-var (
-	PayloadStatusValid    PayloadStatusStr = engine.VALID
-	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
-	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
-	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
-)
+// GetProofs returns the slice of proofs in the bundle.
+func (b *BlobsBundleV1) GetProofs() []kzg.Proof {
+	return b.Proofs
+}
+
+// GetBlobs returns the slice of data blobs in the bundle.
+func (b *BlobsBundleV1) GetBlobs() []*kzg.Blob {
+	return b.Blobs
+}
