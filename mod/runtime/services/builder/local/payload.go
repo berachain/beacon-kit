@@ -118,7 +118,7 @@ func (s *Service) GetBestPayload(
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
 ) (engineprimitives.ExecutionPayload,
-	*engineprimitives.BlobsBundleV1, bool, error) {
+	engineprimitives.BlobsBundle, bool, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -166,7 +166,7 @@ func (s *Service) getPayloadFromCachedPayloadIDs(
 	slot primitives.Slot,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.ExecutionPayload,
-	*engineprimitives.BlobsBundleV1, bool, error) {
+	engineprimitives.BlobsBundle, bool, error) {
 	// If we have a payload ID in the cache, we can return the payload from the
 	// cache.
 	payloadID, found := s.pc.Get(slot, parentBlockRoot)
@@ -201,7 +201,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.ExecutionPayload,
-	*engineprimitives.BlobsBundleV1, bool, error) {
+	engineprimitives.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := s.BuildLocalPayload(
@@ -278,7 +278,7 @@ func (s *Service) getPayloadFromExecutionClient(
 	payloadID *engineprimitives.PayloadID,
 	slot primitives.Slot,
 ) (engineprimitives.ExecutionPayload,
-	*engineprimitives.BlobsBundleV1, bool, error) {
+	engineprimitives.BlobsBundle, bool, error) {
 	if payloadID == nil {
 		return nil, nil, false, ErrNilPayloadID
 	}
@@ -315,7 +315,7 @@ func (s *Service) getPayloadFromExecutionClient(
 
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle != nil {
-		args = append(args, "num_blobs", len(blobsBundle.Blobs))
+		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
 	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)

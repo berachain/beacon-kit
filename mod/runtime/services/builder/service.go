@@ -34,7 +34,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
@@ -168,7 +167,8 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	body.SetBlobKzgCommitments(kzg.CommitmentsFromBz(blobsBundle.Commitments))
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
 	deposits, err := st.ExpectedDeposits(
