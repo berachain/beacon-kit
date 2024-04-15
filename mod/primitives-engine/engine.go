@@ -32,7 +32,6 @@ import (
 
 // There are some types we can borrow from geth.
 type (
-	BlobsBundleV1      = engine.BlobsBundleV1
 	ForkchoiceResponse = engine.ForkChoiceResponse
 	ForkchoiceState    = engine.ForkchoiceStateV1
 	PayloadID          = engine.PayloadID
