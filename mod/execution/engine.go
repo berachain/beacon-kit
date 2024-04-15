@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/cockroachdb/errors"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -70,7 +69,7 @@ func (ee *Engine) GetLogs(
 	ctx context.Context,
 	blockHash primitives.ExecutionHash,
 	addrs []primitives.ExecutionAddress,
-) ([]coretypes.Log, error) {
+) ([]engineprimitives.Log, error) {
 	return ee.ec.GetLogs(ctx, blockHash, addrs)
 }
 
