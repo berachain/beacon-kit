@@ -91,6 +91,7 @@ func ReadGenesis(db ethdb.Database) (*Genesis, error) {
 	}
 	if len(blob) != 0 {
 		if err := genesis.Alloc.UnmarshalJSON(blob); err != nil {
+			//nolint:errorlint // forked from go-ethereum
 			return nil, fmt.Errorf(
 				"could not unmarshal genesis state json: %s",
 				err,
@@ -477,7 +478,7 @@ func (g *Genesis) ToBlock() *types.Block {
 		}
 	}
 	var withdrawals []*types.Withdrawal
-	if conf := g.Config; conf != nil {
+	if conf := g.Config; conf != nil { //nolint:nestif // forked from go-ethereum
 		num := big.NewInt(int64(g.Number))
 		if conf.IsShanghai(num, g.Timestamp) {
 			head.WithdrawalsHash = &types.EmptyWithdrawalsHash
@@ -558,6 +559,7 @@ func (g *Genesis) ToBlock() *types.Block {
 // 		Nonce:      66,
 // 		ExtraData:
 // hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
+// //nolint:lll
 // 		GasLimit:   5000,
 // 		Difficulty: big.NewInt(17179869184),
 // 		Alloc:      decodePrealloc(mainnetAllocData),
@@ -571,6 +573,7 @@ func (g *Genesis) ToBlock() *types.Block {
 // 		Timestamp:  1548854791,
 // 		ExtraData:
 // hexutil.MustDecode("0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+// //nolint:lll
 // 		GasLimit:   10485760,
 // 		Difficulty: big.NewInt(1),
 // 		Alloc:      decodePrealloc(goerliAllocData),
