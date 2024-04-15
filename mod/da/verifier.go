@@ -28,19 +28,19 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/da/kzg"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"golang.org/x/sync/errgroup"
 )
 
 // BlobProofVerifier is a verifier for blobs.
 type BlobVerifier struct {
-	proofVerifier proof.BlobProofVerifier
+	proofVerifier kzg.BlobProofVerifier
 }
 
 // NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
 func NewBlobVerifier(
-	proofVerifier proof.BlobProofVerifier,
+	proofVerifier kzg.BlobProofVerifier,
 ) *BlobVerifier {
 	return &BlobVerifier{
 		proofVerifier: proofVerifier,
@@ -94,7 +94,6 @@ func (bv *BlobVerifier) VerifyKZGProofs(
 	default:
 		// For multiple blobs batch verification is more performant
 		// than verifying each blob individually (even when done in parallel).
-		return bv.proofVerifier.VerifyBlobProofBatch(
-			proof.ArgsFromSidecars(scs))
+		return bv.proofVerifier.VerifyBlobProofBatch(kzg.ArgsFromSidecars(scs))
 	}
 }
