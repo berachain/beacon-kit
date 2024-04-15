@@ -23,14 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensusprimitives
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include execution.go,primitives.go,bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
+import "github.com/berachain/beacon-kit/mod/primitives"
+
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ../primitives/execution.go,../primitives/primitives.go,../primitives/bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
-	DepositRoot Root `json:"depositRoot"  ssz-size:"32"`
+	DepositRoot primitives.Root `json:"depositRoot"  ssz-size:"32"`
 	// DepositCount is the number of deposits in the deposit tree.
 	DepositCount uint64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
-	BlockHash ExecutionHash `json:"blockHash"    ssz-size:"32"`
+	BlockHash primitives.ExecutionHash `json:"blockHash"    ssz-size:"32"`
 }
