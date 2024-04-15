@@ -27,8 +27,8 @@ package randao
 
 import (
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 )
 
 type Option func(*Processor) error
@@ -52,7 +52,7 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithConfig sets the config.
-func WithConfig(cfg *config.Config) Option {
+func WithConfig(cfg *params.BeaconChainConfig) Option {
 	return func(p *Processor) error {
 		p.cfg = cfg
 		return nil
