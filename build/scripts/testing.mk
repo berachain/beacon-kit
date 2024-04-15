@@ -103,14 +103,15 @@ test:
 	@$(MAKE) test-unit test-forge-fuzz
 	
 test-unit: ## run golang unit tests
-	@$(MAKE)
 	@echo "Running unit tests..."
-	@find . -name 'go.mod' -execdir sh -c 'echo "Testing in $$(pwd)" && go test ./...' \;
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test
 
 test-unit-cover: ## run golang unit tests with coverage
-	@$(MAKE)
 	@echo "Running unit tests with coverage..."
-	@find . -name 'go.mod' -execdir sh -c 'echo "Testing in $$(pwd)" && go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...' \;
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test -race -coverprofile=test-unit-cover.txt 
+
 
 # On MacOS, if there is a linking issue on the fuzz tests, 
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
@@ -123,7 +124,7 @@ test-unit-fuzz: ## run fuzz tests
 	go test -fuzz=FuzzQueueSimple ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 	go test -fuzz=FuzzQueueMulti ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
 
-test-e2e:
+test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
