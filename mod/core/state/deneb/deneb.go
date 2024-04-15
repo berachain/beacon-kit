@@ -45,7 +45,7 @@ func DefaultBeaconState() *BeaconState {
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
-		Fork: &primitives.Fork{
+		Fork: &consensusprimitives.Fork{
 			PreviousVersion: version.FromUint32(version.Deneb),
 			CurrentVersion:  version.FromUint32(version.Deneb),
 			Epoch:           0,
@@ -118,9 +118,9 @@ type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot  `json:"slot"`
-	Fork                  *primitives.Fork `json:"fork"`
+	GenesisValidatorsRoot primitives.Root           `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  primitives.Slot           `json:"slot"`
+	Fork                  *consensusprimitives.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *consensusprimitives.BeaconBlockHeader `json:"latestBlockHeader"`
