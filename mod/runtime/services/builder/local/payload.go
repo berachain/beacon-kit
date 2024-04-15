@@ -261,7 +261,7 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	return engineprimitives.NewPayloadAttributes[*primitives.Withdrawal](
+	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
 		s.BeaconCfg().ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
