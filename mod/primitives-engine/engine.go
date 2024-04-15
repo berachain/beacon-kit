@@ -42,8 +42,8 @@ type (
 type PayloadStatusStr = string
 
 var (
-	PayloadStatusValid    PayloadStatusStr = engine.VALID
-	PayloadStatusInvalid  PayloadStatusStr = engine.INVALID
-	PayloadStatusSyncing  PayloadStatusStr = engine.SYNCING
-	PayloadStatusAccepted PayloadStatusStr = engine.ACCEPTED
+	PayloadStatusValid    PayloadStatusStr = "VALID"
+	PayloadStatusInvalid  PayloadStatusStr = "INVALID"
+	PayloadStatusSyncing  PayloadStatusStr = "SYNCING"
+	PayloadStatusAccepted PayloadStatusStr = "ACCEPTED"
 )

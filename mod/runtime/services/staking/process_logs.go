@@ -31,15 +31,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
 	ctx context.Context,
 	st state.BeaconState,
-	logs []coretypes.Log,
+	logs []engineprimitives.Log,
 ) error {
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
@@ -67,7 +67,7 @@ func (s *Service) ProcessBlockEvents(
 func (s *Service) processDepositLog(
 	_ context.Context,
 	st state.BeaconState,
-	log coretypes.Log,
+	log engineprimitives.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
 	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {

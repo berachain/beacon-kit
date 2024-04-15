@@ -35,4 +35,7 @@ type (
 
 	// Header represents a header on the execution layer.
 	Header = coretypes.Header
+
+	// Log represents a log on the execution layer.
+	Log = coretypes.Log
 )

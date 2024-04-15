@@ -48,12 +48,15 @@ WORKDIR /workdir
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/go.mod ./mod/go.sum ./mod/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
+COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod
 RUN go work use ./mod/primitives
+RUN go work use ./mod/primitives-engine
 RUN go work use ./mod/storage
+
 
 # Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \

@@ -28,8 +28,8 @@ package engineprimitives
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
