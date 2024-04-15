@@ -124,7 +124,9 @@ func executableDataToExecutionPayload(
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*engineprimitives.Withdrawal)(unsafe.Pointer(withdrawal))
+		withdrawals[i] = (*engineprimitives.Withdrawal)(
+			unsafe.Pointer(withdrawal),
+		)
 	}
 
 	if len(data.ExtraData) > constants.ExtraDataLength {
