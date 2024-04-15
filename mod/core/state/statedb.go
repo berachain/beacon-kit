@@ -50,7 +50,7 @@ type StateDB struct {
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	]
-	cfg *params.BeaconChainConfig
+	cfg *params.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
@@ -63,7 +63,7 @@ func NewBeaconStateFromDB(
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	],
-	cfg *params.BeaconChainConfig,
+	cfg *params.ChainSpec,
 ) *StateDB {
 	return &StateDB{
 		KVStore: bdb,

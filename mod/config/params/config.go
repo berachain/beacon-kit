@@ -30,7 +30,7 @@ import (
 )
 
 //nolint:lll // struct tags may create long lines.
-type BeaconChainConfig struct {
+type ChainSpec struct {
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
@@ -107,6 +107,6 @@ type BeaconChainConfig struct {
 	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
-	// KZGIncludeProofDepth is the depth of the KZG inclusion proof.
-	KZGInclusionProofDepth uint64 `mapstructure:"kzg-inclusion-proof-depth"`
+	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
+	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 }

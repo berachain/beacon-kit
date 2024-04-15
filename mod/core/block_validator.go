@@ -36,11 +36,11 @@ import (
 // BlockValidator is responsible for validating incoming
 // BeaconBlocks.
 type BlockValidator struct {
-	cfg *params.BeaconChainConfig
+	cfg *params.ChainSpec
 }
 
 // NewBlockValidator creates a new block validator.
-func NewBlockValidator(cfg *params.BeaconChainConfig) *BlockValidator {
+func NewBlockValidator(cfg *params.ChainSpec) *BlockValidator {
 	return &BlockValidator{
 		cfg: cfg,
 	}

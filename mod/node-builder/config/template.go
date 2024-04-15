@@ -104,8 +104,8 @@ field-elements-per-blob = {{.BeaconKit.Beacon.FieldElementsPerBlob}}
 # BytesPerBlob specifies the number of bytes per blob.
 bytes-per-blob = {{.BeaconKit.Beacon.BytesPerBlob}}
 
-# KZGInclusionProofDepth is the depth of the KZG inclusion proof.
-kzg-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGInclusionProofDepth}}
+# KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
+kzg-commitment-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGCommitmentInclusionProofDepth}}
 
 [beacon-kit.builder]
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 

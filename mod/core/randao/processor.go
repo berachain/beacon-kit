@@ -44,7 +44,7 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	cfg    *params.BeaconChainConfig
+	cfg    *params.ChainSpec
 	signer core.BLSSigner
 	logger log.Logger
 }

@@ -44,7 +44,7 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg    *params.BeaconChainConfig
+	cfg    *params.ChainSpec
 	bv     BlobVerifier
 	rp     RandaoProcessor
 	logger log.Logger
@@ -52,7 +52,7 @@ type StateProcessor struct {
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cfg *params.BeaconChainConfig,
+	cfg *params.ChainSpec,
 	bv BlobVerifier,
 	rp RandaoProcessor,
 	logger log.Logger,

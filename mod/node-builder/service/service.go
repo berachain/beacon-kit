@@ -90,7 +90,7 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 
 // BeaconCfg returns the configuration settings of the beacon node from
 // the BaseService.
-func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
+func (s *BaseService) BeaconCfg() *params.ChainSpec {
 	return &s.cfg.Beacon
 }
 

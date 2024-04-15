@@ -36,11 +36,11 @@ import (
 // PayloadValidator is responsible for validating incoming execution
 // payloads to ensure they are valid.
 type PayloadValidator struct {
-	cfg *params.BeaconChainConfig
+	cfg *params.ChainSpec
 }
 
 // NewPayloadValidator creates a new payload validator.
-func NewPayloadValidator(cfg *params.BeaconChainConfig) *PayloadValidator {
+func NewPayloadValidator(cfg *params.ChainSpec) *PayloadValidator {
 	return &PayloadValidator{
 		cfg: cfg,
 	}

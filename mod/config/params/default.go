@@ -27,9 +27,9 @@ package params
 
 import "github.com/ethereum/go-ethereum/common"
 
-func DefaultBeaconConfig() BeaconChainConfig {
+func DefaultBeaconConfig() ChainSpec {
 	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
+	return ChainSpec{
 		// Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
@@ -61,6 +61,6 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxBlobsPerBlock:                 6,
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
-		KZGInclusionProofDepth:           17,
+		KZGCommitmentInclusionProofDepth: 17,
 	}
 }

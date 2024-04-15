@@ -40,13 +40,13 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
-	beaconCfg *params.BeaconChainConfig
+	beaconCfg *params.ChainSpec
 	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
 func NewStore(
-	beaconCfg *params.BeaconChainConfig,
+	beaconCfg *params.ChainSpec,
 	db db.DB,
 ) *Store {
 	return &Store{

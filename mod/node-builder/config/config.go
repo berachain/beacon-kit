@@ -58,7 +58,7 @@ type Config struct {
 	ABCI abci.Config `mapstructure:"abci"`
 
 	// Beacon is the configuration for the fork epochs.
-	Beacon params.BeaconChainConfig `mapstructure:"beacon-chain"`
+	Beacon params.ChainSpec `mapstructure:"beacon-chain"`
 
 	// Builder is the configuration for the local build payload timeout.
 	Builder builderconfig.Config `mapstructure:"builder"`

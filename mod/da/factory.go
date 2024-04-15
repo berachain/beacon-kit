@@ -36,13 +36,13 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[BBB BeaconBlockBody] struct {
-	cfg         *params.BeaconChainConfig
+	cfg         *params.ChainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[BBB BeaconBlockBody](
-	cfg *params.BeaconChainConfig,
+	cfg *params.ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BBB] {

@@ -31,14 +31,14 @@ import (
 )
 
 // ActiveForkVersion returns the active fork version for a given slot.
-func (c BeaconChainConfig) ActiveForkVersionForSlot(
+func (c ChainSpec) ActiveForkVersionForSlot(
 	slot primitives.Slot,
 ) uint32 {
 	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
 }
 
 // ActiveForkVersionBySlot returns the active fork version for a given epoch.
-func (c BeaconChainConfig) ActiveForkVersionForEpoch(
+func (c ChainSpec) ActiveForkVersionForEpoch(
 	epoch primitives.Epoch,
 ) uint32 {
 	if epoch >= c.ElectraForkEpoch {
@@ -49,14 +49,14 @@ func (c BeaconChainConfig) ActiveForkVersionForEpoch(
 }
 
 // SlotToEpoch converts a slot to an epoch.
-func (c BeaconChainConfig) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
+func (c ChainSpec) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
 	return primitives.Epoch(uint64(slot) / c.SlotsPerEpoch)
 }
 
 // WithinDAPeriod checks if the block epoch is within
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
-func (c BeaconChainConfig) WithinDAPeriod(
+func (c ChainSpec) WithinDAPeriod(
 	block, current primitives.Slot,
 ) bool {
 	return c.SlotToEpoch(
