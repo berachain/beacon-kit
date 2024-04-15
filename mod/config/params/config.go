@@ -71,6 +71,7 @@ type ChainSpec struct {
 	// ValidatorRegistryLimit is the maximum number of validators in the
 	// registry.
 	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
+
 	// Max operations per block constants.
 	//
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations

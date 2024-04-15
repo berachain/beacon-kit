@@ -76,7 +76,7 @@ func (s *Service) BuildLocalPayload(
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       s.BeaconCfg().ActiveForkVersionForSlot(slot),
+			ForkVersion:       s.ChainSpec().ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
@@ -251,18 +251,18 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	epoch := s.BeaconCfg().SlotToEpoch(slot)
+	epoch := s.ChainSpec().SlotToEpoch(slot)
 
 	// Get the previous randao mix.
 	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % s.BeaconCfg().EpochsPerHistoricalVector,
+		uint64(epoch) % s.ChainSpec().EpochsPerHistoricalVector,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		s.BeaconCfg().ActiveForkVersionForEpoch(epoch),
+		s.ChainSpec().ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
 		s.cfg.SuggestedFeeRecipient,
@@ -287,9 +287,9 @@ func (s *Service) getPayloadFromExecutionClient(
 		ctx,
 		&execution.GetPayloadRequest{
 			PayloadID: *payloadID,
-			ForkVersion: s.BeaconCfg().ActiveForkVersionForEpoch(
+			ForkVersion: s.ChainSpec().ActiveForkVersionForEpoch(
 				primitives.Epoch(uint64(slot) /
-					s.BeaconCfg().SlotsPerEpoch),
+					s.ChainSpec().SlotsPerEpoch),
 			),
 		},
 	)
