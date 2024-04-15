@@ -101,8 +101,11 @@ func (s *Eth1Client) forkchoiceUpdateCall(
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
-) (engineprimitives.ExecutionPayloadEnvelope, error) {
-	result := &engineprimitives.ExecutionPayloadEnvelopeDeneb{}
+) (engineprimitives.BuiltExecutionPayload, error) {
+	result := &engineprimitives.ExecutionPayloadEnvelope[
+		*engineprimitives.ExecutableDataDeneb,
+		*engineprimitives.BlobsBundleV1,
+	]{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {

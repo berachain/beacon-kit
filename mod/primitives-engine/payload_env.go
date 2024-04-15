@@ -27,11 +27,11 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
-// ExecutionPayloadEnvelope is an interface for the execution payload envelope.
-type ExecutionPayloadEnvelope interface {
+// BuiltExecutionPayload is an interface for the execution payload envelope.
+type BuiltExecutionPayload interface {
 	// GetExecutionPayload retrieves the execution payload associated with the
 	// envelope.
 	GetExecutionPayload() ExecutionPayload
@@ -40,39 +40,53 @@ type ExecutionPayloadEnvelope interface {
 	GetValue() primitives.Wei
 	// GetBlobsBundle fetches the BlobsBundleV1 associated with the execution
 	// payload, if available.
-	GetBlobsBundle() *engine.BlobsBundleV1
+	GetBlobsBundle() BlobsBundle
 	// ShouldOverrideBuilder indicates whether the builder should be overridden
 	// in the execution environment.
 	ShouldOverrideBuilder() bool
 }
 
-// TODO: this can be updated with generics to allow for different types of
-// execution payloads based on the current hardfork. This should reduce
-// code-duplication.
-type ExecutionPayloadEnvelopeDeneb struct {
-	ExecutionPayload *ExecutableDataDeneb  `json:"executionPayload"`
-	BlockValue       primitives.Wei        `json:"blockValue"`
-	BlobsBundle      *engine.BlobsBundleV1 `json:"blobsBundle"`
-	Override         bool                  `json:"shouldOverrideBuilder"`
+// BlobsBundle is an interface for the blobs bundle.
+type BlobsBundle interface {
+	// GetCommitments returns the commitments in the blobs bundle.
+	GetCommitments() []kzg.Commitment
+	// GetProofs returns the proofs in the blobs bundle.
+	GetProofs() []kzg.Proof
+	// GetBlobs returns the blobs in the blobs bundle.
+	GetBlobs() []*kzg.Blob
+}
+
+// ExecutionPayloadEnvelope is a struct that holds the execution payload and
+// its associated data.
+// It utilizes a generic type ExecutionData to allow for different types of
+// execution payloads depending on the active hard fork.
+type ExecutionPayloadEnvelope[
+	Payload ExecutionPayload,
+	Blobs BlobsBundle,
+] struct {
+	ExecutionPayload Payload        `json:"executionPayload"`
+	BlockValue       primitives.Wei `json:"blockValue"`
+	BlobsBundle      Blobs          `json:"blobsBundle"`
+	Override         bool           `json:"shouldOverrideBuilder"`
 }
 
 // GetExecutionPayload returns the execution payload of the
 // ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetExecutionPayload() ExecutionPayload {
+func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetExecutionPayload() ExecutionPayload {
 	return e.ExecutionPayload
 }
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetValue() primitives.Wei {
+func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetValue() primitives.Wei {
 	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelopeDeneb) GetBlobsBundle() *engine.BlobsBundleV1 {
+func (e *ExecutionPayloadEnvelope[Payload, Blobs]) GetBlobsBundle() BlobsBundle {
 	return e.BlobsBundle
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelopeDeneb) ShouldOverrideBuilder() bool {
+func (e *ExecutionPayloadEnvelope[Payload, Blobs]) ShouldOverrideBuilder() bool {
 	return e.Override
 }

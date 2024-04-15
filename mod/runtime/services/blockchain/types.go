@@ -39,7 +39,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (engineprimitives.ExecutionPayloadEnvelope, error)
+	) (engineprimitives.BuiltExecutionPayload, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
