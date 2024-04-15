@@ -23,27 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build !ckzg
+package kzg
 
-package ckzg
+import "errors"
 
-import (
-	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+var (
+
+	// ErrUnsupportedKzgImplementation is returned when an unsupported KZG
+	// implementation is requested.
+	ErrUnsupportedKzgImplementation = errors.New(
+		"unsupported KZG implementation",
+	)
 )
-
-// VerifyBlobProof will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProof(
-	*kzg.Blob,
-	kzg.Proof,
-	kzg.Commitment,
-) error {
-	return ErrCGONotEnabled
-}
-
-// VerifyBlobProofBatch will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProofBatch(
-	*prooftypes.BlobProofArgs,
-) error {
-	return ErrCGONotEnabled
-}

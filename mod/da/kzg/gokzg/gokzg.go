@@ -23,17 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build ckzg
-
-package ckzg
+package gokzg
 
 import (
 	"unsafe"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
+
+// Verifier is a KZG verifier that uses the Go implementation of KZG.
+type Verifier struct {
+	*gokzg4844.Context
+}
+
+// NewVerifier creates a new GoKZGVerifier.
+func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
+	ctx, err := gokzg4844.NewContext4096(ts)
+	if err != nil {
+		return nil, err
+	}
+	return &Verifier{ctx}, nil
+}
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
@@ -42,16 +54,11 @@ func (v Verifier) VerifyBlobProof(
 	proof kzg.Proof,
 	commitment kzg.Commitment,
 ) error {
-	if valid, err := ckzg4844.VerifyBlobKZGProof(
-		(*ckzg4844.Blob)(blob),
-		(ckzg4844.Bytes48)(commitment),
-		(ckzg4844.Bytes48)(proof),
-	); err != nil {
-		return err
-	} else if !valid {
-		return ErrInvalidProof
-	}
-	return nil
+	return v.Context.
+		VerifyBlobKZGProof(
+			(*gokzg4844.Blob)(blob),
+			(gokzg4844.KZGCommitment)(commitment),
+			(gokzg4844.KZGProof)(proof))
 }
 
 // VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
@@ -60,19 +67,17 @@ func (v Verifier) VerifyBlobProof(
 func (v Verifier) VerifyBlobProofBatch(
 	args *prooftypes.BlobProofArgs,
 ) error {
-	blobs := make([]ckzg4844.Blob, len(args.Blobs))
+	blobs := make([]gokzg4844.Blob, len(args.Blobs))
 	for i := range args.Blobs {
-		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
+		blobs[i] = *(*gokzg4844.Blob)(args.Blobs[i])
 	}
 
-	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs,
-		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments)),
-		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs)))
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return ErrInvalidProof
-	}
-	return nil
+	//#nosec:G103 // "use of unsafe calls should be audited" lmeow.
+	return v.Context.
+		VerifyBlobKZGProofBatch(
+			blobs,
+			*(*[]gokzg4844.KZGCommitment)(
+				unsafe.Pointer(&args.Commitments)),
+			*(*[]gokzg4844.KZGProof)(unsafe.Pointer(&args.Proofs)),
+		)
 }

@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package proof
+package kzg
 
 import (
-	"github.com/berachain/beacon-kit/mod/da/proof/ckzg"
-	"github.com/berachain/beacon-kit/mod/da/proof/gokzg"
-	prooftypes "github.com/berachain/beacon-kit/mod/da/proof/types"
+	"github.com/berachain/beacon-kit/mod/da/kzg/ckzg"
+	"github.com/berachain/beacon-kit/mod/da/kzg/gokzg"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/cockroachdb/errors"
