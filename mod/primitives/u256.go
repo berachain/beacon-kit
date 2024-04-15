@@ -41,11 +41,16 @@ const U256NumBytes = 32
 // format.
 type U256 = uint256.Int
 
+// U256L is SSZMarshallable.
+var _ SSZMarshallable = (*U256L)(nil)
+
 // U256L represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
 // for compatibility with the SSZ spec.
 type U256L [32]byte
+
+// --------------------------- Constructors ----------------------------
 
 // NewU256L creates a new U256L from a byte slice.
 func NewU256L(bz []byte) U256L {
@@ -71,6 +76,8 @@ func NewU256LFromBigInt(b *big.Int) U256L {
 	return NewU256LFromBigEndian(b.Bytes())
 }
 
+// ---------------------------- Conversions ----------------------------
+
 // ToU256 converts an U256L to a *U256.
 func (s U256L) ToU256() *U256 {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
@@ -80,6 +87,8 @@ func (s U256L) ToU256() *U256 {
 func (s U256L) ToBig() *big.Int {
 	return new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
+
+// -------------------------- JSONMarshallable -------------------------
 
 // MarshalJSON marshals a U256L to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
@@ -101,6 +110,33 @@ func (s *U256L) UnmarshalJSON(input []byte) error {
 				baseFee.Bytes()), U256NumBytes),
 	)
 	return nil
+}
+
+// -------------------------- SSZMarshallable --------------------------
+
+// MarshalSSZTo serializes the U64 into a byte slice.
+func (s U256L) MarshalSSZTo(buf []byte) ([]byte, error) {
+	copy(buf, s[:])
+	return buf, nil
+}
+
+// MarshalSSZ serializes a U256L into a byte slice.
+func (s U256L) MarshalSSZ() ([]byte, error) {
+	return s[:], nil
+}
+
+// UnmarshalSSZ deserializes a U256L from a byte slice.
+func (s *U256L) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != U256NumBytes {
+		return ErrInvalidSSZLength
+	}
+	copy(s[:], buf)
+	return nil
+}
+
+// SizeSSZ returns the size of the U256L in bytes.
+func (s U256L) SizeSSZ() int {
+	return U256NumBytes
 }
 
 // String returns the string representation of a U256L.

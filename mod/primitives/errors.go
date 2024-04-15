@@ -24,3 +24,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package primitives
+
+import "errors"
+
+// ErrInvalidSSZLength is returned when an invalid SSZ length is encountered.
+var ErrInvalidSSZLength = errors.New("invalid ssz length")
