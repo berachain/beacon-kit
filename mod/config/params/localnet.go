@@ -34,6 +34,7 @@ func LocalnetChainSpec() ChainSpec {
 		// Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
+		EjectionBalance:           uint64(16e9),
 		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
 		SlotsPerEpoch:          8,
