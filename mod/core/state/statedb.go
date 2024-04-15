@@ -117,12 +117,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           primitives.Gwei
 		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*primitives.Withdrawal, 0)
+		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -168,7 +168,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &primitives.Withdrawal{
+		withdrawal := &engineprimitives.Withdrawal{
 			Index:     withdrawalIndex,
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
