@@ -2,11 +2,16 @@ module github.com/berachain/beacon-kit/testing
 
 go 1.22.2
 
-replace github.com/berachain/beacon-kit/mod => ../mod
+replace (
+	// Required because private repo, TODO: fix.
+	github.com/berachain/beacon-kit/mod => ../mod
+	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
+)
 
 require (
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.6
 	github.com/ethereum/go-ethereum v1.13.14
