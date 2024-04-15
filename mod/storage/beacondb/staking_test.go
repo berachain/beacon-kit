@@ -42,7 +42,7 @@ type mockValidator struct {
 	*primitives.U64
 }
 
-func (m *mockValidator) IsActive(epoch primitives.Epoch) bool {
+func (m *mockValidator) IsActive(_ primitives.Epoch) bool {
 	// Assuming a simple active status check based on a condition
 	// This is a mock implementation and should be replaced with actual logic
 	return true
