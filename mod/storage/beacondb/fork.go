@@ -30,11 +30,19 @@ import (
 )
 
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore) SetFork(fork *consensusprimitives.Fork) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetFork(
+	fork *consensusprimitives.Fork,
+) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 
 // GetFork gets the fork version for the given epoch.
-func (kv *KVStore) GetFork() (*consensusprimitives.Fork, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetFork() (*consensusprimitives.Fork, error) {
 	return kv.fork.Get(kv.ctx)
 }

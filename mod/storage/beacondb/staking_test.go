@@ -48,7 +48,7 @@ func TestDeposits(t *testing.T) {
 	ctx := sdk.NewContext(cms, true, logger)
 	storeKey := keys[testName]
 
-	sdb := beacondb.New(
+	sdb := beacondb.New[primitives.U64, primitives.U64, primitives.U64, primitives.U64, primitives.U64, primitives.U64](
 		sdkruntime.NewKVStoreService(storeKey),
 	)
 	sdb = sdb.WithContext(ctx)

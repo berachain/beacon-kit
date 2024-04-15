@@ -31,7 +31,10 @@ import (
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (kv *KVStore) UpdateBlockRootAtIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) UpdateBlockRootAtIndex(
 	index uint64,
 	root primitives.Root,
 ) error {
@@ -39,28 +42,40 @@ func (kv *KVStore) UpdateBlockRootAtIndex(
 }
 
 // GetBlockRoot retrieves the block root from the BeaconStore.
-func (kv *KVStore) GetBlockRootAtIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.Root, error) {
 	return kv.blockRoots.Get(kv.ctx, index)
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (kv *KVStore) SetLatestBlockHeader(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetLatestBlockHeader(
 	header *consensusprimitives.BeaconBlockHeader,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (kv *KVStore) GetLatestBlockHeader() (
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetLatestBlockHeader() (
 	*consensusprimitives.BeaconBlockHeader, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
-func (kv *KVStore) UpdateStateRootAtIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot primitives.Root,
 ) error {
@@ -68,6 +83,11 @@ func (kv *KVStore) UpdateStateRootAtIndex(
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (kv *KVStore) StateRootAtIndex(idx uint64) (primitives.Root, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) StateRootAtIndex(
+	idx uint64,
+) (primitives.Root, error) {
 	return kv.stateRoots.Get(kv.ctx, idx)
 }

@@ -58,14 +58,11 @@ func (u U64) MarshalSSZ() ([]byte, error) {
 }
 
 // UnmarshalSSZ deserializes the U64 from a byte slice.
-func (u *U64) UnmarshalSSZ(buf []byte) error {
+func (u U64) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U64NumBytes {
 		return ErrInvalidSSZLength
 	}
-	if u == nil {
-		u = new(U64)
-	}
-	*u = U64(binary.LittleEndian.Uint64(buf))
+	u = U64(binary.LittleEndian.Uint64(buf))
 	return nil
 }
 

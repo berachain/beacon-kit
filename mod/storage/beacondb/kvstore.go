@@ -40,9 +40,33 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallable interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
+}
+
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type KVStore struct {
+type KVStore[
+	DepositT SSZMarshallable,
+	ForkT SSZMarshallable,
+	BeaconBlockHeaderT SSZMarshallable,
+	ExecutionPayloadT SSZMarshallable,
+	Eth1DataT SSZMarshallable,
+	ValidatorT SSZMarshallable,
+] struct {
 	ctx   context.Context
 	write func()
 
@@ -109,11 +133,18 @@ type KVStore struct {
 // Store creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func New(
+func New[
+	DepositT SSZMarshallable,
+	ForkT SSZMarshallable,
+	BeaconBlockHeaderT SSZMarshallable,
+	ExecutionPayloadT SSZMarshallable,
+	Eth1DataT SSZMarshallable,
+	ValidatorT SSZMarshallable,
+](
 	kss store.KVStoreService,
-) *KVStore {
+) *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore{
+	return &KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
@@ -246,7 +277,11 @@ func New(
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore) Copy() *KVStore {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Copy() *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
+	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
 	ss.write = write
@@ -254,19 +289,30 @@ func (kv *KVStore) Copy() *KVStore {
 }
 
 // Context returns the context of the Store.
-func (kv *KVStore) Context() context.Context {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Context() context.Context {
 	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) WithContext(
+	ctx context.Context,
+) *KVStore[DepositT, ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT] {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (kv *KVStore) Save() {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Save() {
 	if kv.write != nil {
 		kv.write()
 	}

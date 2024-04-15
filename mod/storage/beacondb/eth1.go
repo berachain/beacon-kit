@@ -32,7 +32,10 @@ import (
 
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
-func (kv *KVStore) GetLatestExecutionPayload() (
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetLatestExecutionPayload() (
 	engineprimitives.ExecutionPayload, error,
 ) {
 	return kv.latestExecutionPayload.Get(kv.ctx)
@@ -40,28 +43,47 @@ func (kv *KVStore) GetLatestExecutionPayload() (
 
 // UpdateLatestExecutionPayload sets the latest execution payload in the
 // BeaconStore.
-func (kv *KVStore) UpdateLatestExecutionPayload(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) UpdateLatestExecutionPayload(
 	payload engineprimitives.ExecutionPayload,
 ) error {
 	return kv.latestExecutionPayload.Set(kv.ctx, payload)
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetEth1DepositIndex(
+	index uint64,
+) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetEth1Data() (*consensusprimitives.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(data *consensusprimitives.Eth1Data) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetEth1Data(
+	data *consensusprimitives.Eth1Data,
+) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }
