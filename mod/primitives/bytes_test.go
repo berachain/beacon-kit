@@ -29,6 +29,7 @@ package primitives_test
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -665,6 +666,177 @@ func TestBytes48UnmarshalText(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Bytes48.UnmarshalText() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+func TestBytes96UnmarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    primitives.Bytes96
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: "0x" + strings.Repeat("01", 96),
+			want: func() primitives.Bytes96 {
+				var b primitives.Bytes96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   strings.Repeat("01", 96),
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   "0x" + strings.Repeat("01", 95),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got primitives.Bytes96
+			err := got.UnmarshalText([]byte(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Errorf(
+					"Bytes96.UnmarshalText() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bytes96.UnmarshalText() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBytes96UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    primitives.Bytes96
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: `"0x` + strings.Repeat("01", 96) + `"`,
+			want: func() primitives.Bytes96 {
+				var b primitives.Bytes96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   `"` + strings.Repeat("01", 96) + `"`,
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   `"0x` + strings.Repeat("01", 95) + `"`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got primitives.Bytes96
+			err := got.UnmarshalJSON([]byte(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Errorf(
+					"Bytes96.UnmarshalJSON() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bytes96.UnmarshalJSON() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+func TestBytes96MarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		h       primitives.Bytes96
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "valid bytes",
+			h: func() primitives.Bytes96 {
+				var b primitives.Bytes96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+			want: "0x" + strings.Repeat("01", 96),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.h.MarshalText()
+			if (err != nil) != tt.wantErr {
+				t.Errorf(
+					"Bytes96.MarshalText() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+			if string(got) != tt.want {
+				t.Errorf(
+					"Bytes96.MarshalText() = %v, want %v",
+					string(got),
+					tt.want,
+				)
+			}
+		})
+	}
+}
+
+func TestBytes96String(t *testing.T) {
+	tests := []struct {
+		name string
+		h    primitives.Bytes96
+		want string
+	}{
+		{
+			name: "non-empty bytes",
+			h: func() primitives.Bytes96 {
+				var b primitives.Bytes96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+			want: "0x" + strings.Repeat("01", 96),
+		},
+		{
+			name: "empty bytes",
+			h:    primitives.Bytes96{},
+			want: "0x" + strings.Repeat("00", 96),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.h.String(); got != tt.want {
+				t.Errorf("Bytes96.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
