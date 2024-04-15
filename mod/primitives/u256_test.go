@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package uint256_test
+package primitives_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	huint256 "github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
@@ -44,9 +44,9 @@ func TestLittleEndian_UInt256(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := uint256.NewLittleEndian(tc.input)
+		le := primitives.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
-		require.Equal(t, expected, le.ToUInt256())
+		require.Equal(t, expected, le.ToU256())
 	}
 }
 
@@ -61,7 +61,7 @@ func TestLittleEndian_Big(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := uint256.NewLittleEndian(tc.input)
+		le := primitives.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
 		require.Equal(t, expected.ToBig(), le.ToBig())
 	}
@@ -78,7 +78,7 @@ func TestLittleEndian_MarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := uint256.NewLittleEndian(tc.input)
+		le := primitives.NewU256L(tc.input)
 		result, err := le.MarshalJSON()
 		require.NoError(t, err)
 		require.JSONEq(t, tc.expected, string(result))
@@ -96,10 +96,10 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := new(uint256.LittleEndian)
+		le := new(primitives.U256L)
 		err := le.UnmarshalJSON([]byte(tc.json))
 		require.NoError(t, err)
-		expected := uint256.NewLittleEndian(tc.expected)
+		expected := primitives.NewU256L(tc.expected)
 		require.Equal(t, expected, *le)
 	}
 }

@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -97,7 +96,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: uint256.LittleFromBigEndian(
+		BaseFeePerGas: primitives.NewU256LFromBigEndian(
 			hexutil.MustDecode("0x3b9aca"),
 		),
 		BlockHash: common.HexToHash(
@@ -113,7 +112,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 // TODO: should we replace ? in ssz-size with values to ensure we are hash tree
 // rooting correctly?
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives/uint256,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning

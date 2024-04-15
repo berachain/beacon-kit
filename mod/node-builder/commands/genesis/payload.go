@@ -30,9 +30,9 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/uint256"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -155,7 +155,7 @@ func executableDataToExecutionPayload(
 		GasUsed:       data.GasUsed,
 		Timestamp:     data.Timestamp,
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: uint256.LittleFromBigInt(data.BaseFeePerGas),
+		BaseFeePerGas: primitives.NewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,
