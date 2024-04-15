@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
-	"github.com/berachain/beacon-kit/mod/da/proof"
+	"github.com/berachain/beacon-kit/mod/da/kzg"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -105,7 +105,7 @@ func ProvideRuntime(
 	)
 
 	// Build the Blobs Vierifer
-	blobProofVerifier, err := proof.NewBlobProofVerifier(
+	blobProofVerifier, err := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
 	if err != nil {

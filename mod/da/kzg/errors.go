@@ -23,22 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package kzg
 
-const (
-	// WeiPerEther is the number of Wei in an Eth.
-	WeiPerEther = 1e18
+import "errors"
 
-	// GweiPerEther is the number of Gwei in an Eth.
-	GweiPerEther = 1e9
+var (
 
-	// WeiPerGwei is the number of Wei in a Gwei.
-	WeiPerGwei = 1e9
-
-	// Uint64Max represents the maximum value for a uint64.
-	Uint64Max = uint64(18446744073709551615)
-
-	// Uint64MaxSqrt represents the square root of the maximum value for a
-	// uint64.
-	Uint64MaxSqrt = uint64(4294967295)
+	// ErrUnsupportedKzgImplementation is returned when an unsupported KZG
+	// implementation is requested.
+	ErrUnsupportedKzgImplementation = errors.New(
+		"unsupported KZG implementation",
+	)
 )
