@@ -50,16 +50,16 @@ type DepositMessage struct {
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
-	forkData *primitives.ForkData,
+	forkData *ForkData,
 	signature primitives.BLSSignature,
 	isSignatureValid SigVerificationFn,
 ) error {
-	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
+	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
 	if err != nil {
 		return err
 	}
 
-	signingRoot, err := primitives.ComputeSigningRoot(d, domain)
+	signingRoot, err := ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}

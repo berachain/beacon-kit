@@ -23,18 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensusprimitives
+
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 type (
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
-	Domain = Bytes32
+	Domain = primitives.Bytes32
 
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
-	DomainType = Bytes4
+	DomainType = primitives.Bytes4
 )
 
 // Domain constants as defined in the Ethereum 2.0 specification:
