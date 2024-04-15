@@ -41,9 +41,6 @@ const U256NumBytes = 32
 // format.
 type U256 = uint256.Int
 
-// U256L is SSZMarshallable.
-var _ SSZMarshallable = (*U256L)(nil)
-
 // U256L represents a uint256 number. It
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
