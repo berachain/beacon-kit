@@ -23,9 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr
+package ssz
+
+// Marshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type Marshallable interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
+}
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable interface {
-	HashTreeRoot() ([32]byte, error)
+type Hashable[Root ~[32]byte] interface {
+	HashTreeRoot() (Root, error)
 }

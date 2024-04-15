@@ -23,18 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package primitives_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/stretchr/testify/require"
 )
 
 func TestU64_MarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    U64
+		value    primitives.U64
 		expected []byte
 	}{
 		{
@@ -44,12 +45,12 @@ func TestU64_MarshalSSZ(t *testing.T) {
 		},
 		{
 			name:     "max uint64",
-			value:    U64(^uint64(0)),
+			value:    primitives.U64(^uint64(0)),
 			expected: []byte{255, 255, 255, 255, 255, 255, 255, 255},
 		},
 		{
 			name:     "arbitrary number",
-			value:    U64(123456789),
+			value:    primitives.U64(123456789),
 			expected: []byte{21, 205, 91, 7, 0, 0, 0, 0},
 		},
 	}
@@ -67,44 +68,44 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
 		data     []byte
-		expected U64
+		expected primitives.U64
 		err      error
 	}{
 		{
 			name:     "valid data",
 			data:     []byte{21, 205, 91, 7, 0, 0, 0, 0},
-			expected: U64(123456789),
+			expected: primitives.U64(123456789),
 		},
 		{
 			name: "invalid data - short buffer",
 			data: []byte{0, 0, 0},
-			err:  ErrInvalidSSZLength,
+			err:  primitives.ErrInvalidSSZLength,
 		},
 		{
 			name:     "valid data - max uint64",
 			data:     []byte{255, 255, 255, 255, 255, 255, 255, 255},
-			expected: U64(^uint64(0)),
+			expected: primitives.U64(^uint64(0)),
 		},
 		{
 			name:     "valid data - zero",
 			data:     []byte{0, 0, 0, 0, 0, 0, 0, 0},
-			expected: U64(0),
+			expected: primitives.U64(0),
 		},
 		{
 			name: "invalid data - long buffer",
 			data: []byte{0, 0, 0, 0, 0, 0, 0, 0, 1},
-			err:  ErrInvalidSSZLength,
+			err:  primitives.ErrInvalidSSZLength,
 		},
 		{
 			name:     "valid data - one",
 			data:     []byte{1, 0, 0, 0, 0, 0, 0, 0},
-			expected: U64(1),
+			expected: primitives.U64(1),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var u U64
+			var u primitives.U64
 			err := u.UnmarshalSSZ(tt.data)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
@@ -119,22 +120,22 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 func TestU64_RoundTripSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    U64
+		value    primitives.U64
 		expected []byte
 	}{
 		{
 			name:     "zero value",
-			value:    U64(0),
+			value:    primitives.U64(0),
 			expected: []byte{0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		{
 			name:     "max uint64",
-			value:    U64(^uint64(0)),
+			value:    primitives.U64(^uint64(0)),
 			expected: []byte{255, 255, 255, 255, 255, 255, 255, 255},
 		},
 		{
 			name:     "arbitrary number",
-			value:    U64(123456789),
+			value:    primitives.U64(123456789),
 			expected: []byte{21, 205, 91, 7, 0, 0, 0, 0},
 		},
 	}
@@ -147,7 +148,7 @@ func TestU64_RoundTripSSZ(t *testing.T) {
 			require.Equal(t, tt.expected, marshaled)
 
 			// Test UnmarshalSSZ
-			var unmarshaled U64
+			var unmarshaled primitives.U64
 			err = unmarshaled.UnmarshalSSZ(tt.expected)
 			require.NoError(t, err)
 			require.Equal(t, tt.value, unmarshaled)
