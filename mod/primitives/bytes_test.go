@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
+// TestBytes4UnmarshalJSON tests the UnmarshalJSON method for Bytes4.
 func TestBytes4UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -75,6 +76,7 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 	}
 }
 
+// TestBytes4String tests the String method for Bytes4.
 func TestBytes4String(t *testing.T) {
 	tests := []struct {
 		name string
@@ -102,6 +104,7 @@ func TestBytes4String(t *testing.T) {
 	}
 }
 
+// TestBytes4MarshalText tests the MarshalText method for Bytes4.
 func TestBytes4MarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -138,6 +141,7 @@ func TestBytes4MarshalText(t *testing.T) {
 	}
 }
 
+// TestBytes4UnmarshalText tests the UnmarshalText method for Bytes4.
 func TestBytes4UnmarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -180,6 +184,8 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
+// TestBytes32UnmarshalText tests the UnmarshalText method for Bytes32.
 func TestBytes32UnmarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -188,8 +194,7 @@ func TestBytes32UnmarshalText(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid input",
-
+			name:  "valid input",
 			input: "0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
 			want: primitives.Bytes32{
 				0x01,
@@ -252,6 +257,7 @@ func TestBytes32UnmarshalText(t *testing.T) {
 	}
 }
 
+// TestBytes48UnmarshalText tests the UnmarshalText method for Bytes48.
 func TestBytes48UnmarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -340,7 +346,7 @@ func TestBytes48UnmarshalText(t *testing.T) {
 	}
 }
 
-// Test for String() method.
+// TestBytes48String tests the String method for Bytes48.
 func TestBytes48String(t *testing.T) {
 	tests := []struct {
 		name string
