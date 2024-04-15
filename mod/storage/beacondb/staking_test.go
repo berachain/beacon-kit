@@ -38,6 +38,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type mockValidator struct {
+	*primitives.U64
+}
+
+func (m *mockValidator) IsActive(epoch primitives.Epoch) bool {
+	// Assuming a simple active status check based on a condition
+	// This is a mock implementation and should be replaced with actual logic
+	return true
+}
+
+func (m *mockValidator) GetPubkey() primitives.BLSPubkey {
+	// Return a mock BLS public key
+	// This is a mock implementation and should be replaced with actual logic
+	return primitives.BLSPubkey{}
+}
+
+func (m *mockValidator) GetEffectiveBalance() primitives.Gwei {
+	// Return a mock effective balance
+	// This is a mock implementation and should be replaced with actual logic
+	return 1000000 // 1 million Gwei as a placeholder
+}
+
 func testFactory() *primitives.U64 {
 	return (*primitives.U64)(nil)
 }
@@ -52,7 +74,7 @@ func TestDeposits(t *testing.T) {
 
 	sdb := beacondb.New[
 		*primitives.U64, *primitives.U64, *primitives.U64,
-		*primitives.U64, *primitives.U64, *primitives.U64,
+		*primitives.U64, *primitives.U64, *mockValidator,
 	](
 		sdkruntime.NewKVStoreService(storeKey),
 		testFactory,

@@ -30,7 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
@@ -55,6 +55,13 @@ type SSZMarshallable interface {
 	SizeSSZ() int
 }
 
+type Validator interface {
+	SSZMarshallable
+	GetPubkey() primitives.BLSPubkey
+	GetEffectiveBalance() primitives.Gwei
+	IsActive(primitives.Epoch) bool
+}
+
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
@@ -63,7 +70,7 @@ type KVStore[
 	BeaconBlockHeaderT SSZMarshallable,
 	ExecutionPayloadT SSZMarshallable,
 	Eth1DataT SSZMarshallable,
-	ValidatorT SSZMarshallable,
+	ValidatorT Validator,
 ] struct {
 	ctx   context.Context
 	write func()
@@ -99,7 +106,7 @@ type KVStore[
 	validatorIndex sdkcollections.Sequence
 	// validators stores the list of validators.
 	validators *sdkcollections.IndexedMap[
-		uint64, *beacontypes.Validator, index.ValidatorsIndex,
+		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
 	]
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
@@ -134,7 +141,7 @@ func New[
 	BeaconBlockHeaderT SSZMarshallable,
 	ExecutionPayloadT SSZMarshallable,
 	Eth1DataT SSZMarshallable,
-	ValidatorT SSZMarshallable,
+	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
 	executionPayloadFactory func() ExecutionPayloadT,
@@ -207,14 +214,14 @@ func New[
 			keys.ValidatorIndexPrefix,
 		),
 		validators: sdkcollections.NewIndexedMap[
-			uint64, *beacontypes.Validator,
+			uint64, ValidatorT,
 		](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
 			keys.ValidatorByIndexPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*beacontypes.Validator]{},
-			index.NewValidatorsIndex(schemaBuilder),
+			encoding.SSZValueCodec[ValidatorT]{},
+			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,

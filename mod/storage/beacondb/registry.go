@@ -27,7 +27,6 @@ package beacondb
 
 import (
 	"cosmossdk.io/collections/indexes"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -36,7 +35,7 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) AddValidator(
-	val *beacontypes.Validator,
+	val ValidatorT,
 ) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
@@ -50,7 +49,7 @@ func (kv *KVStore[
 	}
 
 	// Push onto the balances list.
-	return kv.balances.Set(kv.ctx, idx, uint64(val.EffectiveBalance))
+	return kv.balances.Set(kv.ctx, idx, uint64(val.GetEffectiveBalance()))
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -59,7 +58,7 @@ func (kv *KVStore[
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
-	val *beacontypes.Validator,
+	val ValidatorT,
 ) error {
 	return kv.validators.Set(kv.ctx, uint64(index), val)
 }
@@ -97,10 +96,11 @@ func (kv *KVStore[
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) ValidatorByIndex(
 	index primitives.ValidatorIndex,
-) (*beacontypes.Validator, error) {
+) (ValidatorT, error) {
 	val, err := kv.validators.Get(kv.ctx, uint64(index))
 	if err != nil {
-		return nil, err
+		var t ValidatorT
+		return t, err
 	}
 	return val, err
 }
@@ -110,11 +110,11 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetValidators() (
-	[]*beacontypes.Validator, error,
+	[]ValidatorT, error,
 ) {
 	var (
-		vals []*beacontypes.Validator
-		val  *beacontypes.Validator
+		vals []ValidatorT
+		val  ValidatorT
 	)
 
 	iter, err := kv.validators.Iterate(kv.ctx, nil)
@@ -152,11 +152,11 @@ func (kv *KVStore[
 	DepositT, ForkT, BeaconBlockHeaderT,
 	ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetValidatorsByEffectiveBalance() (
-	[]*beacontypes.Validator, error,
+	[]ValidatorT, error,
 ) {
 	var (
-		vals []*beacontypes.Validator
-		v    *beacontypes.Validator
+		vals []ValidatorT
+		v    ValidatorT
 		idx  uint64
 	)
 
@@ -249,10 +249,10 @@ func (kv *KVStore[
 	totalActiveBalances := primitives.Gwei(0)
 	epoch := primitives.Epoch(slot / slotsPerEpoch)
 	return totalActiveBalances, indexes.ScanValues(
-		kv.ctx, kv.validators, iter, func(v *beacontypes.Validator,
+		kv.ctx, kv.validators, iter, func(v ValidatorT,
 		) bool {
 			if v.IsActive(epoch) {
-				totalActiveBalances += v.EffectiveBalance
+				totalActiveBalances += v.GetEffectiveBalance()
 			}
 			return false
 		},
