@@ -25,7 +25,9 @@
 
 package consensusprimitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
 
 // EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
 const EthSecp256k1CredentialPrefix = byte(iota + 1)
@@ -54,4 +56,28 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 		return primitives.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
 	return primitives.ExecutionAddress(wc[12:]), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (h *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
+	return (*primitives.Bytes32)(h).UnmarshalJSON(input)
+}
+
+// String returns the hex string representation of Bytes32.
+// TODO: Figure out how to not have to do this.
+func (h WithdrawalCredentials) String() string {
+	return primitives.Bytes32(h).String()
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (h WithdrawalCredentials) MarshalText() ([]byte, error) {
+	return primitives.Bytes32(h).MarshalText()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (h *WithdrawalCredentials) UnmarshalText(text []byte) error {
+	return (*primitives.Bytes32)(h).UnmarshalText(text)
 }
