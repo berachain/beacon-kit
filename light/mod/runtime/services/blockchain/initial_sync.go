@@ -3,9 +3,9 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -45,7 +45,7 @@ func (s *Service) initialSync(ctx context.Context) error {
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&execution.ForkchoiceUpdateRequest{
-			State: &engine.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      eth1BlockHash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,

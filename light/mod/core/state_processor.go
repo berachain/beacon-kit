@@ -30,13 +30,13 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -408,7 +408,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 //nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.
 	var nextValidatorIndex primitives.ValidatorIndex

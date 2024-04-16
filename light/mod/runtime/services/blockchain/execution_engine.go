@@ -29,12 +29,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -53,7 +52,7 @@ func (s *Service) sendFCU(
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&execution.ForkchoiceUpdateRequest{
-			State: &engine.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
@@ -90,7 +89,7 @@ func (s *Service) sendFCU(
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) {
 	var (
 		headHash primitives.ExecutionHash

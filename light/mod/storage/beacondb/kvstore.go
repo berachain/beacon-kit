@@ -31,8 +31,8 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/light/mod/provider"
 	"github.com/berachain/beacon-kit/light/mod/storage/codec"
-	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
@@ -136,11 +136,11 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-		latestExecutionPayload: codec.NewItem[types.ExecutionPayload](
+		latestExecutionPayload: codec.NewItem[engineprimitives.ExecutionPayload](
 			keys.LatestExecutionPayloadPrefix,
-			encoding.SSZInterfaceCodec[types.ExecutionPayload]{
-				Factory: func() types.ExecutionPayload {
-					return &types.ExecutableDataDeneb{}
+			encoding.SSZInterfaceCodec[engineprimitives.ExecutionPayload]{
+				Factory: func() engineprimitives.ExecutionPayload {
+					return &engineprimitives.ExecutableDataDeneb{}
 				},
 			},
 		),

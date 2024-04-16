@@ -29,11 +29,11 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/light/mod/storage/beacondb"
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -308,7 +308,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	switch activeFork {
 	case version.Deneb:
 		executionPayload, ok :=
-			latestExecutionPayload.(*enginetypes.ExecutableDataDeneb)
+			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
