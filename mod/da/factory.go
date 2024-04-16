@@ -26,23 +26,23 @@
 package da
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[BBB BeaconBlockBody] struct {
-	cs          params.ChainSpec
+	cs          primitives.ChainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[BBB BeaconBlockBody](
-	cs params.ChainSpec,
+	cs primitives.ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BBB] {

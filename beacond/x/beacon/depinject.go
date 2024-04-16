@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
-	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -53,7 +53,7 @@ type DepInjectInput struct {
 
 	AppOpts     servertypes.AppOptions
 	Environment appmodule.Environment
-	ChainSpec   params.ChainSpec
+	ChainSpec   primitives.ChainSpec
 }
 
 // DepInjectOutput is the output for the dep inject framework.

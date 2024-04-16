@@ -53,8 +53,9 @@ func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature primitives.BLSSignature,
 	isSignatureValid SigVerificationFn,
+	domainType primitives.DomainType,
 ) error {
-	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
+	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {
 		return err
 	}

@@ -28,19 +28,19 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BlockValidator is responsible for validating incoming
 // BeaconBlocks.
 type BlockValidator struct {
-	cs params.ChainSpec
+	cs primitives.ChainSpec
 }
 
 // NewBlockValidator creates a new block validator.
-func NewBlockValidator(cs params.ChainSpec) *BlockValidator {
+func NewBlockValidator(cs primitives.ChainSpec) *BlockValidator {
 	return &BlockValidator{
 		cs: cs,
 	}

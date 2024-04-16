@@ -29,6 +29,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -116,6 +117,8 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		consensusprimitives.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
 		blst.VerifySignaturePubkeyBytes,
+		// TODO: needs to be configurable.
+		params.LocalnetChainSpec().DomainTypeDeposit(),
 	)
 }
 

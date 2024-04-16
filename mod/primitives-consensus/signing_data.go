@@ -36,10 +36,10 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ../primitives/bytes.go,./domain.go,../primitives/primitives.go -output signing_data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ../primitives -output signing_data.ssz.go
 type SigningData struct {
-	ObjectRoot primitives.Root `ssz-size:"32"`
-	Domain     Domain          `ssz-size:"32"`
+	ObjectRoot primitives.Root   `ssz-size:"32"`
+	Domain     primitives.Domain `ssz-size:"32"`
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
@@ -48,7 +48,7 @@ type SigningData struct {
 //nolint:lll
 func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() ([32]byte, error) },
-	domain Domain,
+	domain primitives.Domain,
 ) (primitives.Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {
@@ -63,7 +63,7 @@ func ComputeSigningRoot(
 // ComputeSigningRootUInt64 computes the signing root of a uint64 value.
 func ComputeSigningRootUInt64(
 	value uint64,
-	domain Domain,
+	domain primitives.Domain,
 ) (primitives.Root, error) {
 	bz := make([]byte, constants.RootLength)
 	binary.LittleEndian.PutUint64(bz, value)

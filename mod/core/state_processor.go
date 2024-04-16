@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -44,7 +43,7 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cs     params.ChainSpec
+	cs     primitives.ChainSpec
 	bv     BlobVerifier
 	rp     RandaoProcessor
 	logger log.Logger
@@ -52,7 +51,7 @@ type StateProcessor struct {
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cs params.ChainSpec,
+	cs primitives.ChainSpec,
 	bv BlobVerifier,
 	rp RandaoProcessor,
 	logger log.Logger,
@@ -401,7 +400,7 @@ func (sp *StateProcessor) createValidator(
 		Amount:      dep.Amount,
 	}
 	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.Signature, blst.VerifySignaturePubkeyBytes,
+		fd, dep.Signature, blst.VerifySignaturePubkeyBytes, sp.cs.DomainTypeDeposit(),
 	); err != nil {
 		return err
 	}

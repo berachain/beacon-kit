@@ -25,10 +25,13 @@
 
 package params
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/ethereum/go-ethereum/common"
+)
 
 // LocalnetChainSpec is the ChainSpec for the localnet.
-func LocalnetChainSpec() ChainSpec {
+func LocalnetChainSpec() primitives.ChainSpec {
 	//nolint:gomnd // default config.
 	return NewChainSpec(&ChainSpecData{
 		// Gwei value constants.
@@ -39,6 +42,31 @@ func LocalnetChainSpec() ChainSpec {
 		// Time parameters constants.
 		SlotsPerEpoch:          8,
 		SlotsPerHistoricalRoot: 1,
+		// Signature domains.
+		DomainTypeProposer: primitives.DomainType{
+			0x00, 0x00, 0x00, 0x00,
+		},
+		DomainTypeAttester: primitives.DomainType{
+			0x01, 0x00, 0x00, 0x00,
+		},
+		DomainTypeRandao: primitives.DomainType{
+			0x02, 0x00, 0x00, 0x00,
+		},
+		DomainTypeDeposit: primitives.DomainType{
+			0x03, 0x00, 0x00, 0x00,
+		},
+		DomainTypeVoluntaryExit: primitives.DomainType{
+			0x04, 0x00, 0x00, 0x00,
+		},
+		DomainTypeSelectionProof: primitives.DomainType{
+			0x05, 0x00, 0x00, 0x00,
+		},
+		DomainTypeAggregateAndProof: primitives.DomainType{
+			0x06, 0x00, 0x00, 0x00,
+		},
+		DomainTypeApplicationMask: primitives.DomainType{
+			0x00, 0x00, 0x00, 0x01,
+		},
 		// Eth1-related values.
 		DepositContractAddress: common.HexToAddress(
 			"0x00000000219ab540356cbb839cbe05303d7705fa",
