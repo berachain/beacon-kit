@@ -75,6 +75,25 @@ func (u U64) SizeSSZ() int {
 	return U64NumBytes
 }
 
+// -------------------------- JSONMarshallable -------------------------
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (u *U64) UnmarshalJSON(input []byte) error {
+	return (*hexutil.Uint64)(u).UnmarshalJSON(input)
+}
+
+// MarshalText returns the hex representation of b.
+func (u U64) MarshalText() ([]byte, error) {
+	return hexutil.Uint64(u).MarshalText()
+}
+
+// ---------------------------- U64 Methods ----------------------------
+
+// Unwrap returns the underlying uint64 value of U64.
+func (u U64) Unwrap() uint64 {
+	return uint64(u)
+}
+
 // NextPowerOfTwo returns the next power of two greater than or equal to the.
 //
 //nolint:gomnd // powers of 2.
@@ -95,23 +114,4 @@ func (u U64) ILog2Ceil() uint8 {
 		return 0
 	}
 	return 64 - uint8(bits.LeadingZeros(uint(u))) - 1
-}
-
-// -------------------------- JSONMarshallable -------------------------
-
-// UnmarshalJSON parses a blob in hex syntax.
-func (u *U64) UnmarshalJSON(input []byte) error {
-	return (*hexutil.Uint64)(u).UnmarshalJSON(input)
-}
-
-// MarshalText returns the hex representation of b.
-func (u U64) MarshalText() ([]byte, error) {
-	return hexutil.Uint64(u).MarshalText()
-}
-
-// ---------------------------- U64 Methods ----------------------------
-
-// Unwrap returns the underlying uint64 value of U64.
-func (u U64) Unwrap() uint64 {
-	return uint64(u)
 }
