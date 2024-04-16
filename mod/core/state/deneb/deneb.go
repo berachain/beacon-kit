@@ -147,12 +147,3 @@ type BeaconState struct {
 	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
 }
-
-// BeaconStateJSONMarshaling is a type used to marshal/unmarshal
-// BeaconState.
-type BeaconStateJSONMarshaling struct {
-	GenesisValidatorsRoot hexutil.Bytes
-	BlockRoots            []primitives.Root
-	StateRoots            []primitives.Root
-	RandaoMixes           []primitives.Root
-}
