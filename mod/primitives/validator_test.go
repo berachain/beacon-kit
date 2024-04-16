@@ -28,9 +28,8 @@ package primitives_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,12 +59,20 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 		{
@@ -84,12 +91,20 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x02},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 		{
@@ -108,18 +123,26 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x03},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := types.NewValidatorFromDeposit(
+			got := primitives.NewValidatorFromDeposit(
 				tt.pubkey,
 				tt.withdrawalCredentials,
 				tt.amount,
@@ -185,7 +208,9 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 10,
 			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch:            params.FarFutureEpoch,
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 			want: true,
 		},
@@ -194,7 +219,9 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 4,
 			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch:            params.FarFutureEpoch,
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 			want: false,
 		},
@@ -229,8 +256,10 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "eligible",
 			validator: &primitives.Validator{
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				EffectiveBalance:           maxEffectiveBalance,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				EffectiveBalance: maxEffectiveBalance,
 			},
 			want: true,
 		},
@@ -245,8 +274,10 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "not eligible, effective balance too low",
 			validator: &primitives.Validator{
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				EffectiveBalance:           maxEffectiveBalance - 1,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				EffectiveBalance: maxEffectiveBalance - 1,
 			},
 			want: false,
 		},
