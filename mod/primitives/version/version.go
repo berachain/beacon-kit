@@ -27,8 +27,6 @@ package version
 
 import (
 	"encoding/binary"
-
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 const (
@@ -41,8 +39,8 @@ const (
 )
 
 // FromUint32 returns a Version from a uint32.
-func FromUint32(version uint32) primitives.Version {
-	versionBz := primitives.Version{}
+func FromUint32[VersionT ~[4]byte](version uint32) VersionT {
+	versionBz := VersionT{}
 	binary.LittleEndian.PutUint32(versionBz[:], version)
 	return versionBz
 }

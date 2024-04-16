@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
@@ -48,11 +47,11 @@ import (
 type Keeper struct {
 	availabilityStore *da.Store
 	beaconStore       *beacondb.KVStore[
-		*consensusprimitives.Deposit,
+		*primitives.Deposit,
 		*primitives.Fork,
-		*consensusprimitives.BeaconBlockHeader,
+		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
-		*consensusprimitives.Eth1Data,
+		*primitives.Eth1Data,
 		*types.Validator,
 	]
 	cfg primitives.ChainSpec
@@ -72,11 +71,11 @@ func NewKeeper(
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
 		beaconStore: beacondb.New[
-			*consensusprimitives.Deposit,
+			*primitives.Deposit,
 			*primitives.Fork,
-			*consensusprimitives.BeaconBlockHeader,
+			*primitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
-			*consensusprimitives.Eth1Data,
+			*primitives.Eth1Data,
 			*types.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
 		cfg: cfg,

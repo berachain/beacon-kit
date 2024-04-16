@@ -185,8 +185,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 		{3},
 		{4},
 	}
-	treeDepth := treeDepth + 1
-	m, err := merkle.NewTreeFromLeavesWithDepth(items, treeDepth)
+	m, err := merkle.NewTreeFromLeavesWithDepth(items, treeDepth+1)
 	require.NoError(t, err)
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)

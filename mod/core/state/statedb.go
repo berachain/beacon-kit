@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
@@ -42,11 +41,11 @@ import (
 //nolint:revive // todo fix somehow
 type StateDB struct {
 	*beacondb.KVStore[
-		*consensusprimitives.Deposit,
+		*primitives.Deposit,
 		*primitives.Fork,
-		*consensusprimitives.BeaconBlockHeader,
+		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
-		*consensusprimitives.Eth1Data,
+		*primitives.Eth1Data,
 		*types.Validator,
 	]
 	cs primitives.ChainSpec
@@ -55,11 +54,11 @@ type StateDB struct {
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
-		*consensusprimitives.Deposit,
+		*primitives.Deposit,
 		*primitives.Fork,
-		*consensusprimitives.BeaconBlockHeader,
+		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
-		*consensusprimitives.Eth1Data,
+		*primitives.Eth1Data,
 		*types.Validator,
 	],
 	cs primitives.ChainSpec,
