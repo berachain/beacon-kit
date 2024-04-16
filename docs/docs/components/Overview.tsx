@@ -8,8 +8,8 @@ export default function Overview() {
         <header className="vocs_Header border-dotted">
           <h1 className="vocs_H1 vocs_Heading">Features</h1>
         </header>
-        <div className="flex flex-col max-w-3xl mx-auto md:flex-row gap-8">
-          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md shadow-md">
+        <div className="flex flex-col max-w-4xl mx-auto md:flex-row gap-8">
+          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md">
             <header className="vocs_Header border-none flex items-center flex-col">
               <svg
                 width="100"
@@ -47,7 +47,7 @@ export default function Overview() {
               tailored for Ethereum-based blockchains
             </p>
           </div>
-          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md shadow-md">
+          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md">
             <header className="vocs_Header border-none flex items-center flex-col">
               <svg
                 width="100"
@@ -100,7 +100,7 @@ export default function Overview() {
               tailored for Ethereum-based blockchains
             </p>
           </div>
-          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md shadow-md">
+          <div className="flex flex-col items-center justify-between border-[#D57F00] border p-5 rounded-md">
             <header className="vocs_Header border-none flex items-center flex-col">
               <svg
                 width="100"
