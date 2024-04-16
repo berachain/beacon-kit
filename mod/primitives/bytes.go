@@ -31,6 +31,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// Bytes represents a byte array.
+type Bytes = hexutil.Bytes
+
+// ------------------------------ Bytes4 ------------------------------
+
 // Bytes4 represents a 4-byte array.
 type Bytes4 [4]byte
 
@@ -53,6 +58,8 @@ func (h Bytes4) MarshalText() ([]byte, error) {
 func (h *Bytes4) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
+
+// ------------------------------ Bytes32 ------------------------------
 
 // Bytes32 represents a 32-byte array.
 type Bytes32 [32]byte
@@ -77,6 +84,8 @@ func (h *Bytes32) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
 
+// ------------------------------ Bytes48 ------------------------------
+
 // Bytes48 represents a 48-byte array.
 type Bytes48 [48]byte
 
@@ -100,6 +109,8 @@ func (h *Bytes48) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
 
+// ------------------------------ Bytes96 ------------------------------
+
 // Bytes96 represents a 96-byte array.
 type Bytes96 [96]byte
 
@@ -122,6 +133,8 @@ func (h Bytes96) MarshalText() ([]byte, error) {
 func (h *Bytes96) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
 }
+
+// ------------------------------ Helpers ------------------------------
 
 // Helper function to unmarshal JSON for various byte types.
 func unmarshalJSONHelper(target []byte, input []byte) error {

@@ -49,4 +49,8 @@ var (
 
 	// ErrLocalBuildingDisabled is returned when local building is disabled.
 	ErrLocalBuildingDisabled = errors.New("local building is disabled")
+
+	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
+	// received.
+	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
 )

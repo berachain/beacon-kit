@@ -30,7 +30,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
@@ -39,56 +38,81 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallable interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
+}
+
+type Validator interface {
+	SSZMarshallable
+	GetPubkey() primitives.BLSPubkey
+	GetEffectiveBalance() primitives.Gwei
+	IsActive(primitives.Epoch) bool
+}
+
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type KVStore struct {
+type KVStore[
+	DepositT SSZMarshallable,
+	ForkT SSZMarshallable,
+	BeaconBlockHeaderT SSZMarshallable,
+	ExecutionPayloadT SSZMarshallable,
+	Eth1DataT SSZMarshallable,
+	ValidatorT Validator,
+] struct {
 	ctx   context.Context
 	write func()
 
+	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
-
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
-
 	// fork is the current fork
-	fork sdkcollections.Item[*primitives.Fork]
+	fork sdkcollections.Item[ForkT]
 
+	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*primitives.BeaconBlockHeader]
-
+	latestBlockHeader sdkcollections.Item[BeaconBlockHeaderT]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, [32]byte]
-
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
-	// eth1BlockHash stores the block hash of the latest eth1 block.
-	eth1BlockHash sdkcollections.Item[[32]byte]
+	// Eth1
+	// latestExecutionPayload stores the latest execution payload.
 
+	latestExecutionPayload sdkcollections.Item[ExecutionPayloadT]
+
+	// eth1Data stores the latest eth1 data.
+	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
-	// validatorIndex is a sequence that provides the next
-	// available index for a new validator.
+	// Registry
+	// validatorIndex provides the next available index for a new validator.
 	validatorIndex sdkcollections.Sequence
-
 	// validators stores the list of validators.
 	validators *sdkcollections.IndexedMap[
-		uint64, *beacontypes.Validator, index.ValidatorsIndex,
+		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
 	]
-
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
 
 	// depositQueue is a list of deposits that are queued to be processed.
-	depositQueue *collections.Queue[*primitives.Deposit]
-
-	// withdrawalQueue is a list of withdrawals that are queued to be processed.
-	withdrawalQueue *collections.Queue[*primitives.Withdrawal]
-
-	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Map[uint64, [32]byte]
+	depositQueue *collections.Queue[DepositT]
 
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
@@ -97,9 +121,13 @@ type KVStore struct {
 	// for each validator.
 	nextWithdrawalValidatorIndex sdkcollections.Item[uint64]
 
+	// Randomness
+	// randaoMix stores the randao mix for the current epoch.
+	randaoMix sdkcollections.Map[uint64, [32]byte]
+
+	// Slashings
 	// slashings stores the slashings for the current epoch.
 	slashings sdkcollections.Map[uint64, uint64]
-
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
 }
@@ -107,11 +135,25 @@ type KVStore struct {
 // Store creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func New(
+func New[
+	DepositT SSZMarshallable,
+	ForkT SSZMarshallable,
+	BeaconBlockHeaderT SSZMarshallable,
+	ExecutionPayloadT SSZMarshallable,
+	Eth1DataT SSZMarshallable,
+	ValidatorT Validator,
+](
 	kss store.KVStoreService,
-) *KVStore {
+	executionPayloadFactory func() ExecutionPayloadT,
+) *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore{
+	return &KVStore[
+		DepositT, ForkT, BeaconBlockHeaderT,
+		ExecutionPayloadT, Eth1DataT, ValidatorT,
+	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
@@ -125,11 +167,11 @@ func New(
 			keys.SlotPrefix,
 			sdkcollections.Uint64Value,
 		),
-		fork: sdkcollections.NewItem[*primitives.Fork](
+		fork: sdkcollections.NewItem[ForkT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ForkPrefix),
 			keys.ForkPrefix,
-			encoding.SSZValueCodec[*primitives.Fork]{},
+			encoding.SSZValueCodec[ForkT]{},
 		),
 		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -145,11 +187,20 @@ func New(
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-		eth1BlockHash: sdkcollections.NewItem[[32]byte](
+
+		latestExecutionPayload: sdkcollections.NewItem[ExecutionPayloadT](
 			schemaBuilder,
-			sdkcollections.NewPrefix(keys.Eth1BlockHashPrefix),
-			keys.Eth1BlockHashPrefix,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
+			keys.LatestExecutionPayloadPrefix,
+			encoding.SSZInterfaceCodec[ExecutionPayloadT]{
+				Factory: executionPayloadFactory,
+			},
+		),
+		eth1Data: sdkcollections.NewItem[Eth1DataT](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
+			keys.Eth1DataPrefix,
+			encoding.SSZValueCodec[Eth1DataT]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
@@ -163,14 +214,14 @@ func New(
 			keys.ValidatorIndexPrefix,
 		),
 		validators: sdkcollections.NewIndexedMap[
-			uint64, *beacontypes.Validator,
+			uint64, ValidatorT,
 		](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.ValidatorByIndexPrefix),
 			keys.ValidatorByIndexPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*beacontypes.Validator]{},
-			index.NewValidatorsIndex(schemaBuilder),
+			encoding.SSZValueCodec[ValidatorT]{},
+			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
@@ -179,15 +230,10 @@ func New(
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		depositQueue: collections.NewQueue[*primitives.Deposit](
+		depositQueue: collections.NewQueue[DepositT](
 			schemaBuilder,
 			keys.DepositQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Deposit]{},
-		),
-		withdrawalQueue: collections.NewQueue[*primitives.Withdrawal](
-			schemaBuilder,
-			keys.WithdrawalQueuePrefix,
-			encoding.SSZValueCodec[*primitives.Withdrawal]{},
+			encoding.SSZValueCodec[DepositT]{},
 		),
 		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
 			schemaBuilder,
@@ -223,17 +269,24 @@ func New(
 			sdkcollections.Uint64Value,
 		),
 
-		latestBlockHeader: sdkcollections.NewItem[*primitives.BeaconBlockHeader](
+		latestBlockHeader: sdkcollections.NewItem[BeaconBlockHeaderT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
-			encoding.SSZValueCodec[*primitives.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),
 	}
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore) Copy() *KVStore {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Copy() *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
+	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
 	ss.write = write
@@ -241,19 +294,33 @@ func (kv *KVStore) Copy() *KVStore {
 }
 
 // Context returns the context of the Store.
-func (kv *KVStore) Context() context.Context {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Context() context.Context {
 	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) WithContext(
+	ctx context.Context,
+) *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+] {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
 }
 
 // Save saves the Store.
-func (kv *KVStore) Save() {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) Save() {
 	if kv.write != nil {
 		kv.write()
 	}

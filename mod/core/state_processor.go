@@ -29,34 +29,36 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor struct {
-	cfg    *params.BeaconChainConfig
-	bp     BlobsProcessor
+	cs     primitives.ChainSpec
+	bv     BlobVerifier
 	rp     RandaoProcessor
 	logger log.Logger
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
-	cfg *params.BeaconChainConfig,
-	bp BlobsProcessor,
+	cs primitives.ChainSpec,
+	bv BlobVerifier,
 	rp RandaoProcessor,
 	logger log.Logger,
 ) *StateProcessor {
 	return &StateProcessor{
-		cfg:    cfg,
-		bp:     bp,
+		cs:     cs,
+		bv:     bv,
 		rp:     rp,
 		logger: logger.With("module", "state-processor"),
 	}
@@ -110,7 +112,7 @@ func (sp *StateProcessor) ProcessSlot(
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
 		prevStateRoot,
 	); err != nil {
 		return err
@@ -140,20 +142,20 @@ func (sp *StateProcessor) ProcessSlot(
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(slot)%sp.cfg.SlotsPerHistoricalRoot, prevBlockRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
 		return err
 	}
 
 	// Process the Epoch Boundary.
-	if uint64(slot+1)%sp.cfg.SlotsPerEpoch == 0 {
+	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
 		if err = sp.processEpoch(st); err != nil {
 			return err
 		}
 		sp.logger.Info(
 			"processed epoch transition ⏰ ",
-			"old", uint64(slot)/sp.cfg.SlotsPerEpoch,
-			"new", uint64(slot+1)/sp.cfg.SlotsPerEpoch,
+			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
+			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
 		)
 	}
 
@@ -171,7 +173,35 @@ func (sp *StateProcessor) ProcessBlobs(
 		return err
 	}
 
-	return sp.bp.ProcessBlobs(slot, avs, sidecars)
+	// If there are no blobs to verify, return early.
+	numBlobs := len(sidecars.Sidecars)
+	if numBlobs == 0 {
+		sp.logger.Info(
+			"no blobs to verify, skipping verifier 🧢",
+			"slot",
+			slot,
+		)
+		return nil
+	}
+
+	// Otherwise, we run the verification checks on the blobs.
+	if err = sp.bv.VerifyBlobs(
+		sidecars,
+		types.KZGOffset(sp.cs.MaxBlobCommitmentsPerBlock()),
+	); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"successfully verified all blob sidecars 💦",
+		"num_blobs",
+		numBlobs,
+		"slot",
+		slot,
+	)
+
+	// Lastly, we store the blobs in the availability store.
+	return avs.Persist(slot, sidecars)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
@@ -237,7 +267,7 @@ func (sp *StateProcessor) processHeader(
 	}
 
 	// Store as the new latest block
-	headerRaw := &primitives.BeaconBlockHeader{
+	headerRaw := &consensusprimitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,
@@ -263,7 +293,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits primitives.Deposits,
+	deposits []*consensusprimitives.Deposit,
 ) error {
 	// Dequeue and verify the logs.
 	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
@@ -305,7 +335,7 @@ func (sp *StateProcessor) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) {
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
@@ -318,7 +348,7 @@ func (sp *StateProcessor) processDeposit(
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cfg.MaxEffectiveBalance))
+			primitives.Gwei(sp.cs.MaxEffectiveBalance()))
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
@@ -335,7 +365,7 @@ func (sp *StateProcessor) processDeposit(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -355,21 +385,23 @@ func (sp *StateProcessor) createValidator(
 	if err != nil {
 		return err
 	}
-	epoch = sp.cfg.SlotToEpoch(slot)
+	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := primitives.NewForkData(
+	fd := consensusprimitives.NewForkData(
 		version.FromUint32(
-			sp.cfg.ActiveForkVersionForEpoch(epoch),
+			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := primitives.DepositMessage{
+	depositMessage := consensusprimitives.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
 	}
-	if err = depositMessage.VerifyCreateValidator(fd, dep.Signature); err != nil {
+	if err = depositMessage.VerifyCreateValidator(
+		fd, dep.Signature, blst.VerifySignaturePubkeyBytes, sp.cs.DomainTypeDeposit(),
+	); err != nil {
 		return err
 	}
 
@@ -380,14 +412,14 @@ func (sp *StateProcessor) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *primitives.Deposit,
+	dep *consensusprimitives.Deposit,
 ) error {
 	val := types.NewValidatorFromDeposit(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
-		primitives.Gwei(sp.cfg.EffectiveBalanceIncrement),
-		primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+		primitives.Gwei(sp.cs.EffectiveBalanceIncrement()),
+		primitives.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 	if err := st.AddValidator(val); err != nil {
 		return err
@@ -406,7 +438,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 //nolint:lll
 func (sp *StateProcessor) processWithdrawals(
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.
 	var nextValidatorIndex primitives.ValidatorIndex
@@ -430,7 +462,7 @@ func (sp *StateProcessor) processWithdrawals(
 		if !wd.Equals(payloadWithdrawals[i]) {
 			return fmt.Errorf(
 				"withdrawals do not match expected %s, got %s",
-				wd, payloadWithdrawals[i],
+				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)
 		}
 
@@ -445,7 +477,7 @@ func (sp *StateProcessor) processWithdrawals(
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
-			expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1,
+			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1).Unwrap(),
 		); err != nil {
 			return err
 		}
@@ -458,12 +490,11 @@ func (sp *StateProcessor) processWithdrawals(
 
 	// Update the next validator index to start the next withdrawal sweep
 	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cfg.MaxWithdrawalsPerPayload) {
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index
-		nextValidatorIndex = primitives.ValidatorIndex(
+		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
-				totalValidators,
-		)
+				primitives.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not
 		// a full set of withdrawals
@@ -472,7 +503,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return err
 		}
 		nextValidatorIndex += primitives.ValidatorIndex(
-			sp.cfg.MaxValidatorsPerWithdrawalsSweep)
+			sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= primitives.ValidatorIndex(totalValidators)
 	}
 
@@ -511,7 +542,7 @@ func (sp *StateProcessor) processSlashingsReset(
 		return err
 	}
 
-	index := (uint64(sp.cfg.SlotToEpoch(slot)) + 1) % sp.cfg.EpochsPerSlashingsVector
+	index := (uint64(sp.cs.SlotToEpoch(slot)) + 1) % sp.cs.EpochsPerSlashingsVector()
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -547,7 +578,7 @@ func (sp *StateProcessor) processAttesterSlashing(
 func (sp *StateProcessor) processSlashings(
 	st state.BeaconState,
 ) error {
-	totalBalance, err := st.GetTotalActiveBalances(sp.cfg.SlotsPerEpoch)
+	totalBalance, err := st.GetTotalActiveBalances(sp.cs.SlotsPerEpoch())
 	if err != nil {
 		return err
 	}
@@ -556,9 +587,9 @@ func (sp *StateProcessor) processSlashings(
 	if err != nil {
 		return err
 	}
-	proportionalSlashingMultiplier := sp.cfg.ProportionalSlashingMultiplier
+	proportionalSlashingMultiplier := sp.cs.ProportionalSlashingMultiplier
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*proportionalSlashingMultiplier,
+		uint64(totalSlashings)*proportionalSlashingMultiplier(),
 		uint64(totalBalance),
 	)
 	vals, err := st.GetValidators()
@@ -576,7 +607,7 @@ func (sp *StateProcessor) processSlashings(
 	for _, val := range vals {
 		// Checks if the validator is slashable.
 		//nolint:gomnd // this is in the spec
-		slashableEpoch := (uint64(sp.cfg.SlotToEpoch(slot)) + sp.cfg.EpochsPerSlashingsVector) / 2
+		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
 			if err = sp.processSlash(
@@ -602,8 +633,8 @@ func (sp *StateProcessor) processSlash(
 	totalBalance uint64,
 ) error {
 	// Calculate the penalty.
-	increment := sp.cfg.EffectiveBalanceIncrement
-	balDivIncrement := uint64(val.EffectiveBalance) / increment
+	increment := sp.cs.EffectiveBalanceIncrement()
+	balDivIncrement := uint64(val.GetEffectiveBalance()) / increment
 	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
 	penalty := penaltyNumerator / totalBalance * increment
 

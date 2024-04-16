@@ -31,9 +31,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -42,14 +41,16 @@ func (s *Service) sendFCU(
 	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
 ) error {
-	eth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	eth1BlockHash := latestExecutionPayload.GetBlockHash()
+
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&execution.ForkchoiceUpdateRequest{
-			State: &engine.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
@@ -85,7 +86,7 @@ func (s *Service) sendFCUWithAttributes(
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) {
 	var (
 		headHash primitives.ExecutionHash
@@ -96,13 +97,15 @@ func (s *Service) sendPostBlockFCU(
 	if payload != nil {
 		headHash = payload.GetBlockHash()
 	} else {
-		var err error
-		headHash, err = st.GetEth1BlockHash()
+		latestExecutionPayload, err := st.GetLatestExecutionPayload()
 		if err != nil {
-			s.Logger().
-				Error("failed to get eth1 block hash in postBlockProcess", "error", err)
+			s.Logger().Error(
+				"failed to get latest execution payload in postBlockProcess",
+				"error", err,
+			)
 			return
 		}
+		headHash = latestExecutionPayload.GetBlockHash()
 	}
 
 	// If we are the local builder and we are not in init sync
