@@ -76,6 +76,8 @@ func (u U64) SizeSSZ() int {
 }
 
 // NextPowerOfTwo returns the next power of two greater than or equal to the.
+//
+//nolint:gomnd // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	u--
 	u |= u >> 1
@@ -88,11 +90,11 @@ func (u U64) NextPowerOfTwo() U64 {
 }
 
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
-func (d U64) ILog2Ceil() U64 {
-	if d <= 1 {
+func (u U64) ILog2Ceil() U64 {
+	if u <= 1 {
 		return 0
 	}
-	return U64(64 - uint8(bits.LeadingZeros(uint(d))) - 1)
+	return U64(64 - uint8(bits.LeadingZeros(uint(u))) - 1)
 }
 
 // -------------------------- JSONMarshallable -------------------------
