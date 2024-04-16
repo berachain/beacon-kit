@@ -23,14 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types_test
+package primitives_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +41,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		amount                    primitives.Gwei
 		effectiveBalanceIncrement primitives.Gwei
 		maxEffectiveBalance       primitives.Gwei
-		want                      *types.Validator
+		want                      *primitives.Validator
 	}{
 		{
 			name:   "normal case",
@@ -54,18 +53,26 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator{
+			want: &primitives.Validator{
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 		{
@@ -78,18 +85,26 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator{
+			want: &primitives.Validator{
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x02},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 		{
@@ -102,24 +117,32 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator{
+			want: &primitives.Validator{
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x03},
 					),
-				EffectiveBalance:           32e9,
-				Slashed:                    false,
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				ActivationEpoch:            params.FarFutureEpoch,
-				ExitEpoch:                  params.FarFutureEpoch,
-				WithdrawableEpoch:          params.FarFutureEpoch,
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := types.NewValidatorFromDeposit(
+			got := primitives.NewValidatorFromDeposit(
 				tt.pubkey,
 				tt.withdrawalCredentials,
 				tt.amount,
@@ -135,13 +158,13 @@ func TestValidator_IsActive(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     primitives.Epoch
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name:  "active",
 			epoch: 10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -150,7 +173,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, before activation",
 			epoch: 4,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -159,7 +182,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, after exit",
 			epoch: 16,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -177,31 +200,35 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 	tests := []struct {
 		name           string
 		finalizedEpoch primitives.Epoch
-		validator      *types.Validator
+		validator      *primitives.Validator
 		want           bool
 	}{
 		{
 			name:           "eligible",
 			finalizedEpoch: 10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch:            params.FarFutureEpoch,
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 			want: true,
 		},
 		{
 			name:           "not eligible, activation eligibility in future",
 			finalizedEpoch: 4,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch:            params.FarFutureEpoch,
+				ActivationEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
 			},
 			want: false,
 		},
 		{
 			name:           "not eligible, already activated",
 			finalizedEpoch: 10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch:            8,
 			},
@@ -223,20 +250,22 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 	maxEffectiveBalance := primitives.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name: "eligible",
-			validator: &types.Validator{
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				EffectiveBalance:           maxEffectiveBalance,
+			validator: &primitives.Validator{
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				EffectiveBalance: maxEffectiveBalance,
 			},
 			want: true,
 		},
 		{
 			name: "not eligible, activation eligibility set",
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
 				EffectiveBalance:           maxEffectiveBalance,
 			},
@@ -244,9 +273,11 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		},
 		{
 			name: "not eligible, effective balance too low",
-			validator: &types.Validator{
-				ActivationEligibilityEpoch: params.FarFutureEpoch,
-				EffectiveBalance:           maxEffectiveBalance - 1,
+			validator: &primitives.Validator{
+				ActivationEligibilityEpoch: primitives.Epoch(
+					constants.FarFutureEpoch,
+				),
+				EffectiveBalance: maxEffectiveBalance - 1,
 			},
 			want: false,
 		},
@@ -266,13 +297,13 @@ func TestValidator_IsSlashable(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     primitives.Epoch
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name:  "slashable",
 			epoch: 10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -282,7 +313,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, already slashed",
 			epoch: 10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				Slashed:           true,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -292,7 +323,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, before activation",
 			epoch: 4,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -302,7 +333,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, after withdrawable",
 			epoch: 16,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -322,14 +353,14 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 		name      string
 		balance   primitives.Gwei
 		epoch     primitives.Epoch
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name:    "fully withdrawable",
 			balance: 32e9,
 			epoch:   10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -342,7 +373,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, non-eth1 credentials",
 			balance: 32e9,
 			epoch:   10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					WithdrawalCredentials{0x00},
 				WithdrawableEpoch: 5,
@@ -353,7 +384,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, before withdrawable epoch",
 			balance: 32e9,
 			epoch:   4,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -366,7 +397,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, zero balance",
 			balance: 0,
 			epoch:   10,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -392,13 +423,13 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 	tests := []struct {
 		name      string
 		balance   primitives.Gwei
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name:    "partially withdrawable",
 			balance: 33e9,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -410,7 +441,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, non-eth1 credentials",
 			balance: 33e9,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.WithdrawalCredentials{
 					0x00,
 				},
@@ -421,7 +452,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, not at max effective balance",
 			balance: 33e9,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -433,7 +464,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, no excess balance",
 			balance: 32e9,
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -460,12 +491,12 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name: "has eth1 credentials",
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
 						primitives.ExecutionAddress{0x01},
@@ -475,7 +506,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 		},
 		{
 			name: "does not have eth1 credentials",
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.WithdrawalCredentials{
 					0x00,
 				},
@@ -498,19 +529,19 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 	maxEffectiveBalance := primitives.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *types.Validator
+		validator *primitives.Validator
 		want      bool
 	}{
 		{
 			name: "has max effective balance",
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				EffectiveBalance: maxEffectiveBalance,
 			},
 			want: true,
 		},
 		{
 			name: "does not have max effective balance",
-			validator: &types.Validator{
+			validator: &primitives.Validator{
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
 			want: false,

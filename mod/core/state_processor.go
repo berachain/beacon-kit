@@ -339,7 +339,7 @@ func (sp *StateProcessor) processDeposit(
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *types.Validator
+		var val *primitives.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return
@@ -413,7 +413,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
 	dep *primitives.Deposit,
 ) error {
-	val := types.NewValidatorFromDeposit(
+	val := primitives.NewValidatorFromDeposit(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
@@ -627,7 +627,7 @@ func (sp *StateProcessor) processSlashings(
 //nolint:unused // will be used later
 func (sp *StateProcessor) processSlash(
 	st state.BeaconState,
-	val *types.Validator,
+	val *primitives.Validator,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {

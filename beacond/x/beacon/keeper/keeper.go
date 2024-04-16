@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -52,7 +51,7 @@ type Keeper struct {
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*primitives.Eth1Data,
-		*types.Validator,
+		*primitives.Validator,
 	]
 	cfg primitives.ChainSpec
 }
@@ -76,7 +75,7 @@ func NewKeeper(
 			*primitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
 			*primitives.Eth1Data,
-			*types.Validator,
+			*primitives.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
 		cfg: cfg,
 	}

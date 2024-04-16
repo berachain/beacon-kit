@@ -23,36 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/params"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ./bytes.go,./primitives.go,./withdrawal_credentials.go,./u64.go -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
+	Pubkey BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials primitives.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
+	EffectiveBalance Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 	// ActivationEligibilityEpoch is the epoch in which the validator became
 	// eligible for activation.
-	ActivationEligibilityEpoch primitives.Epoch `json:"activationEligibilityEpoch"`
+	ActivationEligibilityEpoch Epoch `json:"activationEligibilityEpoch"`
 	// ActivationEpoch is the epoch in which the validator activated.
-	ActivationEpoch primitives.Epoch `json:"activationEpoch"`
+	ActivationEpoch Epoch `json:"activationEpoch"`
 	// ExitEpoch is the epoch in which the validator exited.
-	ExitEpoch primitives.Epoch `json:"exitEpoch"`
+	ExitEpoch Epoch `json:"exitEpoch"`
 	// WithdrawableEpoch is the epoch in which the validator can withdraw.
-	WithdrawableEpoch primitives.Epoch `json:"withdrawableEpoch"`
+	WithdrawableEpoch Epoch `json:"withdrawableEpoch"`
 }
 
 // NewValidatorFromDeposit creates a new Validator from the
@@ -63,11 +62,11 @@ type Validator struct {
 //
 //nolint:lll
 func NewValidatorFromDeposit(
-	pubkey primitives.BLSPubkey,
-	withdrawalCredentials primitives.WithdrawalCredentials,
-	amount primitives.Gwei,
-	effectiveBalanceIncrement primitives.Gwei,
-	maxEffectiveBalance primitives.Gwei,
+	pubkey BLSPubkey,
+	withdrawalCredentials WithdrawalCredentials,
+	amount Gwei,
+	effectiveBalanceIncrement Gwei,
+	maxEffectiveBalance Gwei,
 ) *Validator {
 	return &Validator{
 		Pubkey:                pubkey,
@@ -77,20 +76,20 @@ func NewValidatorFromDeposit(
 			maxEffectiveBalance,
 		),
 		Slashed:                    false,
-		ActivationEligibilityEpoch: params.FarFutureEpoch,
-		ActivationEpoch:            params.FarFutureEpoch,
-		ExitEpoch:                  params.FarFutureEpoch,
-		WithdrawableEpoch:          params.FarFutureEpoch,
+		ActivationEligibilityEpoch: Epoch(constants.FarFutureEpoch),
+		ActivationEpoch:            Epoch(constants.FarFutureEpoch),
+		ExitEpoch:                  Epoch(constants.FarFutureEpoch),
+		WithdrawableEpoch:          Epoch(constants.FarFutureEpoch),
 	}
 }
 
 // GetPubkey returns the public key of the validator.
-func (v *Validator) GetPubkey() primitives.BLSPubkey {
+func (v *Validator) GetPubkey() BLSPubkey {
 	return v.Pubkey
 }
 
 // GetEffectiveBalance returns the effective balance of the validator.
-func (v *Validator) GetEffectiveBalance() primitives.Gwei {
+func (v *Validator) GetEffectiveBalance() Gwei {
 	return v.EffectiveBalance
 }
 
@@ -98,7 +97,7 @@ func (v *Validator) GetEffectiveBalance() primitives.Gwei {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
 //
 //nolint:lll
-func (v Validator) IsActive(epoch primitives.Epoch) bool {
+func (v Validator) IsActive(epoch Epoch) bool {
 	return v.ActivationEpoch <= epoch && epoch < v.ExitEpoch
 }
 
@@ -107,10 +106,10 @@ func (v Validator) IsActive(epoch primitives.Epoch) bool {
 //
 //nolint:lll
 func (v Validator) IsEligibleForActivation(
-	finalizedEpoch primitives.Epoch,
+	finalizedEpoch Epoch,
 ) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
-		v.ActivationEpoch == params.FarFutureEpoch
+		v.ActivationEpoch == Epoch(constants.FarFutureEpoch)
 }
 
 // IsEligibleForActivationQueue as defined in the Ethereum 2.0 Spec
@@ -118,9 +117,9 @@ func (v Validator) IsEligibleForActivation(
 //
 //nolint:lll
 func (v Validator) IsEligibleForActivationQueue(
-	maxEffectiveBalance primitives.Gwei,
+	maxEffectiveBalance Gwei,
 ) bool {
-	return v.ActivationEligibilityEpoch == params.FarFutureEpoch &&
+	return v.ActivationEligibilityEpoch == Epoch(constants.FarFutureEpoch) &&
 		v.EffectiveBalance == maxEffectiveBalance
 }
 
@@ -128,7 +127,7 @@ func (v Validator) IsEligibleForActivationQueue(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
 //
 //nolint:lll
-func (v Validator) IsSlashable(epoch primitives.Epoch) bool {
+func (v Validator) IsSlashable(epoch Epoch) bool {
 	return !v.Slashed && v.ActivationEpoch <= epoch &&
 		epoch < v.WithdrawableEpoch
 }
@@ -138,8 +137,8 @@ func (v Validator) IsSlashable(epoch primitives.Epoch) bool {
 //
 //nolint:lll
 func (v Validator) IsFullyWithdrawable(
-	balance primitives.Gwei,
-	epoch primitives.Epoch,
+	balance Gwei,
+	epoch Epoch,
 ) bool {
 	return v.HasEth1WithdrawalCredentials() && v.WithdrawableEpoch <= epoch &&
 		balance > 0
@@ -150,7 +149,7 @@ func (v Validator) IsFullyWithdrawable(
 //
 //nolint:lll
 func (v Validator) IsPartiallyWithdrawable(
-	balance, maxEffectiveBalance primitives.Gwei,
+	balance, maxEffectiveBalance Gwei,
 ) bool {
 	hasExcessBalance := balance > maxEffectiveBalance
 	return v.HasEth1WithdrawalCredentials() &&
@@ -162,13 +161,13 @@ func (v Validator) IsPartiallyWithdrawable(
 //
 //nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == primitives.EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
 // balance.
 func (v Validator) HasMaxEffectiveBalance(
-	maxEffectiveBalance primitives.Gwei,
+	maxEffectiveBalance Gwei,
 ) bool {
 	return v.EffectiveBalance == maxEffectiveBalance
 }
