@@ -56,7 +56,7 @@ func NewTreeFromLeaves(
 ) (*Tree, error) {
 	return NewTreeFromLeavesWithDepth(
 		leaves,
-		uint8(primitives.U64(len(leaves)).ILog2()),
+		uint8(primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil()),
 	)
 }
 
@@ -66,7 +66,11 @@ func NewTreeWithMaxLeaves(
 	leaves [][32]byte,
 	maxLeaves uint64,
 ) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(leaves, uint8(primitives.U64(len(leaves)).ILog2()))
+	// return NewTreeFromLeavesWithDepth(leaves, bitlen.CoverDepth(maxLeaves))
+	return NewTreeFromLeavesWithDepth(
+		leaves,
+		uint8((primitives.U64(maxLeaves)).NextPowerOfTwo().ILog2Ceil()),
+	)
 }
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
