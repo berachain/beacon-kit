@@ -30,7 +30,7 @@ import chain "github.com/berachain/beacon-kit/mod/primitives/chain"
 //nolint:lll
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[Epoch, DomainType, ExecutionAddress, Slot]
+	ChainSpec = chain.Spec[DomainType, Epoch, ExecutionAddress, Slot]
 
 	// Slot as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

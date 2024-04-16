@@ -27,8 +27,8 @@ package chain
 
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec[
-	EpochT ~uint64,
 	DomainTypeT ~[4]byte,
+	EpochT ~uint64,
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
