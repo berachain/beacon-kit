@@ -36,8 +36,8 @@ const NumZeroHashes = 64
 var Hashes [NumZeroHashes + 1][32]byte
 
 // initialize the zero-hashes pre-computed data with the given hash-function.
-func InitZeroHashes(zeroHashesLevels uint) {
-	for i := uint(0); i < zeroHashesLevels; i++ {
+func InitZeroHashes(zeroHashesLevels int) {
+	for i := range zeroHashesLevels {
 		v := [64]byte{}
 		copy(v[:32], Hashes[i][:])
 		copy(v[32:], Hashes[i][:])

@@ -63,7 +63,7 @@ func (s *Service) ProcessLogsInETH1Block(
 		ctx,
 		blockHash,
 		[]primitives.ExecutionAddress{
-			s.BeaconCfg().DepositContractAddress,
+			s.ChainSpec().DepositContractAddress(),
 		},
 	)
 	if err != nil {

@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
@@ -41,13 +41,13 @@ func TestPayloadIDCache(t *testing.T) {
 		var r [32]byte
 		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
-		require.Equal(t, engine.PayloadID{}, p)
+		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
 		slot := primitives.Slot(1234)
 		r := [32]byte{1, 2, 3}
-		pid := engine.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -58,7 +58,7 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Overwrite existing", func(t *testing.T) {
 		slot := primitives.Slot(1234)
 		r := [32]byte{1, 2, 3}
-		newPid := engine.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
+		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -69,22 +69,22 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Prune and verify deletion", func(t *testing.T) {
 		slot := primitives.Slot(9456456)
 		r := [32]byte{4, 5, 6}
-		pid := engine.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
 		cacheUnderTest.Set(slot, r, pid)
 
 		// Prune and attempt to retrieve pruned entry
 		cacheUnderTest.UnsafePrunePrior(slot + 1)
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.False(t, ok)
-		require.Equal(t, engine.PayloadID{}, p)
+		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
 		// Set multiple entries
-		for i := uint8(0); i < 5; i++ {
+		for i := range uint8(5) {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			pid := engine.PayloadID{
+			pid := engineprimitives.PayloadID{
 				i, i, i, i, i, i, i, i,
 			}
 			cacheUnderTest.Set(slot, r, pid)
@@ -92,7 +92,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 		// Prune and check if only the last two entries exist
 		cacheUnderTest.UnsafePrunePrior(3)
-		for i := uint8(0); i < 3; i++ {
+		for i := range uint8(3) {
 			slot := primitives.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)

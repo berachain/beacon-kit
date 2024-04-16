@@ -29,10 +29,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/types"
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +40,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	sidecar := types.BlobSidecar{
 		Index:             0,
 		Blob:              kzg.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{},
+		BeaconBlockHeader: &consensusprimitives.BeaconBlockHeader{},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
@@ -77,7 +76,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 
 	// Compare the original and unmarshalled empty sidecars
-	assert.Equal(
+	require.Equal(
 		t,
 		sidecar,
 		unmarshalled,
@@ -89,7 +88,7 @@ func TestValidateBlockRoots(t *testing.T) {
 	validSidecar := types.BlobSidecar{
 		Index: 0,
 		Blob:  kzg.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{
+		BeaconBlockHeader: &consensusprimitives.BeaconBlockHeader{
 			StateRoot: [32]byte{1},
 			BodyRoot:  [32]byte{2},
 		},
@@ -120,7 +119,7 @@ func TestValidateBlockRoots(t *testing.T) {
 	differentBlockRootSidecar := types.BlobSidecar{
 		Index: 0,
 		Blob:  kzg.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{
+		BeaconBlockHeader: &consensusprimitives.BeaconBlockHeader{
 			StateRoot: [32]byte{},
 			BodyRoot:  [32]byte{},
 		},

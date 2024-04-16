@@ -54,7 +54,7 @@ func (h *Handler) PreBlocker(
 	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 		req,
 		h.cfg.BeaconBlockPosition,
-		h.chainService.BeaconCfg().ActiveForkVersionForSlot(
+		h.chainService.ChainSpec().ActiveForkVersionForSlot(
 			primitives.Slot(req.Height),
 		),
 	)

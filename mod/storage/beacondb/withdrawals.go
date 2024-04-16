@@ -30,19 +30,28 @@ import (
 )
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (kv *KVStore) GetNextWithdrawalIndex() (uint64, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalIndex() (uint64, error) {
 	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (kv *KVStore) SetNextWithdrawalIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
 	return kv.nextWithdrawalIndex.Set(kv.ctx, index)
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalValidatorIndex() (
 	primitives.ValidatorIndex, error,
 ) {
 	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
@@ -50,29 +59,41 @@ func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (kv *KVStore) SetNextWithdrawalValidatorIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalValidatorIndex(
 	index primitives.ValidatorIndex,
 ) error {
 	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
 }
 
 // ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore) ExpectedDeposits(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) ExpectedDeposits(
 	numView uint64,
-) (primitives.Deposits, error) {
+) ([]DepositT, error) {
 	return kv.depositQueue.PeekMulti(kv.ctx, numView)
 }
 
 // EnqueueDeposits pushes the deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(
-	deposits primitives.Deposits,
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) EnqueueDeposits(
+	deposits []DepositT,
 ) error {
 	return kv.depositQueue.PushMulti(kv.ctx, deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore) DequeueDeposits(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) DequeueDeposits(
 	numDequeue uint64,
-) (primitives.Deposits, error) {
+) ([]DepositT, error) {
 	return kv.depositQueue.PopMulti(kv.ctx, numDequeue)
 }
