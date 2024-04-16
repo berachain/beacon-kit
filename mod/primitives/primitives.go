@@ -81,6 +81,6 @@ type (
 	// the best compatibility with the SSZ spec.
 	Wei = U256L
 
-	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	// Gwei is a denomination of 1e9 Wei represented as a U64.
 	Gwei = U64
 )
