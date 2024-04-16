@@ -155,3 +155,85 @@ func TestU64_RoundTripSSZ(t *testing.T) {
 		})
 	}
 }
+
+func TestU64_NextPowerOfTwo(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    primitives.U64
+		expected primitives.U64
+	}{
+		{
+			name:     "zero",
+			value:    primitives.U64(0),
+			expected: primitives.U64(0),
+		},
+		{
+			name:     "one",
+			value:    primitives.U64(1),
+			expected: primitives.U64(1),
+		},
+		{
+			name:     "already a power of two",
+			value:    primitives.U64(8),
+			expected: primitives.U64(8),
+		},
+		{
+			name:     "not a power of two",
+			value:    primitives.U64(9),
+			expected: primitives.U64(16),
+		},
+		{
+			name:     "large number",
+			value:    primitives.U64(1<<63 - 1),
+			expected: primitives.U64(1 << 63),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.NextPowerOfTwo()
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestU64_ILog2Ceil(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    primitives.U64
+		expected uint8
+	}{
+		{
+			name:     "zero",
+			value:    primitives.U64(0),
+			expected: 0,
+		},
+		{
+			name:     "one",
+			value:    primitives.U64(1),
+			expected: 0,
+		},
+		{
+			name:     "power of two",
+			value:    primitives.U64(8),
+			expected: 3,
+		},
+		{
+			name:     "not a power of two",
+			value:    primitives.U64(9),
+			expected: 4,
+		},
+		{
+			name:     "max uint64",
+			value:    primitives.U64(1<<64 - 1),
+			expected: 64,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.ILog2Ceil()
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
