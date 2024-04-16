@@ -32,8 +32,8 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -62,7 +62,7 @@ func CollectValidatorsCmd() *cobra.Command {
 				return err
 			}
 
-			var validators []*beacontypes.Validator
+			var validators []*primitives.Validator
 			if validators, err = CollectValidatorJSONFiles(
 				filepath.Join(config.RootDir, "config", "gentx"),
 				genesis,
@@ -123,7 +123,7 @@ func CollectValidatorsCmd() *cobra.Command {
 func CollectValidatorJSONFiles(
 	genTxsDir string,
 	genesis *types.AppGenesis,
-) ([]*beacontypes.Validator, error) {
+) ([]*primitives.Validator, error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
@@ -138,7 +138,7 @@ func CollectValidatorJSONFiles(
 	}
 
 	// prepare the list of validators
-	validators := make([]*beacontypes.Validator, 0)
+	validators := make([]*primitives.Validator, 0)
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -156,7 +156,7 @@ func CollectValidatorJSONFiles(
 			return nil, err
 		}
 
-		val := &beacontypes.Validator{}
+		val := &primitives.Validator{}
 		if err = json.Unmarshal(bz, val); err != nil {
 			return nil, err
 		}
