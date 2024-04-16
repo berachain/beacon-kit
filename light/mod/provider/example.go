@@ -30,8 +30,8 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/light/mod/state/codec"
-	"github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
 )
@@ -42,11 +42,11 @@ import (
 //nolint:gochecknoglobals // this will be removed in a later pr
 var (
 	latestExecutionPayloadCodec = codec.Codec[
-		codec.None, types.ExecutionPayload,
+		codec.None, engineprimitives.ExecutionPayload,
 	]{
-		Value: encoding.SSZInterfaceCodec[types.ExecutionPayload]{
-			Factory: func() types.ExecutionPayload {
-				return &types.ExecutableDataDeneb{}
+		Value: encoding.SSZInterfaceCodec[engineprimitives.ExecutionPayload]{
+			Factory: func() engineprimitives.ExecutionPayload {
+				return &engineprimitives.ExecutableDataDeneb{}
 			},
 		},
 	}
