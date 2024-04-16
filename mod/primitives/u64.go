@@ -114,5 +114,6 @@ func (u U64) ILog2Ceil() uint8 {
 	if u == 0 {
 		return 0
 	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
 	return 64 - uint8(bits.LeadingZeros64(uint64(u-1)))
 }
