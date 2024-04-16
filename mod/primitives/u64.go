@@ -27,6 +27,7 @@ package primitives
 
 import (
 	"encoding/binary"
+	"math/bits"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -91,4 +92,28 @@ func (u U64) MarshalText() ([]byte, error) {
 // Unwrap returns the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {
 	return uint64(u)
+}
+
+// NextPowerOfTwo returns the next power of two greater than or equal to the.
+//
+//nolint:gomnd // powers of 2.
+func (u U64) NextPowerOfTwo() U64 {
+	u--
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u++
+	return u
+}
+
+// ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
+func (u U64) ILog2Ceil() uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return 64 - uint8(bits.LeadingZeros64(uint64(u-1)))
 }
