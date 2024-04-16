@@ -26,11 +26,9 @@
 package deneb
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/version"
-	"github.com/berachain/beacon-kit/mod/core/types"
-	types0 "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/davecgh/go-spew/spew"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -46,9 +44,13 @@ func DefaultBeaconState() *BeaconState {
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		Fork: &primitives.Fork{
-			PreviousVersion: version.FromUint32(version.Deneb),
-			CurrentVersion:  version.FromUint32(version.Deneb),
-			Epoch:           0,
+			PreviousVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			CurrentVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			Epoch: 0,
 		},
 		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
@@ -57,8 +59,8 @@ func DefaultBeaconState() *BeaconState {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots:             make([][32]byte, 8),
-		StateRoots:             make([][32]byte, 8),
+		BlockRoots:             make([]primitives.Root, 8),
+		StateRoots:             make([]primitives.Root, 8),
 		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
@@ -66,11 +68,11 @@ func DefaultBeaconState() *BeaconState {
 			BlockHash:    primitives.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
-		Validators:                   make([]*types.Validator, 0),
+		Validators:                   make([]*primitives.Validator, 0),
 		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
-		RandaoMixes:                  make([][32]byte, 8),
+		RandaoMixes:                  make([]primitives.Bytes32, 8),
 		Slashings:                    make([]uint64, 0),
 		TotalSlashing:                0,
 	}
@@ -79,9 +81,8 @@ func DefaultBeaconState() *BeaconState {
 // DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
 //
 //nolint:gomnd // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
-	baseFeePerGas := hexutil.MustDecode("0x3b9aca")
-	return &types0.ExecutableDataDeneb{
+func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
+	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: common.HexToHash(
@@ -93,28 +94,24 @@ func DefaultGenesisExecutionPayload() *types0.ExecutableDataDeneb {
 		LogsBloom: make([]byte, 256),
 		Random:    primitives.ExecutionHash{},
 		Number:    0,
-		GasLimit:  hexutil.MustDecodeUint64("0x1c9c380"),
+		GasLimit:  primitives.U64(hexutil.MustDecodeUint64("0x1c9c380")),
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: append(
-			baseFeePerGas,
-			make([]byte, 32-len(baseFeePerGas))...),
+		BaseFeePerGas: primitives.NewU256LFromBigEndian(
+			hexutil.MustDecode("0x3b9aca"),
+		),
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		Transactions:  [][]byte{},
-		Withdrawals:   []*primitives.Withdrawal{},
+		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   0,
 		ExcessBlobGas: 0,
 	}
 }
 
-// TODO: should we replace ? in ssz-size with values to ensure we are hash tree
-// rooting correctly?
-//
-//go:generate go run github.com/fjl/gencodec -type BeaconState -field-override BeaconStateJSONMarshaling -out deneb.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../execution/types,$GETH_PKG_INCLUDE/common -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
@@ -126,20 +123,20 @@ type BeaconState struct {
 
 	// History
 	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        [][32]byte                    `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        [][32]byte                    `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	BlockRoots        []primitives.Root             `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	LatestExecutionPayload *types0.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *primitives.Eth1Data        `json:"eth1Data"`
-	Eth1DepositIndex       uint64                      `json:"eth1DepositIndex"`
+	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
+	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
+	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
+	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
+	Balances   []uint64                `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
-	RandaoMixes [][32]byte `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
@@ -148,18 +145,4 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing primitives.Gwei `json:"totalSlashing"`
-}
-
-// String returns a string representation of BeaconState.
-func (b *BeaconState) String() string {
-	return spew.Sdump(b)
-}
-
-// BeaconStateJSONMarshaling is a type used to marshal/unmarshal
-// BeaconState.
-type BeaconStateJSONMarshaling struct {
-	GenesisValidatorsRoot hexutil.Bytes
-	BlockRoots            []primitives.Root
-	StateRoots            []primitives.Root
-	RandaoMixes           []primitives.Root
 }

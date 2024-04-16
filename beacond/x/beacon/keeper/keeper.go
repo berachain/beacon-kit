@@ -30,12 +30,12 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
@@ -45,20 +45,39 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beacondb.KVStore
-	cfg               *params.BeaconChainConfig
+	beaconStore       *beacondb.KVStore[
+		*primitives.Deposit,
+		*primitives.Fork,
+		*primitives.BeaconBlockHeader,
+		engineprimitives.ExecutionPayload,
+		*primitives.Eth1Data,
+		*primitives.Validator,
+	]
+	cfg primitives.ChainSpec
+}
+
+// TODO: move this.
+func DenebPayloadFactory() engineprimitives.ExecutionPayload {
+	return &engineprimitives.ExecutableDataDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg *params.BeaconChainConfig,
+	cfg primitives.ChainSpec,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
-		beaconStore:       beacondb.New(env.KVStoreService),
-		cfg:               cfg,
+		beaconStore: beacondb.New[
+			*primitives.Deposit,
+			*primitives.Fork,
+			*primitives.BeaconBlockHeader,
+			engineprimitives.ExecutionPayload,
+			*primitives.Eth1Data,
+			*primitives.Validator,
+		](env.KVStoreService, DenebPayloadFactory),
+		cfg: cfg,
 	}
 }
 

@@ -29,6 +29,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
+	"github.com/davecgh/go-spew/spew"
 	fssz "github.com/ferranbt/fastssz"
 )
 
@@ -38,7 +39,6 @@ import (
 type SSZMarshallable interface {
 	fssz.Marshaler
 	fssz.Unmarshaler
-	String() string
 }
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
@@ -75,7 +75,7 @@ func (SSZValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
 
 // Stringify returns the string representation of the provided value.
 func (SSZValueCodec[T]) Stringify(value T) string {
-	return value.String()
+	return spew.Sdump(value)
 }
 
 // ValueType returns the name of the interface that this codec is intended for.
@@ -122,7 +122,7 @@ func (SSZInterfaceCodec[T]) DecodeJSON(_ []byte) (T, error) {
 
 // Stringify returns the string representation of the provided value.
 func (SSZInterfaceCodec[T]) Stringify(value T) string {
-	return value.String()
+	return spew.Sdump(value)
 }
 
 // ValueType returns the name of the interface that this codec is intended for.

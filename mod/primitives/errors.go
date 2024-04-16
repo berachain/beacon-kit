@@ -28,9 +28,6 @@ package primitives
 import "errors"
 
 var (
-	// ErrInvalidBufferSize indicates that the provided buffer size is invalid.
-	ErrInvalidBufferSize = errors.New("invalid buffer size")
-
 	// ErrDepositMessage is an error for when the deposit signature doesn't
 	// match.
 	ErrDepositMessage = errors.New("invalid deposit message")
@@ -39,4 +36,8 @@ var (
 	ErrInvalidWithdrawalCredentials = errors.New(
 		"invalid withdrawal credentials",
 	)
+
+	// ErrInvalidSSZLength is returned when an invalid SSZ length is
+	// encountered.
+	ErrInvalidSSZLength = errors.New("invalid ssz length")
 )

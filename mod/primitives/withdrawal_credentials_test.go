@@ -58,7 +58,8 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 		primitives.ExecutionAddress(expectedCredentials[12:]),
 		"Expected address to be set correctly",
 	)
-	credentials := primitives.NewCredentialsFromExecutionAddress(address)
+	credentials := primitives.
+		NewCredentialsFromExecutionAddress(address)
 	require.Equal(
 		t,
 		expectedCredentials,

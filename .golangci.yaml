@@ -1,7 +1,7 @@
 # This code is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021 Marat Reymers
 
-## Golden config for golangci-lint v1.56.2
+## Golden config for golangci-lint v1.57.2
 #
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
@@ -133,8 +133,8 @@ linters-settings:
             reason: "satori's package is not maintained"
         - github.com/gofrs/uuid:
             recommendations:
-              - github.com/google/uuid
-            reason: "gofrs' package is not go module"
+              - github.com/gofrs/uuid/v5
+            reason: "gofrs' package was not go module before v5"
 
   govet:
     # Enable all analyzers.
@@ -160,7 +160,7 @@ linters-settings:
     # Tab width in spaces.
     # Default: 1
     tab-width: 1
- 
+
   inamedparam:
     # Skips check for interface methods with only a single parameter.
     # Default: false
@@ -174,13 +174,18 @@ linters-settings:
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [ funlen, gocognit, lll, dupword, gomnd ]
+    allow-no-explanation: [ funlen, gocognit, lll ]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true
     # Enable to require nolint directives to mention the specific linter being suppressed.
     # Default: false
     require-specific: true
+
+  perfsprint:
+    # Optimizes into strings concatenation.
+    # Default: true
+    strconcat: true
 
   rowserrcheck:
     # database/sql is always checked
@@ -211,6 +216,7 @@ linters:
     - asciicheck # checks that your code does not contain non-ASCII identifiers
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
+    - copyloopvar # detects places where loop variables are copied
     - cyclop # checks function and package cyclomatic complexity
     - dupl # tool for code clone detection
     - durationcheck # checks for two durations multiplied together
@@ -236,6 +242,7 @@ linters:
     - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
     - goprintffuncname # checks that printf-like functions are named with f at the end
     - gosec # inspects source code for security problems
+    - intrange # finds places where for loops could make use of an integer range
     - lll # reports long lines
     - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
     - makezero # finds slice declarations with non-zero initial length
@@ -270,7 +277,7 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
-    
+
     ## you may want to enable
     - decorder # checks declaration order and count of types, constants, variables and functions
     #- exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
@@ -309,24 +316,12 @@ linters:
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
 
-    ## deprecated
-    #- deadcode # [deprecated, replaced by unused] finds unused code
-    #- exhaustivestruct # [deprecated, replaced by exhaustruct] checks if all struct's fields are initialized
-    #- golint # [deprecated, replaced by revive] golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes
-    #- ifshort # [deprecated] checks that your code uses short syntax for if-statements whenever possible
-    #- interfacer # [deprecated] suggests narrower interface types
-    #- maligned # [deprecated, replaced by govet fieldalignment] detects Go structs that would take less memory if their fields were sorted
-    #- nosnakecase # [deprecated, replaced by revive var-naming] detects snake case of variable naming and function name
-    #- scopelint # [deprecated, replaced by exportloopref] checks for unpinned variables in go programs
-    #- structcheck # [deprecated, replaced by unused] finds unused struct fields
-    #- varcheck # [deprecated, replaced by unused] finds unused global variables and constants
-
 
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
   # Default: 3
-  max-same-issues: 3
+  max-same-issues: 50
 
   exclude-rules:
     - source: "(noinspection|TODO)"
@@ -342,7 +337,3 @@ issues:
         - gosec
         - noctx
         - wrapcheck
-
-    # TODO: remove after PR is released https://github.com/golangci/golangci-lint/pull/4386
-    - text: "fmt.Sprintf can be replaced with string addition"
-      linters: [ perfsprint ]

@@ -28,9 +28,8 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/types"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -57,7 +56,7 @@ type ReadOnlyBeaconState interface {
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
+	GetValidators() ([]*primitives.Validator, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
@@ -108,10 +107,10 @@ type ReadOnlyRandaoMixes interface {
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		primitives.ValidatorIndex,
-		*types.Validator,
+		*primitives.Validator,
 	) error
 
-	AddValidator(*types.Validator) error
+	AddValidator(*primitives.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
@@ -122,27 +121,27 @@ type ReadOnlyValidators interface {
 
 	ValidatorByIndex(
 		primitives.ValidatorIndex,
-	) (*types.Validator, error)
+	) (*primitives.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	UpdateLatestExecutionPayload(enginetypes.ExecutionPayload) error
+	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits(primitives.Deposits) error
-	DequeueDeposits(uint64) (primitives.Deposits, error)
+	EnqueueDeposits([]*primitives.Deposit) error
+	DequeueDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetLatestExecutionPayload() (enginetypes.ExecutionPayload, error)
+	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) (primitives.Deposits, error)
+	ExpectedDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 }

@@ -44,8 +44,7 @@ func FuzzQueueSimple(f *testing.F) {
 		}
 
 		trackedItems := make([]int64, 0)
-		for i := int64(0); i < n1; i++ {
-			i := i // must capture loop var
+		for i := range n1 {
 			require.NoError(t, q.Push(ctx, i))
 			trackedItems = append(trackedItems, i)
 		}
@@ -56,7 +55,7 @@ func FuzzQueueSimple(f *testing.F) {
 		require.Equal(t, n1, int64(l))
 
 		// n2 >= n1
-		for i := int64(0); i < n2; i++ {
+		for i := range n2 {
 			var item int64
 			item, err = q.Pop(ctx)
 			if i < n1 {
@@ -73,8 +72,7 @@ func FuzzQueueSimple(f *testing.F) {
 		require.Len(t, trackedItems, int(l))
 		require.Equal(t, uint64(0), l)
 
-		for i := int64(0); i < n3; i++ {
-			i := i // must capture loop var
+		for i := range n3 {
 			require.NoError(t, q.Push(ctx, n1+i))
 			trackedItems = append(trackedItems, n1+i)
 		}
@@ -86,7 +84,7 @@ func FuzzQueueSimple(f *testing.F) {
 
 		// n3 >= n4
 		require.GreaterOrEqual(t, n3, n4)
-		for i := int64(0); i < n4; i++ {
+		for range n4 {
 			var item int64
 			item, err = q.Pop(ctx)
 			require.NoError(t, err)
@@ -125,7 +123,7 @@ func FuzzQueueMulti(f *testing.F) {
 		}
 
 		trackedItems := make([]int64, 0)
-		for i := int64(0); i < n1; i++ {
+		for i := range n1 {
 			trackedItems = append(trackedItems, i)
 		}
 		require.Len(t, trackedItems, int(n1))
@@ -146,7 +144,7 @@ func FuzzQueueMulti(f *testing.F) {
 		poppedItems, err := q.PopMulti(ctx, uint64(n2))
 		require.NoError(t, err)
 		require.Len(t, poppedItems, int(n1))
-		for i := 0; i < len(trackedItems); i++ {
+		for i := range trackedItems {
 			require.Equal(t, trackedItems[i], poppedItems[i])
 		}
 
@@ -161,7 +159,7 @@ func FuzzQueueMulti(f *testing.F) {
 		require.Equal(
 			t, l, uint64(ml), "Queue length should match container length")
 
-		for i := int64(0); i < n3; i++ {
+		for i := range n3 {
 			trackedItems = append(trackedItems, n1+i)
 		}
 		require.Len(t, trackedItems, int(n3))
@@ -182,7 +180,7 @@ func FuzzQueueMulti(f *testing.F) {
 		poppedItems, err = q.PopMulti(ctx, uint64(n4))
 		require.NoError(t, err)
 		require.Len(t, poppedItems, int(n4))
-		for i := int64(0); i < n4; i++ {
+		for i := range n4 {
 			require.Equal(t, trackedItems[i], poppedItems[i])
 		}
 
@@ -198,7 +196,7 @@ func FuzzQueueMulti(f *testing.F) {
 		poppedItems, err = q.PopMulti(ctx, uint64(n3))
 		require.NoError(t, err)
 		require.Len(t, poppedItems, int(n3-n4))
-		for i := int64(0); i < n3-n4; i++ {
+		for i := range n3 - n4 {
 			require.Equal(t, trackedItems[n4+i], poppedItems[i])
 		}
 

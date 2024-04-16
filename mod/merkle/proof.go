@@ -29,17 +29,23 @@ import (
 	sha256 "github.com/minio/sha256-simd"
 )
 
-// VerifyMerkleProof given a tree root, a leaf, the generalized merkle index
+// VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
-func VerifyMerkleProof(
-	root, leaf [32]byte,
+func VerifyProof[RootT, ProofT ~[32]byte](
+	root, leaf RootT,
 	merkleIndex uint64,
-	proof [][32]byte,
+	proof []ProofT,
 ) bool {
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
+	if len(proof) > int(^uint8(0)) {
+		return false
+	}
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
-		uint64(len(proof)),
+		//#nosec:G701 // we check the length of the proof above.
+		uint8(len(proof)),
 		merkleIndex,
 		root,
 	)
@@ -49,10 +55,12 @@ func VerifyMerkleProof(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
 //
 //nolint:lll
-func IsValidMerkleBranch(
-	leaf [32]byte, branch [][32]byte, depth, index uint64, root [32]byte,
+func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
+	leaf RootT, branch []BranchT, depth uint8, index uint64, root RootT,
 ) bool {
-	if uint64(len(branch)) != depth {
+	//#nosec:G701 `int`` is at minimum 32-bits and thus a
+	// uint8 will always fit.
+	if len(branch) != int(depth) {
 		return false
 	}
 	return RootFromBranch(leaf, branch, depth, index) == root
@@ -63,15 +71,15 @@ func IsValidMerkleBranch(
 // https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
 //
 //nolint:lll
-func RootFromBranch(
-	leaf [32]byte,
-	branch [][32]byte,
-	depth uint64,
+func RootFromBranch[RootT, BranchT ~[32]byte](
+	leaf RootT,
+	branch []BranchT,
+	depth uint8,
 	index uint64,
-) [32]byte {
+) RootT {
 	merkleRoot := leaf
 	var hashInput [64]byte
-	for i := uint64(0); i < depth; i++ {
+	for i := range depth {
 		//nolint:gomnd // from spec.
 		ithBit := (index >> i) & 0x01
 		if ithBit == 1 {

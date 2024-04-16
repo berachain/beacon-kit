@@ -25,15 +25,9 @@
 
 package primitives
 
-import (
-	"encoding/json"
-)
-
 // BeaconBlockHeader is the header of a beacon block.
 //
-//go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -out header.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include bytes.go,primitives.go,$GETH_PKG_INCLUDE/common -output header.ssz.go
-
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./bytes.go,./u64.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
 	Slot Slot `json:"slot"`
@@ -46,11 +40,4 @@ type BeaconBlockHeader struct {
 	StateRoot Root `json:"stateRoot"     ssz-size:"32"`
 	// 	// BodyRoot is the root of the block body.
 	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
-}
-
-// String returns a string representation of the beacon block header.
-func (h *BeaconBlockHeader) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(h)
-	return string(output)
 }

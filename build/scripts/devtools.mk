@@ -25,11 +25,11 @@ sync:
 
 tidy: ## run go mod tidy in all modules
 	@echo "Running go mod tidy in all modules"
-	@find . -name 'go.mod' -execdir go mod tidy \;
-
+	@find . -name 'go.mod' ! -path './go.mod' -execdir go mod tidy \;
 
 yap: ## the yap cave
 	@go run ./mod/node-builder/utils/yap/yap.go
 
 
 .PHONY: format build test-unit bet
+

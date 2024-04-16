@@ -53,3 +53,27 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 	}
 	return ExecutionAddress(wc[12:]), nil
 }
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
+	return (*Bytes32)(wc).UnmarshalJSON(input)
+}
+
+// String returns the hex string representation of Bytes32.
+// TODO: Figure out how to not have to do this.
+func (wc WithdrawalCredentials) String() string {
+	return Bytes32(wc).String()
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
+	return Bytes32(wc).MarshalText()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
+// TODO: Figure out how to not have to do this.
+func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
+	return (*Bytes32)(wc).UnmarshalText(text)
+}

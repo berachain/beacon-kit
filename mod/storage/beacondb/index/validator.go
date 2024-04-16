@@ -28,7 +28,7 @@ package index
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Collection prefixes.
@@ -39,23 +39,44 @@ const (
 	validatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
 )
 
+// Validator is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type Validator interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
+	// GetPubkey returns the public key of the validator.
+	GetPubkey() primitives.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator.
+	GetEffectiveBalance() primitives.Gwei
+}
+
 // ValidatorsIndex is a struct that holds a unique index for validators based
 // on their public key.
-type ValidatorsIndex struct {
+type ValidatorsIndex[ValidatorT Validator] struct {
 	// Pubkey is a unique index mapping a validator's public key to their
 	// numeric ID and vice versa.
-	Pubkey *indexes.Unique[[]byte, uint64, *beacontypes.Validator]
+	Pubkey *indexes.Unique[[]byte, uint64, ValidatorT]
 	// EffectiveBalance is a multi-index mapping a validator's effective balance
 	// to their numeric ID.
-	EffectiveBalance *indexes.Multi[uint64, uint64, *beacontypes.Validator]
+	EffectiveBalance *indexes.Multi[uint64, uint64, ValidatorT]
 }
 
 // IndexesList returns a list of all indexes associated with the
 // validatorsIndex.
-func (a ValidatorsIndex) IndexesList() []sdkcollections.Index[
-	uint64, *beacontypes.Validator,
+func (a ValidatorsIndex[ValidatorT]) IndexesList() []sdkcollections.Index[
+	uint64, ValidatorT,
 ] {
-	return []sdkcollections.Index[uint64, *beacontypes.Validator]{
+	return []sdkcollections.Index[uint64, ValidatorT]{
 		a.Pubkey,
 		a.EffectiveBalance,
 	}
@@ -63,8 +84,10 @@ func (a ValidatorsIndex) IndexesList() []sdkcollections.Index[
 
 // NewValidatorsIndex creates a new validatorsIndex with a unique index for
 // validator public keys.
-func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) ValidatorsIndex {
-	return ValidatorsIndex{
+func NewValidatorsIndex[ValidatorT Validator](
+	sb *sdkcollections.SchemaBuilder,
+) ValidatorsIndex[ValidatorT] {
+	return ValidatorsIndex[ValidatorT]{
 		Pubkey: indexes.NewUnique(
 			sb,
 			sdkcollections.NewPrefix(validatorPubkeyToIndexPrefix),
@@ -72,8 +95,9 @@ func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) ValidatorsIndex {
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
 
-			func(_ uint64, validator *beacontypes.Validator) ([]byte, error) {
-				return validator.Pubkey[:], nil
+			func(_ uint64, validator ValidatorT) ([]byte, error) {
+				pk := validator.GetPubkey()
+				return pk[:], nil
 			},
 		),
 		EffectiveBalance: indexes.NewMulti(
@@ -82,8 +106,8 @@ func NewValidatorsIndex(sb *sdkcollections.SchemaBuilder) ValidatorsIndex {
 			validatorEffectiveBalanceToIndexPrefix,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Key,
-			func(_ uint64, validator *beacontypes.Validator) (uint64, error) {
-				return uint64(validator.EffectiveBalance), nil
+			func(_ uint64, validator ValidatorT) (uint64, error) {
+				return uint64(validator.GetEffectiveBalance()), nil
 			},
 		),
 	}

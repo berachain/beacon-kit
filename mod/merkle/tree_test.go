@@ -35,11 +35,11 @@ import (
 )
 
 const (
-	TreeDepth uint64 = 32
+	treeDepth uint8 = 32
 )
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
-	_, err := merkle.NewTreeFromLeavesWithDepth(nil, TreeDepth)
+	_, err := merkle.NewTreeFromLeavesWithDepth(nil, treeDepth)
 	require.ErrorIs(t, err, merkle.ErrEmptyLeaves)
 }
 
@@ -77,7 +77,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	}
 	m, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(t, err)
 	proof, err := m.MerkleProofWithMixin(0)
@@ -85,18 +85,18 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	require.Len(
 		t,
 		proof,
-		int(TreeDepth)+1,
+		int(treeDepth)+1,
 	)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
-	require.True(t, merkle.VerifyMerkleProof(
+	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,
 	), "First Merkle proof did not verify")
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	require.True(
 		t,
-		merkle.VerifyMerkleProof(
+		merkle.VerifyProof(
 			root,
 			items[3],
 			3,
@@ -108,14 +108,14 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		merkle.IsValidMerkleBranch(
 			byteslib.ToBytes32([]byte("buzz")),
 			proof,
-			TreeDepth,
+			treeDepth,
 			3,
 			root,
 		),
 	)
 }
 
-func TestMerkleTree_VerifyMerkleProof(t *testing.T) {
+func TestMerkleTree_VerifyProof(t *testing.T) {
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -129,7 +129,7 @@ func TestMerkleTree_VerifyMerkleProof(t *testing.T) {
 
 	m, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(t, err)
 	proof, err := m.MerkleProofWithMixin(0)
@@ -137,19 +137,19 @@ func TestMerkleTree_VerifyMerkleProof(t *testing.T) {
 	require.Len(
 		t,
 		proof,
-		int(TreeDepth)+1,
+		int(treeDepth)+1,
 	)
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
-	if ok := merkle.VerifyMerkleProof(root, items[0], 0, proof); !ok {
+	if ok := merkle.VerifyProof(root, items[0], 0, proof); !ok {
 		t.Error("First Merkle proof did not verify")
 	}
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
-	require.True(t, merkle.VerifyMerkleProof(root, items[3], 3, proof))
+	require.True(t, merkle.VerifyProof(root, items[3], 3, proof))
 	require.False(
 		t,
-		merkle.VerifyMerkleProof(
+		merkle.VerifyProof(
 			root,
 			byteslib.ToBytes32([]byte("buzz")),
 			3,
@@ -171,22 +171,21 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 	}
 	m, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(t, err)
 	err = m.Insert(byteslib.ToBytes32([]byte{'J'}), -1)
 	require.ErrorIs(t, err, merkle.ErrNegativeIndex)
 }
 
-func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
+func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 	items := [][32]byte{
 		{1},
 		{2},
 		{3},
 		{4},
 	}
-	treeDepth := TreeDepth + 1
-	m, err := merkle.NewTreeFromLeavesWithDepth(items, treeDepth)
+	m, err := merkle.NewTreeFromLeavesWithDepth(items, treeDepth+1)
 	require.NoError(t, err)
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)
@@ -194,7 +193,7 @@ func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	require.True(
 		t,
-		merkle.VerifyMerkleProof(
+		merkle.VerifyProof(
 			root,
 			items[0],
 			0,
@@ -208,10 +207,10 @@ func TestMerkleTree_VerifyMerkleProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	root, err = m.HashTreeRoot()
 	require.NoError(t, err)
-	require.True(t, merkle.VerifyMerkleProof(
+	require.True(t, merkle.VerifyProof(
 		root, [32]byte{5}, 3, proof,
 	), "Second Merkle proof did not verify")
-	require.False(t, merkle.VerifyMerkleProof(
+	require.False(t, merkle.VerifyProof(
 		root, [32]byte{4}, 3, proof,
 	), "Old item should not verify")
 
@@ -232,7 +231,7 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := merkle.NewTreeFromLeavesWithDepth(
 			items,
-			TreeDepth,
+			treeDepth,
 		)
 		require.NoError(b, err, "Could not generate Merkle tree from items")
 	}
@@ -242,18 +241,18 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	b.StopTimer()
 	numDeposits := 16000
 	items := make([][32]byte, numDeposits)
-	for i := 0; i < numDeposits; i++ {
+	for i := range numDeposits {
 		items[i] = byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 	}
 	tr, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(b, err)
 
 	someItem := byteslib.ToBytes32([]byte("hello-world"))
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for i := range b.N {
 		require.NoError(b, tr.Insert(someItem, i%numDeposits))
 	}
 }
@@ -271,7 +270,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 	}
 	goodTree, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(b, err)
 
@@ -295,7 +294,7 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	}
 	m, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
-		TreeDepth,
+		treeDepth,
 	)
 	require.NoError(b, err)
 	proof, err := m.MerkleProofWithMixin(2)
@@ -306,7 +305,7 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		if ok := merkle.IsValidMerkleBranch(
-			items[2], proof, TreeDepth, 2, root,
+			items[2], proof, treeDepth, 2, root,
 		); !ok {
 			b.Error("Merkle proof did not verify")
 		}

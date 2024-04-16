@@ -30,14 +30,6 @@ import (
 )
 
 var (
-	// errInvalidIndex          = errors.New("index out of bounds").
-	errInvalidInclusionProof = errors.New(
-		"invalid KZG commitment inclusion proof",
-	)
-	// errNilBlockHeader = errors.New("received nil beacon block header").
-)
-
-var (
 	// ErrInvalidExecutionValue is an error for when the
 	// execution value is invalid.
 	ErrInvalidExecutionValue = errors.New("invalid execution value")

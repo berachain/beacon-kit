@@ -25,18 +25,10 @@
 
 package primitives
 
-import (
-	"github.com/davecgh/go-spew/spew"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
-)
-
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
-
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit,DepositMessage -include ./withdrawal_credentials.go,./bytes.go,./execution.go,./math.go,./primitives.go,$GETH_PKG_INCLUDE/common -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,./primitives.go,./u64.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -70,52 +62,4 @@ func NewDeposit(
 		Signature:   signature,
 		Index:       index,
 	}
-}
-
-// String returns a string representation of the Deposit.
-func (d *Deposit) String() string {
-	return spew.Sdump(d)
-}
-
-// DepositMessage as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
-//
-//nolint:lll
-type DepositMessage struct {
-	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
-
-	// A staking credentials with
-	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
-
-	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
-}
-
-// VerifyDeposit verifies the deposit data when attempting to create a
-// new validator from a given deposit.
-func (d *DepositMessage) VerifyCreateValidator(
-	forkData *ForkData,
-	signature BLSSignature,
-) error {
-	domain, err := forkData.ComputeDomain(DomainTypeDeposit)
-	if err != nil {
-		return err
-	}
-
-	signingRoot, err := ComputeSigningRoot(d, domain)
-	if err != nil {
-		return err
-	}
-
-	if !blst.VerifySignaturePubkeyBytes(
-		d.Pubkey[:],
-		signingRoot[:],
-		signature[:],
-	) {
-		return ErrDepositMessage
-	}
-
-	return nil
 }
