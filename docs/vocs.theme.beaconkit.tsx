@@ -63,10 +63,9 @@ import { Theme } from "vocs";
 // Main App Component
 // ========================================================
 export const theme: Theme = {
-  accentColor: {
-    light: "#FFC774",
-    dark: "#61CEFD",
-  },
+  accentColor: "#D57F00",
+  // light: "#D57F00",
+  // dark: "#61CEFD",
   variables: {
     color: {
       background: {
