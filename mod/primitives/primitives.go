@@ -35,6 +35,16 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Epoch uint64
 
+	// Domain as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	//nolint:lll
+	Domain = Bytes32
+
+	// DomainType as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	//nolint:lll
+	DomainType = Bytes4
+
 	// CommitteeIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	CommitteeIndex = U64
@@ -71,6 +81,6 @@ type (
 	// the best compatibility with the SSZ spec.
 	Wei = U256L
 
-	// Gwei is a denomination of 1e9 Wei represented as an uint64.
+	// Gwei is a denomination of 1e9 Wei represented as a U64.
 	Gwei = U64
 )

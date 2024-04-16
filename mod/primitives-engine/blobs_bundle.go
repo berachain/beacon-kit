@@ -25,31 +25,31 @@
 
 package engineprimitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/kzg"
-
 // BlobsBundleV1 represents a collection of commitments, proofs, and blobs.
 // Each field is a slice of bytes that are serialized for transmission or
 // storage.
-type BlobsBundleV1 struct {
+type BlobsBundleV1[
+	C, P ~[48]byte, B ~[131072]byte,
+] struct {
 	// Commitments are the KZG commitments included in the bundle.
-	Commitments []kzg.Commitment `json:"commitments"`
+	Commitments []C `json:"commitments"`
 	// Proofs are the KZG proofs corresponding to the commitments.
-	Proofs []kzg.Proof `json:"proofs"`
+	Proofs []P `json:"proofs"`
 	// Blobs are arbitrary data blobs included in the bundle.
-	Blobs []*kzg.Blob `json:"blobs"`
+	Blobs []*B `json:"blobs"`
 }
 
 // GetCommitments returns the slice of commitments in the bundle.
-func (b *BlobsBundleV1) GetCommitments() []kzg.Commitment {
+func (b *BlobsBundleV1[C, P, B]) GetCommitments() []C {
 	return b.Commitments
 }
 
 // GetProofs returns the slice of proofs in the bundle.
-func (b *BlobsBundleV1) GetProofs() []kzg.Proof {
+func (b *BlobsBundleV1[C, P, B]) GetProofs() []P {
 	return b.Proofs
 }
 
 // GetBlobs returns the slice of data blobs in the bundle.
-func (b *BlobsBundleV1) GetBlobs() []*kzg.Blob {
+func (b *BlobsBundleV1[C, P, B]) GetBlobs() []*B {
 	return b.Blobs
 }

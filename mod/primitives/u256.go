@@ -37,11 +37,11 @@ import (
 // U256NumBytes is the number of bytes in a uint256.
 const U256NumBytes = 32
 
-// U256 represents a uint256 number stored in big-endian
+// U256 represents a uint256 number stored as big-endian
 // format.
 type U256 = uint256.Int
 
-// U256L represents a uint256 number. It
+// U256L represents a uint256 number stored as little-endian. It
 // is designed to marshal and unmarshal JSON in big-endian
 // format, while under the hood storing the value as little-endian
 // for compatibility with the SSZ spec.

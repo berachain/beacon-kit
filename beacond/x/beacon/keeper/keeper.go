@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
@@ -50,13 +49,13 @@ type Keeper struct {
 	availabilityStore *da.Store
 	beaconStore       *beacondb.KVStore[
 		*consensusprimitives.Deposit,
-		*consensusprimitives.Fork,
+		*primitives.Fork,
 		*consensusprimitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*consensusprimitives.Eth1Data,
 		*types.Validator,
 	]
-	cfg params.ChainSpec
+	cfg primitives.ChainSpec
 }
 
 // TODO: move this.
@@ -68,13 +67,13 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayload {
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg params.ChainSpec,
+	cfg primitives.ChainSpec,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
 		beaconStore: beacondb.New[
 			*consensusprimitives.Deposit,
-			*consensusprimitives.Fork,
+			*primitives.Fork,
 			*consensusprimitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
 			*consensusprimitives.Eth1Data,

@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
@@ -44,7 +43,7 @@ import (
 
 // Processor is the randao processor.
 type Processor struct {
-	cs     params.ChainSpec
+	cs     primitives.ChainSpec
 	signer core.BLSSigner
 	logger log.Logger
 }
@@ -201,7 +200,7 @@ func (p *Processor) computeSigningRoot(
 		), genesisValidatorsRoot,
 	)
 
-	signingDomain, err := fd.ComputeDomain(consensusprimitives.DomainTypeRandao)
+	signingDomain, err := fd.ComputeDomain(p.cs.DomainTypeRandao())
 	if err != nil {
 		return primitives.Root{}, err
 	}

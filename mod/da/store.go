@@ -29,7 +29,6 @@ import (
 	"context"
 	"errors"
 
-	params "github.com/berachain/beacon-kit/mod/config/params"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -40,13 +39,13 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
-	chainSpec params.ChainSpec
+	chainSpec primitives.ChainSpec
 	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
 func NewStore(
-	chainSpec params.ChainSpec,
+	chainSpec primitives.ChainSpec,
 	db db.DB,
 ) *Store {
 	return &Store{

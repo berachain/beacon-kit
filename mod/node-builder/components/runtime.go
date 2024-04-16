@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
@@ -40,6 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
@@ -56,7 +56,7 @@ import (
 //nolint:funlen // bullish.
 func ProvideRuntime(
 	cfg *config.Config,
-	chainSpec params.ChainSpec,
+	chainSpec primitives.ChainSpec,
 	signer runtime.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,

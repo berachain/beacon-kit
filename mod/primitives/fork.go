@@ -23,20 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusprimitives
-
-import "github.com/berachain/beacon-kit/mod/primitives"
+package primitives
 
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../primitives -output fork.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ./bytes.go,./primitives.go -output fork.ssz.go
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
-	PreviousVersion primitives.Version
+	PreviousVersion Version
 	// CurrentVersion is the first version after the fork.
-	CurrentVersion primitives.Version
+	CurrentVersion Version
 	// Epoch is the epoch at which the fork occurred.
-	Epoch primitives.Epoch
+	Epoch Epoch
 }
