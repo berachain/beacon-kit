@@ -49,7 +49,7 @@ type Keeper struct {
 	availabilityStore *da.Store
 	beaconStore       *beacondb.KVStore[
 		*consensusprimitives.Deposit,
-		*consensusprimitives.Fork,
+		*primitives.Fork,
 		*consensusprimitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*consensusprimitives.Eth1Data,
@@ -73,7 +73,7 @@ func NewKeeper(
 		availabilityStore: da.NewStore(cfg, fdb),
 		beaconStore: beacondb.New[
 			*consensusprimitives.Deposit,
-			*consensusprimitives.Fork,
+			*primitives.Fork,
 			*consensusprimitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
 			*consensusprimitives.Eth1Data,

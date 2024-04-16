@@ -43,7 +43,7 @@ import (
 type StateDB struct {
 	*beacondb.KVStore[
 		*consensusprimitives.Deposit,
-		*consensusprimitives.Fork,
+		*primitives.Fork,
 		*consensusprimitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*consensusprimitives.Eth1Data,
@@ -56,7 +56,7 @@ type StateDB struct {
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
 		*consensusprimitives.Deposit,
-		*consensusprimitives.Fork,
+		*primitives.Fork,
 		*consensusprimitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*consensusprimitives.Eth1Data,
