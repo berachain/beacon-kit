@@ -23,10 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package chain
 
-// ChainSpec defines an interface for accessing chain-specific parameters.
-type ChainSpec interface {
+// Spec defines an interface for accessing chain-specific parameters.
+type Spec[
+	DomainTypeT ~[4]byte,
+	EpochT ~uint64,
+	ExecutionAddressT ~[20]byte,
+	SlotT ~uint64,
+] interface {
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -51,32 +56,32 @@ type ChainSpec interface {
 	// Signature Domains
 	//
 	// DomainTypeProposer returns the domain for proposer signatures.
-	DomainTypeProposer() DomainType
+	DomainTypeProposer() DomainTypeT
 	// DomainTypeAttester returns the domain for attester signatures.
-	DomainTypeAttester() DomainType
+	DomainTypeAttester() DomainTypeT
 	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
-	DomainTypeRandao() DomainType
+	DomainTypeRandao() DomainTypeT
 	// DomainTypeDeposit returns the domain for deposit signatures.
-	DomainTypeDeposit() DomainType
+	DomainTypeDeposit() DomainTypeT
 	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit() DomainType
+	DomainTypeVoluntaryExit() DomainTypeT
 	// DomainTypeSelectionProof returns the domain for selection proof
-	DomainTypeSelectionProof() DomainType
+	DomainTypeSelectionProof() DomainTypeT
 	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
-	DomainTypeAggregateAndProof() DomainType
+	DomainTypeAggregateAndProof() DomainTypeT
 	// DomainTypeApplicationMask returns the domain for application signatures.
-	DomainTypeApplicationMask() DomainType
+	DomainTypeApplicationMask() DomainTypeT
 
 	// Eth1-related values.
 	//
 	// DepositContractAddress returns the deposit contract address.
-	DepositContractAddress() ExecutionAddress
+	DepositContractAddress() ExecutionAddressT
 
 	// Fork-related values.
 	//
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
-	ElectraForkEpoch() Epoch
+	ElectraForkEpoch() EpochT
 
 	// State list lengths
 	//
@@ -126,13 +131,13 @@ type ChainSpec interface {
 	//
 	// ActiveForkVersionForSlot returns the active fork version for a given
 	// slot.
-	ActiveForkVersionForSlot(slot Slot) uint32
+	ActiveForkVersionForSlot(slot SlotT) uint32
 	// ActiveForkVersionForEpoch returns the active fork version for a given
 	// epoch.
-	ActiveForkVersionForEpoch(epoch Epoch) uint32
+	ActiveForkVersionForEpoch(epoch EpochT) uint32
 	// SlotToEpoch converts a slot number to an epoch number.
-	SlotToEpoch(slot Slot) Epoch
+	SlotToEpoch(slot SlotT) EpochT
 	// WithinDAPeriod checks if a given block slot is within the data
 	// availability period relative to the current slot.
-	WithinDAPeriod(block, current Slot) bool
+	WithinDAPeriod(block, current SlotT) bool
 }

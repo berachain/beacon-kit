@@ -23,9 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusprimitives
-
-import "github.com/berachain/beacon-kit/mod/primitives"
+package primitives
 
 // SigVerificationFn is a function that verifies a signature.
 type SigVerificationFn func(pubkey, message, signature []byte) bool
@@ -34,26 +32,26 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./u64.go,./primitives.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
+	Amount Gwei `json:"amount"`
 }
 
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
-	signature primitives.BLSSignature,
+	signature BLSSignature,
 	isSignatureValid SigVerificationFn,
-	domainType primitives.DomainType,
+	domainType DomainType,
 ) error {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {

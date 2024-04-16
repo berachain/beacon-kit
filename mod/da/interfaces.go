@@ -26,14 +26,14 @@
 package da
 
 import (
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 // BeaconBlock is a beacon block.
 type BeaconBlock[B BeaconBlockBody] interface {
 	GetBody() B
-	GetHeader() *consensusprimitives.BeaconBlockHeader
+	GetHeader() *primitives.BeaconBlockHeader
 }
 
 // BeaconBlockBody is the body of a beacon block.

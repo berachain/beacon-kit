@@ -23,40 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusprimitives
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+// This file contains various constants as defined:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
+//
+//nolint:lll
+const (
+	// GenesisSlot represents the initial slot in the system.
+	GenesisSlot = 0
+	// GenesisEpoch represents the initial epoch in the system.
+	GenesisEpoch = 0
+	// FarFutureEpoch represents a far future epoch value.
+	FarFutureEpoch = ^uint64(0)
 )
-
-// Deposit into the consensus layer from the deposit contract in the execution
-// layer.
-type DepositData struct {
-	// Public key of the validator specified in the deposit.
-	Pubkey primitives.BLSPubkey `json:"pubkey" ssz-max:"48"`
-
-	// A staking credentials with
-	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
-
-	// Deposit amount in gwei.
-	Amount primitives.Gwei `json:"amount"`
-
-	// Signature of the deposit data.
-	Signature primitives.BLSSignature `json:"signature" ssz-max:"96"`
-}
-
-// NewDeposit creates a new Deposit instance.
-func NewDepositData(
-	pubkey primitives.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount primitives.Gwei,
-	signature primitives.BLSSignature,
-) *DepositData {
-	return &DepositData{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
-	}
-}
