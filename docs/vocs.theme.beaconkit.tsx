@@ -27,7 +27,7 @@
 
 // Imports
 // ========================================================
-import { Theme } from 'vocs';
+import { Theme } from "vocs";
 
 // Constants
 // ========================================================
@@ -64,8 +64,16 @@ import { Theme } from 'vocs';
 // ========================================================
 export const theme: Theme = {
   accentColor: {
-    light: '#FF0101',
-    dark: '#61CEFD'
+    light: "#FFC774",
+    dark: "#61CEFD",
+  },
+  variables: {
+    color: {
+      background: {
+        light: "white",
+        dark: "black",
+      },
+    },
   },
   // accentColor: {
   //   light: `${Colors.almostBlack}`,
@@ -82,8 +90,8 @@ export const theme: Theme = {
   //     //   light: `rgba(60, 60, 67)`,
   //     //   dark: `${Colors.white}`
   //     // },
-  //     heading: { 
-  //       light: '#202020', 
+  //     heading: {
+  //       light: '#202020',
   //       dark: `${Colors.white}`,
   //     },
   //     background: {
@@ -94,7 +102,7 @@ export const theme: Theme = {
   //       light: `${Colors.softIvory}`,
   //       dark: `${Colors.velvetOnyx}`
   //     },
-  //     text3: { 
+  //     text3: {
   //       light: `${Colors.darkSlate}`,
   //       dark: `${Colors.mistyPewter}`
   //     }
