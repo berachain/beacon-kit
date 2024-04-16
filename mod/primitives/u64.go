@@ -27,6 +27,7 @@ package primitives
 
 import (
 	"encoding/binary"
+	"math/bits"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -72,6 +73,29 @@ func (u *U64) UnmarshalSSZ(buf []byte) error {
 // SizeSSZ returns the size of the U64 in bytes.
 func (u U64) SizeSSZ() int {
 	return U64NumBytes
+}
+
+// NextPowerOfTwo returns the next power of two greater than or equal to the
+func (u U64) NextPowerOfTwo() U64 {
+	u--
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u++
+	return u
+}
+
+// Calculate the integer logarithm base 2 of u (i.e., the position of the highest bit set).
+// This is equivalent to the number of leading zeros in a 64-bit integer minus one,
+// since the number of leading zeros is 64 minus the index of the highest set bit.
+func (u U64) ILog2() uint64 {
+	if u == 0 {
+		return 0 // log2(0) is undefined but return 0 for practical purposes
+	}
+	return uint64(63 - bits.LeadingZeros64(uint64(u)))
+
 }
 
 // -------------------------- JSONMarshallable -------------------------
