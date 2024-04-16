@@ -90,11 +90,11 @@ func (u U64) NextPowerOfTwo() U64 {
 }
 
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
-func (u U64) ILog2Ceil() U64 {
+func (u U64) ILog2Ceil() uint8 {
 	if u <= 1 {
 		return 0
 	}
-	return U64(64 - uint8(bits.LeadingZeros(uint(u))) - 1)
+	return 64 - uint8(bits.LeadingZeros(uint(u))) - 1
 }
 
 // -------------------------- JSONMarshallable -------------------------

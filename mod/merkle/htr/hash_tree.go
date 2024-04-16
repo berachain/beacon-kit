@@ -52,7 +52,7 @@ const (
 // and length passed in, the tree may be padded with additional
 // empty leaves.
 func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
-	depth := uint8(primitives.U64(length).NextPowerOfTwo().ILog2Ceil())
+	depth := primitives.U64(length).NextPowerOfTwo().ILog2Ceil()
 
 	// Return zerohash at depth
 	if len(leaves) == 0 {

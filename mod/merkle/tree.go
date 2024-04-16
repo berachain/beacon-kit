@@ -56,7 +56,7 @@ func NewTreeFromLeaves(
 ) (*Tree, error) {
 	return NewTreeFromLeavesWithDepth(
 		leaves,
-		uint8(primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil()),
+		primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -69,7 +69,7 @@ func NewTreeWithMaxLeaves(
 	// return NewTreeFromLeavesWithDepth(leaves, bitlen.CoverDepth(maxLeaves))
 	return NewTreeFromLeavesWithDepth(
 		leaves,
-		uint8((primitives.U64(maxLeaves)).NextPowerOfTwo().ILog2Ceil()),
+		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
