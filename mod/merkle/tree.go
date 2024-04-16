@@ -66,7 +66,6 @@ func NewTreeWithMaxLeaves(
 	leaves [][32]byte,
 	maxLeaves uint64,
 ) (*Tree, error) {
-	// return NewTreeFromLeavesWithDepth(leaves, bitlen.CoverDepth(maxLeaves))
 	return NewTreeFromLeavesWithDepth(
 		leaves,
 		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
