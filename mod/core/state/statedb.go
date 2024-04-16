@@ -28,11 +28,12 @@ package state
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
@@ -40,24 +41,38 @@ import (
 //
 //nolint:revive // todo fix somehow
 type StateDB struct {
-	*beacondb.KVStore
-	cfg *params.BeaconChainConfig
+	*beacondb.KVStore[
+		*consensusprimitives.Deposit,
+		*primitives.Fork,
+		*consensusprimitives.BeaconBlockHeader,
+		engineprimitives.ExecutionPayload,
+		*consensusprimitives.Eth1Data,
+		*types.Validator,
+	]
+	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
-	bdb *beacondb.KVStore,
-	cfg *params.BeaconChainConfig,
+	bdb *beacondb.KVStore[
+		*consensusprimitives.Deposit,
+		*primitives.Fork,
+		*consensusprimitives.BeaconBlockHeader,
+		engineprimitives.ExecutionPayload,
+		*consensusprimitives.Eth1Data,
+		*types.Validator,
+	],
+	cs primitives.ChainSpec,
 ) *StateDB {
 	return &StateDB{
 		KVStore: bdb,
-		cfg:     cfg,
+		cs:      cs,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cfg)
+	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
@@ -116,12 +131,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           primitives.Gwei
 		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*primitives.Withdrawal, 0)
+		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -129,7 +144,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 		return nil, err
 	}
 
-	epoch := primitives.Epoch(uint64(slot) / s.cfg.SlotsPerEpoch)
+	epoch := primitives.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -147,9 +162,9 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	}
 
 	// Iterate through indicies to find the next validators to withdraw.
-	for i := uint64(0); i < min(
-		s.cfg.MaxValidatorsPerWithdrawalsSweep, totalValidators,
-	); i++ {
+	for range min(
+		s.cs.MaxValidatorsPerWithdrawalsSweep(), totalValidators,
+	) {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -167,8 +182,8 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &primitives.Withdrawal{
-			Index:     withdrawalIndex,
+		withdrawal := &engineprimitives.Withdrawal{
+			Index:     primitives.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
 		}
@@ -177,8 +192,8 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 		// validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawal.Amount = balance
-		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cfg.MaxEffectiveBalance)) {
-			withdrawal.Amount = balance - primitives.Gwei(s.cfg.MaxEffectiveBalance)
+		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cs.MaxEffectiveBalance())) {
+			withdrawal.Amount = balance - primitives.Gwei(s.cs.MaxEffectiveBalance())
 		}
 		withdrawals = append(withdrawals, withdrawal)
 
@@ -187,7 +202,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
 		//#nosec:G701 // won't overflow in practice.
-		if len(withdrawals) == int(s.cfg.MaxWithdrawalsPerPayload) {
+		if len(withdrawals) == int(s.cs.MaxWithdrawalsPerPayload()) {
 			break
 		}
 
@@ -224,27 +239,23 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	var blockRoot [32]byte
-	blockRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
-	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
-		blockRoot, err = s.GetBlockRootAtIndex(i)
+	blockRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
+		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		blockRoots[i] = blockRoot
 	}
 
-	var stateRoot [32]byte
-	stateRoots := make([][32]byte, s.cfg.SlotsPerHistoricalRoot)
-	for i := uint64(0); i < s.cfg.SlotsPerHistoricalRoot; i++ {
-		stateRoot, err = s.StateRootAtIndex(i)
+	stateRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
+		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		stateRoots[i] = stateRoot
 	}
 
-	eth1BlockHash, err := s.GetEth1BlockHash()
+	latestExecutionPayload, err := s.GetLatestExecutionPayload()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -269,14 +280,12 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	var randaoMix [32]byte
-	randaoMixes := make([][32]byte, s.cfg.EpochsPerHistoricalVector)
-	for i := uint64(0); i < s.cfg.EpochsPerHistoricalVector; i++ {
-		randaoMix, err = s.GetRandaoMixAtIndex(i)
+	randaoMixes := make([]primitives.Bytes32, s.cs.EpochsPerHistoricalVector())
+	for i := range s.cs.EpochsPerHistoricalVector() {
+		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		randaoMixes[i] = randaoMix
 	}
 
 	nextWithdrawalIndex, err := s.GetNextWithdrawalIndex()
@@ -299,9 +308,15 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 
-	activeFork := s.cfg.ActiveForkVersionForSlot(slot)
+	activeFork := s.cs.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
+		executionPayload, ok :=
+			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
+		if !ok {
+			return [32]byte{}, errors.New(
+				"latest execution payload is not of type ExecutableDataDeneb")
+		}
 		return (&deneb.BeaconState{
 			Slot:                         slot,
 			GenesisValidatorsRoot:        genesisValidatorsRoot,
@@ -309,7 +324,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			Eth1BlockHash:                eth1BlockHash,
+			LatestExecutionPayload:       executionPayload,
 			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,

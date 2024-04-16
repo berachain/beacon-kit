@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +44,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		var r [32]byte
 		copy(r[:], _r)
 		slot := primitives.Slot(s)
-		pid := engine.PayloadID(_p[:8])
+		pid := engineprimitives.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
 
@@ -53,7 +53,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		require.Equal(t, pid, p)
 
 		// Test overwriting the same slot and root with a different PayloadID
-		newPid := engine.PayloadID{}
+		newPid := engineprimitives.PayloadID{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
@@ -87,7 +87,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(r[:], _r)
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
-		pid := engine.PayloadID(paddedPayload[:])
+		pid := engineprimitives.PayloadID(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
 
@@ -112,7 +112,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			copy(r[:], _r)
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
-			pid := engine.PayloadID(paddedPayload[:])
+			pid := engineprimitives.PayloadID(paddedPayload[:])
 			cacheUnderTest.Set((slot), r, pid)
 		}()
 

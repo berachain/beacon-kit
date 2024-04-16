@@ -29,17 +29,18 @@ import (
 	"context"
 
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/cockroachdb/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
+	ctx context.Context,
+	payload engineprimitives.ExecutionPayload,
+	versionedHashes []primitives.ExecutionHash,
+	parentBlockRoot *primitives.Root,
 ) (*primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -72,11 +73,13 @@ func (s *EngineClient) NewPayload(
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
-	ctx context.Context, payload enginetypes.ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash, parentBlockRoot *[32]byte,
-) (*engine.PayloadStatus, error) {
+	ctx context.Context,
+	payload engineprimitives.ExecutionPayload,
+	versionedHashes []primitives.ExecutionHash,
+	parentBlockRoot *primitives.Root,
+) (*engineprimitives.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
-	case *enginetypes.ExecutableDataDeneb:
+	case *engineprimitives.ExecutableDataDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
 	default:
 		return nil, ErrInvalidPayloadType
@@ -86,10 +89,10 @@ func (s *EngineClient) callNewPayloadRPC(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
-	state *engine.ForkchoiceState,
-	attrs enginetypes.PayloadAttributer,
+	state *engineprimitives.ForkchoiceState,
+	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engine.PayloadID, *primitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -111,10 +114,10 @@ func (s *EngineClient) ForkchoiceUpdated(
 // JSON-RPC.
 func (s *EngineClient) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *engine.ForkchoiceState,
-	attrs enginetypes.PayloadAttributer,
+	state *engineprimitives.ForkchoiceState,
+	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engine.ForkchoiceResponse, error) {
+) (*engineprimitives.ForkchoiceResponse, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
@@ -126,36 +129,37 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient) GetPayload(
-	ctx context.Context, payloadID engine.PayloadID, forkVersion uint32,
-) (enginetypes.ExecutionPayload, *engine.BlobsBundleV1, bool, error) {
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
+	forkVersion uint32,
+) (engineprimitives.BuiltExecutionPayload, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
 	var fn func(
-		context.Context, engine.PayloadID,
-	) (enginetypes.ExecutionPayloadEnvelope, error)
+		context.Context, engineprimitives.PayloadID,
+	) (engineprimitives.BuiltExecutionPayload, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
 	default:
-		return nil, nil, false, ErrInvalidGetPayloadVersion
+		return nil, ErrInvalidGetPayloadVersion
 	}
 
 	// Call and check for errors.
 	result, err := fn(dctx, payloadID)
 	switch {
 	case err != nil:
-		return nil, nil, false, s.handleRPCError(err)
+		return result, s.handleRPCError(err)
 	case result == nil:
-		return nil, nil, false, ErrNilExecutionPayloadEnvelope
+		return result, ErrNilExecutionPayloadEnvelope
 	case result.GetExecutionPayload() == nil:
-		return nil, nil, false, ErrNilExecutionPayload
+		return result, ErrNilExecutionPayload
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
-		return nil, nil, false, ErrNilBlobsBundle
+		return result, ErrNilBlobsBundle
 	}
 
-	return result.GetExecutionPayload(),
-		result.GetBlobsBundle(), result.ShouldOverrideBuilder(), nil
+	return result, nil
 }
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via

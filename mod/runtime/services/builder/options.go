@@ -26,7 +26,7 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
@@ -56,6 +56,16 @@ func WithDepositStore(ds *deposit.KVStore) service.Option[Service] {
 	}
 }
 
+// WithBlobFactory sets the blob factory.
+func WithBlobFactory(
+	factory BlobFactory[types.BeaconBlockBody],
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.blobFactory = factory
+		return nil
+	}
+}
+
 // WithLocalBuilder sets the local builder.
 func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
 	return func(s *Service) error {
@@ -81,7 +91,7 @@ func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer core.BLSSigner) service.Option[Service] {
+func WithSigner(signer BLSSigner) service.Option[Service] {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

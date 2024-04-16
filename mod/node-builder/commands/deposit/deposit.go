@@ -29,9 +29,12 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 )
 
@@ -104,17 +107,18 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	depositMessage := primitives.DepositMessage{
+	depositMessage := consensusprimitives.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 	}
 
-	forkData := primitives.NewForkData(currentVersion, genesisValidatorRoot)
-
 	return depositMessage.VerifyCreateValidator(
-		forkData,
+		consensusprimitives.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
+		blst.VerifySignaturePubkeyBytes,
+		// TODO: needs to be configurable.
+		params.LocalnetChainSpec().DomainTypeDeposit(),
 	)
 }
 
@@ -134,19 +138,19 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
 func ConvertWithdrawalCredentials(credentials string) (
-	primitives.WithdrawalCredentials,
+	consensusprimitives.WithdrawalCredentials,
 	error,
 ) {
 	// Convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
-		return primitives.WithdrawalCredentials{}, err
+		return consensusprimitives.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return primitives.WithdrawalCredentials{},
+		return consensusprimitives.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return primitives.WithdrawalCredentials(credentialsBytes), nil
+	return consensusprimitives.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.

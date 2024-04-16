@@ -30,19 +30,28 @@ import (
 )
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (kv *KVStore) GetNextWithdrawalIndex() (uint64, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalIndex() (uint64, error) {
 	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (kv *KVStore) SetNextWithdrawalIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
 	return kv.nextWithdrawalIndex.Set(kv.ctx, index)
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalValidatorIndex() (
 	primitives.ValidatorIndex, error,
 ) {
 	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
@@ -50,7 +59,10 @@ func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (kv *KVStore) SetNextWithdrawalValidatorIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalValidatorIndex(
 	index primitives.ValidatorIndex,
 ) error {
 	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))

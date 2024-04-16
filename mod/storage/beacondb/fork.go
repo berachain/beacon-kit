@@ -25,16 +25,20 @@
 
 package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore) SetFork(fork *primitives.Fork) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetFork(
+	fork ForkT,
+) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 
 // GetFork gets the fork version for the given epoch.
-func (kv *KVStore) GetFork() (*primitives.Fork, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetFork() (ForkT, error) {
 	return kv.fork.Get(kv.ctx)
 }

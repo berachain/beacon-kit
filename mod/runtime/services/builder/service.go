@@ -29,13 +29,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
@@ -46,7 +44,10 @@ type Service struct {
 	cfg *config.Config
 
 	// signer is used to retrieve the public key of this node.
-	signer core.BLSSigner
+	signer BLSSigner
+
+	// blobFactory is used to create blob sidecars for blocks.
+	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
 
 	ds *deposit.KVStore
 
@@ -90,7 +91,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.BeaconCfg().SlotsPerHistoricalRoot,
+		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -125,7 +126,7 @@ func (s *Service) RequestBestBlock(
 		proposerIndex,
 		parentBlockRoot,
 		stateRoot,
-		s.BeaconCfg().ActiveForkVersionForSlot(slot),
+		s.ChainSpec().ActiveForkVersionForSlot(slot),
 		reveal,
 	)
 	if err != nil {
@@ -134,10 +135,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
-	parentEth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, nil, err
 	}
+	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
 	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
@@ -168,12 +170,12 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
 
-	body.SetBlobKzgCommitments(kzg.CommitmentsFromBz(blobsBundle.Commitments))
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-	//nolint:contextcheck // its a todo to fix
 	deposits, err := s.ds.ExpectedDeposits(
-		s.BeaconCfg().MaxDepositsPerBlock,
+		s.ChainSpec().MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -187,8 +189,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	// Build the blob sidecars.
-	blobSidecars, err := beacontypes.BuildBlobSidecar(blk, blobsBundle)
+	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -38,8 +38,8 @@ import (
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -220,7 +220,7 @@ func (s *EngineClient) GetLogs(
 	ctx context.Context,
 	blockHash primitives.ExecutionHash,
 	addresses []primitives.ExecutionAddress,
-) ([]coretypes.Log, error) {
+) ([]engineprimitives.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.
 	query := ethereum.FilterQuery{

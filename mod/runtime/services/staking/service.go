@@ -58,7 +58,7 @@ type Service struct {
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	_ state.BeaconState,
+	st state.BeaconState,
 	blockHash primitives.ExecutionHash,
 ) error {
 	// Gather all the logs corresponding to
@@ -67,14 +67,14 @@ func (s *Service) ProcessLogsInETH1Block(
 		ctx,
 		blockHash,
 		[]primitives.ExecutionAddress{
-			s.BeaconCfg().DepositContractAddress,
+			s.ChainSpec().DepositContractAddress(),
 		},
 	)
 	if err != nil {
 		return err
 	}
 
-	return s.ProcessBlockEvents(ctx, logsInBlock)
+	return s.ProcessBlockEvents(ctx, st, logsInBlock)
 }
 
 func (s *Service) PruneDepositEvents(st state.BeaconState) error {

@@ -60,12 +60,10 @@ type BLSSigner interface {
 	Sign([]byte) (primitives.BLSSignature, error)
 }
 
-// BlobsProcessor is the interface for the blobs processor.
-type BlobsProcessor interface {
-	ProcessBlobs(
-		primitives.Slot,
-		AvailabilityStore,
-		*datypes.BlobSidecars,
+// BlobVerifier is the interface for the blobs processor.
+type BlobVerifier interface {
+	VerifyBlobs(
+		sidecars *datypes.BlobSidecars, kzgOffset uint64,
 	) error
 }
 

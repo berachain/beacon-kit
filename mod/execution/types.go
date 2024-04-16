@@ -26,9 +26,12 @@
 package execution
 
 import (
-	"github.com/berachain/beacon-kit/mod/execution/types"
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	gengine "github.com/ethereum/go-ethereum/beacon/engine"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -37,7 +40,7 @@ import (
 //nolint:lll
 type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload types.ExecutionPayload
+	ExecutionPayload engineprimitives.ExecutionPayload
 	// VersionedHashes is the versioned hashes of the execution payload.
 	VersionedHashes []primitives.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
@@ -46,7 +49,7 @@ type NewPayloadRequest struct {
 
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest(
-	executionPayload types.ExecutionPayload,
+	executionPayload engineprimitives.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) *NewPayloadRequest {
@@ -57,12 +60,50 @@ func BuildNewPayloadRequest(
 	}
 }
 
+// HasHValidVersionAndBlockHashes checks if the version and block hashes are
+// valid.
+// As per the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
+// https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
+//
+//nolint:lll
+func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
+	payload := n.ExecutionPayload
+	withdrawals := payload.GetWithdrawals()
+	data := gengine.ExecutableData{
+		ParentHash:    payload.GetParentHash(),
+		FeeRecipient:  payload.GetFeeRecipient(),
+		StateRoot:     payload.GetStateRoot(),
+		ReceiptsRoot:  payload.GetReceiptsRoot(),
+		LogsBloom:     payload.GetLogsBloom(),
+		Random:        payload.GetPrevRandao(),
+		Number:        payload.GetNumber(),
+		GasLimit:      payload.GetGasLimit(),
+		GasUsed:       payload.GetGasUsed(),
+		Timestamp:     payload.GetTimestamp(),
+		ExtraData:     payload.GetExtraData(),
+		BaseFeePerGas: payload.GetBaseFeePerGas().UnwrapBig(),
+		BlockHash:     payload.GetBlockHash(),
+		Transactions:  payload.GetTransactions(),
+		//#nosec:G103 // henlo I am the captain now.
+		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
+		BlobGasUsed:   payload.GetBlobGasUsed(),
+		ExcessBlobGas: payload.GetExcessBlobGas(),
+	}
+	_, err := gengine.ExecutableDataToBlock(
+		data,
+		n.VersionedHashes,
+		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
+	)
+	return err
+}
+
 // ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
-	State *engine.ForkchoiceState
+	State *engineprimitives.ForkchoiceState
 	// PayloadAttributes is the payload attributer.
-	PayloadAttributes types.PayloadAttributer
+	PayloadAttributes engineprimitives.PayloadAttributer
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
 	ForkVersion uint32
@@ -70,8 +111,8 @@ type ForkchoiceUpdateRequest struct {
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
-	state *engine.ForkchoiceState,
-	payloadAttributes types.PayloadAttributer,
+	state *engineprimitives.ForkchoiceState,
+	payloadAttributes engineprimitives.PayloadAttributer,
 	forkVersion uint32,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
@@ -84,7 +125,7 @@ func BuildForkchoiceUpdateRequest(
 // GetPayloadRequest represents a request to get a payload.
 type GetPayloadRequest struct {
 	// PayloadID is the payload ID.
-	PayloadID engine.PayloadID
+	PayloadID engineprimitives.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
@@ -92,7 +133,7 @@ type GetPayloadRequest struct {
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
-	payloadID engine.PayloadID,
+	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{

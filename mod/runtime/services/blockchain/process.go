@@ -32,7 +32,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -151,12 +151,12 @@ func (s *Service) PostBlockProcess(
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	var (
-		payload enginetypes.ExecutionPayload
+		payload engineprimitives.ExecutionPayload
 	)
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
-	defer func(payloadPtr *enginetypes.ExecutionPayload) {
+	defer func(payloadPtr *engineprimitives.ExecutionPayload) {
 		s.sendPostBlockFCU(ctx, st, *payloadPtr)
 	}(&payload)
 
@@ -169,17 +169,17 @@ func (s *Service) PostBlockProcess(
 	if body.IsNil() {
 		return nil
 	}
-
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
 		return nil
 	}
 
-	prevEth1Block, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	prevEth1Block := latestExecutionPayload.GetBlockHash()
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
@@ -191,8 +191,8 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
-	payloadBlockHash := payload.GetBlockHash()
-	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+	// Update the latest execution payload.
+	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
 		return err
 	}
 

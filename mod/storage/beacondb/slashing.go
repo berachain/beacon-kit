@@ -32,7 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func (kv *KVStore) GetSlashings() ([]uint64, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetSlashings() ([]uint64, error) {
 	var slashings []uint64
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
 	if err != nil {
@@ -51,7 +54,12 @@ func (kv *KVStore) GetSlashings() ([]uint64, error) {
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
-func (kv *KVStore) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetSlashingAtIndex(
+	index uint64,
+) (primitives.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
 	if errors.Is(err, collections.ErrNotFound) {
 		return 0, nil
@@ -62,7 +70,10 @@ func (kv *KVStore) GetSlashingAtIndex(index uint64) (primitives.Gwei, error) {
 }
 
 // SetSlashingAtIndex sets the slashing amount in the store.
-func (kv *KVStore) SetSlashingAtIndex(
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetSlashingAtIndex(
 	index uint64,
 	amount primitives.Gwei,
 ) error {
@@ -70,7 +81,10 @@ func (kv *KVStore) SetSlashingAtIndex(
 }
 
 // TotalSlashing retrieves the total slashing amount from the store.
-func (kv *KVStore) GetTotalSlashing() (primitives.Gwei, error) {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetTotalSlashing() (primitives.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
 	if errors.Is(err, collections.ErrNotFound) {
 		return 0, nil
@@ -81,6 +95,11 @@ func (kv *KVStore) GetTotalSlashing() (primitives.Gwei, error) {
 }
 
 // SetTotalSlashing sets the total slashing amount in the store.
-func (kv *KVStore) SetTotalSlashing(amount primitives.Gwei) error {
+func (kv *KVStore[
+	DepositT, ForkT, BeaconBlockHeaderT,
+	ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetTotalSlashing(
+	amount primitives.Gwei,
+) error {
 	return kv.totalSlashing.Set(kv.ctx, uint64(amount))
 }

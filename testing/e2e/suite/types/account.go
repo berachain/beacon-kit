@@ -30,7 +30,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -106,6 +105,6 @@ func (a EthAccount) PrivateKey() *ecdsa.PrivateKey {
 }
 
 // Address returns the address of the account.
-func (a EthAccount) Address() primitives.ExecutionAddress {
+func (a EthAccount) Address() common.Address {
 	return crypto.PubkeyToAddress(a.pk.PublicKey)
 }

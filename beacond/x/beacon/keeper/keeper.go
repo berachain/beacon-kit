@@ -30,36 +30,56 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beacondb.KVStore
-	cfg               *params.BeaconChainConfig
+	beaconStore       *beacondb.KVStore[
+		*consensusprimitives.Deposit,
+		*primitives.Fork,
+		*consensusprimitives.BeaconBlockHeader,
+		engineprimitives.ExecutionPayload,
+		*consensusprimitives.Eth1Data,
+		*types.Validator,
+	]
+	cfg primitives.ChainSpec
+}
+
+// TODO: move this.
+func DenebPayloadFactory() engineprimitives.ExecutionPayload {
+	return &engineprimitives.ExecutableDataDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg *params.BeaconChainConfig,
+	cfg primitives.ChainSpec,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
-		beaconStore:       beacondb.New(env.KVStoreService),
-		cfg:               cfg,
+		beaconStore: beacondb.New[
+			*consensusprimitives.Deposit,
+			*primitives.Fork,
+			*consensusprimitives.BeaconBlockHeader,
+			engineprimitives.ExecutionPayload,
+			*consensusprimitives.Eth1Data,
+			*types.Validator,
+		](env.KVStoreService, DenebPayloadFactory),
+		cfg: cfg,
 	}
 }
 
@@ -156,7 +176,5 @@ func (k *Keeper) InitGenesis(
 
 // ExportGenesis exports the current state of the module as genesis state.
 func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
-	return &deneb.BeaconState{
-		Eth1BlockHash: common.Hash{},
-	}
+	return &deneb.BeaconState{}
 }

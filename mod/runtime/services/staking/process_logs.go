@@ -28,19 +28,22 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
 	ctx context.Context,
-	logs []coretypes.Log,
+	st state.BeaconState,
+	logs []engineprimitives.Log,
 ) error {
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
-		if log.Address != s.BeaconCfg().DepositContractAddress {
+		if log.Address != s.ChainSpec().DepositContractAddress() {
 			continue
 		}
 
@@ -48,7 +51,7 @@ func (s *Service) ProcessBlockEvents(
 		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
-			err = s.processDepositLog(ctx, log)
+			err = s.processDepositLog(ctx, st, log)
 		default:
 			continue
 		}
@@ -63,7 +66,8 @@ func (s *Service) ProcessBlockEvents(
 // processDepositLog adds a deposit to the queue.
 func (s *Service) processDepositLog(
 	_ context.Context,
-	log coretypes.Log,
+	st state.BeaconState,
+	log engineprimitives.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
 	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {
@@ -75,9 +79,9 @@ func (s *Service) processDepositLog(
 	)
 
 	return s.ds.EnqueueDeposits(
-		primitives.Deposits{primitives.NewDeposit(
+		[]*consensusprimitives.Deposit{consensusprimitives.NewDeposit(
 			primitives.BLSPubkey(d.Pubkey),
-			primitives.WithdrawalCredentials(d.Credentials),
+			consensusprimitives.WithdrawalCredentials(d.Credentials),
 			primitives.Gwei(d.Amount),
 			primitives.BLSSignature(d.Signature),
 			d.Index,
