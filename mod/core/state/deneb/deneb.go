@@ -28,7 +28,6 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
@@ -46,11 +45,15 @@ func DefaultBeaconState() *BeaconState {
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		Fork: &primitives.Fork{
-			PreviousVersion: version.FromUint32(version.Deneb),
-			CurrentVersion:  version.FromUint32(version.Deneb),
-			Epoch:           0,
+			PreviousVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			CurrentVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			Epoch: 0,
 		},
-		LatestBlockHeader: &consensusprimitives.BeaconBlockHeader{
+		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
 			ParentRoot:    primitives.Root{},
@@ -60,7 +63,7 @@ func DefaultBeaconState() *BeaconState {
 		BlockRoots:             make([]primitives.Root, 8),
 		StateRoots:             make([]primitives.Root, 8),
 		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
-		Eth1Data: &consensusprimitives.Eth1Data{
+		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
 			BlockHash:    primitives.ExecutionHash{},
@@ -109,7 +112,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	}
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
@@ -120,13 +123,13 @@ type BeaconState struct {
 	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
-	LatestBlockHeader *consensusprimitives.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []primitives.Root                      `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []primitives.Root                      `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        []primitives.Root             `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *consensusprimitives.Eth1Data         `json:"eth1Data"`
+	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
 	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry

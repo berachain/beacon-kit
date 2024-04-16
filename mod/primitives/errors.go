@@ -27,5 +27,17 @@ package primitives
 
 import "errors"
 
-// ErrInvalidSSZLength is returned when an invalid SSZ length is encountered.
-var ErrInvalidSSZLength = errors.New("invalid ssz length")
+var (
+	// ErrDepositMessage is an error for when the deposit signature doesn't
+	// match.
+	ErrDepositMessage = errors.New("invalid deposit message")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
+
+	// ErrInvalidSSZLength is returned when an invalid SSZ length is
+	// encountered.
+	ErrInvalidSSZLength = errors.New("invalid ssz length")
+)

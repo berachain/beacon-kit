@@ -27,7 +27,7 @@ package types
 
 import "github.com/berachain/beacon-kit/mod/core/types"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../primitives-consensus,../../../../core/types -output validators.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../primitives,../../../../core/types -output validators.ssz.go
 type ValidatorsMarshaling struct {
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
 }
