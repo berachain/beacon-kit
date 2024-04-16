@@ -113,5 +113,6 @@ func (u U64) ILog2Ceil() uint8 {
 	if u <= 1 {
 		return 0
 	}
+	//#nosec:
 	return 64 - uint8(bits.LeadingZeros(uint(u))) - 1
 }
