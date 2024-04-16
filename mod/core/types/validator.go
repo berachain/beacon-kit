@@ -28,19 +28,18 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives,../../primitives-consensus -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../../primitives -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey primitives.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials consensusprimitives.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials primitives.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance primitives.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -65,7 +64,7 @@ type Validator struct {
 //nolint:lll
 func NewValidatorFromDeposit(
 	pubkey primitives.BLSPubkey,
-	withdrawalCredentials consensusprimitives.WithdrawalCredentials,
+	withdrawalCredentials primitives.WithdrawalCredentials,
 	amount primitives.Gwei,
 	effectiveBalanceIncrement primitives.Gwei,
 	maxEffectiveBalance primitives.Gwei,
@@ -163,7 +162,7 @@ func (v Validator) IsPartiallyWithdrawable(
 //
 //nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == consensusprimitives.EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials[0] == primitives.EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective

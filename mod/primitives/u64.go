@@ -27,12 +27,17 @@ package primitives
 
 import (
 	"encoding/binary"
+	"math/bits"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// U64NumBytes is the number of bytes in a U64.
-const U64NumBytes = 8
+const (
+	// U64NumBytes is the number of bytes in a U64.
+	U64NumBytes = 8
+	// U64NumBits is the number of bits in a U64.
+	U64NumBits = U64NumBytes * 8
+)
 
 // U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 // marshallable. We marshal U64 as hex strings in JSON in order to keep the
@@ -91,4 +96,28 @@ func (u U64) MarshalText() ([]byte, error) {
 // Unwrap returns the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {
 	return uint64(u)
+}
+
+// NextPowerOfTwo returns the next power of two greater than or equal to the.
+//
+//nolint:gomnd // powers of 2.
+func (u U64) NextPowerOfTwo() U64 {
+	u--
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u++
+	return u
+}
+
+// ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
+func (u U64) ILog2Ceil() uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
 }

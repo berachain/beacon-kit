@@ -26,8 +26,6 @@
 package engineprimitives
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -164,11 +162,4 @@ func (d *ExecutableDataDeneb) GetBlobGasUsed() *uint64 {
 func (d *ExecutableDataDeneb) GetExcessBlobGas() *uint64 {
 	v := d.ExcessBlobGas.Unwrap()
 	return &v
-}
-
-// String returns the string representation of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(d)
-	return string(output)
 }

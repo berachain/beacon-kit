@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 )
@@ -79,9 +78,9 @@ func (s *Service) processDepositLog(
 	)
 
 	return st.EnqueueDeposits(
-		[]*consensusprimitives.Deposit{consensusprimitives.NewDeposit(
+		[]*primitives.Deposit{primitives.NewDeposit(
 			primitives.BLSPubkey(d.Pubkey),
-			consensusprimitives.WithdrawalCredentials(d.Credentials),
+			primitives.WithdrawalCredentials(d.Credentials),
 			primitives.Gwei(d.Amount),
 			primitives.BLSSignature(d.Signature),
 			d.Index,
