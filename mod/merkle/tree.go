@@ -29,9 +29,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
 	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 )
@@ -56,7 +56,7 @@ func NewTreeFromLeaves(
 ) (*Tree, error) {
 	return NewTreeFromLeavesWithDepth(
 		leaves,
-		bitlen.CoverDepth(uint64(len(leaves))),
+		primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -66,7 +66,10 @@ func NewTreeWithMaxLeaves(
 	leaves [][32]byte,
 	maxLeaves uint64,
 ) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(leaves, bitlen.CoverDepth(maxLeaves))
+	return NewTreeFromLeavesWithDepth(
+		leaves,
+		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
+	)
 }
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.

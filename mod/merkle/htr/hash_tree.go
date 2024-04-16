@@ -28,8 +28,8 @@ package htr
 import (
 	"runtime"
 
-	"github.com/berachain/beacon-kit/mod/merkle/bitlen"
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -52,7 +52,8 @@ const (
 // and length passed in, the tree may be padded with additional
 // empty leaves.
 func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
-	depth := bitlen.CoverDepth(length)
+	depth := primitives.U64(length).NextPowerOfTwo().ILog2Ceil()
+
 	// Return zerohash at depth
 	if len(leaves) == 0 {
 		return zero.Hashes[depth]
