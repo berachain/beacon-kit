@@ -109,9 +109,6 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	}
 }
 
-// TODO: should we replace ? in ssz-size with values to ensure we are hash tree
-// rooting correctly?
-//
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
