@@ -29,7 +29,6 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
@@ -46,7 +45,7 @@ type StateDB struct {
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*primitives.Eth1Data,
-		*types.Validator,
+		*primitives.Validator,
 	]
 	cs primitives.ChainSpec
 }
@@ -59,7 +58,7 @@ func NewBeaconStateFromDB(
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*primitives.Eth1Data,
-		*types.Validator,
+		*primitives.Validator,
 	],
 	cs primitives.ChainSpec,
 ) *StateDB {
@@ -132,7 +131,7 @@ func (s *StateDB) UpdateSlashingAtIndex(
 //nolint:lll
 func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
-		validator         *types.Validator
+		validator         *primitives.Validator
 		balance           primitives.Gwei
 		withdrawalAddress primitives.ExecutionAddress
 		withdrawals       = make([]*engineprimitives.Withdrawal, 0)

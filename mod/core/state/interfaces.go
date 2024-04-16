@@ -28,7 +28,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
@@ -57,7 +56,7 @@ type ReadOnlyBeaconState interface {
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
+	GetValidators() ([]*primitives.Validator, error)
 	GetTotalSlashing() (primitives.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
@@ -108,10 +107,10 @@ type ReadOnlyRandaoMixes interface {
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		primitives.ValidatorIndex,
-		*types.Validator,
+		*primitives.Validator,
 	) error
 
-	AddValidator(*types.Validator) error
+	AddValidator(*primitives.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
@@ -122,7 +121,7 @@ type ReadOnlyValidators interface {
 
 	ValidatorByIndex(
 		primitives.ValidatorIndex,
-	) (*types.Validator, error)
+	) (*primitives.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.

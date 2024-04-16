@@ -26,7 +26,6 @@
 package deneb
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
@@ -69,7 +68,7 @@ func DefaultBeaconState() *BeaconState {
 			BlockHash:    primitives.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
-		Validators:                   make([]*types.Validator, 0),
+		Validators:                   make([]*primitives.Validator, 0),
 		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
@@ -133,8 +132,8 @@ type BeaconState struct {
 	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
+	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
+	Balances   []uint64                `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
 	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`

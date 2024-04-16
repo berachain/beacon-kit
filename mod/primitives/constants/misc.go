@@ -23,11 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package constants
 
-import "github.com/berachain/beacon-kit/mod/primitives"
-
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../core/types -output validators.ssz.go
-type ValidatorsMarshaling struct {
-	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
-}
+// This file contains various constants as defined:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
+//
+//nolint:lll
+const (
+	// GenesisSlot represents the initial slot in the system.
+	GenesisSlot = 0
+	// GenesisEpoch represents the initial epoch in the system.
+	GenesisEpoch = 0
+	// FarFutureEpoch represents a far future epoch value.
+	FarFutureEpoch = ^uint64(0)
+)
