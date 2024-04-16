@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
@@ -97,6 +98,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
+				params.LocalnetChainSpec(),
 			),
 			depinject.Provide(
 				components.ProvideClientContext,

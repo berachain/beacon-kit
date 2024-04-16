@@ -52,9 +52,9 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithConfig sets the config.
-func WithConfig(cfg *params.BeaconChainConfig) Option {
+func WithConfig(cs params.ChainSpec) Option {
 	return func(p *Processor) error {
-		p.cfg = cfg
+		p.cs = cs
 		return nil
 	}
 }

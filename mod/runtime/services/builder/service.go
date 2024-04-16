@@ -88,7 +88,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.BeaconCfg().SlotsPerHistoricalRoot,
+		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -123,7 +123,7 @@ func (s *Service) RequestBestBlock(
 		proposerIndex,
 		parentBlockRoot,
 		stateRoot,
-		s.BeaconCfg().ActiveForkVersionForSlot(slot),
+		s.ChainSpec().ActiveForkVersionForSlot(slot),
 		reveal,
 	)
 	if err != nil {
@@ -172,7 +172,7 @@ func (s *Service) RequestBestBlock(
 
 	// Dequeue deposits from the state.
 	deposits, err := st.ExpectedDeposits(
-		s.BeaconCfg().MaxDepositsPerBlock,
+		s.ChainSpec().MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return nil, nil, err

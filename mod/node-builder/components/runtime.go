@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
@@ -55,6 +56,7 @@ import (
 //nolint:funlen // bullish.
 func ProvideRuntime(
 	cfg *config.Config,
+	chainSpec params.ChainSpec,
 	signer runtime.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
@@ -67,7 +69,7 @@ func ProvideRuntime(
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		cfg, bsb, logger,
+		cfg, bsb, chainSpec, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -122,12 +124,12 @@ func ProvideRuntime(
 	randaoProcessor := randao.NewProcessor(
 		randao.WithSigner(signer),
 		randao.WithLogger(logger.With("service", "randao")),
-		randao.WithConfig(&cfg.Beacon),
+		randao.WithConfig(chainSpec),
 	)
 
 	// Build the builder service.
 	blobFactory := da.NewSidecarFactory[types.BeaconBlockBody](
-		&cfg.Beacon,
+		chainSpec,
 		types.KZGPositionDeneb,
 	)
 	builderService := service.New[builder.Service](
@@ -142,14 +144,14 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
+		blockchain.WithBlockValidator(core.NewBlockValidator(chainSpec)),
 		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithPayloadValidator(core.NewPayloadValidator(&cfg.Beacon)),
+		blockchain.WithPayloadValidator(core.NewPayloadValidator(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
-				&cfg.Beacon,
+				chainSpec,
 				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
 				logger,

@@ -27,12 +27,14 @@ package params
 
 import "github.com/ethereum/go-ethereum/common"
 
-func DefaultBeaconConfig() BeaconChainConfig {
-	//nolint:gomnd // default settings.
-	return BeaconChainConfig{
+// LocalnetChainSpec is the ChainSpec for the localnet.
+func LocalnetChainSpec() ChainSpec {
+	//nolint:gomnd // default config.
+	return NewChainSpec(&ChainSpecData{
 		// Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
+		EjectionBalance:           uint64(16e9),
 		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
 		SlotsPerEpoch:          8,
@@ -61,6 +63,6 @@ func DefaultBeaconConfig() BeaconChainConfig {
 		MaxBlobsPerBlock:                 6,
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
-		KZGInclusionProofDepth:           17,
-	}
+		KZGCommitmentInclusionProofDepth: 17,
+	})
 }

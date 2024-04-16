@@ -43,8 +43,11 @@ import (
 )
 
 func TestBuildKZGInclusionProof(t *testing.T) {
-	cfg := params.DefaultBeaconConfig()
-	factory := da.NewSidecarFactory[da.BeaconBlockBody](&cfg, 4)
+	cfg := params.LocalnetChainSpec()
+	factory := da.NewSidecarFactory[da.BeaconBlockBody](
+		params.LocalnetChainSpec(),
+		4,
+	)
 	body := mockBody()
 	// Test for a valid index
 	index := uint64(0)
@@ -63,7 +66,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	validProof := merkle.VerifyProof(
 		bodyRoot,
 		body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
-		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock)+index,
+		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock())+index,
 		proof,
 	)
 	require.True(t, validProof, "The KZG inclusion proof should be valid")
@@ -89,7 +92,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	validInvalidProof := merkle.VerifyProof(
 		bodyRoot,
 		body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
-		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock)+index,
+		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock())+index,
 		invalidProof,
 	)
 	require.False(

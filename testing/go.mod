@@ -6,6 +6,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
+	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 )
 
@@ -83,6 +84,7 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
+	github.com/onsi/gomega v1.31.1 // indirect
 	github.com/petermattis/goid v0.0.0-20240327183114-c42a807a84ba // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -40,10 +40,11 @@ import (
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	bsb    BeaconStorageBackend
-	name   string
-	cfg    *config.Config
-	logger log.Logger
+	bsb       BeaconStorageBackend
+	name      string
+	cfg       *config.Config
+	chainSpec params.ChainSpec
+	logger    log.Logger
 
 	// statusErrMu protects statusErr.
 	statusErrMu *sync.RWMutex
@@ -56,12 +57,14 @@ type BaseService struct {
 func NewBaseService(
 	cfg *config.Config,
 	bsp BeaconStorageBackend,
+	chainSpec params.ChainSpec,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		bsb:    bsp,
-		logger: logger,
-		cfg:    cfg,
+		bsb:       bsp,
+		logger:    logger,
+		cfg:       cfg,
+		chainSpec: chainSpec,
 	}
 }
 
@@ -88,10 +91,10 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
 }
 
-// BeaconCfg returns the configuration settings of the beacon node from
+// ChainSpec returns the configuration settings of the beacon node from
 // the BaseService.
-func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
-	return &s.cfg.Beacon
+func (s *BaseService) ChainSpec() params.ChainSpec {
+	return s.chainSpec
 }
 
 // BuilderCfg returns the configuration settings of the builder from

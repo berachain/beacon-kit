@@ -5,6 +5,7 @@ use (
 	./build/tools
 	./mod
 	./mod/primitives
+	./mod/primitives-engine
 	./mod/storage
 	./testing
 )

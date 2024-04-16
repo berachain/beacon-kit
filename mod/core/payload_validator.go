@@ -36,13 +36,13 @@ import (
 // PayloadValidator is responsible for validating incoming execution
 // payloads to ensure they are valid.
 type PayloadValidator struct {
-	cfg *params.BeaconChainConfig
+	cs params.ChainSpec
 }
 
 // NewPayloadValidator creates a new payload validator.
-func NewPayloadValidator(cfg *params.BeaconChainConfig) *PayloadValidator {
+func NewPayloadValidator(cs params.ChainSpec) *PayloadValidator {
 	return &PayloadValidator{
-		cfg: cfg,
+		cs: cs,
 	}
 }
 
@@ -83,7 +83,7 @@ func (pv *PayloadValidator) ValidatePayload(
 	// When we are validating a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(pv.cfg.SlotToEpoch(slot)) % pv.cfg.EpochsPerHistoricalVector)
+		uint64(pv.cs.SlotToEpoch(slot)) % pv.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
@@ -106,10 +106,10 @@ func (pv *PayloadValidator) ValidatePayload(
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
 
-	if uint64(len(body.GetBlobKzgCommitments())) > pv.cfg.MaxBlobsPerBlock {
+	if uint64(len(body.GetBlobKzgCommitments())) > pv.cs.MaxBlobsPerBlock() {
 		return fmt.Errorf(
 			"too many blob kzg commitments, expected: %d, got: %d",
-			pv.cfg.MaxBlobsPerBlock,
+			pv.cs.MaxBlobsPerBlock(),
 			len(body.GetBlobKzgCommitments()),
 		)
 	}
@@ -117,10 +117,10 @@ func (pv *PayloadValidator) ValidatePayload(
 	// Verify the number of withdrawals.
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
-	) > pv.cfg.MaxWithdrawalsPerPayload {
+	) > pv.cs.MaxWithdrawalsPerPayload() {
 		return fmt.Errorf(
 			"too many withdrawals, expected: %d, got: %d",
-			pv.cfg.MaxWithdrawalsPerPayload, len(withdrawals),
+			pv.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
 

@@ -36,13 +36,13 @@ import (
 // BlockValidator is responsible for validating incoming
 // BeaconBlocks.
 type BlockValidator struct {
-	cfg *params.BeaconChainConfig
+	cs params.ChainSpec
 }
 
 // NewBlockValidator creates a new block validator.
-func NewBlockValidator(cfg *params.BeaconChainConfig) *BlockValidator {
+func NewBlockValidator(cs params.ChainSpec) *BlockValidator {
 	return &BlockValidator{
-		cfg: cfg,
+		cs: cs,
 	}
 }
 
@@ -91,10 +91,10 @@ func (bv *BlockValidator) ValidateBlock(
 	// TODO: move this is in the wrong spot.
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
-	) > bv.cfg.MaxDepositsPerBlock {
+	) > bv.cs.MaxDepositsPerBlock() {
 		return fmt.Errorf(
 			"too many deposits, expected: %d, got: %d",
-			bv.cfg.MaxDepositsPerBlock, len(deposits),
+			bv.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
 

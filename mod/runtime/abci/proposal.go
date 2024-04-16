@@ -63,7 +63,7 @@ type BlockchainService interface {
 		state.BeaconState,
 		beacontypes.ReadOnlyBeaconBlock,
 	) error
-	BeaconCfg() *params.BeaconChainConfig
+	ChainSpec() params.ChainSpec
 }
 
 // Handler is a struct that encapsulates the necessary components to handle

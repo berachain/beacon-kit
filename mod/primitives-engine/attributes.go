@@ -26,22 +26,20 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/version"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/ssz"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // PayloadAttributes is the attributes of a block payload.
 //
 //nolint:lll // struct tags.
 type PayloadAttributes[
-	Withdrawal ssz.Marshallable,
+	Withdrawal SSZMarshallable,
 ] struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
-	Timestamp hexutil.Uint64 `json:"timestamp"`
+	Timestamp primitives.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
 	PrevRandao primitives.Bytes32 `json:"prevRandao"`
@@ -61,7 +59,7 @@ type PayloadAttributes[
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes[
-	Withdrawal ssz.Marshallable,
+	Withdrawal SSZMarshallable,
 ](
 	forkVersion uint32,
 	timestamp uint64,
@@ -72,7 +70,7 @@ func NewPayloadAttributes[
 ) (*PayloadAttributes[Withdrawal], error) {
 	p := &PayloadAttributes[Withdrawal]{
 		version:               forkVersion,
-		Timestamp:             hexutil.Uint64(timestamp),
+		Timestamp:             primitives.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,
