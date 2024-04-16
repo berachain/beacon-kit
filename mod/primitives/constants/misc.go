@@ -23,25 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusprimitives
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// BeaconBlockHeader is the header of a beacon block.
+// This file contains various constants as defined:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
-type BeaconBlockHeader struct {
-	// Slot is the slot number of the block.
-	Slot primitives.Slot `json:"slot"`
-	// ProposerIndex is the index of the proposer of the block.
-	ProposerIndex primitives.ValidatorIndex `json:"proposerIndex"`
-	// ParentRoot is the root of the parent block.
-	ParentRoot primitives.Root `json:"parentRoot"    ssz-size:"32"`
-	// StateRoot is the root of the beacon state after executing
-	// the block. Will be 0x00...00 prior to execution.
-	StateRoot primitives.Root `json:"stateRoot"     ssz-size:"32"`
-	// 	// BodyRoot is the root of the block body.
-	BodyRoot primitives.Root `json:"bodyRoot"      ssz-size:"32"`
-}
+//nolint:lll
+const (
+	// GenesisSlot represents the initial slot in the system.
+	GenesisSlot = 0
+	// GenesisEpoch represents the initial epoch in the system.
+	GenesisEpoch = 0
+	// FarFutureEpoch represents a far future epoch value.
+	FarFutureEpoch = ^uint64(0)
+)

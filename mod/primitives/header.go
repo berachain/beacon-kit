@@ -23,17 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package consensusprimitives
+package primitives
 
-import "errors"
-
-var (
-	// ErrDepositMessage is an error for when the deposit signature doesn't
-	// match.
-	ErrDepositMessage = errors.New("invalid deposit message")
-
-	// ErrInvalidWithdrawalCredentials is an error for when the.
-	ErrInvalidWithdrawalCredentials = errors.New(
-		"invalid withdrawal credentials",
-	)
-)
+// BeaconBlockHeader is the header of a beacon block.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./bytes.go,./u64.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
+type BeaconBlockHeader struct {
+	// Slot is the slot number of the block.
+	Slot Slot `json:"slot"`
+	// ProposerIndex is the index of the proposer of the block.
+	ProposerIndex ValidatorIndex `json:"proposerIndex"`
+	// ParentRoot is the root of the parent block.
+	ParentRoot Root `json:"parentRoot"    ssz-size:"32"`
+	// StateRoot is the root of the beacon state after executing
+	// the block. Will be 0x00...00 prior to execution.
+	StateRoot Root `json:"stateRoot"     ssz-size:"32"`
+	// 	// BodyRoot is the root of the block body.
+	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
+}

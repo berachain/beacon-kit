@@ -31,9 +31,7 @@ import (
 	"os"
 	"path/filepath"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -74,9 +72,9 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			// TODO: Should we do deposits here?
-			validator := beacontypes.NewValidatorFromDeposit(
+			validator := primitives.NewValidatorFromDeposit(
 				primitives.BLSPubkey(valPubKey.Bytes()),
-				consensusprimitives.NewCredentialsFromExecutionAddress(
+				primitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				1e9,  //nolint:gomnd // temp.
@@ -119,7 +117,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeValidatorStruct(
 	outputDocument string,
-	validator *beacontypes.Validator,
+	validator *primitives.Validator,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := os.OpenFile(

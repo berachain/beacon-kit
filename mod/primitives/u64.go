@@ -32,8 +32,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// U64NumBytes is the number of bytes in a U64.
-const U64NumBytes = 8
+const (
+	// U64NumBytes is the number of bytes in a U64.
+	U64NumBytes = 8
+	// U64NumBits is the number of bits in a U64.
+	U64NumBits = U64NumBytes * 8
+)
 
 // U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 // marshallable. We marshal U64 as hex strings in JSON in order to keep the
@@ -115,5 +119,5 @@ func (u U64) ILog2Ceil() uint8 {
 		return 0
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return 64 - uint8(bits.LeadingZeros64(uint64(u-1)))
+	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
 }

@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/davecgh/go-spew/spew"
@@ -271,7 +270,7 @@ func (sp *StateProcessor) processHeader(
 	}
 
 	// Store as the new latest block
-	headerRaw := &consensusprimitives.BeaconBlockHeader{
+	headerRaw := &primitives.BeaconBlockHeader{
 		Slot:          header.Slot,
 		ProposerIndex: header.ProposerIndex,
 		ParentRoot:    header.ParentRoot,
@@ -314,7 +313,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits []*consensusprimitives.Deposit,
+	deposits []*primitives.Deposit,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
@@ -328,7 +327,7 @@ func (sp *StateProcessor) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
-	dep *consensusprimitives.Deposit,
+	dep *primitives.Deposit,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -340,11 +339,10 @@ func (sp *StateProcessor) processDeposit(
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
-
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *types.Validator
+		var val *primitives.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return err
@@ -385,7 +383,7 @@ func (sp *StateProcessor) isValidMerkleBranch(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	dep *consensusprimitives.Deposit,
+	dep *primitives.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -408,13 +406,13 @@ func (sp *StateProcessor) createValidator(
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := consensusprimitives.NewForkData(
-		version.FromUint32(
+	fd := primitives.NewForkData(
+		version.FromUint32[primitives.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := consensusprimitives.DepositMessage{
+	depositMessage := primitives.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
@@ -432,9 +430,9 @@ func (sp *StateProcessor) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *consensusprimitives.Deposit,
+	dep *primitives.Deposit,
 ) error {
-	val := types.NewValidatorFromDeposit(
+	val := primitives.NewValidatorFromDeposit(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
@@ -648,7 +646,7 @@ func (sp *StateProcessor) processSlashings(
 //nolint:unused // will be used later
 func (sp *StateProcessor) processSlash(
 	st state.BeaconState,
-	val *types.Validator,
+	val *primitives.Validator,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {

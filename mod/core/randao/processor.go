@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/go-faster/xor"
@@ -194,8 +193,8 @@ func (p *Processor) computeSigningRoot(
 	epoch primitives.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
-	fd := consensusprimitives.NewForkData(
-		version.FromUint32(
+	fd := primitives.NewForkData(
+		version.FromUint32[primitives.Version](
 			p.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
@@ -205,7 +204,7 @@ func (p *Processor) computeSigningRoot(
 		return primitives.Root{}, err
 	}
 
-	signingRoot, err := consensusprimitives.ComputeSigningRootUInt64(
+	signingRoot, err := primitives.ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)

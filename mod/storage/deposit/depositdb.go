@@ -31,7 +31,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives"
 	collections "github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	encoding "github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	cdb "github.com/cosmos/cosmos-db"
