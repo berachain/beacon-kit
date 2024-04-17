@@ -29,7 +29,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/merkle/htr"
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
@@ -41,20 +40,20 @@ const (
 	MaxTreeDepth = 62
 )
 
-// Tree implements a Merkle tree that has been optimized to
+// Tree[LeafT, RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
-type Tree struct {
+type Tree[LeafT, RootT ~[32]byte] struct {
 	depth    uint8
-	branches [][][32]byte
-	leaves   [][32]byte
+	branches [][]LeafT
+	leaves   []LeafT
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
 // depth required to support the number of leaves.
-func NewTreeFromLeaves(
-	leaves [][32]byte,
-) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(
+func NewTreeFromLeaves[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+) (*Tree[LeafT, RootT], error) {
+	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
 		primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
@@ -62,11 +61,11 @@ func NewTreeFromLeaves(
 
 // NewTreeWithMaxLeaves constructs a Merkle tree with a maximum number of
 // leaves.
-func NewTreeWithMaxLeaves(
-	leaves [][32]byte,
+func NewTreeWithMaxLeaves[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
 	maxLeaves uint64,
-) (*Tree, error) {
-	return NewTreeFromLeavesWithDepth(
+) (*Tree[LeafT, RootT], error) {
+	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
 		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
 	)
@@ -74,26 +73,15 @@ func NewTreeWithMaxLeaves(
 
 // NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
 // It will fill the tree with zero hashes to create the required depth.
-func NewTreeFromLeavesWithDepth(
-	leaves [][32]byte,
+func NewTreeFromLeavesWithDepth[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
 	depth uint8,
-) (*Tree, error) {
-	numLeaves := len(leaves)
-	switch {
-	case numLeaves == 0:
-		return &Tree{}, ErrEmptyLeaves
-	case depth == 0:
-		return &Tree{}, ErrZeroDepth
-	case depth > MaxTreeDepth:
-		return &Tree{}, ErrExceededDepth
-	case numLeaves > (1 << depth):
-		return &Tree{}, errors.Wrap(
-			ErrInsufficientDepthForLeaves,
-			fmt.Sprintf("attempted to store %d leaves with depth %d",
-				numLeaves, depth))
+) (*Tree[LeafT, RootT], error) {
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+		return &Tree[LeafT, RootT]{}, err
 	}
 
-	layers := make([][][32]byte, depth+1)
+	layers := make([][]LeafT, depth+1)
 	layers[0] = leaves
 
 	var err error
@@ -102,13 +90,13 @@ func NewTreeFromLeavesWithDepth(
 		if len(currentLayer)%2 == 1 {
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
-		layers[d+1], err = htr.BuildParentTreeRoots(currentLayer)
+		layers[d+1], err = BuildParentTreeRoots[LeafT, LeafT](currentLayer)
 		if err != nil {
-			return &Tree{}, err
+			return &Tree[LeafT, RootT]{}, err
 		}
 	}
 
-	return &Tree{
+	return &Tree[LeafT, RootT]{
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
@@ -116,7 +104,7 @@ func NewTreeFromLeavesWithDepth(
 }
 
 // Insert an item into the tree.
-func (m *Tree) Insert(item [32]byte, index int) error {
+func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 	if index < 0 {
 		return errors.Wrap(ErrNegativeIndex, fmt.Sprintf("index: %d", index))
 	}
@@ -163,13 +151,13 @@ func (m *Tree) Insert(item [32]byte, index int) error {
 }
 
 // Root returns the root of the Merkle tree.
-func (m *Tree) Root() ([32]byte, error) {
+func (m *Tree[LeafT, RootT]) Root() ([32]byte, error) {
 	return sha256.Sum256(m.branches[len(m.branches)-1][0][:]), nil
 }
 
 // HashTreeRoot returns the Root of the Merkle tree with the
 // number of leaves mixed in.
-func (m *Tree) HashTreeRoot() ([32]byte, error) {
+func (m *Tree[LeafT, RootT]) HashTreeRoot() ([32]byte, error) {
 	var enc [32]byte
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
@@ -177,12 +165,12 @@ func (m *Tree) HashTreeRoot() ([32]byte, error) {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
-	hashInput := append(m.branches[len(m.branches)-1][0][:], enc[:]...)
-	return sha256.Sum256(hashInput), nil
+	return sha256.Sum256(
+		append(m.branches[len(m.branches)-1][0][:], enc[:]...)), nil
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
-func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
+func (m *Tree[LeafT, RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
 		return nil, fmt.Errorf(
@@ -205,7 +193,7 @@ func (m *Tree) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 
 // MerkleProofWithMixin computes a proof from a tree's branches using a Merkle
 // index.
-func (m *Tree) MerkleProofWithMixin(
+func (m *Tree[LeafT, RootT]) MerkleProofWithMixin(
 	index uint64,
 ) ([][32]byte, error) {
 	proof, err := m.MerkleProof(index)

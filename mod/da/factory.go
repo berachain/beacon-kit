@@ -29,20 +29,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[BBB BeaconBlockBody] struct {
-	cs          primitives.ChainSpec
+	cs          ChainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[BBB BeaconBlockBody](
-	cs primitives.ChainSpec,
+	cs ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BBB] {
@@ -122,7 +121,7 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 	if err != nil {
 		return nil, err
 	}
-	tree, err := merkle.NewTreeWithMaxLeaves(
+	tree, err := merkle.NewTreeWithMaxLeaves[[32]byte, [32]byte](
 		membersRoots,
 		uint64(types.BodyLengthDeneb),
 	)
@@ -142,7 +141,7 @@ func (f *SidecarFactory[BBB]) BuildCommitmentProof(
 	body BeaconBlockBody,
 	index uint64,
 ) ([][32]byte, error) {
-	bodyTree, err := merkle.NewTreeWithMaxLeaves(
+	bodyTree, err := merkle.NewTreeWithMaxLeaves[[32]byte, [32]byte](
 		body.GetBlobKzgCommitments().Leafify(),
 		f.cs.MaxBlobCommitmentsPerBlock(),
 	)
