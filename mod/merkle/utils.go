@@ -23,18 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr
+package merkle
 
-import "github.com/cockroachdb/errors"
+import (
+	"fmt"
 
-var (
-	// ErrOddLengthTreeRoots is returned when the input list length must be
-	// even.
-	ErrOddLengthTreeRoots = errors.New("input list length must be even")
-
-	// ErrMaxRootsExceeded is returned when the number of roots exceeds the
-	// maximum allowed.
-	ErrMaxRootsExceeded = errors.New(
-		"number of roots exceeds the maximum allowed",
-	)
+	"github.com/cockroachdb/errors"
 )
+
+// verifySufficientDepth ensures that the depth is sufficient to build a tree.
+func verifySufficientDepth(numLeaves int, depth uint8) error {
+	switch {
+	case numLeaves == 0:
+		return ErrEmptyLeaves
+	case depth == 0:
+		return ErrZeroDepth
+	case depth > MaxTreeDepth:
+		return ErrExceededDepth
+	case numLeaves > (1 << depth):
+		return errors.Wrap(
+			ErrInsufficientDepthForLeaves,
+			fmt.Sprintf(
+				"attempted to build tree/root with %d leaves at depth %d",
+				numLeaves, depth),
+		)
+	}
+	return nil
+}
