@@ -26,15 +26,9 @@
 package ssz
 
 import (
-	"encoding/binary"
-
 	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/prysmaticlabs/gohashtree"
 )
-
-// two is a commonly used constant.
-const two = 2
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
@@ -63,7 +57,7 @@ func MerkleizeList[T Hashable[[32]byte]](
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return MixinLength(body, uint64(len(elements))), nil
+	return merkle.MixinLength(body, uint64(len(elements))), nil
 }
 
 // MerkleizeVector hashes each element in the list and then returns the HTR
@@ -80,16 +74,4 @@ func MerkleizeVector[T Hashable[[32]byte]](
 		}
 	}
 	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length)
-}
-
-// MixinLength returns the length of the mixin used in Merkle proofs.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	chunks := make([][32]byte, two)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	var err error
-	if err = gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
 }
