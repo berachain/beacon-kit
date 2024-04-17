@@ -83,10 +83,8 @@ func MerkleizeVector[T Hashable[[32]byte]](
 }
 
 // MixinLength returns the length of the mixin used in Merkle proofs.
-func MixinLength[T ~[32]byte](element T, length uint64) T {
-	// The original code is incorrect and lacks context. Here is a corrected version:
-	// Assuming `body` is a [32]byte and `elements` is a slice of some type that can be counted:
-	chunks := make([][32]byte, 2) // 'two' is replaced by 2 for clarity
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	chunks := make([][32]byte, two)
 	chunks[0] = element
 	binary.LittleEndian.PutUint64(chunks[1][:], length)
 	var err error
