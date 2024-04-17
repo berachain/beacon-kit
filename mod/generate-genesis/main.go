@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/berachain/beacon-kit/mod/generate-genesis/genesis"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/cobra"
 	"math/big"
 	"strconv"
@@ -24,18 +25,29 @@ func CreateGenesisFileCmd() *cobra.Command {
 		Short: "Generate a genesis.json file",
 		Run: func(cmd *cobra.Command, args []string) {
 			g := genesis.NewGenesis()
-			gen := g.ToGethGenesis()
-
-			if genesisFormat != "nethermind" && genesisFormat != "geth" {
+			var gen interface{}
+			switch genesisFormat {
+			case "geth":
+				gen = g.ToGethGenesis()
+			case "nethermind":
+				gen = g.ToNethermindGenesis()
+			default:
 				cmd.PrintErrf("invalid genesis format %v\n", genesisFormat)
+				return
 			}
+
 			for i, address := range accountAddresses {
 				balance := accountBalances[i]
 				balanceBigInt, success := new(big.Int).SetString(balance, 10)
 				if !success {
 					cmd.PrintErrf("failed to convert balance to big.Int %v\n", balance)
 				}
-				g.AddAccount(gen, common.HexToAddress(address), balanceBigInt)
+				switch genesisFormat {
+				case "geth":
+					g.AddAccount(gen.(*core.Genesis), common.HexToAddress(address), balanceBigInt)
+				case "nethermind":
+					g.AddAccountNethermind(gen.(*genesis.NethermindGenesis), common.HexToAddress(address), balanceBigInt)
+				}
 			}
 
 			for i := range predeployAddresses {
@@ -49,9 +61,20 @@ func CreateGenesisFileCmd() *cobra.Command {
 					cmd.PrintErrf("failed to nonce to uint64 %v\n", err)
 				}
 
-				g.AddPredeploy(gen, predeployAddress, predeployCode, nil, balance, nonce)
+				switch genesisFormat {
+				case "geth":
+					g.AddPredeploy(gen.(*core.Genesis), predeployAddress, predeployCode, nil, balance, nonce)
+				case "nethermind":
+					g.AddPredeployNethermind(gen.(*genesis.NethermindGenesis), predeployAddress, predeployCode, balance, nonce)
+				}
+
 			}
-			g.WriteFileToJSON(gen, outputFileName)
+			switch genesisFormat {
+			case "geth":
+				g.WriteFileToJSON(gen.(*core.Genesis), outputFileName)
+			case "nethermind":
+				g.WriteNethermindGenesisToJSON(gen.(*genesis.NethermindGenesis), outputFileName)
+			}
 		},
 	}
 

@@ -7,7 +7,7 @@ type Account struct {
 }
 
 type Predeploy struct {
-	Address string `json:"predeployAddress"`
+	Address string `json:"address"`
 	Code    string `json:"code"`
 	Balance string `json:"balance"`
 	Nonce   uint64 `json:"nonce"`
