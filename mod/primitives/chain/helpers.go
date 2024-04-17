@@ -55,6 +55,7 @@ func (c chainSpec[
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) SlotToEpoch(slot SlotT) EpochT {
+	//#nosec:G701 // realistically fine in practice.
 	return EpochT(uint64(slot) / c.SlotsPerEpoch())
 }
 
