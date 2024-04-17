@@ -23,10 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr
+package merkle
 
 import (
 	"runtime"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -46,18 +47,31 @@ const (
 	two = 2
 )
 
-// Build tree root builds the merkle tree root from a set of
-// 32 byte leaves and a length. The length is used to determine
-// the depth of the tree. Depending on the combination of leaves
-// and length passed in, the tree may be padded with additional
-// empty leaves.
-func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
-	depth := primitives.U64(length).NextPowerOfTwo().ILog2Ceil()
+// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
+func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	length uint64,
+) (RootT, error) {
+	return NewRootWithDepth[LeafT, RootT](
+		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+	)
+}
 
+// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
+func NewRootWithDepth[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	depth uint8,
+) (RootT, error) {
 	// Return zerohash at depth
 	if len(leaves) == 0 {
-		return zero.Hashes[depth]
+		return zero.Hashes[depth], nil
 	}
+
+	// Validate input list length.
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+		return zero.Hashes[depth], err
+	}
+
 	for i := range depth {
 		layerLen := len(leaves)
 		oddNodeLength := layerLen%two == 1
@@ -66,21 +80,23 @@ func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		leaves, err = BuildParentTreeRoots(leaves)
+		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
 		if err != nil {
-			return zero.Hashes[depth]
+			return zero.Hashes[depth], err
 		}
 	}
 	if len(leaves) != 1 {
-		return zero.Hashes[depth]
+		return zero.Hashes[depth], nil
 	}
-	return leaves[0]
+	return RootT(leaves[0]), nil
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
-func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
-	return BuildParentTreeRootsWithNRoutines(
+func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
+	inputList []LeafT,
+) ([]RootT, error) {
+	return BuildParentTreeRootsWithNRoutines[LeafT, RootT](
 		inputList, runtime.GOMAXPROCS(0)-1,
 	)
 }
@@ -89,9 +105,9 @@ func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
 // using CPU-specific vector instructions and parallel processing. This
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
-func BuildParentTreeRootsWithNRoutines(
-	inputList [][32]byte, n int,
-) ([][32]byte, error) {
+func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
+	inputList []LeafT, n int,
+) ([]RootT, error) {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
@@ -99,12 +115,16 @@ func BuildParentTreeRootsWithNRoutines(
 	}
 	// Build output variables
 	outputLength := inputLength / two
-	outputList := make([][32]byte, outputLength)
+	outputList := make([]RootT, outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
-		return outputList, gohashtree.Hash(outputList, inputList)
+		return outputList, gohashtree.Hash(
+			//#nosec:G103 // used of unsafe calls should be audited.
+			*(*[][32]byte)(unsafe.Pointer(&outputList)),
+			//#nosec:G103 // used of unsafe calls should be audited.
+			*(*[][32]byte)(unsafe.Pointer(&inputList)))
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -136,8 +156,18 @@ func BuildParentTreeRootsWithNRoutines(
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
-				inputList[segmentStart:segmentEnd],
+				//#nosec:G103 // used of unsafe calls should be audited.
+				(*(*[][32]byte)(
+					unsafe.Pointer(
+						&outputList,
+					),
+				))[j*groupSize:min((j+1)*groupSize, outputLength)],
+				//#nosec:G103 // used of unsafe calls should be audited.
+				(*(*[][32]byte)(
+					unsafe.Pointer(
+						&inputList,
+					),
+				))[segmentStart:segmentEnd],
 			)
 		})
 	}
