@@ -76,16 +76,18 @@ func (g *Genesis) ToGethGenesis() *core.Genesis {
 		Coinbase:   common.Address{},
 	}
 }
-func (g *Genesis) WriteFileToJSON(genesis *core.Genesis, fileName string) []byte {
+func (g *Genesis) WriteFileToJSON(genesis *core.Genesis, fileName string) ([]byte, error) {
 	// Convert the genesis to JSON with indentation
 	genesisJSON, err := json.MarshalIndent(genesis, "", "  ")
 	if err != nil {
 		log.Fatalf("Failed to marshal genesis: %v", err)
+		return nil, err
 	}
 	// Write the JSON data to a file
 	err = os.WriteFile(fileName, genesisJSON, 0644)
 	if err != nil {
 		log.Fatalf("Failed to write genesis.json: %v", err)
+		return nil, err
 	}
-	return genesisJSON
+	return genesisJSON, nil
 }

@@ -71,9 +71,17 @@ func CreateGenesisFileCmd() *cobra.Command {
 			}
 			switch genesisFormat {
 			case "geth":
-				g.WriteFileToJSON(gen.(*core.Genesis), outputFileName)
+				_, err := g.WriteFileToJSON(gen.(*core.Genesis), outputFileName)
+				if err != nil {
+					cmd.PrintErrf("failed to write file %v\n", err)
+					return
+				}
 			case "nethermind":
-				g.WriteNethermindGenesisToJSON(gen.(*genesis.NethermindGenesis), outputFileName)
+				_, err := g.WriteNethermindGenesisToJSON(gen.(*genesis.NethermindGenesis), outputFileName)
+				if err != nil {
+					cmd.PrintErrf("failed to write file %v\n", err)
+					return
+				}
 			}
 		},
 	}

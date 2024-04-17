@@ -49,8 +49,12 @@ func AddAccountAndPredeploy(c *gin.Context) {
 			}
 			g.AddPredeploy(gen, common.HexToAddress(predeploy.Address), common.FromHex(predeploy.Code), nil, balance, nonce)
 		}
-
-		genesisJSON = g.WriteFileToJSON(gen, "genesis-eth-api.json")
+		var err error
+		genesisJSON, err = g.WriteFileToJSON(gen, "genesis-eth-api.json")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	case "nethermind":
 		var newAllocation types.Alloc
 
