@@ -23,14 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package chain
 
-import "github.com/berachain/beacon-kit/mod/primitives"
-
-// ChainSpecData is the underlying data structure for chain-specific parameters.
+// SpecData is the underlying data structure for chain-specific parameters.
 //
 //nolint:lll // struct tags may create long lines.
-type ChainSpecData struct {
+type SpecData[
+	DomainTypeT ~[4]byte,
+	EpochT ~uint64,
+	ExecutionAddressT ~[20]byte,
+	SlotT ~uint64,
+] struct {
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
@@ -55,32 +58,32 @@ type ChainSpecData struct {
 	//
 	// DomainDomainTypeProposerProposer is the domain for beacon proposer
 	// signatures.
-	DomainTypeProposer primitives.DomainType `mapstructure:"domain-type-beacon-proposer"`
+	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer"`
 	// DomainTypeAttester is the domain for beacon attester signatures.
-	DomainTypeAttester primitives.DomainType `mapstructure:"domain-type-beacon-attester"`
+	DomainTypeAttester DomainTypeT `mapstructure:"domain-type-beacon-attester"`
 	// DomainTypeRandao is the domain for RANDAO reveal signatures.
-	DomainTypeRandao primitives.DomainType `mapstructure:"domain-type-randao"`
+	DomainTypeRandao DomainTypeT `mapstructure:"domain-type-randao"`
 	// DomainTypeDeposit is the domain for deposit contract signatures.
-	DomainTypeDeposit primitives.DomainType `mapstructure:"domain-type-deposit"`
+	DomainTypeDeposit DomainTypeT `mapstructure:"domain-type-deposit"`
 	// DomainTypeVoluntaryExit is the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit primitives.DomainType `mapstructure:"domain-type-voluntary-exit"`
+	DomainTypeVoluntaryExit DomainTypeT `mapstructure:"domain-type-voluntary-exit"`
 	// DomainTypeSelectionProof is the domain for selection proof signatures.
-	DomainTypeSelectionProof primitives.DomainType `mapstructure:"domain-type-selection-proof"`
+	DomainTypeSelectionProof DomainTypeT `mapstructure:"domain-type-selection-proof"`
 	// DomainTypeAggregateAndProof is the domain for aggregate and proof
 	// signatures.
-	DomainTypeAggregateAndProof primitives.DomainType `mapstructure:"domain-type-aggregate-and-proof"`
+	DomainTypeAggregateAndProof DomainTypeT `mapstructure:"domain-type-aggregate-and-proof"`
 	// DomainTypeApplicationMask is the domain for the application mask.
-	DomainTypeApplicationMask primitives.DomainType `mapstructure:"domain-type-application-mask"`
+	DomainTypeApplicationMask DomainTypeT `mapstructure:"domain-type-application-mask"`
 
 	// Eth1-related values.
 	//
 	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress primitives.ExecutionAddress `mapstructure:"deposit-contract-address"`
+	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
 
 	// Fork-related values.
 	//
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch primitives.Epoch `mapstructure:"electra-fork-epoch"`
+	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch"`
 
 	// State list lengths
 	//
