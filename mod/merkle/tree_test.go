@@ -39,7 +39,7 @@ const (
 )
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
-	_, err := merkle.NewTreeFromLeavesWithDepth(nil, treeDepth)
+	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](nil, treeDepth)
 	require.ErrorIs(t, err, merkle.ErrEmptyLeaves)
 }
 

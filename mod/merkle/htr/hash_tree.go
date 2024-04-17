@@ -27,6 +27,7 @@ package htr
 
 import (
 	"runtime"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -51,7 +52,10 @@ const (
 // the depth of the tree. Depending on the combination of leaves
 // and length passed in, the tree may be padded with additional
 // empty leaves.
-func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
+func BuildTreeRoot[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	length uint64,
+) RootT {
 	depth := primitives.U64(length).NextPowerOfTwo().ILog2Ceil()
 
 	// Return zerohash at depth
@@ -66,7 +70,7 @@ func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		leaves, err = BuildParentTreeRoots(leaves)
+		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
 		if err != nil {
 			return zero.Hashes[depth]
 		}
@@ -74,13 +78,15 @@ func BuildTreeRoot(leaves [][32]byte, length uint64) [32]byte {
 	if len(leaves) != 1 {
 		return zero.Hashes[depth]
 	}
-	return leaves[0]
+	return RootT(leaves[0])
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
-func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
-	return BuildParentTreeRootsWithNRoutines(
+func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
+	inputList []LeafT,
+) ([]RootT, error) {
+	return BuildParentTreeRootsWithNRoutines[LeafT, RootT](
 		inputList, runtime.GOMAXPROCS(0)-1,
 	)
 }
@@ -89,9 +95,9 @@ func BuildParentTreeRoots(inputList [][32]byte) ([][32]byte, error) {
 // using CPU-specific vector instructions and parallel processing. This
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
-func BuildParentTreeRootsWithNRoutines(
-	inputList [][32]byte, n int,
-) ([][32]byte, error) {
+func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
+	inputList []LeafT, n int,
+) ([]RootT, error) {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
@@ -99,12 +105,14 @@ func BuildParentTreeRootsWithNRoutines(
 	}
 	// Build output variables
 	outputLength := inputLength / two
-	outputList := make([][32]byte, outputLength)
+	outputList := make([]RootT, outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
-		return outputList, gohashtree.Hash(outputList, inputList)
+		return outputList, gohashtree.Hash(
+			*(*[][32]byte)(unsafe.Pointer(&outputList)),
+			*(*[][32]byte)(unsafe.Pointer(&inputList)))
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -136,8 +144,8 @@ func BuildParentTreeRootsWithNRoutines(
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
-				inputList[segmentStart:segmentEnd],
+				(*(*[][32]byte)(unsafe.Pointer(&outputList)))[j*groupSize:min((j+1)*groupSize, outputLength)],
+				(*(*[][32]byte)(unsafe.Pointer(&inputList)))[segmentStart:segmentEnd],
 			)
 		})
 	}

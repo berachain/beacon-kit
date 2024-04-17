@@ -48,7 +48,7 @@ func MerkleizeByteSlice(input []byte) ([32]byte, error) {
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return htr.BuildTreeRoot(chunks, numChunks), nil
+	return htr.BuildTreeRoot[[32]byte, [32]byte](chunks, numChunks), nil
 }
 
 // MerkleizeList hashes each element in the list and then returns the HTR of
@@ -82,5 +82,5 @@ func MerkleizeVector[T Hashable[[32]byte]](
 			return [32]byte{}, err
 		}
 	}
-	return htr.BuildTreeRoot(roots, length), nil
+	return htr.BuildTreeRoot[[32]byte, [32]byte](roots, length), nil
 }

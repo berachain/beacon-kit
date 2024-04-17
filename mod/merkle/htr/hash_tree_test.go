@@ -66,13 +66,17 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 				go func() {
 					defer wg.Done()
 					var tempHash [][32]byte
-					tempHash, err = htr.BuildParentTreeRoots(largeSlice)
+					tempHash, err = htr.BuildParentTreeRoots[[32]byte, [32]byte](
+						largeSlice,
+					)
 					copy(hash1, tempHash)
 				}()
 				wg.Wait()
 				require.NoError(t, err)
 
-				hash2, err = htr.BuildParentTreeRoots(secondLargeSlice)
+				hash2, err = htr.BuildParentTreeRoots[[32]byte, [32]byte](
+					secondLargeSlice,
+				)
 				require.NoError(t, err)
 
 				require.Equal(
@@ -154,7 +158,10 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := htr.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	_, err := htr.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
+		inputList,
+		0,
+	)
 	require.NoError(
 		t,
 		err,

@@ -51,7 +51,7 @@ func requireGoHashTreeEquivalence(
 	go func() {
 		defer wg.Done()
 		var err error
-		output, err = htr.BuildParentTreeRootsWithNRoutines(
+		output, err = htr.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
 			inputList,
 			numRoutines,
 		)
