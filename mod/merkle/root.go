@@ -39,13 +39,27 @@ import (
 func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
-) RootT {
-	depth := primitives.U64(length).NextPowerOfTwo().ILog2Ceil()
+) (RootT, error) {
+	return NewRootWithDepth[LeafT, RootT](
+		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+	)
+}
 
+// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
+func NewRootWithDepth[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	depth uint8,
+) (RootT, error) {
 	// Return zerohash at depth
 	if len(leaves) == 0 {
-		return zero.Hashes[depth]
+		return zero.Hashes[depth], nil
 	}
+
+	// Validate input list length.
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+		return zero.Hashes[depth], err
+	}
+
 	for i := range depth {
 		layerLen := len(leaves)
 		oddNodeLength := layerLen%two == 1
@@ -56,13 +70,13 @@ func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
 		var err error
 		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
 		if err != nil {
-			return zero.Hashes[depth]
+			return zero.Hashes[depth], err
 		}
 	}
 	if len(leaves) != 1 {
-		return zero.Hashes[depth]
+		return zero.Hashes[depth], nil
 	}
-	return RootT(leaves[0])
+	return RootT(leaves[0]), nil
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the

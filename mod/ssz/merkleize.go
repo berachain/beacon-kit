@@ -51,7 +51,7 @@ func MerkleizeByteSlice(input []byte) ([32]byte, error) {
 	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](
 		chunks,
 		numChunks,
-	), nil
+	)
 }
 
 // MerkleizeList hashes each element in the list and then returns the HTR of
@@ -85,5 +85,5 @@ func MerkleizeVector[T Hashable[[32]byte]](
 			return [32]byte{}, err
 		}
 	}
-	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length), nil
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length)
 }

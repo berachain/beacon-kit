@@ -94,19 +94,8 @@ func NewTreeFromLeavesWithDepth[LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	depth uint8,
 ) (*Tree[LeafT, RootT], error) {
-	numLeaves := len(leaves)
-	switch {
-	case numLeaves == 0:
-		return &Tree[LeafT, RootT]{}, ErrEmptyLeaves
-	case depth == 0:
-		return &Tree[LeafT, RootT]{}, ErrZeroDepth
-	case depth > MaxTreeDepth:
-		return &Tree[LeafT, RootT]{}, ErrExceededDepth
-	case numLeaves > (1 << depth):
-		return &Tree[LeafT, RootT]{}, errors.Wrap(
-			ErrInsufficientDepthForLeaves,
-			fmt.Sprintf("attempted to store %d leaves with depth %d",
-				numLeaves, depth))
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+		return &Tree[LeafT, RootT]{}, err
 	}
 
 	layers := make([][]LeafT, depth+1)
