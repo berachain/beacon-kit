@@ -25,7 +25,7 @@
 
 package primitives
 
-import chain "github.com/berachain/beacon-kit/mod/primitives/chain"
+import "github.com/berachain/beacon-kit/mod/primitives/chain"
 
 //nolint:lll
 type (

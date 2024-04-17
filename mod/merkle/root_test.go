@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr_test
+package merkle_test
 
 import (
 	"fmt"
@@ -33,7 +33,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/merkle/htr"
+	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,20 +44,20 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(
-			fmt.Sprintf("Size%d", size*htr.MinParallelizationSize),
+			fmt.Sprintf("Size%d", size*merkle.MinParallelizationSize),
 			func(t *testing.T) {
 				largeSlice := make(
 					[][32]byte,
-					size*htr.MinParallelizationSize,
+					size*merkle.MinParallelizationSize,
 				)
 				secondLargeSlice := make(
 					[][32]byte,
-					size*htr.MinParallelizationSize,
+					size*merkle.MinParallelizationSize,
 				)
 				// Assuming hash reduces size by half
 				hash1 := make(
 					[][32]byte,
-					size*htr.MinParallelizationSize/2,
+					size*merkle.MinParallelizationSize/2,
 				)
 				var hash2 [][32]byte
 				var err error
@@ -66,13 +67,17 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 				go func() {
 					defer wg.Done()
 					var tempHash [][32]byte
-					tempHash, err = htr.BuildParentTreeRoots(largeSlice)
+					tempHash, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
+						largeSlice,
+					)
 					copy(hash1, tempHash)
 				}()
 				wg.Wait()
 				require.NoError(t, err)
 
-				hash2, err = htr.BuildParentTreeRoots(secondLargeSlice)
+				hash2, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
+					secondLargeSlice,
+				)
 				require.NoError(t, err)
 
 				require.Equal(
@@ -104,13 +109,13 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	}{
 		{
 			"BelowMinParallelizationSize",
-			htr.MinParallelizationSize / 2,
+			merkle.MinParallelizationSize / 2,
 			false,
 		},
-		{"AtMinParallelizationSize", htr.MinParallelizationSize, false},
+		{"AtMinParallelizationSize", merkle.MinParallelizationSize, false},
 		{
 			"AboveMinParallelizationSize",
-			htr.MinParallelizationSize * 2,
+			merkle.MinParallelizationSize * 2,
 			false,
 		},
 		{"SmallSize", 16, false},
@@ -118,15 +123,15 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 		{"LargeSize", 128, false},
 		{
 			"TestRemainderStartIndexSmall",
-			htr.MinParallelizationSize + 6,
+			merkle.MinParallelizationSize + 6,
 			false,
 		},
 		{
 			"TestRemainderStartIndexBig",
-			htr.MinParallelizationSize - 2,
+			merkle.MinParallelizationSize - 2,
 			false,
 		},
-		{"TestOddLength", htr.MinParallelizationSize + 1, true},
+		{"TestOddLength", merkle.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -154,10 +159,82 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := htr.BuildParentTreeRootsWithNRoutines(inputList, 0)
+	_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
+		inputList,
+		0,
+	)
 	require.NoError(
 		t,
 		err,
 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
 	)
+}
+
+// requireGoHashTreeEquivalence is a helper function to ensure that the output
+// of
+// sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
+func requireGoHashTreeEquivalence(
+	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
+) {
+	expectedOutput := make([][32]byte, len(inputList)/2)
+	var output [][32]byte
+
+	var wg sync.WaitGroup
+	errChan := make(chan error, 2) // Buffer for 2 potential errors
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		output, err = merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
+			inputList,
+			numRoutines,
+		)
+		if err != nil {
+			errChan <- fmt.Errorf("HashTreeRoot failed: %w", err)
+			return
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := gohashtree.Hash(
+			expectedOutput,
+			inputList,
+		)
+		if err != nil {
+			errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
+		}
+	}()
+
+	wg.Wait()      // Wait for both goroutines to finish
+	close(errChan) // Close the channel
+
+	// Check if there were any errors
+	for err := range errChan {
+		if !expectError {
+			require.NoError(t, err, "Error occurred during hashing")
+		} else {
+			require.Error(t, err, "Expected error did not occur")
+			return
+		}
+	}
+
+	// Ensure the lengths are the same
+	require.Equal(
+		t, len(expectedOutput), len(output),
+		fmt.Sprintf("Expected output length %d, got %d",
+			len(expectedOutput), len(output)))
+
+	// Compare the outputs element by element
+	for i := range output {
+		require.Equal(
+			t, expectedOutput[i], output[i],
+			fmt.Sprintf(
+				"Output mismatch at index %d: expected %x, got %x",
+				i, expectedOutput[i], output[i],
+			),
+		)
+	}
 }

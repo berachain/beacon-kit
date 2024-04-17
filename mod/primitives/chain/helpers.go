@@ -23,23 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package chain
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // ActiveForkVersion returns the active fork version for a given slot.
-func (c chainSpec) ActiveForkVersionForSlot(
-	slot primitives.Slot,
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ActiveForkVersionForSlot(
+	slot SlotT,
 ) uint32 {
 	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
 }
 
 // ActiveForkVersionBySlot returns the active fork version for a given epoch.
-func (c chainSpec) ActiveForkVersionForEpoch(
-	epoch primitives.Epoch,
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ActiveForkVersionForEpoch(
+	epoch EpochT,
 ) uint32 {
 	if epoch >= c.Data.ElectraForkEpoch {
 		return version.Electra
@@ -49,19 +52,24 @@ func (c chainSpec) ActiveForkVersionForEpoch(
 }
 
 // SlotToEpoch converts a slot to an epoch.
-func (c chainSpec) SlotToEpoch(slot primitives.Slot) primitives.Epoch {
-	return primitives.Epoch(uint64(slot) / c.SlotsPerEpoch())
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) SlotToEpoch(slot SlotT) EpochT {
+	//#nosec:G701 // realistically fine in practice.
+	return EpochT(uint64(slot) / c.SlotsPerEpoch())
 }
 
 // WithinDAPeriod checks if the block epoch is within
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
-func (c chainSpec) WithinDAPeriod(
-	block, current primitives.Slot,
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) WithinDAPeriod(
+	block, current SlotT,
 ) bool {
 	return c.SlotToEpoch(
 		block,
-	)+primitives.Epoch(
+	)+EpochT(
 		c.MinEpochsForBlobsSidecarsRequest(),
 	) >= c.SlotToEpoch(
 		current,
