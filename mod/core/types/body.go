@@ -69,7 +69,7 @@ type BeaconBlockBodyDeneb struct {
 	ExecutionPayload *engineprimitives.ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments kzg.Commitments `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []kzg.Commitment `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
