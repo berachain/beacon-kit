@@ -48,4 +48,14 @@ var (
 	// ErrExceededDepth indicates that the provided depth exceeds the supported
 	// maximum depth for a Merkle tree.
 	ErrExceededDepth = errors.New("supported merkle tree depth exceeded")
+
+	// ErrOddLengthTreeRoots is returned when the input list length must be
+	// even.
+	ErrOddLengthTreeRoots = errors.New("input list length must be even")
+
+	// ErrMaxRootsExceeded is returned when the number of roots exceeds the
+	// maximum allowed.
+	ErrMaxRootsExceeded = errors.New(
+		"number of roots exceeds the maximum allowed",
+	)
 )

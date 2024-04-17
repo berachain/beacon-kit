@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package htr
+package merkle
 
 import (
 	"runtime"
@@ -35,24 +35,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	// MinParallelizationSize is the minimum size of the input list that
-	// should be hashed using the default method. If the input list is smaller
-	// than this size, the overhead of parallelizing the hashing process is.
-	//
-	// TODO: This value is arbitrary and should be benchmarked to find the
-	// optimal value.
-	MinParallelizationSize = 5000
-	// two is a constant to make the linter happy.
-	two = 2
-)
-
-// Build tree root builds the merkle tree root from a set of
-// 32 byte leaves and a length. The length is used to determine
-// the depth of the tree. Depending on the combination of leaves
-// and length passed in, the tree may be padded with additional
-// empty leaves.
-func BuildTreeRoot[LeafT, RootT ~[32]byte](
+// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
+func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
 ) RootT {
