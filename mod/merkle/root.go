@@ -35,6 +35,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	// MinParallelizationSize is the minimum size of the input list that
+	// should be hashed using the default method. If the input list is smaller
+	// than this size, the overhead of parallelizing the hashing process is.
+	//
+	// TODO: This value is arbitrary and should be benchmarked to find the
+	// optimal value.
+	MinParallelizationSize = 5000
+	// two is a constant to make the linter happy.
+	two = 2
+)
+
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
 	leaves []LeafT,

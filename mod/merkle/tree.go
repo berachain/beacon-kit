@@ -38,24 +38,7 @@ import (
 const (
 	// 2^63 would overflow.
 	MaxTreeDepth = 62
-	// MinParallelizationSize is the minimum size of the input list that
-	// should be hashed using the default method. If the input list is smaller
-	// than this size, the overhead of parallelizing the hashing process is.
-	//
-	// TODO: This value is arbitrary and should be benchmarked to find the
-	// optimal value.
-	MinParallelizationSize = 5000
-	// two is a constant to make the linter happy.
-	two = 2
 )
-
-type SSZObject[T interface{ MarshalSSZ() ([]byte, error) }] struct {
-	Data T
-}
-
-func (*SSZObject[T]) Serialize() ([]byte, error) {
-	return nil, nil
-}
 
 // Tree[LeafT, RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
