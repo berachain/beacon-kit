@@ -12,6 +12,7 @@ replace (
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea
 
 	// Required because private repo, TODO: fix.
+	github.com/berachain/beacon-kit/light => ../light
 	github.com/berachain/beacon-kit/mod => ../mod
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
@@ -63,6 +64,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/berachain/beacon-kit/light v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
