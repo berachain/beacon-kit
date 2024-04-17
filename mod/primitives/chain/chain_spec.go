@@ -141,3 +141,241 @@ type Spec[
 	// availability period relative to the current slot.
 	WithinDAPeriod(block, current SlotT) bool
 }
+
+// chainSpec is a concrete implementation of the ChainSpec interface, holding
+// the actual data.
+type chainSpec[
+	DomainTypeT ~[4]byte,
+	EpochT ~uint64,
+	ExecutionAddressT ~[20]byte,
+	SlotT ~uint64,
+] struct {
+	// Data contains the actual chain-specific parameter values.
+	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+}
+
+// NewChainSpec creates a new instance of a ChainSpec with the provided data.
+func NewChainSpec[
+	DomainTypeT ~[4]byte,
+	EpochT ~uint64,
+	ExecutionAddressT ~[20]byte,
+	SlotT ~uint64,
+](data SpecData[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) Spec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+] {
+	return &chainSpec[
+		DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	]{
+		Data: data,
+	}
+}
+
+// MinDepositAmount returns the minimum deposit amount required.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MinDepositAmount() uint64 {
+	return c.Data.MinDepositAmount
+}
+
+// MaxEffectiveBalance returns the maximum effective balance.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxEffectiveBalance() uint64 {
+	return c.Data.MaxEffectiveBalance
+}
+
+// EjectionBalance returns the balance below which a validator is ejected.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) EjectionBalance() uint64 {
+	return c.Data.EjectionBalance
+}
+
+// EffectiveBalanceIncrement returns the increment of effective balance.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) EffectiveBalanceIncrement() uint64 {
+	return c.Data.EffectiveBalanceIncrement
+}
+
+// SlotsPerEpoch returns the number of slots per epoch.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) SlotsPerEpoch() uint64 {
+	return c.Data.SlotsPerEpoch
+}
+
+// SlotsPerHistoricalRoot returns the number of slots per historical root.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) SlotsPerHistoricalRoot() uint64 {
+	return c.Data.SlotsPerHistoricalRoot
+}
+
+// DomainProposer returns the domain for beacon proposer signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeProposer() DomainTypeT {
+	return c.Data.DomainTypeProposer
+}
+
+// DomainAttester returns the domain for beacon attester signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeAttester() DomainTypeT {
+	return c.Data.DomainTypeAttester
+}
+
+// DomainRandao returns the domain for RANDAO reveal signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeRandao() DomainTypeT {
+	return c.Data.DomainTypeRandao
+}
+
+// DomainDeposit returns the domain for deposit contract signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeDeposit() DomainTypeT {
+	return c.Data.DomainTypeDeposit
+}
+
+// DomainVoluntaryExit returns the domain for voluntary exit signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeVoluntaryExit() DomainTypeT {
+	return c.Data.DomainTypeVoluntaryExit
+}
+
+// DomainSelectionProof returns the domain for selection proof signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeSelectionProof() DomainTypeT {
+	return c.Data.DomainTypeSelectionProof
+}
+
+// DomainAggregateAndProof returns the domain for aggregate and proof
+// signatures.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeAggregateAndProof() DomainTypeT {
+	return c.Data.DomainTypeAggregateAndProof
+}
+
+// DomainTypeApplicationMask returns the domain for the application mask.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DomainTypeApplicationMask() DomainTypeT {
+	return c.Data.DomainTypeApplicationMask
+}
+
+// DepositContractAddress returns the address of the deposit contract.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DepositContractAddress() ExecutionAddressT {
+	return c.Data.DepositContractAddress
+}
+
+// ElectraForkEpoch returns the epoch of the Electra fork.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ElectraForkEpoch() EpochT {
+	return c.Data.ElectraForkEpoch
+}
+
+// EpochsPerHistoricalVector returns the number of epochs per historical vector.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) EpochsPerHistoricalVector() uint64 {
+	return c.Data.EpochsPerHistoricalVector
+}
+
+// EpochsPerSlashingsVector returns the number of epochs per slashings vector.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) EpochsPerSlashingsVector() uint64 {
+	return c.Data.EpochsPerSlashingsVector
+}
+
+// HistoricalRootsLimit returns the limit of historical roots.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) HistoricalRootsLimit() uint64 {
+	return c.Data.HistoricalRootsLimit
+}
+
+// ValidatorRegistryLimit returns the limit of the validator registry.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ValidatorRegistryLimit() uint64 {
+	return c.Data.ValidatorRegistryLimit
+}
+
+// MaxDepositsPerBlock returns the maximum number of deposits per block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxDepositsPerBlock() uint64 {
+	return c.Data.MaxDepositsPerBlock
+}
+
+// ProportionalSlashingMultiplier returns the proportional slashing multiplier.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ProportionalSlashingMultiplier() uint64 {
+	return c.Data.ProportionalSlashingMultiplier
+}
+
+// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
+// payload.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxWithdrawalsPerPayload() uint64 {
+	return c.Data.MaxWithdrawalsPerPayload
+}
+
+// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
+// withdrawals sweep.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxValidatorsPerWithdrawalsSweep() uint64 {
+	return c.Data.MaxValidatorsPerWithdrawalsSweep
+}
+
+// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
+// blobs sidecars request.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MinEpochsForBlobsSidecarsRequest() uint64 {
+	return c.Data.MinEpochsForBlobsSidecarsRequest
+}
+
+// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
+// block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxBlobCommitmentsPerBlock() uint64 {
+	return c.Data.MaxBlobCommitmentsPerBlock
+}
+
+// MaxBlobsPerBlock returns the maximum number of blobs per block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) MaxBlobsPerBlock() uint64 {
+	return c.Data.MaxBlobsPerBlock
+}
+
+// FieldElementsPerBlob returns the number of field elements per blob.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) FieldElementsPerBlob() uint64 {
+	return c.Data.FieldElementsPerBlob
+}
+
+// BytesPerBlob returns the number of bytes per blob.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) BytesPerBlob() uint64 {
+	return c.Data.BytesPerBlob
+}
