@@ -41,6 +41,14 @@ const (
 	MaxTreeDepth = 62
 )
 
+type SSZObject[T interface{ MarshalSSZ() ([]byte, error) }] struct {
+	Data T
+}
+
+func (*SSZObject[T]) Serialize() ([]byte, error) {
+	return nil, nil
+}
+
 // Tree[LeafT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
 type Tree[LeafT ~[32]byte] struct {
@@ -177,8 +185,8 @@ func (m *Tree[LeafT]) HashTreeRoot() ([32]byte, error) {
 		numItems = 0
 	}
 	binary.LittleEndian.PutUint64(enc[:], numItems)
-	hashInput := append(m.branches[len(m.branches)-1][0][:], enc[:]...)
-	return sha256.Sum256(hashInput), nil
+	return sha256.Sum256(
+		append(m.branches[len(m.branches)-1][0][:], enc[:]...)), nil
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.

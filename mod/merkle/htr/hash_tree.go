@@ -111,7 +111,9 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
 		return outputList, gohashtree.Hash(
+			//#nosec:G103 // used of unsafe calls should be audited.
 			*(*[][32]byte)(unsafe.Pointer(&outputList)),
+			//#nosec:G103 // used of unsafe calls should be audited.
 			*(*[][32]byte)(unsafe.Pointer(&inputList)))
 	}
 
@@ -144,8 +146,18 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 		// size of the input by half.
 		eg.Go(func() error {
 			return gohashtree.Hash(
-				(*(*[][32]byte)(unsafe.Pointer(&outputList)))[j*groupSize:min((j+1)*groupSize, outputLength)],
-				(*(*[][32]byte)(unsafe.Pointer(&inputList)))[segmentStart:segmentEnd],
+				//#nosec:G103 // used of unsafe calls should be audited.
+				(*(*[][32]byte)(
+					unsafe.Pointer(
+						&outputList,
+					),
+				))[j*groupSize:min((j+1)*groupSize, outputLength)],
+				//#nosec:G103 // used of unsafe calls should be audited.
+				(*(*[][32]byte)(
+					unsafe.Pointer(
+						&inputList,
+					),
+				))[segmentStart:segmentEnd],
 			)
 		})
 	}
