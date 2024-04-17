@@ -33,6 +33,7 @@ require (
 	github.com/cometbft/cometbft-db v0.12.0
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.13.14
+	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/sync v0.7.0
 )
@@ -122,7 +123,6 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

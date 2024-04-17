@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives"
 
 	"github.com/berachain/beacon-kit/mod/runtime"
 )
@@ -46,6 +47,7 @@ import (
 // services.
 func NewDefaultBeaconLightRuntime(
 	cfg *config.Config,
+	chainSpec primitives.ChainSpec,
 	// signer core.BLSSigner,
 	jwtSecret *jwt.Secret,
 	// kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
@@ -59,7 +61,7 @@ func NewDefaultBeaconLightRuntime(
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		cfg, bsb, logger,
+		cfg, bsb, chainSpec, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -133,15 +135,14 @@ func NewDefaultBeaconLightRuntime(
 	// Build the blockchain service.
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBlockValidator(core.NewBlockValidator(&cfg.Beacon)),
+		blockchain.WithBlockValidator(core.NewBlockValidator(chainSpec)),
 		blockchain.WithExecutionEngine(executionEngine),
 		// blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithPayloadValidator(lightcore.NewPayloadValidator(&cfg.Beacon)),
+		blockchain.WithPayloadValidator(lightcore.NewPayloadValidator(chainSpec)),
 		// blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
 			lightcore.NewStateProcessor(
-				&cfg.Beacon,
-				logger,
+				chainSpec, logger,
 			)),
 	)
 

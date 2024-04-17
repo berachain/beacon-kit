@@ -3,6 +3,7 @@ go 1.22.2
 use (
 	./beacond
 	./build/tools
+	./light
 	./mod
 	./mod/primitives
 	./mod/primitives-engine

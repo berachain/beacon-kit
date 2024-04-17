@@ -119,7 +119,7 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	// var (
 	// 	validator         *types.Validator
 	// 	balance           primitives.Gwei

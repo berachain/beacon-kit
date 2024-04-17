@@ -64,7 +64,7 @@ type KVStore struct {
 
 	// Eth1
 	// latestExecutionPayload stores the latest execution payload.
-	latestExecutionPayload codec.Item[types.ExecutionPayload]
+	latestExecutionPayload codec.Item[engineprimitives.ExecutionPayload]
 
 	// eth1Data stores the latest eth1 data.
 	eth1Data codec.Item[*primitives.Eth1Data]

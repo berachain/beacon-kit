@@ -26,13 +26,12 @@
 package beacondb
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // AddValidator registers a new validator in the beacon state.
 func (kv *KVStore) AddValidator(
-	val *beacontypes.Validator,
+	val *primitives.Validator,
 ) error {
 	panic(writesNotSupported)
 }
@@ -40,7 +39,7 @@ func (kv *KVStore) AddValidator(
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *KVStore) UpdateValidatorAtIndex(
 	index primitives.ValidatorIndex,
-	val *beacontypes.Validator,
+	val *primitives.Validator,
 ) error {
 	panic(writesNotSupported)
 }
@@ -70,7 +69,7 @@ func (kv *KVStore) ValidatorIndexByPubkey(
 // ValidatorByIndex returns the validator address by index.
 func (kv *KVStore) ValidatorByIndex(
 	index primitives.ValidatorIndex,
-) (*beacontypes.Validator, error) {
+) (*primitives.Validator, error) {
 	// val, err := kv.validators.Get(kv.ctx, uint64(index))
 	// if err != nil {
 	// 	return nil, err
@@ -81,7 +80,7 @@ func (kv *KVStore) ValidatorByIndex(
 
 // GetValidators retrieves all validators from the beacon state.
 func (kv *KVStore) GetValidators() (
-	[]*beacontypes.Validator, error,
+	[]*primitives.Validator, error,
 ) {
 	// var (
 	// 	vals []*beacontypes.Validator
@@ -119,7 +118,7 @@ func (kv *KVStore) GetTotalValidators() (uint64, error) {
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
 func (kv *KVStore) GetValidatorsByEffectiveBalance() (
-	[]*beacontypes.Validator, error,
+	[]*primitives.Validator, error,
 ) {
 	// var (
 	// 	vals []*beacontypes.Validator

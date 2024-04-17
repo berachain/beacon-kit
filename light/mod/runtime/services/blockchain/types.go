@@ -38,13 +38,15 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (engineprimitives.ExecutionPayload, *engineprimitives.BlobsBundleV1, bool, error)
+	) (engineprimitives.BuiltExecutionPayload, error)
+
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *execution.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
 	VerifyAndNotifyNewPayload(
@@ -62,7 +64,7 @@ type ExecutionEngine interface {
 // 		slot primitives.Slot,
 // 		timestamp uint64,
 // 		parentBlockRoot primitives.Root,
-// 	) (*engine.PayloadID, error)
+// 	) (*engineprimitives.PayloadID, error)
 // }
 
 // // RandaoProcessor is the interface for the randao processor.

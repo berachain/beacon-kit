@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/light/mod/provider"
 	"github.com/berachain/beacon-kit/light/mod/runtime"
 	"github.com/berachain/beacon-kit/light/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	beaconstate "github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/da"
@@ -83,6 +84,7 @@ func RunLightNode(ctx context.Context, config *Config) {
 	// create the runtime
 	rt, err := runtime.NewDefaultBeaconLightRuntime(
 		config.Beacon,
+		params.LocalnetChainSpec(),
 		secret,
 		backend,
 		client,
