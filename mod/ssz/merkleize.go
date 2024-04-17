@@ -29,6 +29,7 @@ import (
 	"encoding/binary"
 
 	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -86,4 +87,25 @@ func MerkleizeVector[T Hashable[[32]byte]](
 		}
 	}
 	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length)
+}
+
+// Hashable is an interface representing objects that implement HashTreeRoot().
+type Hashable2[T primitives.ChainSpec] interface {
+	HashTreeRoot(...T) primitives.Root
+}
+
+// MerkleizeVector hashes each element in the list and then returns the HTR
+// of the corresponding list of roots.
+func MerkleizeVector2[T primitives.ChainSpec](
+	elements []Hashable2[T], length uint64, spec ...T,
+) primitives.Root {
+	roots := make([]primitives.Root, len(elements))
+	for i, el := range elements {
+		roots[i] = el.HashTreeRoot(spec...)
+	}
+	x, err := merkle.NewRootWithMaxLeaves[primitives.Root, [32]byte](roots, length)
+	if err != nil {
+		panic(err)
+	}
+	return x
 }

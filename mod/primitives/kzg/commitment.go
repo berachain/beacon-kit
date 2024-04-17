@@ -31,6 +31,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/ssz"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -57,6 +58,11 @@ func (c Commitments) Leafify() [][32]byte {
 		leaves[i] = commitment.ToHashChunks()[0]
 	}
 	return leaves
+}
+
+// HashTreeRoot returns the hash tree root of the commitments.
+func (c Commitments) HashTreeRoot() ([32]byte, error) {
+	return ssz.MerkleizeList(c, 16)
 }
 
 // Commitment is a KZG commitment.
