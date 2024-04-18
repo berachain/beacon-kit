@@ -29,6 +29,7 @@ import (
 	"encoding/binary"
 	"math/bits"
 
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -120,4 +121,34 @@ func (u U64) ILog2Ceil() uint8 {
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
+}
+
+type U64Vector []U64
+
+func (v U64Vector) HashTreeRoot() ([32]byte, error) {
+	return ssz.MerkleizeVecBasic[U64, U64, [32]byte](v)
+}
+
+func (v U64Vector) SizeSSZ() int {
+	return int(ssz.SizeOfComposite[[32]byte, U64Vector](v))
+}
+
+type U64List []U64
+
+func (v U64List) HashTreeRoot() ([32]byte, error) {
+	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v)
+}
+
+type U64Container struct {
+	Field0 U64
+	Field1 U64
+	Field2 U64Vector
+}
+
+func (c U64Container) SizeSSZ() int {
+	return c.Field0.SizeSSZ() + c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
+}
+
+func (c U64Container) HashTreeRoot() ([32]byte, error) {
+	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
 }

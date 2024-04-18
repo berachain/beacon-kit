@@ -28,29 +28,29 @@ package ssz
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 )
 
 // Merkleize hashes the packed value and returns the HTR.
-func MerkleizeBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {
-	return MerkleizeVecBasic[B, RootT]([]B{value})
+func MerkleizeBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value B) (RootT, error) {
+	return MerkleizeVecBasic[U64T, B, RootT]([]B{value})
 }
 
 // func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {
-func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
+func MerkleizeVecBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B) (RootT, error) {
 	packed, err := Pack[B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return Merkleize[RootT, RootT](packed)
+	return Merkleize[U64T, RootT, RootT](packed)
 }
 
-func MerkleizeListBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
+func MerkleizeListBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B) (RootT, error) {
 	packed, err := Pack[B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	root, err := Merkleize[RootT, RootT](packed, ChunkCountBasicListVec(value))
+	root, err := Merkleize[U64T, RootT, RootT](packed, ChunkCountBasicListVec[RootT, B](value))
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -58,7 +58,7 @@ func MerkleizeListBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
 }
 
 // TODO bitlist
-func MerkleizeContainer[C Composite[RootT], RootT ~[32]byte](value C) (RootT, error) {
+func MerkleizeContainer[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](value C) (RootT, error) {
 	htrs := make([]RootT, reflect.ValueOf(value).NumField())
 	var err error
 	for i := 0; i < reflect.ValueOf(value).NumField(); i++ {
@@ -68,10 +68,10 @@ func MerkleizeContainer[C Composite[RootT], RootT ~[32]byte](value C) (RootT, er
 			return RootT{}, err
 		}
 	}
-	return Merkleize[RootT, RootT](htrs)
+	return Merkleize[U64T, RootT, RootT](htrs)
 }
 
-func MerkleizeVecComposite[C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
+func MerkleizeVecComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
 	htrs := make([]RootT, len(value))
 	var err error
 	for i, el := range value {
@@ -80,10 +80,10 @@ func MerkleizeVecComposite[C Composite[RootT], RootT ~[32]byte](value []C) (Root
 			return RootT{}, err
 		}
 	}
-	return Merkleize[RootT, RootT](htrs)
+	return Merkleize[U64T, RootT, RootT](htrs)
 }
 
-func MerkleizeListComposite[C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
+func MerkleizeListComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
 	htrs := make([]RootT, len(value))
 	var err error
 	for i, el := range value {
@@ -92,7 +92,7 @@ func MerkleizeListComposite[C Composite[RootT], RootT ~[32]byte](value []C) (Roo
 			return RootT{}, err
 		}
 	}
-	root, err := Merkleize[RootT, RootT](htrs, ChunkCountCompositeList[RootT, C](value))
+	root, err := Merkleize[U64T, RootT, RootT](htrs, ChunkCountCompositeList[RootT, C](value))
 	if err != nil {
 		return RootT{}, err
 	}
@@ -103,10 +103,10 @@ func MerkleizeListComposite[C Composite[RootT], RootT ~[32]byte](value []C) (Roo
 
 // MerkleizeList hashes each element in the list and then returns the HTR of
 // the list of corresponding roots, with the length mixed in.
-func MerkleizeList[T Hashable[[32]byte]](
+func MerkleizeList[U64T U64[U64T], T Hashable[[32]byte]](
 	elements []T, limit uint64,
 ) ([32]byte, error) {
-	body, err := MerkleizeVector(elements, limit)
+	body, err := MerkleizeVector[U64T, T](elements, limit)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -115,7 +115,7 @@ func MerkleizeList[T Hashable[[32]byte]](
 
 // MerkleizeVector hashes each element in the list and then returns the HTR
 // of the corresponding list of roots.
-func MerkleizeVector[T Hashable[[32]byte]](
+func MerkleizeVector[U64T U64[U64T], T Hashable[[32]byte]](
 	elements []T, length uint64,
 ) ([32]byte, error) {
 	roots := make([][32]byte, len(elements))
@@ -126,5 +126,5 @@ func MerkleizeVector[T Hashable[[32]byte]](
 			return [32]byte{}, err
 		}
 	}
-	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length)
+	return merkle.NewRootWithMaxLeaves[U64T, [32]byte, [32]byte](roots, length)
 }

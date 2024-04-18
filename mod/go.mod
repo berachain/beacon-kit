@@ -40,7 +40,6 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/sourcegraph/conc v0.3.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
@@ -56,6 +55,7 @@ require (
 	cosmossdk.io/store v1.1.0 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )
 
 require (

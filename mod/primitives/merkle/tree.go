@@ -29,8 +29,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 	"github.com/prysmaticlabs/gohashtree"
@@ -51,24 +50,24 @@ type Tree[LeafT, RootT ~[32]byte] struct {
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
 // depth required to support the number of leaves.
-func NewTreeFromLeaves[LeafT, RootT ~[32]byte](
+func NewTreeFromLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 ) (*Tree[LeafT, RootT], error) {
 	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
-		primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
+		U64T(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
 // NewTreeWithMaxLeaves constructs a Merkle tree with a maximum number of
 // leaves.
-func NewTreeWithMaxLeaves[LeafT, RootT ~[32]byte](
+func NewTreeWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	maxLeaves uint64,
 ) (*Tree[LeafT, RootT], error) {
 	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
-		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
+		U64T(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 

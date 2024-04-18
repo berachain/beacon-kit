@@ -30,28 +30,13 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
-type Basic interface {
-	// TODO: add 128.
-	~uint8 | ~uint16 | ~uint32 | ~uint64 | primitives.U256L | bool
-}
-
-type Composite[RootT ~[32]byte] interface {
-	SizeSSZ() int
-	HashTreeRoot() (RootT, error)
-}
-
-type Container interface {
-	Marshallable
-}
-
 // SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[B Basic](b B) uint64 {
+func SizeOfBasic[RootT ~[32]byte, B Basic](b B) uint64 {
 	// TODO: Boolean maybe this doesnt work.
 	return uint64(reflect.TypeOf(b).Size())
 }
@@ -62,7 +47,7 @@ func SizeOfComposite[RootT ~[32]byte, C Composite[RootT]](c C) uint64 {
 }
 
 // ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[B Basic](B) uint64 {
+func ChunkCountBasic[RootT ~[32]byte, B Basic](B) uint64 {
 	return 1
 }
 
@@ -74,11 +59,11 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicListVec returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicListVec[B Basic](b []B) uint64 {
+func ChunkCountBasicListVec[RootT ~[32]byte, B Basic](b []B) uint64 {
 	if len(b) == 0 {
 		return 0
 	}
-	return (uint64(len(b))*SizeOfBasic[B](b[0]) + 31) / 32
+	return (uint64(len(b))*SizeOfBasic[RootT, B](b[0]) + 31) / 32
 }
 
 // ChunkCountCompositeList returns the number of chunks required to store a
@@ -94,9 +79,9 @@ func ChunkCountContainer[C Container](c C) uint64 {
 }
 
 // PadTo function to pad the chunks to the effective limit with zeroed chunks.
-func PadTo[ChunkT ~[32]byte](
+func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 	chunks []ChunkT,
-	effectiveLimit primitives.U64,
+	effectiveLimit U64T,
 ) []ChunkT {
 	paddedChunks := make([]ChunkT, effectiveLimit)
 	copy(paddedChunks, chunks)
@@ -128,10 +113,10 @@ func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 			var buffer [8]byte
 			binary.LittleEndian.PutUint64(buffer[:], el)
 			packed = append(packed, buffer[:]...)
-		case primitives.U256L:
-			var buffer [32]byte
-			copy(buffer[:], el[:])
-			packed = append(packed, buffer[:]...)
+		// case primitives.U256L:
+		// 	var buffer [32]byte
+		// 	copy(buffer[:], el[:])
+		// 	packed = append(packed, buffer[:]...)
 		case bool:
 			var buffer [1]byte
 			if el {
@@ -162,13 +147,13 @@ func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSlice[RootT ~[32]byte](input []byte) (RootT, error) {
+func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](input []byte) (RootT, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
 	chunks, numChunks, err := PartitionBytes[RootT](input)
 	if err != nil {
 		return RootT{}, err
 	}
-	return Merkleize[RootT, RootT](
+	return Merkleize[U64T, RootT, RootT](
 		chunks,
 		numChunks,
 	)
@@ -195,38 +180,38 @@ func MerkleizeByteSlice[RootT ~[32]byte](input []byte) (RootT, error) {
 //	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
 //	 If 1 chunk: the root is the chunk itself.
 //	If > 1 chunks: merkleize as binary tree.
-func Merkleize[ChunkT, RootT ~[32]byte](
+func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 	chunks []ChunkT,
 	limit ...uint64,
 ) (RootT, error) {
 	var (
-		effectiveLimit  primitives.U64
+		effectiveLimit  U64T
 		effectiveChunks []ChunkT
 		lenChunks       = uint64(len(chunks))
 	)
 
 	if len(limit) == 0 {
-		effectiveLimit = primitives.U64(lenChunks).NextPowerOfTwo()
+		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
 	} else if limit[0] >= lenChunks {
-		effectiveLimit = primitives.U64(limit[0]).NextPowerOfTwo()
+		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
 		effectiveChunks = PadTo(chunks, effectiveLimit)
 	} else {
 		limit := limit[0]
 		if limit < uint64(lenChunks) {
 			return RootT{}, fmt.Errorf("input exceeds limit")
 		}
-		effectiveLimit = primitives.U64(limit)
+		effectiveLimit = U64T(limit)
 	}
 
 	if len(effectiveChunks) == 0 {
-		effectiveChunks = PadTo(chunks, 1)
+		effectiveChunks = PadTo[U64T](chunks, 1)
 	}
 
 	if len(effectiveChunks) == 1 {
 		return RootT(effectiveChunks[0]), nil
 	}
 
-	return merkle.NewRootWithMaxLeaves[ChunkT, RootT](
+	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
 		effectiveChunks,
 		effectiveLimit.Unwrap(),
 	)

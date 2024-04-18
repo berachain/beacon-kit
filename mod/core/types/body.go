@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	"github.com/cockroachdb/errors"
 )
 
@@ -136,7 +136,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	layer := make([][32]byte, BodyLengthDeneb)
 	var err error
 	randao := b.GetRandaoReveal()
-	layer[0], err = ssz.MerkleizeByteSlice[[32]byte](randao[:])
+	layer[0], err = ssz.MerkleizeByteSlice[primitives.U64, [32]byte](randao[:])
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	layer[2], err = ssz.MerkleizeList(b.GetDeposits(), maxDepositsPerBlock)
+	layer[2], err = ssz.MerkleizeList[primitives.U64](b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}

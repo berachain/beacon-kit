@@ -29,11 +29,17 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
+
+type U64[T ~uint64] interface {
+	~uint64
+	Unwrap() uint64
+	NextPowerOfTwo() T
+	ILog2Ceil() uint8
+}
 
 const (
 	// MinParallelizationSize is the minimum size of the input list that
@@ -48,12 +54,12 @@ const (
 )
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
+func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
 ) (RootT, error) {
 	return NewRootWithDepth[LeafT, RootT](
-		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+		leaves, U64T(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
