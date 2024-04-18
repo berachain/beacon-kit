@@ -26,6 +26,7 @@
 package ssz
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -39,18 +40,18 @@ func MerkleizeBasic[
 ](
 	value B,
 ) (RootT, error) {
-	return MerkleizeVecBasic[U64T, U256L, B, RootT]([]B{value})
+	return MerkleizeVecBasic[U64T, U256L]([]B{value})
 }
 
 // MerkleizeVec implements the SSZ merkleization algorithm for a vector of basic
 // types.
 func MerkleizeVecBasic[
-	U64T U64[U64T], U256L U256LT,
-	B Basic[RootT], RootT ~[32]byte,
+	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
+	B Basic[RootT],
 ](
 	value []B,
 ) (RootT, error) {
-	packed, err := Pack[U64T, U256L, B, RootT](value)
+	packed, err := Pack[U64T, U256L](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -60,8 +61,8 @@ func MerkleizeVecBasic[
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
 func MerkleizeListBasic[
-	U64T U64[U64T], U256L U256LT,
-	B Basic[RootT], RootT ~[32]byte,
+	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
+	B Basic[RootT],
 ](
 	value []B,
 	limit uint64,
@@ -85,7 +86,8 @@ func MerkleizeListBasic[
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
 func MerkleizeContainer[
-	U64T U64[U64T], C Container[RootT], RootT ~[32]byte, SpecT any,
+	U64T U64[U64T], RootT ~[32]byte,
+	SpecT any, C Container[RootT],
 ](
 	value C, args ...SpecT,
 ) (RootT, error) {
@@ -114,7 +116,7 @@ func MerkleizeContainer[
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
-func MerkleizeVecComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
+func MerkleizeVecComposite[U64T U64[U64T], RootT ~[32]byte, C Composite[RootT]](
 	value []C,
 ) (RootT, error) {
 	htrs := make([]RootT, len(value))
@@ -125,13 +127,14 @@ func MerkleizeVecComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
 			return RootT{}, err
 		}
 	}
-	return Merkleize[U64T, RootT, RootT](htrs)
+	return Merkleize[U64T, RootT](htrs)
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
 // of composite types.
 func MerkleizeListComposite[
-	U64T U64[U64T], C Composite[RootT], RootT ~[32]byte,
+	U64T U64[U64T], RootT ~[32]byte,
+	C Composite[RootT],
 ](
 	value []C,
 	limit uint64,
@@ -152,4 +155,58 @@ func MerkleizeListComposite[
 		return RootT{}, err
 	}
 	return merkle.MixinLength(root, uint64(len(value))), nil
+}
+
+// Merkleize hashes a list of chunks and returns the HTR of the list of.
+//
+// merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
+// merkleize the chunks, and return the root: The merkleization depends on the
+// effective input, which must be padded/limited:
+//
+//	if no limit:
+//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks))
+//
+// (virtually for memory efficiency).
+//
+//	if limit >= len(chunks):
+//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for
+//
+// memory efficiency).
+//
+//	if limit < len(chunks):
+//		do not merkleize, input exceeds limit. Raise an error instead.
+//	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
+//	 If 1 chunk: the root is the chunk itself.
+//	If > 1 chunks: merkleize as binary tree.
+func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
+	chunks []ChunkT,
+	limit ...uint64,
+) (RootT, error) {
+	var (
+		effectiveLimit  U64T
+		effectiveChunks []ChunkT
+		lenChunks       = uint64(len(chunks))
+	)
+
+	switch {
+	case len(limit) == 0:
+		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
+	case limit[0] >= lenChunks:
+		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
+	default:
+		if limit[0] < lenChunks {
+			return RootT{}, errors.New("input exceeds limit")
+		}
+		effectiveLimit = U64T(limit[0])
+	}
+
+	effectiveChunks = PadTo(chunks, effectiveLimit)
+	if len(effectiveChunks) == 1 {
+		return RootT(effectiveChunks[0]), nil
+	}
+
+	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
+		effectiveChunks,
+		uint64(effectiveLimit),
+	)
 }

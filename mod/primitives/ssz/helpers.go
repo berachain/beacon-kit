@@ -27,12 +27,10 @@ package ssz
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -111,7 +109,8 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 func Pack[
 	U64T U64[U64T],
 	U256L U256LT,
-	B Basic[RootT], RootT ~[32]byte,
+	B Basic[RootT],
+	RootT ~[32]byte,
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
@@ -175,60 +174,6 @@ func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
 	return Merkleize[U64T, RootT, RootT](
 		chunks,
 		numChunks,
-	)
-}
-
-// Merkleize hashes a list of chunks and returns the HTR of the list of.
-//
-// merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
-// merkleize the chunks, and return the root: The merkleization depends on the
-// effective input, which must be padded/limited:
-//
-//	if no limit:
-//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks))
-//
-// (virtually for memory efficiency).
-//
-//	if limit >= len(chunks):
-//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for
-//
-// memory efficiency).
-//
-//	if limit < len(chunks):
-//		do not merkleize, input exceeds limit. Raise an error instead.
-//	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
-//	 If 1 chunk: the root is the chunk itself.
-//	If > 1 chunks: merkleize as binary tree.
-func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
-	chunks []ChunkT,
-	limit ...uint64,
-) (RootT, error) {
-	var (
-		effectiveLimit  U64T
-		effectiveChunks []ChunkT
-		lenChunks       = uint64(len(chunks))
-	)
-
-	switch {
-	case len(limit) == 0:
-		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
-	case limit[0] >= lenChunks:
-		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
-	default:
-		if limit[0] < lenChunks {
-			return RootT{}, errors.New("input exceeds limit")
-		}
-		effectiveLimit = U64T(limit[0])
-	}
-
-	effectiveChunks = PadTo(chunks, effectiveLimit)
-	if len(effectiveChunks) == 1 {
-		return RootT(effectiveChunks[0]), nil
-	}
-
-	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
-		effectiveChunks,
-		uint64(effectiveLimit),
 	)
 }
 
