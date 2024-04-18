@@ -26,6 +26,8 @@
 package ssz
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/merkle"
 )
 
@@ -44,14 +46,58 @@ func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
 }
 
 func MerkleizeListBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
-	vec, err := MerkleizeVecBasic[B, RootT](value)
+	packed, err := Pack[B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return merkle.MixinLength(vec, uint64(len(value))), nil
+	root, err := Merkleize[RootT, RootT](packed, ChunkCountBasicListVec(value))
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return merkle.MixinLength(root, uint64(len(value))), nil
 }
 
 // TODO bitlist
+func MerkleizeContainer[C Composite[RootT], RootT ~[32]byte](value C) (RootT, error) {
+	htrs := make([]RootT, reflect.ValueOf(value).NumField())
+	var err error
+	for i := 0; i < reflect.ValueOf(value).NumField(); i++ {
+		field := reflect.ValueOf(value).Field(i).Interface().(Composite[RootT])
+		htrs[i], err = field.HashTreeRoot()
+		if err != nil {
+			return RootT{}, err
+		}
+	}
+	return Merkleize[RootT, RootT](htrs)
+}
+
+func MerkleizeVecComposite[C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
+	htrs := make([]RootT, len(value))
+	var err error
+	for i, el := range value {
+		htrs[i], err = el.HashTreeRoot()
+		if err != nil {
+			return RootT{}, err
+		}
+	}
+	return Merkleize[RootT, RootT](htrs)
+}
+
+func MerkleizeListComposite[C Composite[RootT], RootT ~[32]byte](value []C) (RootT, error) {
+	htrs := make([]RootT, len(value))
+	var err error
+	for i, el := range value {
+		htrs[i], err = el.HashTreeRoot()
+		if err != nil {
+			return RootT{}, err
+		}
+	}
+	root, err := Merkleize[RootT, RootT](htrs, ChunkCountCompositeList[RootT, C](value))
+	if err != nil {
+		return RootT{}, err
+	}
+	return merkle.MixinLength(root, uint64(len(value))), nil
+}
 
 // -----------------------------------------------------------------------------
 

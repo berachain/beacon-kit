@@ -41,8 +41,9 @@ type Basic interface {
 	~uint8 | ~uint16 | ~uint32 | ~uint64 | primitives.U256L | bool
 }
 
-type Composite interface {
+type Composite[RootT ~[32]byte] interface {
 	SizeSSZ() int
+	HashTreeRoot() (RootT, error)
 }
 
 type Container interface {
@@ -56,7 +57,7 @@ func SizeOfBasic[B Basic](b B) uint64 {
 }
 
 // SizeOfComposite returns the size of a composite type.
-func SizeOfComposite[C Composite](c C) uint64 {
+func SizeOfComposite[RootT ~[32]byte, C Composite[RootT]](c C) uint64 {
 	return uint64(c.SizeSSZ())
 }
 
@@ -80,9 +81,9 @@ func ChunkCountBasicListVec[B Basic](b []B) uint64 {
 	return (uint64(len(b))*SizeOfBasic[B](b[0]) + 31) / 32
 }
 
-// ChunkCountCompositeListVec returns the number of chunks required to store a
+// ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
-func ChunkCountCompositeListVec[C Composite](c []C) uint64 {
+func ChunkCountCompositeList[RootT ~[32]byte, C Composite[RootT]](c []C) uint64 {
 	return uint64(len(c))
 }
 
@@ -142,8 +143,8 @@ func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 		}
 	}
 
-	chunks, _, err := PartitionBytes[RootT](packed)
-	return chunks, err
+	root, _, err := PartitionBytes[RootT](packed)
+	return root, err
 }
 
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
