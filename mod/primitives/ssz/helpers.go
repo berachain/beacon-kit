@@ -150,6 +150,7 @@ func Pack[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	return root, err
 }
 
+// PartitionBytes partitions a byte slice into chunks of a given length.
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)

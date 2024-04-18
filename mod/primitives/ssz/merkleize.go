@@ -39,7 +39,8 @@ func MerkleizeBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	return MerkleizeVecBasic[U64T, B, RootT]([]B{value})
 }
 
-// MerkleizeVec implements the SSZ merkleization algorithm for a list of basic types.
+// MerkleizeVec implements the SSZ merkleization algorithm for a vector of basic
+// types.
 func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value []B,
 ) (RootT, error) {
@@ -50,11 +51,13 @@ func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	return Merkleize[U64T, RootT, RootT](packed)
 }
 
+// MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
+// basic types.
 func MerkleizeListBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value []B,
 	limit uint64,
 ) (RootT, error) {
-	packed, err := Pack[U64T, B, RootT](value)
+	packed, err := Pack[U64T](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -68,7 +71,10 @@ func MerkleizeListBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	return merkle.MixinLength(root, uint64(len(value))), nil
 }
 
-// TODO bitlist
+// TODO: MerkleizeBitlist
+
+// MerkleizeContainer implements the SSZ merkleization algorithm for a
+// container.
 func MerkleizeContainer[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
 	value C,
 ) (RootT, error) {
@@ -94,6 +100,8 @@ func MerkleizeContainer[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
 	return Merkleize[U64T, RootT, RootT](htrs)
 }
 
+// MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
+// of composite types.
 func MerkleizeVecComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
 	value []C,
 ) (RootT, error) {
@@ -108,6 +116,8 @@ func MerkleizeVecComposite[U64T U64[U64T], C Composite[RootT], RootT ~[32]byte](
 	return Merkleize[U64T, RootT, RootT](htrs)
 }
 
+// MerkleizeListComposite implements the SSZ merkleization algorithm for a list
+// of composite types.
 func MerkleizeListComposite[
 	U64T U64[U64T], C Composite[RootT], RootT ~[32]byte,
 ](
@@ -124,7 +134,7 @@ func MerkleizeListComposite[
 	}
 	root, err := Merkleize[U64T, RootT, RootT](
 		htrs,
-		ChunkCountCompositeList[RootT, C](value, limit),
+		ChunkCountCompositeList(value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
