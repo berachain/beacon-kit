@@ -30,6 +30,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
 
+// Merkleize hashes a list of chunks and returns the HTR of the list of.
+func Merkleize(chunks [][32]byte, limit uint64) ([32]byte, error) {
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](chunks, limit)
+}
+
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func MerkleizeByteSlice(input []byte) ([32]byte, error) {

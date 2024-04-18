@@ -67,11 +67,6 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 		return zero.Hashes[depth], nil
 	}
 
-	// Validate input list length.
-	if err := verifySufficientDepth(len(leaves), depth); err != nil {
-		return zero.Hashes[depth], err
-	}
-
 	for i := range depth {
 		layerLen := len(leaves)
 		oddNodeLength := layerLen%two == 1

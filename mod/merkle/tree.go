@@ -209,8 +209,7 @@ func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 	chunks := make([][32]byte, two)
 	chunks[0] = element
 	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	var err error
-	if err = gohashtree.Hash(chunks, chunks); err != nil {
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
 		return [32]byte{}
 	}
 	return chunks[0]
