@@ -188,15 +188,20 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 		lenChunks       = uint64(len(chunks))
 	)
 
+	//#nosec:G701 // This is a safe operation.
 	switch {
 	case len(limit) == 0:
+		//#nosec:G701 // This is a safe operation.
 		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
 	case limit[0] >= lenChunks:
+		//#nosec:G701 // This is a safe operation.
 		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
 	default:
+		//#nosec:G701 // This is a safe operation.
 		if limit[0] < lenChunks {
 			return RootT{}, errors.New("input exceeds limit")
 		}
+		//#nosec:G701 // This is a safe operation.
 		effectiveLimit = U64T(limit[0])
 	}
 
@@ -207,6 +212,7 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 
 	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
 		effectiveChunks,
+		//#nosec:G701 // This is a safe operation.
 		uint64(effectiveLimit),
 	)
 }

@@ -42,6 +42,7 @@ func SizeOfBasic[RootT ~[32]byte, B Basic[RootT]](b B) uint64 {
 
 // SizeOfComposite returns the size of a composite type.
 func SizeOfComposite[RootT ~[32]byte, C Composite[RootT]](c C) uint64 {
+	//#nosec:G701 // This is a safe operation.
 	return uint64(c.SizeSSZ())
 }
 
@@ -89,6 +90,7 @@ func ChunkCountCompositeList[C Composite[RootT], RootT ~[32]byte](
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
 func ChunkCountContainer[C Container[RootT], RootT ~[32]byte](c C) uint64 {
+	//#nosec:G701 // This is a safe operation.
 	return uint64(reflect.ValueOf(c).NumField())
 }
 
@@ -99,6 +101,7 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 ) []ChunkT {
 	paddedChunks := make([]ChunkT, effectiveLimit)
 	copy(paddedChunks, chunks)
+	//#nosec:G701 // This is a safe operation.
 	for i := uint64(len(chunks)); i < uint64(effectiveLimit); i++ {
 		paddedChunks[i] = ChunkT{}
 	}
@@ -130,6 +133,7 @@ func Pack[
 			packed = append(packed, buffer[:]...)
 		case U64T:
 			var buffer [8]byte
+			//#nosec:G701 // This is a safe operation.
 			binary.LittleEndian.PutUint64(buffer[:], uint64(el))
 			packed = append(packed, buffer[:]...)
 		case U256L:
