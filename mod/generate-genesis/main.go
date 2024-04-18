@@ -3,14 +3,14 @@ package main
 import (
 	"github.com/berachain/beacon-kit/mod/generate-genesis/genesis"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
 	"math/big"
 	"strconv"
 )
 
-// CreateGenesisFileCmd Commands creates a new genesis file
-func CreateGenesisFileCmd() *cobra.Command {
+// createGenesisCmd creates a new genesis file based on the file format passed to it.
+func createGenesisCmd() *cobra.Command {
 	var accountAddresses []string
 	var accountBalances []string
 	var predeployAddresses []string
@@ -24,13 +24,21 @@ func CreateGenesisFileCmd() *cobra.Command {
 		Use:   "generate-genesis",
 		Short: "Generate a genesis.json file",
 		Run: func(cmd *cobra.Command, args []string) {
-			g := genesis.NewGenesis()
-			var gen interface{}
+			var gen genesis.Genesis
 			switch genesisFormat {
 			case "geth":
-				gen = g.ToGethGenesis()
+
+				gethGenesis := &genesis.GethGenesis{
+					Alloc: make(types.GenesisAlloc),
+				}
+				gen = gethGenesis
+				gethGenesis.CoreGenesis = gethGenesis.ToGethGenesis().CoreGenesis
+
 			case "nethermind":
-				gen = g.ToNethermindGenesis()
+				nethermindGenesis := &genesis.NethermindGenesis{}
+				nethermindGenesis = nethermindGenesis.ToNethermindGenesis()
+				gen = nethermindGenesis
+
 			default:
 				cmd.PrintErrf("invalid genesis format %v\n", genesisFormat)
 				return
@@ -42,12 +50,7 @@ func CreateGenesisFileCmd() *cobra.Command {
 				if !success {
 					cmd.PrintErrf("failed to convert balance to big.Int %v\n", balance)
 				}
-				switch genesisFormat {
-				case "geth":
-					g.AddAccount(gen.(*core.Genesis), common.HexToAddress(address), balanceBigInt)
-				case "nethermind":
-					g.AddAccountNethermind(gen.(*genesis.NethermindGenesis), common.HexToAddress(address), balanceBigInt)
-				}
+				gen.AddAccount(common.HexToAddress(address), balanceBigInt)
 			}
 
 			for i := range predeployAddresses {
@@ -61,27 +64,13 @@ func CreateGenesisFileCmd() *cobra.Command {
 					cmd.PrintErrf("failed to nonce to uint64 %v\n", err)
 				}
 
-				switch genesisFormat {
-				case "geth":
-					g.AddPredeploy(gen.(*core.Genesis), predeployAddress, predeployCode, nil, balance, nonce)
-				case "nethermind":
-					g.AddPredeployNethermind(gen.(*genesis.NethermindGenesis), predeployAddress, predeployCode, balance, nonce)
-				}
-
+				gen.AddPredeploy(predeployAddress, predeployCode, balance, nonce)
 			}
-			switch genesisFormat {
-			case "geth":
-				_, err := g.WriteFileToJSON(gen.(*core.Genesis), outputFileName)
-				if err != nil {
-					cmd.PrintErrf("failed to write file %v\n", err)
-					return
-				}
-			case "nethermind":
-				_, err := g.WriteNethermindGenesisToJSON(gen.(*genesis.NethermindGenesis), outputFileName)
-				if err != nil {
-					cmd.PrintErrf("failed to write file %v\n", err)
-					return
-				}
+
+			err := gen.ToJSON(outputFileName)
+			if err != nil {
+				cmd.PrintErrf("failed to write file %v\n", err)
+				return
 			}
 		},
 	}
@@ -99,7 +88,7 @@ func CreateGenesisFileCmd() *cobra.Command {
 }
 
 func main() {
-	err := CreateGenesisFileCmd().Execute()
+	err := createGenesisCmd().Execute()
 	if err != nil {
 		return
 	}

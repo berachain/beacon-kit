@@ -1,10 +1,8 @@
 package genesis
 
 import (
-	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"os"
 	"strconv"
 )
 
@@ -89,7 +87,42 @@ type NethermindGenesis struct {
 	} `json:"accounts"`
 }
 
-func (g *Genesis) ToNethermindGenesis() *NethermindGenesis {
+func (n *NethermindGenesis) AddAccount(address common.Address, balance *big.Int) {
+	n.Accounts[address.Hex()] = struct {
+		Balance string `json:"balance"`
+		Nonce   string `json:"nonce"`
+		Code    string `json:"code"`
+	}{
+		Balance: "0x" + balance.Text(16), // Convert balance to hexadecimal
+
+	}
+
+}
+
+func (n *NethermindGenesis) AddPredeploy(address common.Address, code []byte, balance *big.Int, nonce uint64) {
+	n.Accounts[address.Hex()] = struct {
+		Balance string `json:"balance"`
+		Nonce   string `json:"nonce"`
+		Code    string `json:"code"`
+	}{
+		Balance: "0x" + balance.Text(16),              // Convert balance to hexadecimal
+		Nonce:   "0x" + strconv.FormatUint(nonce, 16), // Convert nonce to hexadecimal
+		Code:    "0x" + common.Bytes2Hex(code),        // Convert code to hexadecimal
+	}
+}
+
+func (n *NethermindGenesis) ToJSON(filename string) error {
+	_, err := WriteGenesisToJSON(n, filename)
+	return err
+}
+
+func (n *NethermindGenesis) ToNethermindGenesis() *NethermindGenesis {
+	ng := n.initializeNethermindGenesis()
+	n.populateEIPTransitions(ng)
+	return ng
+}
+
+func (n *NethermindGenesis) initializeNethermindGenesis() *NethermindGenesis {
 	ng := &NethermindGenesis{}
 	// Populate the NethermindGenesis struct with the necessary data
 	ng.Name = "Ethereum"
@@ -118,12 +151,10 @@ func (g *Genesis) ToNethermindGenesis() *NethermindGenesis {
 		Code    string `json:"code"`
 	})
 
-	g.PopulateEIPTransitions(ng)
-
 	return ng
 }
 
-func (g *Genesis) PopulateEIPTransitions(ng *NethermindGenesis) {
+func (n *NethermindGenesis) populateEIPTransitions(ng *NethermindGenesis) {
 	ng.Params.Eip150Transition = "0x0"
 	ng.Params.Eip160Transition = "0x0"
 	ng.Params.Eip161abcTransition = "0x0"
@@ -162,40 +193,4 @@ func (g *Genesis) PopulateEIPTransitions(ng *NethermindGenesis) {
 	ng.Params.Eip6780TransitionTimestamp = "0x0"
 	ng.Params.TerminalTotalDifficulty = "0"
 	ng.Params.TerminalTotalDifficultyPassed = true
-}
-
-func (g *Genesis) AddAccountNethermind(ng *NethermindGenesis, address common.Address, balance *big.Int) {
-	ng.Accounts[address.Hex()] = struct {
-		Balance string `json:"balance"`
-		Nonce   string `json:"nonce"`
-		Code    string `json:"code"`
-	}{
-		Balance: balance.String(),
-	}
-}
-
-func (g *Genesis) AddPredeployNethermind(ng *NethermindGenesis, address common.Address, code []byte, balance *big.Int, nonce uint64) {
-	ng.Accounts[address.Hex()] = struct {
-		Balance string `json:"balance"`
-		Nonce   string `json:"nonce"`
-		Code    string `json:"code"`
-	}{
-		Balance: balance.String(),
-		Nonce:   "0x" + strconv.FormatUint(nonce, 16), // Convert nonce to hexadecimal
-		Code:    common.Bytes2Hex(code),               // Convert code to hexadecimal
-	}
-}
-
-func (g *Genesis) WriteNethermindGenesisToJSON(ng *NethermindGenesis, filename string) ([]byte, error) {
-	genesisJSON, err := json.MarshalIndent(ng, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.WriteFile(filename, genesisJSON, 0644)
-	if err != nil {
-		return nil, err
-	}
-
-	return genesisJSON, nil
 }
