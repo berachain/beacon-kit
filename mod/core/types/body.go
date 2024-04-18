@@ -136,7 +136,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	layer := make([][32]byte, BodyLengthDeneb)
 	var err error
 	randao := b.GetRandaoReveal()
-	layer[0], err = ssz.MerkleizeByteSlice(randao[:])
+	layer[0], err = ssz.MerkleizeByteSlice[[32]byte](randao[:])
 	if err != nil {
 		return nil, err
 	}
