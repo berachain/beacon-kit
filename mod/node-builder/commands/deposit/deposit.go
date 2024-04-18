@@ -49,6 +49,7 @@ func Commands() *cobra.Command {
 
 	cmd.AddCommand(
 		NewValidateDeposit(),
+		NewCreateValidator(client.Context{}),
 	)
 
 	return cmd
