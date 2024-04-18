@@ -110,20 +110,35 @@ func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 		}
 	}
 
-	return PartitionBytes[RootT](packed)
+	chunks, _, err := PartitionBytes[RootT](packed)
+	return chunks, err
 }
 
-func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, error) {
+func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
 	numChunks := (uint64(len(input)) + 31) / constants.RootLength
 	if numChunks == 0 {
-		return nil, ErrInvalidNilSlice
+		return nil, 0, ErrInvalidNilSlice
 	}
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return chunks, nil
+	return chunks, numChunks, nil
+}
+
+// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
+// corresponding HTR as if it were a fixed vector of bytes of the given length.
+func MerkleizeByteSlice[RootT ~[32]byte](input []byte) (RootT, error) {
+	//nolint:gomnd // we add 31 in order to round up the division.
+	chunks, numChunks, err := PartitionBytes[RootT](input)
+	if err != nil {
+		return RootT{}, err
+	}
+	return Merkleize[RootT, RootT](
+		chunks,
+		numChunks,
+	)
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.

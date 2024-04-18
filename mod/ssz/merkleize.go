@@ -27,26 +27,7 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
 )
-
-// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
-// corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSlice[RootT ~[32]byte](input []byte) (RootT, error) {
-	//nolint:gomnd // we add 31 in order to round up the division.
-	numChunks := (uint64(len(input)) + 31) / constants.RootLength
-	if numChunks == 0 {
-		return RootT{}, ErrInvalidNilSlice
-	}
-	chunks := make([][32]byte, numChunks)
-	for i := range chunks {
-		copy(chunks[i][:], input[32*i:])
-	}
-	return Merkleize[[32]byte, RootT](
-		chunks,
-		numChunks,
-	)
-}
 
 // MerkleizeList hashes each element in the list and then returns the HTR of
 // the list of corresponding roots, with the length mixed in.
