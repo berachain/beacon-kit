@@ -128,7 +128,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 			neighbor = m.branches[i][neighborIdx]
 		}
 
-		//nolint:gomnd // 2 is allowed.
+		//nolint:mnd // 2 is allowed.
 		if isLeft := currentIndex%2 == 0; isLeft {
 			copy(input[0:32], root[:])
 			copy(input[32:64], neighbor[:])
@@ -138,7 +138,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 		}
 		root = sha256.Sum256(input[:])
 
-		//nolint:gomnd // 2 is allowed.
+		//nolint:mnd // 2 is allowed.
 		parentIdx := currentIndex / 2
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			m.branches[i+1] = append(m.branches[i+1], root)

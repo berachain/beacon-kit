@@ -26,7 +26,7 @@
 package primitives
 
 // BeaconBlockHeader is the header of a beacon block.
-//
+
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./bytes.go,./u64.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
@@ -41,3 +41,17 @@ type BeaconBlockHeader struct {
 	// 	// BodyRoot is the root of the block body.
 	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
 }
+
+// // HashTreeRoot ssz hashes the BeaconBlockHeader object
+// func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
+// 	x, err := ssz.MerkleizeContainer[U64](b)
+// 	if err != nil {
+// 		return [32]byte{}, err
+// 	}
+// 	y, _ := fssz.HashWithDefaultHasher(b)
+// 	if x != y {
+// 		fmt.Println("HashTreeRoot mismatch", Root(x), Root(y))
+// 		panic("HashTreeRoot mismatch")
+// 	}
+// 	return x, nil
+// }

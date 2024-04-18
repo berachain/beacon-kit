@@ -39,7 +39,7 @@ import (
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
 func DefaultBeaconState() *BeaconState {
-	//nolint:gomnd // default allocs.
+	//nolint:mnd // default allocs.
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
@@ -80,7 +80,7 @@ func DefaultBeaconState() *BeaconState {
 
 // DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
 //
-//nolint:gomnd // default values pulled from current eth-genesis.json file.
+//nolint:mnd // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},

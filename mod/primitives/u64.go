@@ -29,7 +29,6 @@ import (
 	"encoding/binary"
 	"math/bits"
 
-	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -110,7 +109,7 @@ func (u U64) Unwrap() uint64 {
 
 // NextPowerOfTwo returns the next power of two greater than or equal to the.
 //
-//nolint:gomnd // powers of 2.
+//nolint:mnd // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	u--
 	u |= u >> 1
@@ -132,45 +131,47 @@ func (u U64) ILog2Ceil() uint8 {
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
 }
 
-type U64Vector []U64
+// type U64Vector[U ~uint64] []U
 
-func (v U64Vector) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeVecBasic[U64, U64, [32]byte](v)
-}
+// func (v U64Vector[U]) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeVecBasic[U64, U, [32]byte](v)
+// }
 
-func (v U64Vector) SizeSSZ() int {
-	return int(ssz.SizeOfComposite[[32]byte, U64Vector](v))
-}
+// func (v U64Vector[U]) SizeSSZ() int {
+// 	return int(ssz.SizeOfComposite[[32]byte, U64Vector[U]](v))
+// }
 
-type U64List []U64
+// type U64List []U64
 
-func (v U64List) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
-}
+// func (v U64List) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
+// }
 
-func (v U64List) SizeSSZ() int {
-	return int(ssz.SizeOfComposite[[32]byte, U64List](v))
-}
+// func (v U64List) SizeSSZ() int {
+// 	return int(ssz.SizeOfComposite[[32]byte, U64List](v))
+// }
 
-type U64Container struct {
-	Field2 U64List
-	Field1 U64
-}
+// type U64Container struct {
+// 	Field2 U64List
+// 	Field1 U64
+// }
 
-func (c U64Container) SizeSSZ() int {
-	return c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
-}
+// func (c U64Container) SizeSSZ() int {
+// 	return c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
+// }
 
-func (c U64Container) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
-}
+// func (c U64Container) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
+// }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -objs U64List2,U64Container2 --path ./u64.go -output bet.ssz.go
-type U64List2 struct {
-	Data []uint64 `ssz-max:"16"`
-}
+// //go:generate go run github.com
+// /ferranbt/fastssz/sszgen -objs U64List2,U64Container2 --path ./u64
+// .go -output bet.ssz.go
+// type U64List2 struct {
+// 	Data []uint64 `ssz-max:"16"`
+// }
 
-type U64Container2 struct {
-	Field2 []uint64 `ssz-max:"16"`
-	Field1 U64
-}
+// type U64Container2 struct {
+// 	Field2 []uint64 `ssz-max:"16"`
+// 	Field1 U64
+// }

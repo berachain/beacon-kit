@@ -27,6 +27,7 @@ package ssz
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -54,17 +55,22 @@ func ChunkCountBasic[RootT ~[32]byte, B Basic](B) uint64 {
 // ChunkCountBitListVec returns the number of chunks required to store a bitlist
 // or bitvector.
 func ChunkCountBitListVec[T any](t []T) uint64 {
+	//nolint:mnd // 256 is okay.
 	return (uint64(len(t)) + 255) / 256
 }
 
-// ChunkCountBasicListVec returns the number of chunks required to store a list
+// ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicListVec[RootT ~[32]byte, B Basic](b []B, maxCapacity uint64) uint64 {
+func ChunkCountBasicList[RootT ~[32]byte, B Basic](
+	b []B,
+	maxCapacity uint64,
+) uint64 {
 	numItems := uint64(len(b))
 	if numItems == 0 {
 		return 1
 	}
 	size := SizeOfBasic[RootT, B](b[0])
+	//nolint:mnd // 32 is okay.
 	limit := (maxCapacity*size + 31) / 32
 	if limit != 0 {
 		return limit
@@ -75,8 +81,11 @@ func ChunkCountBasicListVec[RootT ~[32]byte, B Basic](b []B, maxCapacity uint64)
 
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
-func ChunkCountCompositeList[RootT ~[32]byte, C Composite[RootT]](c []C) uint64 {
-	return uint64(len(c))
+func ChunkCountCompositeList[RootT ~[32]byte, C Composite[RootT]](
+	c []C,
+	limit uint64,
+) uint64 {
+	return max(uint64(len(c)), limit)
 }
 
 // ChunkCountContainer returns the number of chunks required to store a
@@ -136,12 +145,11 @@ func Pack[U64T U64[U64T], B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 	}
 
 	root, _, err := PartitionBytes[RootT](packed)
-	fmt.Println(root)
 	return root, err
 }
 
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
-	//nolint:gomnd // we add 31 in order to round up the division.
+	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
@@ -152,8 +160,9 @@ func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](input []byte) (RootT, error) {
-	//nolint:gomnd // we add 31 in order to round up the division.
+func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
+	input []byte,
+) (RootT, error) {
 	chunks, numChunks, err := PartitionBytes[RootT](input)
 	if err != nil {
 		return RootT{}, err
@@ -195,17 +204,16 @@ func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 		lenChunks       = uint64(len(chunks))
 	)
 
-	if len(limit) == 0 {
+	switch {
+	case len(limit) == 0:
 		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
-		fmt.Println(effectiveLimit)
-	} else if limit[0] >= lenChunks {
+	case limit[0] >= lenChunks:
 		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
-	} else {
-		limit := limit[0]
-		if limit < uint64(lenChunks) {
-			return RootT{}, fmt.Errorf("input exceeds limit")
+	default:
+		if limit[0] < lenChunks {
+			return RootT{}, errors.New("input exceeds limit")
 		}
-		effectiveLimit = U64T(limit)
+		effectiveLimit = U64T(limit[0])
 	}
 
 	effectiveChunks = PadTo(chunks, effectiveLimit)
@@ -222,7 +230,7 @@ func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 // MixinLength takes a root element and mixes in the length of the elements
 // that were hashed to produce it.
 func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	//nolint:gomnd // 2 is okay.
+	//nolint:mnd // 2 is okay.
 	chunks := make([][32]byte, 2)
 	chunks[0] = element
 	binary.LittleEndian.PutUint64(chunks[1][:], length)

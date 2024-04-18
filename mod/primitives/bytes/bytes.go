@@ -35,7 +35,7 @@ func SafeCopy(src []byte) []byte {
 		return nil
 	}
 
-	//nolint:gomnd // 32 bytes.
+	//nolint:mnd // 32 bytes.
 	if len(src) == 32 {
 		var copied [32]byte
 		copy(copied[:], src)
@@ -77,21 +77,21 @@ func CopyAndReverseEndianess(input []byte) []byte {
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array. If the input exceeds 32 bytes, it gets truncated.
 func ToBytes32(input []byte) [32]byte {
-	//nolint:gomnd // 32 bytes.
+	//nolint:mnd // 32 bytes.
 	return [32]byte(ExtendToSize(input, 32))
 }
 
 // ToBytes48 is a utility function that transforms a byte slice into a fixed
 // 48-byte array. If the input exceeds 48 bytes, it gets truncated.
 func ToBytes48(input []byte) [48]byte {
-	//nolint:gomnd // 32 bytes.
+	//nolint:mnd // 32 bytes.
 	return [48]byte(ExtendToSize(input, 48))
 }
 
 // ToBytes96 is a utility function that transforms a byte slice into a fixed
 // 96-byte array. If the input exceeds 96 bytes, it gets truncated.
 func ToBytes96(input []byte) [96]byte {
-	//nolint:gomnd // 32 bytes.
+	//nolint:mnd // 32 bytes.
 	return [96]byte(ExtendToSize(input, 96))
 }
 

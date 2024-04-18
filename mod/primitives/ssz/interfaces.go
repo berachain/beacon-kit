@@ -25,11 +25,6 @@
 
 package ssz
 
-type SSZType interface {
-	Marshallable
-	Hashable[[32]byte]
-}
-
 // Marshallable is an interface that combines the ssz.Marshaler and
 // ssz.Unmarshaler interfaces.
 type Marshallable interface {

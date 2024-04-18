@@ -605,7 +605,7 @@ func (sp *StateProcessor) processSlashings(
 	// Iterate through the validators.
 	for _, val := range vals {
 		// Checks if the validator is slashable.
-		//nolint:gomnd // this is in the spec
+		//nolint:mnd // this is in the spec
 		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {

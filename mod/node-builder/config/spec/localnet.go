@@ -38,7 +38,7 @@ func LocalnetChainSpec() chain.Spec[
 	primitives.ExecutionAddress,
 	primitives.Slot,
 ] {
-	//nolint:gomnd // default config.
+	//nolint:mnd // default config.
 	return chain.NewChainSpec(
 		chain.SpecData[
 			primitives.Bytes4,

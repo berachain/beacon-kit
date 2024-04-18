@@ -34,7 +34,7 @@ type (
 
 	// Slot as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Slot uint64
+	Slot = U64
 
 	// Epoch as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
