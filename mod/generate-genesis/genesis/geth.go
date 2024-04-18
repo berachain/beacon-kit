@@ -42,7 +42,7 @@ func (g *GethGenesis) initializeGethGenesis() *GethGenesis {
 			Config:     &params.ChainConfig{},
 			Nonce:      0x0000000000000000,
 			Timestamp:  0x0,
-			ExtraData:  []byte{},
+			ExtraData:  common.FromHex("0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
 			GasLimit:   0x1c9c380,
 			Difficulty: big.NewInt(0x0),
 			Alloc:      make(types.GenesisAlloc),
