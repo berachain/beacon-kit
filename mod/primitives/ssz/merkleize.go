@@ -39,7 +39,7 @@ func MerkleizeBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	return MerkleizeVecBasic[U64T, B, RootT]([]B{value})
 }
 
-// func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {.
+// MerkleizeVec implements the SSZ merkleization algorithm for a list of basic types.
 func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value []B,
 ) (RootT, error) {
