@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -202,15 +201,4 @@ func (m *Tree[LeafT, RootT]) MerkleProofWithMixin(
 	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.leaves)))
 	return append(proof, mixin), nil
-}
-
-// MixinLength returns the length of the mixin used in Merkle proofs.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	chunks := make([][32]byte, two)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
 }
