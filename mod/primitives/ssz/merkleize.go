@@ -33,18 +33,20 @@ import (
 )
 
 // Merkleize hashes the packed value and returns the HTR.
-func MerkleizeBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
+func MerkleizeBasic[
+	U64T U64[U64T], U256L U256LT,
+	B Basic[RootT], RootT ~[32]byte](
 	value B,
 ) (RootT, error) {
-	return MerkleizeVecBasic[U64T, B, RootT]([]B{value})
+	return MerkleizeVecBasic[U64T, U256L, B, RootT]([]B{value})
 }
 
 // MerkleizeVec implements the SSZ merkleization algorithm for a vector of basic
 // types.
-func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
+func MerkleizeVecBasic[U64T U64[U64T], U256L U256LT, B Basic[RootT], RootT ~[32]byte](
 	value []B,
 ) (RootT, error) {
-	packed, err := Pack[U64T, B, RootT](value)
+	packed, err := Pack[U64T, U256L, B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -53,11 +55,11 @@ func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
-func MerkleizeListBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
+func MerkleizeListBasic[U64T U64[U64T], U256L U256LT, B Basic[RootT], RootT ~[32]byte](
 	value []B,
 	limit uint64,
 ) (RootT, error) {
-	packed, err := Pack[U64T](value)
+	packed, err := Pack[U64T, U256L](value)
 	if err != nil {
 		return [32]byte{}, err
 	}

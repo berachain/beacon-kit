@@ -108,9 +108,11 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 }
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
-func Pack[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
-	b []B,
-) ([]RootT, error) {
+func Pack[
+	U64T U64[U64T],
+	U256L U256LT,
+	B Basic[RootT], RootT ~[32]byte,
+](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range b {
@@ -131,10 +133,10 @@ func Pack[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 			var buffer [8]byte
 			binary.LittleEndian.PutUint64(buffer[:], uint64(el))
 			packed = append(packed, buffer[:]...)
-		// case primitives.U256L:
-		// 	var buffer [32]byte
-		// 	copy(buffer[:], el[:])
-		// 	packed = append(packed, buffer[:]...)
+		case U256L:
+			var buffer [32]byte
+			copy(buffer[:], el[:])
+			packed = append(packed, buffer[:]...)
 		case bool:
 			var buffer [1]byte
 			if el {

@@ -158,6 +158,10 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
+	type x interface {
+		GetOpt(string) interface{}
+	}
+
 	// Execution Payload
 	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {

@@ -54,3 +54,9 @@ type U64[T ~uint64] interface {
 	NextPowerOfTwo() T
 	ILog2Ceil() uint8
 }
+
+// U256LT represents a 256-bit unsigned integer in
+// little-endian byte order.
+type U256LT interface {
+	~[32]byte
+}
