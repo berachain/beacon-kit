@@ -168,9 +168,5 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	return outputList, nil
+	return outputList, eg.Wait()
 }
