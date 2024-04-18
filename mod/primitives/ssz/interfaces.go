@@ -46,3 +46,11 @@ type Marshallable interface {
 type Hashable[Root ~[32]byte] interface {
 	HashTreeRoot() (Root, error)
 }
+
+// U64 is an interface for uint64 types that support
+// NextPowerOfTwo and ILog2Ceil.
+type U64[T ~uint64] interface {
+	~uint64
+	NextPowerOfTwo() T
+	ILog2Ceil() uint8
+}

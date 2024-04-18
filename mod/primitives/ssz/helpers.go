@@ -37,7 +37,7 @@ import (
 )
 
 // SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic](b B) uint64 {
+func SizeOfBasic[RootT ~[32]byte, B Basic[RootT]](b B) uint64 {
 	// TODO: Boolean maybe this doesnt work.
 	return uint64(reflect.TypeOf(b).Size())
 }
@@ -48,7 +48,7 @@ func SizeOfComposite[RootT ~[32]byte, C Composite[RootT]](c C) uint64 {
 }
 
 // ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic](B) uint64 {
+func ChunkCountBasic[RootT ~[32]byte, B Basic[RootT]](B) uint64 {
 	return 1
 }
 
@@ -61,7 +61,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[RootT ~[32]byte, B Basic](
+func ChunkCountBasicList[RootT ~[32]byte, B Basic[RootT]](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -108,7 +108,9 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 }
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
-func Pack[U64T U64[U64T], B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
+func Pack[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
+	b []B,
+) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range b {
@@ -127,7 +129,7 @@ func Pack[U64T U64[U64T], B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 			packed = append(packed, buffer[:]...)
 		case U64T:
 			var buffer [8]byte
-			binary.LittleEndian.PutUint64(buffer[:], el.Unwrap())
+			binary.LittleEndian.PutUint64(buffer[:], uint64(el))
 			packed = append(packed, buffer[:]...)
 		// case primitives.U256L:
 		// 	var buffer [32]byte
@@ -223,7 +225,7 @@ func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 
 	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
 		effectiveChunks,
-		effectiveLimit.Unwrap(),
+		uint64(effectiveLimit),
 	)
 }
 

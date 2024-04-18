@@ -33,14 +33,14 @@ import (
 )
 
 // Merkleize hashes the packed value and returns the HTR.
-func MerkleizeBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](
+func MerkleizeBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value B,
 ) (RootT, error) {
 	return MerkleizeVecBasic[U64T, B, RootT]([]B{value})
 }
 
 // func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {.
-func MerkleizeVecBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](
+func MerkleizeVecBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value []B,
 ) (RootT, error) {
 	packed, err := Pack[U64T, B, RootT](value)
@@ -50,7 +50,7 @@ func MerkleizeVecBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](
 	return Merkleize[U64T, RootT, RootT](packed)
 }
 
-func MerkleizeListBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](
+func MerkleizeListBasic[U64T U64[U64T], B Basic[RootT], RootT ~[32]byte](
 	value []B,
 	limit uint64,
 ) (RootT, error) {
@@ -131,33 +131,3 @@ func MerkleizeListComposite[
 	}
 	return merkle.MixinLength(root, uint64(len(value))), nil
 }
-
-// -----------------------------------------------------------------------------
-
-// // MerkleizeList hashes each element in the list and then returns the HTR of
-// // the list of corresponding roots, with the length mixed in.
-// func MerkleizeList[U64T U64[U64T], T Hashable[[32]byte]](
-// 	elements []T, limit uint64,
-// ) ([32]byte, error) {
-// 	body, err := MerkleizeVector[U64T, T](elements, limit)
-// 	if err != nil {
-// 		return [32]byte{}, err
-// 	}
-// 	return merkle.MixinLength(body, uint64(len(elements))), nil
-// }
-
-// // MerkleizeVector hashes each element in the list and then returns the HTR
-// // of the corresponding list of roots.
-// func MerkleizeVector[U64T U64[U64T], T Hashable[[32]byte]](
-// 	elements []T, length uint64,
-// ) ([32]byte, error) {
-// 	roots := make([][32]byte, len(elements))
-// 	var err error
-// 	for i, el := range elements {
-// 		roots[i], err = el.HashTreeRoot()
-// 		if err != nil {
-// 			return [32]byte{}, err
-// 		}
-// 	}
-// 	return merkle.NewRootWithMaxLeaves[U64T, [32]byte, [32]byte](roots, length)
-// }

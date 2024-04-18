@@ -35,13 +35,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type U64[T ~uint64] interface {
-	~uint64
-	Unwrap() uint64
-	NextPowerOfTwo() T
-	ILog2Ceil() uint8
-}
-
 const (
 	// MinParallelizationSize is the minimum size of the input list that
 	// should be hashed using the default method. If the input list is smaller
