@@ -82,7 +82,7 @@ func MerkleizeVectorBasic[T SSZType, RootT ~[32]byte](
 func MerkleizeListBasic[T SSZType, RootT ~[32]byte](
 	value []T, limit ...uint64,
 ) ([32]byte, error) {
-	root, err := MerkleizeVectorBasic[T, [32]byte](value)
+	packed, err := Pack[T, [32]byte](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -95,6 +95,11 @@ func MerkleizeListBasic[T SSZType, RootT ~[32]byte](
 		if uint64(len(value)) > effectiveLimit {
 			return [32]byte{}, fmt.Errorf("list length exceeds specified limit")
 		}
+	}
+
+	root, err := Merkleize[[32]byte, [32]byte](packed, effectiveLimit)
+	if err != nil {
+		return [32]byte{}, err
 	}
 
 	return MixinLength(root, effectiveLimit), nil
