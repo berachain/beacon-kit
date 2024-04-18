@@ -40,6 +40,10 @@ import (
 // mix_in_length(merkleize(pack_bits(value), limit=chunk_count(type)), len(value)) if value is a bitlist.
 // mix_in_selector(hash_tree_root(value.value), value.selector) if value is of union type, and value.value is not None
 // mix_in_selector(Bytes32(), 0) if value is of union type, and value.value is None
+// Merkleize hashes a list of chunks and returns the HTR of the list of.
+func Merkleize(chunks [][32]byte, limit uint64) ([32]byte, error) {
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](chunks, limit)
+}
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
 // As per the Ethereum 2.0 SSZ Specifcation:
