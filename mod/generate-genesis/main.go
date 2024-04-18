@@ -2,14 +2,69 @@ package main
 
 import (
 	"github.com/berachain/beacon-kit/mod/generate-genesis/genesis"
+	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
+	"log"
 	"math/big"
 	"strconv"
 )
 
-// createGenesisCmd creates a new genesis file based on the file format passed to it.
+// createGenesis creates a genesis configuration struct based on the provided genesis format.
+func createGenesis(genesisFormat string) (genesis.Genesis, error) {
+	var gen genesis.Genesis
+	switch genesisFormat {
+	case "geth":
+		gethGenesis := &genesis.GethGenesis{
+			Alloc: make(types.GenesisAlloc),
+		}
+		gen = gethGenesis
+		gethGenesis.CoreGenesis = gethGenesis.ToGethGenesis().CoreGenesis
+	case "nethermind":
+		nethermindGenesis := &genesis.NethermindGenesis{}
+		nethermindGenesis = nethermindGenesis.ToNethermindGenesis()
+		gen = nethermindGenesis
+	default:
+		return nil, errors.New("invalid genesis format: " + genesisFormat)
+	}
+	return gen, nil
+}
+
+func addAccount(gen genesis.Genesis, address string, balance string) error {
+	balanceBigInt, success := new(big.Int).SetString(balance, 10)
+	if !success {
+		return errors.Wrapf(errors.New("failed to convert balance to big.Int"), "balance: %s", balance)
+
+	}
+	gen.AddAccount(common.HexToAddress(address), balanceBigInt)
+	return nil
+}
+
+func addPredeploy(gen genesis.Genesis, predeployAddress string, predeployCode string, predeployBalance string, predeployNonce string) error {
+	address := common.HexToAddress(predeployAddress)
+	code := common.FromHex(predeployCode)
+	balance := new(big.Int)
+	balance.SetString(predeployBalance, 10)
+
+	nonce, err := strconv.ParseUint(predeployNonce, 10, 64) // convert string to uint64
+	if err != nil {
+		return errors.Wrap(err, "failed to convert nonce to uint64")
+	}
+
+	gen.AddPredeploy(address, code, balance, nonce)
+	return nil
+}
+
+func writeGenesis(gen genesis.Genesis, outputFileName string) error {
+	err := gen.ToJSON(outputFileName)
+	if err != nil {
+		return errors.Wrap(err, "failed to write genesis to a file")
+	}
+	return nil
+}
+
+// createGenesisCmd creates a cobra command for generating a genesis.json file.
 func createGenesisCmd() *cobra.Command {
 	var accountAddresses []string
 	var accountBalances []string
@@ -23,55 +78,39 @@ func createGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate-genesis",
 		Short: "Generate a genesis.json file",
-		Run: func(cmd *cobra.Command, args []string) {
-			var gen genesis.Genesis
-			switch genesisFormat {
-			case "geth":
-
-				gethGenesis := &genesis.GethGenesis{
-					Alloc: make(types.GenesisAlloc),
-				}
-				gen = gethGenesis
-				gethGenesis.CoreGenesis = gethGenesis.ToGethGenesis().CoreGenesis
-
-			case "nethermind":
-				nethermindGenesis := &genesis.NethermindGenesis{}
-				nethermindGenesis = nethermindGenesis.ToNethermindGenesis()
-				gen = nethermindGenesis
-
-			default:
-				cmd.PrintErrf("invalid genesis format %v\n", genesisFormat)
-				return
-			}
-
-			for i, address := range accountAddresses {
-				balance := accountBalances[i]
-				balanceBigInt, success := new(big.Int).SetString(balance, 10)
-				if !success {
-					cmd.PrintErrf("failed to convert balance to big.Int %v\n", balance)
-				}
-				gen.AddAccount(common.HexToAddress(address), balanceBigInt)
-			}
-
-			for i := range predeployAddresses {
-				predeployAddress := common.HexToAddress(predeployAddresses[i])
-				predeployCode := common.FromHex(predeployCodes[i])
-				balance := new(big.Int)
-				balance.SetString(predeployBalances[i], 10)
-
-				nonce, err := strconv.ParseUint(predeployNonces[i], 10, 64) // convert string to uint64
-				if err != nil {
-					cmd.PrintErrf("failed to nonce to uint64 %v\n", err)
-				}
-
-				gen.AddPredeploy(predeployAddress, predeployCode, balance, nonce)
-			}
-
-			err := gen.ToJSON(outputFileName)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			gen, err := createGenesis(genesisFormat)
 			if err != nil {
-				cmd.PrintErrf("failed to write file %v\n", err)
-				return
+				return err
+
 			}
+
+			for index, address := range accountAddresses {
+				balance := accountBalances[index]
+				err := addAccount(gen, address, balance)
+				if err != nil {
+					return err
+				}
+			}
+
+			for counter := range predeployAddresses {
+				predeployAddress := predeployAddresses[counter]
+				predeployCode := predeployCodes[counter]
+				predeployBalance := predeployBalances[counter]
+				predeployNonce := predeployNonces[counter]
+				err := addPredeploy(gen, predeployAddress, predeployCode, predeployBalance, predeployNonce)
+				if err != nil {
+					return err
+
+				}
+			}
+
+			err = writeGenesis(gen, outputFileName)
+			if err != nil {
+				return err
+
+			}
+			return nil
 		},
 	}
 
@@ -90,6 +129,6 @@ func createGenesisCmd() *cobra.Command {
 func main() {
 	err := createGenesisCmd().Execute()
 	if err != nil {
-		return
+		log.Printf("Error: %v\n", err)
 	}
 }

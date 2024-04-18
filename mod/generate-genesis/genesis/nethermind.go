@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// NethermindGenesis is a struct that holds the genesis configuration for Nethermind.
 type NethermindGenesis struct {
 	Name    string `json:"name"`
 	DataDir string `json:"dataDir"`

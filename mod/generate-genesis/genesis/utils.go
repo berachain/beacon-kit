@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// WriteGenesisToJSON writes the given Genesis to a JSON file.
 func WriteGenesisToJSON(genesis interface{}, filename string) ([]byte, error) {
 	// Convert the Genesis to JSON with indentation
 	genesisJSON, err := json.MarshalIndent(genesis, "", "  ")

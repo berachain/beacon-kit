@@ -8,6 +8,7 @@ import (
 	"math/big"
 )
 
+// GethGenesis is a struct that holds the genesis configuration for Geth.
 type GethGenesis struct {
 	Alloc       types.GenesisAlloc
 	CoreGenesis *core.Genesis
