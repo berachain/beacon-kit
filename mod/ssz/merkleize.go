@@ -131,6 +131,7 @@ func MerkleizeListComposite[T SSZType, RootT ~[32]byte](
 	}
 
 	// Merkleize the list of roots
+
 	merkleRoot, err := Merkleize[[32]byte, RootT](roots, effectiveLimit)
 	if err != nil {
 		return RootT{}, err
@@ -271,11 +272,7 @@ func ChunkCount[S Marshallable](obj []S, sszType string) uint64 {
 		}
 		return (uint64(size) + 31) / constants.RootLength
 	case "CompositeVecList":
-		size := int(0)
-		for _, el := range obj {
-			size += el.SizeSSZ()
-		}
-		return (uint64(size) + 31) / constants.RootLength
+		return uint64(len(obj))
 	case "Container":
 		return uint64(reflect.TypeOf(obj).NumField())
 	default:
@@ -298,3 +295,20 @@ func ChunkCount[S Marshallable](obj []S, sszType string) uint64 {
 // 	}
 // 	return Merkleize[[32]byte, [32]byte](roots, length)
 // }
+
+// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
+// corresponding HTR as if it were a fixed vector of bytes of the given length.
+// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
+// corresponding HTR as if it were a fixed vector of bytes of the given length.
+func MerkleizeByteSlice(input []byte) ([32]byte, error) {
+	//nolint:gomnd // we add 31 in order to round up the division.
+	numChunks := (uint64(len(input)) + 31) / constants.RootLength
+	if numChunks == 0 {
+		return [32]byte{}, ErrInvalidNilSlice
+	}
+	chunks := make([][32]byte, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](chunks, numChunks)
+}

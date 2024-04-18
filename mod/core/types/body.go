@@ -147,7 +147,8 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	//nolint:gomnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	layer[2], err = ssz.MerkleizeList(b.GetDeposits(), maxDepositsPerBlock)
+	layer[2], err = ssz.MerkleizeListComposite[
+		*primitives.Deposit, [32]byte](b.GetDeposits(), maxDepositsPerBlock)
 	if err != nil {
 		return nil, err
 	}

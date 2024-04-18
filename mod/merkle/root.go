@@ -30,6 +30,8 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/merkle/zero"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -45,6 +47,50 @@ const (
 	// two is a constant to make the linter happy.
 	two = 2
 )
+
+// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
+func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	length uint64,
+) (RootT, error) {
+	return NewRootWithDepth[LeafT, RootT](
+		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+	)
+}
+
+// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
+func NewRootWithDepth[LeafT, RootT ~[32]byte](
+	leaves []LeafT,
+	depth uint8,
+) (RootT, error) {
+	// Return zerohash at depth
+	if len(leaves) == 0 {
+		return zero.Hashes[depth], nil
+	}
+
+	// Validate input list length.
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+		return zero.Hashes[depth], err
+	}
+
+	for i := range depth {
+		layerLen := len(leaves)
+		oddNodeLength := layerLen%two == 1
+		if oddNodeLength {
+			zerohash := zero.Hashes[i]
+			leaves = append(leaves, zerohash)
+		}
+		var err error
+		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
+		if err != nil {
+			return zero.Hashes[depth], err
+		}
+	}
+	if len(leaves) != 1 {
+		return zero.Hashes[depth], nil
+	}
+	return RootT(leaves[0]), nil
+}
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.

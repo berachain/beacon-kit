@@ -121,6 +121,7 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 	if err != nil {
 		return nil, err
 	}
+
 	tree, err := merkle.NewTreeWithMaxLeaves[[32]byte, [32]byte](
 		membersRoots,
 		uint64(types.BodyLengthDeneb),
