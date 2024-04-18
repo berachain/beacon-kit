@@ -136,6 +136,7 @@ func Pack[U64T U64[U64T], B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 	}
 
 	root, _, err := PartitionBytes[RootT](packed)
+	fmt.Println(root)
 	return root, err
 }
 
@@ -196,9 +197,9 @@ func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 
 	if len(limit) == 0 {
 		effectiveLimit = U64T(lenChunks).NextPowerOfTwo()
+		fmt.Println(effectiveLimit)
 	} else if limit[0] >= lenChunks {
 		effectiveLimit = U64T(limit[0]).NextPowerOfTwo()
-		effectiveChunks = PadTo(chunks, effectiveLimit)
 	} else {
 		limit := limit[0]
 		if limit < uint64(lenChunks) {
@@ -207,10 +208,7 @@ func Merkleize[U64T U64[U64T], ChunkT, RootT ~[32]byte](
 		effectiveLimit = U64T(limit)
 	}
 
-	if len(effectiveChunks) == 0 {
-		effectiveChunks = PadTo[U64T](chunks, 1)
-	}
-
+	effectiveChunks = PadTo(chunks, effectiveLimit)
 	if len(effectiveChunks) == 1 {
 		return RootT(effectiveChunks[0]), nil
 	}

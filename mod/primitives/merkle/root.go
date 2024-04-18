@@ -26,6 +26,7 @@
 package merkle
 
 import (
+	"fmt"
 	"runtime"
 	"unsafe"
 
@@ -68,6 +69,8 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	depth uint8,
 ) (RootT, error) {
+
+	fmt.Println("DEPTH", depth)
 	// Return zerohash at depth
 	if len(leaves) == 0 {
 		return zero.Hashes[depth], nil
@@ -85,10 +88,12 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 		if err != nil {
 			return zero.Hashes[depth], err
 		}
+		fmt.Println("LEAVES", leaves)
 	}
 	if len(leaves) != 1 {
 		return zero.Hashes[depth], nil
 	}
+	fmt.Println("LEAVES", leaves[0])
 	return RootT(leaves[0]), nil
 }
 

@@ -26,6 +26,7 @@
 package ssz
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
@@ -42,6 +43,7 @@ func MerkleizeVecBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B) (Roo
 	if err != nil {
 		return [32]byte{}, err
 	}
+	fmt.Println("PACKED", len(packed))
 	return Merkleize[U64T, RootT, RootT](packed)
 }
 

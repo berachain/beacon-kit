@@ -80,6 +80,15 @@ func (u U64) SizeSSZ() int {
 	return U64NumBytes
 }
 
+// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
+func (u U64) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, U64NumBytes)
+	binary.LittleEndian.PutUint64(buf, uint64(u))
+	var hashRoot [32]byte
+	copy(hashRoot[:], buf)
+	return hashRoot, nil
+}
+
 // -------------------------- JSONMarshallable -------------------------
 
 // UnmarshalJSON parses a blob in hex syntax.
@@ -139,21 +148,29 @@ func (v U64List) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
 }
 
+func (v U64List) SizeSSZ() int {
+	return int(ssz.SizeOfComposite[[32]byte, U64List](v))
+}
+
 type U64Container struct {
-	Field0 U64
+	Field2 U64List
 	Field1 U64
-	Field2 U64Vector
 }
 
 func (c U64Container) SizeSSZ() int {
-	return c.Field0.SizeSSZ() + c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
+	return c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
 }
 
 func (c U64Container) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -objs U64List2 --path ./u64.go -output bet.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -objs U64List2,U64Container2 --path ./u64.go -output bet.ssz.go
 type U64List2 struct {
 	Data []uint64 `ssz-max:"16"`
+}
+
+type U64Container2 struct {
+	Field2 []uint64 `ssz-max:"16"`
+	Field1 U64
 }
