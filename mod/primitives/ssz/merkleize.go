@@ -72,7 +72,7 @@ func MerkleizeListBasic[
 	}
 	root, err := Merkleize[U64T, RootT, RootT](
 		packed,
-		ChunkCountBasicList[RootT, B](value, limit),
+		ChunkCountBasicList[B, RootT](value, limit),
 	)
 	if err != nil {
 		return [32]byte{}, err
@@ -85,25 +85,26 @@ func MerkleizeListBasic[
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
 func MerkleizeContainer[
-	U64T U64[U64T], C Composite[RootT], RootT ~[32]byte,
+	U64T U64[U64T], C Container[RootT], RootT ~[32]byte, SpecT any,
 ](
-	value C,
+	value C, args ...SpecT,
 ) (RootT, error) {
 	rValue := reflect.ValueOf(value)
 	if rValue.Kind() == reflect.Ptr {
 		rValue = rValue.Elem()
 	}
-	htrs := make([]RootT, rValue.NumField())
+	numFields := rValue.NumField()
+	htrs := make([]RootT, numFields)
 	var err error
-	for i := range rValue.NumField() {
-		field, ok := rValue.Field(i).Interface().(Hashable[RootT])
+	for i := range numFields {
+		field, ok := rValue.Field(i).Interface().(Hashable[SpecT, RootT])
 		if !ok {
 			return RootT{}, fmt.Errorf(
 				"field %d does not implement Hashable",
 				i,
 			)
 		}
-		htrs[i], err = field.HashTreeRoot()
+		htrs[i], err = field.HashTreeRoot(args...)
 		if err != nil {
 			return RootT{}, err
 		}

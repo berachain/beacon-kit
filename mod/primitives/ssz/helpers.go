@@ -61,7 +61,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[RootT ~[32]byte, B Basic[RootT]](
+func ChunkCountBasicList[B Basic[RootT], RootT ~[32]byte](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -81,7 +81,7 @@ func ChunkCountBasicList[RootT ~[32]byte, B Basic[RootT]](
 
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
-func ChunkCountCompositeList[RootT ~[32]byte, C Composite[RootT]](
+func ChunkCountCompositeList[C Composite[RootT], RootT ~[32]byte](
 	c []C,
 	limit uint64,
 ) uint64 {
@@ -90,7 +90,7 @@ func ChunkCountCompositeList[RootT ~[32]byte, C Composite[RootT]](
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[C Container](c C) uint64 {
+func ChunkCountContainer[C Container[RootT], RootT ~[32]byte](c C) uint64 {
 	return uint64(reflect.ValueOf(c).NumField())
 }
 

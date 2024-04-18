@@ -43,6 +43,6 @@ type Composite[RootT ~[32]byte] interface {
 
 // Container is an interface for SSZ container types that can be marshaled and
 // unmarshaled.
-type Container interface {
-	Marshallable
+type Container[RootT ~[32]byte] interface {
+	Composite[RootT]
 }

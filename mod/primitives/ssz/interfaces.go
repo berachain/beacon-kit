@@ -43,8 +43,9 @@ type Marshallable interface {
 }
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable[Root ~[32]byte] interface {
-	HashTreeRoot() (Root, error)
+type Hashable[SpecT any, Root ~[32]byte] interface {
+	HashTreeRoot(...SpecT) (Root, error)
+	TreeHashRoot() Root
 }
 
 // U64 is an interface for uint64 types that support
