@@ -43,7 +43,7 @@ import (
 //nolint:gochecknoglobals // todo:fix from sdk.
 var DefaultNodeHome string
 
-//nolint:gochecknoinits // from sdk.
+//nolint:init // annoying from sdk.
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {

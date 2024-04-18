@@ -77,9 +77,9 @@ func AddPubkeyCmd() *cobra.Command {
 				primitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
-				1e9,  //nolint:gomnd // temp.
-				1e9,  //nolint:gomnd // temp.
-				32e9, //nolint:gomnd // temp.
+				1e9,  //nolint:mnd // temp.
+				1e9,  //nolint:mnd // temp.
+				32e9, //nolint:mnd // temp.
 			)
 
 			//#nosec:G703 // Ignore errors on this line.

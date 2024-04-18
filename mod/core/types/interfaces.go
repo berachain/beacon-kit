@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -49,8 +50,8 @@ type ReadOnlyBeaconBlock interface {
 	ssz.HashRoot
 	IsNil() bool
 	Version() uint32
-	GetSlot() primitives.Slot
-	GetProposerIndex() primitives.ValidatorIndex
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() primitives.Root
 	GetStateRoot() primitives.Root
 	GetBody() BeaconBlockBody

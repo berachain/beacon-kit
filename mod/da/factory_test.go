@@ -33,10 +33,10 @@ import (
 	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
-	"github.com/berachain/beacon-kit/mod/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -120,7 +120,7 @@ func mockBody() da.BeaconBlockBody {
 		ReceiptsRoot:  common.HexToHash("0x04"),
 		LogsBloom:     bytes.Repeat([]byte("b"), 256),
 		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: primitives.Wei(bytes.Repeat([]byte("f"), 32)),
+		BaseFeePerGas: math.Wei(bytes.Repeat([]byte("f"), 32)),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		ExtraData:     []byte("extra"),

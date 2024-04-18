@@ -28,8 +28,8 @@ package cache
 import (
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain
@@ -46,7 +46,7 @@ type PayloadIDCache struct {
 
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
 	//nolint:lll
-	slotToStateRootToPayloadID map[primitives.Slot]map[[32]byte]engineprimitives.PayloadID
+	slotToStateRootToPayloadID map[math.Slot]map[[32]byte]engineprimitives.PayloadID
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
@@ -55,7 +55,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[primitives.Slot]map[[32]byte]engineprimitives.PayloadID,
+			map[math.Slot]map[[32]byte]engineprimitives.PayloadID,
 		),
 	}
 }
@@ -63,7 +63,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 // Get retrieves the payload ID associated with a given slot and eth1 hash.
 // It returns the found payload ID and a boolean indicating whether the lookup
 // was successful.
-func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
+func (p *PayloadIDCache) Get(slot math.Slot, stateRoot [32]byte,
 ) (engineprimitives.PayloadID, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -82,7 +82,7 @@ func (p *PayloadIDCache) Get(slot primitives.Slot, stateRoot [32]byte,
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot primitives.Slot, stateRoot [32]byte, pid engineprimitives.PayloadID,
+	slot math.Slot, stateRoot [32]byte, pid engineprimitives.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -103,7 +103,7 @@ func (p *PayloadIDCache) Set(
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
 // the specified slot. Only used for testing.
-func (p *PayloadIDCache) UnsafePrunePrior(slot primitives.Slot) {
+func (p *PayloadIDCache) UnsafePrunePrior(slot math.Slot) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.prunePrior(slot)
@@ -112,7 +112,7 @@ func (p *PayloadIDCache) UnsafePrunePrior(slot primitives.Slot) {
 // Prune removes payload IDs from the cache for slots less than the specified
 // slot. This method helps in managing the memory usage of the cache by
 // discarding outdated entries.
-func (p *PayloadIDCache) prunePrior(slot primitives.Slot) {
+func (p *PayloadIDCache) prunePrior(slot math.Slot) {
 	for s := range p.slotToStateRootToPayloadID {
 		if s < slot {
 			delete(p.slotToStateRootToPayloadID, s)

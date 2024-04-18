@@ -26,12 +26,11 @@
 package merkle
 
 import (
-	"encoding/binary"
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -49,12 +48,12 @@ const (
 )
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
+func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
 ) (RootT, error) {
 	return NewRootWithDepth[LeafT, RootT](
-		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -169,21 +168,5 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	return outputList, nil
-}
-
-// MixinLength takes a root element and mixes in the length of the elements
-// that were hashed to produce it.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	chunks := make([][32]byte, two)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
+	return outputList, eg.Wait()
 }

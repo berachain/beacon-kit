@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
@@ -103,7 +104,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// Max 100 validators in the active set.
 		// TODO: this is kinda hood.
 		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
+			var idx math.ValidatorIndex
 			idx, err = store.WithContext(ctx).
 				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {

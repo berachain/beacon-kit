@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
@@ -75,8 +76,8 @@ func (s *StateDB) Copy() BeaconState {
 
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB) IncreaseBalance(
-	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
+	idx math.ValidatorIndex,
+	delta math.Gwei,
 ) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
@@ -87,8 +88,8 @@ func (s *StateDB) IncreaseBalance(
 
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB) DecreaseBalance(
-	idx primitives.ValidatorIndex,
-	delta primitives.Gwei,
+	idx math.ValidatorIndex,
+	delta math.Gwei,
 ) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
@@ -100,7 +101,7 @@ func (s *StateDB) DecreaseBalance(
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB) UpdateSlashingAtIndex(
 	index uint64,
-	amount primitives.Gwei,
+	amount math.Gwei,
 ) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
@@ -132,7 +133,7 @@ func (s *StateDB) UpdateSlashingAtIndex(
 func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         *primitives.Validator
-		balance           primitives.Gwei
+		balance           math.Gwei
 		withdrawalAddress primitives.ExecutionAddress
 		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
 	)
@@ -142,7 +143,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		return nil, err
 	}
 
-	epoch := primitives.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
+	epoch := math.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -181,7 +182,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 
 		// These fields are the same for both partial and full withdrawals.
 		withdrawal := &engineprimitives.Withdrawal{
-			Index:     primitives.U64(withdrawalIndex),
+			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
 		}
@@ -190,8 +191,8 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		// validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawal.Amount = balance
-		} else if validator.IsPartiallyWithdrawable(balance, primitives.Gwei(s.cs.MaxEffectiveBalance())) {
-			withdrawal.Amount = balance - primitives.Gwei(s.cs.MaxEffectiveBalance())
+		} else if validator.IsPartiallyWithdrawable(balance, math.Gwei(s.cs.MaxEffectiveBalance())) {
+			withdrawal.Amount = balance - math.Gwei(s.cs.MaxEffectiveBalance())
 		}
 		withdrawals = append(withdrawals, withdrawal)
 
@@ -205,7 +206,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % primitives.ValidatorIndex(
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
 			totalValidators,
 		)
 	}

@@ -77,7 +77,7 @@ func (c Commitment) ToVersionedHash() primitives.ExecutionHash {
 
 // ToHashChunks converts this KZG commitment into a set of hash chunks.
 func (c Commitment) ToHashChunks() [][32]byte {
-	chunks := make([][32]byte, 2) //nolint:gomnd // 2 chunks.
+	chunks := make([][32]byte, 2) //nolint:mnd // 2 chunks.
 	copy(chunks[0][:], c[:])
 	copy(chunks[1][:], c[constants.RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
