@@ -60,7 +60,10 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth(items, depth)
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+		items,
+		depth,
+	)
 	require.NoError(f, err)
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(f, err)

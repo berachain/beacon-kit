@@ -42,3 +42,8 @@ type BeaconBlockBody interface {
 	GetTopLevelRoots() ([][32]byte, error)
 	GetBlobKzgCommitments() kzg.Commitments
 }
+
+// ChainSpec represents a chain spec.
+type ChainSpec interface {
+	MaxBlobCommitmentsPerBlock() uint64
+}

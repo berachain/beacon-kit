@@ -26,15 +26,14 @@
 package ssz
 
 import (
-	"encoding/binary"
-
-	"github.com/berachain/beacon-kit/mod/merkle/htr"
+	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
-// two is a commonly used constant.
-const two = 2
+// Merkleize hashes a list of chunks and returns the HTR of the list of.
+func Merkleize(chunks [][32]byte, limit uint64) ([32]byte, error) {
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](chunks, limit)
+}
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
@@ -48,7 +47,10 @@ func MerkleizeByteSlice(input []byte) ([32]byte, error) {
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return htr.BuildTreeRoot(chunks, numChunks), nil
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](
+		chunks,
+		numChunks,
+	)
 }
 
 // MerkleizeList hashes each element in the list and then returns the HTR of
@@ -60,13 +62,7 @@ func MerkleizeList[T Hashable[[32]byte]](
 	if err != nil {
 		return [32]byte{}, err
 	}
-	chunks := make([][32]byte, two)
-	chunks[0] = body
-	binary.LittleEndian.PutUint64(chunks[1][:], uint64(len(elements)))
-	if err = gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}, err
-	}
-	return chunks[0], err
+	return merkle.MixinLength(body, uint64(len(elements))), nil
 }
 
 // MerkleizeVector hashes each element in the list and then returns the HTR
@@ -82,5 +78,5 @@ func MerkleizeVector[T Hashable[[32]byte]](
 			return [32]byte{}, err
 		}
 	}
-	return htr.BuildTreeRoot(roots, length), nil
+	return merkle.NewRootWithMaxLeaves[[32]byte, [32]byte](roots, length)
 }

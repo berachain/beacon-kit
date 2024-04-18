@@ -23,21 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package params
+package merkle
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"fmt"
+
+	"github.com/cockroachdb/errors"
 )
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot = primitives.Slot(0)
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch = primitives.Epoch(0)
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = primitives.Epoch(^uint64(0))
-)
+// verifySufficientDepth ensures that the depth is sufficient to build a tree.
+func verifySufficientDepth(numLeaves int, depth uint8) error {
+	switch {
+	case numLeaves == 0:
+		return ErrEmptyLeaves
+	case depth == 0:
+		return ErrZeroDepth
+	case depth > MaxTreeDepth:
+		return ErrExceededDepth
+	case numLeaves > (1 << depth):
+		return errors.Wrap(
+			ErrInsufficientDepthForLeaves,
+			fmt.Sprintf(
+				"attempted to build tree/root with %d leaves at depth %d",
+				numLeaves, depth),
+		)
+	}
+	return nil
+}
