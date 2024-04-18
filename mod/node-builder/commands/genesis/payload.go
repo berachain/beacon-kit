@@ -30,9 +30,9 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -150,16 +150,16 @@ func executableDataToExecutionPayload(
 		ReceiptsRoot:  data.ReceiptsRoot,
 		LogsBloom:     data.LogsBloom,
 		Random:        data.Random,
-		Number:        primitives.U64(data.Number),
-		GasLimit:      primitives.U64(data.GasLimit),
-		GasUsed:       primitives.U64(data.GasUsed),
-		Timestamp:     primitives.U64(data.Timestamp),
+		Number:        math.U64(data.Number),
+		GasLimit:      math.U64(data.GasLimit),
+		GasUsed:       math.U64(data.GasUsed),
+		Timestamp:     math.U64(data.Timestamp),
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: primitives.NewU256LFromBigInt(data.BaseFeePerGas),
+		BaseFeePerGas: math.NewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,
-		BlobGasUsed:   primitives.U64(blobGasUsed),
-		ExcessBlobGas: primitives.U64(excessBlobGas),
+		BlobGasUsed:   math.U64(blobGasUsed),
+		ExcessBlobGas: math.U64(excessBlobGas),
 	}
 }

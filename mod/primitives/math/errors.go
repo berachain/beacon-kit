@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package math
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import "errors"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives,../../../../primitives/math,../../../../core/types -output validators.ssz.go
-type ValidatorsMarshaling struct {
-	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
-}
+var (
+	// ErrInvalidSSZLength is returned when an invalid SSZ length is
+	// encountered.
+	ErrInvalidSSZLength = errors.New("invalid ssz length")
+)

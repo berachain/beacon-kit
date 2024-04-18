@@ -25,14 +25,16 @@
 
 package primitives
 
-// BeaconBlockHeader is the header of a beacon block.
+import "github.com/berachain/beacon-kit/mod/primitives/math"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./bytes.go,./u64.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
+// BeaconBlockHeader is the header of a beacon block.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./math,./bytes.go,./math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
-	Slot Slot `json:"slot"`
+	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the proposer of the block.
-	ProposerIndex ValidatorIndex `json:"proposerIndex"`
+	ProposerIndex math.ValidatorIndex `json:"proposerIndex"`
 	// ParentRoot is the root of the parent block.
 	ParentRoot Root `json:"parentRoot"    ssz-size:"32"`
 	// StateRoot is the root of the beacon state after executing

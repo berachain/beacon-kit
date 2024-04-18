@@ -25,6 +25,8 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/mod/primitives/math"
+
 // SigVerificationFn is a function that verifies a signature.
 type SigVerificationFn func(pubkey, message, signature []byte) bool
 
@@ -32,7 +34,7 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./u64.go,./primitives.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./math/,./primitives.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -42,7 +44,7 @@ type DepositMessage struct {
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount math.Gwei `json:"amount"`
 }
 
 // VerifyDeposit verifies the deposit data when attempting to create a

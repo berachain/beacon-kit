@@ -29,6 +29,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
@@ -59,7 +60,7 @@ func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	length uint64,
 ) (RootT, error) {
 	return NewRootWithDepth[LeafT, RootT](
-		leaves, U64T(length).NextPowerOfTwo().ILog2Ceil(),
+		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 

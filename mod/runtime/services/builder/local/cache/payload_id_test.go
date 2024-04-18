@@ -28,8 +28,8 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +45,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
-		slot := primitives.Slot(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
@@ -56,7 +56,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
-		slot := primitives.Slot(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
@@ -67,7 +67,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
-		slot := primitives.Slot(9456456)
+		slot := math.Slot(9456456)
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
 		cacheUnderTest.Set(slot, r, pid)
@@ -82,7 +82,7 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Multiple entries and prune", func(t *testing.T) {
 		// Set multiple entries
 		for i := range uint8(5) {
-			slot := primitives.Slot(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			pid := engineprimitives.PayloadID{
 				i, i, i, i, i, i, i, i,
@@ -93,14 +93,14 @@ func TestPayloadIDCache(t *testing.T) {
 		// Prune and check if only the last two entries exist
 		cacheUnderTest.UnsafePrunePrior(3)
 		for i := range uint8(3) {
-			slot := primitives.Slot(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)
 			require.False(t, ok, "Expected entry to be pruned for slot", slot)
 		}
 
 		for i := uint8(3); i < 5; i++ {
-			slot := primitives.Slot(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)
 			require.True(t, ok, "Expected entry to exist for slot", slot)

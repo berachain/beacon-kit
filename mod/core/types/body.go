@@ -26,13 +26,12 @@
 package types
 
 import (
-	"math"
+	nmath "math"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	"github.com/cockroachdb/errors"
 )
 
@@ -45,7 +44,7 @@ var (
 
 	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
 	//#nosec:G701 // realistically won't exceed 255 fields.
-	LogBodyLengthDeneb = uint8(math.Ceil(math.Log2(float64(BodyLengthDeneb))))
+	LogBodyLengthDeneb = uint8(nmath.Ceil(nmath.Log2(float64(BodyLengthDeneb))))
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)
@@ -54,7 +53,7 @@ var (
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/kzg,../../primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/math,../../primitives/kzg,../../primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
@@ -135,25 +134,24 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	layer := make([][32]byte, BodyLengthDeneb)
 	var err error
-	randao := b.GetRandaoReveal()
-	layer[0], err = ssz.MerkleizeByteSlice[primitives.U64, [32]byte](randao[:])
-	if err != nil {
-		return nil, err
-	}
+	// randao := b.GetRandaoReveal()
+	// layer[0], err = ssz.MerkleizeByteSlice[[32]byte](randao[:])
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// graffiti
 	layer[1] = b.GetGraffiti()
 
-	//nolint:mnd // TODO: Config
-	maxDepositsPerBlock := uint64(16)
-	// root, err = dep.HashTreeRoot()
-	layer[2], err = ssz.MerkleizeListComposite[primitives.U64](
-		b.GetDeposits(),
-		maxDepositsPerBlock,
-	)
-	if err != nil {
-		return nil, err
-	}
+	// maxDepositsPerBlock := uint64(16)
+	// // root, err = dep.HashTreeRoot()
+	// // layer[2], err = ssz.MerkleizeListComposite(
+	// // 	b.GetDeposits(),
+	// // 	maxDepositsPerBlock,
+	// // )
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Execution Payload
 	layer[3], err = b.GetExecutionPayload().HashTreeRoot()

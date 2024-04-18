@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package math
 
 import (
 	"encoding/binary"
@@ -45,6 +45,28 @@ const (
 // compatible with the spec.
 type U64 uint64
 
+//nolint:lll // links.
+type (
+	// Gwei is a denomination of 1e9 Wei represented as a U64.
+	Gwei = U64
+
+	// Slot as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Slot = U64
+
+	// CommitteeIndex as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	CommitteeIndex = U64
+
+	// ValidatorIndex as per the Ethereum 2.0  Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	ValidatorIndex = U64
+
+	// Epoch as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Epoch = U64
+)
+
 // -------------------------- SSZMarshallable --------------------------
 
 // MarshalSSZTo serializes the U64 into a byte slice.
@@ -64,9 +86,6 @@ func (u U64) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ deserializes the U64 from a byte slice.
 func (u *U64) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != U64NumBytes {
-		return ErrInvalidSSZLength
-	}
 	if u == nil {
 		u = new(U64)
 	}
