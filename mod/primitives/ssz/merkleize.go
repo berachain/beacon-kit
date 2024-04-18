@@ -55,7 +55,7 @@ func MerkleizeVecBasic[
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return Merkleize[U64T, RootT, RootT](packed)
+	return Merkleize[U64T, RootT](packed)
 }
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
@@ -111,7 +111,7 @@ func MerkleizeContainer[
 			return RootT{}, err
 		}
 	}
-	return Merkleize[U64T, RootT, RootT](htrs)
+	return Merkleize[U64T, RootT](htrs)
 }
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
