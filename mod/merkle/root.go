@@ -26,6 +26,7 @@
 package merkle
 
 import (
+	"encoding/binary"
 	"runtime"
 	"unsafe"
 
@@ -65,11 +66,6 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 	// Return zerohash at depth
 	if len(leaves) == 0 {
 		return zero.Hashes[depth], nil
-	}
-
-	// Validate input list length.
-	if err := verifySufficientDepth(len(leaves), depth); err != nil {
-		return zero.Hashes[depth], err
 	}
 
 	for i := range depth {
@@ -178,4 +174,16 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 
 	return outputList, nil
+}
+
+// MixinLength takes a root element and mixes in the length of the elements
+// that were hashed to produce it.
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	chunks := make([][32]byte, two)
+	chunks[0] = element
+	binary.LittleEndian.PutUint64(chunks[1][:], length)
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
+		return [32]byte{}
+	}
+	return chunks[0]
 }
