@@ -59,11 +59,18 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicListVec returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicListVec[RootT ~[32]byte, B Basic](b []B) uint64 {
-	if len(b) == 0 {
-		return 0
+func ChunkCountBasicListVec[RootT ~[32]byte, B Basic](b []B, maxCapacity uint64) uint64 {
+	numItems := uint64(len(b))
+	if numItems == 0 {
+		return 1
 	}
-	return (uint64(len(b))*SizeOfBasic[RootT, B](b[0]) + 31) / 32
+	size := SizeOfBasic[RootT, B](b[0])
+	limit := (maxCapacity*size + 31) / 32
+	if limit != 0 {
+		return limit
+	}
+
+	return numItems
 }
 
 // ChunkCountCompositeList returns the number of chunks required to store a
@@ -92,7 +99,7 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 }
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
-func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
+func Pack[U64T U64[U64T], B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range b {
@@ -109,9 +116,9 @@ func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 			var buffer [4]byte
 			binary.LittleEndian.PutUint32(buffer[:], el)
 			packed = append(packed, buffer[:]...)
-		case uint64:
+		case U64T:
 			var buffer [8]byte
-			binary.LittleEndian.PutUint64(buffer[:], el)
+			binary.LittleEndian.PutUint64(buffer[:], el.Unwrap())
 			packed = append(packed, buffer[:]...)
 		// case primitives.U256L:
 		// 	var buffer [32]byte
@@ -134,10 +141,7 @@ func Pack[B Basic, RootT ~[32]byte](b []B) ([]RootT, error) {
 
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:gomnd // we add 31 in order to round up the division.
-	numChunks := (uint64(len(input)) + 31) / constants.RootLength
-	if numChunks == 0 {
-		return nil, 0, ErrInvalidNilSlice
-	}
+	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])

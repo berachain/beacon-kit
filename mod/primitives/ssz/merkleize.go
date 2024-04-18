@@ -38,19 +38,19 @@ func MerkleizeBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value B) (RootT, e
 
 // func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {
 func MerkleizeVecBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B) (RootT, error) {
-	packed, err := Pack[B, RootT](value)
+	packed, err := Pack[U64T, B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
 	return Merkleize[U64T, RootT, RootT](packed)
 }
 
-func MerkleizeListBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B) (RootT, error) {
-	packed, err := Pack[B, RootT](value)
+func MerkleizeListBasic[U64T U64[U64T], B Basic, RootT ~[32]byte](value []B, limit uint64) (RootT, error) {
+	packed, err := Pack[U64T, B, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	root, err := Merkleize[U64T, RootT, RootT](packed, ChunkCountBasicListVec[RootT, B](value))
+	root, err := Merkleize[U64T, RootT, RootT](packed, ChunkCountBasicListVec[RootT, B](value, limit))
 	if err != nil {
 		return [32]byte{}, err
 	}

@@ -136,7 +136,7 @@ func (v U64Vector) SizeSSZ() int {
 type U64List []U64
 
 func (v U64List) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v)
+	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
 }
 
 type U64Container struct {
@@ -151,4 +151,9 @@ func (c U64Container) SizeSSZ() int {
 
 func (c U64Container) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
+}
+
+//go:generate go run github.com/ferranbt/fastssz/sszgen -objs U64List2 --path ./u64.go -output bet.ssz.go
+type U64List2 struct {
+	Data []uint64 `ssz-max:"16"`
 }

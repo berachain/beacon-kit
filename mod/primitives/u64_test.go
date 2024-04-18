@@ -237,3 +237,40 @@ func TestU64_ILog2Ceil(t *testing.T) {
 		})
 	}
 }
+
+func TestU64Vector_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		vector   primitives.U64List
+		expected [32]byte
+	}{
+		// {
+		// 	name:     "empty vector",
+		// 	vector:   primitives.U64List{},
+		// 	expected: [32]byte{}, // Assuming the hash of an empty vector is zeroed
+		// },
+		// {
+		// 	name:     "single element",
+		// 	vector:   primitives.U64List{1},
+		// 	expected: [32]byte{0x01}, // Simplified expected result
+		// },
+		{
+			name:     "multiple elements",
+			vector:   primitives.U64List{1, 2, 3, 4, 5, 6, 9, 1000, 34, 334, 33},
+			expected: [32]byte{0x0e}, // Simplified expected result
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.vector.HashTreeRoot()
+			require.NoError(t, err)
+			list2 := make([]uint64, len(tt.vector))
+			for i, v := range tt.vector {
+				list2[i] = uint64(v)
+			}
+			result2, err := (&primitives.U64List2{Data: list2}).HashTreeRoot()
+			require.Equal(t, result, result2)
+		})
+	}
+}
