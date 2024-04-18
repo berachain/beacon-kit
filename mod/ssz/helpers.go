@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package ssz
 
 import (
@@ -40,12 +65,14 @@ func ChunkCountBasic[B Basic](B) uint64 {
 	return 1
 }
 
-// ChunkCountBitListVec returns the number of chunks required to store a bitlist or bitvector.
+// ChunkCountBitListVec returns the number of chunks required to store a bitlist
+// or bitvector.
 func ChunkCountBitListVec[T any](t []T) uint64 {
 	return (uint64(len(t)) + 255) / 256
 }
 
-// ChunkCountBasicListVec returns the number of chunks required to store a list or vector of basic types.
+// ChunkCountBasicListVec returns the number of chunks required to store a list
+// or vector of basic types.
 func ChunkCountBasicListVec[B Basic](b []B) uint64 {
 	if len(b) == 0 {
 		return 0
@@ -53,18 +80,23 @@ func ChunkCountBasicListVec[B Basic](b []B) uint64 {
 	return (uint64(len(b))*SizeOfBasic[B](b[0]) + 31) / 32
 }
 
-// ChunkCountCompositeListVec returns the number of chunks required to store a list or vector of composite types.
+// ChunkCountCompositeListVec returns the number of chunks required to store a
+// list or vector of composite types.
 func ChunkCountCompositeListVec[C Composite](c []C) uint64 {
 	return uint64(len(c))
 }
 
-// ChunkCountContainer returns the number of chunks required to store a container.
+// ChunkCountContainer returns the number of chunks required to store a
+// container.
 func ChunkCountContainer[C Container](c C) uint64 {
 	return uint64(reflect.ValueOf(c).NumField())
 }
 
 // PadTo function to pad the chunks to the effective limit with zeroed chunks.
-func PadTo[ChunkT ~[32]byte](chunks []ChunkT, effectiveLimit primitives.U64) []ChunkT {
+func PadTo[ChunkT ~[32]byte](
+	chunks []ChunkT,
+	effectiveLimit primitives.U64,
+) []ChunkT {
 	paddedChunks := make([]ChunkT, effectiveLimit)
 	copy(paddedChunks, chunks)
 	for i := uint64(len(chunks)); i < uint64(effectiveLimit); i++ {
@@ -143,13 +175,20 @@ func MerkleizeByteSlice[RootT ~[32]byte](input []byte) (RootT, error) {
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
 //
-// merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks, merkleize the chunks, and return the root:
-// The merkleization depends on the effective input, which must be padded/limited:
+// merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
+// merkleize the chunks, and return the root: The merkleization depends on the
+// effective input, which must be padded/limited:
 //
 //	if no limit:
-//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks)) (virtually for memory efficiency).
+//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks))
+//
+// (virtually for memory efficiency).
+//
 //	if limit >= len(chunks):
-//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for memory efficiency).
+//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for
+//
+// memory efficiency).
+//
 //	if limit < len(chunks):
 //		do not merkleize, input exceeds limit. Raise an error instead.
 //	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
@@ -186,7 +225,10 @@ func Merkleize[ChunkT, RootT ~[32]byte](
 		return RootT(effectiveChunks[0]), nil
 	}
 
-	return merkle.NewRootWithMaxLeaves[ChunkT, RootT](effectiveChunks, effectiveLimit.Unwrap())
+	return merkle.NewRootWithMaxLeaves[ChunkT, RootT](
+		effectiveChunks,
+		effectiveLimit.Unwrap(),
+	)
 }
 
 // MixinLength takes a root element and mixes in the length of the elements

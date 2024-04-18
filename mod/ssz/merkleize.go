@@ -29,6 +29,32 @@ import (
 	"github.com/berachain/beacon-kit/mod/merkle"
 )
 
+// Merkleize hashes the packed value and returns the HTR.
+func MerkleizeBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {
+	return MerkleizeVecBasic[B, RootT]([]B{value})
+}
+
+// func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value B) (RootT, error) {
+func MerkleizeVecBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
+	packed, err := Pack[B, RootT](value)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return Merkleize[RootT, RootT](packed)
+}
+
+func MerkleizeListBasic[B Basic, RootT ~[32]byte](value []B) (RootT, error) {
+	vec, err := MerkleizeVecBasic[B, RootT](value)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return merkle.MixinLength(vec, uint64(len(value))), nil
+}
+
+// TODO bitlist
+
+// -----------------------------------------------------------------------------
+
 // MerkleizeList hashes each element in the list and then returns the HTR of
 // the list of corresponding roots, with the length mixed in.
 func MerkleizeList[T Hashable[[32]byte]](
