@@ -113,7 +113,9 @@ func MerkleizeContainer[
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
-func MerkleizeVecComposite[U64T U64[U64T], RootT ~[32]byte, C Composite[RootT, any]](
+func MerkleizeVecComposite[
+	U64T U64[U64T], RootT ~[32]byte, C Composite[RootT, any],
+](
 	value []C,
 ) (RootT, error) {
 	htrs := make([]RootT, len(value))

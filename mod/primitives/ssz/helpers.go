@@ -86,7 +86,9 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[RootT, SpecT]](
 
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
-func ChunkCountCompositeList[C Composite[RootT, SpecT], SpecT any, RootT ~[32]byte](
+func ChunkCountCompositeList[
+	SpecT any, RootT ~[32]byte, C Composite[RootT, SpecT],
+](
 	c []C,
 	limit uint64,
 ) uint64 {
@@ -95,7 +97,7 @@ func ChunkCountCompositeList[C Composite[RootT, SpecT], SpecT any, RootT ~[32]by
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[C Container[RootT, SpecT], SpecT any, RootT ~[32]byte](
+func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[RootT, SpecT]](
 	c C,
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
