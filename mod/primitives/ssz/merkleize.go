@@ -35,8 +35,8 @@ import (
 
 // Merkleize hashes the packed value and returns the HTR.
 func MerkleizeBasic[
-	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[RootT, SpecT],
+	SpecT any, U64T U64[U64T], U256L U256LT,
+	RootT ~[32]byte, B Basic[RootT, SpecT],
 ](
 	value B,
 ) (RootT, error) {
@@ -89,7 +89,7 @@ func MerkleizeContainer[
 	SpecT any, U64T U64[U64T], RootT ~[32]byte,
 	C Container[RootT, any],
 ](
-	value C, args ...SpecT,
+	value C, _ ...SpecT,
 ) (RootT, error) {
 	htrs := make([]RootT, 0)
 	var err error
