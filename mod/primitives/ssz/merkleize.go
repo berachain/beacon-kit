@@ -35,8 +35,8 @@ import (
 
 // Merkleize hashes the packed value and returns the HTR.
 func MerkleizeBasic[
-	U64T U64[U64T], U256L U256LT,
-	B Basic[RootT, SpecT], SpecT any, RootT ~[32]byte,
+	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
+	B Basic[RootT, SpecT],
 ](
 	value B,
 ) (RootT, error) {
@@ -51,7 +51,7 @@ func MerkleizeVecBasic[
 ](
 	value []B,
 ) (RootT, error) {
-	packed, err := Pack[U64T, U256L, SpecT](value)
+	packed, err := Pack[U64T, U256L, SpecT, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -61,8 +61,8 @@ func MerkleizeVecBasic[
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
 func MerkleizeListBasic[
-	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[RootT, SpecT], SpecT any,
+	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
+	B Basic[RootT, SpecT],
 ](
 	value []B,
 	limit uint64,
@@ -73,7 +73,7 @@ func MerkleizeListBasic[
 	}
 	root, err := Merkleize[U64T, RootT, RootT](
 		packed,
-		ChunkCountBasicList[B, RootT, SpecT](value, limit),
+		ChunkCountBasicList[SpecT](value, limit),
 	)
 	if err != nil {
 		return [32]byte{}, err
@@ -86,8 +86,8 @@ func MerkleizeListBasic[
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
 func MerkleizeContainer[
-	U64T U64[U64T], RootT ~[32]byte,
-	SpecT any, C Container[RootT, any],
+	SpecT any, U64T U64[U64T], RootT ~[32]byte,
+	C Container[RootT, any],
 ](
 	value C, args ...SpecT,
 ) (RootT, error) {
@@ -130,7 +130,7 @@ func MerkleizeVecComposite[U64T U64[U64T], RootT ~[32]byte, C Composite[RootT, a
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
 // of composite types.
 func MerkleizeListComposite[
-	U64T U64[U64T], RootT ~[32]byte, SpecT any,
+	SpecT any, U64T U64[U64T], RootT ~[32]byte,
 	C Composite[RootT, SpecT],
 ](
 	value []C,

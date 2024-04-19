@@ -55,6 +55,7 @@ require (
 	cosmossdk.io/store v1.1.0 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
+	github.com/muir/reflectutils v0.8.0 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )
 
