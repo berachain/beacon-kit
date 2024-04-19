@@ -62,6 +62,7 @@ type BasicContainer struct {
 
 // SizeSSZ returns the size of the container in bytes.
 func (c *BasicContainer) SizeSSZ() int {
+	// TODO: We should be able to generalize SizeSSZ() as well.
 	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
 }
 
