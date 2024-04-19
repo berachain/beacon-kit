@@ -25,10 +25,12 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/mod/primitives/math"
+
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,./primitives.go,./u64.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,./primitives.go,./math,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -38,7 +40,7 @@ type Deposit struct {
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount math.Gwei `json:"amount"`
 
 	// Signature of the deposit data.
 	Signature BLSSignature `json:"signature" ssz-max:"96"`
@@ -51,7 +53,7 @@ type Deposit struct {
 func NewDeposit(
 	pubkey BLSPubkey,
 	credentials WithdrawalCredentials,
-	amount Gwei,
+	amount math.Gwei,
 	signature BLSSignature,
 	index uint64,
 ) *Deposit {

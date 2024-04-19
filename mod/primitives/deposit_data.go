@@ -25,6 +25,8 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/mod/primitives/math"
+
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 type DepositData struct {
@@ -36,7 +38,7 @@ type DepositData struct {
 	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 
 	// Deposit amount in gwei.
-	Amount Gwei `json:"amount"`
+	Amount math.Gwei `json:"amount"`
 
 	// Signature of the deposit data.
 	Signature BLSSignature `json:"signature" ssz-max:"96"`
@@ -46,7 +48,7 @@ type DepositData struct {
 func NewDepositData(
 	pubkey BLSPubkey,
 	credentials WithdrawalCredentials,
-	amount Gwei,
+	amount math.Gwei,
 	signature BLSSignature,
 ) *DepositData {
 	return &DepositData{

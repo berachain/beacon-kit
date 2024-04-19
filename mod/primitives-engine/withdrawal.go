@@ -27,16 +27,17 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives,../primitives/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     primitives.U64              `json:"index"`
-	Validator primitives.ValidatorIndex   `json:"validatorIndex"`
+	Index     math.U64                    `json:"index"`
+	Validator math.ValidatorIndex         `json:"validatorIndex"`
 	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    primitives.Gwei             `json:"amount"`
+	Amount    math.Gwei                   `json:"amount"`
 }
 
 // Equals returns true if the Withdrawal is equal to the other.

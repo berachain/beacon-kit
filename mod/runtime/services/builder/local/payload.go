@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 
@@ -43,7 +44,7 @@ func (s *Service) BuildLocalPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
-	slot primitives.Slot,
+	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 ) (*engineprimitives.PayloadID, error) {
@@ -114,7 +115,7 @@ func (s *Service) BuildLocalPayload(
 func (s *Service) GetBestPayload(
 	ctx context.Context,
 	st state.BeaconState,
-	slot primitives.Slot,
+	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
 ) (engineprimitives.ExecutionPayload,
@@ -163,7 +164,7 @@ func (s *Service) GetBestPayload(
 // execution client via a payload ID that is stored in the builder's cache.
 func (s *Service) getPayloadFromCachedPayloadIDs(
 	ctx context.Context,
-	slot primitives.Slot,
+	slot math.Slot,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.ExecutionPayload,
 	engineprimitives.BlobsBundle, bool, error) {
@@ -197,7 +198,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
-	slot primitives.Slot,
+	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.ExecutionPayload,
@@ -235,7 +236,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 // context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(
 	st state.BeaconState,
-	slot primitives.Slot,
+	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
 ) (engineprimitives.PayloadAttributer, error) {
@@ -276,7 +277,7 @@ func (s *Service) getPayloadAttribute(
 func (s *Service) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
-	slot primitives.Slot,
+	slot math.Slot,
 ) (engineprimitives.ExecutionPayload,
 	engineprimitives.BlobsBundle, bool, error) {
 	if payloadID == nil {

@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives_test
+package math_test
 
 import (
 	"bytes"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	huint256 "github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +45,7 @@ func TestLittleEndian_UInt256(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := primitives.NewU256L(tc.input)
+		le := math.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
 		require.Equal(t, expected, le.UnwrapU256())
 	}
@@ -62,7 +62,7 @@ func TestLittleEndian_Big(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := primitives.NewU256L(tc.input)
+		le := math.NewU256L(tc.input)
 		expected := new(huint256.Int).SetBytes(tc.expected)
 		require.Equal(t, expected.ToBig(), le.UnwrapBig())
 	}
@@ -79,7 +79,7 @@ func TestLittleEndian_MarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := primitives.NewU256L(tc.input)
+		le := math.NewU256L(tc.input)
 		result, err := le.MarshalJSON()
 		require.NoError(t, err)
 		require.JSONEq(t, tc.expected, string(result))
@@ -97,10 +97,10 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := new(primitives.U256L)
+		le := new(math.U256L)
 		err := le.UnmarshalJSON([]byte(tc.json))
 		require.NoError(t, err)
-		expected := primitives.NewU256L(tc.expected)
+		expected := math.NewU256L(tc.expected)
 		require.Equal(t, expected, *le)
 	}
 }
@@ -108,12 +108,12 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 func TestU256L_MarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    primitives.U256L
+		input    math.U256L
 		expected []byte
 	}{
 		{
 			name: "zero",
-			input: primitives.NewU256L(
+			input: math.NewU256L(
 				[]byte{
 					0,
 					0,
@@ -153,12 +153,12 @@ func TestU256L_MarshalSSZ(t *testing.T) {
 		},
 		{
 			name:     "max value",
-			input:    primitives.NewU256L(bytes.Repeat([]byte{255}, 32)),
+			input:    math.NewU256L(bytes.Repeat([]byte{255}, 32)),
 			expected: bytes.Repeat([]byte{255}, 32),
 		},
 		{
 			name: "arbitrary value",
-			input: primitives.NewU256L(
+			input: math.NewU256L(
 				[]byte{
 					1,
 					0,
@@ -244,7 +244,7 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
 		data     []byte
-		expected primitives.U256L
+		expected math.U256L
 		err      error
 	}{
 		{
@@ -283,7 +283,7 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 				0,
 				0,
 			},
-			expected: primitives.NewU256L(
+			expected: math.NewU256L(
 				[]byte{
 					1,
 					0,
@@ -323,18 +323,18 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "invalid data - short buffer",
 			data: []byte{0, 0},
-			err:  primitives.ErrInvalidSSZLength,
+			err:  math.ErrInvalidSSZLength,
 		},
 		{
 			name:     "valid data - zero",
 			data:     make([]byte, 32),
-			expected: primitives.NewU256L(make([]byte, 32)),
+			expected: math.NewU256L(make([]byte, 32)),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var u primitives.U256L
+			var u math.U256L
 			err := u.UnmarshalSSZ(tt.data)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)

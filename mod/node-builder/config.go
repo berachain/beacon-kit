@@ -68,7 +68,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
 // DefaultCometConfig returns the default configuration for the CometBFT
 // consensus engine.
 //
-//nolint:gomnd // magic numbers are fine here.
+//nolint:mnd // magic numbers are fine here.
 func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus

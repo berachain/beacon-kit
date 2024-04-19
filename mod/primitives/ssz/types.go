@@ -23,37 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ckzg
+package ssz
 
-import (
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+// Basic defines an interface for SSZ basic types which includes methods for
+// determining the size of the SSZ encoding and computing the hash tree root.
+type Basic[RootT ~[32]byte] interface {
+	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
+	SizeSSZ() int
+	// HashTreeRoot computes and returns the hash tree root of the data as RootT
+	// and an error if the computation fails.
+	HashTreeRoot() (RootT, error)
+}
 
-// Verifier is a verifier that utilizies the CKZG library.
-type Verifier struct{}
+// Composite is an interface that embeds the Basic interface. It is used for
+// types that are composed of other SSZ encodable values.
+type Composite[RootT ~[32]byte] interface {
+	Basic[RootT]
+}
 
-// NewVerifier creates a new CKZG verifier.
-//
-//nolint:mnd // lots of random numbers because cryptography.
-func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
-	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
-		return nil, err
-	}
-	g1s := make(
-		[]byte,
-		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
-	)
-	for i, g1 := range ts.SetupG1Lagrange {
-		copy(g1s[i*(len(g1)-2)/2:], hexutil.MustDecode(g1))
-	}
-	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
-	for i, g2 := range ts.SetupG2 {
-		copy(g2s[i*(len(g2)-2)/2:], hexutil.MustDecode(g2))
-	}
-	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
-		return nil, err
-	}
-	return &Verifier{}, nil
+// Container is an interface for SSZ container types that can be marshaled and
+// unmarshaled.
+type Container[RootT ~[32]byte] interface {
+	Composite[RootT]
 }
