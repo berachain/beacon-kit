@@ -99,8 +99,7 @@ func MerkleizeContainer[
 	htrs := make([]RootT, numFields)
 	var err error
 	for i := range numFields {
-		field, ok := rValue.Field(i).
-			Interface().(Hashable[SpecT, RootT])
+		field, ok := rValue.Field(i).Interface().(Hashable[SpecT, RootT])
 		if !ok {
 			return RootT{}, fmt.Errorf(
 				"field %d does not implement Hashable",
