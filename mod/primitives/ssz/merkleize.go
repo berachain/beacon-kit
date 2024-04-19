@@ -27,16 +27,16 @@ package ssz
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
-	"github.com/muir/reflectutils"
 )
 
 // Merkleize hashes the packed value and returns the HTR.
 func MerkleizeBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT,
-	RootT ~[32]byte, B Basic[RootT, SpecT],
+	RootT ~[32]byte, B Basic[SpecT, RootT],
 ](
 	value B,
 ) (RootT, error) {
@@ -47,7 +47,7 @@ func MerkleizeBasic[
 // types.
 func MerkleizeVecBasic[
 	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	SpecT any, B Basic[RootT, SpecT],
+	SpecT any, B Basic[SpecT, RootT],
 ](
 	value []B,
 ) (RootT, error) {
@@ -62,7 +62,7 @@ func MerkleizeVecBasic[
 // basic types.
 func MerkleizeListBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[RootT, SpecT],
+	B Basic[SpecT, RootT],
 ](
 	value []B,
 	limit uint64,
@@ -87,40 +87,45 @@ func MerkleizeListBasic[
 // container.
 func MerkleizeContainer[
 	SpecT any, U64T U64[U64T], RootT ~[32]byte,
-	C Container[RootT, SpecT],
+	C Container[SpecT, RootT],
 ](
 	value C, _ ...SpecT,
 ) (RootT, error) {
-	htrs := make([]RootT, 0)
-	reflectutils.WalkStructElements(
-		reflect.TypeOf(value), func(field reflect.StructField) bool {
-			fieldValue := reflect.ValueOf(field)
-			if fieldValue.Kind() == reflect.Ptr {
-				fieldValue = fieldValue.Elem()
-			}
+	rValue := reflect.ValueOf(value)
+	if rValue.Kind() == reflect.Ptr {
+		rValue = rValue.Elem()
+	}
+	numFields := rValue.NumField()
+	htrs := make([]RootT, numFields)
+	var err error
+	for i := range numFields {
+		fieldValue := rValue.Field(i)
+		if !fieldValue.CanInterface() {
+			return RootT{}, fmt.Errorf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
+		}
 
-			if !fieldValue.CanInterface() {
-				return false
-			}
-
-			// TODO: handle vecs, lists nested containers etc. different.
-			if el, ok := fieldValue.Interface().(Basic[RootT, SpecT]); ok {
-				root, err := el.HashTreeRoot()
-				if err != nil {
-					return false
-				}
-				htrs = append(htrs, root)
-			}
-			return true
-		})
-
+		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
+		if !ok {
+			return RootT{}, fmt.Errorf(
+				"field %d does not implement Hashable",
+				i,
+			)
+		}
+		htrs[i], err = field.HashTreeRoot( /*args...*/ )
+		if err != nil {
+			return RootT{}, err
+		}
+	}
 	return Merkleize[U64T, RootT](htrs)
 }
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
 func MerkleizeVecComposite[
-	U64T U64[U64T], RootT ~[32]byte, C Composite[RootT, any],
+	SpecT any, U64T U64[U64T], RootT ~[32]byte, C Composite[SpecT, RootT],
 ](
 	value []C,
 ) (RootT, error) {
@@ -139,7 +144,7 @@ func MerkleizeVecComposite[
 // of composite types.
 func MerkleizeListComposite[
 	SpecT any, U64T U64[U64T], RootT ~[32]byte,
-	C Composite[RootT, SpecT],
+	C Composite[SpecT, RootT],
 ](
 	value []C,
 	limit uint64,

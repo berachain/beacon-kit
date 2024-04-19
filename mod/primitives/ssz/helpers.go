@@ -35,7 +35,7 @@ import (
 )
 
 // SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic[RootT, SpecT], SpecT any](
+func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
 	b B,
 ) uint64 {
 	// TODO: Boolean maybe this doesnt work.
@@ -43,7 +43,7 @@ func SizeOfBasic[RootT ~[32]byte, B Basic[RootT, SpecT], SpecT any](
 }
 
 // SizeOfComposite returns the size of a composite type.
-func SizeOfComposite[RootT ~[32]byte, C Composite[RootT, SpecT], SpecT any](
+func SizeOfComposite[RootT ~[32]byte, C Composite[SpecT, RootT], SpecT any](
 	c C,
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
@@ -51,7 +51,7 @@ func SizeOfComposite[RootT ~[32]byte, C Composite[RootT, SpecT], SpecT any](
 }
 
 // ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic[RootT, SpecT], SpecT any](
+func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
 	B,
 ) uint64 {
 	return 1
@@ -66,7 +66,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[RootT, SpecT]](
+func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -87,7 +87,7 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[RootT, SpecT]](
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
 func ChunkCountCompositeList[
-	SpecT any, RootT ~[32]byte, C Composite[RootT, SpecT],
+	SpecT any, RootT ~[32]byte, C Composite[SpecT, RootT],
 ](
 	c []C,
 	limit uint64,
@@ -97,7 +97,7 @@ func ChunkCountCompositeList[
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[RootT, SpecT]](
+func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
 	c C,
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
@@ -124,7 +124,7 @@ func Pack[
 	U256L U256LT,
 	SpecT any,
 	RootT ~[32]byte,
-	B Basic[RootT, SpecT],
+	B Basic[SpecT, RootT],
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
