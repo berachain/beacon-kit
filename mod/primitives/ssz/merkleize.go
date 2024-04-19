@@ -97,14 +97,21 @@ func MerkleizeContainer[
 	reflectutils.WalkStructElements(
 		reflect.TypeOf(value), func(field reflect.StructField) bool {
 			fieldValue := reflect.ValueOf(field)
-			if fieldValue.CanInterface() {
-				if el, ok := fieldValue.Interface().(Basic[RootT, SpecT]); ok {
-					htrs[i], err = el.HashTreeRoot()
-					if err != nil {
-						return false
-					}
+			if fieldValue.Kind() == reflect.Ptr {
+				fieldValue = fieldValue.Elem()
+			}
+
+			if !fieldValue.CanInterface() {
+				return false
+			}
+
+			if el, ok := fieldValue.Interface().(Basic[RootT, SpecT]); ok {
+				htrs[i], err = el.HashTreeRoot()
+				if err != nil {
+					return false
 				}
 			}
+
 			return true
 		})
 
