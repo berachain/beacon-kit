@@ -92,8 +92,6 @@ func MerkleizeContainer[
 	value C, _ ...SpecT,
 ) (RootT, error) {
 	htrs := make([]RootT, 0)
-	var err error
-	var i int
 	reflectutils.WalkStructElements(
 		reflect.TypeOf(value), func(field reflect.StructField) bool {
 			fieldValue := reflect.ValueOf(field)
@@ -106,12 +104,12 @@ func MerkleizeContainer[
 			}
 
 			if el, ok := fieldValue.Interface().(Basic[RootT, SpecT]); ok {
-				htrs[i], err = el.HashTreeRoot()
+				root, err := el.HashTreeRoot()
 				if err != nil {
 					return false
 				}
+				htrs = append(htrs, root)
 			}
-
 			return true
 		})
 
