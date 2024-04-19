@@ -32,77 +32,93 @@ import (
 // ----------------------------- Unmarshal -----------------------------
 
 // UnmarshalU256 unmarshals a big endian U256 from the src input.
-func UnmarshalU256L[U256 ~[32]byte, B ~[]byte](src B) U256 {
-	var u256 U256
+func UnmarshalU256L[U256LT ~[32]byte](src []byte) U256LT {
+	var u256 U256LT
 	copy(u256[:], src)
 	return u256
 }
 
 // MarshalU256 marshals a little endian U256 into a byte slice.
-func UnmarshalU128L[U128 ~[16]byte, B ~[]byte](src B) U128 {
-	var u128 U128
+func UnmarshalU128L[U128LT ~[16]byte](src []byte) U128LT {
+	var u128 U128LT
 	copy(u128[:], src)
 	return u128
 }
 
 // UnmarshalU64 unmarshals a little endian U64 from the src input.
-func UnmarshalU64[U64 ~uint64, B ~[]byte](src B) U64 {
-	return U64(binary.LittleEndian.Uint64(src))
+func UnmarshalU64[U64T ~uint64](src []byte) U64T {
+	return U64T(binary.LittleEndian.Uint64(src))
 }
 
 // UnmarshalU32 unmarshals a little endian U32 from the src input.
-func UnmarshalU32[U32 ~uint32, B ~[]byte](src B) U32 {
-	return U32(binary.LittleEndian.Uint32(src[:4]))
+func UnmarshalU32[U32T ~uint32](src []byte) U32T {
+	return U32T(binary.LittleEndian.Uint32(src[:4]))
 }
 
 // UnmarshalU16 unmarshals a little endian U16 from the src input.
-func UnmarshalU16[U16 ~uint16, B ~[]byte](src B) U16 {
-	return U16(binary.LittleEndian.Uint16(src[:2]))
+func UnmarshalU16[U16T ~uint16](src []byte) U16T {
+	return U16T(binary.LittleEndian.Uint16(src[:2]))
 }
 
 // UnmarshalU8 unmarshals a little endian U8 from the src input.
-func UnmarshalU8[U8 ~uint8, B ~[]byte](src B) U8 {
-	return U8(src[0])
+func UnmarshalU8[U8T ~uint8](src []byte) U8T {
+	return U8T(src[0])
+}
+
+// UnmarshalBool unmarshals a boolean from the src input.
+func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
+	if src[0] == 1 {
+		return true
+	}
+	return false
 }
 
 // ----------------------------- Marshal ------------------------------
 
 // MarshalU256 marshals a big endian U256 into a byte slice.
-func MarshalU256[U256 ~[32]byte, B ~[]byte](u256 U256) B {
-	var dst [32]byte
+func MarshalU256[U256LT ~[32]byte](u256 U256LT) []byte {
+	var dst U256LT
 	copy(dst[:], u256[:])
 	return dst[:]
 }
 
 // MarshalU128 marshals a little endian U128 into a byte slice.
-func MarshalU128[U128 ~[16]byte, B ~[]byte](u128 U128) B {
+func MarshalU128[U128LT ~[16]byte](u128 U128LT) []byte {
 	var dst [16]byte
 	copy(dst[:], u128[:])
 	return dst[:]
 }
 
 // MarshalU64 marshals a little endian U64 into a byte slice.
-func MarshalU64[U64 ~uint64, B ~[]byte](u64 U64) B {
+func MarshalU64[U64T ~uint64](u64 U64T) []byte {
 	dst := make([]byte, 8)
 	binary.LittleEndian.PutUint64(dst, uint64(u64))
 	return dst
 }
 
 // MarshalU32 marshals a little endian U32 into a byte slice.
-func MarshalU32[U32 ~uint32, B ~[]byte](u32 U32) B {
+func MarshalU32[U32T ~uint32](u32 U32T) []byte {
 	dst := make([]byte, 4)
 	binary.LittleEndian.PutUint32(dst, uint32(u32))
 	return dst
 }
 
 // MarshalU16 marshals a little endian U16 into a byte slice.
-func MarshalU16[U16 ~uint16, B ~[]byte](u16 U16) B {
+func MarshalU16[U16T ~uint16](u16 U16T) []byte {
 	dst := make([]byte, 2)
 	binary.LittleEndian.PutUint16(dst, uint16(u16))
 	return dst
 }
 
 // MarshalU8 marshals a little endian U8 into a byte slice.
-func MarshalU8[U8 ~uint8, B ~[]byte](u8 U8) B {
+func MarshalU8[U8T ~uint8](u8 U8T) []byte {
 	return []byte{byte(u8)}
+}
+
+// MarshalBool marshals a boolean into a byte slice.
+func MarshalBool[BoolT ~bool](b BoolT) []byte {
+	if b {
+		return []byte{1}
+	}
+	return []byte{0}
 }

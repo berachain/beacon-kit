@@ -27,7 +27,6 @@ package ssz_test
 
 import (
 	"crypto/sha256"
-	"encoding/binary"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -35,7 +34,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type RelevantChainSpecFunctionsToThisType interface{}
+// Basic is a basic item with a value of 0.
+var Basic = BasicItem(0)
 
 // BasicItem represnets a basic item in the SSZ Spec.
 type BasicItem uint64
@@ -45,13 +45,17 @@ func (u BasicItem) SizeSSZ() int {
 	return 8
 }
 
+// MarshalSSZ marshals the U64 into a byte slice.
+func (u BasicItem) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalU64(u), nil
+}
+
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	var hashRoot [32]byte
-	copy(hashRoot[:], buf)
-	return hashRoot, nil
+	// In practice we can use a simpler function.
+	return ssz.MerkleizeBasic[
+		any, math.U64, math.U256L,
+	](u)
 }
 
 // BasiContainer represents a container of two basic items.
