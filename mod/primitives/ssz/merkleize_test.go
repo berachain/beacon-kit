@@ -34,8 +34,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Basic is a basic item with a value of 0.
-var Basic = BasicItem(0)
+// Check for interface implementation.
+var _ ssz.Basic[any, [32]byte] = BasicItem(0)
 
 // BasicItem represnets a basic item in the SSZ Spec.
 type BasicItem uint64
@@ -58,7 +58,7 @@ func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	](u)
 }
 
-// BasiContainer represents a container of two basic items.
+// BasicContainer represents a container of two basic items.
 type BasicContainer[SpecT any] struct {
 	Item1 BasicItem
 	Item2 BasicItem

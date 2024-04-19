@@ -97,7 +97,6 @@ func MerkleizeContainer[
 	htrs := make([]RootT, numFields)
 	var err error
 	for i := range numFields {
-		fmt.Println(i, "field")
 		fieldValue := rValue.Field(i)
 		if !fieldValue.CanInterface() {
 			return RootT{}, fmt.Errorf(

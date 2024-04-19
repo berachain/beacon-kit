@@ -139,7 +139,9 @@ func Pack[
 		}
 
 		// TODO: Do we need a safety check for Basic only here?
-		el, ok := reflect.ValueOf(el).Interface().(interface{ MarshalSSZ() ([]byte, error) })
+		// TODO: use a real interface instead of hood inline.
+		el, ok := reflect.ValueOf(el).
+			Interface().(interface{ MarshalSSZ() ([]byte, error) })
 		if !ok {
 			return nil, fmt.Errorf("unsupported type %T", el)
 		}

@@ -67,10 +67,7 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 
 // UnmarshalBool unmarshals a boolean from the src input.
 func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
-	if src[0] == 1 {
-		return true
-	}
-	return false
+	return src[0] == 1
 }
 
 // ----------------------------- Marshal ------------------------------
@@ -91,6 +88,7 @@ func MarshalU128[U128LT ~[16]byte](u128 U128LT) []byte {
 
 // MarshalU64 marshals a little endian U64 into a byte slice.
 func MarshalU64[U64T ~uint64](u64 U64T) []byte {
+	//nolint:mnd // 8 is the size of a U64.
 	dst := make([]byte, 8)
 	binary.LittleEndian.PutUint64(dst, uint64(u64))
 	return dst
@@ -98,6 +96,7 @@ func MarshalU64[U64T ~uint64](u64 U64T) []byte {
 
 // MarshalU32 marshals a little endian U32 into a byte slice.
 func MarshalU32[U32T ~uint32](u32 U32T) []byte {
+	//nolint:mnd // 4 is the size of a U32.
 	dst := make([]byte, 4)
 	binary.LittleEndian.PutUint32(dst, uint32(u32))
 	return dst
