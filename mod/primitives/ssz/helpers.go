@@ -129,6 +129,16 @@ func Pack[
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range b {
+		fieldValue := reflect.ValueOf(el)
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
+
+		if !fieldValue.CanInterface() {
+			return nil, fmt.Errorf("cannot interface with field %v", fieldValue)
+		}
+
+		// TODO: this is ugly probably want an abstraction.
 		switch el := reflect.ValueOf(el).Interface().(type) {
 		case uint8:
 			var buffer [1]byte
