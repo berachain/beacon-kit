@@ -75,6 +75,8 @@ func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeContainer[any, math.U64](c)
 }
 
+func (c *BasicContainer[SpecT]) IsContainer() {}
+
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {
 	container := BasicContainer[any]{

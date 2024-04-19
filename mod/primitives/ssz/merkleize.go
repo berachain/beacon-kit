@@ -81,6 +81,8 @@ func MerkleizeListBasic[
 	return merkle.MixinLength(root, uint64(len(value))), nil
 }
 
+// TODO: MerkleizeBitlist
+
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
 func MerkleizeContainer[

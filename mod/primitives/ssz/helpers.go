@@ -71,7 +71,11 @@ func SizeOfContainer[RootT ~[32]byte, C Container[SpecT, RootT], SpecT any](
 			return -1
 		}
 		size += field.SizeSSZ()
+
+		// TODO: handle the offset calculation.
 	}
+
+	// TODO: This doesn't yet handle anything to do with offset calculation.
 	return size
 }
 

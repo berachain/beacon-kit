@@ -90,6 +90,7 @@ func MarshalU128[U128LT ~[16]byte](u128 U128LT) []byte {
 func MarshalU64[U64T ~uint64](u64 U64T) []byte {
 	//nolint:mnd // 8 is the size of a U64.
 	dst := make([]byte, 8)
+	//#nosec:G701 // we are using the same size as the U64.
 	binary.LittleEndian.PutUint64(dst, uint64(u64))
 	return dst
 }
@@ -98,6 +99,7 @@ func MarshalU64[U64T ~uint64](u64 U64T) []byte {
 func MarshalU32[U32T ~uint32](u32 U32T) []byte {
 	//nolint:mnd // 4 is the size of a U32.
 	dst := make([]byte, 4)
+	//#nosec:G701 // we are using the same size as the U32.
 	binary.LittleEndian.PutUint32(dst, uint32(u32))
 	return dst
 }
@@ -106,6 +108,7 @@ func MarshalU32[U32T ~uint32](u32 U32T) []byte {
 func MarshalU16[U16T ~uint16](u16 U16T) []byte {
 	//nolint:mnd // 2 is the size of a U16.
 	dst := make([]byte, 2)
+	//#nosec:G701 // we are using the same size as the U16.
 	binary.LittleEndian.PutUint16(dst, uint16(u16))
 	return dst
 }
