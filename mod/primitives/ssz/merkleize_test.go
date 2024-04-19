@@ -40,13 +40,11 @@ type BasicItem uint64
 
 // SizeSSZ returns the size of the U64 in bytes.
 func (u BasicItem) SizeSSZ() int {
-	
 	return 8
 }
 
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
-	
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, uint64(u))
 	var hashRoot [32]byte

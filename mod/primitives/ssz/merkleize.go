@@ -107,6 +107,7 @@ func MerkleizeContainer[
 			)
 		}
 
+		// TODO: handle different types.
 		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
 		if !ok {
 			return RootT{}, fmt.Errorf(
