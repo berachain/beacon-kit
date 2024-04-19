@@ -33,8 +33,7 @@ HOMEDIR="./.tmp/beacond"
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
-ETH_GENESIS=./beacond/eth-genesis.json # TODO: Fix this to not use a relative path or make it configurable
-
+ETH_GENESIS=./beacond/eth-genesis.json # Configured, can be whatever path/name give in testing.mk for ETH_GENESIS_PATH
 # used to exit on first error (any non-zero exit code)
 set -e
 
@@ -43,9 +42,9 @@ make build
 
 overwrite="N"
 if [ -d $HOMEDIR ]; then
-	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
-	echo "Overwrite the existing configuration and start a new local node? [y/n]"
-	read -r overwrite
+  printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
+  echo "Overwrite the existing configuration and start a new local node? [y/n]"
+  read -r overwrite
 else	
 overwrite="Y"
 fi
