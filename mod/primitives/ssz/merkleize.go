@@ -87,7 +87,7 @@ func MerkleizeListBasic[
 // container.
 func MerkleizeContainer[
 	SpecT any, U64T U64[U64T], RootT ~[32]byte,
-	C Container[RootT, any],
+	C Container[RootT, SpecT],
 ](
 	value C, _ ...SpecT,
 ) (RootT, error) {
@@ -103,6 +103,7 @@ func MerkleizeContainer[
 				return false
 			}
 
+			// TODO: handle vecs, lists nested containers etc. different.
 			if el, ok := fieldValue.Interface().(Basic[RootT, SpecT]); ok {
 				root, err := el.HashTreeRoot()
 				if err != nil {
