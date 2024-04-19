@@ -35,6 +35,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type RelevantChainSpecFunctionsToThisType interface{}
+
 // BasicItem represnets a basic item in the SSZ Spec.
 type BasicItem uint64
 
@@ -53,26 +55,26 @@ func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 }
 
 // BasiContainer represents a container of two basic items.
-type BasicContainer struct {
+type BasicContainer[SpecT any] struct {
 	Item1 BasicItem
 	Item2 BasicItem
 }
 
 // SizeSSZ returns the size of the container in bytes.
-func (c *BasicContainer) SizeSSZ() int {
+func (c *BasicContainer[SpecT]) SizeSSZ() int {
 	// TODO: We should be able to generalize SizeSSZ() as well.
 	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
 }
 
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
-func (c *BasicContainer) HashTreeRoot() ([32]byte, error) {
+func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeContainer[any, math.U64](c)
 }
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {
-	container := BasicContainer{
+	container := BasicContainer[any]{
 		Item1: BasicItem(1),
 		Item2: BasicItem(2),
 	}
