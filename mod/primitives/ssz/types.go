@@ -32,7 +32,7 @@ type Basic[SpecT any, RootT ~[32]byte] interface {
 	SizeSSZ() int
 	// HashTreeRoot computes and returns the hash tree root of the data as RootT
 	// and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
+	HashTreeRoot( /*...args*/ ) (RootT, error)
 }
 
 // Composite is an interface that embeds the Basic interface. It is used for
