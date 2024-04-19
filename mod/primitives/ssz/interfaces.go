@@ -44,8 +44,7 @@ type Marshallable interface {
 
 // Hashable is an interface representing objects that implement HashTreeRoot().
 type Hashable[SpecT any, Root ~[32]byte] interface {
-	HashTreeRoot(...SpecT) (Root, error)
-	TreeHashRoot() Root
+	HashTreeRoot() (Root, error)
 }
 
 // U64 is an interface for uint64 types that support
@@ -54,6 +53,12 @@ type U64[T ~uint64] interface {
 	~uint64
 	NextPowerOfTwo() T
 	ILog2Ceil() uint8
+}
+
+// U128LT represents a 128-bit unsigned integer in
+// little-endian byte order.
+type U128LT interface {
+	~[16]byte
 }
 
 // U256LT represents a 256-bit unsigned integer in
