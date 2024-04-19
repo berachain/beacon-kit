@@ -47,7 +47,8 @@ type Serializable interface {
 func SerializeBasic[
 	U64T U64[U64T],
 	U256L U256LT,
-	B Basic[RootT],
+	B Basic[RootT, SpecT],
+	SpecT any,
 	RootT ~[32]byte,
 ](value B) ([]byte, error) {
 	switch el := reflect.ValueOf(value).Interface().(type) {
@@ -82,7 +83,7 @@ func SerializeBasic[
 
 func SerializeContainer[
 	U64T U64[U64T], RootT ~[32]byte,
-	SpecT any, C Container[RootT],
+	SpecT any, C Container[RootT, SpecT],
 ](value C) ([]byte, error) {
 	rValue := reflect.ValueOf(value)
 	if rValue.Kind() == reflect.Ptr {
@@ -96,6 +97,7 @@ func SerializeContainer[
 	offset := 0 // todo magioc number
 	cursor := 0
 	variableFields := []int{}
+
 	for i := range numFields {
 		field, ok := rValue.Field(i).Interface().(Serializable)
 		if !ok {

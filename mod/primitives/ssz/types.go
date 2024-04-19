@@ -27,7 +27,7 @@ package ssz
 
 // Basic defines an interface for SSZ basic types which includes methods for
 // determining the size of the SSZ encoding and computing the hash tree root.
-type Basic[RootT ~[32]byte] interface {
+type Basic[RootT ~[32]byte, SpecT any] interface {
 	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
 	SizeSSZ() int
 	// HashTreeRoot computes and returns the hash tree root of the data as RootT
@@ -37,12 +37,12 @@ type Basic[RootT ~[32]byte] interface {
 
 // Composite is an interface that embeds the Basic interface. It is used for
 // types that are composed of other SSZ encodable values.
-type Composite[RootT ~[32]byte] interface {
-	Basic[RootT]
+type Composite[RootT ~[32]byte, SpecT any] interface {
+	Basic[RootT, SpecT]
 }
 
 // Container is an interface for SSZ container types that can be marshaled and
 // unmarshaled.
-type Container[RootT ~[32]byte] interface {
-	Composite[RootT]
+type Container[RootT ~[32]byte, SpecT any] interface {
+	Composite[RootT, SpecT]
 }
