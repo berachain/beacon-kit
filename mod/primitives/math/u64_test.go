@@ -79,7 +79,7 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "invalid data - short buffer",
 			data: []byte{0, 0, 0},
-			err:  math.ErrInvalidSSZLength,
+			err:  math.ErrUnexpectedInputLengthBase,
 		},
 		{
 			name:     "valid data - max uint64",
@@ -94,7 +94,7 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "invalid data - long buffer",
 			data: []byte{0, 0, 0, 0, 0, 0, 0, 0, 1},
-			err:  math.ErrInvalidSSZLength,
+			err:  math.ErrUnexpectedInputLengthBase,
 		},
 		{
 			name:     "valid data - one",
