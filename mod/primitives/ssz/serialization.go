@@ -104,6 +104,7 @@ func MarshalU32[U32T ~uint32](u32 U32T) []byte {
 
 // MarshalU16 marshals a little endian U16 into a byte slice.
 func MarshalU16[U16T ~uint16](u16 U16T) []byte {
+	// nolint:mnd // 2 is the size of a U16.
 	dst := make([]byte, 2)
 	binary.LittleEndian.PutUint16(dst, uint16(u16))
 	return dst

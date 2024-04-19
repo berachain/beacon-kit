@@ -50,6 +50,31 @@ func SizeOfComposite[RootT ~[32]byte, C Composite[SpecT, RootT], SpecT any](
 	return uint64(c.SizeSSZ())
 }
 
+// SizeOfContainer returns the size of a container type.
+func SizeOfContainer[RootT ~[32]byte, C Container[SpecT, RootT], SpecT any](
+	c C,
+) int {
+	size := 0
+	rValue := reflect.ValueOf(c)
+	if rValue.Kind() == reflect.Ptr {
+		rValue = rValue.Elem()
+	}
+	for i := range rValue.NumField() {
+		fieldValue := rValue.Field(i)
+		if !fieldValue.CanInterface() {
+			return -1
+		}
+
+		// TODO: handle different types.
+		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
+		if !ok {
+			return -1
+		}
+		size += field.SizeSSZ()
+	}
+	return size
+}
+
 // ChunkCount returns the number of chunks required to store a value.
 func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
 	B,
