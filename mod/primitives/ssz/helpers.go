@@ -35,19 +35,25 @@ import (
 )
 
 // SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic[RootT]](b B) uint64 {
+func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
+	b B,
+) uint64 {
 	// TODO: Boolean maybe this doesnt work.
 	return uint64(reflect.TypeOf(b).Size())
 }
 
 // SizeOfComposite returns the size of a composite type.
-func SizeOfComposite[RootT ~[32]byte, C Composite[RootT]](c C) uint64 {
+func SizeOfComposite[RootT ~[32]byte, C Composite[SpecT, RootT], SpecT any](
+	c C,
+) uint64 {
 	//#nosec:G701 // This is a safe operation.
 	return uint64(c.SizeSSZ())
 }
 
 // ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic[RootT]](B) uint64 {
+func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
+	B,
+) uint64 {
 	return 1
 }
 
@@ -60,7 +66,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[B Basic[RootT], RootT ~[32]byte](
+func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -68,7 +74,7 @@ func ChunkCountBasicList[B Basic[RootT], RootT ~[32]byte](
 	if numItems == 0 {
 		return 1
 	}
-	size := SizeOfBasic[RootT, B](b[0])
+	size := SizeOfBasic[RootT, B, SpecT](b[0])
 	//nolint:mnd // 32 is okay.
 	limit := (maxCapacity*size + 31) / 32
 	if limit != 0 {
@@ -80,7 +86,9 @@ func ChunkCountBasicList[B Basic[RootT], RootT ~[32]byte](
 
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
-func ChunkCountCompositeList[C Composite[RootT], RootT ~[32]byte](
+func ChunkCountCompositeList[
+	SpecT any, RootT ~[32]byte, C Composite[SpecT, RootT],
+](
 	c []C,
 	limit uint64,
 ) uint64 {
@@ -89,7 +97,9 @@ func ChunkCountCompositeList[C Composite[RootT], RootT ~[32]byte](
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[C Container[RootT], RootT ~[32]byte](c C) uint64 {
+func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
+	c C,
+) uint64 {
 	//#nosec:G701 // This is a safe operation.
 	return uint64(reflect.ValueOf(c).NumField())
 }
@@ -112,12 +122,23 @@ func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
 func Pack[
 	U64T U64[U64T],
 	U256L U256LT,
-	B Basic[RootT],
+	SpecT any,
 	RootT ~[32]byte,
+	B Basic[SpecT, RootT],
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range b {
+		fieldValue := reflect.ValueOf(el)
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
+
+		if !fieldValue.CanInterface() {
+			return nil, fmt.Errorf("cannot interface with field %v", fieldValue)
+		}
+
+		// TODO: this is ugly probably want an abstraction.
 		switch el := reflect.ValueOf(el).Interface().(type) {
 		case uint8:
 			var buffer [1]byte
