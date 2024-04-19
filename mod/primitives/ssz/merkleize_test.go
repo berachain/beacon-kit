@@ -27,7 +27,6 @@ package ssz_test
 
 import (
 	"crypto/sha256"
-	"encoding/binary"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -35,7 +34,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type RelevantChainSpecFunctionsToThisType interface{}
+// Check for interface implementation.
+var _ ssz.Basic[any, [32]byte] = BasicItem(0)
 
 // BasicItem represnets a basic item in the SSZ Spec.
 type BasicItem uint64
@@ -45,16 +45,20 @@ func (u BasicItem) SizeSSZ() int {
 	return 8
 }
 
-// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
-func (u BasicItem) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	var hashRoot [32]byte
-	copy(hashRoot[:], buf)
-	return hashRoot, nil
+// MarshalSSZ marshals the U64 into a byte slice.
+func (u BasicItem) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalU64(u), nil
 }
 
-// BasiContainer represents a container of two basic items.
+// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
+func (u BasicItem) HashTreeRoot() ([32]byte, error) {
+	// In practice we can use a simpler function.
+	return ssz.MerkleizeBasic[
+		any, math.U64, math.U256L,
+	](u)
+}
+
+// BasicContainer represents a container of two basic items.
 type BasicContainer[SpecT any] struct {
 	Item1 BasicItem
 	Item2 BasicItem
@@ -62,8 +66,7 @@ type BasicContainer[SpecT any] struct {
 
 // SizeSSZ returns the size of the container in bytes.
 func (c *BasicContainer[SpecT]) SizeSSZ() int {
-	// TODO: We should be able to generalize SizeSSZ() as well.
-	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
+	return ssz.SizeOfContainer[[32]byte, *BasicContainer[SpecT], SpecT](c)
 }
 
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
@@ -71,6 +74,8 @@ func (c *BasicContainer[SpecT]) SizeSSZ() int {
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
 	return ssz.MerkleizeContainer[any, math.U64](c)
 }
+
+func (c *BasicContainer[SpecT]) IsContainer() {}
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {

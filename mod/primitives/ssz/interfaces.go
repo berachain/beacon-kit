@@ -55,6 +55,12 @@ type U64[T ~uint64] interface {
 	ILog2Ceil() uint8
 }
 
+// U128LT represents a 128-bit unsigned integer in
+// little-endian byte order.
+type U128LT interface {
+	~[16]byte
+}
+
 // U256LT represents a 256-bit unsigned integer in
 // little-endian byte order.
 type U256LT interface {
