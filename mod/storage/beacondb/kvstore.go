@@ -31,6 +31,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
@@ -57,8 +58,8 @@ type SSZMarshallable interface {
 type Validator interface {
 	SSZMarshallable
 	GetPubkey() primitives.BLSPubkey
-	GetEffectiveBalance() primitives.Gwei
-	IsActive(primitives.Epoch) bool
+	GetEffectiveBalance() math.Gwei
+	IsActive(math.Epoch) bool
 }
 
 // KVStore is a wrapper around an sdk.Context

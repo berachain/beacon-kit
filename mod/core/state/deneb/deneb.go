@@ -28,6 +28,7 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,7 +40,7 @@ import (
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
 func DefaultBeaconState() *BeaconState {
-	//nolint:gomnd // default allocs.
+	//nolint:mnd // default allocs.
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
@@ -80,7 +81,7 @@ func DefaultBeaconState() *BeaconState {
 
 // DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
 //
-//nolint:gomnd // default values pulled from current eth-genesis.json file.
+//nolint:mnd // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
@@ -94,11 +95,11 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 		LogsBloom: make([]byte, 256),
 		Random:    primitives.ExecutionHash{},
 		Number:    0,
-		GasLimit:  primitives.U64(hexutil.MustDecodeUint64("0x1c9c380")),
+		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: primitives.NewU256LFromBigEndian(
+		BaseFeePerGas: math.NewU256LFromBigEndian(
 			hexutil.MustDecode("0x3b9aca"),
 		),
 		BlockHash: common.HexToHash(
@@ -111,14 +112,14 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	}
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,../../../primitives/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
 	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot  `json:"slot"`
+	Slot                  math.Slot        `json:"slot"`
 	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
@@ -139,10 +140,10 @@ type BeaconState struct {
 	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
-	NextWithdrawalValidatorIndex primitives.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
+	NextWithdrawalIndex          uint64              `json:"nextWithdrawalIndex"`
+	NextWithdrawalValidatorIndex math.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
-	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
-	TotalSlashing primitives.Gwei `json:"totalSlashing"`
+	Slashings     []uint64  `json:"slashings"     ssz-max:"1099511627776"`
+	TotalSlashing math.Gwei `json:"totalSlashing"`
 }

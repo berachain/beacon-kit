@@ -36,8 +36,4 @@ var (
 	ErrInvalidWithdrawalCredentials = errors.New(
 		"invalid withdrawal credentials",
 	)
-
-	// ErrInvalidSSZLength is returned when an invalid SSZ length is
-	// encountered.
-	ErrInvalidSSZLength = errors.New("invalid ssz length")
 )

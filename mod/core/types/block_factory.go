@@ -27,14 +27,15 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // BeaconBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
 func NewBeaconBlock(
-	slot primitives.Slot,
-	proposerIndex primitives.ValidatorIndex,
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	forkVersion uint32,
@@ -62,8 +63,8 @@ func NewBeaconBlock(
 // EmptyBeaconBlock assembles a new beacon block
 // with no execution data.
 func EmptyBeaconBlock(
-	slot primitives.Slot,
-	proposerIndex primitives.ValidatorIndex,
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	version uint32,

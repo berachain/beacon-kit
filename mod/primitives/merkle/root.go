@@ -29,8 +29,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -48,12 +48,12 @@ const (
 )
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[LeafT, RootT ~[32]byte](
+func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
 ) (RootT, error) {
 	return NewRootWithDepth[LeafT, RootT](
-		leaves, primitives.U64(length).NextPowerOfTwo().ILog2Ceil(),
+		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -65,11 +65,6 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 	// Return zerohash at depth
 	if len(leaves) == 0 {
 		return zero.Hashes[depth], nil
-	}
-
-	// Validate input list length.
-	if err := verifySufficientDepth(len(leaves), depth); err != nil {
-		return zero.Hashes[depth], err
 	}
 
 	for i := range depth {
@@ -173,9 +168,5 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	return outputList, nil
+	return outputList, eg.Wait()
 }
