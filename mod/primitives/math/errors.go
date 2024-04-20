@@ -25,10 +25,21 @@
 
 package math
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
-	// ErrInvalidSSZLength is returned when an invalid SSZ length is
-	// encountered.
-	ErrInvalidSSZLength = errors.New("invalid ssz length")
+	// ErrUnexpectedInputLengthBase is the base error for unexpected input
+	// length errors.
+	ErrUnexpectedInputLengthBase = errors.New("unexpected input length")
+
+	// ErrNilBigInt is returned when a nil big.Int is provided to a.
+	ErrNilBigInt = errors.New("big.Int is nil")
 )
+
+// ErrUnexpectedInputLength returns an error indicating that the input length.
+func ErrUnexpectedInputLength(expected, actual int) error {
+	return errors.Wrapf(
+		ErrUnexpectedInputLengthBase,
+		"expected %d, got %d", expected, actual,
+	)
+}

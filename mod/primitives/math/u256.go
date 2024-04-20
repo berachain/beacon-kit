@@ -54,32 +54,61 @@ type U256L [32]byte
 // --------------------------- Constructors ----------------------------
 
 // NewU256L creates a new U256L from a byte slice.
-func NewU256L(bz []byte) U256L {
-	return U256L(byteslib.ExtendToSize(bz, U256NumBytes))
+func NewU256L(bz []byte) (U256L, error) {
+	// Ensure that we are not silently truncating the input.
+	if len(bz) > U256NumBytes {
+		return U256L{}, ErrUnexpectedInputLength(U256NumBytes, len(bz))
+	}
+	return U256L(byteslib.ExtendToSize(bz, U256NumBytes)), nil
+}
+
+// MustNewU256L creates a new U256L from a byte slice.
+// Panics if the input is invalid.
+func MustNewU256L(bz []byte) U256L {
+	n, err := NewU256L(bz)
+	if err != nil {
+		panic(err)
+	}
+	return n
 }
 
 // NewU256LFromBigEndian creates a new U256L from a big-endian
 // byte slice.
-func NewU256LFromBigEndian(b []byte) U256L {
-	return U256L(
-		byteslib.ExtendToSize(
-			byteslib.CopyAndReverseEndianess(b),
-			U256NumBytes,
-		),
-	)
+func NewU256LFromBigEndian(b []byte) (U256L, error) {
+	return NewU256L(byteslib.CopyAndReverseEndianess(b))
+}
+
+// MustNewU256LFromBigEndian creates a new U256L from a big-endian
+// byte slice. Panics if the input is invalid.
+func MustNewU256LFromBigEndian(b []byte) U256L {
+	n, err := NewU256L(byteslib.CopyAndReverseEndianess(b))
+	if err != nil {
+		panic(err)
+	}
+	return n
 }
 
 // NewU256LFromBigInt creates a new U256L from a big.Int.
-func NewU256LFromBigInt(b *big.Int) U256L {
+func NewU256LFromBigInt(b *big.Int) (U256L, error) {
 	if b == nil {
-		return U256L{}
+		return U256L{}, ErrNilBigInt
 	}
 	return NewU256LFromBigEndian(b.Bytes())
 }
 
+// MustNewU256LFromBigInt creates a new U256L from a big.Int.
+// Panics if the input is invalid.
+func MustNewU256LFromBigInt(b *big.Int) U256L {
+	n, err := NewU256LFromBigInt(b)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
 // ------------------------------ Unwraps ------------------------------
 
-// UnwrapU256 converts an U256L to a *U256.
+// UnwrapU256 converts an U256L to a raw [32]byte chunk.
 func (s U256L) Unwrap() [32]byte {
 	return s
 }
@@ -134,7 +163,7 @@ func (s U256L) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ deserializes a U256L from a byte slice.
 func (s *U256L) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U256NumBytes {
-		return ErrInvalidSSZLength
+		return ErrUnexpectedInputLength(U256NumBytes, len(buf))
 	}
 	copy(s[:], buf)
 	return nil
