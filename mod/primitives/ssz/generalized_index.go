@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"math/big"
+	"reflect"
 )
 
 // https://github.com/prysmaticlabs/prysm/blob/feb16ae4aaa41d9bcd066b54b779dcd38fc928d2/tools/specs-checker/data/ssz/merkle-proofs.md
@@ -45,7 +46,17 @@ func GetItemPosition(typ any, indexOrVarName any) (int, int, int) {
 }
 
 func GetItemPositionContainer[B Container[RootT], RootT ~[32]byte](typ Container[RootT], indexOrVarName any) (int, int, int) {
-	typ.getFieldNames
+	typ.getFieldNames().index()
+}
+func GetItemPosnElements(typ any, indexOrVarName any) (int, int, int) {
+	if reflect.TypeOf(indexOrVarName).ConvertibleTo(reflect.TypeOf(int(1))) {
+		i, err := indexOrVarName.(int)
+		if err != false {
+			return 0, 0, 0
+		}
+		start := i * int(ItemLength(typ))
+	}
+
 }
 
 // Converts a path (eg. `[7, "foo", 3]` for `x[7].foo[3]`, `[12, "bar", "__len__"]` for
@@ -62,6 +73,10 @@ func getGeneralizedIndex[B Basic[RootT], RootT ~[32]byte](typ any, path []any) (
 			// baseIndex := // todo
 		}
 	}
+}
+func GetGeneralizedIndexList[B Basic[RootT], RootT ~[32]byte](root *big.Int) (*big.Int, error) {
+	root = root.Add(root.Mul(root, big.NewInt(2)), big.NewInt(1))
+	return root, nil
 }
 
 func ConcatGIndices(gindices []big.Int) *big.Int {
@@ -116,11 +131,18 @@ func getPowerOfTwoCeil(x int) int {
 	}
 }
 
+func ItemLength[B Basic[RootT], C Container[RootT], RootT ~[32]byte](b []B) uint64 {
+	// if reflect.
+	if reflect.TypeOf(b) == reflect.Type(make(Container[RootT])) {
+
+	}
+}
+
 // Return the number of bytes in a basic type, or 32 (a full hash) for compound types.
 func ItemLengthBasic[B Basic[RootT], RootT ~[32]byte](b []B) uint64 {
 	return SizeOfBasic[RootT, B](b[0])
 }
 
-func ItemLength[B Composite[RootT], RootT ~[32]byte](b []B) uint64 {
+func ItemLengthCompound[B Composite[RootT], RootT ~[32]byte](b []B) uint64 {
 	return 32
 }
