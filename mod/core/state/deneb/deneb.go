@@ -99,7 +99,7 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: math.MustNewU256LFromBigEndian(
+		BaseFeePerGas: *math.MustNewU256(
 			hexutil.MustDecode("0x3b9aca"),
 		),
 		BlockHash: common.HexToHash(

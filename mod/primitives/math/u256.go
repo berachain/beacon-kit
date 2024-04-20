@@ -26,11 +26,8 @@
 package math
 
 import (
-	"bytes"
 	"math/big"
 
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
 
@@ -39,142 +36,122 @@ const U256NumBytes = 32
 
 // U256 represents a uint256 number stored as big-endian
 // format.
-type U256 = uint256.Int
+type U256 [32]byte
+
+// Int is an alias for U256, it is used to prevent fastssz
+// from freaking out -_- smfh.
+type Int = U256
 
 // Wei is the smallest unit of Ether, we store the value as LittleEndian for
 // the best compatibility with the SSZ spec.
-type Wei = U256L
-
-// U256L represents a uint256 number stored as little-endian. It
-// is designed to marshal and unmarshal JSON in big-endian
-// format, while under the hood storing the value as little-endian
-// for compatibility with the SSZ spec.
-type U256L [32]byte
+type Wei = U256
 
 // --------------------------- Constructors ----------------------------
 
-// NewU256L creates a new U256L from a byte slice.
-func NewU256L(bz []byte) (U256L, error) {
+// NewU256 creates a new U256 from a byte slice.
+func NewU256(bz []byte) (*U256, error) {
 	// Ensure that we are not silently truncating the input.
 	if len(bz) > U256NumBytes {
-		return U256L{}, ErrUnexpectedInputLength(U256NumBytes, len(bz))
+		return nil, ErrUnexpectedInputLength(U256NumBytes, len(bz))
 	}
-	return U256L(byteslib.ExtendToSize(bz, U256NumBytes)), nil
+	n := U256([32]byte(bz))
+	return &n, nil
 }
 
-// MustNewU256L creates a new U256L from a byte slice.
+// MustNewU256 creates a new U256 from a byte slice.
 // Panics if the input is invalid.
-func MustNewU256L(bz []byte) U256L {
-	n, err := NewU256L(bz)
+func MustNewU256(bz []byte) *U256 {
+	n, err := NewU256(bz)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-// NewU256LFromBigEndian creates a new U256L from a big-endian
-// byte slice.
-func NewU256LFromBigEndian(b []byte) (U256L, error) {
-	return NewU256L(byteslib.CopyAndReverseEndianess(b))
-}
-
-// MustNewU256LFromBigEndian creates a new U256L from a big-endian
-// byte slice. Panics if the input is invalid.
-func MustNewU256LFromBigEndian(b []byte) U256L {
-	n, err := NewU256L(byteslib.CopyAndReverseEndianess(b))
-	if err != nil {
-		panic(err)
-	}
-	return n
-}
-
-// NewU256LFromBigInt creates a new U256L from a big.Int.
-func NewU256LFromBigInt(b *big.Int) (U256L, error) {
+// NewU256FromBigInt creates a new U256 from a big.Int.
+func NewU256FromBigInt(b *big.Int) (*U256, error) {
 	if b == nil {
-		return U256L{}, ErrNilBigInt
+		return nil, ErrNilBigInt
 	}
-	return NewU256LFromBigEndian(b.Bytes())
+	u := new(uint256.Int)
+	if u.SetFromBig(b) {
+		return nil, ErrOverflowBigInt
+	}
+	return (*U256)(u.Bytes()), nil
 }
 
-// MustNewU256LFromBigInt creates a new U256L from a big.Int.
+// MustNewU256FromBigInt creates a new U256 from a big.Int.
 // Panics if the input is invalid.
-func MustNewU256LFromBigInt(b *big.Int) U256L {
-	n, err := NewU256LFromBigInt(b)
+func MustNewU256FromBigInt(b *big.Int) *U256 {
+	n, err := NewU256FromBigInt(b)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-// ------------------------------ Unwraps ------------------------------
+// ---------------------------- Unwrappers -----------------------------
 
-// UnwrapU256 converts an U256L to a raw [32]byte chunk.
-func (s U256L) Unwrap() [32]byte {
-	return s
-}
-
-// UnwrapU256 converts an U256L to a *U256.
-func (s U256L) UnwrapU256() *U256 {
-	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
-}
-
-// UnwrapBig converts a U256 to a big.Int.
-func (s U256L) UnwrapBig() *big.Int {
-	return new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
+// UnwrapBig converts the U256 type to a *big.Int.
+func (u U256) UnwrapBig() *big.Int {
+	return new(big.Int).SetBytes(u[:])
 }
 
 // -------------------------- JSONMarshallable -------------------------
 
-// MarshalJSON marshals a U256L to JSON, it flips the endianness
+// MarshalJSON marshals a U256 to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
-func (s U256L) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + hexutil.EncodeBig(s.UnwrapBig()) + "\""), nil
+func (u *U256) MarshalJSON() ([]byte, error) {
+	return new(uint256.Int).SetBytes(u[:]).MarshalJSON()
 }
 
-// UnmarshalJSON unmarshals a U256L from JSON by decoding the hex
+// UnmarshalJSON unmarshals a U256 from JSON by decoding the hex
 // string and flipping the endianness, such that it is unmarshalled as
 // big-endian.
-func (s *U256L) UnmarshalJSON(input []byte) error {
-	baseFee, err := hexutil.DecodeBig(string(bytes.Trim(input, "\"")))
-	if err != nil {
+func (u *U256) UnmarshalJSON(input []byte) error {
+	n := new(uint256.Int)
+	if err := n.UnmarshalJSON(input); err != nil {
 		return err
 	}
-	*s = U256L(
-		byteslib.ExtendToSize(
-			byteslib.CopyAndReverseEndianess(
-				baseFee.Bytes()), U256NumBytes),
-	)
+	*u = U256(n.Bytes())
 	return nil
 }
 
 // -------------------------- SSZMarshallable --------------------------
 
 // MarshalSSZTo serializes the U64 into a byte slice.
-func (s U256L) MarshalSSZTo(buf []byte) ([]byte, error) {
-	copy(buf, s[:])
+func (s U256) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, nil
 }
 
-// MarshalSSZ serializes a U256L into a byte slice.
-func (s U256L) MarshalSSZ() ([]byte, error) {
-	return s[:], nil
+// MarshalSSZ serializes a U256 into a byte slice.
+func (u *U256) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, U256NumBytes)
+	copy(buf, u[:])
+	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+	return buf, nil
 }
 
-// UnmarshalSSZ deserializes a U256L from a byte slice.
-func (s *U256L) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ deserializes a U256 from a byte slice.
+func (u *U256) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U256NumBytes {
 		return ErrUnexpectedInputLength(U256NumBytes, len(buf))
 	}
-	copy(s[:], buf)
+	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+	copy(u[:], buf)
 	return nil
 }
 
-// SizeSSZ returns the size of the U256L in bytes.
-func (s U256L) SizeSSZ() int {
+// SizeSSZ returns the size of the U256 in bytes.
+func (s U256) SizeSSZ() int {
 	return U256NumBytes
 }
 
-// String returns the string representation of a U256L.
-func (s *U256L) String() string {
-	return s.UnwrapU256().String()
+// String returns the string representation of a U256.
+func (s *U256) String() string {
+	return new(uint256.Int).SetBytes(s[:]).String()
 }

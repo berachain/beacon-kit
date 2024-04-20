@@ -34,6 +34,9 @@ var (
 
 	// ErrNilBigInt is returned when a nil big.Int is provided to a.
 	ErrNilBigInt = errors.New("big.Int is nil")
+
+	// ErrOverflowBigInt is returned when a big.Int overflows.
+	ErrOverflowBigInt = errors.New("big.Int overflow")
 )
 
 // ErrUnexpectedInputLength returns an error indicating that the input length.

@@ -34,7 +34,7 @@ import (
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives/math,../../primitives,../.././primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives/math/u256.go,../../primitives/math/u64.go,../../primitives,../.././primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot

@@ -34,7 +34,7 @@ import (
 )
 
 func TestMarshalUnmarshalU256(t *testing.T) {
-	original := math.U256L{
+	original := math.U256{
 		0x01,
 		0x02,
 		0x03,

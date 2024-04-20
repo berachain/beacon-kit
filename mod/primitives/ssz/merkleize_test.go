@@ -54,7 +54,7 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	// In practice we can use a simpler function.
 	return ssz.MerkleizeBasic[
-		any, math.U64, math.U256L,
+		any, math.U64, math.U256,
 	](u)
 }
 

@@ -27,7 +27,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 		GasUsed       math.U64        `json:"gasUsed"                      gencodec:"required"`
 		Timestamp     math.U64        `json:"timestamp"                    gencodec:"required"`
 		ExtraData     hexutil.Bytes   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas math.U256L      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BaseFeePerGas math.U256       `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 		BlockHash     common.Hash     `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []hexutil.Bytes `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
@@ -74,7 +74,7 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 		GasUsed       *math.U64       `json:"gasUsed"                      gencodec:"required"`
 		Timestamp     *math.U64       `json:"timestamp"                    gencodec:"required"`
 		ExtraData     *hexutil.Bytes  `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas *math.U256L     `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BaseFeePerGas *math.U256      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 		BlockHash     *common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []hexutil.Bytes `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
