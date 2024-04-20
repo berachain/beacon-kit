@@ -25,7 +25,7 @@
 
 package tree
 
-import "math"
+import "github.com/berachain/beacon-kit/mod/primitives"
 
 type GeneralizedIndex = int
 
@@ -49,7 +49,7 @@ func ConcatGeneralizedIndices(indices ...GeneralizedIndex) GeneralizedIndex {
 // GetGeneralizedIndexLength returns the length of a path represented by a
 // generalized index.
 func GetGeneralizedIndexLength(index GeneralizedIndex) int {
-	return int(math.Log2(float64(index)))
+	return int(primitives.U64(uint64(index)).ILog2Ceil())
 }
 
 // GetGeneralizedIndexBit returns the specified bit of a generalized index.
@@ -74,7 +74,7 @@ func GeneralizedIndexChild(
 	return GeneralizedIndex(index * 2)
 }
 
-// generalizedIndexParent returns the parent index of a given generalized index.
-func generalizedIndexParent(index GeneralizedIndex) GeneralizedIndex {
+// GeneralizedIndexParent returns the parent index of a given generalized index.
+func GeneralizedIndexParent(index GeneralizedIndex) GeneralizedIndex {
 	return GeneralizedIndex(index / 2)
 }

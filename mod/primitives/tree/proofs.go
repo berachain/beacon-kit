@@ -41,7 +41,7 @@ func GetBranchIndices(treeIndex GeneralizedIndex) []GeneralizedIndex {
 	for o[len(o)-1] > 1 {
 		o = append(
 			o,
-			GeneralizedIndexSibling(generalizedIndexParent(o[len(o)-1])),
+			GeneralizedIndexSibling(GeneralizedIndexParent(o[len(o)-1])),
 		)
 	}
 	if len(o) > 1 {
@@ -57,7 +57,7 @@ func GetPathIndices(treeIndex GeneralizedIndex) []GeneralizedIndex {
 	var o []GeneralizedIndex
 	o = append(o, treeIndex)
 	for o[len(o)-1] > 1 {
-		o = append(o, generalizedIndexParent(o[len(o)-1]))
+		o = append(o, GeneralizedIndexParent(o[len(o)-1]))
 	}
 	if len(o) > 1 {
 		return o[:len(o)-1]
