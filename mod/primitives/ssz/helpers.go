@@ -50,6 +50,35 @@ func SizeOfComposite[RootT ~[32]byte, C Composite[SpecT, RootT], SpecT any](
 	return uint64(c.SizeSSZ())
 }
 
+// SizeOfContainer returns the size of a container type.
+func SizeOfContainer[RootT ~[32]byte, C Container[SpecT, RootT], SpecT any](
+	c C,
+) int {
+	size := 0
+	rValue := reflect.ValueOf(c)
+	if rValue.Kind() == reflect.Ptr {
+		rValue = rValue.Elem()
+	}
+	for i := range rValue.NumField() {
+		fieldValue := rValue.Field(i)
+		if !fieldValue.CanInterface() {
+			return -1
+		}
+
+		// TODO: handle different types.
+		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
+		if !ok {
+			return -1
+		}
+		size += field.SizeSSZ()
+
+		// TODO: handle the offset calculation.
+	}
+
+	// TODO: This doesn't yet handle anything to do with offset calculation.
+	return size
+}
+
 // ChunkCount returns the number of chunks required to store a value.
 func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
 	B,
@@ -105,7 +134,7 @@ func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
 }
 
 // PadTo function to pad the chunks to the effective limit with zeroed chunks.
-func PadTo[U64T U64[U64T], ChunkT ~[32]byte](
+func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 	chunks []ChunkT,
 	effectiveLimit U64T,
 ) []ChunkT {
@@ -138,38 +167,20 @@ func Pack[
 			return nil, fmt.Errorf("cannot interface with field %v", fieldValue)
 		}
 
-		// TODO: this is ugly probably want an abstraction.
-		switch el := reflect.ValueOf(el).Interface().(type) {
-		case uint8:
-			var buffer [1]byte
-			buffer[0] = el
-			packed = append(packed, buffer[:]...)
-		case uint16:
-			var buffer [2]byte
-			binary.LittleEndian.PutUint16(buffer[:], el)
-			packed = append(packed, buffer[:]...)
-		case uint32:
-			var buffer [4]byte
-			binary.LittleEndian.PutUint32(buffer[:], el)
-			packed = append(packed, buffer[:]...)
-		case U64T:
-			var buffer [8]byte
-			//#nosec:G701 // This is a safe operation.
-			binary.LittleEndian.PutUint64(buffer[:], uint64(el))
-			packed = append(packed, buffer[:]...)
-		case U256L:
-			var buffer [32]byte
-			copy(buffer[:], el[:])
-			packed = append(packed, buffer[:]...)
-		case bool:
-			var buffer [1]byte
-			if el {
-				buffer[0] = 1
-			}
-			packed = append(packed, buffer[:]...)
-		default:
+		// TODO: Do we need a safety check for Basic only here?
+		// TODO: use a real interface instead of hood inline.
+		el, ok := reflect.ValueOf(el).
+			Interface().(interface{ MarshalSSZ() ([]byte, error) })
+		if !ok {
 			return nil, fmt.Errorf("unsupported type %T", el)
 		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		buf, err := el.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		packed = append(packed, buf...)
 	}
 
 	root, _, err := PartitionBytes[RootT](packed)
