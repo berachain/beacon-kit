@@ -45,7 +45,8 @@ func TestLittleEndian_UInt256(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := math.NewU256L(tc.input)
+		le, err := math.NewU256L(tc.input)
+		require.NoError(t, err)
 		expected := new(huint256.Int).SetBytes(tc.expected)
 		require.Equal(t, expected, le.UnwrapU256())
 	}
@@ -62,7 +63,8 @@ func TestLittleEndian_Big(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := math.NewU256L(tc.input)
+		le, err := math.NewU256L(tc.input)
+		require.NoError(t, err)
 		expected := new(huint256.Int).SetBytes(tc.expected)
 		require.Equal(t, expected.ToBig(), le.UnwrapBig())
 	}
@@ -79,7 +81,8 @@ func TestLittleEndian_MarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		le := math.NewU256L(tc.input)
+		le, err := math.NewU256L(tc.input)
+		require.NoError(t, err)
 		result, err := le.MarshalJSON()
 		require.NoError(t, err)
 		require.JSONEq(t, tc.expected, string(result))
@@ -100,7 +103,8 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 		le := new(math.U256L)
 		err := le.UnmarshalJSON([]byte(tc.json))
 		require.NoError(t, err)
-		expected := math.NewU256L(tc.expected)
+		expected, err := math.NewU256L(tc.expected)
+		require.NoError(t, err)
 		require.Equal(t, expected, *le)
 	}
 }
@@ -108,132 +112,40 @@ func TestLittleEndian_UnmarshalJSON(t *testing.T) {
 func TestU256L_MarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    math.U256L
+		input    []byte
 		expected []byte
 	}{
 		{
 			name: "zero",
-			input: math.NewU256L(
-				[]byte{
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-				},
-			),
+			input: []byte{
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			},
 			expected: make([]byte, 32),
 		},
 		{
 			name:     "max value",
-			input:    math.NewU256L(bytes.Repeat([]byte{255}, 32)),
+			input:    bytes.Repeat([]byte{255}, 32),
 			expected: bytes.Repeat([]byte{255}, 32),
 		},
 		{
 			name: "arbitrary value",
-			input: math.NewU256L(
-				[]byte{
-					1,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-				},
-			),
+			input: []byte{
+				1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			},
 			expected: []byte{
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
+				1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.MarshalSSZ()
+			u256l, err := math.NewU256L(tt.input)
+			require.NoError(t, err)
+			result, err := u256l.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, result)
 		})
@@ -244,91 +156,29 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
 		data     []byte
-		expected math.U256L
+		expected []byte
 		err      error
 	}{
 		{
 			name: "valid data",
 			data: []byte{
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
+				1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			},
-			expected: math.NewU256L(
-				[]byte{
-					1,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-					0,
-				},
-			),
+			expected: []byte{
+				1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			},
 		},
 		{
 			name: "invalid data - short buffer",
 			data: []byte{0, 0},
-			err:  math.ErrInvalidSSZLength,
+			err:  math.ErrUnexpectedInputLengthBase,
 		},
 		{
 			name:     "valid data - zero",
 			data:     make([]byte, 32),
-			expected: math.NewU256L(make([]byte, 32)),
+			expected: make([]byte, 32),
 		},
 	}
 
@@ -339,9 +189,28 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
+				expected, err := math.NewU256L(tt.expected)
 				require.NoError(t, err)
-				require.Equal(t, tt.expected, u)
+				require.Equal(t, expected, u)
 			}
 		})
+	}
+}
+
+func TestNewU256L_SilentTruncation(t *testing.T) {
+	testCases := []struct {
+		input    []byte
+		expected [32]byte
+	}{
+		{[]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+			13, 14, 15, 16, 16, 17, 18, 19, 20, 21, 22,
+			23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34},
+			[32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+				14, 15, 16, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}},
+	}
+
+	for _, tc := range testCases {
+		_, err := math.NewU256L(tc.input)
+		require.ErrorIs(t, err, math.ErrUnexpectedInputLengthBase)
 	}
 }
