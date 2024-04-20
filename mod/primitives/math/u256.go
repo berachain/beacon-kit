@@ -28,6 +28,7 @@ package math
 import (
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/primitives/bytes"
 	"github.com/holiman/uint256"
 )
 
@@ -120,18 +121,18 @@ func (u *U256) UnmarshalJSON(input []byte) error {
 // -------------------------- SSZMarshallable --------------------------
 
 // MarshalSSZTo serializes the U64 into a byte slice.
-func (s U256) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, nil
+func (u U256) MarshalSSZTo(buf []byte) ([]byte, error) {
+	if len(buf) != U256NumBytes {
+		return nil, ErrUnexpectedInputLength(U256NumBytes, len(buf))
+	}
+	// Reverse incoming BigEndian into LittleEndian for serialization.
+	return bytes.CopyAndReverseEndianess(buf), nil
 }
 
 // MarshalSSZ serializes a U256 into a byte slice.
 func (u *U256) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, U256NumBytes)
-	copy(buf, u[:])
-	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
-		buf[i], buf[j] = buf[j], buf[i]
-	}
-	return buf, nil
+	return u.MarshalSSZTo(buf)
 }
 
 // UnmarshalSSZ deserializes a U256 from a byte slice.
@@ -139,10 +140,9 @@ func (u *U256) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U256NumBytes {
 		return ErrUnexpectedInputLength(U256NumBytes, len(buf))
 	}
-	for i, j := 0, len(buf)-1; i < j; i, j = i+1, j-1 {
-		buf[i], buf[j] = buf[j], buf[i]
-	}
-	copy(u[:], buf)
+	// Reverse incoming LittleEndian into BigEndian for storage.
+	x := [32]byte(bytes.CopyAndReverseEndianess(buf))
+	*u = U256(x)
 	return nil
 }
 
