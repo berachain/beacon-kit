@@ -62,6 +62,9 @@ type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
 
+	// Eth1Data is the data from the Eth1 chain.
+	Eth1Data *primitives.Eth1Data
+
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
 
@@ -93,6 +96,11 @@ func (b *BeaconBlockBodyDeneb) GetGraffiti() primitives.Bytes32 {
 // GetRandaoReveal returns the RandaoReveal of the Body.
 func (b *BeaconBlockBodyDeneb) GetRandaoReveal() primitives.BLSSignature {
 	return b.RandaoReveal
+}
+
+// GetEth1Data returns the Eth1Data of the Body.
+func (b *BeaconBlockBodyDeneb) GetEth1Data() *primitives.Eth1Data {
+	return b.Eth1Data
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
@@ -134,6 +142,14 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
+// SetBlobKzgCommitments sets the BlobKzgCommitments of the
+// BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetEth1Data(
+	eth1Data *primitives.Eth1Data,
+) {
+	b.Eth1Data = eth1Data
+}
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	layer := make([][32]byte, BodyLengthDeneb)
@@ -144,13 +160,18 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
+	layer[1], err = b.Eth1Data.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	// graffiti
-	layer[1] = b.GetGraffiti()
+	layer[2] = b.GetGraffiti()
 
 	//nolint:mnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	layer[2], err = ssz.MerkleizeListComposite[any, math.U64](
+	layer[3], err = ssz.MerkleizeListComposite[any, math.U64](
 		b.GetDeposits(),
 		maxDepositsPerBlock,
 	)
@@ -159,7 +180,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	}
 
 	// Execution Payload
-	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
+	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
