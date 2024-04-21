@@ -24,7 +24,7 @@ replace (
 
 require (
 	cosmossdk.io/api v0.7.4
-	cosmossdk.io/core v0.12.1-0.20240412212305-037cf98f7eea
+	cosmossdk.io/core v0.12.1-0.20240421190920-f31a6a3024ba
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
