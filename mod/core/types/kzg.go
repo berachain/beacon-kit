@@ -28,7 +28,7 @@ package types
 const (
 	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndex = 24
+	KZGMerkleIndex = 26
 )
 
 // TODO: depreacate.

@@ -62,6 +62,9 @@ type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
 
+	// Eth1Data is the data from the Eth1 chain.
+	Eth1Data *primitives.Eth1Data
+
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
 
@@ -144,13 +147,18 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
+	layer[1], err = b.Eth1Data.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	// graffiti
-	layer[1] = b.GetGraffiti()
+	layer[2] = b.GetGraffiti()
 
 	//nolint:mnd // TODO: Config
 	maxDepositsPerBlock := uint64(16)
 	// root, err = dep.HashTreeRoot()
-	layer[2], err = ssz.MerkleizeListComposite[any, math.U64](
+	layer[3], err = ssz.MerkleizeListComposite[any, math.U64](
 		b.GetDeposits(),
 		maxDepositsPerBlock,
 	)
@@ -159,7 +167,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	}
 
 	// Execution Payload
-	layer[3], err = b.GetExecutionPayload().HashTreeRoot()
+	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
