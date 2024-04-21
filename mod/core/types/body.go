@@ -98,6 +98,11 @@ func (b *BeaconBlockBodyDeneb) GetRandaoReveal() primitives.BLSSignature {
 	return b.RandaoReveal
 }
 
+// GetEth1Data returns the Eth1Data of the Body.
+func (b *BeaconBlockBodyDeneb) GetEth1Data() *primitives.Eth1Data {
+	return b.Eth1Data
+}
+
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 //
 //nolint:lll
@@ -135,6 +140,14 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	commitments kzg.Commitments,
 ) {
 	b.BlobKzgCommitments = commitments
+}
+
+// SetBlobKzgCommitments sets the BlobKzgCommitments of the
+// BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetEth1Data(
+	eth1Data *primitives.Eth1Data,
+) {
+	b.Eth1Data = eth1Data
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
