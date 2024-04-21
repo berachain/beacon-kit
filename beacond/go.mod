@@ -4,12 +4,12 @@ go 1.22.2
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240412212305-037cf98f7eea
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240412212305-037cf98f7eea
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240421190920-f31a6a3024ba
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240421190920-f31a6a3024ba
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240421190920-f31a6a3024ba
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240421190920-f31a6a3024ba
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
@@ -17,14 +17,14 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240413213708-414fdac6561d
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa
 	// Remove once v1.13.5 is released.
 	github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218
 )
 
 require (
-	cosmossdk.io/api v0.7.3
-	cosmossdk.io/core v0.12.1-0.20240412212305-037cf98f7eea
+	cosmossdk.io/api v0.7.4
+	cosmossdk.io/core v0.12.1-0.20240421190920-f31a6a3024ba
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
@@ -32,9 +32,9 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-proto v1.0.0-beta.4
+	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/spf13/cast v1.6.0
 	google.golang.org/protobuf v1.33.0
@@ -53,7 +53,7 @@ require (
 	cosmossdk.io/x/bank v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a // indirect
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/x/tx v0.13.1 // indirect
+	cosmossdk.io/x/tx v0.13.2 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
