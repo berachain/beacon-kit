@@ -58,7 +58,9 @@ func (bv *BlobVerifier) VerifyBlobs(
 	g.Go(func() error {
 		// TODO: KZGOffset needs to be configurable and not
 		// passed in.
-		return bv.VerifyInclusionProofs(sidecars, kzgOffset)
+		return bv.VerifyInclusionProofs(
+			sidecars, kzgOffset,
+		)
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.

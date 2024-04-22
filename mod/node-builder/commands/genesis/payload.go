@@ -117,6 +117,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 
 // Converts the eth executable data type to the beacon execution payload
 // interface.
+// TODO: should function should handle errors gracefully.
 func executableDataToExecutionPayload(
 	data *ethengineprimitives.ExecutableData,
 ) *engineprimitives.ExecutableDataDeneb {
@@ -155,7 +156,7 @@ func executableDataToExecutionPayload(
 		GasUsed:       math.U64(data.GasUsed),
 		Timestamp:     math.U64(data.Timestamp),
 		ExtraData:     data.ExtraData,
-		BaseFeePerGas: math.NewU256LFromBigInt(data.BaseFeePerGas),
+		BaseFeePerGas: math.MustNewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:     data.BlockHash,
 		Transactions:  data.Transactions,
 		Withdrawals:   withdrawals,

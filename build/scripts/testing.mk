@@ -10,8 +10,6 @@
 #    beacond     #
 #################
 
-# TODO: add start-erigon
-
 JWT_PATH = ${TESTAPP_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
@@ -93,7 +91,36 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-rpc-enabled \
 	--engine-host-allowlist="*" \
 	--engine-jwt-secret=../../${JWT_PATH}
+	
+start-erigon: ## start an ephemeral `erigon` node
+	rm -rf .tmp/erigon
+	docker run \
+    --rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+    -v $(PWD)/.tmp:/.tmp \
+    thorax/erigon:v2.59.3 init \
+    --datadir .tmp/erigon \
+    ${ETH_GENESIS_PATH}
 
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:v2.59.3 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--http.vhosts "*" \
+	--port 30303 \
+	--http.corsdomain "*" \
+	--http.port 8545 \
+	--authrpc.addr	0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--networkid 80087 \
+	--db.size.limit	3000MB \
+	--datadir .tmp/erigon
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
