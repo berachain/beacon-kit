@@ -115,6 +115,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--port 30303 \
 	--http.corsdomain "*" \
 	--http.port 8545 \
+	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--networkid 80087 \
