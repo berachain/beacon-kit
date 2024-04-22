@@ -125,3 +125,28 @@ func MarshalBool[BoolT ~bool](b BoolT) []byte {
 	}
 	return []byte{0}
 }
+
+func MarshalNull[T any](t T) []byte {
+	return []byte{}
+}
+
+func MarshalBitVector(bv []bool) []byte {
+	array := make([]byte, (len(bv)+7)/8)
+	for i, val := range bv {
+		if val {
+			array[i/8] |= 1 << (i % 8)
+		}
+	}
+	return array
+}
+
+func MarshalBitList(bv []bool) []byte {
+	array := make([]byte, (len(bv)/8)+1)
+	for i, val := range bv {
+		if val {
+			array[i/8] |= 1 << (i % 8)
+		}
+	}
+	array[len(bv)/8] |= 1 << (len(bv) % 8)
+	return array
+}
