@@ -43,19 +43,6 @@ func NewGeneralizedIndex(depth uint8, index uint64) GeneralizedIndex {
 	return GeneralizedIndex((1 << depth) + index)
 }
 
-// Concatenates multiple generalized indices into a single generalized index
-// representing the path from the first to the last node.
-func ConcatGeneralizedIndices(indices ...GeneralizedIndex) GeneralizedIndex {
-	o := GeneralizedIndex(1)
-	for _, i := range indices {
-		floorPower := math.U64(i).PrevPowerOfTwo()
-		o = GeneralizedIndex(
-			math.U64(o)*floorPower + (math.U64(i) - floorPower),
-		)
-	}
-	return o
-}
-
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex) Length() uint64 {
 	return uint64(math.U64(g).ILog2Ceil())
@@ -114,4 +101,17 @@ func (g GeneralizedIndex) GetPathIndices() GeneralizedIndicies {
 		o = append(o, o[len(o)-1].Parent())
 	}
 	return o[:len(o)-1]
+}
+
+// Concatenates multiple generalized indices into a single generalized index
+// representing the path from the first to the last node.
+func (gs GeneralizedIndicies) Concat() GeneralizedIndex {
+	o := GeneralizedIndex(1)
+	for _, i := range gs {
+		floorPower := math.U64(i).PrevPowerOfTwo()
+		o = GeneralizedIndex(
+			math.U64(o)*floorPower + (math.U64(i) - floorPower),
+		)
+	}
+	return o
 }

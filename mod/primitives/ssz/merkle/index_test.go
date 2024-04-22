@@ -59,7 +59,7 @@ func TestNewGeneralizedIndex(t *testing.T) {
 
 func TestConcatGeneralizedIndices(t *testing.T) {
 	tests := []struct {
-		indices []merkle.GeneralizedIndex
+		indices merkle.GeneralizedIndicies
 		expect  merkle.GeneralizedIndex
 	}{
 		{indices: []merkle.GeneralizedIndex{1, 2, 3}, expect: 0x05},
@@ -67,7 +67,7 @@ func TestConcatGeneralizedIndices(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := merkle.ConcatGeneralizedIndices(tt.indices...)
+		result := tt.indices.Concat()
 		require.Equal(
 			t,
 			tt.expect,
