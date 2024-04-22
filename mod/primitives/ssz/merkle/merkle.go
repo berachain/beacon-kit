@@ -34,7 +34,7 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll
-func MerkleTree[LeafT ~[32]byte](
+func Tree[LeafT ~[32]byte](
 	leaves []LeafT,
 	hashFn func([]byte) LeafT,
 ) []LeafT {

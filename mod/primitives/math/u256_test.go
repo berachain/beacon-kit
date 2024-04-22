@@ -189,7 +189,8 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
-				expected, err := math.NewU256L(tt.expected)
+				var expected math.U256L
+				expected, err = math.NewU256L(tt.expected)
 				require.NoError(t, err)
 				require.Equal(t, expected, u)
 			}
