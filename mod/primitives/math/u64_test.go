@@ -237,6 +237,71 @@ func TestU64_ILog2Ceil(t *testing.T) {
 		})
 	}
 }
+func TestU64_PrevPowerOfTwo(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected math.U64
+	}{
+		{
+			name:     "zero",
+			value:    math.U64(0),
+			expected: 1,
+		},
+		{
+			name:     "one",
+			value:    math.U64(1),
+			expected: 1,
+		},
+		{
+			name:     "two",
+			value:    math.U64(2),
+			expected: 2,
+		},
+		{
+			name:     "three",
+			value:    math.U64(3),
+			expected: 2,
+		},
+		{
+			name:     "four",
+			value:    math.U64(4),
+			expected: 4,
+		},
+		{
+			name:     "five",
+			value:    math.U64(5),
+			expected: 4,
+		},
+		{
+			name:     "eight",
+			value:    math.U64(8),
+			expected: 8,
+		},
+		{
+			name:     "nine",
+			value:    math.U64(9),
+			expected: 8,
+		},
+		{
+			name:     "thirty-two",
+			value:    math.U64(32),
+			expected: 32,
+		},
+		{
+			name:     "thirty-three",
+			value:    math.U64(33),
+			expected: 32,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.PrevPowerOfTwo()
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
 
 // func TestU64List_HashTreeRoot(t *testing.T) {
 // 	tests := []struct {
