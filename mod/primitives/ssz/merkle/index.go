@@ -26,8 +26,11 @@
 package merkle
 
 import (
+	"crypto/sha256"
+	"errors"
 	"sort"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
@@ -51,7 +54,7 @@ func (g GeneralizedIndex) Length() uint64 {
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
-func (g GeneralizedIndex) IndexBit(position uint) bool {
+func (g GeneralizedIndex) IndexBit(position int) bool {
 	return (g & (1 << position)) > 0
 }
 
@@ -105,6 +108,34 @@ func (g GeneralizedIndex) GetPathIndices() GeneralizedIndicies {
 	return o[:len(o)-1]
 }
 
+// CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
+func (g GeneralizedIndex) CalculateMerkleRoot(
+	leaf primitives.Bytes32,
+	proof []primitives.Bytes32,
+) primitives.Root {
+	if len(proof) != int(g.Length()) {
+		panic("proof length does not match index length")
+	}
+	for i, h := range proof {
+		if g.IndexBit(i) {
+			leaf = sha256.Sum256(append(h[:], leaf[:]...))
+		} else {
+			leaf = sha256.Sum256(append(leaf[:], h[:]...))
+		}
+	}
+	return leaf
+}
+
+// VerifyMerkleProof verifies the Merkle proof for the given
+// leaf, proof, and root.
+func (g GeneralizedIndex) VerifyMerkleProof(
+	leaf primitives.Bytes32,
+	proof []primitives.Bytes32,
+	root primitives.Root,
+) bool {
+	return g.CalculateMerkleRoot(leaf, proof) == root
+}
+
 // Concatenates multiple generalized indices into a single generalized index
 // representing the path from the first to the last node.
 func (gs GeneralizedIndicies) Concat() GeneralizedIndex {
@@ -148,4 +179,71 @@ func (gs GeneralizedIndicies) GetHelperIndices() GeneralizedIndicies {
 	})
 
 	return difference
+}
+
+// CalculateMultiMerkleRoot calculates the Merkle root for multiple leaves with
+// their corresponding proofs and indices.
+func (gs GeneralizedIndicies) CalculateMultiMerkleRoot(
+	leaves []primitives.Bytes32,
+	proof []primitives.Bytes32,
+) (primitives.Root, error) {
+	if len(leaves) != len(gs) {
+		return primitives.Root{}, errors.New(
+			"mismatched leaves and indices length",
+		)
+	}
+
+	helperIndices := gs.GetHelperIndices()
+	if len(proof) != len(helperIndices) {
+		return primitives.Root{}, errors.New(
+			"mismatched proof and helper indices length",
+		)
+	}
+
+	objects := make(map[GeneralizedIndex]primitives.Bytes32)
+	for i, index := range gs {
+		objects[index] = leaves[i]
+	}
+	for i, index := range helperIndices {
+		objects[index] = proof[i]
+	}
+
+	keys := make([]GeneralizedIndex, 0, len(objects))
+	for k := range objects {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] > keys[j]
+	})
+
+	pos := 0
+	for pos < len(keys) {
+		k := keys[pos]
+		if _, ok := objects[k]; ok {
+			if sibling, ok := objects[k^1]; ok {
+				if _, ok := objects[k/2]; !ok {
+					obj := objects[(k|1)^1]
+					objects[k/2] = sha256.Sum256(append(obj[:], sibling[:]...))
+					keys = append(keys, k/2)
+				}
+			}
+		}
+		pos++
+	}
+	return objects[GeneralizedIndex(1)], nil
+}
+
+// VerifyMerkleMultiproof verifies the Merkle multiproof by comparing the
+// calculated root with the provided root.
+func (gs GeneralizedIndicies) VerifyMerkleMultiproof(
+	leaves []primitives.Bytes32,
+	proof []primitives.Bytes32,
+	indices []GeneralizedIndex,
+	root primitives.Root,
+) bool {
+	calculatedRoot, err := gs.CalculateMultiMerkleRoot(leaves, proof)
+	if err != nil {
+		return false
+	}
+	return calculatedRoot == root
 }
