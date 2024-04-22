@@ -182,7 +182,7 @@ func (_BeaconDepositContract *BeaconDepositContractTransactorRaw) Transact(opts 
 
 // DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
 //
-// Solidity: function depositCount() view returns(uint64)
+// Solidity: function depositCount() view returns(uint64).
 func (_BeaconDepositContract *BeaconDepositContractCaller) DepositCount(opts *bind.CallOpts) (uint64, error) {
 	var out []interface{}
 	err := _BeaconDepositContract.contract.Call(opts, &out, "depositCount")
@@ -194,40 +194,39 @@ func (_BeaconDepositContract *BeaconDepositContractCaller) DepositCount(opts *bi
 	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
 
 	return out0, err
-
 }
 
 // DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
 //
-// Solidity: function depositCount() view returns(uint64)
+// Solidity: function depositCount() view returns(uint64).
 func (_BeaconDepositContract *BeaconDepositContractSession) DepositCount() (uint64, error) {
 	return _BeaconDepositContract.Contract.DepositCount(&_BeaconDepositContract.CallOpts)
 }
 
 // DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
 //
-// Solidity: function depositCount() view returns(uint64)
+// Solidity: function depositCount() view returns(uint64).
 func (_BeaconDepositContract *BeaconDepositContractCallerSession) DepositCount() (uint64, error) {
 	return _BeaconDepositContract.Contract.DepositCount(&_BeaconDepositContract.CallOpts)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
+// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns().
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
 }
@@ -311,9 +310,8 @@ type BeaconDepositContractDeposit struct {
 
 // FilterDeposit is a free log retrieval operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts *bind.FilterOpts) (*BeaconDepositContractDepositIterator, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "Deposit")
 	if err != nil {
 		return nil, err
@@ -323,9 +321,8 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterDeposit(opts 
 
 // WatchDeposit is a free log subscription operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractDeposit) (event.Subscription, error) {
-
 	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "Deposit")
 	if err != nil {
 		return nil, err
@@ -360,7 +357,7 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *
 
 // ParseDeposit is a log parse operation binding the contract event 0x68af751683498a9f9be59fe8b0d52a64dd155255d85cdb29fea30b1e3f891d46.
 //
-// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index)
+// Solidity: event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index).
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseDeposit(log types.Log) (*BeaconDepositContractDeposit, error) {
 	event := new(BeaconDepositContractDeposit)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Deposit", log); err != nil {

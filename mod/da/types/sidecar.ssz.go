@@ -8,12 +8,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BlobSidecar object
+// MarshalSSZ ssz marshals the BlobSidecar object.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BlobSidecar object to a target array
+// MarshalSSZTo ssz marshals the BlobSidecar object to a target array.
 func (b *BlobSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 
@@ -49,7 +49,7 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BlobSidecar object
+// UnmarshalSSZ ssz unmarshals the BlobSidecar object.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -86,18 +86,18 @@ func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecar object
+// SizeSSZ returns the ssz encoded size in bytes for the BlobSidecar object.
 func (b *BlobSidecar) SizeSSZ() (size int) {
 	size = 131544
 	return
 }
 
-// HashTreeRoot ssz hashes the BlobSidecar object
+// HashTreeRoot ssz hashes the BlobSidecar object.
 func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher
+// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher.
 func (b *BlobSidecar) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -138,7 +138,7 @@ func (b *BlobSidecar) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BlobSidecar object
+// GetTree ssz hashes the BlobSidecar object.
 func (b *BlobSidecar) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }

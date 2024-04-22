@@ -10,12 +10,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BeaconState object
+// MarshalSSZ ssz marshals the BeaconState object.
 func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconState object to a target array
+// MarshalSSZTo ssz marshals the BeaconState object to a target array.
 func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(300)
@@ -156,7 +156,7 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconState object
+// UnmarshalSSZ ssz unmarshals the BeaconState object.
 func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -344,7 +344,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (b *BeaconState) SizeSSZ() (size int) {
 	size = 300
 
@@ -375,12 +375,12 @@ func (b *BeaconState) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconState object
+// HashTreeRoot ssz hashes the BeaconState object.
 func (b *BeaconState) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconState object with a hasher
+// HashTreeRootWith ssz hashes the BeaconState object with a hasher.
 func (b *BeaconState) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -523,7 +523,7 @@ func (b *BeaconState) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconState object
+// GetTree ssz hashes the BeaconState object.
 func (b *BeaconState) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }

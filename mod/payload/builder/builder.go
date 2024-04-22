@@ -24,3 +24,34 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 package builder
+
+import (
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+)
+
+// TODO: Decouple from ABCI and have this validator run on a separate thread
+// have it configured itself and not be a service persay.
+type Service struct {
+	cfg       *Config
+	chainSpec primitives.ChainSpec
+	logger    log.Logger
+	ee        ExecutionEngine
+	pc        *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	]
+}
+
+// NewService creates a new service.
+func NewService(opts ...Option) (*Service, error) {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
+}
