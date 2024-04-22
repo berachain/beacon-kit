@@ -27,8 +27,8 @@ package localbuilder
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
 // WithBaseService returns an Option that sets the BaseService for the Service.
@@ -40,7 +40,7 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 }
 
 // WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builderconfig.Config) service.Option[Service] {
+func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
 		return nil
