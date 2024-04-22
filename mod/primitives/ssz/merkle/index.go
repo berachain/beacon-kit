@@ -26,6 +26,8 @@
 package merkle
 
 import (
+	"sort"
+
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
@@ -114,4 +116,36 @@ func (gs GeneralizedIndicies) Concat() GeneralizedIndex {
 		)
 	}
 	return o
+}
+
+// GetHelperIndices returns the generalized indices of all "extra" chunks in the
+// tree needed to prove the chunks with the given generalized indices. The
+// decreasing order is chosen deliberately to ensure equivalence to the order of
+// hashes in a regular single-item Merkle proof in the single-item case.
+func GetHelperIndices(indices []GeneralizedIndex) []GeneralizedIndex {
+	allHelperIndices := make(map[GeneralizedIndex]struct{})
+	allPathIndices := make(map[GeneralizedIndex]struct{})
+
+	for _, index := range indices {
+		for _, helperIndex := range index.GetBranchIndices() {
+			allHelperIndices[helperIndex] = struct{}{}
+		}
+		for _, pathIndex := range index.GetPathIndices() {
+			allPathIndices[pathIndex] = struct{}{}
+		}
+	}
+
+	var difference []GeneralizedIndex
+	for helperIndex := range allHelperIndices {
+		if _, exists := allPathIndices[helperIndex]; !exists {
+			difference = append(difference, helperIndex)
+		}
+	}
+
+	// Sort in decreasing order
+	sort.Slice(difference, func(i, j int) bool {
+		return difference[i] > difference[j]
+	})
+
+	return difference
 }
