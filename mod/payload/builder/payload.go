@@ -169,12 +169,12 @@ func (pb *PayloadBuilder) retrieveBuiltPayload(
 
 	// Request the payload from the execution client.
 	envelope, err := pb.getPayloadFromExecutionClient(
-		ctx,
-		&payloadID,
-		slot,
+		ctx, &payloadID, slot,
 	)
 	if err != nil {
 		return nil, err
+	} else if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
 	}
 
 	// Cache the payload and return.
