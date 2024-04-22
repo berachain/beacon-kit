@@ -112,7 +112,8 @@ func (s *Service) sendPostBlockFCU(
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
 	//nolint:nestif // todo:cleanup
-	if s.BuilderCfg().LocalBuilderEnabled /*&& !s.ss.IsInitSync()*/ {
+	// TODO: re-enable this flag.
+	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
 		// TODO: This BlockRoot calculation is sound, but very confusing
 		// and hard to explain to someone who is not familiar with the
 		// nuance of our implementation. We should refactor this.

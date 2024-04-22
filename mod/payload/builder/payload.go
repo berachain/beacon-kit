@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
 	"context"
@@ -56,7 +56,7 @@ func (s *Service) BuildLocalPayload(
 
 	// Notify the execution client of the forkchoice update.
 	var payloadID *engineprimitives.PayloadID
-	s.Logger().Info(
+	s.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
@@ -77,22 +77,21 @@ func (s *Service) BuildLocalPayload(
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       s.ChainSpec().ActiveForkVersionForSlot(slot),
+			ForkVersion:       s.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.Logger().Warn("received nil payload ID on VALID engine response",
+		s.logger.Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", parentEth1Hash,
 			"for_slot", slot,
 		)
 
-		s.SetStatus(ErrNilPayloadOnValidResponse)
 		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	s.Logger().Info("forkchoice updated with payload attributes",
+	s.logger.Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", parentEth1Hash,
 		"for_slot", slot,
 		"payload_id", payloadID,
@@ -104,7 +103,6 @@ func (s *Service) BuildLocalPayload(
 		*payloadID,
 	)
 
-	s.SetStatus(nil)
 	return payloadID, nil
 }
 
@@ -141,7 +139,7 @@ func (s *Service) GetBestPayload(
 		// for it to be resolved and then return the data. This case should very
 		// rarely be hit
 		// if your consensus and execution clients are operating well.
-		s.Logger().Warn(
+		s.logger.Warn(
 			err.Error() +
 				": notifying execution client to construct a new payload ...",
 		)
@@ -213,7 +211,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	}
 
 	// Wait for the payload to be delivered to the execution client.
-	s.Logger().Info(
+	s.logger.Info(
 		"waiting for local payload to be delivered to execution client",
 		"for_slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
 	)
@@ -247,23 +245,26 @@ func (s *Service) getPayloadAttribute(
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
-		s.Logger().Error(
-			"Could not get expected withdrawals to get payload attribute", "error", err)
+		s.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
 		return nil, err
 	}
 
-	epoch := s.ChainSpec().SlotToEpoch(slot)
+	epoch := s.chainSpec.SlotToEpoch(slot)
 
 	// Get the previous randao mix.
 	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % s.ChainSpec().EpochsPerHistoricalVector(),
+		uint64(epoch) % s.chainSpec.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		s.ChainSpec().ActiveForkVersionForEpoch(epoch),
+		s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
 		s.cfg.SuggestedFeeRecipient,
@@ -288,7 +289,7 @@ func (s *Service) getPayloadFromExecutionClient(
 		ctx,
 		&execution.GetPayloadRequest{
 			PayloadID:   *payloadID,
-			ForkVersion: s.ChainSpec().ActiveForkVersionForSlot(slot),
+			ForkVersion: s.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
@@ -316,6 +317,6 @@ func (s *Service) getPayloadFromExecutionClient(
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)
+	s.logger.Info("payload retrieved from local builder 🏗️ ", args...)
 	return payload, blobsBundle, overrideBuilder, err
 }

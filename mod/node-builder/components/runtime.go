@@ -39,12 +39,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/builder"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
-	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -99,11 +101,14 @@ func ProvideRuntime(
 	)
 
 	// Build the local builder service.
-	localBuilder := service.New[localbuilder.Service](
-		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
-		localbuilder.WithBuilderConfig(&cfg.Builder),
-		localbuilder.WithExecutionEngine(executionEngine),
-		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+	localBuilder := service.New[payloadbuilder.Service](
+		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
+		payloadbuilder.WithChainSpec(chainSpec),
+		payloadbuilder.WithConfig(&cfg.Builder),
+		payloadbuilder.WithExecutionEngine(executionEngine),
+		payloadbuilder.WithPayloadCache(
+			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
+		),
 	)
 
 	// Build the Blobs Verifier
