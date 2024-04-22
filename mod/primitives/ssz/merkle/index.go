@@ -69,8 +69,6 @@ func (g GeneralizedIndex) IndexBit(position uint) bool {
 }
 
 // Sibling returns the sibling index of the current generalized index.
-//
-
 func (g GeneralizedIndex) Sibling() GeneralizedIndex {
 	return g ^ 1
 }
@@ -83,8 +81,6 @@ func (g GeneralizedIndex) LeftChild() GeneralizedIndex {
 }
 
 // RightChild returns the right child index of the current generalized index.
-//
-
 func (g GeneralizedIndex) RightChild() GeneralizedIndex {
 	return 2*g + 1
 }
