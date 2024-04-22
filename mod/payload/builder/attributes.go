@@ -26,32 +26,51 @@
 package builder
 
 import (
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/payload/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	cfg       *Config
-	chainSpec primitives.ChainSpec
-	logger    log.Logger
-	ee        ExecutionEngine
-	pc        *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
-	]
-}
+// getPayloadAttributes returns the payload attributes for the given state and
+// slot. The attribute is required to initiate a payload build process in the
+// context of an `engine_forkchoiceUpdated` call.
+func (pb *PayloadBuilder) getPayloadAttribute(
+	st state.BeaconState,
+	slot math.Slot,
+	timestamp uint64,
+	prevHeadRoot [32]byte,
+) (engineprimitives.PayloadAttributer, error) {
+	var (
+		prevRandao [32]byte
+	)
 
-// NewService creates a new service.
-func NewService(opts ...Option) (*Service, error) {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			return nil, err
-		}
+	// Get the expected withdrawals to include in this payload.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		pb.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return nil, err
 	}
-	return s, nil
+
+	epoch := pb.chainSpec.SlotToEpoch(slot)
+
+	// Get the previous randao mix.
+	prevRandao, err = st.GetRandaoMixAtIndex(
+		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
+		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
+		timestamp,
+		prevRandao,
+		pb.cfg.SuggestedFeeRecipient,
+		withdrawals,
+		prevHeadRoot,
+	)
 }
