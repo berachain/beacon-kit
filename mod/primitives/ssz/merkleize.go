@@ -35,23 +35,23 @@ import (
 
 // Merkleize hashes the packed value and returns the HTR.
 func MerkleizeBasic[
-	U64T U64[U64T], U256L U256LT,
-	B Basic[RootT], RootT ~[32]byte,
+	SpecT any, U64T U64[U64T], U256L U256LT,
+	RootT ~[32]byte, B Basic[SpecT, RootT],
 ](
 	value B,
 ) (RootT, error) {
-	return MerkleizeVecBasic[U64T, U256L]([]B{value})
+	return MerkleizeVecBasic[U64T, U256L, RootT, SpecT]([]B{value})
 }
 
 // MerkleizeVec implements the SSZ merkleization algorithm for a vector of basic
 // types.
 func MerkleizeVecBasic[
 	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[RootT],
+	SpecT any, B Basic[SpecT, RootT],
 ](
 	value []B,
 ) (RootT, error) {
-	packed, err := Pack[U64T, U256L](value)
+	packed, err := Pack[U64T, U256L, SpecT, RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -61,19 +61,19 @@ func MerkleizeVecBasic[
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
 func MerkleizeListBasic[
-	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[RootT],
+	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
+	B Basic[SpecT, RootT],
 ](
 	value []B,
 	limit uint64,
 ) (RootT, error) {
-	packed, err := Pack[U64T, U256L](value)
+	packed, err := Pack[U64T, U256L, SpecT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
 	root, err := Merkleize[U64T, RootT, RootT](
 		packed,
-		ChunkCountBasicList[B, RootT](value, limit),
+		ChunkCountBasicList[SpecT](value, limit),
 	)
 	if err != nil {
 		return [32]byte{}, err
@@ -86,10 +86,10 @@ func MerkleizeListBasic[
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
 func MerkleizeContainer[
-	U64T U64[U64T], RootT ~[32]byte,
-	SpecT any, C Container[RootT],
+	SpecT any, U64T U64[U64T], RootT ~[32]byte,
+	C Container[SpecT, RootT],
 ](
-	value C, args ...SpecT,
+	value C, _ ...SpecT,
 ) (RootT, error) {
 	rValue := reflect.ValueOf(value)
 	if rValue.Kind() == reflect.Ptr {
@@ -99,14 +99,23 @@ func MerkleizeContainer[
 	htrs := make([]RootT, numFields)
 	var err error
 	for i := range numFields {
-		field, ok := rValue.Field(i).Interface().(Hashable[SpecT, RootT])
+		fieldValue := rValue.Field(i)
+		if !fieldValue.CanInterface() {
+			return RootT{}, fmt.Errorf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
+		}
+
+		// TODO: handle different types.
+		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
 		if !ok {
 			return RootT{}, fmt.Errorf(
 				"field %d does not implement Hashable",
 				i,
 			)
 		}
-		htrs[i], err = field.HashTreeRoot(args...)
+		htrs[i], err = field.HashTreeRoot( /*args...*/ )
 		if err != nil {
 			return RootT{}, err
 		}
@@ -116,7 +125,9 @@ func MerkleizeContainer[
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
-func MerkleizeVecComposite[U64T U64[U64T], RootT ~[32]byte, C Composite[RootT]](
+func MerkleizeVecComposite[
+	SpecT any, U64T U64[U64T], RootT ~[32]byte, C Composite[SpecT, RootT],
+](
 	value []C,
 ) (RootT, error) {
 	htrs := make([]RootT, len(value))
@@ -133,8 +144,8 @@ func MerkleizeVecComposite[U64T U64[U64T], RootT ~[32]byte, C Composite[RootT]](
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
 // of composite types.
 func MerkleizeListComposite[
-	U64T U64[U64T], RootT ~[32]byte,
-	C Composite[RootT],
+	SpecT any, U64T U64[U64T], RootT ~[32]byte,
+	C Composite[SpecT, RootT],
 ](
 	value []C,
 	limit uint64,
@@ -149,7 +160,7 @@ func MerkleizeListComposite[
 	}
 	root, err := Merkleize[U64T, RootT, RootT](
 		htrs,
-		ChunkCountCompositeList(value, limit),
+		ChunkCountCompositeList[C, RootT](value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
