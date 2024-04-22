@@ -83,7 +83,7 @@ func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
 	}
 
 	// Verify the inclusion proof.
-	valid, err := merkle.GeneralizedIndex(kzgOffset+b.Index).
+	valid, err := merkle.GeneralizedIndex[[32]byte](kzgOffset+b.Index).
 		VerifyMerkleProof(
 			root,
 			b.InclusionProof,
