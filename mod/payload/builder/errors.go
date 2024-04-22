@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import "github.com/cockroachdb/errors"
 
@@ -53,4 +53,8 @@ var (
 	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
 	// received.
 	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+
+	// ErrNilPayload is returned when a nil payload envelope is
+	// received.
+	ErrNilPayload = errors.New("received nil payload envelope")
 )

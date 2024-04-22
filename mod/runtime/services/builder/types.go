@@ -66,7 +66,7 @@ type RandaoProcessor interface {
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder interface {
-	GetBestPayload(
+	RetrieveBuiltPayload(
 		ctx context.Context,
 		st state.BeaconState,
 		slot math.Slot,

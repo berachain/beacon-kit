@@ -23,29 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/execution"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
+// TODO: Decouple from ABCI and have this validator run on a separate thread
+// have it configured itself and not be a service persay.
+type PayloadBuilder struct {
+	cfg       *Config
+	chainSpec primitives.ChainSpec
+	logger    log.Logger
 
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *execution.ForkchoiceUpdateRequest,
-	) (*engine.PayloadID, *primitives.ExecutionHash, error)
+	// ee is the execution engine.
+	ee ExecutionEngine
+
+	// pc is the payload ID cache, it is used to store
+	// "in-flight" payloads that are being built on
+	// the execution client.
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	]
+}
+
+// NewService creates a new service.
+func NewService(opts ...Option) (*PayloadBuilder, error) {
+	pb := &PayloadBuilder{}
+	for _, opt := range opts {
+		if err := opt(pb); err != nil {
+			return nil, err
+		}
+	}
+	return pb, nil
 }

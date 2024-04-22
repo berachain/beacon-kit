@@ -32,8 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -44,7 +44,7 @@ import (
 func DefaultConfig() *Config {
 	return &Config{
 		ABCI:    abci.DefaultABCIConfig(),
-		Builder: builderconfig.DefaultBuilderConfig(),
+		Builder: builder.DefaultBuilderConfig(),
 		Engine:  engineclient.DefaultConfig(),
 		KZG:     kzg.DefaultConfig(),
 	}
@@ -56,7 +56,7 @@ type Config struct {
 	ABCI abci.Config `mapstructure:"abci"`
 
 	// Builder is the configuration for the local build payload timeout.
-	Builder builderconfig.Config `mapstructure:"builder"`
+	Builder builder.Config `mapstructure:"builder"`
 
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
