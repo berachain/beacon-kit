@@ -137,6 +137,40 @@ start-ethereumjs:
 	--rpcEngineAddr 0.0.0.0 \
 	--dataDir .tmp/ethereumjs
 
+start-nimbus:
+	rm -rf ./tmp/nimbus
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	statusim/nimbus-fluffy:amd64-master-latest \
+	--data-dir=.tmp/nimbus \
+	--rpc \
+	--rpc-port=8545 \
+	--rpc-address=0.0.0.0
+
+start-nimbus-1:
+	rm -rf .tmp/nimbus-1
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	-p 30304:30303 \
+	-p 8546:8545 \
+	ethpandaops/nimbus-eth1:master \
+	--data-dir=.tmp/nimbus-1 \
+	--rpc
+
+# start-nimbus-2:
+# 	rm -rf .tmp/nimbus-2
+# 	docker run \
+# 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+# 	-v $(PWD)/.tmp:/.tmp \
+# 	-p 30303:30303 \
+# 	-p 8545:8545 \
+# 	statusim/nimbus-validator-client:multiarch-latest \
+# 	--data-dir=.tmp/nimbus-2
+
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
