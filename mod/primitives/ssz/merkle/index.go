@@ -27,7 +27,7 @@ package merkle
 
 import "github.com/berachain/beacon-kit/mod/primitives/math"
 
-type GeneralizedIndex uint64
+type GeneralizedIndex math.U64
 
 // NewGeneralizedIndex calculates the generalized index from the depth and
 // index.
@@ -35,8 +35,17 @@ func NewGeneralizedIndex(depth uint8, index uint64) GeneralizedIndex {
 	return GeneralizedIndex((1 << depth) + index)
 }
 
-func ConcatGeneralizedIndex(a, b GeneralizedIndex) GeneralizedIndex {
-	return GeneralizedIndex(uint64(a)<<b.Length() + uint64(b))
+// Concatenates multiple generalized indices into a single generalized index
+// representing the path from the first to the last node.
+func ConcatGeneralizedIndices(indices ...GeneralizedIndex) GeneralizedIndex {
+	o := GeneralizedIndex(1)
+	for _, i := range indices {
+		floorPower := math.U64(i).PrevPowerOfTwo()
+		o = GeneralizedIndex(
+			math.U64(o)*floorPower + (math.U64(i) - floorPower),
+		)
+	}
+	return o
 }
 
 // Length returns the length of the generalized index.
@@ -54,13 +63,14 @@ func (g GeneralizedIndex) Sibling() GeneralizedIndex {
 	return g ^ 1
 }
 
-// Child returns the child index of the current generalized index, specifying if
-// it should return the right child.
-func (g GeneralizedIndex) Child(rightSide bool) GeneralizedIndex {
-	if rightSide {
-		return 2*g + 1
-	}
+// LeftChild returns the left child index of the current generalized index.
+func (g GeneralizedIndex) LeftChild() GeneralizedIndex {
 	return 2 * g
+}
+
+// RightChild returns the right child index of the current generalized index.
+func (g GeneralizedIndex) RightChild() GeneralizedIndex {
+	return 2*g + 1
 }
 
 // Parent returns the parent index of the current generalized index.
