@@ -147,6 +147,7 @@ func (pb *PayloadBuilder) GetBestPayload(
 		parentEth1Hash,
 		slot,
 		// TODO: we need to do the proper timestamp math here for EIP4788.
+		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
 	)
