@@ -160,7 +160,9 @@ func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 // tree needed to prove the chunks with the given generalized indices. The
 // decreasing order is chosen deliberately to ensure equivalence to the order of
 // hashes in a regular single-item Merkle proof in the single-item case.
-func (gs GeneralizedIndicies[RootT]) GetHelperIndices() GeneralizedIndicies[RootT] {
+func (
+	gs GeneralizedIndicies[RootT],
+) GetHelperIndices() GeneralizedIndicies[RootT] {
 	allHelperIndices := make(map[GeneralizedIndex[RootT]]struct{})
 	allPathIndices := make(map[GeneralizedIndex[RootT]]struct{})
 
