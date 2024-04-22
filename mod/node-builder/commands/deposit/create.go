@@ -1,15 +1,20 @@
 package deposit
 
 import (
-	"errors"
-	"math/big"
+	"encoding/hex"
+	"fmt"
 	"os"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -17,8 +22,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
+	gethclient "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,12 +38,19 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 		Short: "Creates a validator deposit",
 		Long: `Creates a validator deposit with the necessary credentials. The
 		deposit message must include the public key, withdrawal credentials,
-		and deposit amount. The arguments are expected in the order of public key,
-		withdrawal credentials, deposit amount, signature, current version,
-		and genesis validator root.`,
+		and deposit amount. The arguments are expected in the order of withdrawal 
+		credentials, deposit amount, current version, and genesis validator root.
+		If the broadcast flag is set to true, a private key must be provided to
+		sign the transaction.`,
 		Args: cobra.ExactArgs(4),
 		RunE: createValidatorCmd(clientCtx),
 	}
+
+	cmd.Flags().BoolP(
+		broadcastDeposit, broadcastDepositShorthand,
+		defaultBroadcastDeposit, broadcastDepositMsg,
+	)
+	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 
 	return cmd
 }
@@ -47,12 +60,53 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
-			blsSigner *signer.BLSSigner
+			blsSigner      *signer.BLSSigner
+			jwtSecret      *jwt.Secret
+			fundingPrivKey string
+
+			logger = log.NewLogger(os.Stdout)
 		)
+
+		broadcastFlag, err := cmd.Flags().GetBool(broadcastDeposit)
+		if err != nil {
+			return err
+		}
+
+		// If the broadcast flag is set, a private key must be provided.
+		if broadcastFlag {
+			fundingPrivKey, err = cmd.Flags().GetString(privateKey)
+			if err != nil {
+				return err
+			}
+			if fundingPrivKey == "" {
+				return ErrPrivateKeyRequired
+			}
+		}
+
+		credentials, err := convertWithdrawalCredentials(args[0])
+		if err != nil {
+			return err
+		}
+
+		amount, err := convertAmount(args[1])
+		if err != nil {
+			return err
+		}
+
+		currentVersion, err := convertVersion(args[2])
+		if err != nil {
+			return err
+		}
+
+		genesisValidatorRoot, err := convertGenesisValidatorRoot(args[3])
+		if err != nil {
+			return err
+		}
+
 		if err := depinject.Inject(
 			depinject.Configs(
 				depinject.Supply(
-					log.NewLogger(os.Stdout),
+					logger,
 					viper.GetViper(),
 					spec.LocalnetChainSpec(),
 				),
@@ -65,28 +119,9 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			panic(err)
 		}
 
-		credentials, err := ConvertWithdrawalCredentials(args[0])
-		if err != nil {
-			return err
-		}
-
-		amount, err := ConvertAmount(args[1])
-		if err != nil {
-			return err
-		}
-
-		currentVersion, err := ConvertVersion(args[2])
-		if err != nil {
-			return err
-		}
-
-		genesisValidatorRoot, err := ConvertGenesisValidatorRoot(args[3])
-		if err != nil {
-			return err
-		}
-
-		// TODO: modularize
-		fundingPrivKey := "0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
+		// credentials = primitives.NewCredentialsFromExecutionAddress(
+		// 	crypto.PubkeyToAddress(blsSigner.PublicKey()),
+		// )
 
 		// Create and sign the deposit message.
 		depositMessage, signature, err := primitives.CreateAndSignDepositMessage(
@@ -110,15 +145,63 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		// todo: spin up and use engine api.
-		ethClient, err := ethclient.Dial("http://localhost:8545")
+		// If the broadcast flag is not set, output the deposit message and
+		// signature and return early.
+		if !broadcastFlag {
+			logger.Info(
+				"Deposit message created",
+				"\nmessage", depositMessage,
+				"\nsignature", signature,
+			)
+			return nil
+		}
+
+		// Spin up an engine client to broadcast the deposit transaction.
+		// if err := depinject.Inject(
+		// 	depinject.Configs(
+		// 		depinject.Supply(
+		// 			viper.GetViper(),
+		// 		),
+		// 		depinject.Provide(
+		// 			components.ProvideJWTSecret,
+		// 		),
+		// 	),
+		// 	&jwtSecret,
+		// ); err != nil {
+		// 	panic(err)
+		// }
+		jwtSecret, err = jwt.LoadFromFile("beacond/jwt.hex")
+		if err != nil {
+			panic(err)
+		}
+
+		cfg := config.MustReadConfigFromAppOpts(viper.GetViper())
+		fmt.Println("CONFIG DUMP", cfg)
+
+		cfg = config.DefaultConfig()
+
+		ethClient, err := gethclient.Dial(cfg.Engine.RPCDialURL.String())
 		if err != nil {
 			return err
 		}
 
-		// TODO: read from config.
-		depositAddr := common.HexToAddress("0x00000000219ab540356cbb839cbe05303d7705fa")
-		depositContract, err := abi.NewBeaconDepositContract(depositAddr, ethClient)
+		eth1client, err := ethclient.NewEth1Client(ethClient)
+		if err != nil {
+			return err
+		}
+
+		engineClient := engineclient.New(
+			engineclient.WithEngineConfig(&cfg.Engine),
+			engineclient.WithEth1Client(eth1client),
+			engineclient.WithJWTSecret(jwtSecret),
+			engineclient.WithLogger(logger),
+		)
+		engineClient.Start(cmd.Context())
+
+		depositContract, err := abi.NewBeaconDepositContract(
+			spec.LocalnetChainSpec().DepositContractAddress(),
+			engineClient,
+		)
 		if err != nil {
 			return err
 		}
@@ -128,7 +211,18 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		chainId := big.NewInt(80087)
+		chainID, err := engineClient.ChainID(cmd.Context())
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("CALL DATA",
+			hex.EncodeToString(depositMessage.Pubkey[:]),
+			hex.EncodeToString(depositMessage.Credentials[:]),
+			depositMessage.Amount.Unwrap(),
+			hex.EncodeToString(signature[:]),
+		)
+
 		// Send the deposit to the deposit contract.
 		tx, err := depositContract.Deposit(
 			&bind.TransactOpts{
@@ -137,10 +231,11 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 					_ common.Address, tx *types.Transaction,
 				) (*types.Transaction, error) {
 					return types.SignTx(
-						tx, types.LatestSignerForChainID(chainId),
+						tx, types.LatestSignerForChainID(chainID),
 						privKey,
 					)
 				},
+				GasLimit: 20000000,
 			},
 			depositMessage.Pubkey[:],
 			depositMessage.Credentials[:],
@@ -152,13 +247,13 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		}
 
 		//
-		receipt, err := bind.WaitMined(cmd.Context(), ethClient, tx)
+		receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
 		if err != nil {
 			return err
 		}
 
 		if receipt.Status != 1 {
-			return errors.New("deposit transaction failed")
+			return ErrDepositTransactionFailed
 		}
 
 		return nil
