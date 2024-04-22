@@ -155,9 +155,11 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return blk, nil, fmt.Errorf(
-			"failed to get block root at index: %w",
+			"failed to retrieve payload from builder: %w",
 			err,
 		)
+	} else if envelope == nil {
+		return blk, nil, ErrReceivedNilEnvelope
 	}
 
 	// TODO: assemble real eth1data.
