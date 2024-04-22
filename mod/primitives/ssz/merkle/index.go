@@ -31,7 +31,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
@@ -114,11 +113,11 @@ func (g GeneralizedIndex[RootT]) GetPathIndices() GeneralizedIndicies[RootT] {
 
 // CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
 func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
-	leaf primitives.Bytes32,
-	proof [][32]byte,
-) (primitives.Root, error) {
+	leaf RootT,
+	proof []RootT,
+) (RootT, error) {
 	if uint64(len(proof)) != g.Length() {
-		return primitives.Root{},
+		return RootT{},
 			fmt.Errorf("expected proof length %d, received %d", g.Length(),
 				len(proof))
 	}
@@ -135,9 +134,9 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 // VerifyMerkleProof verifies the Merkle proof for the given
 // leaf, proof, and root.
 func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
-	leaf primitives.Bytes32,
-	proof [][32]byte, // .Bytes32,
-	root primitives.Root,
+	leaf RootT,
+	proof []RootT, // .Bytes32,
+	root RootT,
 ) (bool, error) {
 	calculated, err := g.CalculateMerkleRoot(leaf, proof)
 	return calculated == root, err
