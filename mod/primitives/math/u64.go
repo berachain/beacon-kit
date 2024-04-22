@@ -202,7 +202,7 @@ func (u U64) ILog2Ceil() uint8 {
 
 // ---------------------------- Gwei Methods ----------------------------
 
-func FromWei(i *big.Int) Gwei {
+func GweiFromWei(i *big.Int) Gwei {
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
 	i.Div(i, intToGwei)
 	return Gwei(i.Uint64())

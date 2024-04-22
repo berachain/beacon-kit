@@ -166,13 +166,17 @@ func convertAmount(amount string) (math.Gwei, error) {
 	return math.Gwei(amountBigInt.Uint64()), nil
 }
 
+// convertAmount converts a string representing an amount
+// in Wei to a deposit amount in Gwei.
+//
+//nolint:mnd // lots of magic numbers
 func convertAmountFromWei(amount string) (math.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
 	if !ok {
 		return 0, ErrInvalidAmount
 	}
-	return math.FromWei(amountBigInt), nil
+	return math.GweiFromWei(amountBigInt), nil
 }
 
 // convertSignature converts a string to a signature.

@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package deposit
 
 import (
@@ -7,7 +32,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
@@ -24,7 +48,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	gethclient "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -57,7 +80,9 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string) error {
+func createValidatorCmd(
+	clientCtx client.Context,
+) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
 			blsSigner *signer.BLSSigner
@@ -98,10 +123,6 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		if err != nil {
 			return err
 		}
-		// amountBigInt, ok := new(big.Int).SetString(args[1], 10)
-		// if !ok {
-		// 	return ErrInvalidAmount
-		// }
 
 		currentVersion, err := convertVersion(args[2])
 		if err != nil {
@@ -128,10 +149,6 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		); err != nil {
 			panic(err)
 		}
-
-		// credentials = primitives.NewCredentialsFromExecutionAddress(
-		// 	crypto.PubkeyToAddress(blsSigner.PublicKey()),
-		// )
 
 		// Create and sign the deposit message.
 		depositMsg, signature, err := primitives.CreateAndSignDepositMessage(
@@ -184,6 +201,9 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		if err != nil {
 			panic(err)
 		}
+
+		// viper.GetViper().SetConfigFile(".tmp/beacond/config/app.toml")
+		// fmt.Println("viper config file", viper.GetViper().ConfigFileUsed())
 
 		cfg := config.MustReadConfigFromAppOpts(viper.GetViper())
 		fmt.Println("CONFIG DUMP", cfg)
@@ -253,6 +273,11 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		if receipt.Status != 1 {
 			return ErrDepositTransactionFailed
 		}
+
+		logger.Info(
+			"Deposit transaction successful",
+			"txHash", receipt.TxHash.Hex(),
+		)
 
 		return nil
 	}
