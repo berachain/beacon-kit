@@ -129,9 +129,14 @@ func (u U64) Unwrap() uint64 {
 	return uint64(u)
 }
 
-// NextPowerOfTwo returns the next power of two greater than or equal to the.
+// Get the power of 2 for given input, or the closest higher power of 2 if the
+// input is not a power of 2. Commonly used for "how many nodes do I need for a
+// bottom tree layer fitting x elements?"
+// Example: 0->1, 1->1, 2->2, 3->4, 4->4, 5->8, 6->8, 7->8, 8->8, 9->16.
 //
-//nolint:mnd // powers of 2.
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
+//
+//nolint:mnd,lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	u--
 	u |= u >> 1
@@ -143,33 +148,26 @@ func (u U64) NextPowerOfTwo() U64 {
 	return u
 }
 
-// Get the power of 2 for given input, or the closest higher power of 2 if the
-// input is not a power of 2. Commonly used for "how many nodes do I need for a
-// bottom tree layer fitting x elements?"
-// Example: 0->1, 1->1, 2->2, 3->4, 4->4, 5->8, 6->8, 7->8, 8->8, 9->16.
-//
-//nolint:mnd // From Ethereum 2.0 spec.
-func (u U64) IPow2Ceil() U64 {
-	if u <= 1 {
-		return 1
-	} else if u == 2 {
-		return 2
-	}
-	return 2 * ((u + 1) / 2).IPow2Ceil()
-}
-
 // Get the power of 2 for given input, or the closest lower power of 2 if the
 // input is not a power of 2. The zero case is a placeholder and not used for
 // math with generalized indices. Commonly used for "what power of two makes up
 // the root bit of the generalized index?"
 // Example: 0->1, 1->1, 2->2, 3->2, 4->4, 5->4, 6->4, 7->4, 8->8, 9->8.
 //
-//nolint:mnd // From Ethereum 2.0 spec.
-func (u U64) IPow2Floor() U64 {
-	if u <= 1 {
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
+//
+//nolint:mnd,lll // From Ethereum 2.0 spec.
+func (u U64) PrevPowerOfTwo() U64 {
+	if u == 0 {
 		return 1
 	}
-	return 2 * (u / 2).IPow2Floor()
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	return u - (u >> 1)
 }
 
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
@@ -180,6 +178,16 @@ func (u U64) ILog2Ceil() uint8 {
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
+}
+
+// ILog2Floor returns the floor of the base 2 logarithm of the U64.
+func (u U64) ILog2Floor() uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u)))
 }
 
 // type U64Vector[U ~uint64] []U

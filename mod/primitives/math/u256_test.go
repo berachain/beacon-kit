@@ -189,7 +189,8 @@ func TestU256L_UnmarshalSSZ(t *testing.T) {
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
-				expected, err := math.NewU256L(tt.expected)
+				var expected math.U256L
+				expected, err = math.NewU256L(tt.expected)
 				require.NoError(t, err)
 				require.Equal(t, expected, u)
 			}
@@ -206,7 +207,8 @@ func TestNewU256L_SilentTruncation(t *testing.T) {
 			13, 14, 15, 16, 16, 17, 18, 19, 20, 21, 22,
 			23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34},
 			[32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-				14, 15, 16, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}},
+				14, 15, 16, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+				25, 26, 27, 28, 29, 30, 31}},
 	}
 
 	for _, tc := range testCases {
