@@ -89,6 +89,7 @@ func (s *Service) ProcessBeaconBlock(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
+			false,
 		),
 	); err != nil {
 		s.Logger().

@@ -141,6 +141,21 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		return false, err
 	}
 
+	// If the block already exists, we can skip sending the payload to the
+	// execution client.
+	if req.SkipIfExists {
+		header, err := ee.ec.HeaderByHash(
+			ctx,
+			req.ExecutionPayload.GetBlockHash(),
+		)
+		if header != nil && err != nil {
+			ee.logger.Info("skipping new payload, block already available",
+				"block_hash", req.ExecutionPayload.GetBlockHash(),
+			)
+		}
+		return true, nil
+	}
+
 	// Then we can ask the EL to process the new payload.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,

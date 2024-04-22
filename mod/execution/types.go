@@ -45,6 +45,9 @@ type NewPayloadRequest struct {
 	VersionedHashes []primitives.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
+	// SkipIfExists is a flag that indicates if the payload should be skipped
+	// if it already exists in the database of the execution client.
+	SkipIfExists bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -52,11 +55,13 @@ func BuildNewPayloadRequest(
 	executionPayload engineprimitives.ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
+	skipIfExists bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		SkipIfExists:          skipIfExists,
 	}
 }
 

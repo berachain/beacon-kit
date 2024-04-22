@@ -23,29 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/execution"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
+// Option is a functional option for the builder.
+type Option = func(*Service) error
 
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *execution.ForkchoiceUpdateRequest,
-	) (*engine.PayloadID, *primitives.ExecutionHash, error)
+// WithChainSpec sets the chain spec.
+func WithChainSpec(chainSpec primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.chainSpec = chainSpec
+		return nil
+	}
+}
+
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
+// WithExecutionEngine sets the execution engine.
+func WithExecutionEngine(ee ExecutionEngine) Option {
+	return func(s *Service) error {
+		s.ee = ee
+		return nil
+	}
+}
+
+// WithPayloadCache sets the payload cache.
+func WithPayloadCache(
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	],
+) Option {
+	return func(s *Service) error {
+		s.pc = pc
+		return nil
+	}
 }

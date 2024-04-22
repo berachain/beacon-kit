@@ -23,19 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
+const (
+	prefix = "beaconkit.builder."
+
+	// MetricsPayloadIDCacheHit is used to count the number of times a built
+	// payload retrieval is attempted and found.
+	MetricsPayloadIDCacheHit = prefix +
+		"payload-id-cache-hit"
+
+	// MetricGetPayloadMiss is used to count the number of times a built
+	// payload retrieval is attempted but not found.
+	MetricsPayloadIDCacheMiss = prefix +
+		"payload-id-cache-miss"
+
+	// MetricErrorRetrievingPayload is used to count the number of times an
+	// error
+	// occurs when attempting to retrieve a built payload.
+	MetricsPayloadIDCacheError = prefix +
+		"get-payload-error"
+
+	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
+	// the local builder receives a nil payload.
+	MetricsLocalBuilderReceivedNilPayload = prefix +
+		"local-builder-received-nil-payload"
 )
-
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg *builderconfig.Config
-	ee  ExecutionEngine
-	pc  *cache.PayloadIDCache
-}

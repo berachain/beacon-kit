@@ -23,42 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+	// received on a VALID engine response.
+	ErrNilPayloadOnValidResponse = errors.New(
+		"received nil payload ID on VALID engine response",
+	)
+
+	// ErrNilPayloadID is returned when a nil payload ID is received.
+	ErrNilPayloadID = errors.New("received nil payload ID")
+
+	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
+	// cache.
+	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
+
+	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
+	// payloadID is not found on the execution client.
+	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
+		"cached payload ID could not be resolved on execution client",
+	)
+
+	// ErrLocalBuildingDisabled is returned when local building is disabled.
+	ErrLocalBuildingDisabled = errors.New("local building is disabled")
+
+	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
+	// received.
+	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
 )
-
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builderconfig.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
-		return nil
-	}
-}

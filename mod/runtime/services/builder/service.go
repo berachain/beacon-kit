@@ -33,16 +33,16 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
-	cfg *config.Config
+	cfg *builder.Config
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
