@@ -28,7 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/primitives/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz/merkle"
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
@@ -76,10 +76,37 @@ func BuildBlobSidecar(
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
-	return merkle.VerifyProof(
-		b.BeaconBlockHeader.BodyRoot,
-		b.KzgCommitment.ToHashChunks()[0],
-		kzgOffset+b.Index,
-		b.InclusionProof,
-	)
+	// return merkle.VerifyProof(
+	// 	b.BeaconBlockHeader.BodyRoot,
+	// 	b.KzgCommitment.ToHashChunks()[0],
+	// 	kzgOffset+b.Index,
+	// 	b.InclusionProof,
+	// )
+
+	root, err := b.KzgCommitment.HashTreeRoot()
+	if err != nil {
+		return false
+	}
+
+	valid, err := merkle.GeneralizedIndex(kzgOffset+b.Index).
+		VerifyMerkleProof(
+			root,
+			b.InclusionProof,
+			b.BeaconBlockHeader.BodyRoot,
+		)
+	if err != nil {
+		return false
+	}
+	return valid
+
+	// def verify_blob_sidecar_inclusion_proof(blob_sidecar: BlobSidecar) ->
+	// bool: gindex = get_subtree_index(get_generalized_index(BeaconBlockBody,
+	// 'blob_kzg_commitments', blob_sidecar.index))
+	// return is_valid_merkle_branch(
+	//     leaf=blob_sidecar.kzg_commitment.hash_tree_root(),
+	//     branch=blob_sidecar.kzg_commitment_inclusion_proof,
+	//     depth=KZG_COMMITMENT_INCLUSION_PROOF_DEPTH,
+	//     index=gindex,
+	//     root=blob_sidecar.signed_block_header.message.body_root,
+	// )
 }

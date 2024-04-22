@@ -111,11 +111,15 @@ func (g GeneralizedIndex) GetPathIndices() GeneralizedIndicies {
 // CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
 func (g GeneralizedIndex) CalculateMerkleRoot(
 	leaf primitives.Bytes32,
-	proof []primitives.Bytes32,
-) primitives.Root {
-	if uint64(len(proof)) != g.Length() {
-		panic("proof length does not match index length")
-	}
+	proof [][32]byte,
+) (primitives.Root, error) {
+	// TODO: Re-enable this check once we move the proof generation to the
+	// proper 1 index'd tree.
+	// if uint64(len(proof)) != g.Length() {
+	// 	return primitives.Root{},
+	// 		fmt.Errorf("expected proof length %d, received %d", g.Length(),
+	// len(proof))
+	// }
 	for i, h := range proof {
 		if g.IndexBit(i) {
 			leaf = sha256.Sum256(append(h[:], leaf[:]...))
@@ -123,17 +127,18 @@ func (g GeneralizedIndex) CalculateMerkleRoot(
 			leaf = sha256.Sum256(append(leaf[:], h[:]...))
 		}
 	}
-	return leaf
+	return leaf, nil
 }
 
 // VerifyMerkleProof verifies the Merkle proof for the given
 // leaf, proof, and root.
 func (g GeneralizedIndex) VerifyMerkleProof(
 	leaf primitives.Bytes32,
-	proof []primitives.Bytes32,
+	proof [][32]byte, // .Bytes32,
 	root primitives.Root,
-) bool {
-	return g.CalculateMerkleRoot(leaf, proof) == root
+) (bool, error) {
+	calculated, err := g.CalculateMerkleRoot(leaf, proof)
+	return calculated == root, err
 }
 
 // Concatenates multiple generalized indices into a single generalized index

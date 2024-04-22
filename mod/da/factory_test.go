@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
+	sszmerkle "github.com/berachain/beacon-kit/mod/primitives/ssz/merkle"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -72,12 +73,19 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	bodyRoot, err := body.HashTreeRoot()
 	require.NoError(t, err, "Hashing the body should not produce an error")
 
-	// Verify the valid KZG inclusion proof
-	validProof := merkle.VerifyProof(
-		bodyRoot,
-		body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
-		types.KZGOffset(chainspec.MaxBlobCommitmentsPerBlock())+index,
-		proof,
+	gIndex := sszmerkle.GeneralizedIndex(
+		types.KZGOffset(chainspec.MaxBlobCommitmentsPerBlock()) + index,
+	)
+	validProof, err := gIndex.
+		VerifyMerkleProof(
+			body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
+			proof,
+			bodyRoot,
+		)
+	require.NoError(
+		t,
+		err,
+		"Verifying the KZG inclusion proof should not produce an error",
 	)
 	require.True(t, validProof, "The KZG inclusion proof should be valid")
 
@@ -90,7 +98,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 		"Building KZG inclusion proof with invalid index should produce an error",
 	)
 
-	require.True(t, validProof, "The KZG inclusion proof should be valid")
+	// require.True(t, validProof, "The KZG inclusion proof should be valid")
 
 	// Attempt to verify the invalid KZG inclusion proof and expect failure
 	invalidProof, err := factory.BuildKZGInclusionProof(body, invalidIndex)
@@ -105,6 +113,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 		types.KZGOffset(chainspec.MaxBlobCommitmentsPerBlock())+index,
 		invalidProof,
 	)
+
 	require.False(
 		t,
 		validInvalidProof,
