@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package math
 
 import (
 	"encoding/binary"
@@ -44,6 +44,28 @@ const (
 // execution client apis happy, and we marshal U64 as little-endian in SSZ to be
 // compatible with the spec.
 type U64 uint64
+
+//nolint:lll // links.
+type (
+	// Gwei is a denomination of 1e9 Wei represented as a U64.
+	Gwei = U64
+
+	// Slot as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Slot = U64
+
+	// CommitteeIndex as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	CommitteeIndex = U64
+
+	// ValidatorIndex as per the Ethereum 2.0  Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	ValidatorIndex = U64
+
+	// Epoch as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Epoch = U64
+)
 
 // -------------------------- SSZMarshallable --------------------------
 
@@ -79,6 +101,15 @@ func (u U64) SizeSSZ() int {
 	return U64NumBytes
 }
 
+// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
+func (u U64) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, U64NumBytes)
+	binary.LittleEndian.PutUint64(buf, uint64(u))
+	var hashRoot [32]byte
+	copy(hashRoot[:], buf)
+	return hashRoot, nil
+}
+
 // -------------------------- JSONMarshallable -------------------------
 
 // UnmarshalJSON parses a blob in hex syntax.
@@ -100,7 +131,7 @@ func (u U64) Unwrap() uint64 {
 
 // NextPowerOfTwo returns the next power of two greater than or equal to the.
 //
-//nolint:gomnd // powers of 2.
+//nolint:mnd // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	u--
 	u |= u >> 1
@@ -121,3 +152,48 @@ func (u U64) ILog2Ceil() uint8 {
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
 }
+
+// type U64Vector[U ~uint64] []U
+
+// func (v U64Vector[U]) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeVecBasic[U64, U, [32]byte](v)
+// }
+
+// func (v U64Vector[U]) SizeSSZ() int {
+// 	return int(ssz.SizeOfComposite[[32]byte, U64Vector[U]](v))
+// }
+
+// type U64List []U64
+
+// func (v U64List) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
+// }
+
+// func (v U64List) SizeSSZ() int {
+// 	return int(ssz.SizeOfComposite[[32]byte, U64List](v))
+// }
+
+// type U64Container struct {
+// 	Field2 U64List
+// 	Field1 U64
+// }
+
+// func (c U64Container) SizeSSZ() int {
+// 	return c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
+// }
+
+// func (c U64Container) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
+// }
+
+// //go:generate go run github.com
+// /ferranbt/fastssz/sszgen -objs U64List2,U64Container2 --path ./u64
+// .go -output bet.ssz.go
+// type U64List2 struct {
+// 	Data []uint64 `ssz-max:"16"`
+// }
+
+// type U64Container2 struct {
+// 	Field2 []uint64 `ssz-max:"16"`
+// 	Field1 U64
+// }

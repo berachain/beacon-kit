@@ -69,6 +69,6 @@ func printSlowly(text string, delay time.Duration) {
 }
 
 func main() {
-	//nolint:gomnd // yapping takes time y'know.
+	//nolint:mnd // yapping takes time y'know.
 	printSlowly(story, 25*time.Millisecond)
 }

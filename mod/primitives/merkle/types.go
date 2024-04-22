@@ -23,29 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package zero
+package merkle
 
-import sha256 "github.com/minio/sha256-simd"
-
-// NumZeroHashes is the number of pre-computed zero-hashes.
-const NumZeroHashes = 64
-
-// Hashes is a pre-computed list of zero-hashes for each depth level.
-//
-//nolint:gochecknoglobals // saves recomputing.
-var Hashes [NumZeroHashes + 1][32]byte
-
-// initialize the zero-hashes pre-computed data with the given hash-function.
-func InitZeroHashes(zeroHashesLevels int) {
-	for i := range zeroHashesLevels {
-		v := [64]byte{}
-		copy(v[:32], Hashes[i][:])
-		copy(v[32:], Hashes[i][:])
-		Hashes[i+1] = sha256.Sum256(v[:])
-	}
-}
-
-//nolint:gochecknoinits // required.
-func init() {
-	InitZeroHashes(NumZeroHashes)
+// U64 is an interface that wraps the uint64 type.
+// It is used to prevent circular dependencies between
+// the merkle package and the primitives package.
+type U64[T ~uint64] interface {
+	~uint64
+	// NextPowerOfTwo returns the smallest power of
+	// two that is greater than or equal to T.
+	NextPowerOfTwo() T
+	// ILog2Ceil returns the ceiling of the binary
+	// logarithm of T as a uint8.
+	ILog2Ceil() uint8
 }

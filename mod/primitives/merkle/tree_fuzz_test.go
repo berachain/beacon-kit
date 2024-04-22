@@ -28,8 +28,8 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/merkle"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/stretchr/testify/require"
 )
 

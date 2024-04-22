@@ -26,8 +26,8 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // BuiltExecutionPayload is an interface for the execution payload envelope.
@@ -35,7 +35,7 @@ type BuiltExecutionPayload interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() ExecutionPayload
 	// GetValue returns the Wei value of the block in the execution payload.
-	GetValue() primitives.Wei
+	GetValue() math.Wei
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
 	GetBlobsBundle() BlobsBundle
 	// ShouldOverrideBuilder indicates if the builder should be overridden.
@@ -61,7 +61,7 @@ type ExecutionPayloadEnvelope[
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
-	BlockValue       primitives.Wei    `json:"blockValue"`
+	BlockValue       math.Wei          `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
 	Override         bool              `json:"shouldOverrideBuilder"`
 }
@@ -77,7 +77,7 @@ func (e *ExecutionPayloadEnvelope[
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
 	ExecutionPayloadT, BlobsBundleT,
-]) GetValue() primitives.Wei {
+]) GetValue() math.Wei {
 	return e.BlockValue
 }
 

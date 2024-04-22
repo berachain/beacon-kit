@@ -34,6 +34,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,7 +45,7 @@ type BuilderService interface {
 	RequestBestBlock(
 		context.Context,
 		state.BeaconState,
-		primitives.Slot,
+		math.Slot,
 	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
 }
 
@@ -127,7 +128,7 @@ func (h *Handler) PrepareProposalHandler(
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx,
 		st,
-		primitives.Slot(req.Height),
+		math.Slot(req.Height),
 	)
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)

@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -51,15 +52,15 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
-	GetSlot() (primitives.Slot, error)
+	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
+	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() ([]*primitives.Validator, error)
-	GetTotalSlashing() (primitives.Gwei, error)
+	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
+	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 }
 
@@ -69,14 +70,14 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
-	SetSlot(primitives.Slot) error
+	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
-	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
+	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
+	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
+	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
+	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -106,7 +107,7 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
-		primitives.ValidatorIndex,
+		math.ValidatorIndex,
 		*primitives.Validator,
 	) error
 
@@ -117,10 +118,10 @@ type WriteOnlyValidators interface {
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
 		primitives.BLSPubkey,
-	) (primitives.ValidatorIndex, error)
+	) (math.ValidatorIndex, error)
 
 	ValidatorByIndex(
-		primitives.ValidatorIndex,
+		math.ValidatorIndex,
 	) (*primitives.Validator, error)
 }
 

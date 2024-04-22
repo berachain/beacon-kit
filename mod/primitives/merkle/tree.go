@@ -29,10 +29,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/merkle/zero"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -55,7 +56,7 @@ func NewTreeFromLeaves[LeafT, RootT ~[32]byte](
 ) (*Tree[LeafT, RootT], error) {
 	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
-		primitives.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
+		math.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -67,7 +68,7 @@ func NewTreeWithMaxLeaves[LeafT, RootT ~[32]byte](
 ) (*Tree[LeafT, RootT], error) {
 	return NewTreeFromLeavesWithDepth[LeafT, RootT](
 		leaves,
-		primitives.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
+		math.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
@@ -128,7 +129,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 			neighbor = m.branches[i][neighborIdx]
 		}
 
-		//nolint:gomnd // 2 is allowed.
+		//nolint:mnd // 2 is allowed.
 		if isLeft := currentIndex%2 == 0; isLeft {
 			copy(input[0:32], root[:])
 			copy(input[32:64], neighbor[:])
@@ -138,7 +139,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 		}
 		root = sha256.Sum256(input[:])
 
-		//nolint:gomnd // 2 is allowed.
+		//nolint:mnd // 2 is allowed.
 		parentIdx := currentIndex / 2
 		if len(m.branches[i+1]) == 0 || parentIdx >= len(m.branches[i+1]) {
 			m.branches[i+1] = append(m.branches[i+1], root)
@@ -201,4 +202,16 @@ func (m *Tree[LeafT, RootT]) MerkleProofWithMixin(
 	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.leaves)))
 	return append(proof, mixin), nil
+}
+
+// MixinLength takes a root element and mixes in the length of the elements
+// that were hashed to produce it.
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	chunks := make([][32]byte, two)
+	chunks[0] = element
+	binary.LittleEndian.PutUint64(chunks[1][:], length)
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
+		return [32]byte{}
+	}
+	return chunks[0]
 }

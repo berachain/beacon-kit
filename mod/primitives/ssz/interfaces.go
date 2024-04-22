@@ -23,48 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacondb
+package ssz
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
-)
-
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetGenesisValidatorsRoot(
-	root primitives.Root,
-) error {
-	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
+// Marshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type Marshallable interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
 }
 
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return kv.genesisValidatorsRoot.Get(kv.ctx)
+// Hashable is an interface representing objects that implement HashTreeRoot().
+type Hashable[SpecT any, Root ~[32]byte] interface {
+	HashTreeRoot(...SpecT) (Root, error)
+	TreeHashRoot() Root
 }
 
-// GetSlot returns the current slot.
-func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetSlot() (math.Slot, error) {
-	slot, err := kv.slot.Get(kv.ctx)
-	return math.Slot(slot), err
+// U64 is an interface for uint64 types that support
+// NextPowerOfTwo and ILog2Ceil.
+type U64[T ~uint64] interface {
+	~uint64
+	NextPowerOfTwo() T
+	ILog2Ceil() uint8
 }
 
-// SetSlot sets the current slot.
-func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetSlot(
-	slot math.Slot,
-) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+// U256LT represents a 256-bit unsigned integer in
+// little-endian byte order.
+type U256LT interface {
+	~[32]byte
 }

@@ -80,7 +80,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	merkleRoot := leaf
 	var hashInput [64]byte
 	for i := range depth {
-		//nolint:gomnd // from spec.
+		//nolint:mnd // from spec.
 		ithBit := (index >> i) & 0x01
 		if ithBit == 1 {
 			copy(hashInput[:32], branch[i][:])

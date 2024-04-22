@@ -23,37 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package ckzg
+package zero
 
-import (
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+import sha256 "github.com/minio/sha256-simd"
 
-// Verifier is a verifier that utilizies the CKZG library.
-type Verifier struct{}
+// NumZeroHashes is the number of pre-computed zero-hashes.
+const NumZeroHashes = 64
 
-// NewVerifier creates a new CKZG verifier.
+// Hashes is a pre-computed list of zero-hashes for each depth level.
 //
-//nolint:mnd // lots of random numbers because cryptography.
-func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
-	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
-		return nil, err
+//nolint:gochecknoglobals // saves recomputing.
+var Hashes [NumZeroHashes + 1][32]byte
+
+// initialize the zero-hashes pre-computed data with the given hash-function.
+func InitZeroHashes(zeroHashesLevels int) {
+	for i := range zeroHashesLevels {
+		v := [64]byte{}
+		copy(v[:32], Hashes[i][:])
+		copy(v[32:], Hashes[i][:])
+		Hashes[i+1] = sha256.Sum256(v[:])
 	}
-	g1s := make(
-		[]byte,
-		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
-	)
-	for i, g1 := range ts.SetupG1Lagrange {
-		copy(g1s[i*(len(g1)-2)/2:], hexutil.MustDecode(g1))
-	}
-	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
-	for i, g2 := range ts.SetupG2 {
-		copy(g2s[i*(len(g2)-2)/2:], hexutil.MustDecode(g2))
-	}
-	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
-		return nil, err
-	}
-	return &Verifier{}, nil
+}
+
+//nolint:init // saves recomputing.
+func init() {
+	InitZeroHashes(NumZeroHashes)
 }

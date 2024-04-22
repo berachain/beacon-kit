@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -67,7 +68,7 @@ func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
-	forSlot primitives.Slot,
+	forSlot math.Slot,
 	parentBlockRoot primitives.Root,
 ) error {
 	_, err := s.lb.BuildLocalPayload(

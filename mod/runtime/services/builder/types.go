@@ -33,6 +33,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // BlobFactory is the interface for building blobs.
@@ -68,7 +69,7 @@ type PayloadBuilder interface {
 	GetBestPayload(
 		ctx context.Context,
 		st state.BeaconState,
-		slot primitives.Slot,
+		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
 	) (engineprimitives.ExecutionPayload,

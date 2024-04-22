@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )

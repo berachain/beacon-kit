@@ -4,6 +4,7 @@
 package primitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -43,7 +44,7 @@ func (d *DepositMessage) UnmarshalSSZ(buf []byte) error {
 	copy(d.Credentials[:], buf[48:80])
 
 	// Field (2) 'Amount'
-	d.Amount = Gwei(ssz.UnmarshallUint64(buf[80:88]))
+	d.Amount = math.Gwei(ssz.UnmarshallUint64(buf[80:88]))
 
 	return err
 }

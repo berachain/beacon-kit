@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +43,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
-		slot := primitives.Slot(s)
+		slot := math.Slot(s)
 		pid := engineprimitives.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
@@ -77,7 +77,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
-		slot := primitives.Slot(s)
+		slot := math.Slot(s)
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
 			t.Skip(
@@ -101,7 +101,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		cacheUnderTest := cache.NewPayloadIDCache()
-		slot := primitives.Slot(s)
+		slot := math.Slot(s)
 		var wg sync.WaitGroup
 		wg.Add(2)
 

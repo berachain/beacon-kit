@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,9 +39,9 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		name                      string
 		pubkey                    primitives.BLSPubkey
 		withdrawalCredentials     primitives.WithdrawalCredentials
-		amount                    primitives.Gwei
-		effectiveBalanceIncrement primitives.Gwei
-		maxEffectiveBalance       primitives.Gwei
+		amount                    math.Gwei
+		effectiveBalanceIncrement math.Gwei
+		maxEffectiveBalance       math.Gwei
 		want                      *primitives.Validator
 	}{
 		{
@@ -61,16 +62,16 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
-				ActivationEligibilityEpoch: primitives.Epoch(
+				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ActivationEpoch: primitives.Epoch(
+				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ExitEpoch: primitives.Epoch(
+				ExitEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				WithdrawableEpoch: primitives.Epoch(
+				WithdrawableEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 			},
@@ -93,16 +94,16 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
-				ActivationEligibilityEpoch: primitives.Epoch(
+				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ActivationEpoch: primitives.Epoch(
+				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ExitEpoch: primitives.Epoch(
+				ExitEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				WithdrawableEpoch: primitives.Epoch(
+				WithdrawableEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 			},
@@ -125,16 +126,16 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
-				ActivationEligibilityEpoch: primitives.Epoch(
+				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ActivationEpoch: primitives.Epoch(
+				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				ExitEpoch: primitives.Epoch(
+				ExitEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
-				WithdrawableEpoch: primitives.Epoch(
+				WithdrawableEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 			},
@@ -157,7 +158,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 func TestValidator_IsActive(t *testing.T) {
 	tests := []struct {
 		name      string
-		epoch     primitives.Epoch
+		epoch     math.Epoch
 		validator *primitives.Validator
 		want      bool
 	}{
@@ -199,7 +200,7 @@ func TestValidator_IsActive(t *testing.T) {
 func TestValidator_IsEligibleForActivation(t *testing.T) {
 	tests := []struct {
 		name           string
-		finalizedEpoch primitives.Epoch
+		finalizedEpoch math.Epoch
 		validator      *primitives.Validator
 		want           bool
 	}{
@@ -208,7 +209,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 10,
 			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch: primitives.Epoch(
+				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 			},
@@ -219,7 +220,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 4,
 			validator: &primitives.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch: primitives.Epoch(
+				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 			},
@@ -247,7 +248,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 }
 
 func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
-	maxEffectiveBalance := primitives.Gwei(32e9)
+	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
 		validator *primitives.Validator
@@ -256,7 +257,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "eligible",
 			validator: &primitives.Validator{
-				ActivationEligibilityEpoch: primitives.Epoch(
+				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 				EffectiveBalance: maxEffectiveBalance,
@@ -274,7 +275,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "not eligible, effective balance too low",
 			validator: &primitives.Validator{
-				ActivationEligibilityEpoch: primitives.Epoch(
+				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
 				EffectiveBalance: maxEffectiveBalance - 1,
@@ -296,7 +297,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 func TestValidator_IsSlashable(t *testing.T) {
 	tests := []struct {
 		name      string
-		epoch     primitives.Epoch
+		epoch     math.Epoch
 		validator *primitives.Validator
 		want      bool
 	}{
@@ -351,8 +352,8 @@ func TestValidator_IsSlashable(t *testing.T) {
 func TestValidator_IsFullyWithdrawable(t *testing.T) {
 	tests := []struct {
 		name      string
-		balance   primitives.Gwei
-		epoch     primitives.Epoch
+		balance   math.Gwei
+		epoch     math.Epoch
 		validator *primitives.Validator
 		want      bool
 	}{
@@ -419,10 +420,10 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 }
 
 func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
-	maxEffectiveBalance := primitives.Gwei(32e9)
+	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
-		balance   primitives.Gwei
+		balance   math.Gwei
 		validator *primitives.Validator
 		want      bool
 	}{
@@ -526,7 +527,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 }
 
 func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
-	maxEffectiveBalance := primitives.Gwei(32e9)
+	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
 		validator *primitives.Validator
