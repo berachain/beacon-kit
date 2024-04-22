@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
-	sha256 "github.com/minio/sha256-simd"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -363,28 +362,6 @@ func (sp *StateProcessor) processDeposit(
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
 	return sp.createValidator(st, dep)
-}
-
-// isValidMerkleBranch as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
-//
-//nolint:lll,unused // will be used later
-func (sp *StateProcessor) isValidMerkleBranch(
-	leaf primitives.Bytes32,
-	branch []primitives.Bytes32,
-	depth uint64,
-	index uint64,
-	root primitives.Root,
-) bool {
-	value := leaf
-	for i := range depth {
-		if (index>>uint(i))%2 == 1 {
-			value = sha256.Sum256(append(branch[i][:], value[:]...))
-		} else {
-			value = sha256.Sum256(append(value[:], branch[i][:]...))
-		}
-	}
-	return value == root
 }
 
 // createValidator creates a validator if the deposit is valid.
