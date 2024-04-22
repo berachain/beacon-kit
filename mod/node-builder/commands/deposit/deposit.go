@@ -157,7 +157,7 @@ func convertWithdrawalCredentials(credentials string) (
 // convertAmount converts a string to a deposit amount.
 //
 //nolint:mnd // lots of magic numbers
-func ConvertAmount(amount string) (math.Gwei, error) {
+func convertAmount(amount string) (math.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
 	if !ok {
