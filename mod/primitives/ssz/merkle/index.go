@@ -28,6 +28,7 @@ package merkle
 import (
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -116,13 +117,11 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 	leaf primitives.Bytes32,
 	proof [][32]byte,
 ) (primitives.Root, error) {
-	// TODO: Re-enable this check once we move the proof generation to the
-	// proper 1 index'd tree.
-	// if uint64(len(proof)) != g.Length() {
-	// 	return primitives.Root{},
-	// 		fmt.Errorf("expected proof length %d, received %d", g.Length(),
-	// len(proof))
-	// }
+	if uint64(len(proof)) != g.Length() {
+		return primitives.Root{},
+			fmt.Errorf("expected proof length %d, received %d", g.Length(),
+				len(proof))
+	}
 	for i, h := range proof {
 		if g.IndexBit(i) {
 			leaf = sha256.Sum256(append(h[:], leaf[:]...))
@@ -225,10 +224,11 @@ func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
 	})
 
 	pos := 0
+	var sibling RootT
 	for pos < len(keys) {
 		k := keys[pos]
 		if _, ok := objects[k]; ok {
-			if sibling, ok := objects[k^1]; ok {
+			if sibling, ok = objects[k^1]; ok {
 				if _, ok = objects[k/2]; !ok {
 					obj := objects[(k|1)^1]
 					objects[k/2] = sha256.Sum256(append(obj[:], sibling[:]...))
@@ -246,7 +246,6 @@ func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
 func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 	leaves []RootT,
 	proof []RootT,
-	indices []GeneralizedIndex[RootT],
 	root RootT,
 ) bool {
 	calculatedRoot, err := gs.CalculateMultiMerkleRoot(leaves, proof)
