@@ -113,7 +113,7 @@ func (g GeneralizedIndex) CalculateMerkleRoot(
 	leaf primitives.Bytes32,
 	proof []primitives.Bytes32,
 ) primitives.Root {
-	if len(proof) != int(g.Length()) {
+	if uint64(len(proof)) != g.Length() {
 		panic("proof length does not match index length")
 	}
 	for i, h := range proof {
