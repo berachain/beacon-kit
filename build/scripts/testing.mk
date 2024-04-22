@@ -130,24 +130,22 @@ start-ethereumjs:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	ethereumjs:nidhi \
+	ethpandaops/ethereumjs:master \
 	--gethGenesis /.tmp/beacond/eth-genesis.json \
 	--rpcEngine \
 	--rpc \
 	--rpcEngineAddr 0.0.0.0 \
 	--rpcEnginePort 8551 \
-	--jwtSecret ../../$(JWT_PATH) \
+	--jwtSecret ../../$(JWT_PATH)
 	--logLevel debug \
 	--rpcDebugVerbose \
-	--rpcCors * 
+	# --rpcCors '*' 
 
-# --startExecution \
-# --startExecutionFrom 0
 
 
 # --gethGenesis /usr/app/.tmp/beacond/eth-genesis.json \
 #--dataDir .tmp/ethereumjs \
-	ethpandaops/ethereumjs:master-46d09ca \
+	 \
 # start-ethereumjs:
 # 	rm -rf .tmp/ethereumjs
 # 	docker run \
@@ -171,9 +169,9 @@ start-ethereumjs:
 # 	--init /usr/app/.tmp/beacond/eth-genesis.json \
 # 	--networkId 80087
 
-	# -v $(PWD)/${ETH_GENESIS_PATH}:/.tmp/${ETH_GENESIS_PATH} \
-	# --gethGenesis .tmp/${ETH_GENESIS_PATH} \
-	
+# -v $(PWD)/${ETH_GENESIS_PATH}:/.tmp/${ETH_GENESIS_PATH} \
+# --gethGenesis .tmp/${ETH_GENESIS_PATH} \
+
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
