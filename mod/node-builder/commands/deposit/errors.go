@@ -59,7 +59,8 @@ var (
 		"invalid root length",
 	)
 
-	// ErrDepositTransactionFailed is returned when the deposit transaction fails.
+	// ErrDepositTransactionFailed is returned when the deposit transaction
+	// fails.
 	ErrDepositTransactionFailed = errors.New(
 		"deposit transaction failed",
 	)

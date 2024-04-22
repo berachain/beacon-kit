@@ -53,7 +53,7 @@ func CreateAndSignDepositMessage(
 	domainType DomainType,
 	signer BLSSigner,
 	credentials WithdrawalCredentials,
-	amount Gwei,
+	amount math.Gwei,
 ) (*DepositMessage, BLSSignature, error) {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {

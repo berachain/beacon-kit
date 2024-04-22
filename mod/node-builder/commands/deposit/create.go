@@ -1,13 +1,37 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package deposit
 
 import (
-	"encoding/hex"
+	"crypto/ecdsa"
 	"fmt"
 	"os"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
@@ -24,7 +48,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	gethclient "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -57,12 +80,14 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string) error {
+func createValidatorCmd(
+	clientCtx client.Context,
+) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
-			blsSigner      *signer.BLSSigner
-			jwtSecret      *jwt.Secret
-			fundingPrivKey string
+			blsSigner *signer.BLSSigner
+			jwtSecret *jwt.Secret
+			privKey   *ecdsa.PrivateKey
 
 			logger = log.NewLogger(os.Stdout)
 		)
@@ -74,12 +99,18 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 
 		// If the broadcast flag is set, a private key must be provided.
 		if broadcastFlag {
+			var fundingPrivKey string
 			fundingPrivKey, err = cmd.Flags().GetString(privateKey)
 			if err != nil {
 				return err
 			}
 			if fundingPrivKey == "" {
 				return ErrPrivateKeyRequired
+			}
+
+			privKey, err = crypto.HexToECDSA(fundingPrivKey)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -88,7 +119,7 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		amount, err := convertAmount(args[1])
+		amount, err := convertAmountFromWei(args[1])
 		if err != nil {
 			return err
 		}
@@ -119,12 +150,8 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			panic(err)
 		}
 
-		// credentials = primitives.NewCredentialsFromExecutionAddress(
-		// 	crypto.PubkeyToAddress(blsSigner.PublicKey()),
-		// )
-
 		// Create and sign the deposit message.
-		depositMessage, signature, err := primitives.CreateAndSignDepositMessage(
+		depositMsg, signature, err := primitives.CreateAndSignDepositMessage(
 			primitives.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,
@@ -136,7 +163,7 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		}
 
 		// Verify the deposit message.
-		if err := depositMessage.VerifyCreateValidator(
+		if err := depositMsg.VerifyCreateValidator(
 			primitives.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			blst.VerifySignaturePubkeyBytes,
@@ -147,12 +174,12 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 
 		// If the broadcast flag is not set, output the deposit message and
 		// signature and return early.
+		logger.Info(
+			"Deposit message created",
+			"\nmessage", depositMsg,
+			"\nsignature", signature,
+		)
 		if !broadcastFlag {
-			logger.Info(
-				"Deposit message created",
-				"\nmessage", depositMessage,
-				"\nsignature", signature,
-			)
 			return nil
 		}
 
@@ -174,6 +201,9 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		if err != nil {
 			panic(err)
 		}
+
+		// viper.GetViper().SetConfigFile(".tmp/beacond/config/app.toml")
+		// fmt.Println("viper config file", viper.GetViper().ConfigFileUsed())
 
 		cfg := config.MustReadConfigFromAppOpts(viper.GetViper())
 		fmt.Println("CONFIG DUMP", cfg)
@@ -206,22 +236,10 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		privKey, err := crypto.HexToECDSA(fundingPrivKey)
-		if err != nil {
-			return err
-		}
-
 		chainID, err := engineClient.ChainID(cmd.Context())
 		if err != nil {
 			return err
 		}
-
-		fmt.Println("CALL DATA",
-			hex.EncodeToString(depositMessage.Pubkey[:]),
-			hex.EncodeToString(depositMessage.Credentials[:]),
-			depositMessage.Amount.Unwrap(),
-			hex.EncodeToString(signature[:]),
-		)
 
 		// Send the deposit to the deposit contract.
 		tx, err := depositContract.Deposit(
@@ -235,11 +253,11 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 						privKey,
 					)
 				},
-				GasLimit: 20000000,
+				Value: depositMsg.Amount.ToWei(),
 			},
-			depositMessage.Pubkey[:],
-			depositMessage.Credentials[:],
-			depositMessage.Amount.Unwrap(),
+			depositMsg.Pubkey[:],
+			depositMsg.Credentials[:],
+			0,
 			signature[:],
 		)
 		if err != nil {
@@ -255,6 +273,11 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		if receipt.Status != 1 {
 			return ErrDepositTransactionFailed
 		}
+
+		logger.Info(
+			"Deposit transaction successful",
+			"txHash", receipt.TxHash.Hex(),
+		)
 
 		return nil
 	}
