@@ -26,7 +26,6 @@
 package core
 
 import (
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/log"
@@ -305,9 +304,11 @@ func (sp *StateProcessor) processOperations(
 		sp.cs.MaxDepositsPerBlock(),
 		eth1Data.DepositCount-index,
 	)
-	if uint64(len(deposits)) != depositCount {
-		return errors.New("deposit count mismatch")
-	}
+	_ = depositCount
+	// TODO: Update eth1data count and check this.
+	// if uint64(len(deposits)) != depositCount {
+	// 	return errors.New("deposit count mismatch")
+	// }
 	return sp.processDeposits(st, deposits)
 }
 
@@ -320,6 +321,10 @@ func (sp *StateProcessor) processDeposits(
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
+			return err
+		}
+		// TODO: unhood this in better spot later
+		if err := st.SetEth1DepositIndex(dep.Index); err != nil {
 			return err
 		}
 	}

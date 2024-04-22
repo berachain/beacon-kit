@@ -79,12 +79,12 @@ func (s *Service) processDepositLog(
 	)
 
 	//nolint:contextcheck // not needed
-	return s.ds.EnqueueDeposits(
-		[]*primitives.Deposit{primitives.NewDeposit(
+	return s.ds.EnqueueDeposit(
+		primitives.NewDeposit(
 			primitives.BLSPubkey(d.Pubkey),
 			primitives.WithdrawalCredentials(d.Credentials),
 			math.Gwei(d.Amount),
 			primitives.BLSSignature(d.Signature),
 			d.Index,
-		)})
+		))
 }

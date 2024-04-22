@@ -27,6 +27,7 @@ package deposit
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -41,8 +42,8 @@ type Queue struct {
 	container sdkcollections.Map[uint64, *primitives.Deposit]
 	// headSeq is a sequence that points to the head of the queue.
 	headSeq sdkcollections.Sequence // inclusive
-	// tailSeq is a sequence that points to the tail of the queue.
-	tailSeq sdkcollections.Sequence // exclusive
+	// length is an item that holds the length of the queue.
+	length sdkcollections.Item[uint64]
 	// mu is a mutex that protects the queue.
 	mu sync.RWMutex
 }
@@ -55,7 +56,7 @@ func NewQueue(
 	var (
 		queueName   = name + "_queue"
 		headSeqName = name + "_head"
-		tailSeqName = name + "_tail"
+		lengthName  = name + "_length"
 	)
 	return &Queue{
 		container: sdkcollections.NewMap(
@@ -65,8 +66,12 @@ func NewQueue(
 		),
 		headSeq: sdkcollections.NewSequence(
 			schema, sdkcollections.NewPrefix(headSeqName), headSeqName),
-		tailSeq: sdkcollections.NewSequence(
-			schema, sdkcollections.NewPrefix(tailSeqName), tailSeqName),
+		length: sdkcollections.NewItem(
+			schema,
+			sdkcollections.NewPrefix(lengthName),
+			lengthName,
+			sdkcollections.Uint64Value,
+		),
 	}
 }
 
@@ -75,8 +80,8 @@ func (q *Queue) Init(ctx context.Context) error {
 		return err
 	}
 
-	// The tail sequence should be set to the head sequence.
-	return q.tailSeq.Set(ctx, 0)
+	// The length starts at 0.
+	return q.length.Set(ctx, 0)
 }
 
 // Peek wraps the peek method with a read lock.
@@ -92,16 +97,15 @@ func (q *Queue) UnsafePeek(
 	ctx context.Context,
 ) (*primitives.Deposit, error) {
 	var (
-		v                *primitives.Deposit
-		headIdx, tailIdx uint64
-		err              error
+		v       *primitives.Deposit
+		headIdx uint64
+		length  uint64
+		err     error
 	)
 	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
 		return v, err
-	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
+	} else if length, err = q.len(ctx); err != nil || length == 0 {
 		return v, err
-	} else if headIdx >= tailIdx {
-		return v, sdkcollections.ErrNotFound
 	}
 	return q.container.Get(ctx, headIdx)
 }
@@ -123,6 +127,17 @@ func (q *Queue) Pop(ctx context.Context) (*primitives.Deposit, error) {
 		return v, err
 	}
 	err = q.container.Remove(ctx, headIdx)
+	if err != nil {
+		return nil, err
+	}
+	length, err := q.len(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = q.length.Set(ctx, length-1)
+	if err != nil {
+		return nil, err
+	}
 	return v, err
 }
 
@@ -135,16 +150,15 @@ func (q *Queue) PeekMulti(
 	defer q.mu.RUnlock()
 
 	var err error
-
 	headIdx, err := q.headSeq.Peek(ctx)
 	if err != nil {
 		return nil, err
 	}
-	tailIdx, err := q.tailSeq.Peek(ctx)
+	length, err := q.len(ctx)
 	if err != nil {
 		return nil, err
 	}
-	endIdx := min(tailIdx, headIdx+n)
+	endIdx := min(headIdx+length, headIdx+n)
 	ranger := new(sdkcollections.Range[uint64]).
 		StartInclusive(headIdx).EndExclusive(endIdx)
 	iter, err := q.container.Iterate(ctx, ranger)
@@ -178,11 +192,11 @@ func (q *Queue) PopMulti(
 	if err != nil {
 		return nil, err
 	}
-	tailIdx, err := q.tailSeq.Peek(ctx)
+	length, err := q.len(ctx)
 	if err != nil {
 		return nil, err
 	}
-	endIdx := min(tailIdx, headIdx+n)
+	endIdx := min(headIdx+length, headIdx+n)
 	ranger := new(sdkcollections.Range[uint64]).
 		StartInclusive(headIdx).EndExclusive(endIdx)
 	iter, err := q.container.Iterate(ctx, ranger)
@@ -205,6 +219,10 @@ func (q *Queue) PopMulti(
 	if err != nil {
 		return nil, err
 	}
+	err = q.length.Set(ctx, length-n)
+	if err != nil {
+		return nil, err
+	}
 	return values, nil
 }
 
@@ -218,7 +236,11 @@ func (q *Queue) Push(
 	if err := q.container.Set(ctx, value.Index, value); err != nil {
 		return err
 	}
-	return q.tailSeq.Set(ctx, value.Index)
+	length, err := q.len(ctx)
+	if err != nil {
+		return err
+	}
+	return q.length.Set(ctx, length+1)
 }
 
 // PushMulti adds multiple new elements to the queue.
@@ -231,34 +253,38 @@ func (q *Queue) PushMulti(
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	var idx uint64
 
 	for _, value := range values {
 		if err := q.container.Set(ctx, value.Index, value); err != nil {
 			return err
 		}
-		idx = value.Index
 	}
+	length, err := q.len(ctx)
+	if err != nil {
+		return err
+	}
+	return q.length.Set(ctx, length+uint64(len(values)))
+}
 
-	return q.tailSeq.Set(ctx, idx)
+// Len returns the length of the queue. len assumes that the lock is already
+// held.
+func (q *Queue) len(ctx context.Context) (uint64, error) {
+	length, err := q.length.Get(ctx)
+	if errors.Is(err, sdkcollections.ErrNotFound) {
+		return 0, nil
+	}
+	return length, err
 }
 
 // Len returns the length of the queue.
 func (q *Queue) Len(ctx context.Context) (uint64, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
-
-	var (
-		headIdx, tailIdx uint64
-		err              error
-	)
-
-	if headIdx, err = q.headSeq.Peek(ctx); err != nil {
-		return 0, err
-	} else if tailIdx, err = q.tailSeq.Peek(ctx); err != nil {
-		return 0, err
+	length, err := q.length.Get(ctx)
+	if errors.Is(err, sdkcollections.ErrNotFound) {
+		return 0, nil
 	}
-	return tailIdx - headIdx, nil
+	return length, err
 }
 
 // Container returns the underlying map container of the queue.

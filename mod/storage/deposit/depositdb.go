@@ -92,11 +92,9 @@ func (kv *KVStore) ExpectedDeposits(
 	return kv.depositQueue.PeekMulti(context.TODO(), numView)
 }
 
-// EnqueueDeposits pushes the deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(
-	deposits []*primitives.Deposit,
-) error {
-	return kv.depositQueue.PushMulti(context.TODO(), deposits)
+// EnqueueDeposit pushes the deposit to the queue.
+func (kv *KVStore) EnqueueDeposit(deposit *primitives.Deposit) error {
+	return kv.depositQueue.Push(context.TODO(), deposit)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
@@ -122,7 +120,7 @@ func (kv *KVStore) PruneToIndex(
 		return err
 	}
 
-	numPop := min(index-head.Index, length)
+	numPop := min(index-head.Index+1, length)
 	_, err = kv.depositQueue.PopMulti(context.TODO(), numPop)
 	return err
 }
