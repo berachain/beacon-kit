@@ -115,7 +115,7 @@ func (g GeneralizedIndex[RootT]) GetPathIndices() GeneralizedIndicies[RootT] {
 // CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
 func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 	leaf primitives.Bytes32,
-	proof [][32]byte,
+	proof []RootT,
 ) (primitives.Root, error) {
 	if uint64(len(proof)) != g.Length() {
 		return primitives.Root{},
@@ -136,7 +136,7 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 // leaf, proof, and root.
 func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 	leaf primitives.Bytes32,
-	proof [][32]byte, // .Bytes32,
+	proof []RootT, // .Bytes32,
 	root primitives.Root,
 ) (bool, error) {
 	calculated, err := g.CalculateMerkleRoot(leaf, proof)
