@@ -122,6 +122,21 @@ start-erigon: ## start an ephemeral `erigon` node
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon
 
+start-ethereumjs:
+	rm -rf .tmp/ethereumjs
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	ethpandaops/ethereumjs:stable \
+	--gethGenesis ../../${ETH_GENESIS_PATH} \
+	--rpcEngine \
+	--jwtSecret ../../$(JWT_PATH) \
+	--rpcEngineAddr 0.0.0.0 \
+	--dataDir .tmp/ethereumjs
+
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
