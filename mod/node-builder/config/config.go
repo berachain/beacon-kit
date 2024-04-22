@@ -80,6 +80,15 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 	return cfg
 }
 
+// MustReadConfigFromFile reads the configuration from the given file path.
+func MustReadConfigFromFile(path string) *Config {
+	cfg, err := ReadConfigFromFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
@@ -87,6 +96,24 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid application options type: %T", opts)
 	}
+
+	return unmarshalConfigFromViper(v)
+}
+
+// ReadConfigFromFile reads the configuration from the given file path.
+func ReadConfigFromFile(path string) (*Config, error) {
+	v := viper.New()
+	v.SetConfigFile(path)
+	v.SetConfigType("toml") // TODO: modularize? remove this hard coded value
+
+	if err := v.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	return unmarshalConfigFromViper(v)
+}
+
+func unmarshalConfigFromViper(v *viper.Viper) (*Config, error) {
 	type cfgUnmarshaller struct {
 		BeaconKit Config `mapstructure:"beacon-kit"`
 	}
@@ -99,7 +126,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			viperlib.StringToDialURLFunc(),
 		))); err != nil {
 		return nil, fmt.Errorf(
-			"failed to read beacon-kit configuration: %w",
+			"failed to decode beacon-kit configuration: %w",
 			err,
 		)
 	}

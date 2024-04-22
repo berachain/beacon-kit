@@ -29,6 +29,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -41,7 +42,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -55,7 +55,7 @@ import (
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:gomnd // lots of magic numbers
-func NewCreateValidator(clientCtx client.Context) *cobra.Command {
+func NewCreateValidator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -66,7 +66,7 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 		If the broadcast flag is set to true, a private key must be provided to
 		sign the transaction.`,
 		Args: cobra.ExactArgs(4),
-		RunE: createValidatorCmd(clientCtx),
+		RunE: createValidatorCmd(),
 	}
 
 	cmd.Flags().BoolP(
@@ -80,9 +80,7 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func createValidatorCmd(
-	clientCtx client.Context,
-) func(*cobra.Command, []string) error {
+func createValidatorCmd() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
 			blsSigner *signer.BLSSigner
@@ -202,13 +200,17 @@ func createValidatorCmd(
 			panic(err)
 		}
 
-		// viper.GetViper().SetConfigFile(".tmp/beacond/config/app.toml")
-		// fmt.Println("viper config file", viper.GetViper().ConfigFileUsed())
+		homeDir, err := cmd.Flags().GetString("home")
+		if err != nil {
+			return err
+		}
+		configPath := filepath.Join(homeDir, "config", "config.toml")
 
-		cfg := config.MustReadConfigFromAppOpts(viper.GetViper())
+		cfg := config.MustReadConfigFromFile(configPath)
 		fmt.Println("CONFIG DUMP", cfg)
 
 		cfg = config.DefaultConfig()
+		fmt.Println("DEFAULT CONFIG DUMP", cfg)
 
 		ethClient, err := gethclient.Dial(cfg.Engine.RPCDialURL.String())
 		if err != nil {
