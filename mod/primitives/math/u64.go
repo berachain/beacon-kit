@@ -180,6 +180,16 @@ func (u U64) ILog2Ceil() uint8 {
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u-1)))
 }
 
+// ILog2Floor returns the floor of the base 2 logarithm of the U64.
+func (u U64) ILog2Floor() uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u)))
+}
+
 // type U64Vector[U ~uint64] []U
 
 // func (v U64Vector[U]) HashTreeRoot() ([32]byte, error) {

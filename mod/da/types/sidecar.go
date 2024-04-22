@@ -85,9 +85,6 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	}
 
 	gIndex := kzgOffset + b.Index
-	// TODO:
-	// gindex = get_subtree_index(get_generalized_index(
-	// BeaconBlockBody, 'blob_kzg_commitments', blob_sidecar.index))
 
 	// Verify the inclusion proof.
 	return merkle.IsValidMerkleBranch(
@@ -96,7 +93,7 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		//#nosec:G701 // safe.
 		uint8(
 			len(b.InclusionProof),
-		), // TODO: KZG_COMMITMENT_INCLUSION_PROOF_DEPTH
+		), // TODO: mak
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)

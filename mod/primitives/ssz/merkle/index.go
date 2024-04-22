@@ -54,7 +54,7 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(math.U64(g).ILog2Ceil())
+	return uint64(math.U64(g).ILog2Floor())
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
