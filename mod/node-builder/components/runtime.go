@@ -42,6 +42,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
@@ -104,7 +105,9 @@ func ProvideRuntime(
 		payloadbuilder.WithChainSpec(chainSpec),
 		payloadbuilder.WithConfig(&cfg.Builder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
-		payloadbuilder.WithPayloadCache(cache.NewPayloadIDCache[[32]byte]()),
+		payloadbuilder.WithPayloadCache(
+			cache.NewPayloadIDCache[[32]byte, math.Slot](),
+		),
 	)
 
 	// Build the Blobs Verifier

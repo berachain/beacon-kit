@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // Option is a functional option for the builder.
@@ -68,7 +69,7 @@ func WithExecutionEngine(ee ExecutionEngine) Option {
 
 // WithPayloadCache sets the payload cache.
 func WithPayloadCache(
-	pc *cache.PayloadIDCache[[32]byte],
+	pc *cache.PayloadIDCache[[32]byte, math.Slot],
 ) Option {
 	return func(s *Service) error {
 		s.pc = pc

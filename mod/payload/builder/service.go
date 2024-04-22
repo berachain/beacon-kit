@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread
@@ -38,7 +39,7 @@ type Service struct {
 	chainSpec primitives.ChainSpec
 	logger    log.Logger
 	ee        ExecutionEngine
-	pc        *cache.PayloadIDCache[[32]byte]
+	pc        *cache.PayloadIDCache[[32]byte, math.Slot]
 }
 
 // NewService creates a new service.

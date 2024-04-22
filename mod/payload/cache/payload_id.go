@@ -29,7 +29,6 @@ import (
 	"sync"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // historicalPayloadIDCacheSize defines the maximum number of slots to retain
@@ -40,22 +39,21 @@ const historicalPayloadIDCacheSize = 2
 // PayloadIDCache provides a mechanism to store and retrieve payload IDs based
 // on slot and parent block hash. It is designed to improve the efficiency of
 // payload ID retrieval by caching recent entries.
-type PayloadIDCache[RootT ~[32]byte] struct {
+type PayloadIDCache[RootT ~[32]byte, SlotT ~uint64] struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
 
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
-
-	slotToStateRootToPayloadID map[math.Slot]map[RootT]engineprimitives.PayloadID
+	slotToStateRootToPayloadID map[SlotT]map[RootT]engineprimitives.PayloadID
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
 // It prepares the internal data structures for storing payload ID mappings.
-func NewPayloadIDCache[RootT ~[32]byte]() *PayloadIDCache[RootT] {
-	return &PayloadIDCache[RootT]{
+func NewPayloadIDCache[RootT ~[32]byte, SlotT ~uint64]() *PayloadIDCache[RootT, SlotT] {
+	return &PayloadIDCache[RootT, SlotT]{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[math.Slot]map[RootT]engineprimitives.PayloadID,
+			map[SlotT]map[RootT]engineprimitives.PayloadID,
 		),
 	}
 }
@@ -63,7 +61,7 @@ func NewPayloadIDCache[RootT ~[32]byte]() *PayloadIDCache[RootT] {
 // Get retrieves the payload ID associated with a given slot and eth1 hash.
 // It returns the found payload ID and a boolean indicating whether the lookup
 // was successful.
-func (p *PayloadIDCache[RootT]) Get(slot math.Slot, stateRoot RootT,
+func (p *PayloadIDCache[RootT, SlotT]) Get(slot SlotT, stateRoot RootT,
 ) (engineprimitives.PayloadID, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -81,8 +79,8 @@ func (p *PayloadIDCache[RootT]) Get(slot math.Slot, stateRoot RootT,
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
-func (p *PayloadIDCache[RootT]) Set(
-	slot math.Slot, stateRoot [32]byte, pid engineprimitives.PayloadID,
+func (p *PayloadIDCache[RootT, SlotT]) Set(
+	slot SlotT, stateRoot RootT, pid engineprimitives.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -103,7 +101,7 @@ func (p *PayloadIDCache[RootT]) Set(
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
 // the specified slot. Only used for testing.
-func (p *PayloadIDCache[RootT]) UnsafePrunePrior(slot math.Slot) {
+func (p *PayloadIDCache[RootT, SlotT]) UnsafePrunePrior(slot SlotT) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.prunePrior(slot)
@@ -112,7 +110,7 @@ func (p *PayloadIDCache[RootT]) UnsafePrunePrior(slot math.Slot) {
 // Prune removes payload IDs from the cache for slots less than the specified
 // slot. This method helps in managing the memory usage of the cache by
 // discarding outdated entries.
-func (p *PayloadIDCache[RootT]) prunePrior(slot math.Slot) {
+func (p *PayloadIDCache[RootT, SlotT]) prunePrior(slot SlotT) {
 	for s := range p.slotToStateRootToPayloadID {
 		if s < slot {
 			delete(p.slotToStateRootToPayloadID, s)
