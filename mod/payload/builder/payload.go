@@ -37,9 +37,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// BuildLocalPayload builds a payload for the given slot and
+// RequestPayload builds a payload for the given slot and
 // returns the payload ID.
-func (pb *PayloadBuilder) BuildLocalPayload(
+func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -105,11 +105,11 @@ func (pb *PayloadBuilder) BuildLocalPayload(
 	return payloadID, nil
 }
 
-// GetBestPayload attempts to pull a previously built payload
+// RetrieveBuiltPayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (pb *PayloadBuilder) GetBestPayload(
+func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
@@ -128,10 +128,10 @@ func (pb *PayloadBuilder) GetBestPayload(
 	// to
 	// retrieve it from our execution client, we can return it immediately.
 	payload, blobsBundle, overrideBuilder, err := pb.
-		requestBuiltPayloadFromExecutionClient(
+		retrieveBuiltPayload(
 			ctx,
-			parentBlockRoot,
 			slot,
+			parentBlockRoot,
 		)
 
 	// If there was no error we can simply return the payload that we
@@ -153,12 +153,12 @@ func (pb *PayloadBuilder) GetBestPayload(
 	)
 }
 
-// requestBuiltPayloadFromExecutionClient retrieves the payload and blobs
-// bundle.
-func (pb *PayloadBuilder) requestBuiltPayloadFromExecutionClient(
+// retrieveBuiltPayload retrieves the payload and blobs bundle
+// from the execution client.
+func (pb *PayloadBuilder) retrieveBuiltPayload(
 	ctx context.Context,
-	parentBlockRoot primitives.Root,
 	slot math.Slot,
+	parentBlockRoot primitives.Root,
 ) (engineprimitives.ExecutionPayload, engineprimitives.BlobsBundle, bool, error) {
 	// See if we have a payload ID for this slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
@@ -198,7 +198,7 @@ func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	engineprimitives.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
-	payloadID, err := pb.BuildLocalPayload(
+	payloadID, err := pb.RequestPayload(
 		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
@@ -222,50 +222,6 @@ func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	// Get the payload from the execution client.
 	return pb.getPayloadFromExecutionClient(
 		ctx, payloadID, slot)
-}
-
-// getPayloadAttributes returns the payload attributes for the given state and
-// slot. The attribute is required to initiate a payload build process in the
-// context of an `engine_forkchoiceUpdated` call.
-func (pb *PayloadBuilder) getPayloadAttribute(
-	st state.BeaconState,
-	slot math.Slot,
-	timestamp uint64,
-	prevHeadRoot [32]byte,
-) (engineprimitives.PayloadAttributer, error) {
-	var (
-		prevRandao [32]byte
-	)
-
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		pb.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, err
-	}
-
-	epoch := pb.chainSpec.SlotToEpoch(slot)
-
-	// Get the previous randao mix.
-	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
-		timestamp,
-		prevRandao,
-		pb.cfg.SuggestedFeeRecipient,
-		withdrawals,
-		prevHeadRoot,
-	)
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the

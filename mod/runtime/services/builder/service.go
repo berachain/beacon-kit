@@ -140,7 +140,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
+	payload, blobsBundle, overrideBuilder, err := s.localBuilder.RetrieveBuiltPayload(
 		ctx,
 		st,
 		slot,
