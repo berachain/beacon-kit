@@ -62,8 +62,6 @@ func (g GeneralizedIndex) Length() uint64 {
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
-//
-
 func (g GeneralizedIndex) IndexBit(position uint) bool {
 	return (g & (1 << position)) > 0
 }
