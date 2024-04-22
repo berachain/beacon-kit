@@ -44,6 +44,7 @@ func Tree[LeafT ~[32]byte](
 	   The result will be twice the size as the padded bottom layer for the input leaves.
 	*/
 	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
+	//nolint:mnd // 2 is okay.
 	o := make([]LeafT, bottomLength*2)
 	copy(o[bottomLength:], leaves)
 	for i := bottomLength - 1; i > 0; i-- {
