@@ -104,13 +104,15 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		req.ForkVersion,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		ee.logger.Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", req.State.HeadBlockHash,
 		)
 		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
@@ -164,13 +166,15 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		req.ParentBeaconBlockRoot,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
 		return false, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),

@@ -27,14 +27,17 @@ package abci
 
 import (
 	"context"
+	"errors"
 	"runtime/debug"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	abcitypes "github.com/berachain/beacon-kit/mod/runtime/abci/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,6 +67,7 @@ type BlockchainService interface {
 		beacontypes.ReadOnlyBeaconBlock,
 	) error
 	ChainSpec() primitives.ChainSpec
+	ValidatePayloadOnBlk(context.Context, beacontypes.ReadOnlyBeaconBlock) error
 }
 
 // Handler is a struct that encapsulates the necessary components to handle
@@ -188,9 +192,47 @@ func (h *Handler) PrepareProposalHandler(
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
-	_ sdk.Context, req *cmtabci.RequestProcessProposal,
+	ctx sdk.Context, req *cmtabci.RequestProcessProposal,
 ) (*cmtabci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
+	logger := ctx.Logger().With("module", "process-proposal")
+	// If the request is nil we can just accept the proposal and it'll slash the
+	// proposer.
+	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+		req,
+		h.cfg.BeaconBlockPosition,
+		h.chainService.ChainSpec().
+			ActiveForkVersionForSlot(math.Slot(req.Height)),
+	)
+	if err != nil {
+		logger.Error(
+			"failed to retrieve beacon block from request",
+			"error",
+			err,
+		)
+
+		return &cmtabci.ResponseProcessProposal{
+			Status: cmtabci.ResponseProcessProposal_ACCEPT,
+		}, nil
+	}
+
+	// If the block is syncing, we reject the proposal. This is guard against a
+	// potential attack under the unlikely scenario in which a supermajority of
+	// validators have their EL's syncing. If nodes were to accept this proposal
+	// optmistically when they are syncing, it could potentially allow for a
+	// malicious validator to push a bad block through.
+	//
+	// TODO: figure out a way to prevent newPayload from being called twiced as
+	// it will be called again
+	// in PreBlocker.
+	if err = h.chainService.ValidatePayloadOnBlk(ctx, blk); errors.Is(
+		err,
+		engineclient.ErrSyncingPayloadStatus,
+	) {
+		return &cmtabci.ResponseProcessProposal{
+			Status: cmtabci.ResponseProcessProposal_REJECT,
+		}, err
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
