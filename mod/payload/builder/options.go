@@ -23,29 +23,55 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-const (
-	prefix = "beaconkit.builder."
-
-	// MetricsPayloadIDCacheHit is used to count the number of times a built
-	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = prefix +
-		"payload-id-cache-hit"
-
-	// MetricGetPayloadMiss is used to count the number of times a built
-	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = prefix +
-		"payload-id-cache-miss"
-
-	// MetricErrorRetrievingPayload is used to count the number of times an
-	// error
-	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = prefix +
-		"get-payload-error"
-
-	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
-	// the local builder receives a nil payload.
-	MetricsLocalBuilderReceivedNilPayload = prefix +
-		"local-builder-received-nil-payload"
+import (
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// Option is a functional option for the builder.
+type Option = func(*Service) error
+
+// WithChainSpec sets the chain spec.
+func WithChainSpec(chainSpec primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.chainSpec = chainSpec
+		return nil
+	}
+}
+
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
+// WithExecutionEngine sets the execution engine.
+func WithExecutionEngine(ee ExecutionEngine) Option {
+	return func(s *Service) error {
+		s.ee = ee
+		return nil
+	}
+}
+
+// WithPayloadCache sets the payload cache.
+func WithPayloadCache(
+	pc *cache.PayloadIDCache[[32]byte],
+) Option {
+	return func(s *Service) error {
+		s.pc = pc
+		return nil
+	}
+}

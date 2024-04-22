@@ -23,19 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
-	"github.com/berachain/beacon-kit/mod/payload/cache"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+	// received on a VALID engine response.
+	ErrNilPayloadOnValidResponse = errors.New(
+		"received nil payload ID on VALID engine response",
+	)
+
+	// ErrNilPayloadID is returned when a nil payload ID is received.
+	ErrNilPayloadID = errors.New("received nil payload ID")
+
+	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
+	// cache.
+	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
+
+	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
+	// payloadID is not found on the execution client.
+	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
+		"cached payload ID could not be resolved on execution client",
+	)
+
+	// ErrLocalBuildingDisabled is returned when local building is disabled.
+	ErrLocalBuildingDisabled = errors.New("local building is disabled")
+
+	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
+	// received.
+	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
 )
-
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type Service struct {
-	service.BaseService
-	cfg *builder.Config
-	ee  ExecutionEngine
-	pc  *cache.PayloadIDCache[[32]byte]
-}

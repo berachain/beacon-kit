@@ -23,44 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+// TODO: Decouple from ABCI and have this validator run on a separate thread
+// have it configured itself and not be a service persay.
+type Service struct {
+	cfg       *Config
+	chainSpec primitives.ChainSpec
+	logger    log.Logger
+	ee        ExecutionEngine
+	pc        *cache.PayloadIDCache[[32]byte]
 }
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
+// NewService creates a new service.
+func NewService(opts ...Option) (*Service, error) {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			return nil, err
+		}
 	}
-}
-
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(
-	pc *cache.PayloadIDCache[[32]byte],
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
-		return nil
-	}
+	return s, nil
 }

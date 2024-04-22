@@ -23,34 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import "github.com/cockroachdb/errors"
+import (
+	"context"
 
-var (
-	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
-	// received on a VALID engine response.
-	ErrNilPayloadOnValidResponse = errors.New(
-		"received nil payload ID on VALID engine response",
-	)
-
-	// ErrNilPayloadID is returned when a nil payload ID is received.
-	ErrNilPayloadID = errors.New("received nil payload ID")
-
-	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
-	// cache.
-	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
-
-	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
-	// payloadID is not found on the execution client.
-	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload ID could not be resolved on execution client",
-	)
-
-	// ErrLocalBuildingDisabled is returned when local building is disabled.
-	ErrLocalBuildingDisabled = errors.New("local building is disabled")
-
-	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
-	// received.
-	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+	"github.com/berachain/beacon-kit/mod/execution"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *execution.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayload, error)
+
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *execution.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+}
