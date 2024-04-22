@@ -30,7 +30,10 @@ import (
 )
 
 type (
-	GeneralizedIndex    math.U64
+	// GeneralizedIndex is a generalized index.
+	GeneralizedIndex math.U64
+
+	// GeneralizedIndicies is a list of generalized indices.
 	GeneralizedIndicies []GeneralizedIndex
 )
 
