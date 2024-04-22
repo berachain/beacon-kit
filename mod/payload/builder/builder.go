@@ -23,44 +23,4 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
-
-import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/cache"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-)
-
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builderconfig.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(
-	pc *cache.PayloadIDCache[[32]byte],
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
-		return nil
-	}
-}
+package builder

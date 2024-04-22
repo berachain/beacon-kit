@@ -27,8 +27,8 @@ package localbuilder
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 )
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread
@@ -37,5 +37,5 @@ type Service struct {
 	service.BaseService
 	cfg *builderconfig.Config
 	ee  ExecutionEngine
-	pc  *cache.PayloadIDCache
+	pc  *cache.PayloadIDCache[[32]byte]
 }

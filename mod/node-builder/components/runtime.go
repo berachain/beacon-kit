@@ -39,12 +39,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	localbuilder "github.com/berachain/beacon-kit/mod/runtime/services/builder/local"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -103,7 +103,7 @@ func ProvideRuntime(
 		localbuilder.WithBaseService(baseService.ShallowCopy("local-builder")),
 		localbuilder.WithBuilderConfig(&cfg.Builder),
 		localbuilder.WithExecutionEngine(executionEngine),
-		localbuilder.WithPayloadCache(cache.NewPayloadIDCache()),
+		localbuilder.WithPayloadCache(cache.NewPayloadIDCache[[32]byte]()),
 	)
 
 	// Build the Blobs Verifier

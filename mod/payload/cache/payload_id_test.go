@@ -28,14 +28,14 @@ package cache_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPayloadIDCache(t *testing.T) {
-	cacheUnderTest := cache.NewPayloadIDCache()
+	cacheUnderTest := cache.NewPayloadIDCache[[32]byte]()
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
