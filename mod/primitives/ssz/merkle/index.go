@@ -54,26 +54,36 @@ func (g GeneralizedIndex) Length() uint64 {
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
+//
+
 func (g GeneralizedIndex) IndexBit(position uint) bool {
 	return (g & (1 << position)) > 0
 }
 
 // Sibling returns the sibling index of the current generalized index.
+//
+
 func (g GeneralizedIndex) Sibling() GeneralizedIndex {
 	return g ^ 1
 }
 
 // LeftChild returns the left child index of the current generalized index.
+//
+//nolint:mnd // from spec.
 func (g GeneralizedIndex) LeftChild() GeneralizedIndex {
 	return 2 * g
 }
 
 // RightChild returns the right child index of the current generalized index.
+//
+
 func (g GeneralizedIndex) RightChild() GeneralizedIndex {
 	return 2*g + 1
 }
 
 // Parent returns the parent index of the current generalized index.
+//
+//nolint:mnd // from spec.
 func (g GeneralizedIndex) Parent() GeneralizedIndex {
 	return g / 2
 }
