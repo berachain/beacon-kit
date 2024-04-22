@@ -23,29 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-const (
-	prefix = "beaconkit.builder."
+import (
+	"context"
 
-	// MetricsPayloadIDCacheHit is used to count the number of times a built
-	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = prefix +
-		"payload-id-cache-hit"
-
-	// MetricGetPayloadMiss is used to count the number of times a built
-	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = prefix +
-		"payload-id-cache-miss"
-
-	// MetricErrorRetrievingPayload is used to count the number of times an
-	// error
-	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = prefix +
-		"get-payload-error"
-
-	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
-	// the local builder receives a nil payload.
-	MetricsLocalBuilderReceivedNilPayload = prefix +
-		"local-builder-received-nil-payload"
+	"github.com/berachain/beacon-kit/mod/execution"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *execution.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayload, error)
+
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *execution.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+}

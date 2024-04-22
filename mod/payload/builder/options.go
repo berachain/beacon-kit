@@ -23,42 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
+// Option is a functional option for the builder.
+type Option = func(*PayloadBuilder) error
+
+// WithChainSpec sets the chain spec.
+func WithChainSpec(chainSpec primitives.ChainSpec) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.chainSpec = chainSpec
 		return nil
 	}
 }
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builderconfig.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.cfg = cfg
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.logger = logger
 		return nil
 	}
 }
 
 // WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
+func WithExecutionEngine(ee ExecutionEngine) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.ee = ee
 		return nil
 	}
 }
 
 // WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
+func WithPayloadCache(
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	],
+) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.pc = pc
 		return nil
 	}
 }

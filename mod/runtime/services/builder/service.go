@@ -33,15 +33,15 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
-	cfg *config.Config
+	cfg *builder.Config
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
@@ -140,7 +140,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
+	payload, blobsBundle, overrideBuilder, err := s.localBuilder.RetrieveBuiltPayload(
 		ctx,
 		st,
 		slot,
