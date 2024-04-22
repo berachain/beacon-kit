@@ -33,6 +33,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
@@ -161,6 +162,13 @@ func (s *Service) RequestBestBlock(
 	if body.IsNil() {
 		return nil, nil, beacontypes.ErrNilBlkBody
 	}
+
+	// TODO: assemble real eth1data.
+	body.SetEth1Data(&primitives.Eth1Data{
+		DepositRoot:  primitives.Bytes32{},
+		DepositCount: 0,
+		BlockHash:    primitives.ExecutionHash{},
+	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
 	if blobsBundle == nil {

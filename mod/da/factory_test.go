@@ -33,6 +33,7 @@ import (
 	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -55,7 +56,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	chainspec := &MockSpec{}
 	factory := da.NewSidecarFactory[da.BeaconBlockBody](
 		chainspec,
-		4,
+		5,
 	)
 	body := mockBody()
 	// Test for a valid index
@@ -127,7 +128,12 @@ func mockBody() da.BeaconBlockBody {
 	}
 
 	return &types.BeaconBlockBodyDeneb{
-		RandaoReveal:     [96]byte{0x01},
+		RandaoReveal: [96]byte{0x01},
+		Eth1Data: &primitives.Eth1Data{
+			DepositRoot:  primitives.Root{},
+			DepositCount: 0,
+			BlockHash:    primitives.ExecutionHash{},
+		},
 		ExecutionPayload: executionPayload,
 		BlobKzgCommitments: kzg.Commitments{
 			[48]byte(bytes.Repeat([]byte{0x01}, 48)),
