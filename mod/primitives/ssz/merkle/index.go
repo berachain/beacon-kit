@@ -25,9 +25,14 @@
 
 package merkle
 
-import "github.com/berachain/beacon-kit/mod/primitives/math"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+)
 
-type GeneralizedIndex math.U64
+type (
+	GeneralizedIndex    math.U64
+	GeneralizedIndicies []GeneralizedIndex
+)
 
 // NewGeneralizedIndex calculates the generalized index from the depth and
 // index.
@@ -86,4 +91,30 @@ func (g GeneralizedIndex) RightChild() GeneralizedIndex {
 //nolint:mnd // from spec.
 func (g GeneralizedIndex) Parent() GeneralizedIndex {
 	return g / 2
+}
+
+// GetBranchIndices returns the generalized indices of the nodes on the path
+// from the root to the leaf.
+func (g GeneralizedIndex) GetBranchIndices() GeneralizedIndicies {
+	// Get the generalized indices of the sister chunks along the path from the
+	// chunk with the
+	// given tree index to the root.
+	o := []GeneralizedIndex{g.Sibling()}
+	for o[len(o)-1] > 1 {
+		o = append(o, o[len(o)-1].Parent().Sibling())
+	}
+	return o[:len(o)-1]
+}
+
+// GetPathIndices returns the generalized indices of the nodes on the path from
+// the leaf to the root.
+func (g GeneralizedIndex) GetPathIndices() GeneralizedIndicies {
+	// Get the generalized indices of the sister chunks along the path from the
+	// chunk with the
+	// given tree index to the root.
+	o := []GeneralizedIndex{g}
+	for o[len(o)-1] > 1 {
+		o = append(o, o[len(o)-1].Parent())
+	}
+	return o[:len(o)-1]
 }
