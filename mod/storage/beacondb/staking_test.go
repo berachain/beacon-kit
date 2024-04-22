@@ -73,13 +73,12 @@ func TestDeposits(t *testing.T) {
 	storeKey := keys[testName]
 
 	sdb := beacondb.New[
-		*math.U64, *math.U64, *math.U64,
-		*math.U64, *math.U64, *mockValidator,
+		*math.U64, *math.U64, *math.U64, *math.U64, *mockValidator,
 	](
 		sdkruntime.NewKVStoreService(storeKey),
 		testFactory,
 	)
-	sdb = sdb.WithContext(ctx)
+	_ = sdb.WithContext(ctx)
 	// t.Run("should work with deposit", func(t *testing.T) {
 	// fakeDeposit := primitives.U64(69420)
 	// err := sdb.EnqueueDeposits([]*primitives.U64{&fakeDeposit})

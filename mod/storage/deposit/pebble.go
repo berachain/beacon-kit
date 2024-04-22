@@ -37,6 +37,7 @@ import (
 )
 
 const DBFileSuffix = ".db"
+const three = 3
 
 // PebbleDB implements RawDB using PebbleDB as the underlying storage engine.
 // It is used for only store v2 migration, since some clients use PebbleDB as
@@ -52,7 +53,7 @@ func NewPebbleDB(name, dataDir string) (*PebbleDB, error) {
 //nolint:gomnd // yoinked from cosmos
 func NewPebbleDBWithOpts(name, dataDir string) (*PebbleDB, error) {
 	do := &pebble.Options{
-		MaxConcurrentCompactions: func() int { return 3 }, // default 1
+		MaxConcurrentCompactions: func() int { return three }, // default 1
 	}
 
 	do.EnsureDefaults()

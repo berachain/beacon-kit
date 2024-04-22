@@ -301,10 +301,11 @@ func (sp *StateProcessor) processOperations(
 	if err != nil {
 		return err
 	}
-	if len(deposits) != min(
-		int(sp.cs.MaxDepositsPerBlock()),
-		int(eth1Data.DepositCount-index),
-	) {
+	depositCount := min(
+		sp.cs.MaxDepositsPerBlock(),
+		eth1Data.DepositCount-index,
+	)
+	if uint64(len(deposits)) != depositCount {
 		return errors.New("deposit count mismatch")
 	}
 	return sp.processDeposits(st, deposits)

@@ -34,12 +34,7 @@ import (
 	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives"
 	collections "github.com/berachain/beacon-kit/mod/storage/beacondb/collections"
 	encoding "github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
-	cdb "github.com/cosmos/cosmos-db"
 )
-
-type Store struct {
-	cdb.DB
-}
 
 const (
 	KeyDepositPrefix = "deposit"
@@ -83,7 +78,7 @@ type KVStore struct {
 func NewStore(kvsp store.KVStoreService) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore{
-		depositQueue: collections.NewQueue[*consensusprimitives.Deposit](
+		depositQueue: collections.NewQueue(
 			schemaBuilder,
 			KeyDepositPrefix,
 			encoding.SSZValueCodec[*consensusprimitives.Deposit]{},

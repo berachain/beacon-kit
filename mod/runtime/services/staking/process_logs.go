@@ -66,7 +66,7 @@ func (s *Service) ProcessBlockEvents(
 // processDepositLog adds a deposit to the queue.
 func (s *Service) processDepositLog(
 	_ context.Context,
-	st state.BeaconState,
+	_ state.BeaconState,
 	log engineprimitives.Log,
 ) error {
 	d := &abi.BeaconDepositContractDeposit{}
@@ -78,6 +78,7 @@ func (s *Service) processDepositLog(
 		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
 	)
 
+	//nolint:contextcheck // not needed
 	return s.ds.EnqueueDeposits(
 		[]*primitives.Deposit{primitives.NewDeposit(
 			primitives.BLSPubkey(d.Pubkey),
