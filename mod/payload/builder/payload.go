@@ -175,6 +175,8 @@ func (pb *PayloadBuilder) requestBuiltPayloadFromExecutionClient(
 	)
 	if err != nil {
 		return nil, nil, false, err
+	} else if payload == nil {
+		return nil, nil, false, ErrNilPayload
 	}
 
 	// Cache the payload and return.
