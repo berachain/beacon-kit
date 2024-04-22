@@ -29,24 +29,23 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/payload/cache"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPayloadIDCache(t *testing.T) {
-	cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
+	cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
 		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
-		require.Equal(t, engineprimitives.PayloadID{}, p)
+		require.Equal(t, [8]byte{}, p)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
 		slot := uint64(1234)
 		r := [32]byte{1, 2, 3}
-		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		pid := [8]byte{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -57,7 +56,7 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Overwrite existing", func(t *testing.T) {
 		slot := uint64(1234)
 		r := [32]byte{1, 2, 3}
-		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
+		newPid := [8]byte{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -68,14 +67,14 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Prune and verify deletion", func(t *testing.T) {
 		slot := uint64(9456456)
 		r := [32]byte{4, 5, 6}
-		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		pid := [8]byte{4, 5, 6, 6, 9, 0, 9, 0}
 		cacheUnderTest.Set(slot, r, pid)
 
 		// Prune and attempt to retrieve pruned entry
 		cacheUnderTest.UnsafePrunePrior(slot + 1)
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.False(t, ok)
-		require.Equal(t, engineprimitives.PayloadID{}, p)
+		require.Equal(t, [8]byte{}, p)
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
@@ -83,7 +82,7 @@ func TestPayloadIDCache(t *testing.T) {
 		for i := range uint8(5) {
 			slot := uint64(i)
 			r := [32]byte{i, i + 1, i + 2}
-			pid := engineprimitives.PayloadID{
+			pid := [8]byte{
 				i, i, i, i, i, i, i, i,
 			}
 			cacheUnderTest.Set(slot, r, pid)

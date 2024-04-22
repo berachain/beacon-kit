@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/payload/cache"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,9 +41,9 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
-		slot := uint64(s)
-		pid := engineprimitives.PayloadID(_p[:8])
-		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
+		slot := s
+		pid := [8]byte(_p[:8])
+		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
 		cacheUnderTest.Set(slot, r, pid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -52,7 +51,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		require.Equal(t, pid, p)
 
 		// Test overwriting the same slot and root with a different PayloadID
-		newPid := engineprimitives.PayloadID{}
+		newPid := [8]byte{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
@@ -76,7 +75,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
-		slot := uint64(s)
+		slot := s
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
 			t.Skip(
@@ -86,8 +85,8 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(r[:], _r)
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
-		pid := engineprimitives.PayloadID(paddedPayload[:])
-		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
+		pid := [8]byte(paddedPayload[:])
+		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
 		cacheUnderTest.Set(slot, r, pid)
 
 		_, ok := cacheUnderTest.Get(slot, r)
@@ -99,8 +98,8 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
-		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
-		slot := uint64(s)
+		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		slot := s
 		var wg sync.WaitGroup
 		wg.Add(2)
 
@@ -111,7 +110,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			copy(r[:], _r)
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
-			pid := engineprimitives.PayloadID(paddedPayload[:])
+			pid := [8]byte(paddedPayload[:])
 			cacheUnderTest.Set((slot), r, pid)
 		}()
 

@@ -42,6 +42,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
@@ -106,7 +107,7 @@ func ProvideRuntime(
 		payloadbuilder.WithConfig(&cfg.Builder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
 		payloadbuilder.WithPayloadCache(
-			cache.NewPayloadIDCache[[32]byte, math.Slot](),
+			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 		),
 	)
 

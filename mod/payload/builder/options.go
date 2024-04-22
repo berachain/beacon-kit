@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
@@ -69,7 +70,9 @@ func WithExecutionEngine(ee ExecutionEngine) Option {
 
 // WithPayloadCache sets the payload cache.
 func WithPayloadCache(
-	pc *cache.PayloadIDCache[[32]byte, math.Slot],
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	],
 ) Option {
 	return func(s *Service) error {
 		s.pc = pc
