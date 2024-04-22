@@ -166,6 +166,15 @@ func convertAmount(amount string) (math.Gwei, error) {
 	return math.Gwei(amountBigInt.Uint64()), nil
 }
 
+func convertAmountFromWei(amount string) (math.Gwei, error) {
+	// Convert the amount to a Gwei.
+	amountBigInt, ok := new(big.Int).SetString(amount, 10)
+	if !ok {
+		return 0, ErrInvalidAmount
+	}
+	return math.FromWei(amountBigInt), nil
+}
+
 // convertSignature converts a string to a signature.
 func convertSignature(signature string) (primitives.BLSSignature, error) {
 	// convert the signature to a BLSSignature.

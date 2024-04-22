@@ -1,7 +1,7 @@
 package deposit
 
 import (
-	"encoding/hex"
+	"crypto/ecdsa"
 	"fmt"
 	"os"
 
@@ -60,9 +60,9 @@ func NewCreateValidator(clientCtx client.Context) *cobra.Command {
 func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
-			blsSigner      *signer.BLSSigner
-			jwtSecret      *jwt.Secret
-			fundingPrivKey string
+			blsSigner *signer.BLSSigner
+			jwtSecret *jwt.Secret
+			privKey   *ecdsa.PrivateKey
 
 			logger = log.NewLogger(os.Stdout)
 		)
@@ -74,12 +74,18 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 
 		// If the broadcast flag is set, a private key must be provided.
 		if broadcastFlag {
+			var fundingPrivKey string
 			fundingPrivKey, err = cmd.Flags().GetString(privateKey)
 			if err != nil {
 				return err
 			}
 			if fundingPrivKey == "" {
 				return ErrPrivateKeyRequired
+			}
+
+			privKey, err = crypto.HexToECDSA(fundingPrivKey)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -88,10 +94,14 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		amount, err := convertAmount(args[1])
+		amount, err := convertAmountFromWei(args[1])
 		if err != nil {
 			return err
 		}
+		// amountBigInt, ok := new(big.Int).SetString(args[1], 10)
+		// if !ok {
+		// 	return ErrInvalidAmount
+		// }
 
 		currentVersion, err := convertVersion(args[2])
 		if err != nil {
@@ -124,7 +134,7 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		// )
 
 		// Create and sign the deposit message.
-		depositMessage, signature, err := primitives.CreateAndSignDepositMessage(
+		depositMsg, signature, err := primitives.CreateAndSignDepositMessage(
 			primitives.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,
@@ -136,7 +146,7 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 		}
 
 		// Verify the deposit message.
-		if err := depositMessage.VerifyCreateValidator(
+		if err := depositMsg.VerifyCreateValidator(
 			primitives.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			blst.VerifySignaturePubkeyBytes,
@@ -147,12 +157,12 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 
 		// If the broadcast flag is not set, output the deposit message and
 		// signature and return early.
+		logger.Info(
+			"Deposit message created",
+			"\nmessage", depositMsg,
+			"\nsignature", signature,
+		)
 		if !broadcastFlag {
-			logger.Info(
-				"Deposit message created",
-				"\nmessage", depositMessage,
-				"\nsignature", signature,
-			)
 			return nil
 		}
 
@@ -206,22 +216,10 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 			return err
 		}
 
-		privKey, err := crypto.HexToECDSA(fundingPrivKey)
-		if err != nil {
-			return err
-		}
-
 		chainID, err := engineClient.ChainID(cmd.Context())
 		if err != nil {
 			return err
 		}
-
-		fmt.Println("CALL DATA",
-			hex.EncodeToString(depositMessage.Pubkey[:]),
-			hex.EncodeToString(depositMessage.Credentials[:]),
-			depositMessage.Amount.Unwrap(),
-			hex.EncodeToString(signature[:]),
-		)
 
 		// Send the deposit to the deposit contract.
 		tx, err := depositContract.Deposit(
@@ -235,11 +233,11 @@ func createValidatorCmd(clientCtx client.Context) func(*cobra.Command, []string)
 						privKey,
 					)
 				},
-				GasLimit: 20000000,
+				Value: depositMsg.Amount.ToWei(),
 			},
-			depositMessage.Pubkey[:],
-			depositMessage.Credentials[:],
-			depositMessage.Amount.Unwrap(),
+			depositMsg.Pubkey[:],
+			depositMsg.Credentials[:],
+			0,
 			signature[:],
 		)
 		if err != nil {
