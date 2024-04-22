@@ -122,11 +122,11 @@ func (gs GeneralizedIndicies) Concat() GeneralizedIndex {
 // tree needed to prove the chunks with the given generalized indices. The
 // decreasing order is chosen deliberately to ensure equivalence to the order of
 // hashes in a regular single-item Merkle proof in the single-item case.
-func GetHelperIndices(indices []GeneralizedIndex) []GeneralizedIndex {
+func (gs GeneralizedIndicies) GetHelperIndices() GeneralizedIndicies {
 	allHelperIndices := make(map[GeneralizedIndex]struct{})
 	allPathIndices := make(map[GeneralizedIndex]struct{})
 
-	for _, index := range indices {
+	for _, index := range gs {
 		for _, helperIndex := range index.GetBranchIndices() {
 			allHelperIndices[helperIndex] = struct{}{}
 		}
@@ -135,7 +135,7 @@ func GetHelperIndices(indices []GeneralizedIndex) []GeneralizedIndex {
 		}
 	}
 
-	var difference []GeneralizedIndex
+	difference := make([]GeneralizedIndex, 0, len(allHelperIndices))
 	for helperIndex := range allHelperIndices {
 		if _, exists := allPathIndices[helperIndex]; !exists {
 			difference = append(difference, helperIndex)
