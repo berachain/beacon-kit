@@ -232,6 +232,7 @@ func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
 				if _, ok = objects[k/2]; !ok {
 					obj := objects[(k|1)^1]
 					objects[k/2] = sha256.Sum256(append(obj[:], sibling[:]...))
+					//nolint:mnd // from spec.
 					keys = append(keys, k/2)
 				}
 			}
