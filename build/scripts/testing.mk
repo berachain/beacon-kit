@@ -123,54 +123,19 @@ start-erigon: ## start an ephemeral `erigon` node
 	--datadir .tmp/erigon
 
 start-ethereumjs:
+	rm -rf .tmp/ethereumjs
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	-v $(PWD)/beacond/eth-genesis.json:/.tmp/beacond/eth-genesis.json \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	ethpandaops/ethereumjs:master \
-	--gethGenesis /.tmp/beacond/eth-genesis.json \
+	ethpandaops/ethereumjs:stable \
+	--gethGenesis ../../${ETH_GENESIS_PATH} \
 	--rpcEngine \
-	--rpc \
+	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--rpcEnginePort 8551 \
-	--jwtSecret ../../$(JWT_PATH)
-	--logLevel debug \
-	--rpcDebugVerbose \
-	# --rpcCors '*' 
-
-
-
-# --gethGenesis /usr/app/.tmp/beacond/eth-genesis.json \
-#--dataDir .tmp/ethereumjs \
-	 \
-# start-ethereumjs:
-# 	rm -rf .tmp/ethereumjs
-# 	docker run \
-# 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
-# 	-v $(PWD)/.tmp:/.tmp \
-# 	-v $(PWD)/beacond/eth-genesis.json:/usr/app/.tmp/beacond/eth-genesis.json \
-# 	-p 30303:30303 \
-# 	-p 8545:8545 \
-# 	-p 8551:8551 \
-# 	ethpandaops/ethereumjs:stable \
-# 	--dataDir .tmp/ethereumjs \
-# 	--jwtSecret ../../$(JWT_PATH) \
-# 	--gethGenesis /usr/app/.tmp/beacond/eth-genesis.json \
-# 	--rpcEngine \
-# 	--port 30303 \
-# 	--ws \
-# 	--rpc \
-# 	--rpcApi eth,net,engine \
-# 	--logLevel debug \
-# 	--maxPeers 50 \
-# 	--init /usr/app/.tmp/beacond/eth-genesis.json \
-# 	--networkId 80087
-
-# -v $(PWD)/${ETH_GENESIS_PATH}:/.tmp/${ETH_GENESIS_PATH} \
-# --gethGenesis .tmp/${ETH_GENESIS_PATH} \
+	--dataDir .tmp/ethereumjs
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
