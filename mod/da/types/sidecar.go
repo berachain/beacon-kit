@@ -93,7 +93,7 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		//#nosec:G701 // safe.
 		uint8(
 			len(b.InclusionProof),
-		), // TODO: mak
+		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
