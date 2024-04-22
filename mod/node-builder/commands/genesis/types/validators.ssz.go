@@ -8,12 +8,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the ValidatorsMarshaling object.
+// MarshalSSZ ssz marshals the ValidatorsMarshaling object
 func (v *ValidatorsMarshaling) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(v)
 }
 
-// MarshalSSZTo ssz marshals the ValidatorsMarshaling object to a target array.
+// MarshalSSZTo ssz marshals the ValidatorsMarshaling object to a target array
 func (v *ValidatorsMarshaling) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(4)
@@ -35,7 +35,7 @@ func (v *ValidatorsMarshaling) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the ValidatorsMarshaling object.
+// UnmarshalSSZ ssz unmarshals the ValidatorsMarshaling object
 func (v *ValidatorsMarshaling) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -75,7 +75,7 @@ func (v *ValidatorsMarshaling) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ValidatorsMarshaling object.
+// SizeSSZ returns the ssz encoded size in bytes for the ValidatorsMarshaling object
 func (v *ValidatorsMarshaling) SizeSSZ() (size int) {
 	size = 4
 
@@ -85,12 +85,12 @@ func (v *ValidatorsMarshaling) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the ValidatorsMarshaling object.
+// HashTreeRoot ssz hashes the ValidatorsMarshaling object
 func (v *ValidatorsMarshaling) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(v)
 }
 
-// HashTreeRootWith ssz hashes the ValidatorsMarshaling object with a hasher.
+// HashTreeRootWith ssz hashes the ValidatorsMarshaling object with a hasher
 func (v *ValidatorsMarshaling) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -114,7 +114,7 @@ func (v *ValidatorsMarshaling) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the ValidatorsMarshaling object.
+// GetTree ssz hashes the ValidatorsMarshaling object
 func (v *ValidatorsMarshaling) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(v)
 }

@@ -8,12 +8,12 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BeaconBlockDeneb object.
+// MarshalSSZ ssz marshals the BeaconBlockDeneb object
 func (b *BeaconBlockDeneb) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockDeneb object to a target array.
+// MarshalSSZTo ssz marshals the BeaconBlockDeneb object to a target array
 func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(84)
@@ -41,7 +41,7 @@ func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockDeneb object.
+// UnmarshalSSZ ssz unmarshals the BeaconBlockDeneb object
 func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
@@ -86,7 +86,7 @@ func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockDeneb object.
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockDeneb object
 func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
 	size = 84
 
@@ -99,12 +99,12 @@ func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockDeneb object.
+// HashTreeRoot ssz hashes the BeaconBlockDeneb object
 func (b *BeaconBlockDeneb) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockDeneb object with a hasher.
+// HashTreeRootWith ssz hashes the BeaconBlockDeneb object with a hasher
 func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -129,7 +129,7 @@ func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockDeneb object.
+// GetTree ssz hashes the BeaconBlockDeneb object
 func (b *BeaconBlockDeneb) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }

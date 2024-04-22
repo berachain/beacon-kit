@@ -39,7 +39,7 @@ import (
 
 // BuildLocalPayload builds a payload for the given slot and
 // returns the payload ID.
-func (s *Service) BuildLocalPayload(
+func (pb *PayloadBuilder) BuildLocalPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -48,14 +48,14 @@ func (s *Service) BuildLocalPayload(
 	parentBlockRoot primitives.Root,
 ) (*engineprimitives.PayloadID, error) {
 	// Assemble the payload attributes.
-	attrs, err := s.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
 	}
 
 	// Notify the execution client of the forkchoice update.
 	var payloadID *engineprimitives.PayloadID
-	s.logger.Info(
+	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
@@ -68,7 +68,7 @@ func (s *Service) BuildLocalPayload(
 	}
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
-	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
+	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
@@ -76,13 +76,13 @@ func (s *Service) BuildLocalPayload(
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       s.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.logger.Warn("received nil payload ID on VALID engine response",
+		pb.logger.Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", parentEth1Hash,
 			"for_slot", slot,
 		)
@@ -90,13 +90,13 @@ func (s *Service) BuildLocalPayload(
 		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	s.logger.Info("forkchoice updated with payload attributes",
+	pb.logger.Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", parentEth1Hash,
 		"for_slot", slot,
 		"payload_id", payloadID,
 	)
 
-	s.pc.Set(
+	pb.pc.Set(
 		slot,
 		parentBlockRoot,
 		*payloadID,
@@ -109,7 +109,7 @@ func (s *Service) BuildLocalPayload(
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (s *Service) GetBestPayload(
+func (pb *PayloadBuilder) GetBestPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
@@ -127,7 +127,7 @@ func (s *Service) GetBestPayload(
 	// this particular slot and parent block root. If we have, and we are able
 	// to
 	// retrieve it from our execution client, we can return it immediately.
-	payload, blobsBundle, overrideBuilder, err := s.
+	payload, blobsBundle, overrideBuilder, err := pb.
 		requestBuiltPayloadFromExecutionClient(
 			ctx,
 			parentBlockRoot,
@@ -141,7 +141,7 @@ func (s *Service) GetBestPayload(
 	}
 
 	// Otherwise we will fall back to triggering a payload build.
-	return s.buildAndWaitForLocalPayload(
+	return pb.buildAndWaitForLocalPayload(
 		ctx,
 		st,
 		parentEth1Hash,
@@ -154,20 +154,20 @@ func (s *Service) GetBestPayload(
 
 // requestBuiltPayloadFromExecutionClient retrieves the payload and blobs
 // bundle.
-func (s *Service) requestBuiltPayloadFromExecutionClient(
+func (pb *PayloadBuilder) requestBuiltPayloadFromExecutionClient(
 	ctx context.Context,
 	parentBlockRoot primitives.Root,
 	slot math.Slot,
 ) (engineprimitives.ExecutionPayload, engineprimitives.BlobsBundle, bool, error) {
 	// See if we have a payload ID for this slot and parent block root.
-	payloadID, found := s.pc.Get(slot, parentBlockRoot)
+	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found || (payloadID == engineprimitives.PayloadID{}) {
 		// If we don't have a payload ID, we can't retrieve the payload.
 		return nil, nil, false, ErrPayloadIDNotFound
 	}
 
 	// Request the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err := s.getPayloadFromExecutionClient(
+	payload, blobsBundle, overrideBuilder, err := pb.getPayloadFromExecutionClient(
 		ctx,
 		&payloadID,
 		slot,
@@ -177,14 +177,14 @@ func (s *Service) requestBuiltPayloadFromExecutionClient(
 	}
 
 	// Cache the payload and return.
-	s.pc.Set(slot, payload.GetParentHash(), payloadID)
+	pb.pc.Set(slot, payload.GetParentHash(), payloadID)
 	return payload, blobsBundle, overrideBuilder, nil
 }
 
 // buildAndWaitForLocalPayload, triggers a payload build process, waits
 // for a configuration specified period, and then retrieves the built
 // payload from the execution client.
-func (s *Service) buildAndWaitForLocalPayload(
+func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -195,7 +195,7 @@ func (s *Service) buildAndWaitForLocalPayload(
 	engineprimitives.BlobsBundle, bool, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
-	payloadID, err := s.BuildLocalPayload(
+	payloadID, err := pb.BuildLocalPayload(
 		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
@@ -203,12 +203,12 @@ func (s *Service) buildAndWaitForLocalPayload(
 	}
 
 	// Wait for the payload to be delivered to the execution client.
-	s.logger.Info(
+	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.LocalBuildPayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
+	case <-time.After(pb.cfg.LocalBuildPayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
@@ -217,14 +217,14 @@ func (s *Service) buildAndWaitForLocalPayload(
 	}
 
 	// Get the payload from the execution client.
-	return s.getPayloadFromExecutionClient(
+	return pb.getPayloadFromExecutionClient(
 		ctx, payloadID, slot)
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
-func (s *Service) getPayloadAttribute(
+func (pb *PayloadBuilder) getPayloadAttribute(
 	st state.BeaconState,
 	slot math.Slot,
 	timestamp uint64,
@@ -237,7 +237,7 @@ func (s *Service) getPayloadAttribute(
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
-		s.logger.Error(
+		pb.logger.Error(
 			"Could not get expected withdrawals to get payload attribute",
 			"error",
 			err,
@@ -245,21 +245,21 @@ func (s *Service) getPayloadAttribute(
 		return nil, err
 	}
 
-	epoch := s.chainSpec.SlotToEpoch(slot)
+	epoch := pb.chainSpec.SlotToEpoch(slot)
 
 	// Get the previous randao mix.
 	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % s.chainSpec.EpochsPerHistoricalVector(),
+		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		s.chainSpec.ActiveForkVersionForEpoch(epoch),
+		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
-		s.cfg.SuggestedFeeRecipient,
+		pb.cfg.SuggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)
@@ -267,7 +267,7 @@ func (s *Service) getPayloadAttribute(
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
 // given slot.
-func (s *Service) getPayloadFromExecutionClient(
+func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
 	slot math.Slot,
@@ -277,11 +277,11 @@ func (s *Service) getPayloadFromExecutionClient(
 		return nil, nil, false, ErrNilPayloadID
 	}
 
-	envelope, err := s.ee.GetPayload(
+	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&execution.GetPayloadRequest{
 			PayloadID:   *payloadID,
-			ForkVersion: s.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
@@ -309,6 +309,6 @@ func (s *Service) getPayloadFromExecutionClient(
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	s.logger.Info("payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
 	return payload, blobsBundle, overrideBuilder, err
 }

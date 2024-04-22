@@ -35,23 +35,29 @@ import (
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread
 // have it configured itself and not be a service persay.
-type Service struct {
+type PayloadBuilder struct {
 	cfg       *Config
 	chainSpec primitives.ChainSpec
 	logger    log.Logger
-	ee        ExecutionEngine
-	pc        *cache.PayloadIDCache[
+
+	// ee is the execution engine.
+	ee ExecutionEngine
+
+	// pc is the payload ID cache, it is used to store
+	// "in-flight" payloads that are being built on
+	// the execution client.
+	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	]
 }
 
 // NewService creates a new service.
-func NewService(opts ...Option) (*Service, error) {
-	s := &Service{}
+func NewService(opts ...Option) (*PayloadBuilder, error) {
+	pb := &PayloadBuilder{}
 	for _, opt := range opts {
-		if err := opt(s); err != nil {
+		if err := opt(pb); err != nil {
 			return nil, err
 		}
 	}
-	return s, nil
+	return pb, nil
 }

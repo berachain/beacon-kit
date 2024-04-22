@@ -34,36 +34,36 @@ import (
 )
 
 // Option is a functional option for the builder.
-type Option = func(*Service) error
+type Option = func(*PayloadBuilder) error
 
 // WithChainSpec sets the chain spec.
 func WithChainSpec(chainSpec primitives.ChainSpec) Option {
-	return func(s *Service) error {
-		s.chainSpec = chainSpec
+	return func(pb *PayloadBuilder) error {
+		pb.chainSpec = chainSpec
 		return nil
 	}
 }
 
 // WithConfig sets the builder config.
 func WithConfig(cfg *Config) Option {
-	return func(s *Service) error {
-		s.cfg = cfg
+	return func(pb *PayloadBuilder) error {
+		pb.cfg = cfg
 		return nil
 	}
 }
 
 // WithLogger sets the logger.
 func WithLogger(logger log.Logger) Option {
-	return func(s *Service) error {
-		s.logger = logger
+	return func(pb *PayloadBuilder) error {
+		pb.logger = logger
 		return nil
 	}
 }
 
 // WithExecutionEngine sets the execution engine.
 func WithExecutionEngine(ee ExecutionEngine) Option {
-	return func(s *Service) error {
-		s.ee = ee
+	return func(pb *PayloadBuilder) error {
+		pb.ee = ee
 		return nil
 	}
 }
@@ -74,8 +74,8 @@ func WithPayloadCache(
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
 ) Option {
-	return func(s *Service) error {
-		s.pc = pc
+	return func(pb *PayloadBuilder) error {
+		pb.pc = pc
 		return nil
 	}
 }
