@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/kzg"
 	"github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives/ssz/merkle"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,7 +59,7 @@ func (bv *BlobVerifier) VerifyBlobs(
 		// TODO: KZGOffset needs to be configurable and not
 		// passed in.
 		return bv.VerifyInclusionProofs(
-			sidecars, merkle.GeneralizedIndex[[32]byte](kzgOffset),
+			sidecars, kzgOffset,
 		)
 	})
 
@@ -75,7 +74,7 @@ func (bv *BlobVerifier) VerifyBlobs(
 
 func (bv *BlobVerifier) VerifyInclusionProofs(
 	scs *types.BlobSidecars,
-	kzgOffset merkle.GeneralizedIndex[[32]byte],
+	kzgOffset uint64,
 ) error {
 	return scs.VerifyInclusionProofs(kzgOffset)
 }

@@ -28,7 +28,6 @@ package types
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives/ssz/merkle"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -67,7 +66,7 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 
 // VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
 func (bs *BlobSidecars) VerifyInclusionProofs(
-	kzgOffset merkle.GeneralizedIndex[[32]byte],
+	kzgOffset uint64,
 ) error {
 	return errors.Join(iter.Map(
 		bs.Sidecars,
