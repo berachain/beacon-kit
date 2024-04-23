@@ -140,6 +140,7 @@ func MarshalNull[T any](T) []byte {
 // each bit represents a boolean value.
 func MarshalBitVector(bv []bool) []byte {
 	// Calculate the necessary byte length to represent the bit vector.
+	//nolint:mnd // per spec.
 	array := make([]byte, (len(bv)+7)/bitsPerByte)
 	for i, val := range bv {
 		if val {
