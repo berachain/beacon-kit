@@ -179,8 +179,8 @@ func TestMarshalBitList(t *testing.T) {
 	// Create a slice of booleans to pass as input
 	input := []bool{true, false, true, false, true, false, true}
 
-	// Call the function and check its output
 	output := ssz.MarshalBitList(input)
+	// Create a byte slice from a list of binary literals. 0b11010101 is the binary representation of the input slice
 	expectedOutput := []byte{0b11010101}
 	if !reflect.DeepEqual(output, expectedOutput) {
 		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
