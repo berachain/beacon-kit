@@ -34,7 +34,6 @@ import (
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
 	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/validator"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -44,11 +43,10 @@ import (
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:           abci.DefaultABCIConfig(),
-		Engine:         engineclient.DefaultConfig(),
-		KZG:            kzg.DefaultConfig(),
-		PayloadBuilder: builder.DefaultConfig(),
-		Validator:      validator.DefaultConfig(),
+		ABCI:    abci.DefaultABCIConfig(),
+		Builder: builder.DefaultBuilderConfig(),
+		Engine:  engineclient.DefaultConfig(),
+		KZG:     kzg.DefaultConfig(),
 	}
 }
 
@@ -57,17 +55,14 @@ type Config struct {
 	// ABCI is the configuration for ABCI related settings.
 	ABCI abci.Config `mapstructure:"abci"`
 
+	// Builder is the configuration for the local build payload timeout.
+	Builder builder.Config `mapstructure:"builder"`
+
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
 
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
-
-	// PayloadBuilder is the configuration for the local build payload timeout.
-	PayloadBuilder builder.Config `mapstructure:"builder"`
-
-	// Validator is the configuration for the validator client.
-	Validator validator.Config `mapstructure:"validator"`
 }
 
 // Template returns the configuration template.
@@ -135,7 +130,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
+		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
 	startCmd.Flags().String(flags.KZGTrustedSetupPath,
