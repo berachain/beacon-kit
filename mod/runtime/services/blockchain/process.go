@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/execution"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
@@ -85,7 +84,7 @@ func (s *Service) ProcessBeaconBlock(
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		execution.BuildNewPayloadRequest(
+		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
@@ -135,6 +134,56 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
+	return nil
+}
+
+// ValidateBlock validates the incoming beacon block.
+func (s *Service) ValidateBlock(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	return s.bv.ValidateBlock(
+		s.BeaconState(ctx), blk,
+	)
+}
+
+// ValidatePayload validates the execution payload on the block.
+func (s *Service) ValidatePayloadOnBlk(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
+
+	// Call the standard payload validator.
+	if err := s.pv.ValidatePayload(
+		s.BeaconState(ctx),
+		body,
+	); err != nil {
+		return err
+	}
+
+	// We notify the engine of the new payload.
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if _, err := s.ee.VerifyAndNotifyNewPayload(
+		ctx,
+		engineprimitives.BuildNewPayloadRequest(
+			body.GetExecutionPayload(),
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			false,
+		),
+	); err != nil {
+		s.Logger().
+			Error("failed to notify engine of new payload", "error", err)
+		return err
+	}
 	return nil
 }
 

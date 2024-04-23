@@ -34,7 +34,7 @@ METRICS_PORT_ID = defaults.METRICS_PORT_ID
 
 METRICS_PATH = defaults.METRICS_PATH
 
-IMAGE = "ghcr.io/paradigmxyz/reth:latest"
+IMAGE = "ghcr.io/paradigmxyz/reth:v0.1.0-alpha.23"
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "/root/.reth/{}".format(CONFIG_FILENAME)
 FILES = {
