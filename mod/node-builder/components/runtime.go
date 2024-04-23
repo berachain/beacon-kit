@@ -140,8 +140,9 @@ func ProvideRuntime(
 		types.KZGPositionDeneb,
 	)
 	validatorService := validator.NewService(
-		validator.WithConfig(&cfg.Validator),
 		validator.WithBlobFactory(blobFactory),
+		validator.WithChainSpec(chainSpec),
+		validator.WithConfig(&cfg.Validator),
 		validator.WithDepositStore(bsb.DepositStore(nil)),
 		validator.WithLocalBuilder(localBuilder),
 		validator.WithLogger(logger.With("service", "validator")),

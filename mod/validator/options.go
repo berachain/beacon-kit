@@ -28,10 +28,29 @@ package validator
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 type Option = func(*Service) error
+
+// WithBlobFactory sets the blob factory.
+func WithBlobFactory(
+	factory BlobFactory[types.BeaconBlockBody],
+) Option {
+	return func(s *Service) error {
+		s.blobFactory = factory
+		return nil
+	}
+}
+
+// WithChainSpec sets the chain spec.
+func WithChainSpec(cs primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.chainSpec = cs
+		return nil
+	}
+}
 
 // WithConfig sets the builder config.
 func WithConfig(cfg *Config) Option {
@@ -45,16 +64,6 @@ func WithConfig(cfg *Config) Option {
 func WithDepositStore(ds *deposit.KVStore) Option {
 	return func(s *Service) error {
 		s.ds = ds
-		return nil
-	}
-}
-
-// WithBlobFactory sets the blob factory.
-func WithBlobFactory(
-	factory BlobFactory[types.BeaconBlockBody],
-) Option {
-	return func(s *Service) error {
-		s.blobFactory = factory
 		return nil
 	}
 }
