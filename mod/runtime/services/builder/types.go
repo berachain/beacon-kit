@@ -66,12 +66,11 @@ type RandaoProcessor interface {
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder interface {
-	RetrieveBuiltPayload(
+	RetrieveOrBuildPayload(
 		ctx context.Context,
 		st state.BeaconState,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
-	) (engineprimitives.ExecutionPayload,
-		engineprimitives.BlobsBundle, bool, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }
