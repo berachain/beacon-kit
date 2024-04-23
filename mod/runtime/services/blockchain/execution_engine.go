@@ -66,18 +66,18 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	st state.BeaconState,
-	headEth1Hash primitives.ExecutionHash,
 	forSlot math.Slot,
 	parentBlockRoot primitives.Root,
+	headEth1Hash primitives.ExecutionHash,
 ) error {
 	_, err := s.lb.RequestPayload(
 		ctx,
 		st,
-		headEth1Hash,
 		forSlot,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
+		headEth1Hash,
 	)
 	return err
 }
@@ -152,9 +152,9 @@ func (s *Service) sendPostBlockFCU(
 		if err = s.sendFCUWithAttributes(
 			ctx,
 			stCopy,
-			headHash,
 			slot+1,
 			root,
+			headHash,
 		); err == nil {
 			return
 		}

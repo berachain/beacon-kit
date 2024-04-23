@@ -41,10 +41,11 @@ import (
 func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
 	st state.BeaconState,
-	parentEth1Hash primitives.ExecutionHash,
+
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
+	parentEth1Hash primitives.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
 	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
@@ -94,15 +95,15 @@ func (pb *PayloadBuilder) RequestPayload(
 func (pb *PayloadBuilder) RequestPayloadAndWait(
 	ctx context.Context,
 	st state.BeaconState,
-	parentEth1Hash primitives.ExecutionHash,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
+	parentEth1Hash primitives.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayload(
-		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
+		ctx, st, slot, timestamp, parentBlockRoot, parentEth1Hash,
 	)
 	if err != nil {
 		return nil, err
@@ -153,12 +154,12 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 		return pb.RequestPayloadAndWait(
 			ctx,
 			st,
-			parentEth1Hash,
 			slot,
 			// TODO: we need to do the proper timestamp math here for EIP4788.
 			//#nosec:G701 // won't realistically overflow.
 			uint64(time.Now().Unix()),
 			parentBlockRoot,
+			parentEth1Hash,
 		)
 	}
 
@@ -177,11 +178,11 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	return pb.RequestPayloadAndWait(
 		ctx,
 		st,
-		parentEth1Hash,
 		slot,
 		// TODO: we need to do the proper timestamp math here for EIP4788.
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
+		parentEth1Hash,
 	)
 }
