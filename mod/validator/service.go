@@ -30,7 +30,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
@@ -41,17 +40,23 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service struct {
+	// cfg is the validator config.
 	cfg *Config
-
-	chainSpec primitives.ChainSpec
-
+	// logger is a logger.
 	logger log.Logger
+
+	// chainSpec is the chain spec.
+	chainSpec primitives.ChainSpec
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
+
+	// randaoProcessor is responsible for building the reveal for the
+	// current slot.
+	randaoProcessor RandaoProcessor
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -66,10 +71,6 @@ type Service struct {
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remoteBuilders []PayloadBuilder
-
-	// randaoProcessor is responsible for building the reveal for the
-	// current slot.
-	randaoProcessor RandaoProcessor
 }
 
 // NewService creates a new validator service.

@@ -169,7 +169,12 @@ func TestMarshalBitVector(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := ssz.MarshalBitVector(tt.bv)
 			if !reflect.DeepEqual(got, tt.expect) {
-				t.Errorf("MarshalBitVector(%v) = %08b; expect %08b", tt.bv, got, tt.expect)
+				t.Errorf(
+					"MarshalBitVector(%v) = %08b; expect %08b",
+					tt.bv,
+					got,
+					tt.expect,
+				)
 			}
 		})
 	}
@@ -180,7 +185,8 @@ func TestMarshalBitList(t *testing.T) {
 	input := []bool{true, false, true, false, true, false, true}
 
 	output := ssz.MarshalBitList(input)
-	// Create a byte slice from a list of binary literals. 0b11010101 is the binary representation of the input slice
+	// Create a byte slice from a list of binary literals. 0b11010101 is the
+	// binary representation of the input slice
 	expectedOutput := []byte{0b11010101}
 	if !reflect.DeepEqual(output, expectedOutput) {
 		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
