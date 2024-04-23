@@ -234,7 +234,6 @@ func (s *Service) PostBlockProcess(
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
-		st,
 		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
