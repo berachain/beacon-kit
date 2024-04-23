@@ -29,42 +29,42 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
+		req *engineprimitives.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *execution.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *execution.NewPayloadRequest,
+		req *engineprimitives.NewPayloadRequest,
 	) (bool, error)
 }
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
-	BuildLocalPayload(
+	RequestPayload(
 		ctx context.Context,
 		st state.BeaconState,
-		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
+		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
+		parentEth1Hash primitives.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 
@@ -89,7 +89,10 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		st state.BeaconState,
 		blockHash primitives.ExecutionHash,
+	) error
+
+	PruneDepositEvents(
+		st state.BeaconState,
 	) error
 }

@@ -27,6 +27,7 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
@@ -39,7 +40,7 @@ type PayloadAttributes[
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
-	Timestamp primitives.U64 `json:"timestamp"`
+	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
 	PrevRandao primitives.Bytes32 `json:"prevRandao"`
@@ -70,7 +71,7 @@ func NewPayloadAttributes[
 ) (*PayloadAttributes[Withdrawal], error) {
 	p := &PayloadAttributes[Withdrawal]{
 		version:               forkVersion,
-		Timestamp:             primitives.U64(timestamp),
+		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeReceipient,
 		Withdrawals:           withdrawals,

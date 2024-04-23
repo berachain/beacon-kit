@@ -25,20 +25,15 @@
 
 package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/chain"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+)
 
 //nolint:lll
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, Epoch, ExecutionAddress, Slot]
-
-	// Slot as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Slot uint64
-
-	// Epoch as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Epoch uint64
+	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -49,14 +44,6 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
 	DomainType = Bytes4
-
-	// CommitteeIndex as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	CommitteeIndex = U64
-
-	// ValidatorIndex as per the Ethereum 2.0  Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ValidatorIndex = U64
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -81,11 +68,4 @@ type (
 	// BLSSignature as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	BLSSignature = Bytes96
-
-	// Wei is the smallest unit of Ether, we store the value as LittleEndian for
-	// the best compatibility with the SSZ spec.
-	Wei = U256L
-
-	// Gwei is a denomination of 1e9 Wei represented as a U64.
-	Gwei = U64
 )

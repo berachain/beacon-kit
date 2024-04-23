@@ -36,7 +36,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
@@ -46,14 +48,14 @@ import (
 type Keeper struct {
 	availabilityStore *da.Store
 	beaconStore       *beacondb.KVStore[
-		*primitives.Deposit,
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	]
-	cfg primitives.ChainSpec
+	depositStore *deposit.KVStore
+	cfg          primitives.ChainSpec
 }
 
 // TODO: move this.
@@ -66,18 +68,19 @@ func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
 	cfg primitives.ChainSpec,
+	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
 		beaconStore: beacondb.New[
-			*primitives.Deposit,
 			*primitives.Fork,
 			*primitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
 			*primitives.Eth1Data,
 			*primitives.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
-		cfg: cfg,
+		cfg:          cfg,
+		depositStore: ddb,
 	}
 }
 
@@ -103,7 +106,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// Max 100 validators in the active set.
 		// TODO: this is kinda hood.
 		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
+			var idx math.ValidatorIndex
 			idx, err = store.WithContext(ctx).
 				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {
@@ -144,6 +147,13 @@ func (k *Keeper) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
 	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
+}
+
+// DepositStore returns the deposit store struct initialized with a.
+func (k *Keeper) DepositStore(
+	_ context.Context,
+) *deposit.KVStore {
+	return k.depositStore
 }
 
 // InitGenesis initializes the genesis state of the module.

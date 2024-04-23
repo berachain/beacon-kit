@@ -36,7 +36,7 @@ type Verifier struct{}
 
 // NewVerifier creates a new CKZG verifier.
 //
-//nolint:gomnd // lots of random numbers because cryptography.
+//nolint:mnd // lots of random numbers because cryptography.
 func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
 		return nil, err

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -49,8 +50,8 @@ type ReadOnlyBeaconBlock interface {
 	ssz.HashRoot
 	IsNil() bool
 	Version() uint32
-	GetSlot() primitives.Slot
-	GetProposerIndex() primitives.ValidatorIndex
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() primitives.Root
 	GetStateRoot() primitives.Root
 	GetBody() BeaconBlockBody
@@ -66,6 +67,7 @@ type BeaconBlockBody interface {
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*primitives.Deposit)
+	SetEth1Data(*primitives.Eth1Data)
 	SetExecutionData(engineprimitives.ExecutionPayload) error
 	SetBlobKzgCommitments(kzg.Commitments)
 }
@@ -80,6 +82,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*primitives.Deposit
+	GetEth1Data() *primitives.Eth1Data
 	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() primitives.BLSSignature
 	GetExecutionPayload() engineprimitives.ExecutionPayload

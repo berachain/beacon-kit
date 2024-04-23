@@ -34,6 +34,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/go-faster/xor"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -167,7 +168,7 @@ func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 // buildReveal creates a reveal for the proposer.
 func (p *Processor) buildReveal(
 	genesisValidatorsRoot primitives.Root,
-	epoch primitives.Epoch,
+	epoch math.Epoch,
 ) (primitives.BLSSignature, error) {
 	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
 	if err != nil {
@@ -190,7 +191,7 @@ func (p *Processor) buildMix(
 
 // computeSigningRoot computes the signing root for the epoch.
 func (p *Processor) computeSigningRoot(
-	epoch primitives.Epoch,
+	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
 	fd := primitives.NewForkData(

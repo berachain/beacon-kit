@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -16,23 +16,23 @@ var _ = (*executableDataDenebMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutableDataDeneb struct {
-		ParentHash    common.Hash      `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  common.Address   `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     common.Hash      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  common.Hash      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     hexutil.Bytes    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        common.Hash      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        primitives.U64   `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      primitives.U64   `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       primitives.U64   `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     primitives.U64   `json:"timestamp"                    gencodec:"required"`
-		ExtraData     hexutil.Bytes    `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas primitives.U256L `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     common.Hash      `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []hexutil.Bytes  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*Withdrawal    `json:"withdrawals"                                      ssz-max:"16"`
-		BlobGasUsed   primitives.U64   `json:"blobGasUsed"`
-		ExcessBlobGas primitives.U64   `json:"excessBlobGas"`
+		ParentHash    common.Hash     `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+		FeeRecipient  common.Address  `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+		StateRoot     common.Hash     `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+		ReceiptsRoot  common.Hash     `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+		LogsBloom     hexutil.Bytes   `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+		Random        common.Hash     `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+		Number        math.U64        `json:"blockNumber"                  gencodec:"required"`
+		GasLimit      math.U64        `json:"gasLimit"                     gencodec:"required"`
+		GasUsed       math.U64        `json:"gasUsed"                      gencodec:"required"`
+		Timestamp     math.U64        `json:"timestamp"                    gencodec:"required"`
+		ExtraData     hexutil.Bytes   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+		BaseFeePerGas math.U256L      `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BlockHash     common.Hash     `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+		Transactions  []hexutil.Bytes `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+		Withdrawals   []*Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
+		BlobGasUsed   math.U64        `json:"blobGasUsed"`
+		ExcessBlobGas math.U64        `json:"excessBlobGas"`
 	}
 	var enc ExecutableDataDeneb
 	enc.ParentHash = e.ParentHash
@@ -63,23 +63,23 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutableDataDeneb struct {
-		ParentHash    *common.Hash      `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  *common.Address   `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     *common.Hash      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  *common.Hash      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     *hexutil.Bytes    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        *common.Hash      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        *primitives.U64   `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      *primitives.U64   `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       *primitives.U64   `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     *primitives.U64   `json:"timestamp"                    gencodec:"required"`
-		ExtraData     *hexutil.Bytes    `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas *primitives.U256L `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     *common.Hash      `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []hexutil.Bytes   `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*Withdrawal     `json:"withdrawals"                                      ssz-max:"16"`
-		BlobGasUsed   *primitives.U64   `json:"blobGasUsed"`
-		ExcessBlobGas *primitives.U64   `json:"excessBlobGas"`
+		ParentHash    *common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+		FeeRecipient  *common.Address `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+		StateRoot     *common.Hash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+		ReceiptsRoot  *common.Hash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+		LogsBloom     *hexutil.Bytes  `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+		Random        *common.Hash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+		Number        *math.U64       `json:"blockNumber"                  gencodec:"required"`
+		GasLimit      *math.U64       `json:"gasLimit"                     gencodec:"required"`
+		GasUsed       *math.U64       `json:"gasUsed"                      gencodec:"required"`
+		Timestamp     *math.U64       `json:"timestamp"                    gencodec:"required"`
+		ExtraData     *hexutil.Bytes  `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+		BaseFeePerGas *math.U256L     `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+		BlockHash     *common.Hash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+		Transactions  []hexutil.Bytes `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+		Withdrawals   []*Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
+		BlobGasUsed   *math.U64       `json:"blobGasUsed"`
+		ExcessBlobGas *math.U64       `json:"excessBlobGas"`
 	}
 	var dec ExecutableDataDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {

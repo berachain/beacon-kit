@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
 )
 
 // BaseService is a base service that provides common functionality for all
@@ -95,12 +94,6 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 // the BaseService.
 func (s *BaseService) ChainSpec() primitives.ChainSpec {
 	return s.chainSpec
-}
-
-// BuilderCfg returns the configuration settings of the builder from
-// the BaseService.
-func (s *BaseService) BuilderCfg() *builderconfig.Config {
-	return &s.cfg.Builder
 }
 
 // Start is an intentional no-op for the BaseService.

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
@@ -43,7 +44,7 @@ func Commands() *cobra.Command {
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 
@@ -56,7 +57,7 @@ func Commands() *cobra.Command {
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:gomnd // lots of magic numbers
+//nolint:mnd // lots of magic numbers
 func NewValidateDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
@@ -154,14 +155,14 @@ func ConvertWithdrawalCredentials(credentials string) (
 
 // ConvertAmount converts a string to a deposit amount.
 //
-//nolint:gomnd // lots of magic numbers
-func ConvertAmount(amount string) (primitives.Gwei, error) {
+//nolint:mnd // lots of magic numbers
+func ConvertAmount(amount string) (math.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
 	if !ok {
 		return 0, ErrInvalidAmount
 	}
-	return primitives.Gwei(amountBigInt.Uint64()), nil
+	return math.Gwei(amountBigInt.Uint64()), nil
 }
 
 // ConvertSignature converts a string to a signature.
