@@ -58,7 +58,6 @@ type Service struct {
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	st state.BeaconState,
 	blockHash primitives.ExecutionHash,
 ) error {
 	// Gather all the logs corresponding to
@@ -74,7 +73,8 @@ func (s *Service) ProcessLogsInETH1Block(
 		return err
 	}
 
-	return s.ProcessBlockEvents(ctx, st, logsInBlock)
+	//nolint: contextcheck // We are not using the context here.
+	return s.ProcessBlockEvents(logsInBlock)
 }
 
 func (s *Service) PruneDepositEvents(st state.BeaconState) error {
