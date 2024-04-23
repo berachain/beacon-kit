@@ -132,7 +132,7 @@ type WriteOnlyEth1Data interface {
 	SetEth1DepositIndex(uint64) error
 }
 
-// ReadOnlyDeposits has read access to eth1 data.
+// ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
 	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)

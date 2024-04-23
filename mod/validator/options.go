@@ -27,6 +27,7 @@ package validator
 
 import (
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
@@ -69,7 +70,7 @@ func WithDepositStore(ds *deposit.KVStore) Option {
 }
 
 // WithLocalBuilder sets the local builder.
-func WithLocalBuilder(builder PayloadBuilder) Option {
+func WithLocalBuilder(builder PayloadBuilder[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.localBuilder = builder
 		return nil
@@ -77,7 +78,7 @@ func WithLocalBuilder(builder PayloadBuilder) Option {
 }
 
 // WithRemoteBuilders sets the remote builders.
-func WithRemoteBuilders(builders ...PayloadBuilder) Option {
+func WithRemoteBuilders(builders ...PayloadBuilder[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.remoteBuilders = append(s.remoteBuilders, builders...)
 		return nil
@@ -93,7 +94,7 @@ func WithLogger(logger log.Logger) Option {
 }
 
 // WithRandaoProcessor sets the randao processor.
-func WithRandaoProcessor(rp RandaoProcessor) Option {
+func WithRandaoProcessor(rp RandaoProcessor[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.randaoProcessor = rp
 		return nil
