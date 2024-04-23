@@ -41,7 +41,6 @@ import (
 func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
 	st state.BeaconState,
-
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
