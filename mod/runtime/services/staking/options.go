@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
@@ -58,6 +59,15 @@ func WithExecutionEngine(
 ) service.Option[Service] {
 	return func(s *Service) error {
 		s.ee = ee
+		return nil
+	}
+}
+
+func WithDepositStore(
+	ds *deposit.KVStore,
+) service.Option[Service] {
+	return func(s *Service) error {
+		s.ds = ds
 		return nil
 	}
 }
