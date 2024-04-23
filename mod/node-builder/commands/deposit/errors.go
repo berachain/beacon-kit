@@ -77,7 +77,8 @@ var (
 		"validator private key required",
 	)
 
-	// ErrInvalidValidatorPrivateKeyLength is returned when the validator private
+	// ErrInvalidValidatorPrivateKeyLength is returned when the validator
+	// private
 	// key has an invalid length.
 	ErrInvalidValidatorPrivateKeyLength = errors.New(
 		"invalid validator private key length",

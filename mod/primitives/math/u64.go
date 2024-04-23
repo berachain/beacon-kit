@@ -239,12 +239,15 @@ func (u U64) ILog2Floor() uint8 {
 
 // ---------------------------- Gwei Methods ----------------------------
 
+// GweiToWei returns the value of Wei in Gwei.
 func GweiFromWei(i *big.Int) Gwei {
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
 	i.Div(i, intToGwei)
 	return Gwei(i.Uint64())
 }
 
+// ToWei converts a value from Gwei to Wei.
+// nolint:stylecheck // Gwei is a type alias.
 func (g Gwei) ToWei() *big.Int {
 	gweiAmount := big.NewInt(0).SetUint64(g.Unwrap())
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)

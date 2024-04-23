@@ -66,11 +66,12 @@ const (
 	// defaultOverrideNodeKey is the default value for the overrideNodeKey flag.
 	defaultOverrideNodeKey = false
 
-	// defaultValidatorPrivateKey is the default value for the validatorPrivateKey
-	// flag.
+	// defaultValidatorPrivateKey is the default value for the
+	// validatorPrivateKey flag.
 	defaultValidatorPrivateKey = ""
 
 	// defaultJWTSecretPath is the default value for the jwtSecret flag.
+	// #nosec G101 // This is a default path
 	defaultJWTSecretPath = "../jwt.hex"
 
 	// defaultEngineRPCURL is the default value for the engineRPCURL flag.
@@ -96,6 +97,7 @@ const (
 	override-node-key flag is set.`
 
 	// jwtSecretPathMsg is the usage description for the jwtSecretPath flag.
+	// #nosec G101 // This is a descriptor
 	jwtSecretPathMsg = "path to the JWT secret file"
 
 	// engineRPCURLMsg is the usage description for the engineRPCURL flag.
