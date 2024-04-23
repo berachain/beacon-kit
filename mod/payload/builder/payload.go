@@ -209,10 +209,10 @@ func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", pb.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(pb.cfg.LocalBuildPayloadTimeout):
+	case <-time.After(pb.cfg.PayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
