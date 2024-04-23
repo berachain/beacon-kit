@@ -197,6 +197,13 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 	}
 }
 
+func TestU64_NextPowerOfTwoPanic(t *testing.T) {
+	u := ^math.U64(0)
+	require.Panics(t, func() {
+		_ = u.NextPowerOfTwo()
+	})
+}
+
 func TestU64_ILog2Ceil(t *testing.T) {
 	tests := []struct {
 		name     string
