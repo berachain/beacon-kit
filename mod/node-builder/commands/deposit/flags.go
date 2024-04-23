@@ -31,12 +31,28 @@ const (
 
 	// privateKey is the flag for the private key to sign the deposit message.
 	privateKey = "private-key"
+
+	// overrideNodeKey is the flag for overriding the node key.
+	overrideNodeKey = "override-node-key"
+
+	// validatorPrivateKey is the flag for the validator private key.
+	valPrivateKey = "validator-private-key"
+
+	// jwtSecretPath is the flag for the path to the JWT secret file.
+	jwtSecretPath = "jwt-secret"
+
+	// engineRPCURL is the flag for the URL for the engine RPC.
+	engineRPCURL = "engine-rpc-url"
 )
 
 const (
 	// broadcastDepositShorthand is the shorthand flag for the broadcastDeposit
 	// flag.
 	broadcastDepositShorthand = "b"
+
+	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey
+	// flag.
+	overrideNodeKeyShorthand = "o"
 )
 
 const (
@@ -46,13 +62,42 @@ const (
 
 	// defaultPrivateKey is the default value for the privateKey flag.
 	defaultPrivateKey = ""
+
+	// defaultOverrideNodeKey is the default value for the overrideNodeKey flag.
+	defaultOverrideNodeKey = false
+
+	// defaultValidatorPrivateKey is the default value for the validatorPrivateKey
+	// flag.
+	defaultValidatorPrivateKey = ""
+
+	// defaultJWTSecretPath is the default value for the jwtSecret flag.
+	defaultJWTSecretPath = "../jwt.hex"
+
+	// defaultEngineRPCURL is the default value for the engineRPCURL flag.
+	defaultEngineRPCURL = "http://localhost:8551"
 )
 
 const (
-	// broadcastDepositFlagUsage is the usage description for the
+	// broadcastDepositFlagMsg is the usage description for the
 	// broadcastDeposit flag.
 	broadcastDepositMsg = "broadcast the deposit transaction"
 
-	// privateKeyFlagUsage is the usage description for the privateKey flag.
-	privateKeyMsg = "private key to sign the deposit message"
+	// privateKeyFlagMsg is the usage description for the privateKey flag.
+	privateKeyMsg = `private key to sign and pay for the deposit message. 
+	This is required if the broadcast flag is set.`
+
+	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
+	// flag.
+	overrideNodeKeyMsg = "override the node private key"
+
+	// valPrivateKeyMsg is the usage description for the
+	// valPrivateKey flag.
+	valPrivateKeyMsg = `validator private key. This is required if the 
+	override-node-key flag is set.`
+
+	// jwtSecretPathMsg is the usage description for the jwtSecretPath flag.
+	jwtSecretPathMsg = "path to the JWT secret file"
+
+	// engineRPCURLMsg is the usage description for the engineRPCURL flag.
+	engineRPCURLMsg = "URL for the engine RPC"
 )

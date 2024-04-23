@@ -27,9 +27,9 @@ package deposit
 
 import (
 	"crypto/ecdsa"
-	"fmt"
+	"encoding/hex"
+	"net/url"
 	"os"
-	"path/filepath"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -41,6 +41,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -74,6 +75,13 @@ func NewCreateValidator() *cobra.Command {
 		defaultBroadcastDeposit, broadcastDepositMsg,
 	)
 	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
+	cmd.Flags().BoolP(
+		overrideNodeKey, overrideNodeKeyShorthand,
+		defaultOverrideNodeKey, overrideNodeKeyMsg,
+	)
+	cmd.Flags().String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().String(jwtSecretPath, defaultJWTSecretPath, jwtSecretPathMsg)
+	cmd.Flags().String(engineRPCURL, defaultEngineRPCURL, engineRPCURLMsg)
 
 	return cmd
 }
@@ -112,12 +120,62 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			}
 		}
 
+		// If the override node key flag is set, a validator private key must be
+		// provided.
+		overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
+		if err != nil {
+			return err
+		}
+
+		// Build the BLS signer.
+		if overrideFlag {
+			var validatorPrivKey string
+			validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
+			if err != nil {
+				return err
+			}
+			if validatorPrivKey == "" {
+				return ErrValidatorPrivateKeyRequired
+			}
+
+			validatorPrivKeyBz, err := hex.DecodeString(validatorPrivKey)
+			if err != nil {
+				return err
+			}
+			if len(validatorPrivKeyBz) != constants.BLSSecretKeyLength {
+				return ErrInvalidValidatorPrivateKeyLength
+			}
+
+			blsSigner, err = signer.NewBLSSigner(
+				[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
+			)
+			if err != nil {
+				return err
+			}
+		} else {
+			if err := depinject.Inject(
+				depinject.Configs(
+					depinject.Supply(
+						logger,
+						viper.GetViper(),
+						spec.LocalnetChainSpec(),
+					),
+					depinject.Provide(
+						components.ProvideBlsSigner,
+					),
+				),
+				&blsSigner,
+			); err != nil {
+				return err
+			}
+		}
+
 		credentials, err := convertWithdrawalCredentials(args[0])
 		if err != nil {
 			return err
 		}
 
-		amount, err := convertAmountFromWei(args[1])
+		amount, err := convertAmount(args[1])
 		if err != nil {
 			return err
 		}
@@ -130,22 +188,6 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		genesisValidatorRoot, err := convertGenesisValidatorRoot(args[3])
 		if err != nil {
 			return err
-		}
-
-		if err := depinject.Inject(
-			depinject.Configs(
-				depinject.Supply(
-					logger,
-					viper.GetViper(),
-					spec.LocalnetChainSpec(),
-				),
-				depinject.Provide(
-					components.ProvideBlsSigner,
-				),
-			),
-			&blsSigner,
-		); err != nil {
-			panic(err)
 		}
 
 		// Create and sign the deposit message.
@@ -182,49 +224,44 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		}
 
 		// Spin up an engine client to broadcast the deposit transaction.
-		// if err := depinject.Inject(
-		// 	depinject.Configs(
-		// 		depinject.Supply(
-		// 			viper.GetViper(),
-		// 		),
-		// 		depinject.Provide(
-		// 			components.ProvideJWTSecret,
-		// 		),
-		// 	),
-		// 	&jwtSecret,
-		// ); err != nil {
-		// 	panic(err)
-		// }
-		jwtSecret, err = jwt.LoadFromFile("beacond/jwt.hex")
+		// TODO: This should read in the actual config file. I'm going to rope
+		// if I keep trying this right now so it's a flag lol! 🥲
+		cfg := config.DefaultConfig()
+
+		// Parse the engine RPC URL.
+		engineRPCURL, err := cmd.Flags().GetString(engineRPCURL)
+		if err != nil {
+			return err
+		}
+		cfg.Engine.RPCDialURL, err = url.Parse(engineRPCURL)
+		if err != nil {
+			return err
+		}
+
+		// Load the JWT secret.
+		cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
+		if err != nil {
+			return err
+		}
+		jwtSecret, err = jwt.LoadFromFile(cfg.Engine.JWTSecretPath)
 		if err != nil {
 			panic(err)
 		}
 
-		homeDir, err := cmd.Flags().GetString("home")
-		if err != nil {
-			return err
-		}
-		configPath := filepath.Join(homeDir, "config", "config.toml")
-
-		cfg := config.MustReadConfigFromFile(configPath)
-		fmt.Println("CONFIG DUMP", cfg)
-
-		cfg = config.DefaultConfig()
-		fmt.Println("DEFAULT CONFIG DUMP", cfg)
-
+		// Spin up the engine client.
 		ethClient, err := gethclient.Dial(cfg.Engine.RPCDialURL.String())
 		if err != nil {
 			return err
 		}
 
-		eth1client, err := ethclient.NewEth1Client(ethClient)
+		eth1Client, err := ethclient.NewEth1Client(ethClient)
 		if err != nil {
 			return err
 		}
 
 		engineClient := engineclient.New(
 			engineclient.WithEngineConfig(&cfg.Engine),
-			engineclient.WithEth1Client(eth1client),
+			engineclient.WithEth1Client(eth1Client),
 			engineclient.WithJWTSecret(jwtSecret),
 			engineclient.WithLogger(logger),
 		)
@@ -266,12 +303,11 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		//
+		// Wait for the transaction to be mined and check the status.
 		receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
 		if err != nil {
 			return err
 		}
-
 		if receipt.Status != 1 {
 			return ErrDepositTransactionFailed
 		}
