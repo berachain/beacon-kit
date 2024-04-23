@@ -48,10 +48,6 @@ type Config struct {
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 
-	// Graffiti is the string that will be included in the
-	// graffiti field of the beacon block.
-	Graffiti string `mapstructure:"graffiti"`
-
 	// LocalBuilderEnabled determines if the local builder is enabled.
 	LocalBuilderEnabled bool `mapstructure:"local-builder-enabled"`
 
@@ -67,7 +63,6 @@ type Config struct {
 func DefaultBuilderConfig() Config {
 	return Config{
 		SuggestedFeeRecipient:    primitives.ExecutionAddress{},
-		Graffiti:                 "",
 		LocalBuilderEnabled:      defaultLocalBuilderEnabled,
 		LocalBuildPayloadTimeout: defaultLocalBuildPayloadTimeout,
 	}
