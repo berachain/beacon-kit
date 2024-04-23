@@ -23,13 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package engineprimitives
 
 import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	gengine "github.com/ethereum/go-ethereum/beacon/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -40,7 +39,7 @@ import (
 //nolint:lll
 type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload engineprimitives.ExecutionPayload
+	ExecutionPayload ExecutionPayload
 	// VersionedHashes is the versioned hashes of the execution payload.
 	VersionedHashes []primitives.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
@@ -52,7 +51,7 @@ type NewPayloadRequest struct {
 
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest(
-	executionPayload engineprimitives.ExecutionPayload,
+	executionPayload ExecutionPayload,
 	versionedHashes []primitives.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
@@ -106,9 +105,9 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 // ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
-	State *engineprimitives.ForkchoiceState
+	State *ForkchoiceState
 	// PayloadAttributes is the payload attributer.
-	PayloadAttributes engineprimitives.PayloadAttributer
+	PayloadAttributes PayloadAttributer
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
 	ForkVersion uint32
@@ -116,8 +115,8 @@ type ForkchoiceUpdateRequest struct {
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
-	state *engineprimitives.ForkchoiceState,
-	payloadAttributes engineprimitives.PayloadAttributer,
+	state *ForkchoiceState,
+	payloadAttributes PayloadAttributer,
 	forkVersion uint32,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
@@ -130,7 +129,7 @@ func BuildForkchoiceUpdateRequest(
 // GetPayloadRequest represents a request to get a payload.
 type GetPayloadRequest struct {
 	// PayloadID is the payload ID.
-	PayloadID engineprimitives.PayloadID
+	PayloadID PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
@@ -138,7 +137,7 @@ type GetPayloadRequest struct {
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
-	payloadID engineprimitives.PayloadID,
+	payloadID PayloadID,
 	forkVersion uint32,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{

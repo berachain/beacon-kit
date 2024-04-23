@@ -136,6 +136,12 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil, nil, beacontypes.ErrNilBlkBody
+	}
+
+	// Get the latest execution payload.
 	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, nil, err
@@ -143,7 +149,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.RetrieveBuiltPayload(
+	envelope, err := s.localBuilder.RetrieveBuiltPayload(
 		ctx,
 		st,
 		slot,
@@ -152,18 +158,11 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return blk, nil, fmt.Errorf(
-			"failed to get block root at index: %w",
+			"failed to retrieve payload from builder: %w",
 			err,
 		)
-	}
-
-	// TODO: allow external block builders to override the payload.
-	_ = overrideBuilder
-
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil, nil, beacontypes.ErrNilBlkBody
+	} else if envelope == nil {
+		return blk, nil, ErrReceivedNilEnvelope
 	}
 
 	// TODO: assemble real eth1data.
@@ -174,6 +173,7 @@ func (s *Service) RequestBestBlock(
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
+	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
@@ -193,7 +193,11 @@ func (s *Service) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// if err = b
+	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, nil, beacontypes.ErrNilPayload
+	}
+
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
 	}

@@ -12,6 +12,7 @@ replace (
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240421190920-f31a6a3024ba
 
 	// Required because private repo, TODO: fix.
+	github.com/berachain/beacon-kit/mod/execution => ./execution
 	github.com/berachain/beacon-kit/mod/primitives => ./primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ./primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ./storage
@@ -26,16 +27,16 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-sdk v0.51.0
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/sha256-simd v1.0.1
@@ -54,6 +55,7 @@ require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/store v1.1.0 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )
