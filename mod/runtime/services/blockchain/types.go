@@ -58,7 +58,7 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
-	RequestPayload(
+	RequestPayloadAsync(
 		ctx context.Context,
 		st state.BeaconState,
 		parentEth1Hash primitives.ExecutionHash,

@@ -70,7 +70,7 @@ func (s *Service) sendFCUWithAttributes(
 	forSlot math.Slot,
 	parentBlockRoot primitives.Root,
 ) error {
-	_, err := s.lb.RequestPayload(
+	_, err := s.lb.RequestPayloadAsync(
 		ctx,
 		st,
 		headEth1Hash,

@@ -146,7 +146,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	envelope, err := s.localBuilder.RetrieveBuiltPayload(
+	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
 		st,
 		slot,
