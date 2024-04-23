@@ -126,6 +126,8 @@ func MarshalBool[BoolT ~bool](b BoolT) []byte {
 	return []byte{0}
 }
 
+// MarshalNull takes any type T and returns an empty byte slice.
+// This function is useful when you need to represent a null value in byte slice form.
 func MarshalNull[T any](t T) []byte {
 	return []byte{}
 }
