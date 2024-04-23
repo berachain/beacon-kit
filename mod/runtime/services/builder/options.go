@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/payload/builder"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // WithBaseService sets the base service.
@@ -43,6 +44,14 @@ func WithBaseService(svc service.BaseService) service.Option[Service] {
 func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
 	return func(s *Service) error {
 		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithDepositStore sets the deposit store.
+func WithDepositStore(ds *deposit.KVStore) service.Option[Service] {
+	return func(s *Service) error {
+		s.ds = ds
 		return nil
 	}
 }

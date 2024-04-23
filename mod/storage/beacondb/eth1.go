@@ -28,8 +28,7 @@ package beacondb
 // GetLatestExecutionPayload retrieves the latest execution payload from the
 // BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetLatestExecutionPayload() (
 	ExecutionPayloadT, error,
 ) {
@@ -39,8 +38,7 @@ func (kv *KVStore[
 // UpdateLatestExecutionPayload sets the latest execution payload in the
 // BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) UpdateLatestExecutionPayload(
 	payload ExecutionPayloadT,
 ) error {
@@ -49,16 +47,14 @@ func (kv *KVStore[
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetEth1DepositIndex(
 	index uint64,
 ) error {
@@ -67,16 +63,14 @@ func (kv *KVStore[
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetEth1Data() (Eth1DataT, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetEth1Data(
 	data Eth1DataT,
 ) error {

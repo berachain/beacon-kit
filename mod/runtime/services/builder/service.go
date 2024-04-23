@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // Service is responsible for building beacon blocks.
@@ -48,6 +49,8 @@ type Service struct {
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
+
+	ds *deposit.KVStore
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -179,7 +182,8 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-	deposits, err := st.ExpectedDeposits(
+	//nolint:contextcheck // not needed.
+	deposits, err := s.ds.ExpectedDeposits(
 		s.ChainSpec().MaxDepositsPerBlock(),
 	)
 	if err != nil {
