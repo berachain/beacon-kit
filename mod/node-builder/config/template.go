@@ -83,4 +83,21 @@ trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 # KZG implementation to use.
 # Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
 implementation = "{{.BeaconKit.KZG.Implementation}}"
+
+[beacon-kit.payload-builder]
+# Enabled determines if the local payload builder is enabled.
+enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
+
+# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# from this node.
+suggested-fee-recipient = "{{.BeaconKit.PayloadBuilder.SuggestedFeeRecipient}}"
+
+# The timeout for local build payload. This should match, or be slightly less
+# than the configured timeout on your execution client. It also must be less than
+# timeout_proposal in the CometBFT configuration.
+payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
+
+[beacon-kit.validator]
+# Graffiti string that will be included in the graffiti field of the beacon block.
+graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 `
