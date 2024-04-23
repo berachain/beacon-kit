@@ -4,6 +4,7 @@ use (
 	./beacond
 	./build/tools
 	./mod
+	./mod/execution
 	./mod/primitives
 	./mod/primitives-engine
 	./mod/storage
