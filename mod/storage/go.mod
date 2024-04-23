@@ -12,7 +12,6 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cockroachdb/pebble v1.1.0
-	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
@@ -43,6 +42,7 @@ require (
 	github.com/cometbft/cometbft v0.38.6 // indirect
 	github.com/cometbft/cometbft-db v0.9.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect

@@ -29,6 +29,9 @@ import (
 	"encoding/binary"
 )
 
+// bitsPerByte is the number of bits in a byte.
+const bitsPerByte = 8
+
 // ----------------------------- Unmarshal -----------------------------
 
 // UnmarshalU256 unmarshals a big endian U256 from the src input.
@@ -129,7 +132,7 @@ func MarshalBool[BoolT ~bool](b BoolT) []byte {
 // MarshalNull takes any type T and returns an empty byte slice.
 // This function is useful when you need to represent a null value in byte slice
 // form.
-func MarshalNull[T any](t T) []byte {
+func MarshalNull[T any](T) []byte {
 	return []byte{}
 }
 
@@ -137,11 +140,12 @@ func MarshalNull[T any](t T) []byte {
 // each bit represents a boolean value.
 func MarshalBitVector(bv []bool) []byte {
 	// Calculate the necessary byte length to represent the bit vector.
-	array := make([]byte, (len(bv)+7)/8)
+	//nolint:mnd // per spec.
+	array := make([]byte, (len(bv)+7)/bitsPerByte)
 	for i, val := range bv {
 		if val {
 			// set the corresponding bit in the byte slice.
-			array[i/8] |= 1 << (i % 8)
+			array[i/bitsPerByte] |= 1 << (i % bitsPerByte)
 		}
 	}
 	// Return the byte slice representation of the bit vector.
@@ -157,14 +161,14 @@ func MarshalBitVector(bv []bool) []byte {
 func MarshalBitList(bv []bool) []byte {
 	// Allocate enough bytes to represent the bit list, plus one for the end
 	// bit.
-	array := make([]byte, (len(bv)/8)+1)
+	array := make([]byte, (len(bv)/bitsPerByte)+1)
 	for i, val := range bv {
 		if val {
 			// Set the bit at the appropriate position if the boolean is true.
-			array[i/8] |= 1 << (i % 8)
+			array[i/8] |= 1 << (i % bitsPerByte)
 		}
 	}
 	// Set the additional bit at the end.
-	array[len(bv)/8] |= 1 << (len(bv) % 8)
+	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
 	return array
 }
