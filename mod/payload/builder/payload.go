@@ -106,6 +106,8 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 	)
 	if err != nil {
 		return nil, err
+	} else if payloadID == nil {
+		return nil, ErrNilPayloadID
 	}
 
 	// Wait for the payload to be delivered to the execution client.
