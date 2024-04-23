@@ -113,7 +113,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayload, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayloadAsync(
@@ -126,10 +126,10 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.LocalBuildPayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(pb.cfg.PayloadTimeout):
+	case <-time.After(pb.cfg.LocalBuildPayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
@@ -157,7 +157,7 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayload, error) {
 	// We first attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root. If we have, and we are able
 	// to

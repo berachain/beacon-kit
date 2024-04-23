@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
-type BuiltExecutionPayloadEnv interface {
+// BuiltExecutionPayload is an interface for the execution payload envelope.
+type BuiltExecutionPayload interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() ExecutionPayload
 	// GetValue returns the Wei value of the block in the execution payload.

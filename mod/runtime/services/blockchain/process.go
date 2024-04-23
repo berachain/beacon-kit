@@ -177,7 +177,7 @@ func (s *Service) ValidatePayloadOnBlk(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
-			true,
+			false,
 		),
 	); err != nil {
 		s.Logger().
