@@ -23,27 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
-import (
-	"context"
+// Config is the validator configuration.
+type Config struct {
+	// Graffiti is the string that will be included in the
+	// graffiti field of the beacon block.
+	Graffiti string `mapstructure:"graffiti"`
+}
 
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-)
-
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+// DefaultConfig returns the default fork configuration.
+func DefaultConfig() Config {
+	return Config{
+		Graffiti: "",
+	}
 }

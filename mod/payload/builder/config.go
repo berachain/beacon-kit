@@ -34,41 +34,32 @@ import (
 const (
 	// defaultLocalBuilderEnabled is the default value for local builder.
 	defaultLocalBuilderEnabled = true
-	// defaultLocalBuildPayloadTimeout is the default value for local build
+	// defaultPayloadTimeout is the default value for local build
 	// payload timeout.
-	defaultLocalBuildPayloadTimeout = 2500 * time.Millisecond
+	defaultPayloadTimeout = 2500 * time.Millisecond
 )
 
-// Builder is the configuration for the payload builder.
+// Config is the configuration for the payload builder.
 //
 //nolint:lll // struct tags.
 type Config struct {
+	// Enabled determines if the local builder is enabled.
+	Enabled bool `mapstructure:"enabled"`
+
+	// PayloadTimeout is the timeout for the payload build.
+	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
+
 	// Suggested FeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
-
-	// Graffiti is the string that will be included in the
-	// graffiti field of the beacon block.
-	Graffiti string `mapstructure:"graffiti"`
-
-	// LocalBuilderEnabled determines if the local builder is enabled.
-	LocalBuilderEnabled bool `mapstructure:"local-builder-enabled"`
-
-	// LocalBuildPayloadTimeout is the timeout parameter for local build
-	// payload. This should match, or be slightly less than the configured
-	// timeout on your
-	// execution client. It also must be less than timeout_proposal in the
-	// CometBFT configuration.
-	LocalBuildPayloadTimeout time.Duration `mapstructure:"local-build-payload-timeout"`
 }
 
-// DefaultBuilderConfig returns the default fork configuration.
-func DefaultBuilderConfig() Config {
+// DefaultConfig returns the default fork configuration.
+func DefaultConfig() Config {
 	return Config{
-		SuggestedFeeRecipient:    primitives.ExecutionAddress{},
-		Graffiti:                 "",
-		LocalBuilderEnabled:      defaultLocalBuilderEnabled,
-		LocalBuildPayloadTimeout: defaultLocalBuildPayloadTimeout,
+		Enabled:               defaultLocalBuilderEnabled,
+		SuggestedFeeRecipient: primitives.ExecutionAddress{},
+		PayloadTimeout:        defaultPayloadTimeout,
 	}
 }
