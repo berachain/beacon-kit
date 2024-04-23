@@ -115,7 +115,7 @@ func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (engineprimitives.ExecutionPayload, engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -127,7 +127,7 @@ func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	// this particular slot and parent block root. If we have, and we are able
 	// to
 	// retrieve it from our execution client, we can return it immediately.
-	payload, blobsBundle, overrideBuilder, err := pb.
+	envelope, err := pb.
 		retrieveBuiltPayload(
 			ctx,
 			slot,
@@ -137,7 +137,7 @@ func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	// If there was no error we can simply return the payload that we
 	// just retrieved.
 	if err == nil {
-		return payload, blobsBundle, overrideBuilder, nil
+		return envelope, nil
 	}
 
 	// Otherwise we will fall back to triggering a payload build.
@@ -159,29 +159,31 @@ func (pb *PayloadBuilder) retrieveBuiltPayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload, engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// See if we have a payload ID for this slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found || (payloadID == engineprimitives.PayloadID{}) {
 		// If we don't have a payload ID, we can't retrieve the payload.
-		return nil, nil, false, ErrPayloadIDNotFound
+		return nil, ErrPayloadIDNotFound
 	}
 
 	// Request the payload from the execution client.
-	payload, blobsBundle, overrideBuilder, err := pb.getPayloadFromExecutionClient(
-		ctx,
-		&payloadID,
-		slot,
+	envelope, err := pb.getPayloadFromExecutionClient(
+		ctx, &payloadID, slot,
 	)
 	if err != nil {
-		return nil, nil, false, err
-	} else if payload == nil {
-		return nil, nil, false, ErrNilPayload
+		return nil, err
+	} else if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
 	}
 
 	// Cache the payload and return.
+	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, ErrNilPayload
+	}
 	pb.pc.Set(slot, payload.GetParentHash(), payloadID)
-	return payload, blobsBundle, overrideBuilder, nil
+	return envelope, nil
 }
 
 // buildAndWaitForLocalPayload, triggers a payload build process, waits
@@ -194,29 +196,28 @@ func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayload(
 		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, err
 	}
 
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", pb.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(pb.cfg.LocalBuildPayloadTimeout):
+	case <-time.After(pb.cfg.PayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
 	case <-ctx.Done():
-		return nil, nil, false, ctx.Err()
+		return nil, ctx.Err()
 	}
 
 	// Get the payload from the execution client.
@@ -230,10 +231,9 @@ func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
 	slot math.Slot,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	if payloadID == nil {
-		return nil, nil, false, ErrNilPayloadID
+		return nil, ErrNilPayloadID
 	}
 
 	envelope, err := pb.ee.GetPayload(
@@ -244,9 +244,9 @@ func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 		},
 	)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, err
 	} else if envelope == nil {
-		return nil, nil, false, ErrNilPayloadEnvelope
+		return nil, ErrNilPayloadEnvelope
 	}
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
@@ -269,5 +269,5 @@ func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 	}
 
 	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
-	return payload, blobsBundle, overrideBuilder, err
+	return envelope, err
 }

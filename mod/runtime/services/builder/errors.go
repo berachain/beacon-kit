@@ -25,41 +25,10 @@
 
 package builder
 
-import (
-	"time"
+import "errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+// ErrReceivedNilEnvelope is returned when the payload builder receives a nil
+// envelope.
+var ErrReceivedNilEnvelope = errors.New(
+	"received nil envelope from payload builder",
 )
-
-const (
-	// defaultLocalBuilderEnabled is the default value for local builder.
-	defaultLocalBuilderEnabled = true
-	// defaultPayloadTimeout is the default value for local build
-	// payload timeout.
-	defaultPayloadTimeout = 2500 * time.Millisecond
-)
-
-// Config is the configuration for the payload builder.
-//
-//nolint:lll // struct tags.
-type Config struct {
-	// Enabled determines if the local builder is enabled.
-	Enabled bool `mapstructure:"enabled"`
-
-	// PayloadTimeout is the timeout for the payload build.
-	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
-
-	// Suggested FeeRecipient is the address that will receive the transaction
-	// fees
-	// produced by any blocks from this node.
-	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
-}
-
-// DefaultConfig returns the default fork configuration.
-func DefaultConfig() Config {
-	return Config{
-		Enabled:               defaultLocalBuilderEnabled,
-		SuggestedFeeRecipient: primitives.ExecutionAddress{},
-		PayloadTimeout:        defaultPayloadTimeout,
-	}
-}

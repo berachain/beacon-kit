@@ -105,7 +105,7 @@ func ProvideRuntime(
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
 		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
 		payloadbuilder.WithChainSpec(chainSpec),
-		payloadbuilder.WithConfig(&cfg.Builder),
+		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
 		payloadbuilder.WithPayloadCache(
 			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
@@ -140,7 +140,7 @@ func ProvideRuntime(
 	)
 	builderService := service.New[builder.Service](
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
-		builder.WithBuilderConfig(&cfg.Builder),
+		builder.WithBuilderConfig(&cfg.PayloadBuilder),
 		builder.WithBlobFactory(blobFactory),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
