@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -69,7 +68,7 @@ func (pb *PayloadBuilder) RequestPayload(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &execution.ForkchoiceUpdateRequest{
+		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
 				SafeBlockHash:      parentEth1BlockHash,
@@ -238,7 +237,7 @@ func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 
 	envelope, err := pb.ee.GetPayload(
 		ctx,
-		&execution.GetPayloadRequest{
+		&engineprimitives.GetPayloadRequest{
 			PayloadID:   *payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
