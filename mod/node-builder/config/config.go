@@ -44,11 +44,11 @@ import (
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:      abci.DefaultABCIConfig(),
-		Builder:   builder.DefaultConfig(),
-		Engine:    engineclient.DefaultConfig(),
-		KZG:       kzg.DefaultConfig(),
-		Validator: validator.DefaultConfig(),
+		ABCI:           abci.DefaultABCIConfig(),
+		Engine:         engineclient.DefaultConfig(),
+		KZG:            kzg.DefaultConfig(),
+		PayloadBuilder: builder.DefaultConfig(),
+		Validator:      validator.DefaultConfig(),
 	}
 }
 
@@ -57,14 +57,14 @@ type Config struct {
 	// ABCI is the configuration for ABCI related settings.
 	ABCI abci.Config `mapstructure:"abci"`
 
-	// Builder is the configuration for the local build payload timeout.
-	Builder builder.Config `mapstructure:"builder"`
-
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
 
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
+
+	// PayloadBuilder is the configuration for the local build payload timeout.
+	PayloadBuilder builder.Config `mapstructure:"builder"`
 
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
@@ -135,7 +135,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
+		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
 	startCmd.Flags().String(flags.KZGTrustedSetupPath,
