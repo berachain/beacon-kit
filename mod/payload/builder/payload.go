@@ -46,14 +46,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 ) (*engineprimitives.PayloadID, error) {
-	// Assemble the payload attributes.
-	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
-	if err != nil {
-		return nil, fmt.Errorf("%w error when getting payload attributes", err)
-	}
-
-	// Notify the execution client of the forkchoice update.
-	var payloadID *engineprimitives.PayloadID
 	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
@@ -61,22 +53,20 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		"parent_block_root", parentBlockRoot,
 	)
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	// Assemble the payload attributes.
+	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w error when getting payload attributes", err)
 	}
-	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
-	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceState{
-				HeadBlockHash:      parentEth1Hash,
-				SafeBlockHash:      parentEth1BlockHash,
-				FinalizedBlockHash: parentEth1BlockHash,
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
+	// Submit the forkchoice update to the execution client.
+	var payloadID *engineprimitives.PayloadID
+	payloadID, _, err = pb.submitForkchoiceUpdate(
+		ctx,
+		st,
+		slot,
+		attrs,
+		parentEth1Hash,
 	)
 	if err != nil {
 		return nil, err
@@ -95,12 +85,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		"payload_id", payloadID,
 	)
 
-	pb.pc.Set(
-		slot,
-		parentBlockRoot,
-		*payloadID,
-	)
-
+	pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	return payloadID, nil
 }
 
