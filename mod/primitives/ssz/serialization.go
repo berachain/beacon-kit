@@ -130,23 +130,26 @@ func MarshalNull[T any](t T) []byte {
 	return []byte{}
 }
 
+// MarshalBitVector converts a slice of boolean values into a byte slice where each bit represents a boolean value.
 func MarshalBitVector(bv []bool) []byte {
-	array := make([]byte, (len(bv)+7)/8)
-	for i, val := range bv {
-		if val {
-			array[i/8] |= 1 << (i % 8)
+	array := make([]byte, (len(bv)+7)/8) // Calculate the necessary byte length to represent the bit vector.
+	for i, val := range bv {             // Iterate through each boolean value in the input slice.
+		if val { // If the boolean value is true,
+			array[i/8] |= 1 << (i % 8) // set the corresponding bit in the byte slice.
 		}
 	}
-	return array
+	return array // Return the byte slice representation of the bit vector.
 }
 
+// MarshalBitList converts a slice of boolean values into a byte slice where each bit represents a boolean value, with an additional bit set at the end.
+// Note that from the offset coding, the length (in bytes) of the bitlist is known. An additional 1 bit is added to the end, at index e where e is the length of the bitlist (not the limit), so that the length in bits will also be known.
 func MarshalBitList(bv []bool) []byte {
-	array := make([]byte, (len(bv)/8)+1)
+	array := make([]byte, (len(bv)/8)+1) // Allocate enough bytes to represent the bit list, plus one for the end bit.
 	for i, val := range bv {
 		if val {
-			array[i/8] |= 1 << (i % 8)
+			array[i/8] |= 1 << (i % 8) // Set the bit at the appropriate position if the boolean is true.
 		}
 	}
-	array[len(bv)/8] |= 1 << (len(bv) % 8)
+	array[len(bv)/8] |= 1 << (len(bv) % 8) // Set the additional bit at the end.
 	return array
 }
