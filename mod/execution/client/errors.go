@@ -104,10 +104,13 @@ var (
 	ErrUnknownPayloadStatus = errors.New(
 		"unknown payload status")
 
-	// ErrAcceptedSyncingPayloadStatus indicates a payload status of SYNCING or
-	// ACCEPTED.
-	ErrAcceptedSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING or ACCEPTED")
+	// ErrAcceptedPayloadStatus indicates a payload status of ACCEPTED.
+	ErrAcceptedPayloadStatus = errors.New(
+		"payload status is ACCEPTED")
+
+	// ErrSyncingPayloadStatus indicates a payload status of SYNCING.
+	ErrSyncingPayloadStatus = errors.New(
+		"payload status is SYNCING")
 
 	// ErrInvalidPayloadStatus indicates an invalid payload status.
 	ErrInvalidPayloadStatus = errors.New(

@@ -29,6 +29,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // Collection prefixes.
@@ -57,7 +58,7 @@ type Validator interface {
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() primitives.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.
-	GetEffectiveBalance() primitives.Gwei
+	GetEffectiveBalance() math.Gwei
 }
 
 // ValidatorsIndex is a struct that holds a unique index for validators based

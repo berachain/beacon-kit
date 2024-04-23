@@ -47,7 +47,7 @@ func Commands() *cobra.Command {
 		Use:                        "jwt",
 		Short:                      "JWT subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 

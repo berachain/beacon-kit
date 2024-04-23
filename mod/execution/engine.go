@@ -77,7 +77,7 @@ func (ee *Engine) GetLogs(
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *GetPayloadRequest,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -104,13 +104,15 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		req.ForkVersion,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		ee.logger.Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", req.State.HeadBlockHash,
 		)
 		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
@@ -141,6 +143,21 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		return false, err
 	}
 
+	// If the block already exists, we can skip sending the payload to the
+	// execution client.
+	if req.SkipIfExists {
+		header, err := ee.ec.HeaderByHash(
+			ctx,
+			req.ExecutionPayload.GetBlockHash(),
+		)
+		if header != nil && err != nil {
+			ee.logger.Info("skipping new payload, block already available",
+				"block_hash", req.ExecutionPayload.GetBlockHash(),
+			)
+		}
+		return true, nil
+	}
+
 	// Then we can ask the EL to process the new payload.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
@@ -149,13 +166,15 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		req.ParentBeaconBlockRoot,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedSyncingPayloadStatus):
+	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, client.ErrSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
 		return false, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus):
+	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
+		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),

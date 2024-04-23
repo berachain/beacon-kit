@@ -32,6 +32,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	db "github.com/berachain/beacon-kit/mod/storage"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/sourcegraph/conc/iter"
@@ -58,7 +59,7 @@ func NewStore(
 // stored before it returns without an error.
 func (s *Store) IsDataAvailable(
 	ctx context.Context,
-	slot primitives.Slot,
+	slot math.Slot,
 	b beacontypes.ReadOnlyBeaconBlock,
 ) bool {
 	_ = ctx
@@ -70,7 +71,7 @@ func (s *Store) IsDataAvailable(
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
 func (s *Store) Persist(
-	slot primitives.Slot,
+	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 type ExecutionEngine interface {
@@ -39,7 +40,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
@@ -58,11 +59,11 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
-	BuildLocalPayload(
+	RequestPayload(
 		ctx context.Context,
 		st state.BeaconState,
 		parentEth1Hash primitives.ExecutionHash,
-		slot primitives.Slot,
+		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
 	) (*engineprimitives.PayloadID, error)

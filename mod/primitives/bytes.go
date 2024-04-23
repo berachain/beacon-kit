@@ -74,6 +74,11 @@ func (h Bytes32) String() string {
 	return hexutil.Encode(h[:])
 }
 
+// HashTreeRoot returns the hash tree root of the Bytes32.
+func (h Bytes32) HashTreeRoot() ([32]byte, error) {
+	return h, nil
+}
+
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 func (h Bytes32) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil

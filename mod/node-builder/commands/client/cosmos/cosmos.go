@@ -41,7 +41,7 @@ func QueryCommands() *cobra.Command {
 		Aliases:                    []string{"q"},
 		Short:                      "Querying subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 
@@ -64,7 +64,7 @@ func TxCommands() *cobra.Command {
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 

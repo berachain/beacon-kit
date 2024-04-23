@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -347,7 +348,7 @@ func (sp *StateProcessor) processDeposit(
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
-			primitives.Gwei(sp.cs.MaxEffectiveBalance()))
+			math.Gwei(sp.cs.MaxEffectiveBalance()))
 		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 			return
 		}
@@ -368,7 +369,7 @@ func (sp *StateProcessor) createValidator(
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
-		epoch                 primitives.Epoch
+		epoch                 math.Epoch
 		err                   error
 	)
 
@@ -417,8 +418,8 @@ func (sp *StateProcessor) addValidatorToRegistry(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
-		primitives.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		primitives.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 	if err := st.AddValidator(val); err != nil {
 		return err
@@ -440,7 +441,7 @@ func (sp *StateProcessor) processWithdrawals(
 	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.
-	var nextValidatorIndex primitives.ValidatorIndex
+	var nextValidatorIndex math.ValidatorIndex
 	payloadWithdrawals := payload.GetWithdrawals()
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
@@ -493,7 +494,7 @@ func (sp *StateProcessor) processWithdrawals(
 		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
-				primitives.U64(totalValidators)
+				math.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not
 		// a full set of withdrawals
@@ -501,9 +502,9 @@ func (sp *StateProcessor) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += primitives.ValidatorIndex(
+		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= primitives.ValidatorIndex(totalValidators)
+		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
 	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
@@ -605,7 +606,7 @@ func (sp *StateProcessor) processSlashings(
 	// Iterate through the validators.
 	for _, val := range vals {
 		// Checks if the validator is slashable.
-		//nolint:gomnd // this is in the spec
+		//nolint:mnd // this is in the spec
 		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
 		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
@@ -643,5 +644,5 @@ func (sp *StateProcessor) processSlash(
 		return err
 	}
 
-	return st.DecreaseBalance(idx, primitives.Gwei(penalty))
+	return st.DecreaseBalance(idx, math.Gwei(penalty))
 }

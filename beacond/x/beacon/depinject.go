@@ -40,7 +40,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-//nolint:gochecknoinits // GRRRR fix later.
+//nolint:init // okay.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),
