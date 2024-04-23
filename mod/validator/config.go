@@ -23,29 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package validator
 
-const (
-	prefix = "beaconkit.builder."
+// Config is the validator configuration.
+type Config struct {
+	// Graffiti is the string that will be included in the
+	// graffiti field of the beacon block.
+	Graffiti string `mapstructure:"graffiti"`
+}
 
-	// MetricsPayloadIDCacheHit is used to count the number of times a built
-	// payload retrieval is attempted and found.
-	MetricsPayloadIDCacheHit = prefix +
-		"payload-id-cache-hit"
-
-	// MetricGetPayloadMiss is used to count the number of times a built
-	// payload retrieval is attempted but not found.
-	MetricsPayloadIDCacheMiss = prefix +
-		"payload-id-cache-miss"
-
-	// MetricErrorRetrievingPayload is used to count the number of times an
-	// error
-	// occurs when attempting to retrieve a built payload.
-	MetricsPayloadIDCacheError = prefix +
-		"get-payload-error"
-
-	// MetricLocalBuilderReceivedNilPayload is used to count the number of times
-	// the local builder receives a nil payload.
-	MetricsLocalBuilderReceivedNilPayload = prefix +
-		"local-builder-received-nil-payload"
-)
+// DefaultConfig returns the default fork configuration.
+func DefaultConfig() Config {
+	return Config{
+		Graffiti: "",
+	}
+}

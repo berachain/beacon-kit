@@ -23,28 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *engineprimitives.PayloadStatus,
-) (*primitives.ExecutionHash, error) {
-	switch result.Status {
-	case engineprimitives.PayloadStatusAccepted:
-		return nil, ErrAcceptedPayloadStatus
-	case engineprimitives.PayloadStatusSyncing:
-		return nil, ErrSyncingPayloadStatus
-	case engineprimitives.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case engineprimitives.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
+// getPayloadAttributes returns the payload attributes for the given state and
+// slot. The attribute is required to initiate a payload build process in the
+// context of an `engine_forkchoiceUpdated` call.
+func (pb *PayloadBuilder) getPayloadAttribute(
+	st state.BeaconState,
+	slot math.Slot,
+	timestamp uint64,
+	prevHeadRoot [32]byte,
+) (engineprimitives.PayloadAttributer, error) {
+	var (
+		prevRandao [32]byte
+	)
+
+	// Get the expected withdrawals to include in this payload.
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		pb.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return nil, err
 	}
+
+	epoch := pb.chainSpec.SlotToEpoch(slot)
+
+	// Get the previous randao mix.
+	prevRandao, err = st.GetRandaoMixAtIndex(
+		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
+		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
+		timestamp,
+		prevRandao,
+		pb.cfg.SuggestedFeeRecipient,
+		withdrawals,
+		prevHeadRoot,
+	)
 }

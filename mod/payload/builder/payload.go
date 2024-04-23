@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
 	"context"
@@ -35,12 +35,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 
-// BuildLocalPayload builds a payload for the given slot and
+// RequestPayload builds a payload for the given slot and
 // returns the payload ID.
-func (s *Service) BuildLocalPayload(
+func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -49,14 +48,14 @@ func (s *Service) BuildLocalPayload(
 	parentBlockRoot primitives.Root,
 ) (*engineprimitives.PayloadID, error) {
 	// Assemble the payload attributes.
-	attrs, err := s.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
 		return nil, fmt.Errorf("%w error when getting payload attributes", err)
 	}
 
 	// Notify the execution client of the forkchoice update.
 	var payloadID *engineprimitives.PayloadID
-	s.Logger().Info(
+	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
 		"parent_eth1_hash", parentEth1Hash,
@@ -69,7 +68,7 @@ func (s *Service) BuildLocalPayload(
 	}
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
-	payloadID, _, err = s.ee.NotifyForkchoiceUpdate(
+	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &execution.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      parentEth1Hash,
@@ -77,49 +76,46 @@ func (s *Service) BuildLocalPayload(
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       s.ChainSpec().ActiveForkVersionForSlot(slot),
+			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		s.Logger().Warn("received nil payload ID on VALID engine response",
+		pb.logger.Warn("received nil payload ID on VALID engine response",
 			"head_eth1_hash", parentEth1Hash,
 			"for_slot", slot,
 		)
 
-		s.SetStatus(ErrNilPayloadOnValidResponse)
 		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	s.Logger().Info("forkchoice updated with payload attributes",
+	pb.logger.Info("forkchoice updated with payload attributes",
 		"head_eth1_hash", parentEth1Hash,
 		"for_slot", slot,
 		"payload_id", payloadID,
 	)
 
-	s.pc.Set(
+	pb.pc.Set(
 		slot,
 		parentBlockRoot,
 		*payloadID,
 	)
 
-	s.SetStatus(nil)
 	return payloadID, nil
 }
 
-// GetBestPayload attempts to pull a previously built payload
+// RetrieveBuiltPayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (s *Service) GetBestPayload(
+func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -131,170 +127,126 @@ func (s *Service) GetBestPayload(
 	// this particular slot and parent block root. If we have, and we are able
 	// to
 	// retrieve it from our execution client, we can return it immediately.
-	payload, blobsBundle, overrideBuilder, err := s.getPayloadFromCachedPayloadIDs(
-		ctx,
-		slot,
-		parentBlockRoot,
-	)
-	if err != nil {
-		// If we see an error we have to trigger a new payload to be built, wait
-		// for it to be resolved and then return the data. This case should very
-		// rarely be hit
-		// if your consensus and execution clients are operating well.
-		s.Logger().Warn(
-			err.Error() +
-				": notifying execution client to construct a new payload ...",
-		)
-
-		//#nosec:G701 // won't overflow, time cannot be negative.
-		payload, blobsBundle, overrideBuilder, err = s.buildAndWaitForLocalPayload(
+	envelope, err := pb.
+		retrieveBuiltPayload(
 			ctx,
-			st,
-			parentEth1Hash,
 			slot,
-			uint64(time.Now().Unix()),
 			parentBlockRoot,
 		)
+
+	// If there was no error we can simply return the payload that we
+	// just retrieved.
+	if err == nil {
+		return envelope, nil
 	}
 
-	return payload, blobsBundle, overrideBuilder, err
+	// Otherwise we will fall back to triggering a payload build.
+	return pb.buildAndWaitForLocalPayload(
+		ctx,
+		st,
+		parentEth1Hash,
+		slot,
+		// TODO: we need to do the proper timestamp math here for EIP4788.
+		//#nosec:G701 // won't realistically overflow.
+		uint64(time.Now().Unix()),
+		parentBlockRoot,
+	)
 }
 
-// getPayloadFromCachedPayloadIDs attempts to retrieve a payload from the
-// execution client via a payload ID that is stored in the builder's cache.
-func (s *Service) getPayloadFromCachedPayloadIDs(
+// retrieveBuiltPayload retrieves the payload and blobs bundle
+// from the execution client.
+func (pb *PayloadBuilder) retrieveBuiltPayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
-	// If we have a payload ID in the cache, we can return the payload from the
-	// cache.
-	payloadID, found := s.pc.Get(slot, parentBlockRoot)
-	if found && (payloadID != engineprimitives.PayloadID{}) {
-		// Payload ID is cache hit.
-		telemetry.IncrCounter(1, MetricsPayloadIDCacheHit)
-		payload, blobsBundle, overrideBuilder, err :=
-			s.getPayloadFromExecutionClient(
-				ctx, &payloadID, slot,
-			)
-		if err == nil {
-			// bundleCache.add(slot, bundle)
-			// warnIfFeeRecipientDiffers(payload, val.FeeRecipient)
-			//  Return the cached payload ID.
-			return payload, blobsBundle, overrideBuilder, nil
-		}
-
-		telemetry.IncrCounter(1, MetricsPayloadIDCacheError)
-		return nil, nil, false, ErrCachedPayloadNotFoundOnExecutionClient
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	// See if we have a payload ID for this slot and parent block root.
+	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
+	if !found || (payloadID == engineprimitives.PayloadID{}) {
+		// If we don't have a payload ID, we can't retrieve the payload.
+		return nil, ErrPayloadIDNotFound
 	}
-	return nil, nil, false, ErrPayloadIDNotFound
+
+	// Request the payload from the execution client.
+	envelope, err := pb.getPayloadFromExecutionClient(
+		ctx, &payloadID, slot,
+	)
+	if err != nil {
+		return nil, err
+	} else if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
+	}
+
+	// Cache the payload and return.
+	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, ErrNilPayload
+	}
+	pb.pc.Set(slot, payload.GetParentHash(), payloadID)
+	return envelope, nil
 }
 
 // buildAndWaitForLocalPayload, triggers a payload build process, waits
 // for a configuration specified period, and then retrieves the built
 // payload from the execution client.
-func (s *Service) buildAndWaitForLocalPayload(
+func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
-	payloadID, err := s.BuildLocalPayload(
+	payloadID, err := pb.RequestPayload(
 		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, err
 	}
 
 	// Wait for the payload to be delivered to the execution client.
-	s.Logger().Info(
+	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", s.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(s.cfg.LocalBuildPayloadTimeout):
+	case <-time.After(pb.cfg.PayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
 	case <-ctx.Done():
-		return nil, nil, false, ctx.Err()
+		return nil, ctx.Err()
 	}
 
 	// Get the payload from the execution client.
-	return s.getPayloadFromExecutionClient(
+	return pb.getPayloadFromExecutionClient(
 		ctx, payloadID, slot)
-}
-
-// getPayloadAttributes returns the payload attributes for the given state and
-// slot. The attribute is required to initiate a payload build process in the
-// context of an `engine_forkchoiceUpdated` call.
-func (s *Service) getPayloadAttribute(
-	st state.BeaconState,
-	slot math.Slot,
-	timestamp uint64,
-	prevHeadRoot [32]byte,
-) (engineprimitives.PayloadAttributer, error) {
-	var (
-		prevRandao [32]byte
-	)
-
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		s.Logger().Error(
-			"Could not get expected withdrawals to get payload attribute", "error", err)
-		return nil, err
-	}
-
-	epoch := s.ChainSpec().SlotToEpoch(slot)
-
-	// Get the previous randao mix.
-	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % s.ChainSpec().EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		s.ChainSpec().ActiveForkVersionForEpoch(epoch),
-		timestamp,
-		prevRandao,
-		s.cfg.SuggestedFeeRecipient,
-		withdrawals,
-		prevHeadRoot,
-	)
 }
 
 // getPayloadFromExecutionClient retrieves the payload and blobs bundle for the
 // given slot.
-func (s *Service) getPayloadFromExecutionClient(
+func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
 	slot math.Slot,
-) (engineprimitives.ExecutionPayload,
-	engineprimitives.BlobsBundle, bool, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	if payloadID == nil {
-		return nil, nil, false, ErrNilPayloadID
+		return nil, ErrNilPayloadID
 	}
 
-	envelope, err := s.ee.GetPayload(
+	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&execution.GetPayloadRequest{
 			PayloadID:   *payloadID,
-			ForkVersion: s.ChainSpec().ActiveForkVersionForSlot(slot),
+			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, err
 	} else if envelope == nil {
-		return nil, nil, false, ErrNilPayloadEnvelope
+		return nil, ErrNilPayloadEnvelope
 	}
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
@@ -316,6 +268,6 @@ func (s *Service) getPayloadFromExecutionClient(
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	s.Logger().Info("payload retrieved from local builder 🏗️ ", args...)
-	return payload, blobsBundle, overrideBuilder, err
+	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
+	return envelope, err
 }

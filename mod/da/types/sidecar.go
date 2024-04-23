@@ -75,11 +75,26 @@ func BuildBlobSidecar(
 
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
-func (b *BlobSidecar) HasValidInclusionProof(kzgOffset uint64) bool {
-	return merkle.VerifyProof(
-		b.BeaconBlockHeader.BodyRoot,
-		b.KzgCommitment.ToHashChunks()[0],
-		kzgOffset+b.Index,
+func (b *BlobSidecar) HasValidInclusionProof(
+	kzgOffset uint64,
+) bool {
+	// Calculate the hash tree root of the KZG commitment.
+	leaf, err := b.KzgCommitment.HashTreeRoot()
+	if err != nil {
+		return false
+	}
+
+	gIndex := kzgOffset + b.Index
+
+	// Verify the inclusion proof.
+	return merkle.IsValidMerkleBranch(
+		leaf,
 		b.InclusionProof,
+		//#nosec:G701 // safe.
+		uint8(
+			len(b.InclusionProof),
+		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
+		gIndex,
+		b.BeaconBlockHeader.BodyRoot,
 	)
 }

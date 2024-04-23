@@ -23,34 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import "github.com/cockroachdb/errors"
+import (
+	"time"
 
-var (
-	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
-	// received on a VALID engine response.
-	ErrNilPayloadOnValidResponse = errors.New(
-		"received nil payload ID on VALID engine response",
-	)
-
-	// ErrNilPayloadID is returned when a nil payload ID is received.
-	ErrNilPayloadID = errors.New("received nil payload ID")
-
-	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
-	// cache.
-	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
-
-	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
-	// payloadID is not found on the execution client.
-	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload ID could not be resolved on execution client",
-	)
-
-	// ErrLocalBuildingDisabled is returned when local building is disabled.
-	ErrLocalBuildingDisabled = errors.New("local building is disabled")
-
-	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
-	// received.
-	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+const (
+	// defaultLocalBuilderEnabled is the default value for local builder.
+	defaultLocalBuilderEnabled = true
+	// defaultPayloadTimeout is the default value for local build
+	// payload timeout.
+	defaultPayloadTimeout = 2500 * time.Millisecond
+)
+
+// Config is the configuration for the payload builder.
+//
+//nolint:lll // struct tags.
+type Config struct {
+	// Enabled determines if the local builder is enabled.
+	Enabled bool `mapstructure:"enabled"`
+
+	// PayloadTimeout is the timeout for the payload build.
+	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
+
+	// Suggested FeeRecipient is the address that will receive the transaction
+	// fees
+	// produced by any blocks from this node.
+	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
+}
+
+// DefaultConfig returns the default fork configuration.
+func DefaultConfig() Config {
+	return Config{
+		Enabled:               defaultLocalBuilderEnabled,
+		SuggestedFeeRecipient: primitives.ExecutionAddress{},
+		PayloadTimeout:        defaultPayloadTimeout,
+	}
+}

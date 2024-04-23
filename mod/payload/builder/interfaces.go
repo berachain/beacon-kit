@@ -23,18 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package builder
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
+// ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
@@ -48,49 +47,4 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *execution.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
-
-	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// execution
-	VerifyAndNotifyNewPayload(
-		ctx context.Context,
-		req *execution.NewPayloadRequest,
-	) (bool, error)
-}
-
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
-	RequestPayload(
-		ctx context.Context,
-		st state.BeaconState,
-		parentEth1Hash primitives.ExecutionHash,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot primitives.Root,
-	) (*engineprimitives.PayloadID, error)
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	BuildReveal(
-		st state.BeaconState,
-	) (primitives.BLSSignature, error)
-	MixinNewReveal(
-		st state.BeaconState,
-		reveal primitives.BLSSignature,
-	) error
-	VerifyReveal(
-		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
-	) error
-}
-
-// StakingService is the interface for the staking service.
-type StakingService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		st state.BeaconState,
-		blockHash primitives.ExecutionHash,
-	) error
 }

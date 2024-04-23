@@ -23,28 +23,59 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package builder
 
 import (
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// processPayloadStatusResult processes the payload status result and
-// returns the latest valid hash or an error.
-func processPayloadStatusResult(
-	result *engineprimitives.PayloadStatus,
-) (*primitives.ExecutionHash, error) {
-	switch result.Status {
-	case engineprimitives.PayloadStatusAccepted:
-		return nil, ErrAcceptedPayloadStatus
-	case engineprimitives.PayloadStatusSyncing:
-		return nil, ErrSyncingPayloadStatus
-	case engineprimitives.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
-	case engineprimitives.PayloadStatusValid:
-		return result.LatestValidHash, nil
-	default:
-		return nil, ErrUnknownPayloadStatus
+// Option is a functional option for the builder.
+type Option = func(*PayloadBuilder) error
+
+// WithChainSpec sets the chain spec.
+func WithChainSpec(chainSpec primitives.ChainSpec) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.chainSpec = chainSpec
+		return nil
+	}
+}
+
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.cfg = cfg
+		return nil
+	}
+}
+
+// WithLogger sets the logger.
+func WithLogger(logger log.Logger) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.logger = logger
+		return nil
+	}
+}
+
+// WithExecutionEngine sets the execution engine.
+func WithExecutionEngine(ee ExecutionEngine) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.ee = ee
+		return nil
+	}
+}
+
+// WithPayloadCache sets the payload cache.
+func WithPayloadCache(
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	],
+) Option {
+	return func(pb *PayloadBuilder) error {
+		pb.pc = pc
+		return nil
 	}
 }

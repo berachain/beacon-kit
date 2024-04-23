@@ -23,23 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package math
+package builder
 
 import "github.com/cockroachdb/errors"
 
 var (
-	// ErrUnexpectedInputLengthBase is the base error for unexpected input
-	// length errors.
-	ErrUnexpectedInputLengthBase = errors.New("unexpected input length")
-
-	// ErrNilBigInt is returned when a nil big.Int is provided to a.
-	ErrNilBigInt = errors.New("big.Int is nil")
-)
-
-// ErrUnexpectedInputLength returns an error indicating that the input length.
-func ErrUnexpectedInputLength(expected, actual int) error {
-	return errors.Wrapf(
-		ErrUnexpectedInputLengthBase,
-		"expected %d, got %d", expected, actual,
+	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+	// received on a VALID engine response.
+	ErrNilPayloadOnValidResponse = errors.New(
+		"received nil payload ID on VALID engine response",
 	)
-}
+
+	// ErrNilPayloadID is returned when a nil payload ID is received.
+	ErrNilPayloadID = errors.New("received nil payload ID")
+
+	// ErrPayloadIDNotFound is returned when a payload ID is not found in the
+	// cache.
+	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
+
+	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
+	// payloadID is not found on the execution client.
+	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
+		"cached payload ID could not be resolved on execution client",
+	)
+
+	// ErrLocalBuildingDisabled is returned when local building is disabled.
+	ErrLocalBuildingDisabled = errors.New("local building is disabled")
+
+	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
+	// received.
+	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+
+	// ErrNilPayload is returned when a nil payload envelope is
+	// received.
+	ErrNilPayload = errors.New("received nil payload envelope")
+)

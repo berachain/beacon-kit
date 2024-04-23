@@ -23,29 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
-import (
-	"context"
+import "errors"
 
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/ethereum/go-ethereum/beacon/engine"
+// ErrReceivedNilEnvelope is returned when the payload builder receives a nil
+// envelope.
+var ErrReceivedNilEnvelope = errors.New(
+	"received nil envelope from payload builder",
 )
-
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
-
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *execution.ForkchoiceUpdateRequest,
-	) (*engine.PayloadID, *primitives.ExecutionHash, error)
-}

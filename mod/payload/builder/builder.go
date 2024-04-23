@@ -23,42 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package localbuilder
+package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/local/cache"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
+// TODO: Decouple from ABCI and have this validator run on a separate thread
+// have it configured itself and not be a service persay.
+type PayloadBuilder struct {
+	cfg       *Config
+	chainSpec primitives.ChainSpec
+	logger    log.Logger
+
+	// ee is the execution engine.
+	ee ExecutionEngine
+
+	// pc is the payload ID cache, it is used to store
+	// "in-flight" payloads that are being built on
+	// the execution client.
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	]
 }
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builderconfig.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
+// NewService creates a new service.
+func NewService(opts ...Option) (*PayloadBuilder, error) {
+	pb := &PayloadBuilder{}
+	for _, opt := range opts {
+		if err := opt(pb); err != nil {
+			return nil, err
+		}
 	}
-}
-
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(pc *cache.PayloadIDCache) service.Option[Service] {
-	return func(s *Service) error {
-		s.pc = pc
-		return nil
-	}
+	return pb, nil
 }
