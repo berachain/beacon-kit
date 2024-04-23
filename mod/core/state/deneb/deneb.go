@@ -26,10 +26,9 @@
 package deneb
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -41,16 +40,20 @@ import (
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
 func DefaultBeaconState() *BeaconState {
-	//nolint:gomnd // default allocs.
+	//nolint:mnd // default allocs.
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
 		Fork: &primitives.Fork{
-			PreviousVersion: version.FromUint32(version.Deneb),
-			CurrentVersion:  version.FromUint32(version.Deneb),
-			Epoch:           0,
+			PreviousVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			CurrentVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			Epoch: 0,
 		},
-		LatestBlockHeader: &consensusprimitives.BeaconBlockHeader{
+		LatestBlockHeader: &primitives.BeaconBlockHeader{
 			Slot:          0,
 			ProposerIndex: 0,
 			ParentRoot:    primitives.Root{},
@@ -60,13 +63,13 @@ func DefaultBeaconState() *BeaconState {
 		BlockRoots:             make([]primitives.Root, 8),
 		StateRoots:             make([]primitives.Root, 8),
 		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
-		Eth1Data: &consensusprimitives.Eth1Data{
+		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
 			BlockHash:    primitives.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
-		Validators:                   make([]*types.Validator, 0),
+		Validators:                   make([]*primitives.Validator, 0),
 		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
@@ -78,7 +81,7 @@ func DefaultBeaconState() *BeaconState {
 
 // DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
 //
-//nolint:gomnd // default values pulled from current eth-genesis.json file.
+//nolint:mnd // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
@@ -92,11 +95,11 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 		LogsBloom: make([]byte, 256),
 		Random:    primitives.ExecutionHash{},
 		Number:    0,
-		GasLimit:  primitives.U64(hexutil.MustDecodeUint64("0x1c9c380")),
+		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, 32),
-		BaseFeePerGas: primitives.NewU256LFromBigEndian(
+		BaseFeePerGas: math.MustNewU256LFromBigEndian(
 			hexutil.MustDecode("0x3b9aca"),
 		),
 		BlockHash: common.HexToHash(
@@ -109,38 +112,38 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	}
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives,../../../primitives-engine,../../../primitives-consensus,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,../../../primitives/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
 	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  primitives.Slot  `json:"slot"`
+	Slot                  math.Slot        `json:"slot"`
 	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
-	LatestBlockHeader *consensusprimitives.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []primitives.Root                      `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []primitives.Root                      `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        []primitives.Root             `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *consensusprimitives.Eth1Data         `json:"eth1Data"`
+	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
 	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
 
 	// Registry
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
+	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
+	Balances   []uint64                `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
 	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64                    `json:"nextWithdrawalIndex"`
-	NextWithdrawalValidatorIndex primitives.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
+	NextWithdrawalIndex          uint64              `json:"nextWithdrawalIndex"`
+	NextWithdrawalValidatorIndex math.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
-	Slashings     []uint64        `json:"slashings"     ssz-max:"1099511627776"`
-	TotalSlashing primitives.Gwei `json:"totalSlashing"`
+	Slashings     []uint64  `json:"slashings"     ssz-max:"1099511627776"`
+	TotalSlashing math.Gwei `json:"totalSlashing"`
 }

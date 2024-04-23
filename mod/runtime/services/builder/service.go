@@ -33,14 +33,15 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // Service is responsible for building beacon blocks.
 type Service struct {
 	service.BaseService
-	cfg *config.Config
+	cfg *builder.Config
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
@@ -74,7 +75,7 @@ func (s *Service) LocalBuilder() PayloadBuilder {
 func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	slot primitives.Slot,
+	slot math.Slot,
 ) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -132,6 +133,12 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil, nil, beacontypes.ErrNilBlkBody
+	}
+
+	// Get the latest execution payload.
 	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, nil, err
@@ -139,7 +146,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.GetBestPayload(
+	envelope, err := s.localBuilder.RetrieveBuiltPayload(
 		ctx,
 		st,
 		slot,
@@ -148,21 +155,22 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return blk, nil, fmt.Errorf(
-			"failed to get block root at index: %w",
+			"failed to retrieve payload from builder: %w",
 			err,
 		)
+	} else if envelope == nil {
+		return blk, nil, ErrReceivedNilEnvelope
 	}
 
-	// TODO: allow external block builders to override the payload.
-	_ = overrideBuilder
-
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil, nil, beacontypes.ErrNilBlkBody
-	}
+	// TODO: assemble real eth1data.
+	body.SetEth1Data(&primitives.Eth1Data{
+		DepositRoot:  primitives.Bytes32{},
+		DepositCount: 0,
+		BlockHash:    primitives.ExecutionHash{},
+	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
+	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
@@ -181,7 +189,11 @@ func (s *Service) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// if err = b
+	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, nil, beacontypes.ErrNilPayload
+	}
+
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
 	}

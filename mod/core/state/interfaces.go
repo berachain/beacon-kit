@@ -28,10 +28,9 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -53,15 +52,15 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
-	GetSlot() (primitives.Slot, error)
+	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*consensusprimitives.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
-	GetTotalSlashing() (primitives.Gwei, error)
+	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
+	GetTotalActiveBalances(uint64) (math.Gwei, error)
+	GetValidators() ([]*primitives.Validator, error)
+	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
+	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 }
 
@@ -71,14 +70,14 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
-	SetSlot(primitives.Slot) error
+	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*consensusprimitives.BeaconBlockHeader) error
-	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
+	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
+	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
+	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
+	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
+	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -108,39 +107,39 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
-		primitives.ValidatorIndex,
-		*types.Validator,
+		math.ValidatorIndex,
+		*primitives.Validator,
 	) error
 
-	AddValidator(*types.Validator) error
+	AddValidator(*primitives.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
 		primitives.BLSPubkey,
-	) (primitives.ValidatorIndex, error)
+	) (math.ValidatorIndex, error)
 
 	ValidatorByIndex(
-		primitives.ValidatorIndex,
-	) (*types.Validator, error)
+		math.ValidatorIndex,
+	) (*primitives.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
 	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
-	SetEth1Data(*consensusprimitives.Eth1Data) error
+	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits([]*consensusprimitives.Deposit) error
-	DequeueDeposits(uint64) ([]*consensusprimitives.Deposit, error)
+	EnqueueDeposits([]*primitives.Deposit) error
+	DequeueDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyDeposits has read access to eth1 data.
 type ReadOnlyEth1Data interface {
 	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
-	GetEth1Data() (*consensusprimitives.Eth1Data, error)
+	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) ([]*consensusprimitives.Deposit, error)
+	ExpectedDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

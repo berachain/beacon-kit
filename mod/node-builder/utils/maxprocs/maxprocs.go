@@ -35,7 +35,7 @@ import (
 
 // Initialize Uber maxprocs.
 //
-//nolint:gochecknoinits // better than setting elsewhere tbh.
+//nolint:init // Initialize Uber maxprocs.
 func init() {
 	if _, err := maxprocs.Set(); err != nil {
 		panic(err)

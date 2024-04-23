@@ -29,24 +29,34 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	// TODO: Create a mock such that core/types doesn't need
 	// to be imported here.
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
-	"github.com/berachain/beacon-kit/mod/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
+// MockSpec is a mock implementation of the ChainSpec interface used for
+// testing.
+type MockSpec struct{}
+
+// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
+// block.
+// This mock implementation always returns 16.
+func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
+	return 16
+}
 func TestBuildKZGInclusionProof(t *testing.T) {
-	cfg := params.LocalnetChainSpec()
+	chainspec := &MockSpec{}
 	factory := da.NewSidecarFactory[da.BeaconBlockBody](
-		params.LocalnetChainSpec(),
-		4,
+		chainspec,
+		5,
 	)
 	body := mockBody()
 	// Test for a valid index
@@ -66,7 +76,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	validProof := merkle.VerifyProof(
 		bodyRoot,
 		body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
-		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock())+index,
+		types.KZGOffset(chainspec.MaxBlobCommitmentsPerBlock())+index,
 		proof,
 	)
 	require.True(t, validProof, "The KZG inclusion proof should be valid")
@@ -92,7 +102,7 @@ func TestBuildKZGInclusionProof(t *testing.T) {
 	validInvalidProof := merkle.VerifyProof(
 		bodyRoot,
 		body.GetBlobKzgCommitments()[index].ToHashChunks()[0],
-		types.KZGOffset(cfg.MaxBlobCommitmentsPerBlock())+index,
+		types.KZGOffset(chainspec.MaxBlobCommitmentsPerBlock())+index,
 		invalidProof,
 	)
 	require.False(
@@ -111,14 +121,19 @@ func mockBody() da.BeaconBlockBody {
 		ReceiptsRoot:  common.HexToHash("0x04"),
 		LogsBloom:     bytes.Repeat([]byte("b"), 256),
 		Random:        common.HexToHash("0x05"),
-		BaseFeePerGas: primitives.Wei(bytes.Repeat([]byte("f"), 32)),
+		BaseFeePerGas: math.Wei(bytes.Repeat([]byte("f"), 32)),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		ExtraData:     []byte("extra"),
 	}
 
 	return &types.BeaconBlockBodyDeneb{
-		RandaoReveal:     [96]byte{0x01},
+		RandaoReveal: [96]byte{0x01},
+		Eth1Data: &primitives.Eth1Data{
+			DepositRoot:  primitives.Root{},
+			DepositCount: 0,
+			BlockHash:    primitives.ExecutionHash{},
+		},
 		ExecutionPayload: executionPayload,
 		BlobKzgCommitments: kzg.Commitments{
 			[48]byte(bytes.Repeat([]byte{0x01}, 48)),

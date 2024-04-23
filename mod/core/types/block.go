@@ -27,20 +27,20 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives,../.././primitives-engine,../../primitives-consensus,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives/math,../../primitives,../.././primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
-	Slot primitives.Slot
+	Slot math.Slot
 
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex primitives.ValidatorIndex
+	ProposerIndex math.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block
 	ParentBlockRoot primitives.Root
@@ -64,12 +64,12 @@ func (b *BeaconBlockDeneb) IsNil() bool {
 }
 
 // GetSlot retrieves the slot of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetSlot() primitives.Slot {
+func (b *BeaconBlockDeneb) GetSlot() math.Slot {
 	return b.Slot
 }
 
 // GetSlot retrieves the slot of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetProposerIndex() primitives.ValidatorIndex {
+func (b *BeaconBlockDeneb) GetProposerIndex() math.ValidatorIndex {
 	return b.ProposerIndex
 }
 
@@ -89,13 +89,13 @@ func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
-func (b BeaconBlockDeneb) GetHeader() *consensusprimitives.BeaconBlockHeader {
+func (b BeaconBlockDeneb) GetHeader() *primitives.BeaconBlockHeader {
 	bodyRoot, err := b.GetBody().HashTreeRoot()
 	if err != nil {
 		return nil
 	}
 
-	return &consensusprimitives.BeaconBlockHeader{
+	return &primitives.BeaconBlockHeader{
 		Slot:          b.Slot,
 		ProposerIndex: b.ProposerIndex,
 		ParentRoot:    b.ParentBlockRoot,

@@ -33,11 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	consensusprimitives "github.com/berachain/beacon-kit/mod/primitives-consensus"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
@@ -48,12 +47,12 @@ import (
 type Keeper struct {
 	availabilityStore *da.Store
 	beaconStore       *beacondb.KVStore[
-		*consensusprimitives.Deposit,
+		*primitives.Deposit,
 		*primitives.Fork,
-		*consensusprimitives.BeaconBlockHeader,
+		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
-		*consensusprimitives.Eth1Data,
-		*types.Validator,
+		*primitives.Eth1Data,
+		*primitives.Validator,
 	]
 	cfg primitives.ChainSpec
 }
@@ -72,12 +71,12 @@ func NewKeeper(
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
 		beaconStore: beacondb.New[
-			*consensusprimitives.Deposit,
+			*primitives.Deposit,
 			*primitives.Fork,
-			*consensusprimitives.BeaconBlockHeader,
+			*primitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayload,
-			*consensusprimitives.Eth1Data,
-			*types.Validator,
+			*primitives.Eth1Data,
+			*primitives.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
 		cfg: cfg,
 	}
@@ -105,7 +104,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// Max 100 validators in the active set.
 		// TODO: this is kinda hood.
 		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
+			var idx math.ValidatorIndex
 			idx, err = store.WithContext(ctx).
 				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {

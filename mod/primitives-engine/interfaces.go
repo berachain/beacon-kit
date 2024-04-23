@@ -27,6 +27,7 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -65,7 +66,7 @@ type ExecutionPayloadBody interface {
 	GetGasUsed() uint64
 	GetTimestamp() uint64
 	GetExtraData() []byte
-	GetBaseFeePerGas() primitives.Wei
+	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() primitives.ExecutionAddress
 	GetStateRoot() primitives.ExecutionHash
 	GetReceiptsRoot() primitives.ExecutionHash
