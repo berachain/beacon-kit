@@ -28,7 +28,6 @@ package builder
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
@@ -38,13 +37,13 @@ type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *execution.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayload, error)
+		req *engineprimitives.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *execution.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
 }

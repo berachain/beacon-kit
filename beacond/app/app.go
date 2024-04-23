@@ -94,6 +94,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideJWTSecret,
+				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
 			),
 			depinject.Supply(

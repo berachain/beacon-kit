@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	deposit "github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // BeaconStorageBackend is an interface that provides the
@@ -37,4 +38,5 @@ import (
 type BeaconStorageBackend interface {
 	AvailabilityStore(ctx context.Context) core.AvailabilityStore
 	BeaconState(ctx context.Context) state.BeaconState
+	DepositStore(ctx context.Context) *deposit.KVStore
 }

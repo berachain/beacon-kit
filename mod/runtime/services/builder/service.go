@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // Service is responsible for building beacon blocks.
@@ -48,6 +49,8 @@ type Service struct {
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
+
+	ds *deposit.KVStore
 
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -140,7 +143,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.RetrieveBuiltPayload(
+	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
 		st,
 		slot,
@@ -153,9 +156,6 @@ func (s *Service) RequestBestBlock(
 			err,
 		)
 	}
-
-	// TODO: allow external block builders to override the payload.
-	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -171,6 +171,8 @@ func (s *Service) RequestBestBlock(
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
+	// TODO: allow external block builders to override the payload.
+	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
@@ -179,7 +181,8 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-	deposits, err := st.ExpectedDeposits(
+	//nolint:contextcheck // not needed.
+	deposits, err := s.ds.ExpectedDeposits(
 		s.ChainSpec().MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -189,7 +192,11 @@ func (s *Service) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// if err = b
+	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, nil, beacontypes.ErrNilPayload
+	}
+
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
 	}

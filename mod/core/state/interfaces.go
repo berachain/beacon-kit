@@ -130,8 +130,6 @@ type WriteOnlyEth1Data interface {
 	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits([]*primitives.Deposit) error
-	DequeueDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyDeposits has read access to eth1 data.
@@ -139,7 +137,6 @@ type ReadOnlyEth1Data interface {
 	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) ([]*primitives.Deposit, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
