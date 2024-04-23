@@ -97,6 +97,7 @@ func ProvideRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(depositABI),
+		staking.WithDepositStore(bsb.DepositStore(nil)),
 		staking.WithExecutionEngine(executionEngine),
 	)
 
@@ -142,6 +143,7 @@ func ProvideRuntime(
 		builder.WithBaseService(baseService.ShallowCopy("builder")),
 		builder.WithBuilderConfig(&cfg.Builder),
 		builder.WithBlobFactory(blobFactory),
+		builder.WithDepositStore(bsb.DepositStore(nil)),
 		builder.WithLocalBuilder(localBuilder),
 		builder.WithRandaoProcessor(randaoProcessor),
 		builder.WithSigner(signer),
