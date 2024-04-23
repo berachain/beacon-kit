@@ -69,17 +69,13 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 // given slot.
 func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
-	payloadID *engineprimitives.PayloadID,
 	slot math.Slot,
+	payloadID engineprimitives.PayloadID,
 ) (engineprimitives.BuiltExecutionPayload, error) {
-	if payloadID == nil {
-		return nil, ErrNilPayloadID
-	}
-
 	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&engineprimitives.GetPayloadRequest{
-			PayloadID:   *payloadID,
+			PayloadID:   payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)

@@ -38,7 +38,7 @@ import (
 
 // RequestPayload builds a payload for the given slot and
 // returns the payload ID.
-func (pb *PayloadBuilder) RequestPayloadAsync(
+func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -91,7 +91,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 // RequestPayload request a payload for the given slot and
 // blocks until the payload is delivered.
-func (pb *PayloadBuilder) RequestPayloadSync(
+func (pb *PayloadBuilder) RequestPayloadAndWait(
 	ctx context.Context,
 	st state.BeaconState,
 	parentEth1Hash primitives.ExecutionHash,
@@ -101,7 +101,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 ) (engineprimitives.BuiltExecutionPayload, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
-	payloadID, err := pb.RequestPayloadAsync(
+	payloadID, err := pb.RequestPayload(
 		ctx, st, parentEth1Hash, slot, timestamp, parentBlockRoot,
 	)
 	if err != nil {
@@ -150,7 +150,7 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	// If a payload is found, we can retrieve it from the execution client.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
-		return pb.RequestPayloadSync(
+		return pb.RequestPayloadAndWait(
 			ctx,
 			st,
 			parentEth1Hash,
@@ -162,22 +162,19 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 		)
 	}
 
-	envelope, err := pb.ee.GetPayload(
+	// Attempt to retrieve the payload from the execution client.
+	if envelope, err := pb.getPayload(
 		ctx,
-		&engineprimitives.GetPayloadRequest{
-			PayloadID:   payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
-	)
-
-	// If there was no error we can simply return the payload that we
-	// just retrieved.
-	if err == nil {
+		slot,
+		payloadID,
+	); err == nil {
+		// If there was no error we can simply return the payload that we
+		// just retrieved.
 		return envelope, nil
 	}
 
 	// Otherwise we will fall back to triggering a payload build.
-	return pb.RequestPayloadSync(
+	return pb.RequestPayloadAndWait(
 		ctx,
 		st,
 		parentEth1Hash,
