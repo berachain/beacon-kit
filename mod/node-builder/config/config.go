@@ -47,7 +47,7 @@ func DefaultConfig() *Config {
 		ABCI:           abci.DefaultABCIConfig(),
 		Engine:         engineclient.DefaultConfig(),
 		KZG:            kzg.DefaultConfig(),
-		PayloadBuilder: builder.DefaultBuilderConfig(),
+		PayloadBuilder: builder.DefaultConfig(),
 		Validator:      validator.DefaultConfig(),
 	}
 }
@@ -64,7 +64,7 @@ type Config struct {
 	KZG kzg.Config `mapstructure:"kzg"`
 
 	// PayloadBuilder is the configuration for the local build payload timeout.
-	PayloadBuilder builder.Config `mapstructure:"builder"`
+	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
 
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
