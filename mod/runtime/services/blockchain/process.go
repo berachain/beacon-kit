@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/execution"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
@@ -85,7 +84,7 @@ func (s *Service) ProcessBeaconBlock(
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		execution.BuildNewPayloadRequest(
+		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
@@ -174,7 +173,7 @@ func (s *Service) ValidatePayloadOnBlk(
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		execution.BuildNewPayloadRequest(
+		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,

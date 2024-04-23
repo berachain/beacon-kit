@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -50,7 +49,7 @@ func (s *Service) sendFCU(
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&execution.ForkchoiceUpdateRequest{
+		&engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,

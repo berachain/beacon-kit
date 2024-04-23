@@ -47,12 +47,14 @@ WORKDIR /workdir
 # Copy the go.mod and go.sum files for each module
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/go.mod ./mod/go.sum ./mod/
+COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod
+RUN go work use ./mod/execution
 RUN go work use ./mod/primitives
 RUN go work use ./mod/primitives-engine
 RUN go work use ./mod/storage
