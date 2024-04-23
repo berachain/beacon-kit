@@ -143,7 +143,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	payload, blobsBundle, overrideBuilder, err := s.localBuilder.RetrieveBuiltPayload(
+	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
 		st,
 		slot,
@@ -156,9 +156,6 @@ func (s *Service) RequestBestBlock(
 			err,
 		)
 	}
-
-	// TODO: allow external block builders to override the payload.
-	_ = overrideBuilder
 
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -174,6 +171,8 @@ func (s *Service) RequestBestBlock(
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
+	// TODO: allow external block builders to override the payload.
+	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return nil, nil, beacontypes.ErrNilBlobsBundle
 	}
@@ -194,6 +193,7 @@ func (s *Service) RequestBestBlock(
 	body.SetDeposits(deposits)
 
 	// if err = b
+	payload := envelope.GetExecutionPayload()
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
 	}
