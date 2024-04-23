@@ -149,7 +149,8 @@ func MarshalBitVector(bv []bool) []byte {
 // MarshalBitList converts a slice of boolean values into a byte slice where each bit represents a boolean value, with an additional bit set at the end.
 // Note that from the offset coding, the length (in bytes) of the bitlist is known. An additional 1 bit is added to the end, at index e where e is the length of the bitlist (not the limit), so that the length in bits will also be known.
 func MarshalBitList(bv []bool) []byte {
-	array := make([]byte, (len(bv)/8)+1) // Allocate enough bytes to represent the bit list, plus one for the end bit.
+	// Allocate enough bytes to represent the bit list, plus one for the end bit.
+	array := make([]byte, (len(bv)/8)+1)
 	for i, val := range bv {
 		if val {
 			// Set the bit at the appropriate position if the boolean is true.
