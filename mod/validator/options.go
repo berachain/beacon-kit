@@ -23,25 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
 import (
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
-// WithBaseService sets the base service.
-func WithBaseService(svc service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = svc
-		return nil
-	}
-}
+type Option = func(*Service) error
 
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
 	return func(s *Service) error {
 		s.cfg = cfg
 		return nil
@@ -49,7 +42,7 @@ func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
 }
 
 // WithDepositStore sets the deposit store.
-func WithDepositStore(ds *deposit.KVStore) service.Option[Service] {
+func WithDepositStore(ds *deposit.KVStore) Option {
 	return func(s *Service) error {
 		s.ds = ds
 		return nil
@@ -59,7 +52,7 @@ func WithDepositStore(ds *deposit.KVStore) service.Option[Service] {
 // WithBlobFactory sets the blob factory.
 func WithBlobFactory(
 	factory BlobFactory[types.BeaconBlockBody],
-) service.Option[Service] {
+) Option {
 	return func(s *Service) error {
 		s.blobFactory = factory
 		return nil
@@ -67,7 +60,7 @@ func WithBlobFactory(
 }
 
 // WithLocalBuilder sets the local builder.
-func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
+func WithLocalBuilder(builder PayloadBuilder) Option {
 	return func(s *Service) error {
 		s.localBuilder = builder
 		return nil
@@ -75,15 +68,23 @@ func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
 }
 
 // WithRemoteBuilders sets the remote builders.
-func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
+func WithRemoteBuilders(builders ...PayloadBuilder) Option {
 	return func(s *Service) error {
 		s.remoteBuilders = append(s.remoteBuilders, builders...)
 		return nil
 	}
 }
 
+// WithLogger sets the logger for the service.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
 // WithRandaoProcessor sets the randao processor.
-func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
+func WithRandaoProcessor(rp RandaoProcessor) Option {
 	return func(s *Service) error {
 		s.randaoProcessor = rp
 		return nil
@@ -91,7 +92,7 @@ func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer BLSSigner) service.Option[Service] {
+func WithSigner(signer BLSSigner) Option {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

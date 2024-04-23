@@ -83,8 +83,7 @@ func (s *Service) ProcessBeaconBlock(
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
-		ctx,
-		engineprimitives.BuildNewPayloadRequest(
+		ctx, engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,

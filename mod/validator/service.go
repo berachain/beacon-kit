@@ -23,17 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
 import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/log"
+
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
@@ -41,8 +41,11 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service struct {
-	service.BaseService
-	cfg *builder.Config
+	cfg *Config
+
+	chainSpec primitives.ChainSpec
+
+	logger log.Logger
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
@@ -50,6 +53,8 @@ type Service struct {
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
 
+	// ds is used to retrieve deposits that have been
+	// queued up for inclusion in the next block.
 	ds *deposit.KVStore
 
 	// localBuilder represents the local block builder, this builder
@@ -67,6 +72,31 @@ type Service struct {
 	randaoProcessor RandaoProcessor
 }
 
+// NewService creates a new validator service.
+func NewService(
+	opts ...Option,
+) *Service {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+
+	return s
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return "validator"
+}
+
+func (s *Service) Start(context.Context) {}
+
+func (s *Service) Status() error { return nil }
+
+func (s *Service) WaitForHealthy(context.Context) {}
+
 // LocalBuilder returns the local builder.
 func (s *Service) LocalBuilder() PayloadBuilder {
 	return s.localBuilder
@@ -80,7 +110,7 @@ func (s *Service) RequestBestBlock(
 	st state.BeaconState,
 	slot math.Slot,
 ) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
-	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
+	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -92,7 +122,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot(),
+		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -127,7 +157,7 @@ func (s *Service) RequestBestBlock(
 		proposerIndex,
 		parentBlockRoot,
 		stateRoot,
-		s.ChainSpec().ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForSlot(slot),
 		reveal,
 	)
 	if err != nil {
@@ -155,6 +185,8 @@ func (s *Service) RequestBestBlock(
 			"failed to get block root at index: %w",
 			err,
 		)
+	} else if envelope == nil {
+		return nil, nil, beacontypes.ErrNilPayload
 	}
 
 	// Assemble a new block with the payload.
@@ -183,7 +215,7 @@ func (s *Service) RequestBestBlock(
 	// Dequeue deposits from the state.
 	//nolint:contextcheck // not needed.
 	deposits, err := s.ds.ExpectedDeposits(
-		s.ChainSpec().MaxDepositsPerBlock(),
+		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -206,7 +238,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	s.Logger().Info("finished assembling beacon block 🛟",
+	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
 
 	return blk, blobSidecars, nil
