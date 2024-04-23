@@ -72,5 +72,5 @@ type PayloadBuilder interface {
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash primitives.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayload, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }

@@ -71,7 +71,7 @@ func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	slot math.Slot,
 	payloadID engineprimitives.PayloadID,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&engineprimitives.GetPayloadRequest{
