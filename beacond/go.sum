@@ -249,8 +249,8 @@ github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1/go.
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/ethereum/c-kzg-4844 v1.0.1 h1:pGixCbGizcVKSwoV70ge48+PrbB+iSKs2rjgfE4yJmQ=
 github.com/ethereum/c-kzg-4844 v1.0.1/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
-github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218 h1:BgNYK1h0f6u5PGUwjUae0NSIqUzMHaiRIJQSDvJe/4Y=
-github.com/ethereum/go-ethereum v1.13.5-0.20240411110649-bd9181046218/go.mod h1:x2gtBG0WHLgY08FE97lfhjtpcR5vcSAZbi34JnrsBbQ=
+github.com/ethereum/go-ethereum v1.13.5-0.20240423131024-94579932b189 h1:pKo1CRRwoHyM+X4ADEm7526QYg7rVOqUf6IeCHbV6BI=
+github.com/ethereum/go-ethereum v1.13.5-0.20240423131024-94579932b189/go.mod h1:1STrq471D0BQbCX9He0hUj4bHxX2k6mt5nOQJhDNOJ8=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
