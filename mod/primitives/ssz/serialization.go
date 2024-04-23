@@ -148,7 +148,7 @@ func MarshalBitVector(bv []bool) []byte {
 func MarshalBitList(bv []bool) []byte {
 	array := make([]byte, (len(bv)/8)+1) // Allocate enough bytes to represent the bit list, plus one for the end bit.
 	for i, val := range bv {
-		if val {
+		if val { // if a val exists, we use 1, otherwise 0
 			array[i/8] |= 1 << (i % 8) // Set the bit at the appropriate position if the boolean is true.
 		}
 	}

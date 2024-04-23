@@ -156,20 +156,20 @@ func TestMarshalBitVector(t *testing.T) {
 		},
 		{
 			"multiple values with true at end",
-			[]bool{false, false, true, false, false, false, true, false},
-			[]byte{128},
+			[]bool{false, false, true, false, false, false, true, true},
+			[]byte{0b11000100},
 		},
 		{
 			"multiple values with false at end",
 			[]bool{true, true, false, true, true, false, false, false},
-			[]byte{240},
+			[]byte{0b00011011},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := ssz.MarshalBitVector(tt.bv)
 			if !reflect.DeepEqual(got, tt.expect) {
-				t.Errorf("MarshalBitVector(%v) = %v; expect %v", tt.bv, got, tt.expect)
+				t.Errorf("MarshalBitVector(%v) = %08b; expect %08b", tt.bv, got, tt.expect)
 			}
 		})
 	}
@@ -177,12 +177,12 @@ func TestMarshalBitVector(t *testing.T) {
 
 func TestMarshalBitList(t *testing.T) {
 	// Create a slice of booleans to pass as input
-	input := []bool{true, false, true, false, true, false, true, false, true}
+	input := []bool{true, false, true, false, true, false, true}
 
 	// Call the function and check its output
 	output := ssz.MarshalBitList(input)
-	expectedOutput := []byte{0b10010010}
+	expectedOutput := []byte{0b11010101}
 	if !reflect.DeepEqual(output, expectedOutput) {
-		t.Errorf("Expected output %v, got %v", expectedOutput, output)
+		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
 	}
 }
