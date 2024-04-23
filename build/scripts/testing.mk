@@ -138,7 +138,7 @@ start-ethereumjs:
 	--dataDir .tmp/ethereumjs
 
 start-nimbus:
-	rm -rf ./tmp/nimbus
+	rm -rf .tmp/nimbus
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -148,7 +148,11 @@ start-nimbus:
 	--data-dir=.tmp/nimbus \
 	--rpc \
 	--rpc-port=8545 \
-	--rpc-address=0.0.0.0
+	--rpc-address=0.0.0.0 \
+	--log-level=TRACE \
+	--listen-address=0.0.0.0 \
+	--portal-network=none
+
 
 start-nimbus-1:
 	rm -rf .tmp/nimbus-1
@@ -159,7 +163,7 @@ start-nimbus-1:
 	-p 8546:8545 \
 	ethpandaops/nimbus-eth1:master \
 	--data-dir=.tmp/nimbus-1 \
-	--rpc
+	--rpc 
 
 # start-nimbus-2:
 # 	rm -rf .tmp/nimbus-2
@@ -170,6 +174,21 @@ start-nimbus-1:
 # 	-p 8545:8545 \
 # 	statusim/nimbus-validator-client:multiarch-latest \
 # 	--data-dir=.tmp/nimbus-2
+
+start-nimbus-3:
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 9000:9000 \
+	statusim/nimbus-eth2:multiarch-latest \
+	--data-dir=.tmp/nimbus-3 \
+	--rpc \
+	--rpc-port=8545 \
+	--rpc-address=0.0.0.0 \
+	--log-level=DEBUG \
+	--help
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
