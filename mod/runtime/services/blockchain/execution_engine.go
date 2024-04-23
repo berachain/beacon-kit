@@ -66,14 +66,12 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	st state.BeaconState,
-	headEth1Hash primitives.ExecutionHash,
 	forSlot math.Slot,
 	parentBlockRoot primitives.Root,
 ) error {
 	_, err := s.lb.RequestPayload(
 		ctx,
 		st,
-		headEth1Hash,
 		forSlot,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
@@ -91,22 +89,6 @@ func (s *Service) sendPostBlockFCU(
 	var (
 		headHash primitives.ExecutionHash
 	)
-
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-	} else {
-		latestExecutionPayload, err := st.GetLatestExecutionPayload()
-		if err != nil {
-			s.Logger().Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-		headHash = latestExecutionPayload.GetBlockHash()
-	}
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
@@ -152,7 +134,6 @@ func (s *Service) sendPostBlockFCU(
 		if err = s.sendFCUWithAttributes(
 			ctx,
 			stCopy,
-			headHash,
 			slot+1,
 			root,
 		); err == nil {

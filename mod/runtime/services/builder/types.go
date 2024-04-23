@@ -71,6 +71,5 @@ type PayloadBuilder interface {
 		st state.BeaconState,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash primitives.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }

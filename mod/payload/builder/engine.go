@@ -42,7 +42,6 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 	st state.BeaconState,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
-	headEth1Hash primitives.ExecutionHash,
 ) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
 	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
@@ -52,10 +51,10 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 	// Because of single slot finality, this is considered final.
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
-	return pb.ee.NotifyForkchoiceUpdate(
+	payloadID, latestValidHash, err := pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceState{
-				HeadBlockHash:      headEth1Hash,
+				HeadBlockHash:      parentEth1BlockHash,
 				SafeBlockHash:      parentEth1BlockHash,
 				FinalizedBlockHash: parentEth1BlockHash,
 			},
@@ -63,6 +62,22 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
+
+	if payloadID == nil {
+		pb.logger.Warn("received nil payload ID on VALID engine response",
+			"head_eth1_hash", parentEth1BlockHash,
+			"for_slot", slot,
+		)
+		err = ErrNilPayloadOnValidResponse
+	}
+
+	pb.logger.Info("forkchoice updated with payload attributes",
+		"head_eth1_hash", parentEth1BlockHash,
+		"for_slot", slot,
+		"payload_id", payloadID,
+	)
+
+	return payloadID, latestValidHash, err
 }
 
 // getPayload retrieves the payload and blobs bundle for the
