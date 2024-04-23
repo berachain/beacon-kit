@@ -26,6 +26,7 @@
 package ssz_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -130,4 +131,58 @@ func TestMarshalUnmarshalBool(t *testing.T) {
 	marshaled := ssz.MarshalBool(original)
 	unmarshaled := ssz.UnmarshalBool[bool](marshaled)
 	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
+}
+
+func TestMarshalBitVector(t *testing.T) {
+	var tests = []struct {
+		name   string
+		bv     []bool
+		expect []byte
+	}{
+		{
+			"empty bitvector",
+			[]bool{},
+			[]byte{},
+		},
+		{
+			"single true value",
+			[]bool{true},
+			[]byte{1},
+		},
+		{
+			"single false value",
+			[]bool{false},
+			[]byte{0},
+		},
+		{
+			"multiple values with true at end",
+			[]bool{false, false, true, false, false, false, true, true},
+			[]byte{0b11000100},
+		},
+		{
+			"multiple values with false at end",
+			[]bool{true, true, false, true, true, false, false, false},
+			[]byte{0b00011011},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ssz.MarshalBitVector(tt.bv)
+			if !reflect.DeepEqual(got, tt.expect) {
+				t.Errorf("MarshalBitVector(%v) = %08b; expect %08b", tt.bv, got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestMarshalBitList(t *testing.T) {
+	// Create a slice of booleans to pass as input
+	input := []bool{true, false, true, false, true, false, true}
+
+	output := ssz.MarshalBitList(input)
+	// Create a byte slice from a list of binary literals. 0b11010101 is the binary representation of the input slice
+	expectedOutput := []byte{0b11010101}
+	if !reflect.DeepEqual(output, expectedOutput) {
+		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
+	}
 }

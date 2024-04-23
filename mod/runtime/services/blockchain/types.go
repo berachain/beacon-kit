@@ -61,10 +61,10 @@ type LocalBuilder interface {
 	RequestPayload(
 		ctx context.Context,
 		st state.BeaconState,
-		parentEth1Hash primitives.ExecutionHash,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
+		parentEth1Hash primitives.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 

@@ -192,8 +192,11 @@ func (s *Service) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// if err = b
 	payload := envelope.GetExecutionPayload()
+	if payload == nil || payload.IsNil() {
+		return nil, nil, beacontypes.ErrNilPayload
+	}
+
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, nil, err
 	}
