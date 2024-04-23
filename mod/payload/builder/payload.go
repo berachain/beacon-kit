@@ -115,7 +115,7 @@ func (pb *PayloadBuilder) RetrieveBuiltPayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// TODO: Proposer-Builder Separation Improvements Later.
 	// val, tracked := s.TrackedValidatorsCache.Validator(vIdx)
 	// if !tracked {
@@ -159,7 +159,7 @@ func (pb *PayloadBuilder) retrieveBuiltPayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// See if we have a payload ID for this slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found || (payloadID == engineprimitives.PayloadID{}) {
@@ -196,7 +196,7 @@ func (pb *PayloadBuilder) buildAndWaitForLocalPayload(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayload(
@@ -231,7 +231,7 @@ func (pb *PayloadBuilder) getPayloadFromExecutionClient(
 	ctx context.Context,
 	payloadID *engineprimitives.PayloadID,
 	slot math.Slot,
-) (engineprimitives.BuiltExecutionPayload, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	if payloadID == nil {
 		return nil, ErrNilPayloadID
 	}
