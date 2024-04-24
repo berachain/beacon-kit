@@ -14,6 +14,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
+	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
@@ -65,6 +66,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
