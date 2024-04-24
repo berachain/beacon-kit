@@ -73,11 +73,12 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 	return src[0] == 1
 }
 
+// TODO: May be buggy, see test case 3 TestUnMarshalBitList
 // UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
 // The function assumes the input byte slice represents a bit list in a compact form,
 // where the presence of a sentinel bit (value 1) indicates the end of meaningful data.
 // It returns a slice of booleans representing the bit list, excluding the sentinel bit.
-func UnMarshalBitList(bv []byte) []bool {
+func UnmarshalBitList(bv []byte) []bool {
 	var newArray []bool
 
 	// use a bitmask to get the bit value from the byte for all bytes in the slice
@@ -109,7 +110,7 @@ func UnMarshalBitList(bv []byte) []bool {
 	return res
 }
 
-func UnMarshalBitVector(bv []byte) []bool {
+func UnmarshalBitVector(bv []byte) []bool {
 	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote its initial length
 	panic("not implemented")
 }

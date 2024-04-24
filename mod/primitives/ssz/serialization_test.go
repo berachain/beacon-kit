@@ -192,7 +192,7 @@ func TestMarshalBitList(t *testing.T) {
 		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
 	}
 
-	expectedOutput2 := ssz.UnMarshalBitList(output)
+	expectedOutput2 := ssz.UnmarshalBitList(output)
 	if !reflect.DeepEqual(input, expectedOutput2) {
 		t.Errorf("Expected output %08t, got %08t from %08b", expectedOutput2, input, output)
 	}
@@ -202,7 +202,7 @@ func TestUnMarshalBitList(t *testing.T) {
 	// Test case 1: Empty input
 	bv := []byte{}
 	expected := []bool{}
-	actual := ssz.UnMarshalBitList(bv)
+	actual := ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(len(actual), len(expected)) {
 		t.Errorf("TestUnMarshalBitList failed for empty input: expected %v but got %v", expected, actual)
 	}
@@ -210,7 +210,7 @@ func TestUnMarshalBitList(t *testing.T) {
 	// Test case 2: Input with sentinel bit set
 	bv = []byte{0b00000011}
 	expected = []bool{true}
-	actual = ssz.UnMarshalBitList(bv)
+	actual = ssz.UnmarshalBitList(bv)
 	// expectedBV := ssz.MarshalBitList(actual)
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("TestUnMarshalBitList failed for input with sentinel bit set: expected %v but got %v", expected, actual)
@@ -218,13 +218,14 @@ func TestUnMarshalBitList(t *testing.T) {
 
 	// Test case 3: Input with multiple bits set
 	bv = []byte{0b11001100}
-	actual = ssz.UnMarshalBitList(bv)
+	actual = ssz.UnmarshalBitList(bv)
 	// expected = []bool{false, false, true, true, false, false, true}
 	expected = []bool{true, false, false, true, true, false, false}
 
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v", expected, actual)
 	}
+	//TODO(CHIBERA): Fix me. following test case fails. []byte marshal -> unmarshal -> returns non matching []byte possibly
 	// expectedBV = ssz.MarshalBitList(actual)
 	// e2 := ssz.MarshalBitList(expected)
 	// fmt.Printf("%08b %08b \n", e2, expectedBV)
