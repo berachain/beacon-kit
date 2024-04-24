@@ -26,50 +26,39 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// getPayloadAttributes returns the payload attributes for the given state and
-// slot. The attribute is required to initiate a payload build process in the
-// context of an `engine_forkchoiceUpdated` call.
-func (pb *PayloadBuilder) getPayloadAttribute(
-	st BeaconState,
-	slot math.Slot,
-	timestamp uint64,
-	prevHeadRoot [32]byte,
-) (engineprimitives.PayloadAttributer, error) {
-	var (
-		prevRandao [32]byte
-	)
+type BeaconState interface {
+	ReadOnlyEth1Data
+	ReadOnlyRandaoMixes
+	ReadOnlyValidators
+	ReadOnlyWithdrawals
 
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		pb.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, err
-	}
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+}
 
-	epoch := pb.chainSpec.SlotToEpoch(slot)
+// ReadOnlyValidators has read access to validator methods.
+type ReadOnlyValidators interface {
+	ValidatorIndexByPubkey(
+		primitives.BLSPubkey,
+	) (math.ValidatorIndex, error)
+}
 
-	// Get the previous randao mix.
-	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, err
-	}
+// ReadOnlyEth1Data has read access to eth1 data.
+type ReadOnlyEth1Data interface {
+	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
+}
 
-	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
-		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
-		timestamp,
-		prevRandao,
-		pb.cfg.SuggestedFeeRecipient,
-		withdrawals,
-		prevHeadRoot,
-	)
+// ReadOnlyWithdrawals only has read access to withdrawal methods.
+type ReadOnlyWithdrawals interface {
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao
+// mixes methods.
+type ReadOnlyRandaoMixes interface {
+	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 }
