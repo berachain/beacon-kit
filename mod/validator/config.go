@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
-import (
-	"context"
+// Config is the validator configuration.
+type Config struct {
+	// Graffiti is the string that will be included in the
+	// graffiti field of the beacon block.
+	Graffiti string `mapstructure:"graffiti"`
+}
 
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// computeStateRoot computes the state root of the block to be included in the
-// proposal.
-func (s *Service) computeStateRoot(
-	_ context.Context,
-) (primitives.Root, error) {
-	return primitives.Root{}, nil
+// DefaultConfig returns the default fork configuration.
+func DefaultConfig() Config {
+	return Config{
+		Graffiti: "",
+	}
 }

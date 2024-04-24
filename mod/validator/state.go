@@ -23,45 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
 import (
-	"time"
+	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-const (
-	// defaultPayloadTimeout is the default value for local build
-	// payload timeout.
-	defaultPayloadTimeout = 2500 * time.Millisecond
-)
-
-// Builder is the configuration for the payload builder.
-//
-//nolint:lll // struct tags.
-type Config struct {
-	// Enabled determines if the local builder is enabled.
-	Enabled bool `mapstructure:"enabled"`
-
-	// SuggestedFeeRecipient is the address that will receive the transaction
-	// fees
-	// produced by any blocks from this node.
-	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
-
-	// PayloadTimeout is the timeout parameter for local build
-	// payload. This should match, or be slightly less than the configured
-	// timeout on your
-	// execution client. It also must be less than timeout_proposal in the
-	// CometBFT configuration.
-	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
-}
-
-// DefaultConfig returns the default fork configuration.
-func DefaultConfig() Config {
-	return Config{
-		Enabled:               true,
-		SuggestedFeeRecipient: primitives.ExecutionAddress{},
-		PayloadTimeout:        defaultPayloadTimeout,
-	}
+// computeStateRoot computes the state root of the block to be included in the
+// proposal.
+func (s *Service) computeStateRoot(
+	_ context.Context,
+) (primitives.Root, error) {
+	return primitives.Root{}, nil
 }

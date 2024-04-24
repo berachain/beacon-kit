@@ -26,9 +26,6 @@
 package staking
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -37,10 +34,9 @@ import (
 
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
-	ctx context.Context,
-	st state.BeaconState,
 	logs []engineprimitives.Log,
 ) error {
+	var deposits []*primitives.Deposit
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
 		if log.Address != s.ChainSpec().DepositContractAddress() {
@@ -48,43 +44,40 @@ func (s *Service) ProcessBlockEvents(
 		}
 
 		// Switch statement to handle different log types.
-		var err error
 		switch logSig := log.Topics[0]; {
 		case logSig == DepositEventSig:
-			err = s.processDepositLog(ctx, st, log)
+			deposit, err := s.unpackDepositLog(log)
+			if err != nil {
+				s.Logger().Error("failed to unpack deposit log", "err", err)
+				return err
+			}
+			deposits = append(deposits, deposit)
+			s.Logger().Info(
+				"he was a sk8r boi 🛹", "deposit", deposit.Index, "amount", deposit.Amount,
+			)
 		default:
 			continue
 		}
-		if err != nil {
-			s.Logger().Error("failed to process log", "err", err)
-			return err
-		}
 	}
-	return nil
+
+	return s.ds.EnqueueDeposits(deposits)
 }
 
-// processDepositLog adds a deposit to the queue.
-func (s *Service) processDepositLog(
-	_ context.Context,
-	_ state.BeaconState,
+// unpackDepositLog takes a log from the deposit contract and unpacks it into a
+// Deposit struct.
+func (s *Service) unpackDepositLog(
 	log engineprimitives.Log,
-) error {
+) (*primitives.Deposit, error) {
 	d := &abi.BeaconDepositContractDeposit{}
 	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {
-		return err
+		return nil, err
 	}
 
-	s.Logger().Info(
-		"he was a sk8r boi 🛹", "deposit", d.Index, "amount", d.Amount,
-	)
-
-	//nolint:contextcheck // not needed
-	return s.ds.EnqueueDeposit(
-		primitives.NewDeposit(
-			primitives.BLSPubkey(d.Pubkey),
-			primitives.WithdrawalCredentials(d.Credentials),
-			math.Gwei(d.Amount),
-			primitives.BLSSignature(d.Signature),
-			d.Index,
-		))
+	return primitives.NewDeposit(
+		primitives.BLSPubkey(d.Pubkey),
+		primitives.WithdrawalCredentials(d.Credentials),
+		math.Gwei(d.Amount),
+		primitives.BLSSignature(d.Signature),
+		d.Index,
+	), nil
 }

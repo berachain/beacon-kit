@@ -46,9 +46,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/runtime/services/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	"github.com/berachain/beacon-kit/mod/validator"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -102,11 +102,10 @@ func ProvideRuntime(
 	)
 
 	// Build the local builder service.
-	// TODO: PayloadBuilder package.
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
 		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
 		payloadbuilder.WithChainSpec(chainSpec),
-		payloadbuilder.WithConfig(&cfg.Builder),
+		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
 		payloadbuilder.WithPayloadCache(
 			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
@@ -139,14 +138,15 @@ func ProvideRuntime(
 		chainSpec,
 		types.KZGPositionDeneb,
 	)
-	builderService := service.New[builder.Service](
-		builder.WithBaseService(baseService.ShallowCopy("builder")),
-		builder.WithBuilderConfig(&cfg.Builder),
-		builder.WithBlobFactory(blobFactory),
-		builder.WithDepositStore(bsb.DepositStore(nil)),
-		builder.WithLocalBuilder(localBuilder),
-		builder.WithRandaoProcessor(randaoProcessor),
-		builder.WithSigner(signer),
+	validatorService := validator.NewService(
+		validator.WithBlobFactory(blobFactory),
+		validator.WithChainSpec(chainSpec),
+		validator.WithConfig(&cfg.Validator),
+		validator.WithDepositStore(bsb.DepositStore(nil)),
+		validator.WithLocalBuilder(localBuilder),
+		validator.WithLogger(logger.With("service", "validator")),
+		validator.WithRandaoProcessor(randaoProcessor),
+		validator.WithSigner(signer),
 	)
 
 	// Build the blockchain service.
@@ -169,7 +169,7 @@ func ProvideRuntime(
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger),
-		service.WithService(builderService),
+		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(stakingService),
 	)

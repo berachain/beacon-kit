@@ -30,7 +30,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -40,7 +39,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -93,7 +92,7 @@ func (pb *PayloadBuilder) RequestPayload(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadAndWait(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -113,10 +112,10 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", pb.cfg.LocalBuildPayloadTimeout.String(),
+		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
-	case <-time.After(pb.cfg.LocalBuildPayloadTimeout):
+	case <-time.After(pb.cfg.PayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
 		break
@@ -140,7 +139,7 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 // execution client to return the payload.
 func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconState,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash primitives.ExecutionHash,
