@@ -34,7 +34,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
-	"github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -47,7 +46,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	gethclient "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -291,19 +289,8 @@ func broadcastDepositTx(
 	}
 
 	// Spin up the engine client.
-	ethClient, err := gethclient.Dial(cfg.Engine.RPCDialURL.String())
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	eth1Client, err := ethclient.NewEth1Client(ethClient)
-	if err != nil {
-		return common.Hash{}, err
-	}
-
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
-		engineclient.WithEth1Client(eth1Client),
 		engineclient.WithJWTSecret(jwtSecret),
 		engineclient.WithLogger(logger),
 	)
