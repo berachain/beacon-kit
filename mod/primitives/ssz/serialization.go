@@ -27,7 +27,6 @@ package ssz
 
 import (
 	"encoding/binary"
-	"fmt"
 )
 
 // bitsPerByte is the number of bits in a byte.
@@ -212,11 +211,6 @@ func MarshalBitList(bv []bool) []byte {
 		}
 	}
 	// Set the additional bit at the end.
-<<<<<<< Updated upstream
 	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
-=======
-	array[len(bv)/8] |= 1 << (len(bv) % 8)
-	fmt.Printf("%08b %v \n", array, bv)
->>>>>>> Stashed changes
 	return array
 }
