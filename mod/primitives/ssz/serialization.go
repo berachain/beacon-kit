@@ -27,6 +27,7 @@ package ssz
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 
 // bitsPerByte is the number of bits in a byte.
@@ -71,6 +72,47 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 // UnmarshalBool unmarshals a boolean from the src input.
 func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 	return src[0] == 1
+}
+
+// UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
+// The function assumes the input byte slice represents a bit list in a compact form,
+// where the presence of a sentinel bit (value 1) indicates the end of meaningful data.
+// It returns a slice of booleans representing the bit list, excluding the sentinel bit.
+func UnMarshalBitList(bv []byte) []bool {
+	var newArray []bool
+
+	// use a bitmask to get the bit value from the byte for all bytes in the slice
+	// note: this reverses the order of the bits as highest bit is last
+	for j := 0; j < len(bv); j++ {
+		for i := 0; i < 8; i++ {
+			val := (bv[j] & (1 << i) >> i)
+			newArray = append(newArray, val == 1)
+		}
+	}
+
+	// We read from the sentinel bit till the end of the byte slice to get the bit list
+	// We reverse the order of the bits as we read them from the end
+	var res []bool
+	b := new(bool)
+	*b = false
+	var sentinelBitFound *bool = b
+
+	for i := len(newArray) - 1; i >= 0; i-- {
+		if newArray[i] && *sentinelBitFound {
+			res = append(res, true)
+		} else if newArray[i] {
+			*sentinelBitFound = true
+		} else if *sentinelBitFound {
+			res = append(res, false)
+		}
+	}
+
+	return res
+}
+
+func UnMarshalBitVector(bv []byte) []bool {
+	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote its initial length
+	panic("not implemented")
 }
 
 // ----------------------------- Marshal ------------------------------
@@ -163,12 +205,18 @@ func MarshalBitList(bv []bool) []byte {
 	// bit.
 	array := make([]byte, (len(bv)/bitsPerByte)+1)
 	for i, val := range bv {
+
 		if val {
 			// Set the bit at the appropriate position if the boolean is true.
 			array[i/8] |= 1 << (i % bitsPerByte)
 		}
 	}
 	// Set the additional bit at the end.
+<<<<<<< Updated upstream
 	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
+=======
+	array[len(bv)/8] |= 1 << (len(bv) % 8)
+	fmt.Printf("%08b %v \n", array, bv)
+>>>>>>> Stashed changes
 	return array
 }
