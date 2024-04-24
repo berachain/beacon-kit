@@ -45,6 +45,14 @@ func (u BasicItem) SizeSSZ() int {
 	return 8
 }
 
+func (u BasicItem) Kind() ssz.Kind {
+	return ssz.KindUInt
+}
+
+func (u BasicItem) Value() ssz.Value {
+	return u.Value()
+}
+
 // MarshalSSZ marshals the U64 into a byte slice.
 func (u BasicItem) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalU64(u), nil
@@ -76,6 +84,23 @@ func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
 }
 
 func (c *BasicContainer[SpecT]) IsContainer() {}
+
+func (c *BasicContainer[SpecT]) Kind() ssz.Kind {
+	return ssz.KindContainer
+}
+
+func (c *BasicContainer[SpecT]) Elements() []ssz.Value {
+	return []ssz.Value{
+		c.Item1.Value(),
+		c.Item2.Value(),
+	}
+}
+func (c *BasicContainer[SpecT]) FieldTypes() []ssz.Type {
+	return []ssz.Type{
+		c.Item1,
+		c.Item2,
+	}
+}
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {

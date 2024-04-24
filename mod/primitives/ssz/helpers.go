@@ -225,3 +225,44 @@ func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 	}
 	return chunks[0]
 }
+
+// IsBasicType returns true if the type is a basic type
+// i.e. UInt or Boolean types.
+func IsBasicType(t Type) bool {
+	k := t.Kind()
+	return k == KindUInt || k == KindBool
+}
+
+// IsVariableSize returns true if the object is variable-size.
+// A variable-size types to be lists, (unions, Bitlist are not supported yet)
+// and all types that contain a variable-size type.
+// All other types are said to be fixed-size.
+func IsVariableSize(t Type) bool {
+	switch t.Kind() {
+	case KindUInt, KindBool:
+		return false
+	case KindList:
+		return true
+	case KindVector:
+		return IsVariableSize(t.(Vector).elemType)
+	case KindContainer:
+		for _, ft := range t.(ContainerType).FieldTypes() {
+			if IsVariableSize(ft) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+// IsFixedSize returns true if the object is fixed-size.
+func IsFixedSize(t Type) bool {
+	return !IsVariableSize(t)
+}
+
+// IsList returns true if the type is a list type.
+func IsList(t Type) bool {
+	return t.Kind() == KindList
+}
