@@ -11,5 +11,3 @@ use (
 	./mod/storage
 	./testing
 )
-
-replace github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.13.5-0.20240423131024-94579932b189
