@@ -73,10 +73,11 @@ func NewCreateValidator() *cobra.Command {
 	return cmd
 }
 
-// validateDepositMessage validates a deposit message for creating a new
-// validator.
+// createValidatorCmd returns a command that builds a create validator request.
 //
-
+// TODO: Implement broadcast functionality. Currently, the implementation works
+// for the geth client but something about the Deposit binding is not handling
+// other execution layers correctly.
 func createValidatorCmd() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
@@ -165,6 +166,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			"signature", hex.EncodeToString(signature[:]),
 		)
 
+		// TODO: once broadcast is fixed, remove this.
 		logger.Info("Send the above calldata to the deposit contract 🫡")
 
 		// if broadcast {
@@ -291,13 +293,13 @@ func getBLSSigner(
 // 	)
 // 	engineClient.Start(cmd.Context())
 
-// 	// depositContract, err := abi.NewBeaconDepositContract(
-// 	// 	spec.LocalnetChainSpec().DepositContractAddress(),
-// 	// 	engineClient,
-// 	// )
-// 	// if err != nil {
-// 	// 	return common.Hash{}, err
-// 	// }
+// depositContract, err := abi.NewBeaconDepositContract(
+// 	spec.LocalnetChainSpec().DepositContractAddress(),
+// 	engineClient,
+// )
+// if err != nil {
+// 	return common.Hash{}, err
+// }
 
 // 	chainID, err := engineClient.ChainID(cmd.Context())
 // 	if err != nil {
@@ -310,95 +312,47 @@ func getBLSSigner(
 // 		nil,
 // 	)
 // 	if err != nil {
-// 		fmt.Println("PANIC AT NONCE")
-// 		panic(err)
+// 		return common.Hash{}, err
 // 	}
 
-// 	contractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+// Now send this raw transaction through your RPC client
+// engineClient.CallContract(
+// 	cmd.Context(),
+// 	ethereum.CallMsg{
+// 		From:  crypto.PubkeyToAddress(privKey.PublicKey),
+// 		To:    &depositContractAddress,
+// 		Value: depositMsg.Amount.ToWei(),
+// 		Data:  signedTx.Data(),
+// 		Nonce: latestNonce,
+// 	},
+// 	big.NewInt(0),
+// )
 
-// 	callData, err := contractAbi.Pack(
-// 		"deposit",
-// 		depositMsg.Pubkey[:],
-// 		depositMsg.Credentials[:],
-// 		uint64(0),
-// 		signature[:],
-// 	)
-// 	if err != nil {
-// 		fmt.Println("PANIC AT PACK")
-// 		panic(err)
-// 	}
-
-// 	depositContractAddress := spec.LocalnetChainSpec().DepositContractAddress()
-// 	tx := types.NewTx(
-// 		&types.DynamicFeeTx{
-// 			Nonce:     latestNonce,
-// 			ChainID:   chainID,
-// 			To:        &depositContractAddress,
-// 			Value:     depositMsg.Amount.ToWei(),
-// 			Data:      callData,
-// 			GasTipCap: big.NewInt(1000000000),
-// 			GasFeeCap: big.NewInt(1000000000),
-// 			Gas:       500000,
+// Send the deposit to the deposit contract.
+// tx, err = depositContract.Deposit(
+// 	&bind.TransactOpts{
+// 		From: crypto.PubkeyToAddress(privKey.PublicKey),
+// 		Signer: func(
+// 			_ common.Address, tx *types.Transaction,
+// 		) (*types.Transaction, error) {
+// 			return types.SignTx(
+// 				tx, types.NewEIP155Signer(chainID),
+// 				privKey,
+// 			)
 // 		},
-// 	)
-
-// 	signedTx, err := types.SignTx(tx, types.LatestSignerForChainID(chainID),
-// privKey)
-// 	if err != nil {
-// 		fmt.Println("PANIC AT SIGN TX")
-// 		panic(err)
-// 	}
-
-// 	// Now send this raw transaction through your RPC client
-// 	// engineClient.CallContract(
-// 	// 	cmd.Context(),
-// 	// 	ethereum.CallMsg{
-// 	// 		From:  crypto.PubkeyToAddress(privKey.PublicKey),
-// 	// 		To:    &depositContractAddress,
-// 	// 		Value: depositMsg.Amount.ToWei(),
-// 	// 		Data:  signedTx.Data(),
-// 	// 	},
-// 	// 	big.NewInt(0),
-// 	// )
-
-// 	if err = engineClient.SendTransaction(
-// 		cmd.Context(),
-// 		signedTx,
-// 	); err != nil {
-// 		fmt.Println("PANIC AT SEND TRANSACTION")
-// 		panic(err)
-// 	}
-
-// 	fmt.Println("CONTRACT CALLED")
-
-// 	// Send the deposit to the deposit contract.
-// 	// tx, err = depositContract.Deposit(
-// 	// 	&bind.TransactOpts{
-// 	// 		From: crypto.PubkeyToAddress(privKey.PublicKey),
-// 	// 		Signer: func(
-// 	// 			_ common.Address, tx *types.Transaction,
-// 	// 		) (*types.Transaction, error) {
-// 	// 			return types.SignTx(
-// 	// 				tx, types.NewEIP155Signer(chainID),
-// 	// 				privKey,
-// 	// 			)
-// 	// 		},
-// 	// 		Nonce:     big.NewInt(1),
-// 	// 		Value:     depositMsg.Amount.ToWei(),
-// 	// 		GasTipCap: big.NewInt(1000000000),
-// 	// 		GasFeeCap: big.NewInt(1000000000),
-// 	// 	},
-// 	// 	depositMsg.Pubkey[:],
-// 	// 	depositMsg.Credentials[:],
-// 	// 	0,
-// 	// 	signature[:],
-// 	// )
-// 	// if err != nil {
-// 	// 	return common.Hash{}, err
-// 	// }
+// 		Nonce:     big.NewInt(1),
+// 		Value:     depositMsg.Amount.ToWei(),
+// 		GasTipCap: big.NewInt(1000000000),
+// 		GasFeeCap: big.NewInt(1000000000),
+// 	},
+// 	depositMsg.Pubkey[:],
+// 	depositMsg.Credentials[:],
+// 	0,
+// 	signature[:],
+// )
+// if err != nil {
+// 	return common.Hash{}, err
+// }
 
 // 	// Wait for the transaction to be mined and check the status.
 // 	receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
