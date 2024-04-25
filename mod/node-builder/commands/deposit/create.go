@@ -76,7 +76,7 @@ func NewCreateValidator() *cobra.Command {
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
 //
-//nolint:gocognit // very comprehensible methinks
+
 func createValidatorCmd() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
@@ -345,7 +345,8 @@ func getBLSSigner(
 // 		},
 // 	)
 
-// 	signedTx, err := types.SignTx(tx, types.LatestSignerForChainID(chainID), privKey)
+// 	signedTx, err := types.SignTx(tx, types.LatestSignerForChainID(chainID),
+// privKey)
 // 	if err != nil {
 // 		fmt.Println("PANIC AT SIGN TX")
 // 		panic(err)
