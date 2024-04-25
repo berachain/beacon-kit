@@ -26,26 +26,16 @@
 package deposit
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
-	"net/url"
 	"os"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,31 +80,31 @@ func NewCreateValidator() *cobra.Command {
 func createValidatorCmd() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
-			privKey *ecdsa.PrivateKey
-			logger  = log.NewLogger(os.Stdout)
+			// privKey *ecdsa.PrivateKey
+			logger = log.NewLogger(os.Stdout)
 		)
 
-		broadcast, err := cmd.Flags().GetBool(broadcastDeposit)
-		if err != nil {
-			return err
-		}
+		// broadcast, err := cmd.Flags().GetBool(broadcastDeposit)
+		// if err != nil {
+		// 	return err
+		// }
 
-		// If the broadcast flag is set, a private key must be provided.
-		if broadcast {
-			var fundingPrivKey string
-			fundingPrivKey, err = cmd.Flags().GetString(privateKey)
-			if err != nil {
-				return err
-			}
-			if fundingPrivKey == "" {
-				return ErrPrivateKeyRequired
-			}
+		// // If the broadcast flag is set, a private key must be provided.
+		// if broadcast {
+		// 	var fundingPrivKey string
+		// 	fundingPrivKey, err = cmd.Flags().GetString(privateKey)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	if fundingPrivKey == "" {
+		// 		return ErrPrivateKeyRequired
+		// 	}
 
-			privKey, err = crypto.HexToECDSA(fundingPrivKey)
-			if err != nil {
-				return err
-			}
-		}
+		// 	privKey, err = crypto.HexToECDSA(fundingPrivKey)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
 
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(logger, cmd)
@@ -167,25 +157,30 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		// If the broadcast flag is not set, output the deposit message and
 		// signature and return early.
 		logger.Info(
-			"Deposit message created",
-			"\nmessage", depositMsg,
-			"\nsignature", signature,
+			"Deposit Message CallData",
+			"pubkey", hex.EncodeToString(depositMsg.Pubkey[:]),
+			"withdrawal credentials",
+			hex.EncodeToString(depositMsg.Credentials[:]),
+			"amount", depositMsg.Amount,
+			"signature", hex.EncodeToString(signature[:]),
 		)
 
-		if broadcast {
-			var txHash common.Hash
-			txHash, err = broadcastDepositTx(
-				cmd, depositMsg, signature, privKey, logger,
-			)
-			if err != nil {
-				return err
-			}
+		logger.Info("Send the above calldata to the deposit contract 🫡")
 
-			logger.Info(
-				"Deposit transaction successful",
-				"txHash", txHash.Hex(),
-			)
-		}
+		// if broadcast {
+		// 	var txHash common.Hash
+		// 	txHash, err = broadcastDepositTx(
+		// 		cmd, depositMsg, signature, privKey, logger,
+		// 	)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+
+		// 	logger.Info(
+		// 		"Deposit transaction successful",
+		// 		"txHash", txHash.Hex(),
+		// 	)
+		// }
 
 		return nil
 	}
@@ -256,90 +251,162 @@ func getBLSSigner(
 	return blsSigner, nil
 }
 
-func broadcastDepositTx(
-	cmd *cobra.Command,
-	depositMsg *primitives.DepositMessage,
-	signature primitives.Bytes96,
-	privKey *ecdsa.PrivateKey,
-	logger log.Logger,
-) (common.Hash, error) {
-	// Spin up an engine client to broadcast the deposit transaction.
-	// TODO: This should read in the actual config file. I'm going to rope
-	// if I keep trying this right now so it's a flag lol! 🥲
-	cfg := config.DefaultConfig()
+// func broadcastDepositTx(
+// 	cmd *cobra.Command,
+// 	depositMsg *primitives.DepositMessage,
+// 	signature primitives.Bytes96,
+// 	privKey *ecdsa.PrivateKey,
+// 	logger log.Logger,
+// ) (common.Hash, error) {
+// 	// Spin up an engine client to broadcast the deposit transaction.
+// 	// TODO: This should read in the actual config file. I'm going to rope
+// 	// if I keep trying this right now so it's a flag lol! 🥲
+// 	cfg := config.DefaultConfig()
 
-	// Parse the engine RPC URL.
-	engineRPCURL, err := cmd.Flags().GetString(engineRPCURL)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	cfg.Engine.RPCDialURL, err = url.Parse(engineRPCURL)
-	if err != nil {
-		return common.Hash{}, err
-	}
+// 	// Parse the engine RPC URL.
+// 	engineRPCURL, err := cmd.Flags().GetString(engineRPCURL)
+// 	if err != nil {
+// 		return common.Hash{}, err
+// 	}
+// 	cfg.Engine.RPCDialURL, err = url.Parse(engineRPCURL)
+// 	if err != nil {
+// 		return common.Hash{}, err
+// 	}
 
-	// Load the JWT secret.
-	cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	jwtSecret, err := jwt.LoadFromFile(cfg.Engine.JWTSecretPath)
-	if err != nil {
-		panic(err)
-	}
+// 	// Load the JWT secret.
+// 	cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
+// 	if err != nil {
+// 		return common.Hash{}, err
+// 	}
+// 	jwtSecret, err := jwt.LoadFromFile(cfg.Engine.JWTSecretPath)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	// Spin up the engine client.
-	engineClient := engineclient.New(
-		engineclient.WithEngineConfig(&cfg.Engine),
-		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(logger),
-	)
-	engineClient.Start(cmd.Context())
+// 	// Spin up the engine client.
+// 	engineClient := engineclient.New(
+// 		engineclient.WithEngineConfig(&cfg.Engine),
+// 		engineclient.WithJWTSecret(jwtSecret),
+// 		engineclient.WithLogger(logger),
+// 	)
+// 	engineClient.Start(cmd.Context())
 
-	depositContract, err := abi.NewBeaconDepositContract(
-		spec.LocalnetChainSpec().DepositContractAddress(),
-		engineClient,
-	)
-	if err != nil {
-		return common.Hash{}, err
-	}
+// 	// depositContract, err := abi.NewBeaconDepositContract(
+// 	// 	spec.LocalnetChainSpec().DepositContractAddress(),
+// 	// 	engineClient,
+// 	// )
+// 	// if err != nil {
+// 	// 	return common.Hash{}, err
+// 	// }
 
-	chainID, err := engineClient.ChainID(cmd.Context())
-	if err != nil {
-		return common.Hash{}, err
-	}
+// 	chainID, err := engineClient.ChainID(cmd.Context())
+// 	if err != nil {
+// 		return common.Hash{}, err
+// 	}
 
-	// Send the deposit to the deposit contract.
-	tx, err := depositContract.Deposit(
-		&bind.TransactOpts{
-			From: crypto.PubkeyToAddress(privKey.PublicKey),
-			Signer: func(
-				_ common.Address, tx *types.Transaction,
-			) (*types.Transaction, error) {
-				return types.SignTx(
-					tx, types.LatestSignerForChainID(chainID),
-					privKey,
-				)
-			},
-			Value: depositMsg.Amount.ToWei(),
-		},
-		depositMsg.Pubkey[:],
-		depositMsg.Credentials[:],
-		0,
-		signature[:],
-	)
-	if err != nil {
-		return common.Hash{}, err
-	}
+// 	latestNonce, err := engineClient.NonceAt(
+// 		cmd.Context(),
+// 		crypto.PubkeyToAddress(privKey.PublicKey),
+// 		nil,
+// 	)
+// 	if err != nil {
+// 		fmt.Println("PANIC AT NONCE")
+// 		panic(err)
+// 	}
 
-	// Wait for the transaction to be mined and check the status.
-	receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	if receipt.Status != 1 {
-		return common.Hash{}, ErrDepositTransactionFailed
-	}
+// 	contractAbi, err := abi.BeaconDepositContractMetaData.GetAbi()
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	return receipt.TxHash, nil
-}
+// 	callData, err := contractAbi.Pack(
+// 		"deposit",
+// 		depositMsg.Pubkey[:],
+// 		depositMsg.Credentials[:],
+// 		uint64(0),
+// 		signature[:],
+// 	)
+// 	if err != nil {
+// 		fmt.Println("PANIC AT PACK")
+// 		panic(err)
+// 	}
+
+// 	depositContractAddress := spec.LocalnetChainSpec().DepositContractAddress()
+// 	tx := types.NewTx(
+// 		&types.DynamicFeeTx{
+// 			Nonce:     latestNonce,
+// 			ChainID:   chainID,
+// 			To:        &depositContractAddress,
+// 			Value:     depositMsg.Amount.ToWei(),
+// 			Data:      callData,
+// 			GasTipCap: big.NewInt(1000000000),
+// 			GasFeeCap: big.NewInt(1000000000),
+// 			Gas:       500000,
+// 		},
+// 	)
+
+// 	signedTx, err := types.SignTx(tx, types.LatestSignerForChainID(chainID), privKey)
+// 	if err != nil {
+// 		fmt.Println("PANIC AT SIGN TX")
+// 		panic(err)
+// 	}
+
+// 	// Now send this raw transaction through your RPC client
+// 	// engineClient.CallContract(
+// 	// 	cmd.Context(),
+// 	// 	ethereum.CallMsg{
+// 	// 		From:  crypto.PubkeyToAddress(privKey.PublicKey),
+// 	// 		To:    &depositContractAddress,
+// 	// 		Value: depositMsg.Amount.ToWei(),
+// 	// 		Data:  signedTx.Data(),
+// 	// 	},
+// 	// 	big.NewInt(0),
+// 	// )
+
+// 	if err = engineClient.SendTransaction(
+// 		cmd.Context(),
+// 		signedTx,
+// 	); err != nil {
+// 		fmt.Println("PANIC AT SEND TRANSACTION")
+// 		panic(err)
+// 	}
+
+// 	fmt.Println("CONTRACT CALLED")
+
+// 	// Send the deposit to the deposit contract.
+// 	// tx, err = depositContract.Deposit(
+// 	// 	&bind.TransactOpts{
+// 	// 		From: crypto.PubkeyToAddress(privKey.PublicKey),
+// 	// 		Signer: func(
+// 	// 			_ common.Address, tx *types.Transaction,
+// 	// 		) (*types.Transaction, error) {
+// 	// 			return types.SignTx(
+// 	// 				tx, types.NewEIP155Signer(chainID),
+// 	// 				privKey,
+// 	// 			)
+// 	// 		},
+// 	// 		Nonce:     big.NewInt(1),
+// 	// 		Value:     depositMsg.Amount.ToWei(),
+// 	// 		GasTipCap: big.NewInt(1000000000),
+// 	// 		GasFeeCap: big.NewInt(1000000000),
+// 	// 	},
+// 	// 	depositMsg.Pubkey[:],
+// 	// 	depositMsg.Credentials[:],
+// 	// 	0,
+// 	// 	signature[:],
+// 	// )
+// 	// if err != nil {
+// 	// 	return common.Hash{}, err
+// 	// }
+
+// 	// Wait for the transaction to be mined and check the status.
+// 	receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
+// 	if err != nil {
+// 		return common.Hash{}, err
+// 	}
+// 	if receipt.Status != 1 {
+// 		return common.Hash{}, ErrDepositTransactionFailed
+// 	}
+
+// 	return receipt.TxHash, nil
+// }
