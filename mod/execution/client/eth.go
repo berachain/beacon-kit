@@ -38,6 +38,16 @@ func (s *EngineClient) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
 ) (*engineprimitives.Header, error) {
+	// Infer the latest height if the number is nil.
+	if number == nil {
+		latest, err := s.BlockNumber(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		number = new(big.Int).SetUint64(latest)
+	}
+
 	// Check the cache for the header.
 	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
 	if ok {
