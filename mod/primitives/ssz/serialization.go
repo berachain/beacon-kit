@@ -93,9 +93,7 @@ func UnmarshalBitList(bv []byte) []bool {
 	// We read from the sentinel bit till the end of the byte slice to get the bit list
 	// We reverse the order of the bits as we read them from the end
 	var res []bool
-	b := new(bool)
-	*b = false
-	var sentinelBitFound *bool = b
+	sentinelBitFound := new(bool)
 
 	for i := len(newArray) - 1; i >= 0; i-- {
 		if newArray[i] && *sentinelBitFound {
