@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/davecgh/go-spew/spew"
@@ -247,6 +248,9 @@ func (sp *StateProcessor) ProcessBlock(
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 	var err error
+	if err = sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	}
 	if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
@@ -529,6 +533,72 @@ func (sp *StateProcessor) processRandaoMixesReset(
 	st state.BeaconState,
 ) error {
 	return sp.rp.ProcessRandaoMixesReset(st)
+}
+
+// getAttestationDeltas as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
+//
+//nolint:lll
+func (sp *StateProcessor) getAttestationDeltas(
+	st state.BeaconState,
+) ([]math.Gwei, []math.Gwei, error) {
+	// TODO: implement this function forreal
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, nil, err
+	}
+	placeholder := make([]math.Gwei, len(validators))
+	return placeholder, placeholder, nil
+}
+
+// processRewardsAndPenalties as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
+//
+//nolint:lll
+func (sp *StateProcessor) processRewardsAndPenalties(
+	st state.BeaconState,
+) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	if sp.cs.SlotToEpoch(slot) == constants.GenesisEpoch {
+		return nil
+	}
+
+	rewards, penalties, err := sp.getAttestationDeltas(st)
+	if err != nil {
+		return err
+	}
+	validators, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+	if len(validators) != len(rewards) || len(validators) != len(penalties) {
+		return fmt.Errorf(
+			"mismatched rewards and penalties lengths: %d, %d, %d",
+			len(validators), len(rewards), len(penalties),
+		)
+	}
+	for i := range validators {
+		// Increase the balance of the validator.
+		if err = st.IncreaseBalance(
+			math.ValidatorIndex(i),
+			rewards[i],
+		); err != nil {
+			return err
+		}
+
+		// Decrease the balance of the validator.
+		if err = st.DecreaseBalance(
+			math.ValidatorIndex(i),
+			penalties[i],
+		); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.
