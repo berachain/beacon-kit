@@ -25,61 +25,13 @@ FILES = {
 
 EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER = defaults.EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER
 
-# ENTRYPOINT = ["sh","-c"]
-ENTRYPOINT = []
-CMD1 = [
-    "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-    "--port={0}".format(defaults.DISCOVERY_PORT_NUM),
-    "--rpc",
-    "--rpcAddr=0.0.0.0",
-    "--rpcPort={0}".format(defaults.RPC_PORT_NUM),
-    "--rpcCors=*",
-    "--rpcEngine",
-    "--rpcEngineAddr=0.0.0.0",
-    "--rpcEnginePort={0}".format(defaults.ENGINE_RPC_PORT_NUM),
-    "--ws",
-    "--wsAddr=0.0.0.0",
-    "--wsPort={0}".format(defaults.WS_PORT_NUM),
-    "--wsEnginePort={0}".format(defaults.WS_PORT_ENGINE_NUM),
-    "--wsEngineAddr=0.0.0.0",
-    "--jwt-secret=" + global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--sync=full",
-    "--isSingleNode=true",
-    "--logLevel={0}".format("debug"),
-    "--gethGenesis=/app/genesis/genesis.json",
-]
-
-CMD2 = ["dataDir=/data/execution-data --port=30303 --rpc --rpcAddr=0.0.0.0 --rpcPort=8545 --rpcCors=* --rpcEngine --rpcEngineAddr=0.0.0.0 --rpcEnginePort=8551 --ws --wsAddr=0.0.0.0 --wsPort=8546 --wsEnginePort=8547 --wsEngineAddr=0.0.0.0 --jwt-secret=/jwt/jwt-secret.hex --sync=full --isSingleNode=true --logLevel=debug --gethGenesis=/app/genesis/genesis.json"]
-
-CMD = [
-    "--dataDir=/data/execution-data",
-    "--port={}".format(defaults.DISCOVERY_PORT_NUM),
-    "--rpc",
-    "--rpcAddr=0.0.0.0",
-    "--rpcPort={}".format(defaults.RPC_PORT_NUM),
-    "--rpcCors=*",
-    "--rpcEngine",
-    "--rpcEngineAddr=0.0.0.0",
-    "--rpcEnginePort={}".format(defaults.ENGINE_RPC_PORT_NUM),
-    "--ws",
-    "--wsAddr=0.0.0.0",
-    "--wsPort={}".format(defaults.WS_PORT_NUM),
-    "--wsEnginePort={}".format(defaults.WS_PORT_ENGINE_NUM),
-    "--wsEngineAddr=0.0.0.0",
-    "--jwt-secret=" + global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--sync=full",
-    "--isSingleNode=true",
-    "--logLevel=debug",
-    "--gethGenesis=/app/genesis/genesis.json",
-]
+ENTRYPOINT = ["sh","-c"]
 
 BOOTNODE_CMD = "--bootnodes"
 GLOBAL_FILES = []
-# USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
 
 METRICS_PATH = defaults.METRICS_PATH
 
-#nidhi trying
 # Port IDs
 RPC_PORT_ID = "eth-json-rpc"
 WS_PORT_ID = "eth-json-rpc-ws"
@@ -149,3 +101,27 @@ USED_PORTS_TEMPLATE = {
         shared_utils.TCP_PROTOCOL,
     ),
 }
+
+CMD = [
+    "dumb-init",
+    "node /usr/app/node_modules/.bin/ethereumjs",
+    "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--port={0}".format(defaults.DISCOVERY_PORT_NUM),
+    "--rpc",
+    "--rpcAddr=0.0.0.0",
+    "--rpcPort={0}".format(defaults.RPC_PORT_NUM),
+    "--rpcCors=*",
+    "--rpcEngine",
+    "--rpcEngineAddr=0.0.0.0",
+    "--rpcEnginePort={0}".format(defaults.ENGINE_RPC_PORT_NUM),
+    "--ws",
+    "--wsAddr=0.0.0.0",
+    "--wsPort={0}".format(defaults.WS_PORT_NUM),
+    "--wsEnginePort={0}".format(WS_PORT_ENGINE_NUM),
+    "--wsEngineAddr=0.0.0.0",
+    "--jwt-secret=" + global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
+    "--sync=full",
+    "--isSingleNode=true",
+    "--logLevel={0}".format("debug"),
+    "--gethGenesis=/app/genesis/genesis.json",
+]

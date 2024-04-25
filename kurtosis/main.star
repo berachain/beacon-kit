@@ -3,7 +3,7 @@ el_cl_genesis_data_generator = import_module(
 )
 
 execution = import_module("./src/nodes/execution/execution.star")
-execution_types = import_module("./src/nodes/execution/types.star")
+
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")

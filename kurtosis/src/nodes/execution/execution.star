@@ -1,4 +1,3 @@
-execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
