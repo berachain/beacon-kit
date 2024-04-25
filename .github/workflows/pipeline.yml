@@ -60,7 +60,7 @@ jobs:
           - "test-forge-fuzz"
           - "test-e2e"
 
-        os: [ubuntu-latest-large]
+        os: [berachain-gke-runners]
     name: ${{ matrix.args }}
     runs-on:
       labels: ${{ matrix.os }}
