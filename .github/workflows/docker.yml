@@ -31,6 +31,7 @@ on:
       - 'v*.*.*'
     branches:
       - main
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -76,5 +77,38 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            TAG=${{ github.ref_name }}
+
+  build-and-push-gcp:
+    runs-on:
+      labels: ubuntu-latest-large
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 'Authenticate to Google Cloud'
+        id: gcloud-auth
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
+          service_account: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+
+      - name: Setup Docker to use Google Cloud OIDC
+        run: |
+          gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile
+          # TODO: Re-introduce linux/arm64 later.
+          platforms: linux/amd64
+          push: true
+          tags: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:latest
           build-args: |
             TAG=${{ github.ref_name }}
