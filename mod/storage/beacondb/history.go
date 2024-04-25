@@ -31,8 +31,7 @@ import (
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
 	root primitives.Root,
@@ -42,8 +41,7 @@ func (kv *KVStore[
 
 // GetBlockRoot retrieves the block root from the BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.Root, error) {
@@ -52,8 +50,7 @@ func (kv *KVStore[
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
 ) error {
@@ -62,8 +59,7 @@ func (kv *KVStore[
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetLatestBlockHeader() (
 	BeaconBlockHeaderT, error,
 ) {
@@ -72,8 +68,7 @@ func (kv *KVStore[
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot primitives.Root,
@@ -83,8 +78,7 @@ func (kv *KVStore[
 
 // StateRootAtIndex returns the state root at the given slot.
 func (kv *KVStore[
-	DepositT, ForkT, BeaconBlockHeaderT,
-	ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) StateRootAtIndex(
 	idx uint64,
 ) (primitives.Root, error) {

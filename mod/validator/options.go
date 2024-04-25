@@ -23,42 +23,54 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
 import (
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
-// WithBaseService sets the base service.
-func WithBaseService(svc service.BaseService) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = svc
-		return nil
-	}
-}
-
-// WithBuilderConfig sets the builder config.
-func WithBuilderConfig(cfg *builder.Config) service.Option[Service] {
-	return func(s *Service) error {
-		s.cfg = cfg
-		return nil
-	}
-}
+type Option = func(*Service) error
 
 // WithBlobFactory sets the blob factory.
 func WithBlobFactory(
 	factory BlobFactory[types.BeaconBlockBody],
-) service.Option[Service] {
+) Option {
 	return func(s *Service) error {
 		s.blobFactory = factory
 		return nil
 	}
 }
 
+// WithChainSpec sets the chain spec.
+func WithChainSpec(cs primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.chainSpec = cs
+		return nil
+	}
+}
+
+// WithConfig sets the builder config.
+func WithConfig(cfg *Config) Option {
+	return func(s *Service) error {
+		s.cfg = cfg
+		return nil
+	}
+}
+
+// WithDepositStore sets the deposit store.
+func WithDepositStore(ds *deposit.KVStore) Option {
+	return func(s *Service) error {
+		s.ds = ds
+		return nil
+	}
+}
+
 // WithLocalBuilder sets the local builder.
-func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
+func WithLocalBuilder(builder PayloadBuilder[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.localBuilder = builder
 		return nil
@@ -66,15 +78,23 @@ func WithLocalBuilder(builder PayloadBuilder) service.Option[Service] {
 }
 
 // WithRemoteBuilders sets the remote builders.
-func WithRemoteBuilders(builders ...PayloadBuilder) service.Option[Service] {
+func WithRemoteBuilders(builders ...PayloadBuilder[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.remoteBuilders = append(s.remoteBuilders, builders...)
 		return nil
 	}
 }
 
+// WithLogger sets the logger for the service.
+func WithLogger(logger log.Logger) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
 // WithRandaoProcessor sets the randao processor.
-func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
+func WithRandaoProcessor(rp RandaoProcessor[state.BeaconState]) Option {
 	return func(s *Service) error {
 		s.randaoProcessor = rp
 		return nil
@@ -82,7 +102,7 @@ func WithRandaoProcessor(rp RandaoProcessor) service.Option[Service] {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer BLSSigner) service.Option[Service] {
+func WithSigner(signer BLSSigner) Option {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

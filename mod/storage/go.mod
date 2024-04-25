@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/store v1.1.0
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
-	github.com/cosmos/cosmos-db v1.0.2
+	github.com/cockroachdb/pebble v1.1.0
 	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
@@ -37,12 +37,12 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft v0.38.6 // indirect
 	github.com/cometbft/cometbft-db v0.9.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
@@ -59,7 +59,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
-	github.com/ethereum/go-ethereum v1.13.14 // indirect
+	github.com/ethereum/go-ethereum v1.14.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -145,7 +145,7 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/net v0.23.0 // indirect
+	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/term v0.19.0 // indirect

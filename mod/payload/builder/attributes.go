@@ -26,7 +26,6 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
@@ -35,7 +34,7 @@ import (
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (pb *PayloadBuilder) getPayloadAttribute(
-	st state.BeaconState,
+	st BeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,

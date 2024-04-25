@@ -23,44 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package beacondb
+package validator
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetGenesisValidatorsRoot(
-	root primitives.Root,
-) error {
-	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
-}
-
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return kv.genesisValidatorsRoot.Get(kv.ctx)
-}
-
-// GetSlot returns the current slot.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetSlot() (math.Slot, error) {
-	slot, err := kv.slot.Get(kv.ctx)
-	return math.Slot(slot), err
-}
-
-// SetSlot sets the current slot.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetSlot(
-	slot math.Slot,
-) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+// computeStateRoot computes the state root of the block to be included in the
+// proposal.
+func (s *Service) computeStateRoot(
+	_ context.Context,
+) (primitives.Root, error) {
+	return primitives.Root{}, nil
 }

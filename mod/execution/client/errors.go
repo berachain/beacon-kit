@@ -31,7 +31,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/cockroachdb/errors"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -199,34 +198,34 @@ func (s *EngineClient) handleRPCError(err error) error {
 	}
 	switch e.ErrorCode() {
 	case -32700:
-		telemetry.IncrCounter(1, MetricKeyParseErrorCount)
+		// telemetry.IncrCounter(1, MetricKeyParseErrorCount)
 		return ErrParse
 	case -32600:
-		telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
+		// telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
 		return ErrInvalidRequest
 	case -32601:
-		telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
+		// telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
 		return ErrMethodNotFound
 	case -32602:
-		telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
+		// telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
 		return ErrInvalidParams
 	case -32603:
-		telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
+		// telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
 		return ErrInternal
 	case -38001:
-		telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
+		// telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
 		return ErrUnknownPayload
 	case -38002:
-		telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
+		// telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
 		return ErrInvalidForkchoiceState
 	case -38003:
-		telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
+		// telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
 		return ErrInvalidPayloadAttributes
 	case -38004:
-		telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
+		// telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
 		return ErrRequestTooLarge
 	case -32000:
-		telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
+		// telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
 		// Only -32000 status codes are data errors in the RPC specification.
 		var errWithData gethRPC.DataError
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.

@@ -25,10 +25,40 @@
 
 package builder
 
-import "errors"
-
-// ErrReceivedNilEnvelope is returned when the payload builder receives a nil
-// envelope.
-var ErrReceivedNilEnvelope = errors.New(
-	"received nil envelope from payload builder",
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
+
+type BeaconState interface {
+	ReadOnlyEth1Data
+	ReadOnlyRandaoMixes
+	ReadOnlyValidators
+	ReadOnlyWithdrawals
+
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+}
+
+// ReadOnlyValidators has read access to validator methods.
+type ReadOnlyValidators interface {
+	ValidatorIndexByPubkey(
+		primitives.BLSPubkey,
+	) (math.ValidatorIndex, error)
+}
+
+// ReadOnlyEth1Data has read access to eth1 data.
+type ReadOnlyEth1Data interface {
+	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
+}
+
+// ReadOnlyWithdrawals only has read access to withdrawal methods.
+type ReadOnlyWithdrawals interface {
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+}
+
+// ReadOnlyRandaoMixes defines a struct which only has read access to randao
+// mixes methods.
+type ReadOnlyRandaoMixes interface {
+	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+}
