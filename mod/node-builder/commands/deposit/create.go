@@ -77,7 +77,8 @@ func NewCreateValidator() *cobra.Command {
 //
 // TODO: Implement broadcast functionality. Currently, the implementation works
 // for the geth client but something about the Deposit binding is not handling
-// other execution layers correctly. Peep the commit history for what we had. 🤷‍♂️
+// other execution layers correctly. Peep the commit history for what we had.
+// 🤷‍♂️.
 func createValidatorCmd() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
