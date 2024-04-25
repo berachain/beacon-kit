@@ -540,10 +540,15 @@ func (sp *StateProcessor) processRandaoMixesReset(
 //
 //nolint:lll
 func (sp *StateProcessor) getAttestationDeltas(
-	_ state.BeaconState,
+	st state.BeaconState,
 ) ([]math.Gwei, []math.Gwei, error) {
-	// TODO: implement this function
-	return nil, nil, nil
+	// TODO: implement this function forreal
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, nil, err
+	}
+	placeholder := make([]math.Gwei, len(validators))
+	return placeholder, placeholder, nil
 }
 
 // processRewardsAndPenalties as defined in the Ethereum 2.0 specification.
@@ -569,6 +574,12 @@ func (sp *StateProcessor) processRewardsAndPenalties(
 	validators, err := st.GetValidators()
 	if err != nil {
 		return err
+	}
+	if len(validators) != len(rewards) || len(validators) != len(penalties) {
+		return fmt.Errorf(
+			"mismatched rewards and penalties lengths: %d, %d, %d",
+			len(validators), len(rewards), len(penalties),
+		)
 	}
 	for i := range validators {
 		// Increase the balance of the validator.
