@@ -51,7 +51,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_client = execution.create_node(plan, node_modules, validator, "validator", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
-        metrics_enabled_services.append({
+        if validator.el_type != "ethereumjs":
+            metrics_enabled_services.append({
             "name": el_client["name"],
             "service": el_client["service"],
             "metrics_path": node_modules[validator.el_type].METRICS_PATH,
@@ -59,11 +60,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         # 4b. Launch CL
         beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
-        metrics_enabled_services.append({
+        if validator.el_type != "ethereumjs":
+            metrics_enabled_services.append({
             "name": beacond_service.name,
             "service": beacond_service,
             "metrics_path": beacond.METRICS_PATH,
-        })
+            })
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
@@ -71,11 +73,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_client = execution.create_node(plan, node_modules, full, "full", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
-        metrics_enabled_services.append({
+        if full.el_type != "ethereumjs":
+            metrics_enabled_services.append({
             "name": el_client["name"],
             "service": el_client["service"],
             "metrics_path": node_modules[full.el_type].METRICS_PATH,
-        })
+            })
 
         # 4b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
@@ -86,8 +89,10 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         services = plan.add_services(
             configs = full_node_configs,
         )
-
+    
         for name, service in services.items():
+            plan.print("name: " + name,"service: " + str(service))
+            # if service.el_type != "ethereumjs":
             metrics_enabled_services.append({
                 "name": name,
                 "service": service,

@@ -96,32 +96,34 @@ USED_PORTS_TEMPLATE = {
         ENGINE_RPC_PORT_NUM,
         shared_utils.TCP_PROTOCOL,
     ),
-    METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
-        METRICS_PORT_NUM,
-        shared_utils.TCP_PROTOCOL,
-    ),
+    # METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
+    #     METRICS_PORT_NUM,
+    #     shared_utils.TCP_PROTOCOL,
+    # ),
 }
 
 CMD = [
     "dumb-init",
     "node /usr/app/node_modules/.bin/ethereumjs",
-    "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+    "--gethGenesis=/app/genesis/genesis.json",
     "--port={0}".format(defaults.DISCOVERY_PORT_NUM),
     "--rpc",
     "--rpcAddr=0.0.0.0",
     "--rpcPort={0}".format(defaults.RPC_PORT_NUM),
-    "--rpcCors=*",
     "--rpcEngine",
     "--rpcEngineAddr=0.0.0.0",
     "--rpcEnginePort={0}".format(defaults.ENGINE_RPC_PORT_NUM),
     "--ws",
     "--wsAddr=0.0.0.0",
     "--wsPort={0}".format(defaults.WS_PORT_NUM),
-    "--wsEnginePort={0}".format(WS_PORT_ENGINE_NUM),
     "--wsEngineAddr=0.0.0.0",
+    "--wsEnginePort={0}".format(WS_PORT_ENGINE_NUM),
     "--jwt-secret=" + global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--sync=full",
-    "--isSingleNode=true",
-    "--logLevel={0}".format("debug"),
-    "--gethGenesis=/app/genesis/genesis.json",
+    "--logLevel={0}".format("debug")
 ]
+
+# "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
+
+# "--sync=full",
+#  "--isSingleNode=true",   
+# "--rpcCors=*",
