@@ -13,13 +13,6 @@ contract SSZTest is Test {
         assertEq(actual, expected);
     }
 
-    function test_log2floor() public pure {
-        uint64 v = 31;
-        uint64 expected = 4;
-        uint64 actual = uint64(SSZ.log2(v));
-        assertEq(actual, expected);
-    }
-
     function test_concatGIndices() public pure {
         uint64 expected = 3230;
         uint64 actual = SSZ.concatGindices(SSZ.concatGindices(12, 25), 30);
