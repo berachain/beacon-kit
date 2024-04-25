@@ -45,7 +45,7 @@ func (s *EngineClient) HeaderByNumber(
 			return nil, err
 		}
 
-		number = big.NewInt(0).SetUint64(latest)
+		number = new(big.Int).SetUint64(latest)
 	}
 
 	// Check the cache for the header.
