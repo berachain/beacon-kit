@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -60,7 +61,7 @@ type ExecutionEngine interface {
 type LocalBuilder interface {
 	RequestPayload(
 		ctx context.Context,
-		st state.BeaconState,
+		st builder.BeaconState,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,

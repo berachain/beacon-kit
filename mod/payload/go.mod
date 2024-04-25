@@ -1,4 +1,4 @@
-module github.com/berachain/beacon-kit/mod/execution
+module github.com/berachain/beacon-kit/mod/payload
 
 go 1.22.2
 
@@ -10,12 +10,9 @@ replace (
 
 require (
 	cosmossdk.io/log v1.3.1
-	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
-	github.com/ethereum/go-ethereum v1.14.0
-	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -38,13 +35,13 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.1 // indirect
+	github.com/ethereum/go-ethereum v1.14.0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065 // indirect
 	github.com/gballet/go-verkle v0.1.1-0.20231031103413-a67434b50f46 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
@@ -70,7 +67,6 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/zerolog v1.32.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/spf13/afero v1.11.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect

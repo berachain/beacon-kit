@@ -14,6 +14,7 @@ replace (
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/execution => ./execution
+	github.com/berachain/beacon-kit/mod/payload => ./payload
 	github.com/berachain/beacon-kit/mod/primitives => ./primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ./primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ./storage
@@ -30,13 +31,14 @@ require (
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/light v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-sdk v0.51.0
-	github.com/ethereum/go-ethereum v1.13.15
+	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7

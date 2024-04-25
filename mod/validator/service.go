@@ -56,7 +56,7 @@ type Service struct {
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
-	randaoProcessor RandaoProcessor
+	randaoProcessor RandaoProcessor[state.BeaconState]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -66,11 +66,11 @@ type Service struct {
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder
+	localBuilder PayloadBuilder[state.BeaconState]
 
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder
+	remoteBuilders []PayloadBuilder[state.BeaconState]
 }
 
 // NewService creates a new validator service.
@@ -99,7 +99,7 @@ func (s *Service) Status() error { return nil }
 func (s *Service) WaitForHealthy(context.Context) {}
 
 // LocalBuilder returns the local builder.
-func (s *Service) LocalBuilder() PayloadBuilder {
+func (s *Service) LocalBuilder() PayloadBuilder[state.BeaconState] {
 	return s.localBuilder
 }
 

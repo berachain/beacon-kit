@@ -27,8 +27,10 @@ package math
 
 import (
 	"encoding/binary"
+	"math/big"
 	"math/bits"
 
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -138,6 +140,9 @@ func (u U64) Unwrap() uint64 {
 //
 //nolint:mnd,lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
+	if u == ^(U64(0)) {
+		panic("U64 is already the maximum value")
+	}
 	u--
 	u |= u >> 1
 	u |= u >> 2
@@ -234,3 +239,21 @@ func (u U64) ILog2Floor() uint8 {
 // 	Field2 []uint64 `ssz-max:"16"`
 // 	Field1 U64
 // }
+
+// ---------------------------- Gwei Methods ----------------------------
+
+// GweiToWei returns the value of Wei in Gwei.
+func GweiFromWei(i *big.Int) Gwei {
+	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
+	i.Div(i, intToGwei)
+	return Gwei(i.Uint64())
+}
+
+// ToWei converts a value from Gwei to Wei.
+//
+//nolint:stylecheck // Gwei is a type alias.
+func (g Gwei) ToWei() *big.Int {
+	gweiAmount := big.NewInt(0).SetUint64(g.Unwrap())
+	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
+	return gweiAmount.Mul(gweiAmount, intToGwei)
+}

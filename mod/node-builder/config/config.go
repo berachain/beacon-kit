@@ -92,6 +92,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid application options type: %T", opts)
 	}
+
 	type cfgUnmarshaller struct {
 		BeaconKit Config `mapstructure:"beacon-kit"`
 	}
@@ -104,7 +105,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			viperlib.StringToDialURLFunc(),
 		))); err != nil {
 		return nil, fmt.Errorf(
-			"failed to read beacon-kit configuration: %w",
+			"failed to decode beacon-kit configuration: %w",
 			err,
 		)
 	}
