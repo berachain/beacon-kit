@@ -49,7 +49,7 @@ nilaway:
 	@echo "--> Running nilaway"
 	@find . -name 'go.mod' -execdir sh -c 'go run go.uber.org/nilaway/cmd/nilaway \
 		-exclude-errors-in-files "x/beacon/api,runtime/services/staking/abi" \
-		-v ./...; if [ $$? -ne 0 ]; then exit 1; fi' \;
+		-v ./...' \;
 
 #################
 #     gosec     #
