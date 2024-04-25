@@ -106,6 +106,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
+				components.ProvideBlsSigner,
 			),
 		),
 		&autoCliOpts,
