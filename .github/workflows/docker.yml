@@ -81,7 +81,7 @@ jobs:
           workload_identity_provider: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
           service_account: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
       - name: Authenticate with GCP
-        run: "gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet            \n"
+        run: "gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet"
   build-and-push-gcp:
     needs: setup-gcp-auth
     runs-on: berachain-gke-runners
