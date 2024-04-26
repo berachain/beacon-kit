@@ -14,7 +14,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.0
 	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 )

@@ -5,7 +5,7 @@ go 1.22.2
 require (
 	github.com/cockroachdb/errors v1.11.1
 	github.com/ethereum/go-ethereum v1.14.0
-	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/holiman/uint256 v1.2.4
 	github.com/minio/sha256-simd v1.0.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
