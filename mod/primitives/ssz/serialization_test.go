@@ -26,6 +26,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -213,18 +214,17 @@ func TestUnMarshalBitList(t *testing.T) {
 	// Test case 3: Input with multiple bits set
 	bv = []byte{0b11001100}
 	actual = ssz.UnmarshalBitList(bv)
-	expected = []bool{true, false, false, true, true, false, false}
+	expected = []bool{false, false, true, true, false, false, true}
 
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v", expected, actual)
 	}
-	//TODO(CHIBERA): Fix me. following test case fails. []byte marshal -> unmarshal -> returns non matching []byte possibly
-	// expectedBV := ssz.MarshalBitList(actual)
-	// e2 := ssz.MarshalBitList(expected)
-	// fmt.Printf("%08b %08b \n", e2, expectedBV)
-	// if !reflect.DeepEqual(expectedBV, bv) {
-	// 	t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b", expectedBV, bv)
-	// }
+	expectedBV := ssz.MarshalBitList(actual)
+	e2 := ssz.MarshalBitList(expected)
+	fmt.Printf("%08b %08b \n", e2, expectedBV)
+	if !reflect.DeepEqual(expectedBV, bv) {
+		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b", expectedBV, bv)
+	}
 
 	// Test case 4: Input with multiple bits set
 	input := []bool{true, false, true, false, true, false, true}
