@@ -24,7 +24,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 name: pipeline
-
 on:
   pull_request:
     paths-ignore:
@@ -34,7 +33,6 @@ on:
     paths-ignore:
       - "vercel.json"
       - "docs/**"
-
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -42,7 +40,6 @@ concurrency:
   # Case 1: The base branch is main and the event triggered via merge group => we DO NOT want to cancel in progress
   # Case 2: The reference branch is not main => we want to cancel in progress
   cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
-
 jobs:
   ci:
     strategy:
@@ -59,11 +56,9 @@ jobs:
           - "test-forge-cover"
           - "test-forge-fuzz"
           - "test-e2e"
-
         os: [berachain-gke-runners]
     name: ${{ matrix.args }}
-    runs-on:
-      labels: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
