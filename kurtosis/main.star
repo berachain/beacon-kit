@@ -51,20 +51,21 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         el_client = execution.create_node(plan, node_modules, validator, "validator", n, el_enode_addrs)
         el_enode_addrs.append(el_client["enode_addr"])
 
+        # As ethereumjs currently does not support metrics, we only add the metrics path for other clients
         if validator.el_type != "ethereumjs":
             metrics_enabled_services.append({
-            "name": el_client["name"],
-            "service": el_client["service"],
-            "metrics_path": node_modules[validator.el_type].METRICS_PATH,
-        })
+                "name": el_client["name"],
+                "service": el_client["service"],
+                "metrics_path": node_modules[validator.el_type].METRICS_PATH,
+            })
 
         # 4b. Launch CL
         beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
         if validator.el_type != "ethereumjs":
             metrics_enabled_services.append({
-            "name": beacond_service.name,
-            "service": beacond_service,
-            "metrics_path": beacond.METRICS_PATH,
+                "name": beacond_service.name,
+                "service": beacond_service,
+                "metrics_path": beacond.METRICS_PATH,
             })
 
     # 5. Start full nodes (rpcs)
@@ -75,9 +76,9 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         if full.el_type != "ethereumjs":
             metrics_enabled_services.append({
-            "name": el_client["name"],
-            "service": el_client["service"],
-            "metrics_path": node_modules[full.el_type].METRICS_PATH,
+                "name": el_client["name"],
+                "service": el_client["service"],
+                "metrics_path": node_modules[full.el_type].METRICS_PATH,
             })
 
         # 4b. Launch CL
@@ -89,15 +90,15 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         services = plan.add_services(
             configs = full_node_configs,
         )
-    
+
         for name, service in services.items():
-            plan.print("name: " + name,"service: " + str(service))
-            # if service.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": name,
-                "service": service,
-                "metrics_path": beacond.METRICS_PATH,
-            })
+            # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
+            if name != cl_service_name:
+                metrics_enabled_services.append({
+                    "name": name,
+                    "service": service,
+                    "metrics_path": beacond.METRICS_PATH,
+                })
 
     # 6. Start RPCs
     for n, rpc in enumerate(rpc_endpoints):
