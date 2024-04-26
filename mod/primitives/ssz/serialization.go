@@ -230,7 +230,6 @@ func MarshalBitList(bv []bool) []byte {
 	// bit.
 	array := make([]byte, (len(bv)/bitsPerByte)+1)
 	for i, val := range bv {
-
 		if val {
 			// Set the bit at the appropriate position if the boolean is true.
 			array[i/8] |= 1 << (i % bitsPerByte)
