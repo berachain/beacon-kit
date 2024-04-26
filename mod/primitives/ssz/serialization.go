@@ -119,7 +119,7 @@ func UnmarshalBitList(bv []byte) []bool {
 		// if no msbi found, its most likely all padding/malformed, return an empty []bool of len 0
 		return make([]bool, 0)
 	}
-	arrL := 8*(len(bv)-1) + msbi
+	arrL := bitsPerByte*(len(bv)-1) + msbi
 	var newArray = make([]bool, arrL)
 
 	// use a bitmask to get the bit value from the byte for all bytes in the slice
@@ -132,7 +132,7 @@ func UnmarshalBitList(bv []byte) []bool {
 		}
 		for i := 0; i < limit; i++ {
 			val := ((bv[j] & (1 << i)) >> i)
-			newArray[(8*j)+i] = (val == 1)
+			newArray[(bitsPerByte*j)+i] = (val == 1)
 		}
 	}
 
