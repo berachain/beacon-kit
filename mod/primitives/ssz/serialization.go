@@ -76,7 +76,7 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 // TODO: May be buggy, see test case 3 TestUnMarshalBitList
 // UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
 // The function assumes the input byte slice represents a bit list in a compact form,
-// where the presence of a sentinel bit (value 1) indicates the end of meaningful data.
+// where the presence of a sentinel bit (most significant bit of the last byte in the array) can be used to deduce the length of the bitlist (not the limit).
 // It returns a slice of booleans representing the bit list, excluding the sentinel bit.
 func UnmarshalBitList(bv []byte) []bool {
 	var newArray []bool
