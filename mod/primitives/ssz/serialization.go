@@ -85,7 +85,7 @@ func UnmarshalBitList(bv []byte) []bool {
 	// note: this reverses the order of the bits as highest bit is last
 	for j := 0; j < len(bv); j++ {
 		for i := 0; i < 8; i++ {
-			val := (bv[j] & (1 << i) >> i)
+			val := ((bv[j] & (1 << i)) >> i)
 			newArray = append(newArray, val == 1)
 		}
 	}
