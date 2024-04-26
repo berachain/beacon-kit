@@ -6,7 +6,7 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240412153002-c7c6e84e71a1
 	github.com/bufbuild/buf v1.30.1
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.13.15
+	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.57.3-0.20240418140702-d681d93d0ff9

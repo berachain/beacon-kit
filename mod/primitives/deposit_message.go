@@ -47,6 +47,38 @@ type DepositMessage struct {
 	Amount math.Gwei `json:"amount"`
 }
 
+// CreateAndSignDepositMessage creates and signs a deposit message.
+func CreateAndSignDepositMessage(
+	forkData *ForkData,
+	domainType DomainType,
+	signer BLSSigner,
+	credentials WithdrawalCredentials,
+	amount math.Gwei,
+) (*DepositMessage, BLSSignature, error) {
+	domain, err := forkData.ComputeDomain(domainType)
+	if err != nil {
+		return nil, BLSSignature{}, err
+	}
+
+	depositMessage := DepositMessage{
+		Pubkey:      signer.PublicKey(),
+		Credentials: credentials,
+		Amount:      amount,
+	}
+
+	signingRoot, err := ComputeSigningRoot(&depositMessage, domain)
+	if err != nil {
+		return nil, BLSSignature{}, err
+	}
+
+	signature, err := signer.Sign(signingRoot[:])
+	if err != nil {
+		return nil, BLSSignature{}, err
+	}
+
+	return &depositMessage, signature, nil
+}
+
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
