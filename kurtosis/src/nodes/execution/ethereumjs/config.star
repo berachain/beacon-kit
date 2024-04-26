@@ -12,6 +12,9 @@ VERBOSITY_LEVELS = {
     GLOBAL_LOG_LEVEL.trace: "trace",
 }
 
+PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
+
+
 GENESIS_FILEPATH = "/app/genesis"
 GENESIS_DATA_MOUNTPOINT_ON_CLIENTS = "/network-configs"
 GENESIS_CONFIG_MOUNT_PATH_ON_CONTAINER = (
@@ -48,34 +51,8 @@ RPC_PORT_NUM = 8545
 WS_PORT_NUM = 8546
 DISCOVERY_PORT_NUM = 30303
 ENGINE_RPC_PORT_NUM = 8551
-METRICS_PORT_NUM = 9001
 WS_PORT_ENGINE_NUM = 8547
 
-USED_PORTS = {
-    RPC_PORT_ID: shared_utils.new_port_spec(
-        RPC_PORT_NUM,
-        shared_utils.TCP_PROTOCOL,
-        shared_utils.HTTP_APPLICATION_PROTOCOL,
-    ),
-    WS_PORT_ID: shared_utils.new_port_spec(WS_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    WS_PORT_ENGINE_ID: shared_utils.new_port_spec(
-        WS_PORT_ENGINE_NUM,
-        shared_utils.TCP_PROTOCOL,
-    ),
-    TCP_DISCOVERY_PORT_ID: shared_utils.new_port_spec(
-        DISCOVERY_PORT_NUM,
-        shared_utils.TCP_PROTOCOL,
-    ),
-    UDP_DISCOVERY_PORT_ID: shared_utils.new_port_spec(
-        DISCOVERY_PORT_NUM,
-        shared_utils.UDP_PROTOCOL,
-    ),
-    ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(
-        ENGINE_RPC_PORT_NUM,
-        shared_utils.TCP_PROTOCOL,
-    ),
-    METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL),
-}
 
 USED_PORTS_TEMPLATE = {
     RPC_PORT_ID: port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL, shared_utils.HTTP_APPLICATION_PROTOCOL),
@@ -96,16 +73,13 @@ USED_PORTS_TEMPLATE = {
         ENGINE_RPC_PORT_NUM,
         shared_utils.TCP_PROTOCOL,
     ),
-    # METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
-    #     METRICS_PORT_NUM,
-    #     shared_utils.TCP_PROTOCOL,
-    # ),
 }
 
 CMD = [
     "dumb-init",
     "node /usr/app/node_modules/.bin/ethereumjs",
     "--gethGenesis=/app/genesis/genesis.json",
+    "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "--port={0}".format(defaults.DISCOVERY_PORT_NUM),
     "--rpc",
     "--rpcAddr=0.0.0.0",
@@ -119,11 +93,8 @@ CMD = [
     "--wsEngineAddr=0.0.0.0",
     "--wsEnginePort={0}".format(WS_PORT_ENGINE_NUM),
     "--jwt-secret=" + global_constants.JWT_MOUNT_PATH_ON_CONTAINER,
-    "--logLevel={0}".format("debug")
+    "--extIP={0}".format(PRIVATE_IP_ADDRESS_PLACEHOLDER),
+    "--isSingleNode=true",
+    "--logLevel={0}".format("debug"),
+    "--rpcCors=*"
 ]
-
-# "--dataDir=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-
-# "--sync=full",
-#  "--isSingleNode=true",   
-# "--rpcCors=*",
