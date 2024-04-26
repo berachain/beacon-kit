@@ -7,7 +7,7 @@ replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/ethereum/go-ethereum v1.14.0
-	github.com/ferranbt/fastssz v0.1.4-0.20240409113215-d6fd7ab64065
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 )
 
 require (
