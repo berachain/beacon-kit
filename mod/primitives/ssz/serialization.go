@@ -73,6 +73,77 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 	return src[0] == 1
 }
 
+// MostSignificantBitIndex uses bitwise operations for a fast determination
+// of the most significant bit's index in a byte.
+func MostSignificantBitIndex(x byte) int {
+	if x == 0 {
+		return -1
+	}
+
+	// Initialize the result index
+	r := 0
+	// Check if the upper half of the byte (higher 4 bits) is non-zero
+	if x >= 0x10 {
+		// Right shift by 4 bits to focus on the higher half
+		x >>= 4
+		// Increment result index by 4 because we've shifted half the byte
+		r += 4
+	}
+	// Check if the upper quarter of the byte (bits 4-5) is non-zero
+	if x >= 0x4 {
+		// Right shift by 2 bits to focus on the next significant bits
+		x >>= 2
+		// Increment result index by 2 because we've shifted two bits
+		r += 2
+	}
+	// Check if the second bit is set
+	if x >= 0x2 {
+		// Increment result index by 1 because the second bit is significant
+		r += 1
+	}
+	return r
+}
+
+// TODO: May be buggy, see test case 3 TestUnMarshalBitList
+// UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
+// The function assumes the input byte slice represents a bit list in a compact form,
+// where the presence of a sentinel bit (most significant bit of the last byte in the array) can be used to deduce the length of the bitlist (not the limit).
+// It returns a slice of booleans representing the bit list, excluding the sentinel bit.
+func UnmarshalBitList(bv []byte) []bool {
+	if len(bv) == 0 {
+		return make([]bool, 0)
+	}
+
+	msbi := MostSignificantBitIndex(bv[len(bv)-1])
+	if msbi == -1 {
+		// if no msbi found, its most likely all padding/malformed, return an empty []bool of len 0
+		return make([]bool, 0)
+	}
+	arrL := bitsPerByte*(len(bv)-1) + msbi
+	var newArray = make([]bool, arrL)
+
+	// use a bitmask to get the bit value from the byte for all bytes in the slice
+	// note: this reverses the order of the bits as highest bit is last
+	// we use the pre-calculated array size using msbi to only read whats relevant
+	for j := 0; j < len(bv); j++ {
+		limit := bitsPerByte
+		if j == len(bv)-1 {
+			limit = msbi
+		}
+		for i := 0; i < limit; i++ {
+			val := ((bv[j] & (1 << i)) >> i)
+			newArray[(bitsPerByte*j)+i] = (val == 1)
+		}
+	}
+
+	return newArray
+}
+
+func UnmarshalBitVector(bv []byte) []bool {
+	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote its initial length
+	panic("not implemented")
+}
+
 // ----------------------------- Marshal ------------------------------
 
 // MarshalU256 marshals a big endian U256 into a byte slice.
