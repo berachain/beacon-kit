@@ -26,7 +26,6 @@
 package ssz_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -219,9 +218,8 @@ func TestUnMarshalBitList(t *testing.T) {
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v", expected, actual)
 	}
+	// Test case 3a: Check unmarshal returns same results as original input to marshal
 	expectedBV := ssz.MarshalBitList(actual)
-	e2 := ssz.MarshalBitList(expected)
-	fmt.Printf("%08b %08b \n", e2, expectedBV)
 	if !reflect.DeepEqual(expectedBV, bv) {
 		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b", expectedBV, bv)
 	}
