@@ -126,9 +126,13 @@ func UnmarshalBitList(bv []byte) []bool {
 	// note: this reverses the order of the bits as highest bit is last
 	// we use the pre-calculated array size using msbi to only read whats relevant
 	for j := 0; j < len(bv); j++ {
-		for i := 0; i < 8; i++ {
+		limit := bitsPerByte
+		if j == len(bv)-1 {
+			limit = msbi
+		}
+		for i := 0; i < limit; i++ {
 			val := ((bv[j] & (1 << i)) >> i)
-			newArray[8 * j + i] = (val == 1)
+			newArray[(8*j)+i] = (val == 1)
 		}
 	}
 
