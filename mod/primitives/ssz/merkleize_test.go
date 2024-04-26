@@ -49,7 +49,7 @@ func (u BasicItem) Kind() ssz.Kind {
 	return ssz.KindUInt
 }
 
-func (u BasicItem) Value() ssz.Value {
+func (u BasicItem) Value() ssz.Marshallable {
 	return u.Value()
 }
 
@@ -89,8 +89,8 @@ func (c *BasicContainer[SpecT]) Kind() ssz.Kind {
 	return ssz.KindContainer
 }
 
-func (c *BasicContainer[SpecT]) Elements() []ssz.Value {
-	return []ssz.Value{
+func (c *BasicContainer[SpecT]) Elements() []ssz.Marshallable {
+	return []ssz.Marshallable{
 		c.Item1.Value(),
 		c.Item2.Value(),
 	}

@@ -40,6 +40,8 @@ type Marshallable interface {
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
 	SizeSSZ() int
+	// Return type of data
+	Type() Type
 }
 
 // Hashable is an interface representing objects that implement HashTreeRoot().

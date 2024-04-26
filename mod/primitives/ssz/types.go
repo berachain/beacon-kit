@@ -39,7 +39,7 @@ type Basic[SpecT any, RootT ~[32]byte] interface {
 // types that are composed of other SSZ encodable values.
 type Composite[SpecT any, RootT ~[32]byte] interface {
 	Basic[SpecT, RootT]
-	Elements() []Value
+	Elements() []Marshallable
 }
 
 // Container is an interface for SSZ container types that can be marshaled and
@@ -63,7 +63,7 @@ type (
 		Type
 		// Size returns the length, in bytes,
 		// of the serialized form of the basic type.
-		SizeOf() int
+		Size() int
 	}
 
 	// ArrayType represents a SSZ vector or list type.
@@ -79,6 +79,12 @@ type (
 		Type
 		// FieldTypes returns the types of the container fields.
 		FieldTypes() []Type
+	}
+
+	VectorType interface {
+		Type
+		Size() int
+		ElemType() Type
 	}
 )
 
@@ -98,39 +104,3 @@ const (
 	// KindContainer is a SSZ container.
 	KindContainer
 )
-
-// Vector represents the SSZ vector type.
-type Vector struct {
-	size     int
-	elemType Type
-}
-
-// NewVector creates a new vector type.
-func NewVector(size int, elemType Type) Vector {
-	return Vector{
-		size:     size,
-		elemType: elemType,
-	}
-}
-
-// Kind returns the type kind.
-func (t Vector) Kind() Kind {
-	return KindVector
-}
-
-// Size returns the fixed size of the vector.
-func (t Vector) Size() int {
-	return t.size
-}
-
-// ElemType returns the type of the vector elements.
-func (t Vector) ElemType() Type {
-	return t.elemType
-}
-
-// Value is a common interface for SSZ values.
-type Value interface {
-	Marshal() ([]byte, error)
-	Unmarshal([]byte) error
-	Type() Type
-}

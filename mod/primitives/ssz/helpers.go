@@ -244,7 +244,7 @@ func IsVariableSize(t Type) bool {
 	case KindList:
 		return true
 	case KindVector:
-		return IsVariableSize(t.(Vector).elemType)
+		return IsVariableSize(t.(VectorType).ElemType())
 	case KindContainer:
 		for _, ft := range t.(ContainerType).FieldTypes() {
 			if IsVariableSize(ft) {

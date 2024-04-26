@@ -39,8 +39,8 @@ func MarshalComposite[SpecT any, RootT ~[32]byte](c Composite[SpecT, RootT]) ([]
 	elems := c.Elements()
 	bzs, err := iter.MapErr(
 		elems,
-		func(elem *Value) ([]byte, error) {
-			return (*elem).Marshal()
+		func(elem *Marshallable) ([]byte, error) {
+			return (*elem).MarshalSSZ()
 		},
 	)
 	if err != nil {
