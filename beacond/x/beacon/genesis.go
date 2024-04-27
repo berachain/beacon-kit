@@ -67,9 +67,5 @@ func (am AppModule) InitGenesis(
 func (am AppModule) ExportGenesis(
 	ctx context.Context,
 ) (json.RawMessage, error) {
-	gs, err := am.keeper.ExportGenesis(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(gs)
+	return json.Marshal(am.keeper.ExportGenesis(ctx))
 }

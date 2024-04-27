@@ -33,7 +33,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -192,6 +191,6 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
-	return &deneb.BeaconState{}
+func (k *Keeper) ExportGenesis(_ context.Context) *core.Genesis {
+	return new(core.Genesis)
 }
