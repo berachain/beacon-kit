@@ -38,7 +38,7 @@ import (
 type PayloadBuilder struct {
 	cfg       *Config
 	chainSpec primitives.ChainSpec
-	logger    log.Logger
+	logger    log.Logger[any]
 
 	// ee is the execution engine.
 	ee ExecutionEngine

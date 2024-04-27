@@ -26,26 +26,26 @@
 package log
 
 // Logger is extremely similar to the Cosmos-SDK Logger interface.
-type Logger[T any] interface {
+type Logger[KeyValT any] interface {
 	// Info takes a message and a set of key/value pairs and logs with level
 	// INFO.
 	// The key of the tuple must be a string.
-	Info(msg string, keyVals ...any)
+	Info(msg string, keyVals ...KeyValT)
 
 	// Warn takes a message and a set of key/value pairs and logs with level
 	// WARN.
 	// The key of the tuple must be a string.
-	Warn(msg string, keyVals ...any)
+	Warn(msg string, keyVals ...KeyValT)
 
 	// Error takes a message and a set of key/value pairs and logs with level
 	// ERR.
 	// The key of the tuple must be a string.
-	Error(msg string, keyVals ...any)
+	Error(msg string, keyVals ...KeyValT)
 
 	// Debug takes a message and a set of key/value pairs and logs with level
 	// DEBUG.
 	// The key of the tuple must be a string.
-	Debug(msg string, keyVals ...any)
+	Debug(msg string, keyVals ...KeyValT)
 
 	// Impl returns the underlying logger implementation.
 	// It is used to access the full functionalities of the underlying logger.
@@ -57,8 +57,8 @@ type Logger[T any] interface {
 // however
 // we introduce a generic to allow for more flexibility in the underlying
 // logger implementation.
-type ContextualLogger[LoggerT any] interface {
-	Logger
+type ContextualLogger[KeyValT, LoggerT any] interface {
+	Logger[KeyValT]
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
 	With(keyVals ...any) LoggerT

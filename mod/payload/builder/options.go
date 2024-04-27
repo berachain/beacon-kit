@@ -53,7 +53,7 @@ func WithConfig(cfg *Config) Option {
 }
 
 // WithLogger sets the logger.
-func WithLogger[LoggerT any](logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(pb *PayloadBuilder) error {
 		pb.logger = logger
 		return nil
