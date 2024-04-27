@@ -103,7 +103,9 @@ func ProvideRuntime(
 
 	// Build the local builder service.
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
-		payloadbuilder.WithLogger[log.Logger](logger.With("service", "payload-builder")),
+		payloadbuilder.WithLogger[log.Logger](
+			logger.With("service", "payload-builder"),
+		),
 		payloadbuilder.WithChainSpec(chainSpec),
 		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
