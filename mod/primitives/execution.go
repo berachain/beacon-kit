@@ -27,7 +27,6 @@ package primitives
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 type (
@@ -40,10 +39,4 @@ type (
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
-
-	// ExecutionBlock represents a block on the execution layer.
-	ExecutionBlock = coretypes.Block
-
-	// ExecutionHeader represents a header on the execution layer.
-	ExecutionHeader = coretypes.Header
 )

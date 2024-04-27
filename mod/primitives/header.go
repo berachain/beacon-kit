@@ -25,20 +25,16 @@
 
 package primitives
 
-import (
-	"encoding/json"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/math"
 
 // BeaconBlockHeader is the header of a beacon block.
 //
-//go:generate go run github.com/fjl/gencodec -type BeaconBlockHeader -out header.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include bytes.go,primitives.go,$GETH_PKG_INCLUDE/common -output header.ssz.go
-
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./math,./bytes.go,./math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// Slot is the slot number of the block.
-	Slot Slot `json:"slot"`
+	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the proposer of the block.
-	ProposerIndex ValidatorIndex `json:"proposerIndex"`
+	ProposerIndex math.ValidatorIndex `json:"proposerIndex"`
 	// ParentRoot is the root of the parent block.
 	ParentRoot Root `json:"parentRoot"    ssz-size:"32"`
 	// StateRoot is the root of the beacon state after executing
@@ -48,9 +44,16 @@ type BeaconBlockHeader struct {
 	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
 }
 
-// String returns a string representation of the beacon block header.
-func (h *BeaconBlockHeader) String() string {
-	//#nosec:G703 // ignore potential marshalling failure.
-	output, _ := json.Marshal(h)
-	return string(output)
-}
+// // HashTreeRoot ssz hashes the BeaconBlockHeader object
+// func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
+// 	x, err := ssz.MerkleizeContainer[U64](b)
+// 	if err != nil {
+// 		return [32]byte{}, err
+// 	}
+// 	y, _ := fssz.HashWithDefaultHasher(b)
+// 	if x != y {
+// 		fmt.Println("HashTreeRoot mismatch", Root(x), Root(y))
+// 		panic("HashTreeRoot mismatch")
+// 	}
+// 	return x, nil
+// }

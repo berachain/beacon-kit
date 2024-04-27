@@ -10,8 +10,6 @@
 #    beacond     #
 #################
 
-# TODO: add start-erigon
-
 JWT_PATH = ${TESTAPP_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
 
@@ -93,7 +91,51 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-rpc-enabled \
 	--engine-host-allowlist="*" \
 	--engine-jwt-secret=../../${JWT_PATH}
+	
+start-erigon: ## start an ephemeral `erigon` node
+	rm -rf .tmp/erigon
+	docker run \
+    --rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+    -v $(PWD)/.tmp:/.tmp \
+    thorax/erigon:v2.59.3 init \
+    --datadir .tmp/erigon \
+    ${ETH_GENESIS_PATH}
 
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:v2.59.3 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--http.vhosts "*" \
+	--port 30303 \
+	--http.corsdomain "*" \
+	--http.port 8545 \
+	--authrpc.addr	0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--networkid 80087 \
+	--db.size.limit	3000MB \
+	--datadir .tmp/erigon
+
+start-ethereumjs:
+	rm -rf .tmp/ethereumjs
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	ethpandaops/ethereumjs:stable \
+	--gethGenesis ../../${ETH_GENESIS_PATH} \
+	--rpcEngine \
+	--jwtSecret ../../$(JWT_PATH) \
+	--rpcEngineAddr 0.0.0.0 \
+	--dataDir .tmp/ethereumjs
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
@@ -103,27 +145,26 @@ test:
 	@$(MAKE) test-unit test-forge-fuzz
 	
 test-unit: ## run golang unit tests
-	@$(MAKE)
 	@echo "Running unit tests..."
-	go test ./...
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test
 
 test-unit-cover: ## run golang unit tests with coverage
-	@$(MAKE)
 	@echo "Running unit tests with coverage..."
-	go test -race -coverprofile=test-unit-cover.txt -covermode=atomic ./...
+	@go list -f '{{.Dir}}/...' -m | xargs \
+		go test -race -coverprofile=test-unit-cover.txt 
+
 
 # On MacOS, if there is a linking issue on the fuzz tests, 
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
-	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test ./mod/runtime/services/builder/local/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHashTreeRoot ./mod/trie/merkleize/... -fuzztime=${MEDIUM_FUZZ_TIME}
-	go test -fuzz=FuzzQueueSimple ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzQueueMulti ./mod/storage/beacondb/collections/ -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/payload/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/payload/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
+	go test ./mod/payload/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
+	go test -fuzz=FuzzHashTreeRoot ./mod/primitives/merkle -fuzztime=${MEDIUM_FUZZ_TIME}
 
-test-e2e:
+test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:

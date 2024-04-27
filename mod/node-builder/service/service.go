@@ -30,20 +30,20 @@ import (
 	"sync"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config/params"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // BaseService is a base service that provides common functionality for all
 // services.
 type BaseService struct {
-	bsb    BeaconStorageBackend
-	name   string
-	cfg    *config.Config
-	logger log.Logger
+	bsb       BeaconStorageBackend
+	name      string
+	cfg       *config.Config
+	chainSpec primitives.ChainSpec
+	logger    log.Logger
 
 	// statusErrMu protects statusErr.
 	statusErrMu *sync.RWMutex
@@ -56,12 +56,14 @@ type BaseService struct {
 func NewBaseService(
 	cfg *config.Config,
 	bsp BeaconStorageBackend,
+	chainSpec primitives.ChainSpec,
 	logger log.Logger,
 ) *BaseService {
 	return &BaseService{
-		bsb:    bsp,
-		logger: logger,
-		cfg:    cfg,
+		bsb:       bsp,
+		logger:    logger,
+		cfg:       cfg,
+		chainSpec: chainSpec,
 	}
 }
 
@@ -88,16 +90,10 @@ func (s *BaseService) BeaconState(ctx context.Context) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
 }
 
-// BeaconCfg returns the configuration settings of the beacon node from
+// ChainSpec returns the configuration settings of the beacon node from
 // the BaseService.
-func (s *BaseService) BeaconCfg() *params.BeaconChainConfig {
-	return &s.cfg.Beacon
-}
-
-// BuilderCfg returns the configuration settings of the builder from
-// the BaseService.
-func (s *BaseService) BuilderCfg() *builderconfig.Config {
-	return &s.cfg.Builder
+func (s *BaseService) ChainSpec() primitives.ChainSpec {
+	return s.chainSpec
 }
 
 // Start is an intentional no-op for the BaseService.

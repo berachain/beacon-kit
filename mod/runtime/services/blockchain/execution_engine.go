@@ -30,10 +30,9 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -42,14 +41,16 @@ func (s *Service) sendFCU(
 	st state.BeaconState,
 	headEth1Hash primitives.ExecutionHash,
 ) error {
-	eth1BlockHash, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	eth1BlockHash := latestExecutionPayload.GetBlockHash()
+
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&execution.ForkchoiceUpdateRequest{
-			State: &engine.ForkchoiceState{
+		&engineprimitives.ForkchoiceUpdateRequest{
+			State: &engineprimitives.ForkchoiceState{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
@@ -65,18 +66,18 @@ func (s *Service) sendFCU(
 func (s *Service) sendFCUWithAttributes(
 	ctx context.Context,
 	st state.BeaconState,
-	headEth1Hash primitives.ExecutionHash,
-	forSlot primitives.Slot,
+	forSlot math.Slot,
 	parentBlockRoot primitives.Root,
+	headEth1Hash primitives.ExecutionHash,
 ) error {
-	_, err := s.lb.BuildLocalPayload(
+	_, err := s.lb.RequestPayload(
 		ctx,
 		st,
-		headEth1Hash,
 		forSlot,
 		//#nosec:G701 // won't realistically overflow.
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
+		headEth1Hash,
 	)
 	return err
 }
@@ -85,7 +86,7 @@ func (s *Service) sendFCUWithAttributes(
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st state.BeaconState,
-	payload enginetypes.ExecutionPayload,
+	payload engineprimitives.ExecutionPayload,
 ) {
 	var (
 		headHash primitives.ExecutionHash
@@ -96,19 +97,22 @@ func (s *Service) sendPostBlockFCU(
 	if payload != nil {
 		headHash = payload.GetBlockHash()
 	} else {
-		var err error
-		headHash, err = st.GetEth1BlockHash()
+		latestExecutionPayload, err := st.GetLatestExecutionPayload()
 		if err != nil {
-			s.Logger().
-				Error("failed to get eth1 block hash in postBlockProcess", "error", err)
+			s.Logger().Error(
+				"failed to get latest execution payload in postBlockProcess",
+				"error", err,
+			)
 			return
 		}
+		headHash = latestExecutionPayload.GetBlockHash()
 	}
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
 	//nolint:nestif // todo:cleanup
-	if s.BuilderCfg().LocalBuilderEnabled /*&& !s.ss.IsInitSync()*/ {
+	// TODO: re-enable this flag.
+	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
 		// TODO: This BlockRoot calculation is sound, but very confusing
 		// and hard to explain to someone who is not familiar with the
 		// nuance of our implementation. We should refactor this.
@@ -148,9 +152,9 @@ func (s *Service) sendPostBlockFCU(
 		if err = s.sendFCUWithAttributes(
 			ctx,
 			stCopy,
-			headHash,
 			slot+1,
 			root,
+			headHash,
 		); err == nil {
 			return
 		}

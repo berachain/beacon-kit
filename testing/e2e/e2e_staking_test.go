@@ -108,7 +108,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
-	targetBlkNum := blkNum + 5
+	targetBlkNum := blkNum + 10
 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 
@@ -203,7 +203,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 // 	msg := beacontypes.DepositMessage{
 // 		Pubkey:      primitives.BLSPubkey(nodePubkey),
 // 		Credentials: beacontypes.WithdrawalCredentials(credentials),
-// 		Amount:      primitives.Gwei(32 * suite.OneGwei),
+// 		Amount:      math.Gwei(32 * suite.OneGwei),
 // 	}
 
 // 	// forkData := forks.NewForkData(

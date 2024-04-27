@@ -38,88 +38,6 @@ beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
 # Position of the blob sidecars in the proposal
 blob-sidecars-block-proposal-position = {{.BeaconKit.ABCI.BlobSidecarsBlockPosition}}
 
-[beacon-kit.beacon-chain]
-
-########### Gwei Values ###########
-# MinDepositAmount is the minimum deposit amount per deposit transaction.
-min-deposit-amount = {{.BeaconKit.Beacon.MinDepositAmount}}
-
-# MaxEffectiveBalance is the maximum effective balance allowed for a validator.
-max-effective-balance = {{.BeaconKit.Beacon.MaxEffectiveBalance}}
-
-# EffectiveBalanceIncrement is the effective balance increment.
-effective-balance-increment = {{.BeaconKit.Beacon.EffectiveBalanceIncrement}}
-
-########### Time Parameters ##########
-# SlotsPerEpoch is the number of slots per epoch.
-slots-per-epoch = {{.BeaconKit.Beacon.SlotsPerEpoch}}
-
-# SlotsPerHistoricalRoot is the number of slots per historical root.
-slots-per-historical-root = {{.BeaconKit.Beacon.SlotsPerHistoricalRoot}}
-
-########### Eth1 Data ###########
-# DepositContractAddress is the address of the deposit contract.
-deposit-contract-address = "{{.BeaconKit.Beacon.DepositContractAddress}}"
-
-########### Forks ###########
-# Electra fork epoch
-electra-fork-epoch = {{.BeaconKit.Beacon.ElectraForkEpoch}}
-
-########### State List Lengths ###########
-# EpochsPerHistoricalVector is the number of epochs in the historical vector.
-epochs-per-historical-vector = {{.BeaconKit.Beacon.EpochsPerHistoricalVector}}
-
-# EpochsPerSlashingsVector is the number of epochs in the slashings vector.
-epochs-per-slashings-vector = {{.BeaconKit.Beacon.EpochsPerSlashingsVector}}
-
-########### Max Operations ###########
-# MaxDepositsPerBlock specifies the maximum number of deposit operations allowed per block.
-max-deposits-per-block = {{.BeaconKit.Beacon.MaxDepositsPerBlock}}
-
-# MaxWithdrawalsPerPayload indicates the maximum number of withdrawal operations allowed in a single payload.
-max-withdrawals-per-payload = {{.BeaconKit.Beacon.MaxWithdrawalsPerPayload}}
-
-# MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals allowed per sweep.
-max-validators-per-withdrawals-sweep = {{.BeaconKit.Beacon.MaxValidatorsPerWithdrawalsSweep}}
-
-
-
-########### Rewards and Penalties ###########
-# ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
-proportional-slashing-multiplier = {{.BeaconKit.Beacon.ProportionalSlashingMultiplier}}
-
-########### Deneb Values ###########
-# MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node will keep the blobs for.
-min-epochs-for-blobs-sidecars-request = {{.BeaconKit.Beacon.MinEpochsForBlobsSidecarsRequest}}
-
-# MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-max-blobs-per-block = {{.BeaconKit.Beacon.MaxBlobsPerBlock}}
-
-# FieldElementsPerBlob specifies the number of field elements per blob.
-field-elements-per-blob = {{.BeaconKit.Beacon.FieldElementsPerBlob}}
-
-# MaxBlobCommitmentsPerBlock specifies the maximum number of blob commitments allowed per block.
-max-blob-commitments-per-block = {{.BeaconKit.Beacon.MaxBlobCommitmentsPerBlock}}
-
-# KZGInclusionProofDepth is the depth of the KZG inclusion proof.
-kzg-inclusion-proof-depth = {{.BeaconKit.Beacon.KZGInclusionProofDepth}}
-
-[beacon-kit.builder]
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
-# from this node.
-suggested-fee-recipient = "{{.BeaconKit.Builder.SuggestedFeeRecipient}}"
-
-# Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Builder.Graffiti}}"
-
-# LocalBuilderEnabled determines if the local payload builder is enabled.
-local-builder-enabled = {{ .BeaconKit.Builder.LocalBuilderEnabled }}
-
-# The timeout for local build payload. This should match, or be slightly less
-# than the configured timeout on your execution client. It also must be less than
-# timeout_proposal in the CometBFT configuration.
-local-build-payload-timeout = "{{ .BeaconKit.Builder.LocalBuildPayloadTimeout }}"
-
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
@@ -149,4 +67,21 @@ trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 # KZG implementation to use.
 # Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
 implementation = "{{.BeaconKit.KZG.Implementation}}"
+
+[beacon-kit.payload-builder]
+# Enabled determines if the local payload builder is enabled.
+enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
+
+# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# from this node.
+suggested-fee-recipient = "{{.BeaconKit.PayloadBuilder.SuggestedFeeRecipient}}"
+
+# The timeout for local build payload. This should match, or be slightly less
+# than the configured timeout on your execution client. It also must be less than
+# timeout_proposal in the CometBFT configuration.
+payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
+
+[beacon-kit.validator]
+# Graffiti string that will be included in the graffiti field of the beacon block.
+graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 `

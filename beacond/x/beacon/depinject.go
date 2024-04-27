@@ -33,14 +33,15 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
-	"github.com/berachain/beacon-kit/mod/config/params"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
-//nolint:gochecknoinits // GRRRR fix later.
+//nolint:init // okay.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),
@@ -51,9 +52,10 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts           servertypes.AppOptions
-	Environment       appmodule.Environment
-	BeaconChainConfig *params.BeaconChainConfig
+	AppOpts      servertypes.AppOptions
+	Environment  appmodule.Environment
+	ChainSpec    primitives.ChainSpec
+	DepositStore *depositdb.KVStore
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -75,7 +77,8 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 			filedb.WithLogger(in.Environment.Logger),
 		),
 		in.Environment,
-		in.BeaconChainConfig,
+		in.ChainSpec,
+		in.DepositStore,
 	)
 
 	return DepInjectOutput{

@@ -26,7 +26,7 @@
 package abci
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	abcitypes "github.com/berachain/beacon-kit/mod/runtime/abci/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,8 +54,8 @@ func (h *Handler) PreBlocker(
 	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
 		req,
 		h.cfg.BeaconBlockPosition,
-		h.chainService.BeaconCfg().ActiveForkVersionForSlot(
-			primitives.Slot(req.Height),
+		h.chainService.ChainSpec().ActiveForkVersionForSlot(
+			math.Slot(req.Height),
 		),
 	)
 	if err != nil {

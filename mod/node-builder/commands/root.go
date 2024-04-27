@@ -29,10 +29,10 @@ import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/cometbft"
+	"github.com/berachain/beacon-kit/mod/node-builder/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/jwt"
 	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -68,12 +68,14 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		client.Commands[T](),
 		// `config`
 		confixcmd.ConfigCommand(),
-		// `debug`
-		debug.Cmd(),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(),
+		genesis.Commands(
+			genesis.AddPubkeyCmd(),
+			genesis.CollectValidatorsCmd(),
+		),
+		deposit.Commands(),
 		// `jwt`
 		jwt.Commands(),
 		// `keys`

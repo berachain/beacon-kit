@@ -26,21 +26,20 @@
 package types
 
 import (
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/kzg,../../primitives,$GETH_PKG_INCLUDE/common -output sidecar.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/math,../../primitives/kzg,../../primitives,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	// TODO: Wrangle fastssz to allow us to use a pointer here to avoid
-	// copying the blob around all the time. Benchmark this as well.
 	Blob kzg.Blob
 	// KzgCommitment is the KZG commitment of the blob.
 	KzgCommitment kzg.Commitment
@@ -49,6 +48,53 @@ type BlobSidecar struct {
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader
-	// InclusionProof is the inclusion proof of the blob in the beacon block.
-	InclusionProof [][]byte `ssz-size:"8,32"`
+	// InclusionProof is the inclusion proof of the blob in the beacon block
+	// body.
+	InclusionProof [][32]byte `ssz-size:"8,32"`
+}
+
+// BuildBlobSidecar creates a blob sidecar from the given blobs and
+// beacon block.
+func BuildBlobSidecar(
+	index uint64,
+	header *primitives.BeaconBlockHeader,
+	blob *kzg.Blob,
+	commitment kzg.Commitment,
+	proof kzg.Proof,
+	inclusionProof [][32]byte,
+) *BlobSidecar {
+	return &BlobSidecar{
+		Index:             index,
+		Blob:              *blob,
+		KzgCommitment:     commitment,
+		KzgProof:          proof,
+		BeaconBlockHeader: header,
+		InclusionProof:    inclusionProof,
+	}
+}
+
+// HasValidInclusionProof verifies the inclusion proof of the
+// blob in the beacon body.
+func (b *BlobSidecar) HasValidInclusionProof(
+	kzgOffset uint64,
+) bool {
+	// Calculate the hash tree root of the KZG commitment.
+	leaf, err := b.KzgCommitment.HashTreeRoot()
+	if err != nil {
+		return false
+	}
+
+	gIndex := kzgOffset + b.Index
+
+	// Verify the inclusion proof.
+	return merkle.IsValidMerkleBranch(
+		leaf,
+		b.InclusionProof,
+		//#nosec:G701 // safe.
+		uint8(
+			len(b.InclusionProof),
+		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
+		gIndex,
+		b.BeaconBlockHeader.BodyRoot,
+	)
 }

@@ -32,19 +32,4 @@ const (
 	//
 	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
 	BlobCommitmentVersion uint8 = 0x01
-
-	// MaxBlobsPerBlock is the maximum number of blobs that can be included in a
-	// block.
-	MaxBlobsPerBlock uint = 6
-
-	// MaxBlobCommitmentsPerBlock is the theoretical maximum number of blob
-	// commitments that
-	// can be included in a block.
-	MaxBlobCommitmentsPerBlock = 16
-
-	// LogMaxBlobCommitments is the Log_2 of MaxBlobCommitmentsPerBlock (16).
-	LogMaxBlobCommitments uint64 = 4
-
-	// MaxBlobDataSize is the maximum size of a blob data.
-	MaxBlobDataSize uint64 = 131072
 )

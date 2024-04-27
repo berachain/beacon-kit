@@ -28,8 +28,9 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -45,7 +46,7 @@ type BeaconState interface {
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyDeposits
+	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -56,18 +57,17 @@ type ReadOnlyBeaconState interface {
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (primitives.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
-	GetEth1BlockHash() (primitives.ExecutionHash, error)
-	GetTotalSlashing() (primitives.Gwei, error)
+	GetTotalActiveBalances(uint64) (math.Gwei, error)
+	GetValidators() ([]*primitives.Validator, error)
+	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (primitives.ValidatorIndex, error)
+	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState interface {
-	WriteOnlyDeposits
+	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -114,38 +114,39 @@ type ReadOnlyRandaoMixes interface {
 // WriteOnlyValidators has write access to validator methods.
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
-		primitives.ValidatorIndex,
-		*types.Validator,
+		math.ValidatorIndex,
+		*primitives.Validator,
 	) error
 
-	AddValidator(*types.Validator) error
+	AddValidator(*primitives.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
 		primitives.BLSPubkey,
-	) (primitives.ValidatorIndex, error)
+	) (math.ValidatorIndex, error)
 
 	ValidatorByIndex(
-		primitives.ValidatorIndex,
-	) (*types.Validator, error)
+		math.ValidatorIndex,
+	) (*primitives.Validator, error)
 }
 
-// WriteOnlyDeposits has write access to deposit queue.
-type WriteOnlyDeposits interface {
+// WriteOnlyEth1Data has write access to eth1 data.
+type WriteOnlyEth1Data interface {
+	UpdateLatestExecutionPayload(engineprimitives.ExecutionPayload) error
+	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	EnqueueDeposits(primitives.Deposits) error
-	DequeueDeposits(uint64) (primitives.Deposits, error)
 }
 
-// ReadOnlyDeposits has read access to deposit queue.
-type ReadOnlyDeposits interface {
+// ReadOnlyEth1Data has read access to eth1 data.
+type ReadOnlyEth1Data interface {
+	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
+	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	ExpectedDeposits(uint64) (primitives.Deposits, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 }

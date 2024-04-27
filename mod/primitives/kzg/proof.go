@@ -25,5 +25,7 @@
 
 package kzg
 
+import "github.com/berachain/beacon-kit/mod/primitives"
+
 // Proof is a KZG proof.
-type Proof [48]byte
+type Proof = primitives.Bytes48

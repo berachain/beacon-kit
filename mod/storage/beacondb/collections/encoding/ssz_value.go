@@ -29,6 +29,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
+	"github.com/davecgh/go-spew/spew"
 	fssz "github.com/ferranbt/fastssz"
 )
 
@@ -38,7 +39,6 @@ import (
 type SSZMarshallable interface {
 	fssz.Marshaler
 	fssz.Unmarshaler
-	String() string
 }
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
@@ -75,10 +75,57 @@ func (SSZValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
 
 // Stringify returns the string representation of the provided value.
 func (SSZValueCodec[T]) Stringify(value T) string {
-	return value.String()
+	return spew.Sdump(value)
 }
 
 // ValueType returns the name of the interface that this codec is intended for.
 func (SSZValueCodec[T]) ValueType() string {
+	return "SSZMarshallable"
+}
+
+// SSZInterfaceCodec provides methods to encode and decode SSZ values.
+//
+// This type exists for codecs for interfaces, which require a factory function
+// to create new instances of the underlying hard type since reflect cannot
+// infer the type of an interface.
+type SSZInterfaceCodec[T SSZMarshallable] struct {
+	Factory func() T
+}
+
+// Assert that SSZInterfaceCodec implements codec.ValueCodec.
+var _ codec.ValueCodec[SSZMarshallable] = SSZInterfaceCodec[SSZMarshallable]{}
+
+// Encode marshals the provided value into its SSZ encoding.
+func (SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
+	return value.MarshalSSZ()
+}
+
+// Decode unmarshals the provided bytes into a value of type T.
+func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
+	v := cdc.Factory()
+	if err := v.UnmarshalSSZ(b); err != nil {
+		return v, err
+	}
+
+	return v, nil
+}
+
+// EncodeJSON is not implemented and will panic if called.
+func (SSZInterfaceCodec[T]) EncodeJSON(_ T) ([]byte, error) {
+	panic("not implemented")
+}
+
+// DecodeJSON is not implemented and will panic if called.
+func (SSZInterfaceCodec[T]) DecodeJSON(_ []byte) (T, error) {
+	panic("not implemented")
+}
+
+// Stringify returns the string representation of the provided value.
+func (SSZInterfaceCodec[T]) Stringify(value T) string {
+	return spew.Sdump(value)
+}
+
+// ValueType returns the name of the interface that this codec is intended for.
+func (SSZInterfaceCodec[T]) ValueType() string {
 	return "SSZMarshallable"
 }

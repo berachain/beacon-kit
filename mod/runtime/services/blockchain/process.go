@@ -31,8 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/execution"
-	enginetypes "github.com/berachain/beacon-kit/mod/execution/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -84,11 +83,11 @@ func (s *Service) ProcessBeaconBlock(
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
-		ctx,
-		execution.BuildNewPayloadRequest(
+		ctx, engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
+			false,
 		),
 	); err != nil {
 		s.Logger().
@@ -134,6 +133,62 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
+	// Prune deposits
+	if err = s.sks.PruneDepositEvents(st); err != nil {
+		s.Logger().Error("failed to prune deposit events", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// ValidateBlock validates the incoming beacon block.
+func (s *Service) ValidateBlock(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	return s.bv.ValidateBlock(
+		s.BeaconState(ctx), blk,
+	)
+}
+
+// ValidatePayload validates the execution payload on the block.
+func (s *Service) ValidatePayloadOnBlk(
+	ctx context.Context,
+	blk beacontypes.ReadOnlyBeaconBlock,
+) error {
+	if blk == nil || blk.IsNil() {
+		return beacontypes.ErrNilBlk
+	}
+
+	body := blk.GetBody()
+	if body.IsNil() {
+		return beacontypes.ErrNilBlkBody
+	}
+
+	// Call the standard payload validator.
+	if err := s.pv.ValidatePayload(
+		s.BeaconState(ctx),
+		body,
+	); err != nil {
+		return err
+	}
+
+	// We notify the engine of the new payload.
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if _, err := s.ee.VerifyAndNotifyNewPayload(
+		ctx,
+		engineprimitives.BuildNewPayloadRequest(
+			body.GetExecutionPayload(),
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			false,
+		),
+	); err != nil {
+		s.Logger().
+			Error("failed to notify engine of new payload", "error", err)
+		return err
+	}
 	return nil
 }
 
@@ -145,12 +200,12 @@ func (s *Service) PostBlockProcess(
 	blk beacontypes.ReadOnlyBeaconBlock,
 ) error {
 	var (
-		payload enginetypes.ExecutionPayload
+		payload engineprimitives.ExecutionPayload
 	)
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
-	defer func(payloadPtr *enginetypes.ExecutionPayload) {
+	defer func(payloadPtr *engineprimitives.ExecutionPayload) {
 		s.sendPostBlockFCU(ctx, st, *payloadPtr)
 	}(&payload)
 
@@ -163,30 +218,29 @@ func (s *Service) PostBlockProcess(
 	if body.IsNil() {
 		return nil
 	}
-
 	// Update the forkchoice.
 	payload = blk.GetBody().GetExecutionPayload()
 	if payload.IsNil() {
 		return nil
 	}
 
-	prevEth1Block, err := st.GetEth1BlockHash()
+	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return err
 	}
+	prevEth1Block := latestExecutionPayload.GetBlockHash()
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
-		st,
 		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
-	payloadBlockHash := payload.GetBlockHash()
-	if err = st.UpdateEth1BlockHash(payloadBlockHash); err != nil {
+	// Update the latest execution payload.
+	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
 		return err
 	}
 

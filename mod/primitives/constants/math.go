@@ -26,9 +26,5 @@
 package constants
 
 const (
-	// Uint64Max represents the maximum value for a uint64.
-	Uint64Max = uint64(18446744073709551615)
-	// Uint64MaxSqrt represents the square root of the maximum value for a
-	// uint64.
-	Uint64MaxSqrt = uint64(4294967295)
+	GweiPerWei = 1e9
 )

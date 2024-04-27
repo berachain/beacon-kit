@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -41,11 +42,11 @@ type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, primitives.Slot, types.ReadOnlyBeaconBlock,
+		context.Context, math.Slot, types.ReadOnlyBeaconBlock,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(primitives.Slot, *datypes.BlobSidecars) error
+	Persist(math.Slot, *datypes.BlobSidecars) error
 }
 
 // BLSSigner defines an interface for cryptographic signing operations.
@@ -60,12 +61,10 @@ type BLSSigner interface {
 	Sign([]byte) (primitives.BLSSignature, error)
 }
 
-// BlobsProcessor is the interface for the blobs processor.
-type BlobsProcessor interface {
-	ProcessBlobs(
-		primitives.Slot,
-		AvailabilityStore,
-		*datypes.BlobSidecars,
+// BlobVerifier is the interface for the blobs processor.
+type BlobVerifier interface {
+	VerifyBlobs(
+		sidecars *datypes.BlobSidecars, kzgOffset uint64,
 	) error
 }
 

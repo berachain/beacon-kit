@@ -29,9 +29,12 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 )
 
@@ -41,12 +44,13 @@ func Commands() *cobra.Command {
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
 		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:gomnd // from sdk.
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
 		RunE:                       client.ValidateCmd,
 	}
 
 	cmd.AddCommand(
 		NewValidateDeposit(),
+		NewCreateValidator(),
 	)
 
 	return cmd
@@ -54,7 +58,7 @@ func Commands() *cobra.Command {
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:gomnd // lots of magic numbers
+//nolint:mnd // lots of magic numbers
 func NewValidateDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
@@ -74,32 +78,32 @@ func NewValidateDeposit() *cobra.Command {
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
 func validateDepositMessage(_ *cobra.Command, args []string) error {
-	pubkey, err := ConvertPubkey(args[0])
+	pubkey, err := convertPubkey(args[0])
 	if err != nil {
 		return err
 	}
 
-	credentials, err := ConvertWithdrawalCredentials(args[1])
+	credentials, err := convertWithdrawalCredentials(args[1])
 	if err != nil {
 		return err
 	}
 
-	amount, err := ConvertAmount(args[2])
+	amount, err := convertAmount(args[2])
 	if err != nil {
 		return err
 	}
 
-	signature, err := ConvertSignature(args[3])
+	signature, err := convertSignature(args[3])
 	if err != nil {
 		return err
 	}
 
-	currentVersion, err := ConvertVersion(args[4])
+	currentVersion, err := convertVersion(args[4])
 	if err != nil {
 		return err
 	}
 
-	genesisValidatorRoot, err := ConvertGenesisValidatorRoot(args[5])
+	genesisValidatorRoot, err := convertGenesisValidatorRoot(args[5])
 	if err != nil {
 		return err
 	}
@@ -110,17 +114,18 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		Amount:      amount,
 	}
 
-	forkData := primitives.NewForkData(currentVersion, genesisValidatorRoot)
-
 	return depositMessage.VerifyCreateValidator(
-		forkData,
+		primitives.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
+		blst.VerifySignaturePubkeyBytes,
+		// TODO: needs to be configurable.
+		spec.LocalnetChainSpec().DomainTypeDeposit(),
 	)
 }
 
-// ConvertPubkey converts a string to a public key.
-func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
-	// Convert the public key to a BLSPubkey.
+// convertPubkey converts a string to a public key.
+func convertPubkey(pubkey string) (primitives.BLSPubkey, error) {
+	// convert the public key to a BLSPubkey.
 	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
 		return primitives.BLSPubkey{}, err
@@ -132,12 +137,12 @@ func ConvertPubkey(pubkey string) (primitives.BLSPubkey, error) {
 	return primitives.BLSPubkey(pubkeyBytes), nil
 }
 
-// ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
-func ConvertWithdrawalCredentials(credentials string) (
+// convertWithdrawalCredentials converts a string to a withdrawal credentials.
+func convertWithdrawalCredentials(credentials string) (
 	primitives.WithdrawalCredentials,
 	error,
 ) {
-	// Convert the credentials to a WithdrawalCredentials.
+	// convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
 		return primitives.WithdrawalCredentials{}, err
@@ -149,21 +154,21 @@ func ConvertWithdrawalCredentials(credentials string) (
 	return primitives.WithdrawalCredentials(credentialsBytes), nil
 }
 
-// ConvertAmount converts a string to a deposit amount.
+// convertAmount converts a string to a deposit amount.
 //
-//nolint:gomnd // lots of magic numbers
-func ConvertAmount(amount string) (primitives.Gwei, error) {
+//nolint:mnd // lots of magic numbers
+func convertAmount(amount string) (math.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
 	if !ok {
 		return 0, ErrInvalidAmount
 	}
-	return primitives.Gwei(amountBigInt.Uint64()), nil
+	return math.Gwei(amountBigInt.Uint64()), nil
 }
 
-// ConvertSignature converts a string to a signature.
-func ConvertSignature(signature string) (primitives.BLSSignature, error) {
-	// Convert the signature to a BLSSignature.
+// convertSignature converts a string to a signature.
+func convertSignature(signature string) (primitives.BLSSignature, error) {
+	// convert the signature to a BLSSignature.
 	signatureBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return primitives.BLSSignature{}, err
@@ -174,10 +179,10 @@ func ConvertSignature(signature string) (primitives.BLSSignature, error) {
 	return primitives.BLSSignature(signatureBytes), nil
 }
 
-// ConvertVersion converts a string to a version.
+// convertVersion converts a string to a version.
 //
 
-func ConvertVersion(version string) (primitives.Version, error) {
+func convertVersion(version string) (primitives.Version, error) {
 	versionBytes, err := hex.DecodeString(version)
 	if err != nil {
 		return primitives.Version{}, err
@@ -188,10 +193,10 @@ func ConvertVersion(version string) (primitives.Version, error) {
 	return primitives.Version(versionBytes), nil
 }
 
-// ConvertGenesisValidatorRoot converts a string to a genesis validator root.
+// convertGenesisValidatorRoot converts a string to a genesis validator root.
 //
 
-func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
+func convertGenesisValidatorRoot(root string) (primitives.Root, error) {
 	rootBytes, err := hex.DecodeString(root)
 	if err != nil {
 		return primitives.Root{}, err

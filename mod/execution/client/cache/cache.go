@@ -27,6 +27,7 @@ package cache
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
@@ -35,12 +36,12 @@ type EngineCache struct {
 	// headerByNumberCache is an LRU cache that maps block numbers to their
 	// corresponding headers.
 	headerByNumberCache *lru.LRU[
-		uint64, *primitives.ExecutionHeader,
+		uint64, *engineprimitives.Header,
 	]
 	// headerByHashCache is an LRU cache that maps block hashes to their
 	// corresponding headers.
 	headerByHashCache *lru.LRU[
-		primitives.ExecutionHash, *primitives.ExecutionHeader,
+		primitives.ExecutionHash, *engineprimitives.Header,
 	]
 }
 
@@ -50,14 +51,14 @@ func NewEngineCache(
 ) *EngineCache {
 	return &EngineCache{
 		headerByNumberCache: lru.NewLRU[
-			uint64, *primitives.ExecutionHeader,
+			uint64, *engineprimitives.Header,
 		](
 			config.HeaderSize,
 			nil,
 			config.HeaderTTL,
 		),
 		headerByHashCache: lru.NewLRU[
-			primitives.ExecutionHash, *primitives.ExecutionHeader,
+			primitives.ExecutionHash, *engineprimitives.Header,
 		](
 			config.HeaderSize,
 			nil,
@@ -74,20 +75,20 @@ func NewEngineCacheWithDefaultConfig() *EngineCache {
 // HeaderByNumber returns the header with the given number.
 func (c *EngineCache) HeaderByNumber(
 	number uint64,
-) (*primitives.ExecutionHeader, bool) {
+) (*engineprimitives.Header, bool) {
 	return c.headerByNumberCache.Get(number)
 }
 
 // HeaderByHash returns the header with the given hash.
 func (c *EngineCache) HeaderByHash(
 	hash primitives.ExecutionHash,
-) (*primitives.ExecutionHeader, bool) {
+) (*engineprimitives.Header, bool) {
 	return c.headerByHashCache.Get(hash)
 }
 
 // AddHeader adds the given header to the cache.
 func (c *EngineCache) AddHeader(
-	header *primitives.ExecutionHeader,
+	header *engineprimitives.Header,
 ) {
 	number := header.Number.Uint64()
 	if oldHeader, ok := c.headerByNumberCache.Get(number); ok {

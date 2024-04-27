@@ -44,7 +44,7 @@ def get_config(
             " && ".join(
                 [
                     "apt-get update",
-                    "apt-get install -y curl jq",
+                    "apt-get install -y curl",
                     blob_cmd,
                 ],
             ),

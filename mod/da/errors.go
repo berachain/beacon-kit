@@ -28,13 +28,6 @@ package da
 import "errors"
 
 var (
-
-	// ErrUnsupportedKzgImplementation is returned when an unsupported KZG
-	// implementation is requested.
-	ErrUnsupportedKzgImplementation = errors.New(
-		"unsupported KZG implementation",
-	)
-
 	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to
 	// store a
 	// nil sidecar.

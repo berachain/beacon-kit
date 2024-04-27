@@ -30,13 +30,19 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+<<<<<<< HEAD
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config/params"
+=======
+>>>>>>> 059c3f25bd1f3e4ccc2573a6728923d063d5f196
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
@@ -45,20 +51,40 @@ import (
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
 	availabilityStore *da.Store
-	beaconStore       *beacondb.KVStore
-	cfg               *params.BeaconChainConfig
+	beaconStore       *beacondb.KVStore[
+		*primitives.Fork,
+		*primitives.BeaconBlockHeader,
+		engineprimitives.ExecutionPayload,
+		*primitives.Eth1Data,
+		*primitives.Validator,
+	]
+	depositStore *deposit.KVStore
+	cfg          primitives.ChainSpec
+}
+
+// TODO: move this.
+func DenebPayloadFactory() engineprimitives.ExecutionPayload {
+	return &engineprimitives.ExecutableDataDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg *params.BeaconChainConfig,
+	cfg primitives.ChainSpec,
+	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
 		availabilityStore: da.NewStore(cfg, fdb),
-		beaconStore:       beacondb.New(env.KVStoreService),
-		cfg:               cfg,
+		beaconStore: beacondb.New[
+			*primitives.Fork,
+			*primitives.BeaconBlockHeader,
+			engineprimitives.ExecutionPayload,
+			*primitives.Eth1Data,
+			*primitives.Validator,
+		](env.KVStoreService, DenebPayloadFactory),
+		cfg:          cfg,
+		depositStore: ddb,
 	}
 }
 
@@ -84,7 +110,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// Max 100 validators in the active set.
 		// TODO: this is kinda hood.
 		if validator.EffectiveBalance == 0 {
-			var idx primitives.ValidatorIndex
+			var idx math.ValidatorIndex
 			idx, err = store.WithContext(ctx).
 				ValidatorIndexByPubkey(validator.Pubkey)
 			if err != nil {
@@ -127,6 +153,13 @@ func (k *Keeper) BeaconState(
 	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
 }
 
+// DepositStore returns the deposit store struct initialized with a.
+func (k *Keeper) DepositStore(
+	_ context.Context,
+) *deposit.KVStore {
+	return k.depositStore
+}
+
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
@@ -162,6 +195,11 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
+<<<<<<< HEAD
 func (k *Keeper) ExportGenesis(context.Context) (*core.Genesis, error) {
 	return new(core.Genesis), nil
+=======
+func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
+	return &deneb.BeaconState{}
+>>>>>>> 059c3f25bd1f3e4ccc2573a6728923d063d5f196
 }

@@ -1,6 +1,6 @@
 {
   "detectors_to_exclude": "assembly,calls-loop,low-level-calls,naming-convention,similar-names,solc-version,timestamp,unused-return",
-  "exclude_informational": false,
+  "exclude_informational": true,
   "exclude_low": false,
   "exclude_medium": false,
   "exclude_high": false,

@@ -26,11 +26,11 @@
 package genesis
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -72,14 +72,14 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			// TODO: Should we do deposits here?
-			validator := beacontypes.NewValidatorFromDeposit(
+			validator := primitives.NewValidatorFromDeposit(
 				primitives.BLSPubkey(valPubKey.Bytes()),
 				primitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
-				1e9,  //nolint:gomnd // temp.
-				1e9,  //nolint:gomnd // temp.
-				32e9, //nolint:gomnd // temp.
+				1e9,  //nolint:mnd // temp.
+				1e9,  //nolint:mnd // temp.
+				32e9, //nolint:mnd // temp.
 			)
 
 			//#nosec:G703 // Ignore errors on this line.
@@ -117,7 +117,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeValidatorStruct(
 	outputDocument string,
-	validator *beacontypes.Validator,
+	validator *primitives.Validator,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := os.OpenFile(
@@ -132,7 +132,7 @@ func writeValidatorStruct(
 	//#nosec:G307 // Ignore errors on this line.
 	defer outputFile.Close()
 
-	bz, err := validator.MarshalJSON()
+	bz, err := json.Marshal(validator)
 	if err != nil {
 		return err
 	}

@@ -11,6 +11,23 @@ NODE_CONFIG_ARTIFACT_NAME = "geth-config"
 CONFIG_FILENAME = "geth-config.toml"
 GENESIS_FILENAME = "genesis.json"
 
+RPC_PORT_NUM = defaults.RPC_PORT_NUM
+WS_PORT_NUM = defaults.WS_PORT_NUM
+DISCOVERY_PORT_NUM = defaults.DISCOVERY_PORT_NUM
+ENGINE_RPC_PORT_NUM = defaults.ENGINE_RPC_PORT_NUM
+METRICS_PORT_NUM = defaults.METRICS_PORT_NUM
+
+# Port IDs
+RPC_PORT_ID = defaults.RPC_PORT_ID
+WS_PORT_ID = defaults.WS_PORT_ID
+TCP_DISCOVERY_PORT_ID = defaults.TCP_DISCOVERY_PORT_ID
+UDP_DISCOVERY_PORT_ID = defaults.UDP_DISCOVERY_PORT_ID
+ENGINE_RPC_PORT_ID = defaults.ENGINE_RPC_PORT_ID
+ENGINE_WS_PORT_ID = defaults.ENGINE_WS_PORT_ID
+METRICS_PORT_ID = defaults.METRICS_PORT_ID
+
+METRICS_PATH = defaults.METRICS_PATH
+
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
@@ -38,29 +55,14 @@ CMD = [
     "--nat",
     "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
     "--metrics",
+    "--metrics.addr=0.0.0.0",
+    "--metrics.port={0}".format(METRICS_PORT_NUM),
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "--networkid",
     "80087",
 ]
 BOOTNODE_CMD = "--bootnodes"
-
-RPC_PORT_NUM = defaults.RPC_PORT_NUM
-WS_PORT_NUM = defaults.WS_PORT_NUM
-DISCOVERY_PORT_NUM = defaults.DISCOVERY_PORT_NUM
-ENGINE_RPC_PORT_NUM = defaults.ENGINE_RPC_PORT_NUM
-METRICS_PORT_NUM = defaults.METRICS_PORT_NUM
-
-# Port IDs
-RPC_PORT_ID = defaults.RPC_PORT_ID
-WS_PORT_ID = defaults.WS_PORT_ID
-TCP_DISCOVERY_PORT_ID = defaults.TCP_DISCOVERY_PORT_ID
-UDP_DISCOVERY_PORT_ID = defaults.UDP_DISCOVERY_PORT_ID
-ENGINE_RPC_PORT_ID = defaults.ENGINE_RPC_PORT_ID
-ENGINE_WS_PORT_ID = defaults.ENGINE_WS_PORT_ID
-METRICS_PORT_ID = defaults.METRICS_PORT_ID
-
-METRICS_PATH = defaults.METRICS_PATH
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {

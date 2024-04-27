@@ -25,11 +25,16 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+)
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
-func (kv *KVStore) SetGenesisValidatorsRoot(
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetGenesisValidatorsRoot(
 	root primitives.Root,
 ) error {
 	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
@@ -37,17 +42,25 @@ func (kv *KVStore) SetGenesisValidatorsRoot(
 
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
-func (kv *KVStore) GetGenesisValidatorsRoot() (primitives.Root, error) {
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetGenesisValidatorsRoot() (primitives.Root, error) {
 	return kv.genesisValidatorsRoot.Get(kv.ctx)
 }
 
 // GetSlot returns the current slot.
-func (kv *KVStore) GetSlot() (primitives.Slot, error) {
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
-	return primitives.Slot(slot), err
+	return math.Slot(slot), err
 }
 
 // SetSlot sets the current slot.
-func (kv *KVStore) SetSlot(slot primitives.Slot) error {
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetSlot(
+	slot math.Slot,
+) error {
 	return kv.slot.Set(kv.ctx, uint64(slot))
 }

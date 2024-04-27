@@ -25,54 +25,39 @@
 
 package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/math"
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (kv *KVStore) GetNextWithdrawalIndex() (uint64, error) {
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalIndex() (uint64, error) {
 	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (kv *KVStore) SetNextWithdrawalIndex(
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
 	return kv.nextWithdrawalIndex.Set(kv.ctx, index)
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (kv *KVStore) GetNextWithdrawalValidatorIndex() (
-	primitives.ValidatorIndex, error,
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetNextWithdrawalValidatorIndex() (
+	math.ValidatorIndex, error,
 ) {
 	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
-	return primitives.ValidatorIndex(idx), err
+	return math.ValidatorIndex(idx), err
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (kv *KVStore) SetNextWithdrawalValidatorIndex(
-	index primitives.ValidatorIndex,
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetNextWithdrawalValidatorIndex(
+	index math.ValidatorIndex,
 ) error {
 	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
-}
-
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore) ExpectedDeposits(
-	numView uint64,
-) (primitives.Deposits, error) {
-	return kv.depositQueue.PeekMulti(kv.ctx, numView)
-}
-
-// EnqueueDeposits pushes the deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(
-	deposits primitives.Deposits,
-) error {
-	return kv.depositQueue.PushMulti(kv.ctx, deposits)
-}
-
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore) DequeueDeposits(
-	numDequeue uint64,
-) (primitives.Deposits, error) {
-	return kv.depositQueue.PopMulti(kv.ctx, numDequeue)
 }

@@ -28,7 +28,7 @@ package runtime
 import (
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	builder "github.com/berachain/beacon-kit/mod/runtime/services/builder"
+	"github.com/berachain/beacon-kit/mod/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -42,7 +42,7 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 ) {
 	var (
 		chainService   *blockchain.Service
-		builderService *builder.Service
+		builderService *validator.Service
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)

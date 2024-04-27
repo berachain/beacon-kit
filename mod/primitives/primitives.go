@@ -25,23 +25,25 @@
 
 package primitives
 
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+)
+
 //nolint:lll
 type (
-	// Slot as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Slot uint64
+	// ChainSpec defines an interface for chain-specific parameters.
+	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]
 
-	// Epoch as per the Ethereum 2.0 Specification:
+	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Epoch uint64
+	//nolint:lll
+	Domain = Bytes32
 
-	// CommitteeIndex as per the Ethereum 2.0 Specification:
+	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	CommitteeIndex uint64
-
-	// ValidatorIndex as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ValidatorIndex uint64
+	//nolint:lll
+	DomainType = Bytes4
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

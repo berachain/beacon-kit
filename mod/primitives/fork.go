@@ -25,14 +25,12 @@
 
 package primitives
 
-import (
-	"github.com/davecgh/go-spew/spew"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/math"
 
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ./primitives.go,./bytes.go -output fork.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ./bytes.go,./math,./primitives.go -output fork.ssz.go
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
@@ -40,10 +38,5 @@ type Fork struct {
 	// CurrentVersion is the first version after the fork.
 	CurrentVersion Version
 	// Epoch is the epoch at which the fork occurred.
-	Epoch Epoch
-}
-
-// String returns a string representation of the fork.
-func (f *Fork) String() string {
-	return spew.Sdump(f)
+	Epoch math.Epoch
 }

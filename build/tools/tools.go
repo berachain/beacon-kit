@@ -31,16 +31,13 @@
 // See
 // https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
 
-package tools
-
-//nolint
+package main
 
 import (
 	_ "github.com/bazelbuild/buildtools/buildifier"
 	_ "github.com/bufbuild/buf/cmd/buf"
 	_ "github.com/cosmos/gosec/v2/cmd/gosec"
 	_ "github.com/ethereum/go-ethereum/cmd/abigen"
-	_ "github.com/ethereum/go-ethereum/rlp/rlpgen"
 	_ "github.com/ferranbt/fastssz/sszgen"
 	_ "github.com/fjl/gencodec"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"

@@ -28,13 +28,13 @@ package config
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/config/params"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
+	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	builderconfig "github.com/berachain/beacon-kit/mod/runtime/services/builder/config"
+	"github.com/berachain/beacon-kit/mod/validator"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -44,11 +44,11 @@ import (
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:    abci.DefaultABCIConfig(),
-		Beacon:  params.DefaultBeaconConfig(),
-		Builder: builderconfig.DefaultBuilderConfig(),
-		Engine:  engineclient.DefaultConfig(),
-		KZG:     kzg.DefaultConfig(),
+		ABCI:           abci.DefaultABCIConfig(),
+		Engine:         engineclient.DefaultConfig(),
+		KZG:            kzg.DefaultConfig(),
+		PayloadBuilder: builder.DefaultConfig(),
+		Validator:      validator.DefaultConfig(),
 	}
 }
 
@@ -57,17 +57,17 @@ type Config struct {
 	// ABCI is the configuration for ABCI related settings.
 	ABCI abci.Config `mapstructure:"abci"`
 
-	// Beacon is the configuration for the fork epochs.
-	Beacon params.BeaconChainConfig `mapstructure:"beacon-chain"`
-
-	// Builder is the configuration for the local build payload timeout.
-	Builder builderconfig.Config `mapstructure:"builder"`
-
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
 
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
+
+	// PayloadBuilder is the configuration for the local build payload timeout.
+	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
+
+	// Validator is the configuration for the validator client.
+	Validator validator.Config `mapstructure:"validator"`
 }
 
 // Template returns the configuration template.
@@ -92,6 +92,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid application options type: %T", opts)
 	}
+
 	type cfgUnmarshaller struct {
 		BeaconKit Config `mapstructure:"beacon-kit"`
 	}
@@ -104,7 +105,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			viperlib.StringToDialURLFunc(),
 		))); err != nil {
 		return nil, fmt.Errorf(
-			"failed to read beacon-kit configuration: %w",
+			"failed to decode beacon-kit configuration: %w",
 			err,
 		)
 	}
@@ -135,7 +136,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
 		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
-		defaultCfg.Builder.SuggestedFeeRecipient.Hex(),
+		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
 	startCmd.Flags().String(flags.KZGTrustedSetupPath,

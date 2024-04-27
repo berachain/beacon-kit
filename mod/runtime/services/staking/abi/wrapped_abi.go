@@ -28,8 +28,8 @@ package abi
 import (
 	"errors"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // WrappedABI extends the abi.ABI struct to provide
@@ -48,7 +48,7 @@ func NewWrappedABI(a *abi.ABI) *WrappedABI {
 func (wabi WrappedABI) UnpackLogs(
 	out interface{},
 	event string,
-	log types.Log,
+	log engineprimitives.Log,
 ) error {
 	// Anonymous events are not supported.
 	if len(log.Topics) == 0 {

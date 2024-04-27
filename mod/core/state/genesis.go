@@ -27,7 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // WriteGenesisStateDeneb writes the genesis state to the state db.
@@ -66,11 +66,21 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		}
 	}
 
-	if err := s.UpdateEth1BlockHash(st.Eth1BlockHash); err != nil {
+	if err := s.UpdateLatestExecutionPayload(
+		st.LatestExecutionPayload,
+	); err != nil {
+		return err
+	}
+
+	if err := s.SetEth1Data(st.Eth1Data); err != nil {
 		return err
 	}
 
 	if err := s.SetEth1DepositIndex(st.Eth1DepositIndex); err != nil {
+		return err
+	}
+
+	if err := s.SetEth1Data(st.Eth1Data); err != nil {
 		return err
 	}
 
@@ -97,12 +107,12 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		return err
 	}
 
-	totalSlashing := primitives.Gwei(0)
+	totalSlashing := math.Gwei(0)
 	for i, slashing := range st.Slashings {
-		totalSlashing += primitives.Gwei(slashing)
+		totalSlashing += math.Gwei(slashing)
 		//#nosec:G701 // won't overflow in practice.
 		if err := s.SetSlashingAtIndex(
-			uint64(i), primitives.Gwei(slashing),
+			uint64(i), math.Gwei(slashing),
 		); err != nil {
 			return err
 		}
