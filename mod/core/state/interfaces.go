@@ -52,8 +52,8 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
 
-	GetBalance(primitives.ValidatorIndex) (primitives.Gwei, error)
-	GetSlot() (primitives.Slot, error)
+	GetBalance(math.ValidatorIndex) (math.Gwei, error)
+	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
@@ -72,19 +72,15 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 	SetFork(*primitives.Fork) error
-	SetSlot(primitives.Slot) error
+	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
-	IncreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	DecreaseBalance(primitives.ValidatorIndex, primitives.Gwei) error
-	UpdateEth1Data(*primitives.Eth1Data) error
-	UpdateEth1BlockHash(primitives.ExecutionHash) error
-	UpdateSlashingAtIndex(uint64, primitives.Gwei) error
+	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
+	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
+	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(primitives.ValidatorIndex) error
-	SetGenesisValidatorsRoot(
-		root primitives.Root,
-	) error
+	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
+	SetGenesisValidatorsRoot(root primitives.Root) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state

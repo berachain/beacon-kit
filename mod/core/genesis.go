@@ -28,17 +28,18 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
-	"github.com/berachain/beacon-kit/mod/forks/version"
 	genutiltypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
 // DefaultGenesis returns the default genesis state.
 func DefaultGenesis() *Genesis {
 	return &Genesis{
 		Fork: &primitives.Fork{
-			PreviousVersion: version.FromUint32(version.Deneb),
-			CurrentVersion:  version.FromUint32(version.Deneb),
+			PreviousVersion: version.FromUint32[primitives.Version](version.Deneb),
+			CurrentVersion:  version.FromUint32[primitives.Version](version.Deneb),
 			Epoch:           0,
 		},
 		Eth1BlockHash: primitives.ExecutionHash{},
@@ -70,7 +71,7 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return err
 	}
 
-	if err := emptySt.UpdateEth1Data(&primitives.Eth1Data{
+	if err := emptySt.SetEth1Data(&primitives.Eth1Data{
 		BlockHash:    genesis.Eth1BlockHash,
 		DepositCount: uint64(len(genesis.Deposits)),
 	}); err != nil {
@@ -87,14 +88,14 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return err
 	}
 
-	// TODO: Deprecate this once we have latestExecutionPayload.
-	if err = emptySt.UpdateEth1BlockHash(
-		genesis.Eth1BlockHash,
-	); err != nil {
-		return err
-	}
+	// TODO: Deprecate this in favor of UpdateLatestExecutionPayload.
+	// if err = emptySt.UpdateEth1BlockHash(
+	// 	genesis.Eth1BlockHash,
+	// ); err != nil {
+	// 	return err
+	// }
 
-	for i := range sp.cfg.EpochsPerHistoricalVector {
+	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err = emptySt.UpdateRandaoMixAtIndex(
 			i, primitives.Bytes32(genesis.Eth1BlockHash),
 		); err != nil {
@@ -119,21 +120,19 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return err
 	}
 
-	var balance primitives.Gwei
+	var balance math.Gwei
 	for index, validator := range validators {
-		balance, err = emptySt.GetBalance(primitives.ValidatorIndex(index))
+		balance, err = emptySt.GetBalance(math.ValidatorIndex(index))
 		if err != nil {
 			return err
 		}
 		validator.EffectiveBalance =
 			min(
-				balance-balance%primitives.Gwei(
-					sp.cfg.EffectiveBalanceIncrement,
-				),
-				primitives.Gwei(sp.cfg.MaxEffectiveBalance),
+				balance-balance%math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+				math.Gwei(sp.cs.MaxEffectiveBalance()),
 			)
-		if validator.EffectiveBalance == primitives.Gwei(
-			sp.cfg.MaxEffectiveBalance,
+		if validator.EffectiveBalance == math.Gwei(
+			sp.cs.MaxEffectiveBalance(),
 		) {
 			// TODO: sp.cfg.GenesisEpoch
 			validator.ActivationEligibilityEpoch = 0
