@@ -75,6 +75,8 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 
 // MostSignificantBitIndex uses bitwise operations for a fast determination
 // of the most significant bit's index in a byte.
+//
+//nolint:mnd // lots of random numbers in bit math.
 func MostSignificantBitIndex(x byte) int {
 	if x == 0 {
 		return -1
