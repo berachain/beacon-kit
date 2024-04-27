@@ -30,6 +30,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
@@ -57,7 +58,6 @@ require (
 require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/store v1.1.0 // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect

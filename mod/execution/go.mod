@@ -4,6 +4,7 @@ go 1.22.2
 
 replace (
 	github.com/berachain/beacon-kit/mod => ../
+	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 )
@@ -11,6 +12,7 @@ replace (
 require (
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1

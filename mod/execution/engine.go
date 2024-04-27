@@ -29,8 +29,8 @@ import (
 	"context"
 	"fmt"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/cockroachdb/errors"
@@ -40,13 +40,13 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine struct {
 	ec     *client.EngineClient
-	logger log.Logger
+	logger log.Logger[any]
 }
 
 // NewExecuitionEngine creates a new Engine.
 func NewEngine(
 	ec *client.EngineClient,
-	logger log.Logger,
+	logger log.Logger[any],
 ) *Engine {
 	return &Engine{
 		ec:     ec,
