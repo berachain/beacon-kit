@@ -5,6 +5,7 @@ use (
 	./build/tools
 	./mod
 	./mod/execution
+	./mod/log
 	./mod/payload
 	./mod/primitives
 	./mod/primitives-engine

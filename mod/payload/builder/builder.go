@@ -26,7 +26,7 @@
 package builder
 
 import (
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
