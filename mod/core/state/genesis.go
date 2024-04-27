@@ -80,6 +80,10 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		return err
 	}
 
+	if err := s.SetEth1Data(st.Eth1Data); err != nil {
+		return err
+	}
+
 	for _, validator := range st.Validators {
 		if err := s.AddValidator(validator); err != nil {
 			return err

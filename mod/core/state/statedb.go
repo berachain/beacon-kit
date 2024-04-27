@@ -41,7 +41,6 @@ import (
 //nolint:revive // todo fix somehow
 type StateDB struct {
 	*beacondb.KVStore[
-		*primitives.Deposit,
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,
@@ -54,7 +53,6 @@ type StateDB struct {
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
-		*primitives.Deposit,
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
 		engineprimitives.ExecutionPayload,

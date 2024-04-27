@@ -1,4 +1,3 @@
-execution_types = import_module("./types.star")
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
@@ -58,8 +57,6 @@ def upload_global_files(plan, node_modules):
 
 def get_enode_addr(plan, el_service, el_service_name, el_type):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
-    if el_type == execution_types.CLIENTS.reth:
-        extract_statement = {"enode": """.result.id | split("?") | .[0][2:] | ("enode://" + .)"""}
 
     request_recipe = PostHttpRequestRecipe(
         endpoint = "",
@@ -75,7 +72,7 @@ def get_enode_addr(plan, el_service, el_service_name, el_type):
     )
 
     enode = response["extract.enode"]
-    return enode + "@" + el_service.ip_address + ":" + str(DISCOVERY_PORT_NUM) if el_type == execution_types.CLIENTS.reth else enode
+    return enode
 
 def add_bootnodes(node_module, config, bootnodes):
     if type(bootnodes) == builtins.types.list:

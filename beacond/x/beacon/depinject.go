@@ -34,6 +34,7 @@ import (
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -51,9 +52,10 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts     servertypes.AppOptions
-	Environment appmodule.Environment
-	ChainSpec   primitives.ChainSpec
+	AppOpts      servertypes.AppOptions
+	Environment  appmodule.Environment
+	ChainSpec    primitives.ChainSpec
+	DepositStore *depositdb.KVStore
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -76,6 +78,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		),
 		in.Environment,
 		in.ChainSpec,
+		in.DepositStore,
 	)
 
 	return DepInjectOutput{

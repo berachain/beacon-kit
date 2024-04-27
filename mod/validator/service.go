@@ -23,25 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package validator
 
 import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // Service is responsible for building beacon blocks.
 type Service struct {
-	service.BaseService
-	cfg *builder.Config
+	// cfg is the validator config.
+	cfg *Config
+	// logger is a logger.
+	logger log.Logger
+
+	// chainSpec is the chain spec.
+	chainSpec primitives.ChainSpec
 
 	// signer is used to retrieve the public key of this node.
 	signer BLSSigner
@@ -49,23 +54,52 @@ type Service struct {
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
 
+	// randaoProcessor is responsible for building the reveal for the
+	// current slot.
+	randaoProcessor RandaoProcessor[state.BeaconState]
+
+	// ds is used to retrieve deposits that have been
+	// queued up for inclusion in the next block.
+	ds *deposit.KVStore
+
 	// localBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder
+	localBuilder PayloadBuilder[state.BeaconState]
 
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder
-
-	// randaoProcessor is responsible for building the reveal for the
-	// current slot.
-	randaoProcessor RandaoProcessor
+	remoteBuilders []PayloadBuilder[state.BeaconState]
 }
 
+// NewService creates a new validator service.
+func NewService(
+	opts ...Option,
+) *Service {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+
+	return s
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return "validator"
+}
+
+func (s *Service) Start(context.Context) {}
+
+func (s *Service) Status() error { return nil }
+
+func (s *Service) WaitForHealthy(context.Context) {}
+
 // LocalBuilder returns the local builder.
-func (s *Service) LocalBuilder() PayloadBuilder {
+func (s *Service) LocalBuilder() PayloadBuilder[state.BeaconState] {
 	return s.localBuilder
 }
 
@@ -77,7 +111,7 @@ func (s *Service) RequestBestBlock(
 	st state.BeaconState,
 	slot math.Slot,
 ) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
-	s.Logger().Info("our turn to propose a block 🙈", "slot", slot)
+	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
@@ -89,7 +123,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.ChainSpec().SlotsPerHistoricalRoot(),
+		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
@@ -124,7 +158,7 @@ func (s *Service) RequestBestBlock(
 		proposerIndex,
 		parentBlockRoot,
 		stateRoot,
-		s.ChainSpec().ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForSlot(slot),
 		reveal,
 	)
 	if err != nil {
@@ -133,12 +167,6 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil, nil, beacontypes.ErrNilBlkBody
-	}
-
-	// Get the latest execution payload.
 	latestExecutionPayload, err := st.GetLatestExecutionPayload()
 	if err != nil {
 		return nil, nil, err
@@ -146,7 +174,7 @@ func (s *Service) RequestBestBlock(
 	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
 
 	// Get the payload for the block.
-	envelope, err := s.localBuilder.RetrieveBuiltPayload(
+	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
 		st,
 		slot,
@@ -155,11 +183,17 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return blk, nil, fmt.Errorf(
-			"failed to retrieve payload from builder: %w",
+			"failed to get block root at index: %w",
 			err,
 		)
 	} else if envelope == nil {
-		return blk, nil, ErrReceivedNilEnvelope
+		return nil, nil, beacontypes.ErrNilPayload
+	}
+
+	// Assemble a new block with the payload.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil, nil, beacontypes.ErrNilBlkBody
 	}
 
 	// TODO: assemble real eth1data.
@@ -170,6 +204,7 @@ func (s *Service) RequestBestBlock(
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
+	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return nil, nil, beacontypes.ErrNilBlobsBundle
@@ -179,8 +214,9 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-	deposits, err := st.ExpectedDeposits(
-		s.ChainSpec().MaxDepositsPerBlock(),
+	//nolint:contextcheck // not needed.
+	deposits, err := s.ds.ExpectedDeposits(
+		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return nil, nil, err
@@ -203,7 +239,7 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, err
 	}
 
-	s.Logger().Info("finished assembling beacon block 🛟",
+	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
 
 	return blk, blobSidecars, nil

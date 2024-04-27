@@ -29,6 +29,9 @@ import (
 	"encoding/binary"
 )
 
+// bitsPerByte is the number of bits in a byte.
+const bitsPerByte = 8
+
 // ----------------------------- Unmarshal -----------------------------
 
 // UnmarshalU256 unmarshals a big endian U256 from the src input.
@@ -68,6 +71,77 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 // UnmarshalBool unmarshals a boolean from the src input.
 func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 	return src[0] == 1
+}
+
+// MostSignificantBitIndex uses bitwise operations for a fast determination
+// of the most significant bit's index in a byte.
+func MostSignificantBitIndex(x byte) int {
+	if x == 0 {
+		return -1
+	}
+
+	// Initialize the result index
+	r := 0
+	// Check if the upper half of the byte (higher 4 bits) is non-zero
+	if x >= 0x10 {
+		// Right shift by 4 bits to focus on the higher half
+		x >>= 4
+		// Increment result index by 4 because we've shifted half the byte
+		r += 4
+	}
+	// Check if the upper quarter of the byte (bits 4-5) is non-zero
+	if x >= 0x4 {
+		// Right shift by 2 bits to focus on the next significant bits
+		x >>= 2
+		// Increment result index by 2 because we've shifted two bits
+		r += 2
+	}
+	// Check if the second bit is set
+	if x >= 0x2 {
+		// Increment result index by 1 because the second bit is significant
+		r += 1
+	}
+	return r
+}
+
+// TODO: May be buggy, see test case 3 TestUnMarshalBitList
+// UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
+// The function assumes the input byte slice represents a bit list in a compact form,
+// where the presence of a sentinel bit (most significant bit of the last byte in the array) can be used to deduce the length of the bitlist (not the limit).
+// It returns a slice of booleans representing the bit list, excluding the sentinel bit.
+func UnmarshalBitList(bv []byte) []bool {
+	if len(bv) == 0 {
+		return make([]bool, 0)
+	}
+
+	msbi := MostSignificantBitIndex(bv[len(bv)-1])
+	if msbi == -1 {
+		// if no msbi found, its most likely all padding/malformed, return an empty []bool of len 0
+		return make([]bool, 0)
+	}
+	arrL := bitsPerByte*(len(bv)-1) + msbi
+	var newArray = make([]bool, arrL)
+
+	// use a bitmask to get the bit value from the byte for all bytes in the slice
+	// note: this reverses the order of the bits as highest bit is last
+	// we use the pre-calculated array size using msbi to only read whats relevant
+	for j := 0; j < len(bv); j++ {
+		limit := bitsPerByte
+		if j == len(bv)-1 {
+			limit = msbi
+		}
+		for i := 0; i < limit; i++ {
+			val := ((bv[j] & (1 << i)) >> i)
+			newArray[(bitsPerByte*j)+i] = (val == 1)
+		}
+	}
+
+	return newArray
+}
+
+func UnmarshalBitVector(bv []byte) []bool {
+	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote its initial length
+	panic("not implemented")
 }
 
 // ----------------------------- Marshal ------------------------------
@@ -124,4 +198,48 @@ func MarshalBool[BoolT ~bool](b BoolT) []byte {
 		return []byte{1}
 	}
 	return []byte{0}
+}
+
+// MarshalNull takes any type T and returns an empty byte slice.
+// This function is useful when you need to represent a null value in byte slice
+// form.
+func MarshalNull[T any](T) []byte {
+	return []byte{}
+}
+
+// MarshalBitVector converts a slice of boolean values into a byte slice where
+// each bit represents a boolean value.
+func MarshalBitVector(bv []bool) []byte {
+	// Calculate the necessary byte length to represent the bit vector.
+	//nolint:mnd // per spec.
+	array := make([]byte, (len(bv)+7)/bitsPerByte)
+	for i, val := range bv {
+		if val {
+			// set the corresponding bit in the byte slice.
+			array[i/bitsPerByte] |= 1 << (i % bitsPerByte)
+		}
+	}
+	// Return the byte slice representation of the bit vector.
+	return array
+}
+
+// MarshalBitList converts a slice of boolean values into a byte slice where
+// each bit represents a boolean value, with an additional bit set at the end.
+// Note that from the offset coding, the length (in bytes) of the bitlist is
+// known. An additional 1 bit is added to the end, at index e where e is the
+// length of the bitlist (not the limit), so that the length in bits will also
+// be known.
+func MarshalBitList(bv []bool) []byte {
+	// Allocate enough bytes to represent the bit list, plus one for the end
+	// bit.
+	array := make([]byte, (len(bv)/bitsPerByte)+1)
+	for i, val := range bv {
+		if val {
+			// Set the bit at the appropriate position if the boolean is true.
+			array[i/8] |= 1 << (i % bitsPerByte)
+		}
+	}
+	// Set the additional bit at the end.
+	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
+	return array
 }

@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
+	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // Service represents the staking service.
@@ -46,6 +47,9 @@ type Service struct {
 	// abi represents the configured deposit contract's
 	// abi.
 	abi *abi.WrappedABI
+
+	// deposit represents the deposit store.
+	ds *deposit.KVStore
 }
 
 // ProcessLogsInETH1Block gets logs in the Eth1 block
@@ -54,7 +58,6 @@ type Service struct {
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	st state.BeaconState,
 	blockHash primitives.ExecutionHash,
 ) error {
 	// Gather all the logs corresponding to
@@ -70,5 +73,15 @@ func (s *Service) ProcessLogsInETH1Block(
 		return err
 	}
 
-	return s.ProcessBlockEvents(ctx, st, logsInBlock)
+	//nolint: contextcheck // We are not using the context here.
+	return s.ProcessBlockEvents(logsInBlock)
+}
+
+func (s *Service) PruneDepositEvents(st state.BeaconState) error {
+	idx, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	s.Logger().Info("🍇 pruning deposit events", "index", idx)
+	return s.ds.PruneToIndex(idx)
 }

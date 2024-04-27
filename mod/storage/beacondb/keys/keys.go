@@ -27,7 +27,6 @@ package keys
 
 // Collection prefixes.
 const (
-	DepositQueuePrefix                     = "deposit_queue"
 	WithdrawalQueuePrefix                  = "withdrawal_queue"
 	RandaoMixPrefix                        = "randao_mix"
 	SlashingsPrefix                        = "slashings"

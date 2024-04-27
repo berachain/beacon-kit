@@ -32,33 +32,35 @@ import (
 )
 
 const (
-	// defaultLocalBuilderEnabled is the default value for local builder.
-	defaultLocalBuilderEnabled = true
 	// defaultPayloadTimeout is the default value for local build
 	// payload timeout.
 	defaultPayloadTimeout = 2500 * time.Millisecond
 )
 
-// Config is the configuration for the payload builder.
+// Builder is the configuration for the payload builder.
 //
 //nolint:lll // struct tags.
 type Config struct {
 	// Enabled determines if the local builder is enabled.
 	Enabled bool `mapstructure:"enabled"`
 
-	// PayloadTimeout is the timeout for the payload build.
-	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
-
-	// Suggested FeeRecipient is the address that will receive the transaction
+	// SuggestedFeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
+
+	// PayloadTimeout is the timeout parameter for local build
+	// payload. This should match, or be slightly less than the configured
+	// timeout on your
+	// execution client. It also must be less than timeout_proposal in the
+	// CometBFT configuration.
+	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
 }
 
 // DefaultConfig returns the default fork configuration.
 func DefaultConfig() Config {
 	return Config{
-		Enabled:               defaultLocalBuilderEnabled,
+		Enabled:               true,
 		SuggestedFeeRecipient: primitives.ExecutionAddress{},
 		PayloadTimeout:        defaultPayloadTimeout,
 	}

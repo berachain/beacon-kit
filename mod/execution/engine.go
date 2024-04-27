@@ -76,7 +76,7 @@ func (ee *Engine) GetLogs(
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
-	req *GetPayloadRequest,
+	req *engineprimitives.GetPayloadRequest,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
@@ -87,7 +87,7 @@ func (ee *Engine) GetPayload(
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *ForkchoiceUpdateRequest,
+	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
 	ee.logger.Info("notifying forkchoice update",
 		"head_eth1_hash", req.State.HeadBlockHash,
@@ -136,7 +136,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 // execution client.
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *NewPayloadRequest,
+	req *engineprimitives.NewPayloadRequest,
 ) (bool, error) {
 	// First we verify the block hash and versioned hashes are valid.
 	if err := req.HasValidVersionedAndBlockHashes(); err != nil {

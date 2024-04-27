@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/execution"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
@@ -84,8 +83,7 @@ func (s *Service) ProcessBeaconBlock(
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err = s.ee.VerifyAndNotifyNewPayload(
-		ctx,
-		execution.BuildNewPayloadRequest(
+		ctx, engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
@@ -135,6 +133,12 @@ func (s *Service) ProcessBeaconBlock(
 	// 	}
 	// }
 
+	// Prune deposits
+	if err = s.sks.PruneDepositEvents(st); err != nil {
+		s.Logger().Error("failed to prune deposit events", "error", err)
+		return err
+	}
+
 	return nil
 }
 
@@ -174,11 +178,11 @@ func (s *Service) ValidatePayloadOnBlk(
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if _, err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		execution.BuildNewPayloadRequest(
+		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
-			true,
+			false,
 		),
 	); err != nil {
 		s.Logger().
@@ -229,7 +233,6 @@ func (s *Service) PostBlockProcess(
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
 		ctx,
-		st,
 		prevEth1Block,
 	); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)

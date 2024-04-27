@@ -23,18 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package runtime
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-// computeStateRoot computes the state root of the block to be included in the
-// proposal.
-func (s *Service) computeStateRoot(
-	_ context.Context,
-) (primitives.Root, error) {
-	return primitives.Root{}, nil
-}
+type ExecutionEngine interface{}

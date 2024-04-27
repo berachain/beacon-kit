@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/davecgh/go-spew/spew"
@@ -64,7 +65,7 @@ func NewStateProcessor(
 	}
 }
 
-// StateTransition is the main function for processing a state transition.
+// Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
 	st state.BeaconState,
 	blk types.ReadOnlyBeaconBlock,
@@ -232,6 +233,8 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// phase0.ProcessEth1Vote ? forkchoice?
 
+	// TODO: LOOK HERE
+	//
 	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, body); err != nil {
 		return err
@@ -245,6 +248,9 @@ func (sp *StateProcessor) ProcessBlock(
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 	var err error
+	if err = sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	}
 	if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
@@ -286,7 +292,27 @@ func (sp *StateProcessor) processOperations(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
-	return sp.processDeposits(st, body.GetDeposits())
+	// Verify that outstanding deposits are processed up to the maximum number
+	// of deposits.
+	deposits := body.GetDeposits()
+	index, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
+		return err
+	}
+	depositCount := min(
+		sp.cs.MaxDepositsPerBlock(),
+		eth1Data.DepositCount-index,
+	)
+	_ = depositCount
+	// TODO: Update eth1data count and check this.
+	// if uint64(len(deposits)) != depositCount {
+	// 	return errors.New("deposit count mismatch")
+	// }
+	return sp.processDeposits(st, deposits)
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
@@ -295,39 +321,15 @@ func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
 	deposits []*primitives.Deposit,
 ) error {
-	// Dequeue and verify the logs.
-	localDeposits, err := st.DequeueDeposits(uint64(len(deposits)))
-	if err != nil {
-		return err
-	}
-
 	// Ensure the deposits match the local state.
-	for i, dep := range deposits {
-		if dep.Index != localDeposits[i].Index {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				localDeposits[i].Index, dep.Index)
-		}
-
-		var depIdx uint64
-		depIdx, err = st.GetEth1DepositIndex()
-		if err != nil {
+	for _, dep := range deposits {
+		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
-
-		// TODO: this is bad but safe.
-		if dep.Index != depIdx {
-			return fmt.Errorf(
-				"deposit index does not match, expected: %d, got: %d",
-				depIdx, dep.Index)
-		}
-
-		// TODO: this is a shitty spot for this.
-		// TODO: deprecate using this.
-		if err = st.SetEth1DepositIndex(depIdx + 1); err != nil {
+		// TODO: unhood this in better spot later
+		if err := st.SetEth1DepositIndex(dep.Index); err != nil {
 			return err
 		}
-		sp.processDeposit(st, dep)
 	}
 	return nil
 }
@@ -336,30 +338,34 @@ func (sp *StateProcessor) processDeposits(
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
 	dep *primitives.Deposit,
-) {
+) error {
+	// TODO: fill this in properly
+	// if !sp.isValidMerkleBranch(
+	// 	leaf,
+	// 	dep.Credentials,
+	// 	32 + 1,
+	// 	dep.Index,
+	// 	st.root,
+	// ) {
+	// 	return errors.New("invalid merkle branch")
+	// }
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
 		var val *primitives.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
-			return
+			return err
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
 			math.Gwei(sp.cs.MaxEffectiveBalance()))
-		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return
-		}
-		// Exiting early because we only check signature on creation
-		return
+		return st.UpdateValidatorAtIndex(idx, val)
 	}
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
-	if err = sp.createValidator(st, dep); err != nil {
-		sp.logger.Error("failed to create validator", "error", err)
-	}
+	return sp.createValidator(st, dep)
 }
 
 // createValidator creates a validator if the deposit is valid.
@@ -527,6 +533,72 @@ func (sp *StateProcessor) processRandaoMixesReset(
 	st state.BeaconState,
 ) error {
 	return sp.rp.ProcessRandaoMixesReset(st)
+}
+
+// getAttestationDeltas as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
+//
+//nolint:lll
+func (sp *StateProcessor) getAttestationDeltas(
+	st state.BeaconState,
+) ([]math.Gwei, []math.Gwei, error) {
+	// TODO: implement this function forreal
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, nil, err
+	}
+	placeholder := make([]math.Gwei, len(validators))
+	return placeholder, placeholder, nil
+}
+
+// processRewardsAndPenalties as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
+//
+//nolint:lll
+func (sp *StateProcessor) processRewardsAndPenalties(
+	st state.BeaconState,
+) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	if sp.cs.SlotToEpoch(slot) == constants.GenesisEpoch {
+		return nil
+	}
+
+	rewards, penalties, err := sp.getAttestationDeltas(st)
+	if err != nil {
+		return err
+	}
+	validators, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+	if len(validators) != len(rewards) || len(validators) != len(penalties) {
+		return fmt.Errorf(
+			"mismatched rewards and penalties lengths: %d, %d, %d",
+			len(validators), len(rewards), len(penalties),
+		)
+	}
+	for i := range validators {
+		// Increase the balance of the validator.
+		if err = st.IncreaseBalance(
+			math.ValidatorIndex(i),
+			rewards[i],
+		); err != nil {
+			return err
+		}
+
+		// Decrease the balance of the validator.
+		if err = st.DecreaseBalance(
+			math.ValidatorIndex(i),
+			penalties[i],
+		); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.

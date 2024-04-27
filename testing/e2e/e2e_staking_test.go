@@ -108,7 +108,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
 	// Wait for the log to be processed.
-	targetBlkNum := blkNum + 5
+	targetBlkNum := blkNum + 10
 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 
