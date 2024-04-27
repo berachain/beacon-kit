@@ -27,6 +27,7 @@ package math_test
 
 import (
 	"bytes"
+	"math/big"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -214,5 +215,13 @@ func TestNewU256L_SilentTruncation(t *testing.T) {
 	for _, tc := range testCases {
 		_, err := math.NewU256L(tc.input)
 		require.ErrorIs(t, err, math.ErrUnexpectedInputLengthBase)
+	}
+}
+
+func TestSignedness_Big(t *testing.T) {
+	for z := -100; z < 0; z++ {
+		a := big.NewInt(int64(z))
+		_, err := math.NewU256LFromBigInt(a)
+		require.Error(t, err)
 	}
 }
