@@ -26,7 +26,7 @@
 package builder
 
 import (
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -53,7 +53,7 @@ func WithConfig(cfg *Config) Option {
 }
 
 // WithLogger sets the logger.
-func WithLogger(logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(pb *PayloadBuilder) error {
 		pb.logger = logger
 		return nil

@@ -75,6 +75,8 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 
 // MostSignificantBitIndex uses bitwise operations for a fast determination
 // of the most significant bit's index in a byte.
+//
+//nolint:mnd // lots of random numbers in bit math.
 func MostSignificantBitIndex(x byte) int {
 	if x == 0 {
 		return -1
@@ -105,10 +107,12 @@ func MostSignificantBitIndex(x byte) int {
 }
 
 // TODO: May be buggy, see test case 3 TestUnMarshalBitList
-// UnMarshalBitList converts a byte slice into a boolean slice where each bit represents a boolean value.
-// The function assumes the input byte slice represents a bit list in a compact form,
-// where the presence of a sentinel bit (most significant bit of the last byte in the array) can be used to deduce the length of the bitlist (not the limit).
-// It returns a slice of booleans representing the bit list, excluding the sentinel bit.
+// UnMarshalBitList converts a byte slice into a boolean slice where each bit
+// represents a boolean value. The function assumes the input byte slice
+// represents a bit list in a compact form, where the presence of a sentinel bit
+// (most significant bit of the last byte in the array) can be used to deduce
+// the length of the bitlist (not the limit). It returns a slice of booleans
+// representing the bit list, excluding the sentinel bit.
 func UnmarshalBitList(bv []byte) []bool {
 	if len(bv) == 0 {
 		return make([]bool, 0)
@@ -116,15 +120,18 @@ func UnmarshalBitList(bv []byte) []bool {
 
 	msbi := MostSignificantBitIndex(bv[len(bv)-1])
 	if msbi == -1 {
-		// if no msbi found, its most likely all padding/malformed, return an empty []bool of len 0
+		// if no msbi found, its most likely all padding/malformed, return an
+		// empty []bool of len 0
 		return make([]bool, 0)
 	}
 	arrL := bitsPerByte*(len(bv)-1) + msbi
 	var newArray = make([]bool, arrL)
 
-	// use a bitmask to get the bit value from the byte for all bytes in the slice
+	// use a bitmask to get the bit value from the byte for all bytes in the
+	// slice
 	// note: this reverses the order of the bits as highest bit is last
-	// we use the pre-calculated array size using msbi to only read whats relevant
+	// we use the pre-calculated array size using msbi to only read whats
+	// relevant
 	for j := 0; j < len(bv); j++ {
 		limit := bitsPerByte
 		if j == len(bv)-1 {
@@ -140,7 +147,8 @@ func UnmarshalBitList(bv []byte) []bool {
 }
 
 func UnmarshalBitVector(bv []byte) []bool {
-	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote its initial length
+	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote
+	// its initial length
 	panic("not implemented")
 }
 

@@ -199,7 +199,11 @@ func TestUnMarshalBitList(t *testing.T) {
 	expected := []bool{}
 	actual := ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(len(actual), len(expected)) {
-		t.Errorf("TestUnMarshalBitList failed for empty input: expected %v but got %v", expected, actual)
+		t.Errorf(
+			"TestUnMarshalBitList failed for empty input: expected %v but got %v",
+			expected,
+			actual,
+		)
 	}
 
 	// Test case 2: Input with sentinel bit set
@@ -207,7 +211,11 @@ func TestUnMarshalBitList(t *testing.T) {
 	expected = []bool{true}
 	actual = ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("TestUnMarshalBitList failed for input with sentinel bit set: expected %v but got %v", expected, actual)
+		t.Errorf(
+			"TestUnMarshalBitList failed for input with sentinel bit set: expected %v but got %v",
+			expected,
+			actual,
+		)
 	}
 
 	// Test case 3: Input with multiple bits set
@@ -216,12 +224,21 @@ func TestUnMarshalBitList(t *testing.T) {
 	expected = []bool{false, false, true, true, false, false, true}
 
 	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v", expected, actual)
+		t.Errorf(
+			"TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v",
+			expected,
+			actual,
+		)
 	}
-	// Test case 3a: Check unmarshal returns same results as original input to marshal
+	// Test case 3a: Check unmarshal returns same results as original input to
+	// marshal
 	expectedBV := ssz.MarshalBitList(actual)
 	if !reflect.DeepEqual(expectedBV, bv) {
-		t.Errorf("TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b", expectedBV, bv)
+		t.Errorf(
+			"TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b",
+			expectedBV,
+			bv,
+		)
 	}
 
 	// Test case 4: Input with multiple bits set
@@ -229,6 +246,11 @@ func TestUnMarshalBitList(t *testing.T) {
 	output := ssz.MarshalBitList(input)
 	unmarshalledOutput := ssz.UnmarshalBitList(output)
 	if !reflect.DeepEqual(input, unmarshalledOutput) {
-		t.Errorf("Expected output %08t, got %08t from %08b", unmarshalledOutput, input, output)
+		t.Errorf(
+			"Expected output %08t, got %08t from %08b",
+			unmarshalledOutput,
+			input,
+			output,
+		)
 	}
 }

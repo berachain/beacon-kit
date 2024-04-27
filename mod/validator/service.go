@@ -29,10 +29,10 @@ import (
 	"context"
 	"fmt"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
@@ -43,7 +43,7 @@ type Service struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
-	logger log.Logger
+	logger log.Logger[any]
 
 	// chainSpec is the chain spec.
 	chainSpec primitives.ChainSpec
