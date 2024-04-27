@@ -46,20 +46,19 @@ type Logger[KeyValT any] interface {
 	// DEBUG.
 	// The key of the tuple must be a string.
 	Debug(msg string, keyVals ...KeyValT)
+}
+
+// AdvancedLogger is extremely similar to the Cosmos-SDK Logger interface,
+// however we introduce a generic to allow for more flexibility in
+// the underlying logger implementation.
+type AdvancedLogger[KeyValT, LoggerT any] interface {
+	Logger[KeyValT]
+	// With returns a new wrapped logger with additional context provided by a
+	// set.
+	With(keyVals ...KeyValT) LoggerT
 
 	// Impl returns the underlying logger implementation.
 	// It is used to access the full functionalities of the underlying logger.
 	// Advanced users can type cast the returned value to the actual logger.
 	Impl() any
-}
-
-// ContextualLogger is extremely similar to the Cosmos-SDK Logger interface,
-// however
-// we introduce a generic to allow for more flexibility in the underlying
-// logger implementation.
-type ContextualLogger[KeyValT, LoggerT any] interface {
-	Logger[KeyValT]
-	// With returns a new wrapped logger with additional context provided by a
-	// set.
-	With(keyVals ...any) LoggerT
 }
