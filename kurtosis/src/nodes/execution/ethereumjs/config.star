@@ -14,7 +14,7 @@ VERBOSITY_LEVELS = {
 PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
 
 GENESIS_FILEPATH = "/app/genesis"
-IMAGE = "ethpandaops/ethereumjs:master"
+IMAGE = "ethpandaops/ethereumjs:stable"
 FILES = {
     "/app/genesis": "genesis_file",
     "/jwt": "jwt_file",
@@ -80,5 +80,4 @@ CMD = [
     "--extIP={0}".format(PRIVATE_IP_ADDRESS_PLACEHOLDER),
     "--isSingleNode=true",
     "--sync=full",
-    "--logLevel={0}".format("debug"),
 ]
