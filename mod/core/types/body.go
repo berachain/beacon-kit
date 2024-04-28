@@ -167,7 +167,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 
 	// graffiti
 	layer[2] = b.GetGraffiti()
-	
+
 	layer[3], err = b.GetDeposits().HashTreeRoot()
 	if err != nil {
 		return nil, err
