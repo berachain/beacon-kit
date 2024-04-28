@@ -81,7 +81,7 @@ func DefaultBeaconState() *BeaconState {
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 //
-//nolint:mnd // default values pulled from current eth-genesis.json file.
+//nolint:mnd,lll // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionHeaderDeneb {
 	return &engineprimitives.ExecutionHeaderDeneb{
 		ParentHash:   primitives.ExecutionHash{},

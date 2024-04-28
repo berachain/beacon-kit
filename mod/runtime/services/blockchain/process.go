@@ -241,25 +241,27 @@ func (s *Service) PostBlockProcess(
 	}
 
 	// Set the latest execution payload header.
-	if err = st.SetLatestExecutionPayloadHeader(&engineprimitives.ExecutionHeaderDeneb{
-		ParentHash:       payload.GetParentHash(),
-		FeeRecipient:     payload.GetFeeRecipient(),
-		StateRoot:        payload.GetStateRoot(),
-		ReceiptsRoot:     payload.GetReceiptsRoot(),
-		LogsBloom:        payload.GetLogsBloom(),
-		Random:           payload.GetPrevRandao(),
-		Number:           payload.GetNumber(),
-		GasLimit:         payload.GetGasLimit(),
-		GasUsed:          payload.GetGasUsed(),
-		Timestamp:        payload.GetTimestamp(),
-		ExtraData:        payload.GetExtraData(),
-		BaseFeePerGas:    payload.GetBaseFeePerGas(),
-		BlockHash:        payload.GetBlockHash(),
-		TransactionsRoot: primitives.Root{}, // TODO: fix
-		WithdrawalsRoot:  primitives.Root{}, // TODO: fix
-		BlobGasUsed:      payload.GetBlobGasUsed(),
-		ExcessBlobGas:    payload.GetExcessBlobGas(),
-	}); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(
+		&engineprimitives.ExecutionHeaderDeneb{
+			ParentHash:       payload.GetParentHash(),
+			FeeRecipient:     payload.GetFeeRecipient(),
+			StateRoot:        payload.GetStateRoot(),
+			ReceiptsRoot:     payload.GetReceiptsRoot(),
+			LogsBloom:        payload.GetLogsBloom(),
+			Random:           payload.GetPrevRandao(),
+			Number:           payload.GetNumber(),
+			GasLimit:         payload.GetGasLimit(),
+			GasUsed:          payload.GetGasUsed(),
+			Timestamp:        payload.GetTimestamp(),
+			ExtraData:        payload.GetExtraData(),
+			BaseFeePerGas:    payload.GetBaseFeePerGas(),
+			BlockHash:        payload.GetBlockHash(),
+			TransactionsRoot: primitives.Root{}, // TODO: fix
+			WithdrawalsRoot:  primitives.Root{}, // TODO: fix
+			BlobGasUsed:      payload.GetBlobGasUsed(),
+			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		},
+	); err != nil {
 		return err
 	}
 

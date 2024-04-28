@@ -51,8 +51,8 @@ type ExecutionHeaderDeneb struct {
 	ExtraData        []byte                      `json:"extraData"                        gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas    math.Wei                    `json:"baseFeePerGas"     ssz-size:"32"  gencodec:"required"`
 	BlockHash        primitives.ExecutionHash    `json:"blockHash"         ssz-size:"32"  gencodec:"required"`
-	TransactionsRoot primitives.Root             `json:"transactions_root" ssz-size:"32"  gencodec:"required"`
-	WithdrawalsRoot  primitives.Root             `json:"withdrawals_root"  ssz-size:"32"`
+	TransactionsRoot primitives.Root             `json:"transactionsRoot"  ssz-size:"32"  gencodec:"required"`
+	WithdrawalsRoot  primitives.Root             `json:"withdrawalsRoot"   ssz-size:"32"`
 	BlobGasUsed      math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                    `json:"excessBlobGas"`
 }
