@@ -58,7 +58,7 @@ type ExecutionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool
-	GetPrevRandao() [32]byte
+	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
 	GetNumber() uint64
@@ -68,8 +68,8 @@ type ExecutionPayloadBody interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() primitives.ExecutionAddress
-	GetStateRoot() primitives.ExecutionHash
-	GetReceiptsRoot() primitives.ExecutionHash
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() *uint64
 	GetExcessBlobGas() *uint64
@@ -85,8 +85,8 @@ type ExecutionPayload interface {
 // ExecutionPayloadHeader represents the execution header of a block.
 type ExecutionPayloadHeader interface {
 	ExecutionPayloadBody
-	GetTransactionsRoot() [32]byte
-	GetWithdrawalsRoot() [32]byte
+	GetTransactionsRoot() primitives.Bytes32
+	GetWithdrawalsRoot() primitives.Bytes32
 }
 
 // PayloadAttributer represents payload attributes of a block.

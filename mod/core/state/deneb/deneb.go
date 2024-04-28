@@ -86,14 +86,14 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
-		StateRoot: common.HexToHash(
+		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
-		),
-		ReceiptsRoot: common.HexToHash(
+			32)),
+		ReceiptsRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-		),
+			32)),
 		LogsBloom: make([]byte, 256),
-		Random:    primitives.ExecutionHash{},
+		Random:    primitives.Bytes32{},
 		Number:    0,
 		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
 		GasUsed:   0,

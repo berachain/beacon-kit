@@ -40,10 +40,10 @@ var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	StateRoot     primitives.Bytes32          `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  primitives.Bytes32          `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Random        primitives.Bytes32          `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 	Number        math.U64                    `json:"blockNumber"                  gencodec:"required"`
 	GasLimit      math.U64                    `json:"gasLimit"                     gencodec:"required"`
 	GasUsed       math.U64                    `json:"gasUsed"                      gencodec:"required"`
@@ -83,12 +83,12 @@ func (d *ExecutableDataDeneb) GetFeeRecipient() primitives.ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() primitives.ExecutionHash {
+func (d *ExecutableDataDeneb) GetStateRoot() primitives.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() primitives.ExecutionHash {
+func (d *ExecutableDataDeneb) GetReceiptsRoot() primitives.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -98,7 +98,7 @@ func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
+func (d *ExecutableDataDeneb) GetPrevRandao() primitives.Bytes32 {
 	return d.Random
 }
 

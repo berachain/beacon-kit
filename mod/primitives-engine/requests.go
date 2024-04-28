@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	gengine "github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -77,10 +78,10 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	data := gengine.ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
-		StateRoot:     payload.GetStateRoot(),
-		ReceiptsRoot:  payload.GetReceiptsRoot(),
+		StateRoot:     common.Hash(payload.GetStateRoot()),
+		ReceiptsRoot:  common.Hash(payload.GetReceiptsRoot()),
 		LogsBloom:     payload.GetLogsBloom(),
-		Random:        payload.GetPrevRandao(),
+		Random:        common.Hash(payload.GetPrevRandao()),
 		Number:        payload.GetNumber(),
 		GasLimit:      payload.GetGasLimit(),
 		GasUsed:       payload.GetGasUsed(),

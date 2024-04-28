@@ -40,10 +40,10 @@ var _ ExecutionPayloadHeader = (*ExecutionHeaderDeneb)(nil)
 type ExecutionHeaderDeneb struct {
 	ParentHash       primitives.ExecutionHash    `json:"parentHash"        ssz-size:"32"  gencodec:"required"`
 	FeeRecipient     primitives.ExecutionAddress `json:"feeRecipient"      ssz-size:"20"  gencodec:"required"`
-	StateRoot        primitives.ExecutionHash    `json:"stateRoot"         ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot     primitives.ExecutionHash    `json:"receiptsRoot"      ssz-size:"32"  gencodec:"required"`
+	StateRoot        primitives.Bytes32          `json:"stateRoot"         ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot     primitives.Bytes32          `json:"receiptsRoot"      ssz-size:"32"  gencodec:"required"`
 	LogsBloom        []byte                      `json:"logsBloom"         ssz-size:"256" gencodec:"required"`
-	Random           primitives.ExecutionHash    `json:"prevRandao"        ssz-size:"32"  gencodec:"required"`
+	Random           primitives.Bytes32          `json:"prevRandao"        ssz-size:"32"  gencodec:"required"`
 	Number           math.U64                    `json:"blockNumber"                      gencodec:"required"`
 	GasLimit         math.U64                    `json:"gasLimit"                         gencodec:"required"`
 	GasUsed          math.U64                    `json:"gasUsed"                          gencodec:"required"`
@@ -51,7 +51,7 @@ type ExecutionHeaderDeneb struct {
 	ExtraData        []byte                      `json:"extraData"                        gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas    math.Wei                    `json:"baseFeePerGas"     ssz-size:"32"  gencodec:"required"`
 	BlockHash        primitives.ExecutionHash    `json:"blockHash"         ssz-size:"32"  gencodec:"required"`
-	TransactionsRoot primitives.Bytes32          `json:"transactions_root" ssz-size:"32"`
+	TransactionsRoot primitives.Bytes32          `json:"transactions_root" ssz-size:"32"  gencodec:"required"`
 	WithdrawalsRoot  primitives.Bytes32          `json:"withdrawals_root"  ssz-size:"32"`
 	BlobGasUsed      math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                    `json:"excessBlobGas"`
@@ -84,12 +84,12 @@ func (d *ExecutionHeaderDeneb) GetFeeRecipient() primitives.ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetStateRoot() primitives.ExecutionHash {
+func (d *ExecutionHeaderDeneb) GetStateRoot() primitives.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetReceiptsRoot() primitives.ExecutionHash {
+func (d *ExecutionHeaderDeneb) GetReceiptsRoot() primitives.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -99,7 +99,7 @@ func (d *ExecutionHeaderDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetPrevRandao() [32]byte {
+func (d *ExecutionHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
 	return d.Random
 }
 
@@ -140,12 +140,12 @@ func (d *ExecutionHeaderDeneb) GetBlockHash() primitives.ExecutionHash {
 
 // GetTransactionsRoot returns the transactions root of the
 // ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetTransactionsRoot() [32]byte {
+func (d *ExecutionHeaderDeneb) GetTransactionsRoot() primitives.Bytes32 {
 	return d.TransactionsRoot
 }
 
 // GetWithdrawalsRoot returns the withdrawals root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetWithdrawalsRoot() [32]byte {
+func (d *ExecutionHeaderDeneb) GetWithdrawalsRoot() primitives.Bytes32 {
 	return d.WithdrawalsRoot
 }
 

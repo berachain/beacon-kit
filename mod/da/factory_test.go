@@ -117,10 +117,10 @@ func mockBody() da.BeaconBlockBody {
 	executionPayload := &engineprimitives.ExecutableDataDeneb{
 		ParentHash:    common.HexToHash("0x01"),
 		FeeRecipient:  common.HexToAddress("0x02"),
-		StateRoot:     common.HexToHash("0x03"),
-		ReceiptsRoot:  common.HexToHash("0x04"),
+		StateRoot:     primitives.Bytes32(common.Hex2BytesFixed("0x03", 32)),
+		ReceiptsRoot:  primitives.Bytes32(common.Hex2BytesFixed("0x04", 32)),
 		LogsBloom:     bytes.Repeat([]byte("b"), 256),
-		Random:        common.HexToHash("0x05"),
+		Random:        primitives.Bytes32(common.Hex2Bytes("0x05")),
 		BaseFeePerGas: math.Wei(bytes.Repeat([]byte("f"), 32)),
 		BlockHash:     common.HexToHash("0x06"),
 		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},

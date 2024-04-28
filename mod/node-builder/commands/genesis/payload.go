@@ -30,6 +30,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -147,10 +148,10 @@ func executableDataToExecutionPayload(
 	return &engineprimitives.ExecutableDataDeneb{
 		ParentHash:    data.ParentHash,
 		FeeRecipient:  data.FeeRecipient,
-		StateRoot:     data.StateRoot,
-		ReceiptsRoot:  data.ReceiptsRoot,
+		StateRoot:     primitives.Bytes32(data.StateRoot),
+		ReceiptsRoot:  primitives.Bytes32(data.ReceiptsRoot),
 		LogsBloom:     data.LogsBloom,
-		Random:        data.Random,
+		Random:        primitives.Bytes32(data.Random),
 		Number:        math.U64(data.Number),
 		GasLimit:      math.U64(data.GasLimit),
 		GasUsed:       math.U64(data.GasUsed),

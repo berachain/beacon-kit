@@ -76,7 +76,7 @@ type Genesis struct {
 func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	emptySt state.BeaconState, genesis *Genesis,
 ) error {
-	// Step 1: Setup the initial state.
+	// Step 1: Setup the initial state
 	if err := emptySt.SetGenesisTime(genesis.Eth1Timestamp); err != nil {
 		return err
 	}
@@ -121,7 +121,6 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	}
 
 	// Step 3: Process Activations
-	// TODO: figure out how to do this against the state.
 	validators, err := emptySt.GetValidators()
 	if err != nil {
 		return err
@@ -148,6 +147,8 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		}
 	}
 
+	// Step 4: Set genesis validators root for domain separation and chain
+	// versioning
 	var genesisValidatorsRoot primitives.Root
 	genesisValidatorsRoot, err = (&genutiltypes.ValidatorsMarshaling{
 		Validators: validators,
@@ -159,17 +160,15 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return err
 	}
 
+	// Step 5: Fill in sync committees
 	// TODO: Figure out our own spec.
 	// # Note: A duplicate committee is assigned for the current and next
 	// committee at genesis
 	// state.current_sync_committee = get_next_sync_committee(state)
 	// state.next_sync_committee = get_next_sync_committee(state)
 
-	// TODO: Initialize the execution payload header
-	// # If empty, will initialize a chain that has not yet gone through the
-	// Merge transition
-	// state.latest_execution_payload_header = execution_payload_header
+	// Step 6: Initialize the execution payload header
+	emptySt.SetLatestExecutionPayloadHeader(genesis.ExecutionPayloadHeader)
 
-	// TODO: write to disk.
 	return nil
 }
