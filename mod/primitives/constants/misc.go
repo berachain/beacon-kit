@@ -31,9 +31,9 @@ package constants
 //nolint:lll
 const (
 	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
+	GenesisSlot = 0
 	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
+	GenesisEpoch = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
 )

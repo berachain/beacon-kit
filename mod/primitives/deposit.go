@@ -27,9 +27,6 @@ package primitives
 
 import "github.com/berachain/beacon-kit/mod/primitives/math"
 
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
-
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
@@ -65,5 +62,6 @@ func NewDeposit(
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
+		Index:       index,
 	}
 }

@@ -30,9 +30,9 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -159,29 +159,19 @@ func (k *Keeper) DepositStore(
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
-	data *core.Genesis,
+	data *deneb.BeaconState,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Load the store.
 	store := k.beaconStore.WithContext(ctx)
 	sdb := state.NewBeaconStateFromDB(store, k.cfg)
-
-	sp := core.NewStateProcessor(k.cfg, nil, nil, log.NewNopLogger())
-
-	emptyState := sdb.Copy()
-	if err := sp.InitializeBeaconStateFromEth1(emptyState, data); err != nil {
-		return nil, err
-	}
-	emptyState.Save()
-
-	validators, err := sdb.GetValidators()
-	if err != nil {
+	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 	blsType := (&bls12381.PubKey{}).Type()
-	for _, validator := range validators {
+	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: blsType,
@@ -193,6 +183,6 @@ func (k *Keeper) InitGenesis(
 }
 
 // ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *core.Genesis {
-	return new(core.Genesis)
+func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
+	return &deneb.BeaconState{}
 }

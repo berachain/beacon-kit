@@ -30,20 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// SetGenesisTime sets the genesis time in the beacon state.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetGenesisTime(genesisTime uint64) error {
-	return kv.genesisTime.Set(kv.ctx, genesisTime)
-}
-
-// GetGenesisTime returns the genesis time from the beacon state.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetGenesisTime() (uint64, error) {
-	return kv.genesisTime.Get(kv.ctx)
-}
-
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (kv *KVStore[

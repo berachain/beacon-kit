@@ -54,7 +54,6 @@ type ReadOnlyBeaconState interface {
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
-	GetGenesisTime() (uint64, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
@@ -73,7 +72,6 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 
-	SetGenesisTime(uint64) error
 	SetGenesisValidatorsRoot(root primitives.Root) error
 	SetFork(*primitives.Fork) error
 	SetSlot(math.Slot) error

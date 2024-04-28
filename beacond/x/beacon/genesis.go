@@ -30,13 +30,13 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(core.DefaultGenesis())
+	bz, err := json.Marshal(deneb.DefaultBeaconState())
 	if err != nil {
 		panic(err)
 	}
@@ -48,36 +48,6 @@ func (AppModule) ValidateGenesis(
 	_ json.RawMessage,
 ) error {
 	// TODO: implement.
-
-	// IsValidGenesisState gets called whenever there's a deposit event,
-	// // it checks whether there's enough effective balance to trigger and
-	// // if the minimum genesis time arrived already.
-	// //
-	// // Spec pseudocode definition:
-	// //
-	// //	def is_valid_genesis_state(state: BeaconState) -> bool:
-	// //	   if state.genesis_time < MIN_GENESIS_TIME:
-	// //	       return False
-	// //	   if len(get_active_validator_indices(state, GENESIS_EPOCH)) <
-	// MIN_GENESIS_ACTIVE_VALIDATOR_COUNT:
-	// //	       return False
-	// //	   return True
-	// //
-	// // This method has been modified from the spec to allow whole states not
-	// to be saved
-	// // but instead only cache the relevant information.
-	// func IsValidGenesisState(chainStartDepositCount, currentTime uint64) bool
-	// {
-	// 	if currentTime < params.BeaconConfig().MinGenesisTime {
-	// 		return false
-	// 	}
-	// 	if chainStartDepositCount <
-	// params.BeaconConfig().MinGenesisActiveValidatorCount {
-	// 		return false
-	// 	}
-	// 	return true
-	// }
-
 	return nil
 }
 
@@ -86,11 +56,11 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	gs := new(core.Genesis)
-	if err := json.Unmarshal(bz, gs); err != nil {
+	var gs deneb.BeaconState
+	if err := json.Unmarshal(bz, &gs); err != nil {
 		return nil, err
 	}
-	return am.keeper.InitGenesis(ctx, gs)
+	return am.keeper.InitGenesis(ctx, &gs)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
