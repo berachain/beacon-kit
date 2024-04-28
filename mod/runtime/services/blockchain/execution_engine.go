@@ -131,7 +131,7 @@ func (s *Service) sendPostBlockFCU(
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
 			ctx,
-			st,
+			stCopy,
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			uint64(time.Now().Unix()),
