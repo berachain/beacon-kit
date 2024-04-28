@@ -134,6 +134,7 @@ func (s *Service) sendPostBlockFCU(
 			stCopy,
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
+			// TODO: clock time properly.
 			uint64(time.Now().Unix()),
 			root,
 			headHash,
