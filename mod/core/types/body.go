@@ -69,7 +69,7 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits primitives.Deposits `ssz-max:"16"`
+	Deposits []*primitives.Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *engineprimitives.ExecutableDataDeneb
