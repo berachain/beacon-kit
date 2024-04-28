@@ -31,6 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
+var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
+
+// ExecutableDataDeneb is the execution payload for Deneb.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,../primitives/math,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //nolint:lll
