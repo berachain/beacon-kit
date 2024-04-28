@@ -47,3 +47,6 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 		w.Address == other.Address &&
 		w.Amount == other.Amount
 }
+
+// Withdrawals represents a slice of withdrawals.
+type Withdrawals []*Withdrawal

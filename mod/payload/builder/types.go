@@ -54,7 +54,7 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao

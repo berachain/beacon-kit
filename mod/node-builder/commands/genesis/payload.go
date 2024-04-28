@@ -121,7 +121,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayload(
 	data *ethengineprimitives.ExecutableData,
 ) *engineprimitives.ExecutableDataDeneb {
-	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
+	withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.

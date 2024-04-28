@@ -128,12 +128,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *primitives.Validator
 		balance           math.Gwei
 		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
+		withdrawals       = make(engineprimitives.Withdrawals, 0)
 	)
 
 	slot, err := s.GetSlot()
