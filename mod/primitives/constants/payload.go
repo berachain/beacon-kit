@@ -31,5 +31,5 @@ const (
 
 	// MaxTxsPerPayload is the maximum number of transactions in a execution
 	// payload.
-	MaxTxsPerPayload = 1048576
+	MaxTxsPerPayload uint64 = 1048576
 )
