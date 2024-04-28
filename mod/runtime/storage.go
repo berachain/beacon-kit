@@ -36,7 +36,9 @@ import (
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend[ReadOnlyBeaconBlockT any] interface {
-	AvailabilityStore(ctx context.Context) core.AvailabilityStore[ReadOnlyBeaconBlockT]
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[ReadOnlyBeaconBlockT]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) *deposit.KVStore
 }

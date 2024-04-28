@@ -39,6 +39,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 	return 16
 }
 
+// TODO: Renable once we can easily decouple from core/types.
 // func TestBuildKZGInclusionProof(t *testing.T) {
 // 	chainspec := &MockSpec{}
 // 	factory := da.NewSidecarFactory[da.BeaconBlockBody](
@@ -47,6 +48,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 // 	)
 // 	body := mockBody()
 // 	// Test for a valid index
+//
 // 	index := uint64(0)
 // 	proof, err := factory.BuildKZGInclusionProof(body, index)
 // 	require.NoError(
