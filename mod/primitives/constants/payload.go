@@ -35,8 +35,4 @@ const (
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.
 	MaxWithdrawalsPerPayload uint64 = 16
-
-	// MaxTxsPerPayload is the maximum number of transactions in a execution
-	// payload.
-	MaxTxsPerPayload uint64 = 1048576
 )
