@@ -13,6 +13,7 @@ replace (
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
+	github.com/berachain/beacon-kit/mod/da => ../mod/da
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
 	github.com/berachain/beacon-kit/mod/log => ../mod/log
 	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
@@ -32,6 +33,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000

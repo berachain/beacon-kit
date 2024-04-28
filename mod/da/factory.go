@@ -26,8 +26,9 @@
 package da
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"reflect"
+
+	"github.com/berachain/beacon-kit/mod/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"golang.org/x/sync/errgroup"
@@ -56,13 +57,13 @@ func NewSidecarFactory[BBB BeaconBlockBody](
 func (f *SidecarFactory[BBB]) BuildSidecars(
 	blk BeaconBlock[BBB],
 	bundle engineprimitives.BlobsBundle,
-) (*datypes.BlobSidecars, error) {
+) (*types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
-		sidecars    = make([]*datypes.BlobSidecar, numBlobs)
+		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
 	)
@@ -75,7 +76,7 @@ func (f *SidecarFactory[BBB]) BuildSidecars(
 			if err != nil {
 				return err
 			}
-			sidecars[i] = datypes.BuildBlobSidecar(
+			sidecars[i] = types.BuildBlobSidecar(
 				i,
 				blk.GetHeader(),
 				blobs[i],
@@ -87,7 +88,7 @@ func (f *SidecarFactory[BBB]) BuildSidecars(
 		})
 	}
 
-	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
@@ -125,7 +126,7 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 		[32]byte, [32]byte,
 	](
 		membersRoots,
-		uint64(types.BodyLengthDeneb),
+		uint64(reflect.TypeOf(body).NumField()),
 	)
 	if err != nil {
 		return nil, err
