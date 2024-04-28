@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 //
@@ -53,13 +52,6 @@ type ExecutableDataDeneb struct {
 	Withdrawals   Withdrawals                 `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                    `json:"excessBlobGas"`
-}
-
-// JSON type overrides for ExecutableDataDeneb.
-type executableDataDenebMarshaling struct {
-	ExtraData    hexutil.Bytes
-	LogsBloom    hexutil.Bytes
-	Transactions []hexutil.Bytes
 }
 
 // Version returns the version of the ExecutableDataDeneb.
