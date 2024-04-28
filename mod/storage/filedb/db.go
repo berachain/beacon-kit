@@ -29,7 +29,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/cockroachdb/errors"
 	"github.com/spf13/afero"
 )
@@ -39,7 +39,7 @@ import (
 // performant to store in a traditional key-value database.
 type DB struct {
 	fs        afero.Fs
-	logger    log.Logger
+	logger    log.Logger[any]
 	rootDir   string
 	extension string
 	dirPerms  os.FileMode

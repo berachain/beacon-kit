@@ -26,8 +26,8 @@
 package randao
 
 import (
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -44,7 +44,7 @@ func WithSigner(
 }
 
 // WithLogger sets the logger.
-func WithLogger(logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(p *Processor) error {
 		p.logger = logger
 		return nil

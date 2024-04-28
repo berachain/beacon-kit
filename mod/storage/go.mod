@@ -4,11 +4,14 @@ go 1.22.2
 
 replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
+replace github.com/berachain/beacon-kit/mod/log => ../log
+
 require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.0
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/store v1.1.0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cockroachdb/pebble v1.1.0

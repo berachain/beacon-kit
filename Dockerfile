@@ -48,6 +48,7 @@ WORKDIR /workdir
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/go.mod ./mod/go.sum ./mod/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
+COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
@@ -56,6 +57,7 @@ RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod
 RUN go work use ./mod/execution
+RUN go work use ./mod/log
 RUN go work use ./mod/payload
 RUN go work use ./mod/primitives
 RUN go work use ./mod/primitives-engine

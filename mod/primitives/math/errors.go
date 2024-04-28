@@ -25,7 +25,11 @@
 
 package math
 
-import "github.com/cockroachdb/errors"
+import (
+	"math/big"
+
+	"github.com/cockroachdb/errors"
+)
 
 var (
 	// ErrUnexpectedInputLengthBase is the base error for unexpected input
@@ -34,6 +38,10 @@ var (
 
 	// ErrNilBigInt is returned when a nil big.Int is provided to a.
 	ErrNilBigInt = errors.New("big.Int is nil")
+
+	// ErrNegativeBigInt is returned when a negative big.Int is provided to a
+	// function that requires a positive big.Int.
+	ErrNegativeBigIntBase = errors.New("big.Int is negative")
 )
 
 // ErrUnexpectedInputLength returns an error indicating that the input length.
@@ -42,4 +50,11 @@ func ErrUnexpectedInputLength(expected, actual int) error {
 		ErrUnexpectedInputLengthBase,
 		"expected %d, got %d", expected, actual,
 	)
+}
+
+// ErrNegativeBigInt returns an error indicating that a negative big.Int was
+// provided.
+func ErrNegativeBigInt(actual *big.Int) error {
+	return errors.Wrapf(
+		ErrNegativeBigIntBase, "big.Int is negative: got %s", actual.String())
 }
