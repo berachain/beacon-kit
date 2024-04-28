@@ -30,16 +30,9 @@ const (
 	ExtraDataLength = 32
 
 	// MaxDepositsPerBlock is the maximum number of deposits per block.
-	MaxDepositsPerBlock = 16
-
-	// MaxTxLength is the maximum length of a transaction in bytes.
-	MaxTxLength = 1073741824
-
-	// MaxTxsPerPayload is the maximum number of transactions in a execution
-	// payload.
-	MaxTxsPerPayload = 1048576
+	MaxDepositsPerBlock uint64 = 16
 
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.
-	MaxWithdrawalsPerPayload = 16
+	MaxWithdrawalsPerPayload uint64 = 16
 )
