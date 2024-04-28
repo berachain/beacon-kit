@@ -167,9 +167,11 @@ func (k *Keeper) InitGenesis(
 
 	sp := core.NewStateProcessor(k.cfg, nil, nil, log.NewNopLogger())
 
-	if err := sp.InitializeBeaconStateFromEth1(sdb, data, 0); err != nil {
+	emptyState := sdb.Copy()
+	if err := sp.InitializeBeaconStateFromEth1(emptyState, data); err != nil {
 		return nil, err
 	}
+	emptyState.Save()
 
 	validators, err := sdb.GetValidators()
 	if err != nil {

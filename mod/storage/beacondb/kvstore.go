@@ -75,6 +75,8 @@ type KVStore[
 	write func()
 
 	// Versioning
+	// genesisTime is the unix timestamp of the genesis block.
+	genesisTime sdkcollections.Item[uint64]
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[32]byte]
 	// slot is the current slot.
@@ -147,6 +149,12 @@ func New[
 		ExecutionPayloadT, Eth1DataT, ValidatorT,
 	]{
 		ctx: nil,
+		genesisTime: sdkcollections.NewItem[uint64](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.SlotPrefix),
+			keys.SlotPrefix,
+			sdkcollections.Uint64Value,
+		),
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),

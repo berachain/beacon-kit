@@ -47,6 +47,7 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 func (AppModule) ValidateGenesis(
 	_ json.RawMessage,
 ) error {
+	// TODO: implement.
 	return nil
 }
 
@@ -55,7 +56,7 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	var gs = new(core.Genesis)
+	gs := new(core.Genesis)
 	if err := json.Unmarshal(bz, gs); err != nil {
 		return nil, err
 	}

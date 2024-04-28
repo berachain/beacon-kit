@@ -30,6 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	genutiltypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
@@ -38,17 +40,26 @@ import (
 func DefaultGenesis() *Genesis {
 	return &Genesis{
 		Fork: &primitives.Fork{
-			PreviousVersion: version.FromUint32[primitives.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[primitives.Version](version.Deneb),
-			Epoch:           0,
+			PreviousVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			CurrentVersion: version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			Epoch: math.U64(constants.GenesisEpoch),
 		},
-		Eth1BlockHash: primitives.ExecutionHash{},
-		Eth1Timestamp: 0,
-		Deposits:      make([]*primitives.Deposit, 0),
+		Eth1BlockHash:          primitives.ExecutionHash{},
+		Eth1Timestamp:          0,
+		Deposits:               make([]*primitives.Deposit, 0),
+		ExecutionPayloadHeader: &engineprimitives.ExecutionHeaderDeneb{},
 	}
 }
 
+// Genesis is the minimal eth1 genesis state for the beacon chain.
+//
+//nolint:lll // json tags.
 type Genesis struct {
+	// Fork is the fork version of the beacon chain.
 	Fork *primitives.Fork `json:"fork"`
 	// Eth1BlockHash is the hash of the Eth1 block.
 	Eth1BlockHash primitives.ExecutionHash `json:"eth1BlockHash"`
@@ -56,17 +67,20 @@ type Genesis struct {
 	Eth1Timestamp uint64 `json:"eth1Timestamp"`
 	// Deposits is the list of genesis deposits.
 	Deposits primitives.Deposits `json:"deposits"`
-	// TODO: Add ExecutionPayloadHeader
+	// ExecutionPayloadHeader is the header of the genesis execution payload.
+	ExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader `json:"executionPayloadHeader"`
 }
 
 // InitializeBeaconStateFromEth1 initializes the beacon state from the Eth1
 // chain.
 func (sp *StateProcessor) InitializeBeaconStateFromEth1(
-	emptySt state.BeaconState,
-	genesis *Genesis,
-	_ uint64,
+	emptySt state.BeaconState, genesis *Genesis,
 ) error {
 	// Step 1: Setup the initial state.
+	if err := emptySt.SetGenesisTime(genesis.Eth1Timestamp); err != nil {
+		return err
+	}
+
 	if err := emptySt.SetFork(genesis.Fork); err != nil {
 		return err
 	}
@@ -87,13 +101,6 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	); err != nil {
 		return err
 	}
-
-	// TODO: Deprecate this in favor of UpdateLatestExecutionPayload.
-	// if err = emptySt.UpdateEth1BlockHash(
-	// 	genesis.Eth1BlockHash,
-	// ); err != nil {
-	// 	return err
-	// }
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err = emptySt.UpdateRandaoMixAtIndex(
@@ -134,10 +141,8 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		if validator.EffectiveBalance == math.Gwei(
 			sp.cs.MaxEffectiveBalance(),
 		) {
-			// TODO: sp.cfg.GenesisEpoch
-			validator.ActivationEligibilityEpoch = 0
-			// TODO: sp.cfg.GenesisEpoch params.GenesisEpoch
-			validator.ActivationEpoch = 0
+			validator.ActivationEligibilityEpoch = math.U64(constants.GenesisEpoch)
+			validator.ActivationEpoch = math.U64(constants.GenesisEpoch)
 		}
 	}
 
@@ -148,7 +153,6 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	if err != nil {
 		return err
 	}
-
 	if err = emptySt.SetGenesisValidatorsRoot(genesisValidatorsRoot); err != nil {
 		return err
 	}

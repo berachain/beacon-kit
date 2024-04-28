@@ -82,6 +82,13 @@ type ExecutionPayload interface {
 	GetWithdrawals() []*Withdrawal
 }
 
+// ExecutionPayloadHeader represents the execution header of a block.
+type ExecutionPayloadHeader interface {
+	ExecutionPayloadBody
+	GetTransactionsRoot() [32]byte
+	GetWithdrawalsRoot() [32]byte
+}
+
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
 	Version() uint32
