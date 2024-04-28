@@ -78,7 +78,9 @@ func ProvideRuntime(
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
 		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(logger),
+		engineclient.WithLogger(
+			logger.With("module", "beacon-kit.engine.client"),
+		),
 	)
 
 	// TODO: move.
@@ -103,7 +105,9 @@ func ProvideRuntime(
 
 	// Build the local builder service.
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
-		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
+		payloadbuilder.WithLogger(
+			logger.With("service", "payload-builder"),
+		),
 		payloadbuilder.WithChainSpec(chainSpec),
 		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
@@ -162,7 +166,7 @@ func ProvideRuntime(
 				chainSpec,
 				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
-				logger,
+				logger.With("module", "state-processor"),
 			)),
 	)
 
