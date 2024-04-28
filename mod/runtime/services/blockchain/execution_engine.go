@@ -35,7 +35,7 @@ import (
 )
 
 // sendFCU sends a forkchoice update to the execution client.
-// It sets the head and finalizes the latest
+// It sets the head and finalizes the latest.
 func (s *Service) sendFCU(
 	ctx context.Context,
 	st state.BeaconState,
@@ -138,13 +138,15 @@ func (s *Service) sendPostBlockFCU(
 			uint64(time.Now().Unix()),
 			root,
 			headHash,
-		); err != nil {
-			// If we error we log and continue, we try again without building a
-			// block
-			// just incase this can help get our execution client back on track.
-			s.Logger().
-				Error("failed to send forkchoice update with attributes", "error", err)
+		); err == nil {
+			return
 		}
+
+		// If we error we log and continue, we try again without building a
+		// block
+		// just incase this can help get our execution client back on track.
+		s.Logger().
+			Error("failed to send forkchoice update with attributes", "error", err)
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
