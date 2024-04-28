@@ -135,7 +135,7 @@ func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
 }
 
 // GetTransactions returns the transactions of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTransactions() Transactions {
+func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 	return d.Transactions
 }
 
