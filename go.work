@@ -4,6 +4,7 @@ use (
 	./beacond
 	./build/tools
 	./mod
+	./mod/da
 	./mod/execution
 	./mod/log
 	./mod/payload
