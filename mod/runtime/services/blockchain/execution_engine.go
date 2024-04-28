@@ -32,10 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
+// It sets the head and finalizes the latest.
 func (s *Service) sendFCU(
 	ctx context.Context,
 	st state.BeaconState,
@@ -56,28 +56,6 @@ func (s *Service) sendFCU(
 				FinalizedBlockHash: eth1BlockHash,
 			},
 		},
-	)
-	return err
-}
-
-// sendFCUWithAttributes sends a forkchoice update to the
-// execution client with payload attributes. It does
-// so via the local builder service.
-func (s *Service) sendFCUWithAttributes(
-	ctx context.Context,
-	st state.BeaconState,
-	forSlot math.Slot,
-	parentBlockRoot primitives.Root,
-	headEth1Hash primitives.ExecutionHash,
-) error {
-	_, err := s.lb.RequestPayload(
-		ctx,
-		st,
-		forSlot,
-		//#nosec:G701 // won't realistically overflow.
-		uint64(time.Now().Unix()),
-		parentBlockRoot,
-		headEth1Hash,
 	)
 	return err
 }
@@ -149,10 +127,15 @@ func (s *Service) sendPostBlockFCU(
 			return
 		}
 
-		if err = s.sendFCUWithAttributes(
+		// Ask the builder to send a forkchoice update with attributes.
+		// This will trigger a new payload to be built.
+		if _, err = s.lb.RequestPayload(
 			ctx,
 			stCopy,
 			slot+1,
+			//#nosec:G701 // won't realistically overflow.
+			// TODO: clock time properly.
+			uint64(time.Now().Unix()),
 			root,
 			headHash,
 		); err == nil {
