@@ -36,6 +36,22 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
+// Genesis is the minimal eth1 genesis state for the beacon chain.
+//
+//nolint:lll // json tags.
+type Genesis struct {
+	// Fork is the fork version of the beacon chain.
+	Fork *primitives.Fork `json:"fork"`
+	// Eth1BlockHash is the hash of the Eth1 block.
+	Eth1BlockHash primitives.ExecutionHash `json:"eth1BlockHash"`
+	// Eth1Timestamp is the timestamp of the Eth1 block.
+	Eth1Timestamp uint64 `json:"eth1Timestamp"`
+	// Deposits is the list of genesis deposits.
+	Deposits primitives.Deposits `json:"deposits"`
+	// ExecutionPayloadHeader is the header of the genesis execution payload.
+	ExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader `json:"executionPayloadHeader"`
+}
+
 // DefaultGenesis returns the default genesis state.
 func DefaultGenesis() *Genesis {
 	return &Genesis{
@@ -53,22 +69,6 @@ func DefaultGenesis() *Genesis {
 		Deposits:               make([]*primitives.Deposit, 0),
 		ExecutionPayloadHeader: &engineprimitives.ExecutionHeaderDeneb{},
 	}
-}
-
-// Genesis is the minimal eth1 genesis state for the beacon chain.
-//
-//nolint:lll // json tags.
-type Genesis struct {
-	// Fork is the fork version of the beacon chain.
-	Fork *primitives.Fork `json:"fork"`
-	// Eth1BlockHash is the hash of the Eth1 block.
-	Eth1BlockHash primitives.ExecutionHash `json:"eth1BlockHash"`
-	// Eth1Timestamp is the timestamp of the Eth1 block.
-	Eth1Timestamp uint64 `json:"eth1Timestamp"`
-	// Deposits is the list of genesis deposits.
-	Deposits primitives.Deposits `json:"deposits"`
-	// ExecutionPayloadHeader is the header of the genesis execution payload.
-	ExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader `json:"executionPayloadHeader"`
 }
 
 // InitializeBeaconStateFromEth1 initializes the beacon state from the Eth1

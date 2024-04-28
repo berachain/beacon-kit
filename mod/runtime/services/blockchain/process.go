@@ -240,7 +240,7 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
-	// Set the latest execution payload.
+	// Set the latest execution payload header.
 	if err = st.SetLatestExecutionPayloadHeader(&engineprimitives.ExecutionHeaderDeneb{
 		ParentHash:       payload.GetParentHash(),
 		FeeRecipient:     payload.GetFeeRecipient(),

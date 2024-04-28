@@ -135,7 +135,9 @@ type ReadOnlyValidators interface {
 type WriteOnlyEth1Data interface {
 	SetEth1Data(*primitives.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(engineprimitives.ExecutionPayloadHeader) error
+	SetLatestExecutionPayloadHeader(
+		engineprimitives.ExecutionPayloadHeader,
+	) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
