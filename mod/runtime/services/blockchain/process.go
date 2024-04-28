@@ -39,7 +39,6 @@ import (
 func (s *Service) ProcessSlot(
 	st state.BeaconState,
 ) error {
-	// Process the slot.
 	return s.sp.ProcessSlot(st)
 }
 
