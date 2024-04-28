@@ -75,7 +75,7 @@ type Deposits []*Deposit
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
 func (d Deposits) HashTreeRoot() (Root, error) {
-	// TODO: configure instead of reading from constants.
+	// TODO: read max deposits from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
 		d, constants.MaxDepositsPerBlock,
 	)

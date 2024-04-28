@@ -89,3 +89,9 @@ type ReadOnlyBeaconBlockBody interface {
 	GetBlobKzgCommitments() kzg.Commitments
 	GetTopLevelRoots() ([][32]byte, error)
 }
+
+// ChainSpec represents a chain spec.
+// TODO: use in the BeaconBlockBody for merkleization.
+type ChainSpec interface {
+	MaxDepositsPerBlock() uint64
+}

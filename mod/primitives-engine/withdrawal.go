@@ -55,7 +55,7 @@ type Withdrawals []*Withdrawal
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
 func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
-	// TODO: configure instead of reading from constants.
+	// TODO: read max withdrawals from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
 		w, constants.MaxWithdrawalsPerPayload,
 	)
