@@ -34,6 +34,20 @@ import (
 // Bytes represents a byte array.
 type Bytes = hexutil.Bytes
 
+// MustBytesFromHex returns the bytes represented by the given hex string.
+func MustBytesFromHex(input string) Bytes {
+	bz, err := BytesFromHex(input)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// MustBytesFromHex returns the bytes represented by the given hex string.
+func BytesFromHex(input string) (Bytes, error) {
+	return hexutil.Decode(input)
+}
+
 // ------------------------------ Bytes4 ------------------------------
 
 // Bytes4 represents a 4-byte array.

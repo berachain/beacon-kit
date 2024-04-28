@@ -32,6 +32,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -81,7 +82,8 @@ func (s *BaseService) Logger() log.Logger {
 // AvailabilityStore returns the availability store from the BaseService.
 func (s *BaseService) AvailabilityStore(
 	ctx context.Context,
-) core.AvailabilityStore {
+	// TODO: this is really bad coupling on the generic here.
+) core.AvailabilityStore[types.ReadOnlyBeaconBlock] {
 	return s.bsb.AvailabilityStore(ctx)
 }
 

@@ -101,7 +101,7 @@ func MostSignificantBitIndex(x byte) int {
 	// Check if the second bit is set
 	if x >= 0x2 {
 		// Increment result index by 1 because the second bit is significant
-		r += 1
+		r++
 	}
 	return r
 }
@@ -132,12 +132,12 @@ func UnmarshalBitList(bv []byte) []bool {
 	// note: this reverses the order of the bits as highest bit is last
 	// we use the pre-calculated array size using msbi to only read whats
 	// relevant
-	for j := 0; j < len(bv); j++ {
+	for j := range len(bv) {
 		limit := bitsPerByte
 		if j == len(bv)-1 {
 			limit = msbi
 		}
-		for i := 0; i < limit; i++ {
+		for i := range limit {
 			val := ((bv[j] & (1 << i)) >> i)
 			newArray[(bitsPerByte*j)+i] = (val == 1)
 		}
@@ -146,7 +146,7 @@ func UnmarshalBitList(bv []byte) []bool {
 	return newArray
 }
 
-func UnmarshalBitVector(bv []byte) []bool {
+func UnmarshalBitVector([]byte) []bool {
 	// Bit vectors cannot be unmarshalled as there is no sentinel bit to denote
 	// its initial length
 	panic("not implemented")

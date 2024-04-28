@@ -193,14 +193,14 @@ func TestMarshalBitList(t *testing.T) {
 	}
 }
 
-func TestUnMarshalBitList(t *testing.T) {
+func TestUnmarshalBitList(t *testing.T) {
 	// Test case 1: Empty input
 	bv := []byte{}
 	expected := []bool{}
 	actual := ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(len(actual), len(expected)) {
 		t.Errorf(
-			"TestUnMarshalBitList failed for empty input: expected %v but got %v",
+			"TestUnmarshalBitList failed for empty input: expected %v but got %v",
 			expected,
 			actual,
 		)
@@ -212,7 +212,8 @@ func TestUnMarshalBitList(t *testing.T) {
 	actual = ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf(
-			"TestUnMarshalBitList failed for input with sentinel bit set: expected %v but got %v",
+			"TestUnmarshalBitList failed for input with"+
+				" sentinel bit set: expected %v but got %v",
 			expected,
 			actual,
 		)
@@ -225,17 +226,19 @@ func TestUnMarshalBitList(t *testing.T) {
 
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf(
-			"TestUnMarshalBitList failed for input with multiple bits set: expected %v but got %v",
+			"TestUnmarshalBitList failed for input with"+
+				" multiple bits set: expected %v but got %v",
 			expected,
 			actual,
 		)
 	}
-	// Test case 3a: Check unmarshal returns same results as original input to
+	// Test case 3a: Check Unmarshal returns same results as original input to
 	// marshal
 	expectedBV := ssz.MarshalBitList(actual)
 	if !reflect.DeepEqual(expectedBV, bv) {
 		t.Errorf(
-			"TestUnMarshalBitList failed for input with multiple bits set: expected %08b but got %08b",
+			"TestUnmarshalBitList failed for input with"+
+				" multiple bits set: expected %08b but got %08b",
 			expectedBV,
 			bv,
 		)
