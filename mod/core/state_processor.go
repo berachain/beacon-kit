@@ -319,7 +319,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits primitives.Deposits,
+	deposits []*primitives.Deposit,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {

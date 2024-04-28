@@ -36,7 +36,7 @@ import (
 func (s *Service) ProcessBlockEvents(
 	logs []engineprimitives.Log,
 ) error {
-	var deposits primitives.Deposits
+	var deposits []*primitives.Deposit
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
 		if log.Address != s.ChainSpec().DepositContractAddress() {

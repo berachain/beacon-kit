@@ -28,6 +28,7 @@ package primitives
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -101,6 +102,11 @@ func (h Bytes32) MarshalText() ([]byte, error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 func (h *Bytes32) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
+}
+
+// SizeSSZ returns the size of its SSZ encoding in bytes.
+func (h Bytes32) SizeSSZ() int {
+	return constants.RootLength
 }
 
 // ------------------------------ Bytes48 ------------------------------

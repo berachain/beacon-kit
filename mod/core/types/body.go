@@ -111,13 +111,13 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionP
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() primitives.Deposits {
+func (b *BeaconBlockBodyDeneb) GetDeposits() []*primitives.Deposit {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetDeposits(
-	deposits primitives.Deposits,
+	deposits []*primitives.Deposit,
 ) {
 	b.Deposits = deposits
 }
@@ -168,7 +168,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	// graffiti
 	layer[2] = b.GetGraffiti()
 
-	layer[3], err = b.GetDeposits().HashTreeRoot()
+	layer[3], err = primitives.Deposits(b.GetDeposits()).HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
