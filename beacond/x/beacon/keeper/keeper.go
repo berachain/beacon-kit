@@ -50,7 +50,7 @@ type Keeper struct {
 	beaconStore       *beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	]
@@ -59,8 +59,8 @@ type Keeper struct {
 }
 
 // TODO: move this.
-func DenebPayloadFactory() engineprimitives.ExecutionPayload {
-	return &engineprimitives.ExecutableDataDeneb{}
+func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
+	return &engineprimitives.ExecutionHeaderDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
@@ -75,7 +75,7 @@ func NewKeeper(
 		beaconStore: beacondb.New[
 			*primitives.Fork,
 			*primitives.BeaconBlockHeader,
-			engineprimitives.ExecutionPayload,
+			engineprimitives.ExecutionPayloadHeader,
 			*primitives.Eth1Data,
 			*primitives.Validator,
 		](env.KVStoreService, DenebPayloadFactory),

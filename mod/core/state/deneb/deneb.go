@@ -60,9 +60,9 @@ func DefaultBeaconState() *BeaconState {
 			StateRoot:     primitives.Root{},
 			BodyRoot:      primitives.Root{},
 		},
-		BlockRoots:             make([]primitives.Root, 8),
-		StateRoots:             make([]primitives.Root, 8),
-		LatestExecutionPayload: DefaultGenesisExecutionPayload(),
+		BlockRoots:                   make([]primitives.Root, 8),
+		StateRoots:                   make([]primitives.Root, 8),
+		LatestExecutionPayloadHeader: DefaultGenesisExecutionPayloadHeader(),
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
@@ -79,11 +79,11 @@ func DefaultBeaconState() *BeaconState {
 	}
 }
 
-// DefaultGenesisExecutionPayload returns a default ExecutableDataDeneb.
+// DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 //
 //nolint:mnd // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
-	return &engineprimitives.ExecutableDataDeneb{
+func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionHeaderDeneb {
+	return &engineprimitives.ExecutionHeaderDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
@@ -105,10 +105,10 @@ func DefaultGenesisExecutionPayload() *engineprimitives.ExecutableDataDeneb {
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		Transactions:  [][]byte{},
-		Withdrawals:   []*engineprimitives.Withdrawal{},
-		BlobGasUsed:   0,
-		ExcessBlobGas: 0,
+		TransactionsRoot: primitives.Root{}, // TODO: fix
+		WithdrawalsRoot:  primitives.Root{}, // TODO: fix
+		BlobGasUsed:      0,
+		ExcessBlobGas:    0,
 	}
 }
 
@@ -128,9 +128,9 @@ type BeaconState struct {
 	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	LatestExecutionPayload *engineprimitives.ExecutableDataDeneb `json:"latestExecutionPayload"`
-	Eth1Data               *primitives.Eth1Data                  `json:"eth1Data"`
-	Eth1DepositIndex       uint64                                `json:"eth1DepositIndex"`
+	Eth1Data                     *primitives.Eth1Data                   `json:"eth1Data"`
+	Eth1DepositIndex             uint64                                 `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *engineprimitives.ExecutionHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
 	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`

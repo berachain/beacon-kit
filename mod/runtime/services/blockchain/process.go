@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
@@ -224,11 +225,11 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	prevEth1Block := latestExecutionPayload.GetBlockHash()
+	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(
@@ -239,8 +240,26 @@ func (s *Service) PostBlockProcess(
 		return err
 	}
 
-	// Update the latest execution payload.
-	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
+	// Set the latest execution payload.
+	if err = st.SetLatestExecutionPayloadHeader(&engineprimitives.ExecutionHeaderDeneb{
+		ParentHash:       payload.GetParentHash(),
+		FeeRecipient:     payload.GetFeeRecipient(),
+		StateRoot:        payload.GetStateRoot(),
+		ReceiptsRoot:     payload.GetReceiptsRoot(),
+		LogsBloom:        payload.GetLogsBloom(),
+		Random:           payload.GetPrevRandao(),
+		Number:           payload.GetNumber(),
+		GasLimit:         payload.GetGasLimit(),
+		GasUsed:          payload.GetGasUsed(),
+		Timestamp:        payload.GetTimestamp(),
+		ExtraData:        payload.GetExtraData(),
+		BaseFeePerGas:    payload.GetBaseFeePerGas(),
+		BlockHash:        payload.GetBlockHash(),
+		TransactionsRoot: primitives.Root{}, // TODO: fix
+		WithdrawalsRoot:  primitives.Root{}, // TODO: fix
+		BlobGasUsed:      payload.GetBlobGasUsed(),
+		ExcessBlobGas:    payload.GetExcessBlobGas(),
+	}); err != nil {
 		return err
 	}
 

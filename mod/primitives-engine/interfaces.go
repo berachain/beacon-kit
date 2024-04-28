@@ -61,32 +61,32 @@ type ExecutionPayloadBody interface {
 	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() primitives.ExecutionHash
 	GetParentHash() primitives.ExecutionHash
-	GetNumber() uint64
-	GetGasLimit() uint64
-	GetGasUsed() uint64
-	GetTimestamp() uint64
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() primitives.ExecutionAddress
 	GetStateRoot() primitives.Bytes32
 	GetReceiptsRoot() primitives.Bytes32
 	GetLogsBloom() []byte
-	GetBlobGasUsed() *uint64
-	GetExcessBlobGas() *uint64
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }
 
 // ExecutionPayload represents the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() Withdrawals
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.
 type ExecutionPayloadHeader interface {
 	ExecutionPayloadBody
-	GetTransactionsRoot() primitives.Bytes32
-	GetWithdrawalsRoot() primitives.Bytes32
+	GetTransactionsRoot() primitives.Root
+	GetWithdrawalsRoot() primitives.Root
 }
 
 // PayloadAttributer represents payload attributes of a block.

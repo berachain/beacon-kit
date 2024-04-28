@@ -52,7 +52,7 @@ type ExecutableDataDeneb struct {
 	BaseFeePerGas math.Wei                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals   Withdrawals                 `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                    `json:"excessBlobGas"`
 }
@@ -103,23 +103,23 @@ func (d *ExecutableDataDeneb) GetPrevRandao() primitives.Bytes32 {
 }
 
 // GetNumber returns the block number of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetNumber() uint64 {
-	return d.Number.Unwrap()
+func (d *ExecutableDataDeneb) GetNumber() math.U64 {
+	return d.Number
 }
 
 // GetGasLimit returns the gas limit of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasLimit() uint64 {
-	return d.GasLimit.Unwrap()
+func (d *ExecutableDataDeneb) GetGasLimit() math.U64 {
+	return d.GasLimit
 }
 
 // GetGasUsed returns the gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasUsed() uint64 {
-	return d.GasUsed.Unwrap()
+func (d *ExecutableDataDeneb) GetGasUsed() math.U64 {
+	return d.GasUsed
 }
 
 // GetTimestamp returns the timestamp of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTimestamp() uint64 {
-	return d.Timestamp.Unwrap()
+func (d *ExecutableDataDeneb) GetTimestamp() math.U64 {
+	return d.Timestamp
 }
 
 // GetExtraData returns the extra data of the ExecutableDataDeneb.
@@ -143,18 +143,16 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
+func (d *ExecutableDataDeneb) GetWithdrawals() Withdrawals {
 	return d.Withdrawals
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlobGasUsed() *uint64 {
-	v := d.BlobGasUsed.Unwrap()
-	return &v
+func (d *ExecutableDataDeneb) GetBlobGasUsed() math.U64 {
+	return d.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetExcessBlobGas() *uint64 {
-	v := d.ExcessBlobGas.Unwrap()
-	return &v
+func (d *ExecutableDataDeneb) GetExcessBlobGas() math.U64 {
+	return d.ExcessBlobGas
 }

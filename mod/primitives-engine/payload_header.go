@@ -51,8 +51,8 @@ type ExecutionHeaderDeneb struct {
 	ExtraData        []byte                      `json:"extraData"                        gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas    math.Wei                    `json:"baseFeePerGas"     ssz-size:"32"  gencodec:"required"`
 	BlockHash        primitives.ExecutionHash    `json:"blockHash"         ssz-size:"32"  gencodec:"required"`
-	TransactionsRoot primitives.Bytes32          `json:"transactions_root" ssz-size:"32"  gencodec:"required"`
-	WithdrawalsRoot  primitives.Bytes32          `json:"withdrawals_root"  ssz-size:"32"`
+	TransactionsRoot primitives.Root             `json:"transactions_root" ssz-size:"32"  gencodec:"required"`
+	WithdrawalsRoot  primitives.Root             `json:"withdrawals_root"  ssz-size:"32"`
 	BlobGasUsed      math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                    `json:"excessBlobGas"`
 }
@@ -104,23 +104,23 @@ func (d *ExecutionHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
 }
 
 // GetNumber returns the block number of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetNumber() uint64 {
-	return d.Number.Unwrap()
+func (d *ExecutionHeaderDeneb) GetNumber() math.U64 {
+	return d.Number
 }
 
 // GetGasLimit returns the gas limit of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetGasLimit() uint64 {
-	return d.GasLimit.Unwrap()
+func (d *ExecutionHeaderDeneb) GetGasLimit() math.U64 {
+	return d.GasLimit
 }
 
 // GetGasUsed returns the gas used of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetGasUsed() uint64 {
-	return d.GasUsed.Unwrap()
+func (d *ExecutionHeaderDeneb) GetGasUsed() math.U64 {
+	return d.GasUsed
 }
 
 // GetTimestamp returns the timestamp of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetTimestamp() uint64 {
-	return d.Timestamp.Unwrap()
+func (d *ExecutionHeaderDeneb) GetTimestamp() math.U64 {
+	return d.Timestamp
 }
 
 // GetExtraData returns the extra data of the ExecutionHeaderDeneb.
@@ -140,23 +140,21 @@ func (d *ExecutionHeaderDeneb) GetBlockHash() primitives.ExecutionHash {
 
 // GetTransactionsRoot returns the transactions root of the
 // ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetTransactionsRoot() primitives.Bytes32 {
+func (d *ExecutionHeaderDeneb) GetTransactionsRoot() primitives.Root {
 	return d.TransactionsRoot
 }
 
 // GetWithdrawalsRoot returns the withdrawals root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetWithdrawalsRoot() primitives.Bytes32 {
+func (d *ExecutionHeaderDeneb) GetWithdrawalsRoot() primitives.Root {
 	return d.WithdrawalsRoot
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetBlobGasUsed() *uint64 {
-	v := d.BlobGasUsed.Unwrap()
-	return &v
+func (d *ExecutionHeaderDeneb) GetBlobGasUsed() math.U64 {
+	return d.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetExcessBlobGas() *uint64 {
-	v := d.ExcessBlobGas.Unwrap()
-	return &v
+func (d *ExecutionHeaderDeneb) GetExcessBlobGas() math.U64 {
+	return d.ExcessBlobGas
 }

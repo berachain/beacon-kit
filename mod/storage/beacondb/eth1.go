@@ -25,24 +25,24 @@
 
 package beacondb
 
-// GetLatestExecutionPayload retrieves the latest execution payload from the
-// BeaconStore.
+// GetLatestExecutionPayloadHeader retrieves the latest execution payload
+// header from the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetLatestExecutionPayload() (
-	ExecutionPayloadT, error,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+]) GetLatestExecutionPayloadHeader() (
+	ExecutionPayloadHeaderT, error,
 ) {
-	return kv.latestExecutionPayload.Get(kv.ctx)
+	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
-// UpdateLatestExecutionPayload sets the latest execution payload in the
-// BeaconStore.
+// SetLatestExecutionPayloadHeader sets the latest execution payload header in
+// the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) UpdateLatestExecutionPayload(
-	payload ExecutionPayloadT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+]) SetLatestExecutionPayloadHeader(
+	payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	return kv.latestExecutionPayload.Set(kv.ctx, payload)
+	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.

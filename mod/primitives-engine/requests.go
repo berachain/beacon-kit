@@ -75,6 +75,8 @@ func BuildNewPayloadRequest(
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
+	blobGasUsed := payload.GetBlobGasUsed().Unwrap()
+	excessBlobGas := payload.GetExcessBlobGas().Unwrap()
 	data := gengine.ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
@@ -82,18 +84,18 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		ReceiptsRoot:  common.Hash(payload.GetReceiptsRoot()),
 		LogsBloom:     payload.GetLogsBloom(),
 		Random:        common.Hash(payload.GetPrevRandao()),
-		Number:        payload.GetNumber(),
-		GasLimit:      payload.GetGasLimit(),
-		GasUsed:       payload.GetGasUsed(),
-		Timestamp:     payload.GetTimestamp(),
+		Number:        payload.GetNumber().Unwrap(),
+		GasLimit:      payload.GetGasLimit().Unwrap(),
+		GasUsed:       payload.GetGasUsed().Unwrap(),
+		Timestamp:     payload.GetTimestamp().Unwrap(),
 		ExtraData:     payload.GetExtraData(),
 		BaseFeePerGas: payload.GetBaseFeePerGas().UnwrapBig(),
 		BlockHash:     payload.GetBlockHash(),
 		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
-		BlobGasUsed:   payload.GetBlobGasUsed(),
-		ExcessBlobGas: payload.GetExcessBlobGas(),
+		BlobGasUsed:   &blobGasUsed,
+		ExcessBlobGas: &excessBlobGas,
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,

@@ -43,13 +43,13 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 	attrs engineprimitives.PayloadAttributer,
 	headEth1Hash primitives.ExecutionHash,
 ) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Because of single slot finality, this is considered final.
-	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
+	parentEth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
 
 	return pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{

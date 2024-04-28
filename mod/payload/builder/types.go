@@ -49,7 +49,7 @@ type ReadOnlyValidators interface {
 
 // ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
+	GetLatestExecutionPayloadHeader() (engineprimitives.ExecutionPayloadHeader, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

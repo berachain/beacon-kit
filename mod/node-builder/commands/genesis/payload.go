@@ -93,9 +93,14 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			beaconState.LatestExecutionPayload = executableDataToExecutionPayload(
-				payload,
-			)
+			beaconState.LatestExecutionPayloadHeader, err =
+				executableDataToExecutionPayloadHeader(payload)
+			if err != nil {
+				return errors.Wrap(
+					err,
+					"failed to convert executable data to execution payload header",
+				)
+			}
 
 			//nolint:musttag // false positive?
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
@@ -116,12 +121,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 	return cmd
 }
 
-// Converts the eth executable data type to the beacon execution payload
+// Converts the eth executable data type to the beacon execution payload header
 // interface.
-// TODO: should function should handle errors gracefully.
-func executableDataToExecutionPayload(
+func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) *engineprimitives.ExecutableDataDeneb {
+) (*engineprimitives.ExecutionHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -145,23 +149,25 @@ func executableDataToExecutionPayload(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
-	return &engineprimitives.ExecutableDataDeneb{
-		ParentHash:    data.ParentHash,
-		FeeRecipient:  data.FeeRecipient,
-		StateRoot:     primitives.Bytes32(data.StateRoot),
-		ReceiptsRoot:  primitives.Bytes32(data.ReceiptsRoot),
-		LogsBloom:     data.LogsBloom,
-		Random:        primitives.Bytes32(data.Random),
-		Number:        math.U64(data.Number),
-		GasLimit:      math.U64(data.GasLimit),
-		GasUsed:       math.U64(data.GasUsed),
-		Timestamp:     math.U64(data.Timestamp),
-		ExtraData:     data.ExtraData,
-		BaseFeePerGas: math.MustNewU256LFromBigInt(data.BaseFeePerGas),
-		BlockHash:     data.BlockHash,
-		Transactions:  data.Transactions,
-		Withdrawals:   withdrawals,
-		BlobGasUsed:   math.U64(blobGasUsed),
-		ExcessBlobGas: math.U64(excessBlobGas),
+	executionPayloadHeader := &engineprimitives.ExecutionHeaderDeneb{
+		ParentHash:       data.ParentHash,
+		FeeRecipient:     data.FeeRecipient,
+		StateRoot:        primitives.Bytes32(data.StateRoot),
+		ReceiptsRoot:     primitives.Bytes32(data.ReceiptsRoot),
+		LogsBloom:        data.LogsBloom,
+		Random:           primitives.Bytes32(data.Random),
+		Number:           math.U64(data.Number),
+		GasLimit:         math.U64(data.GasLimit),
+		GasUsed:          math.U64(data.GasUsed),
+		Timestamp:        math.U64(data.Timestamp),
+		ExtraData:        data.ExtraData,
+		BaseFeePerGas:    math.MustNewU256LFromBigInt(data.BaseFeePerGas),
+		BlockHash:        data.BlockHash,
+		TransactionsRoot: primitives.Bytes32{}, // TODO: fix
+		WithdrawalsRoot:  primitives.Bytes32{}, // TODO: fix
+		BlobGasUsed:      math.U64(blobGasUsed),
+		ExcessBlobGas:    math.U64(excessBlobGas),
 	}
+
+	return executionPayloadHeader, nil
 }
