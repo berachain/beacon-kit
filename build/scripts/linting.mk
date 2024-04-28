@@ -14,11 +14,40 @@ lint: ## run all configured linters
 
 golangci:
 	@echo "--> Running linter on all modules"
-	@find . -name 'go.mod' -execdir sh -c 'echo "Linting in $$(pwd)" && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v' \;
-
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		count=$$((count + 1)); \
+		printf "[%d/%d modules complete] Linting in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v) || exit 1; \
+	done
+	
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
-	@find . -name 'go.mod' -execdir sh -c 'echo "Applying fixes in $$(pwd)" && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v' \;
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		count=$$((count + 1)); \
+		printf "[%d/%d modules complete] Applying fixes in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v) || exit 1; \
+	done
+
+define_run_linter = \
+	@echo "--> Running $(1) on all modules"; \
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		count=$$((count + 1)); \
+		printf "[%d/%d modules complete] $(2) in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m $(3) --concurrency 8 -v) || exit 1; \
+	done
+
+$(eval $(call define_run_linter,linter,Linting,))
+$(eval $(call define_run_linter,linter with fixes,Applying fixes,--fix))
+
 
 #################
 #    golines    #
