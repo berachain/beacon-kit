@@ -39,6 +39,7 @@ type Transactions [][]byte
 // HashTreeRoot returns the hash tree root of the Transactions list.
 func (txs Transactions) HashTreeRoot() (primitives.Root, error) {
 	var err error
+	
 	roots := make([]primitives.Root, len(txs))
 	for i, tx := range txs {
 		roots[i], err = ssz.MerkleizeByteSlice[math.U64, primitives.Root](tx)
