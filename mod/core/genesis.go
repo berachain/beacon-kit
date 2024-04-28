@@ -141,7 +141,9 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		if validator.EffectiveBalance == math.Gwei(
 			sp.cs.MaxEffectiveBalance(),
 		) {
-			validator.ActivationEligibilityEpoch = math.U64(constants.GenesisEpoch)
+			validator.ActivationEligibilityEpoch = math.U64(
+				constants.GenesisEpoch,
+			)
 			validator.ActivationEpoch = math.U64(constants.GenesisEpoch)
 		}
 	}
