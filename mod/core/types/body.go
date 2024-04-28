@@ -69,7 +69,7 @@ type BeaconBlockBodyDeneb struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*primitives.Deposit `ssz-max:"16"`
+	Deposits primitives.Deposits `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *engineprimitives.ExecutableDataDeneb
@@ -111,13 +111,13 @@ func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionP
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*primitives.Deposit {
+func (b *BeaconBlockBodyDeneb) GetDeposits() primitives.Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetDeposits(
-	deposits []*primitives.Deposit,
+	deposits primitives.Deposits,
 ) {
 	b.Deposits = deposits
 }
@@ -168,13 +168,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	// graffiti
 	layer[2] = b.GetGraffiti()
 
-	//nolint:mnd // TODO: Config
-	maxDepositsPerBlock := uint64(16)
-	// root, err = dep.HashTreeRoot()
-	layer[3], err = ssz.MerkleizeListComposite[any, math.U64](
-		b.GetDeposits(),
-		maxDepositsPerBlock,
-	)
+	layer[3], err = b.GetDeposits().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

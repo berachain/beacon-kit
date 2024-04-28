@@ -98,14 +98,14 @@ func (kv *KVStore) EnqueueDeposit(deposit *primitives.Deposit) error {
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*primitives.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(deposits primitives.Deposits) error {
 	return kv.depositQueue.PushMulti(context.TODO(), deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (kv *KVStore) DequeueDeposits(
 	numDequeue uint64,
-) ([]*primitives.Deposit, error) {
+) (primitives.Deposits, error) {
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
 

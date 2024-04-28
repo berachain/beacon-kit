@@ -27,7 +27,9 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -50,3 +52,11 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 
 // Withdrawals represents a slice of withdrawals.
 type Withdrawals []*Withdrawal
+
+// HashTreeRoot returns the hash tree root of the Withdrawals list.
+func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
+	// TODO: configure instead of reading from constants.
+	return ssz.MerkleizeListComposite[any, math.U64](
+		w, constants.MaxWithdrawalsPerPayload,
+	)
+}

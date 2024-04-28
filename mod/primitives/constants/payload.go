@@ -29,6 +29,9 @@ const (
 	// ExtraDataLength is the length of the extra data in bytes.
 	ExtraDataLength = 32
 
+	// MaxDepositsPerBlock is the maximum number of deposits per block.
+	MaxDepositsPerBlock = 16
+
 	// MaxTxLength is the maximum length of a transaction in bytes.
 	MaxTxLength = 1073741824
 
