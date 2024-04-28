@@ -126,6 +126,8 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 		[32]byte, [32]byte,
 	](
 		membersRoots,
+		//#nosec:G701 // NumField will never be negative
+		// nor exceed 2^64-1 in practice.
 		uint64(reflect.TypeOf(body).NumField()),
 	)
 	if err != nil {
