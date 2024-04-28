@@ -18,10 +18,11 @@ golangci:
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
-		count=$$((count + 1)); \
 		printf "[%d/%d modules complete] Linting in %s\n" $$count $$total $$dir && \
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v) || exit 1; \
+		count=$$((count + 1)); \
 	done
+	printf "All modules complete\n"
 	
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
@@ -29,25 +30,11 @@ golangci-fix:
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
-		count=$$((count + 1)); \
 		printf "[%d/%d modules complete] Applying fixes in %s\n" $$count $$total $$dir && \
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v) || exit 1; \
-	done
-
-define_run_linter = \
-	@echo "--> Running $(1) on all modules"; \
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
-	total=$$(echo "$$dirs" | wc -l); \
-	count=0; \
-	for dir in $$dirs; do \
 		count=$$((count + 1)); \
-		printf "[%d/%d modules complete] $(2) in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m $(3) --concurrency 8 -v) || exit 1; \
 	done
-
-$(eval $(call define_run_linter,linter,Linting,))
-$(eval $(call define_run_linter,linter with fixes,Applying fixes,--fix))
-
+	printf "All modules complete\n"
 
 #################
 #    golines    #
@@ -63,11 +50,27 @@ golines:
 
 license: 
 	@echo "--> Running addlicense with -check"
-	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. \;
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		printf "[%d/%d modules complete] Checking licenses in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
+		count=$$((count + 1)); \
+	done
+	printf "License check complete for all modules\n"
 
 license-fix:
 	@echo "--> Running addlicense"
-	@find . -name 'go.mod' -execdir go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. \;
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		printf "[%d/%d modules complete] Applying licenses in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
+		count=$$((count + 1)); \
+	done
+	printf "License application complete for all modules\n"
 
 
 #################
@@ -76,10 +79,14 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	@find . -name 'go.mod' -execdir sh -c 'go run go.uber.org/nilaway/cmd/nilaway \
-		-exclude-errors-in-files "x/beacon/api,runtime/services/staking/abi" \
-		-v ./...' \;
-
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	total=$$(echo "$$dirs" | wc -l); \
+	count=0; \
+	for dir in $$dirs; do \
+		count=$$((count + 1)); \
+		printf "[%d/%d modules complete] Running nilaway in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,runtime/services/staking/abi" -v ./...) || exit 1; \
+	done
 #################
 #     gosec     #
 #################
