@@ -50,7 +50,7 @@ type ExecutableDataDeneb struct {
 	ExtraData     []byte                      `json:"extraData"                    gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas math.Wei                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Transactions  Transactions                `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                    `json:"excessBlobGas"`
@@ -144,7 +144,7 @@ func (d *ExecutableDataDeneb) GetBlockHash() primitives.ExecutionHash {
 }
 
 // GetTransactions returns the transactions of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
+func (d *ExecutableDataDeneb) GetTransactions() Transactions {
 	return d.Transactions
 }
 

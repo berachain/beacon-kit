@@ -78,7 +78,7 @@ type ExecutionPayloadBody interface {
 // ExecutionPayload represents the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
-	GetTransactions() [][]byte
+	GetTransactions() Transactions
 	GetWithdrawals() []*Withdrawal
 }
 
