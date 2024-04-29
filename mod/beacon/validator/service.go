@@ -27,7 +27,6 @@ package validator
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
@@ -110,7 +109,7 @@ func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
-) (*primitives.BeaconBlockDeneb, *datypes.BlobSidecars, error) {
+) (primitives.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -166,10 +165,6 @@ func (s *Service) RequestBestBlock(
 	} else if blk == nil {
 		return nil, nil, beacontypes.ErrNilBlk
 	}
-	deneb, ok := blk.(*primitives.BeaconBlockDeneb)
-	if !ok {
-		return nil, nil, errors.New("failed to convert blk to BeaconBlockDeneb")
-	}
 
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -186,7 +181,7 @@ func (s *Service) RequestBestBlock(
 		parentEth1BlockHash,
 	)
 	if err != nil {
-		return deneb, nil, fmt.Errorf(
+		return blk, nil, fmt.Errorf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -218,7 +213,6 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-
 	deposits, err := s.ds.ExpectedDeposits(
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
@@ -246,5 +240,5 @@ func (s *Service) RequestBestBlock(
 	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
 
-	return deneb, blobSidecars, nil
+	return blk, blobSidecars, nil
 }

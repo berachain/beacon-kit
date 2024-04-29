@@ -23,38 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package abci
 
 import (
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/core/state"
+	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
-// BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents() (
-	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker,
-) {
-	var (
-		chainService   *blockchain.Service
-		builderService *validator.Service
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
+type BuilderService interface {
+	RequestBestBlock(
+		context.Context,
+		state.BeaconState,
+		math.Slot,
+	) (primitives.BeaconBlock, *datypes.BlobSidecars, error)
+}
 
-	if err := r.services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
-
-	handler := abci.NewHandler(
-		builderService,
-		chainService,
-	)
-
-	return handler.PrepareProposalHandler,
-		handler.ProcessProposalHandler,
-		handler.FinalizeBlock
+type BlockchainService interface {
+	ProcessSlot(state.BeaconState) error
+	BeaconState(context.Context) state.BeaconState
+	ProcessBeaconBlock(
+		context.Context,
+		state.BeaconState,
+		primitives.ReadOnlyBeaconBlock,
+		*datypes.BlobSidecars,
+	) error
+	PostBlockProcess(
+		context.Context,
+		state.BeaconState,
+		primitives.ReadOnlyBeaconBlock,
+	) error
+	ChainSpec() primitives.ChainSpec
+	ValidatePayloadOnBlk(context.Context, primitives.ReadOnlyBeaconBlock) error
 }

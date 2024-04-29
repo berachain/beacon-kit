@@ -23,38 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package encoding
 
-import (
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrNilBeaconBlockInRequest is an error for when
+	// the beacon block in an abci request is nil.
+	ErrNilBeaconBlockInRequest = errors.New("nil beacon block in abci request")
+
+	// ErrNoBeaconBlockInRequest is an error for when
+	// there is no beacon block in an abci request.
+	ErrNoBeaconBlockInRequest = errors.New("no beacon block in abci request")
+
+	// ErrBzIndexOutOfBounds is an error for when the index
+	// is out of bounds.
+	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")
+
+	// ErrNilABCIRequest is an error for when the abci request
+	// is nil.
+	ErrNilABCIRequest = errors.New("nil abci request")
 )
-
-// BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents() (
-	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker,
-) {
-	var (
-		chainService   *blockchain.Service
-		builderService *validator.Service
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	if err := r.services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
-
-	handler := abci.NewHandler(
-		builderService,
-		chainService,
-	)
-
-	return handler.PrepareProposalHandler,
-		handler.ProcessProposalHandler,
-		handler.FinalizeBlock
-}

@@ -27,15 +27,15 @@ package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	abcitypes "github.com/berachain/beacon-kit/mod/runtime/abci/types"
+	"github.com/berachain/beacon-kit/mod/runtime/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// PreBlocker is called by the base app before the block is finalized. It
+// FinalizeBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *Handler) PreBlocker(
+func (h *Handler) FinalizeBlock(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 ) error {
 	logger := ctx.Logger().With("module", "pre-block")
@@ -51,9 +51,10 @@ func (h *Handler) PreBlocker(
 	//
 	// TODO: Block factory struct?
 	// TODO: Use protobuf and .(type)?
-	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
-		h.cfg.BeaconBlockPosition,
+
+		BeaconBlockTxIndex,
 		h.chainService.ChainSpec().ActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		),
@@ -62,8 +63,9 @@ func (h *Handler) PreBlocker(
 		return err
 	}
 
-	blobSideCars, err := abcitypes.GetBlobSideCars(
-		req, h.cfg.BlobSidecarsBlockPosition,
+	blobSideCars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(
+		req,
+		BlobSidecarsTxIndex,
 	)
 	if err != nil {
 		return err

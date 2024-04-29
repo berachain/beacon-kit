@@ -23,34 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package encoding
 
-const (
-	// defaultBeaconBlockPosition is the default position of the beacon block in
-	// the proposal.
-	defaultBeaconBlockPosition = 0
-	// defaultBlobSidecarsBlockPosition is the default position of the blob
-	// sidecars in the proposal.
-	defaultBlobSidecarsBlockPosition = 1
-)
+import datypes "github.com/berachain/beacon-kit/mod/da/types"
 
-// DefaultABCIConfig returns the default configuration for the proposal service.
-func DefaultABCIConfig() Config {
-	return Config{
-		BeaconBlockPosition:       defaultBeaconBlockPosition,
-		BlobSidecarsBlockPosition: defaultBlobSidecarsBlockPosition,
+func UnmarshalBlobSidecarsFromABCIRequest(
+	req ABCIRequest,
+	bzIndex uint,
+) (*datypes.BlobSidecars, error) {
+	if req == nil {
+		return nil, ErrNilABCIRequest
 	}
-}
 
-// ABCI is a configuration struct for the cosmos proposal handler.
-//
-//nolint:lll // struct tags.
-type Config struct {
-	// BeaconBlockPosition is the position of the beacon block
-	// in the cometbft proposal.
-	BeaconBlockPosition uint `mapstructure:"beacon-block-proposal-position"`
+	txs := req.GetTxs()
 
-	// BlobSidecarsBlockPosition is the position of the blob sidecars
-	// in the cometbft proposal.
-	BlobSidecarsBlockPosition uint `mapstructure:"blob-sidecars-block-proposal-position"`
+	// Ensure there are transactions in the request and
+	// that the request is valid.
+	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
+		return nil, ErrNoBeaconBlockInRequest
+	} else if bzIndex >= uint(len(txs)) {
+		return nil, ErrBzIndexOutOfBounds
+	}
+
+	// Extract the beacon block from the ABCI request.
+	sidecarBz := txs[bzIndex]
+	if sidecarBz == nil {
+		return nil, ErrNilBeaconBlockInRequest
+	}
+
+	var sidecars datypes.BlobSidecars
+	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
+		return nil, err
+	}
+
+	return &sidecars, nil
 }

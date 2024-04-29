@@ -23,13 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package encoding
 
 import (
 	"time"
 
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
@@ -43,7 +42,7 @@ type ABCIRequest interface {
 // ReadOnlyBeaconBlockFromABCIRequest assembles a
 // new read-only beacon block by extracting a marshalled
 // block out of an ABCI request.
-func ReadOnlyBeaconBlockFromABCIRequest(
+func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
@@ -68,36 +67,4 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 		return nil, ErrNilBeaconBlockInRequest
 	}
 	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
-}
-
-func GetBlobSideCars(
-	req ABCIRequest,
-	bzIndex uint,
-) (*datypes.BlobSidecars, error) {
-	if req == nil {
-		return nil, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
-	}
-
-	var sidecars datypes.BlobSidecars
-	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
-		return nil, err
-	}
-
-	return &sidecars, nil
 }
