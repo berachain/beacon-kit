@@ -40,7 +40,6 @@ import (
 func (s *Service) ProcessSlot(
 	st state.BeaconState,
 ) error {
-	// Process the slot.
 	return s.sp.ProcessSlot(st)
 }
 
@@ -232,34 +231,61 @@ func (s *Service) PostBlockProcess(
 	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(
-		ctx,
-		prevEth1Block,
-	); err != nil {
+	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(ctx)
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			payload.GetTransactions(),
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			payload.GetWithdrawals(),
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err = g.Wait(); err != nil {
+		return err
+	}
+
 	// Set the latest execution payload header.
-	if err = st.SetLatestExecutionPayloadHeader(&engineprimitives.ExecutionHeaderDeneb{
-		ParentHash:       payload.GetParentHash(),
-		FeeRecipient:     payload.GetFeeRecipient(),
-		StateRoot:        payload.GetStateRoot(),
-		ReceiptsRoot:     payload.GetReceiptsRoot(),
-		LogsBloom:        payload.GetLogsBloom(),
-		Random:           payload.GetPrevRandao(),
-		Number:           payload.GetNumber(),
-		GasLimit:         payload.GetGasLimit(),
-		GasUsed:          payload.GetGasUsed(),
-		Timestamp:        payload.GetTimestamp(),
-		ExtraData:        payload.GetExtraData(),
-		BaseFeePerGas:    payload.GetBaseFeePerGas(),
-		BlockHash:        payload.GetBlockHash(),
-		TransactionsRoot: primitives.Root{}, // TODO: fix
-		WithdrawalsRoot:  primitives.Root{}, // TODO: fix
-		BlobGasUsed:      payload.GetBlobGasUsed(),
-		ExcessBlobGas:    payload.GetExcessBlobGas(),
-	}); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(
+		&engineprimitives.ExecutionPayloadHeaderDeneb{
+			ParentHash:       payload.GetParentHash(),
+			FeeRecipient:     payload.GetFeeRecipient(),
+			StateRoot:        payload.GetStateRoot(),
+			ReceiptsRoot:     payload.GetReceiptsRoot(),
+			LogsBloom:        payload.GetLogsBloom(),
+			Random:           payload.GetPrevRandao(),
+			Number:           payload.GetNumber(),
+			GasLimit:         payload.GetGasLimit(),
+			GasUsed:          payload.GetGasUsed(),
+			Timestamp:        payload.GetTimestamp(),
+			ExtraData:        payload.GetExtraData(),
+			BaseFeePerGas:    payload.GetBaseFeePerGas(),
+			BlockHash:        payload.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      payload.GetBlobGasUsed(),
+			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		},
+	); err != nil {
 		return err
 	}
 

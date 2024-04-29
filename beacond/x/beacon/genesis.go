@@ -31,12 +31,18 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(core.DefaultGenesis())
+	defaultGenesis, err := deneb.DefaultBeaconState()
+	if err != nil {
+		panic(err)
+	}
+
+	bz, err := json.Marshal(defaultGenesis)
 	if err != nil {
 		panic(err)
 	}

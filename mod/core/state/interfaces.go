@@ -144,7 +144,9 @@ type WriteOnlyEth1Data interface {
 type ReadOnlyEth1Data interface {
 	GetEth1Data() (*primitives.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (engineprimitives.ExecutionPayloadHeader, error)
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader, error,
+	)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

@@ -25,10 +25,11 @@
 
 package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/math"
-
-// Deposits is a typealias for a slice of Deposit.
-type Deposits []*Deposit
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+)
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
@@ -66,4 +67,15 @@ func NewDeposit(
 		Amount:      amount,
 		Signature:   signature,
 	}
+}
+
+// Deposits is a typealias for a list of Deposits.
+type Deposits []*Deposit
+
+// HashTreeRoot returns the hash tree root of the Withdrawals list.
+func (d Deposits) HashTreeRoot() (Root, error) {
+	// TODO: read max deposits from the chain spec.
+	return ssz.MerkleizeListComposite[any, math.U64](
+		d, constants.MaxDepositsPerBlock,
+	)
 }

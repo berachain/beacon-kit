@@ -64,7 +64,7 @@ func (pb *PayloadBuilder) getPayloadAttribute(
 		return nil, err
 	}
 
-	return engineprimitives.NewPayloadAttributes[*engineprimitives.Withdrawal](
+	return engineprimitives.NewPayloadAttributes(
 		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,

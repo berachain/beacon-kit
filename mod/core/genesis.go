@@ -47,7 +47,7 @@ type Genesis struct {
 	// Eth1Timestamp is the timestamp of the Eth1 block.
 	Eth1Timestamp uint64 `json:"eth1Timestamp"`
 	// Deposits is the list of genesis deposits.
-	Deposits primitives.Deposits `json:"deposits"`
+	Deposits []*primitives.Deposit `json:"deposits"`
 	// ExecutionPayloadHeader is the header of the genesis execution payload.
 	ExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader `json:"executionPayloadHeader"`
 }
@@ -67,7 +67,7 @@ func DefaultGenesis() *Genesis {
 		Eth1BlockHash:          primitives.ExecutionHash{},
 		Eth1Timestamp:          0,
 		Deposits:               make([]*primitives.Deposit, 0),
-		ExecutionPayloadHeader: &engineprimitives.ExecutionHeaderDeneb{},
+		ExecutionPayloadHeader: &engineprimitives.ExecutionPayloadHeaderDeneb{},
 	}
 }
 

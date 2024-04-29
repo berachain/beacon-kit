@@ -26,6 +26,7 @@
 package genesis
 
 import (
+	"context"
 	"encoding/json"
 	"unsafe"
 
@@ -42,6 +43,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func AddExecutionPayloadCmd() *cobra.Command {
@@ -125,7 +127,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 // interface.
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) (*engineprimitives.ExecutionHeaderDeneb, error) {
+) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -149,7 +151,35 @@ func executableDataToExecutionPayloadHeader(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
-	executionPayloadHeader := &engineprimitives.ExecutionHeaderDeneb{
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(context.Background())
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			data.Transactions,
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			withdrawals,
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	executionPayloadHeader := &engineprimitives.ExecutionPayloadHeaderDeneb{
 		ParentHash:       data.ParentHash,
 		FeeRecipient:     data.FeeRecipient,
 		StateRoot:        primitives.Bytes32(data.StateRoot),
@@ -163,8 +193,8 @@ func executableDataToExecutionPayloadHeader(
 		ExtraData:        data.ExtraData,
 		BaseFeePerGas:    math.MustNewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:        data.BlockHash,
-		TransactionsRoot: primitives.Bytes32{}, // TODO: fix
-		WithdrawalsRoot:  primitives.Bytes32{}, // TODO: fix
+		TransactionsRoot: txsRoot,
+		WithdrawalsRoot:  withdrawalsRoot,
 		BlobGasUsed:      math.U64(blobGasUsed),
 		ExcessBlobGas:    math.U64(excessBlobGas),
 	}

@@ -309,7 +309,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	switch activeFork {
 	case version.Deneb:
 		executionPayloadHeader, ok :=
-			latestExecutionPayloadHeader.(*engineprimitives.ExecutionHeaderDeneb)
+			latestExecutionPayloadHeader.(*engineprimitives.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
