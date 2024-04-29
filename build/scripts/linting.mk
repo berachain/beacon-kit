@@ -58,7 +58,7 @@ license:
 		(cd $$dir && go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "License check complete for all modules\n"
+	@printf "License check complete for all modules\n"
 
 license-fix:
 	@echo "--> Running addlicense"
@@ -70,7 +70,7 @@ license-fix:
 		(cd $$dir && go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "License application complete for all modules\n"
+	@printf "License application complete for all modules\n"
 
 
 #################
@@ -87,6 +87,7 @@ nilaway:
 		printf "[%d/%d modules complete] Running nilaway in %s\n" $$count $$total $$dir && \
 		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,runtime/services/staking/abi" -v ./...) || exit 1; \
 	done
+	@printf "Nilaway complete for all modules\n"
 #################
 #     gosec     #
 #################
