@@ -149,6 +149,18 @@ func executableDataToExecutionPayloadHeader(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
+	txsRoot, err := engineprimitives.Transactions(data.Transactions).
+		HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	withdrawalsRoot, err := engineprimitives.Withdrawals(withdrawals).
+		HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	executionPayloadHeader := &engineprimitives.ExecutionHeaderDeneb{
 		ParentHash:       data.ParentHash,
 		FeeRecipient:     data.FeeRecipient,
@@ -163,8 +175,8 @@ func executableDataToExecutionPayloadHeader(
 		ExtraData:        data.ExtraData,
 		BaseFeePerGas:    math.MustNewU256LFromBigInt(data.BaseFeePerGas),
 		BlockHash:        data.BlockHash,
-		TransactionsRoot: primitives.Bytes32{}, // TODO: fix
-		WithdrawalsRoot:  primitives.Bytes32{}, // TODO: fix
+		TransactionsRoot: txsRoot,
+		WithdrawalsRoot:  withdrawalsRoot,
 		BlobGasUsed:      math.U64(blobGasUsed),
 		ExcessBlobGas:    math.U64(excessBlobGas),
 	}
