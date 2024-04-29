@@ -27,7 +27,6 @@ package da
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 )
 
 // BeaconBlock is a beacon block.
@@ -40,7 +39,7 @@ type BeaconBlock[B BeaconBlockBody] interface {
 type BeaconBlockBody interface {
 	HashTreeRoot() ([32]byte, error)
 	GetTopLevelRoots() ([][32]byte, error)
-	GetBlobKzgCommitments() kzg.Commitments
+	GetBlobKzgCommitments() primitives.Commitments
 }
 
 // ChainSpec represents a chain spec.

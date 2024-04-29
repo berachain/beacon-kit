@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -53,7 +52,7 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context,
-	payload *engineprimitives.ExecutableDataDeneb,
+	payload *primitives.ExecutableDataDeneb,
 	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
@@ -104,8 +103,10 @@ func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	result := &engineprimitives.ExecutionPayloadEnvelope[
-		*engineprimitives.ExecutableDataDeneb,
-		*engineprimitives.BlobsBundleV1[kzg.Commitment, kzg.Proof, kzg.Blob],
+		*primitives.ExecutableDataDeneb,
+		*engineprimitives.BlobsBundleV1[
+			primitives.Commitment, primitives.Proof, primitives.Blob,
+		],
 	]{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,

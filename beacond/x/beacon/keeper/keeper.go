@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -47,7 +46,7 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	availabilityStore *da.Store[types.ReadOnlyBeaconBlock]
+	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
 	beaconStore       *beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
@@ -72,7 +71,7 @@ func NewKeeper(
 	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore[types.ReadOnlyBeaconBlock](
+		availabilityStore: da.NewStore[primitives.ReadOnlyBeaconBlock](
 			cfg, filedb.NewRangeDB(fdb),
 		),
 		beaconStore: beacondb.New[
@@ -140,7 +139,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Keeper) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[types.ReadOnlyBeaconBlock] {
+) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
 	return k.availabilityStore
 }
 

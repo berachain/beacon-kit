@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
@@ -51,7 +52,7 @@ type Service struct {
 	signer primitives.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[beacontypes.BeaconBlockBody]
+	blobFactory BlobFactory[primitives.BeaconBlockBody]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
@@ -109,7 +110,7 @@ func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
-) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error) {
+) (*primitives.BeaconBlockDeneb, *datypes.BlobSidecars, error) {
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -165,6 +166,10 @@ func (s *Service) RequestBestBlock(
 	} else if blk == nil {
 		return nil, nil, beacontypes.ErrNilBlk
 	}
+	deneb, ok := blk.(*primitives.BeaconBlockDeneb)
+	if !ok {
+		return nil, nil, errors.New("failed to convert blk to BeaconBlockDeneb")
+	}
 
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -181,7 +186,7 @@ func (s *Service) RequestBestBlock(
 		parentEth1BlockHash,
 	)
 	if err != nil {
-		return blk, nil, fmt.Errorf(
+		return deneb, nil, fmt.Errorf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -241,5 +246,5 @@ func (s *Service) RequestBestBlock(
 	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
 
-	return blk, blobSidecars, nil
+	return deneb, blobSidecars, nil
 }

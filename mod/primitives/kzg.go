@@ -23,17 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package primitives
 
 import (
 	"crypto/sha256"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/gohashtree"
 )
+
+// A KZG proof is a 48-byte slice.
+type Proof = Bytes48
 
 // Commitments represents a slice of KZG commitments.
 type Commitments []Commitment
@@ -42,8 +44,8 @@ type Commitments []Commitment
 // versioned hashes. It is simplify a convenience method
 // for converting a slice of commitments to a slice of
 // versioned hashes.
-func (c Commitments) ToVersionedHashes() []primitives.ExecutionHash {
-	hashes := make([]primitives.ExecutionHash, len(c))
+func (c Commitments) ToVersionedHashes() []ExecutionHash {
+	hashes := make([]ExecutionHash, len(c))
 	for i, bz := range c {
 		hashes[i] = bz.ToVersionedHash()
 	}
@@ -67,7 +69,7 @@ type Commitment [48]byte
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#kzg_commitment_to_versioned_hash
 //
 //nolint:lll
-func (c Commitment) ToVersionedHash() primitives.ExecutionHash {
+func (c Commitment) ToVersionedHash() ExecutionHash {
 	hash := sha256.Sum256(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.

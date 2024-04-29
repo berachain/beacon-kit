@@ -107,7 +107,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 
 	g.Go(func() error {
 		var err error
-		emptyWithdrawalsRoot, err = engineprimitives.Withdrawals{}.HashTreeRoot()
+		emptyWithdrawalsRoot, err = primitives.Withdrawals{}.HashTreeRoot()
 		return err
 	})
 

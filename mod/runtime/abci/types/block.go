@@ -30,6 +30,7 @@ import (
 
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // ABCIRequest is the interface for an ABCI request.
@@ -46,7 +47,7 @@ func ReadOnlyBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (beacontypes.ReadOnlyBeaconBlock, error) {
+) (primitives.ReadOnlyBeaconBlock, error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest
 	}

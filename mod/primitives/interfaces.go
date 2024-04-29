@@ -23,31 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engineprimitives
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/ethereum/go-ethereum/common"
 	ssz "github.com/ferranbt/fastssz"
 )
-
-// Marshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type SSZMarshallable interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo([]byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
-	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalSSZ([]byte) error
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
-}
 
 // ExecutionPayloadBody is the interface for the execution data of a block.
 // It contains all the fields that are part of both an execution payload header
@@ -59,18 +40,18 @@ type ExecutionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool
-	GetPrevRandao() primitives.Bytes32
-	GetBlockHash() common.Hash
-	GetParentHash() primitives.ExecutionHash
+	GetPrevRandao() Bytes32
+	GetBlockHash() ExecutionHash
+	GetParentHash() ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() primitives.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
+	GetFeeRecipient() ExecutionAddress
+	GetStateRoot() Bytes32
+	GetReceiptsRoot() Bytes32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
@@ -80,18 +61,57 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*primitives.Withdrawal
+	GetWithdrawals() []*Withdrawal
 }
 
-// ExecutionPayloadHeader represents the execution header of a block.
-type ExecutionPayloadHeader interface {
-	ExecutionPayloadBody
-	GetTransactionsRoot() primitives.Root
-	GetWithdrawalsRoot() primitives.Root
+// BeaconBlockBody is the interface for a beacon block body.
+type BeaconBlockBody interface {
+	WriteOnlyBeaconBlockBody
+	ReadOnlyBeaconBlockBody
 }
 
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
+// WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
+type WriteOnlyBeaconBlockBody interface {
+	SetDeposits([]*Deposit)
+	SetEth1Data(*Eth1Data)
+	SetExecutionData(ExecutionPayload) error
+	SetBlobKzgCommitments(Commitments)
+}
+
+// ReadOnlyBeaconBlockBody is the interface for
+// a read-only beacon block body.
+type ReadOnlyBeaconBlockBody interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+
+	// Execution returns the execution data of the block.
+	GetDeposits() []*Deposit
+	GetEth1Data() *Eth1Data
+	GetGraffiti() Bytes32
+	GetRandaoReveal() BLSSignature
+	GetExecutionPayload() ExecutionPayload
+	GetBlobKzgCommitments() Commitments
+	GetTopLevelRoots() ([][32]byte, error)
+}
+
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock interface {
+	ReadOnlyBeaconBlock
+}
+
+// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
+type ReadOnlyBeaconBlock interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
 	Version() uint32
-	Validate() error
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() Root
+	GetStateRoot() Root
+	GetBody() BeaconBlockBody
+	GetHeader() *BeaconBlockHeader
 }

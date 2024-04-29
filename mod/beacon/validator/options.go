@@ -27,7 +27,6 @@ package validator
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -36,7 +35,7 @@ type Option = func(*Service) error
 
 // WithBlobFactory sets the blob factory.
 func WithBlobFactory(
-	factory BlobFactory[types.BeaconBlockBody],
+	factory BlobFactory[primitives.BeaconBlockBody],
 ) Option {
 	return func(s *Service) error {
 		s.blobFactory = factory

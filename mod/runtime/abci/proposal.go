@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -49,7 +48,7 @@ type BuilderService interface {
 		context.Context,
 		state.BeaconState,
 		math.Slot,
-	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
+	) (*primitives.BeaconBlockDeneb, *datypes.BlobSidecars, error)
 }
 
 type BlockchainService interface {
@@ -58,16 +57,16 @@ type BlockchainService interface {
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
+		primitives.ReadOnlyBeaconBlock,
 		*datypes.BlobSidecars,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
+		primitives.ReadOnlyBeaconBlock,
 	) error
 	ChainSpec() primitives.ChainSpec
-	ValidatePayloadOnBlk(context.Context, beacontypes.ReadOnlyBeaconBlock) error
+	ValidatePayloadOnBlk(context.Context, primitives.ReadOnlyBeaconBlock) error
 }
 
 // Handler is a struct that encapsulates the necessary components to handle
