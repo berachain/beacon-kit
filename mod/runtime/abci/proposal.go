@@ -45,8 +45,6 @@ type Handler struct {
 	cfg            *Config
 	builderService BuilderService
 	chainService   BlockchainService
-	nextPrepare    sdk.PrepareProposalHandler
-	nextProcess    sdk.ProcessProposalHandler
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -54,15 +52,11 @@ func NewHandler(
 	cfg *Config,
 	builderService BuilderService,
 	chainService BlockchainService,
-	nextPrepare sdk.PrepareProposalHandler,
-	nextProcess sdk.ProcessProposalHandler,
 ) *Handler {
 	return &Handler{
 		cfg:            cfg,
 		builderService: builderService,
 		chainService:   chainService,
-		nextPrepare:    nextPrepare,
-		nextProcess:    nextProcess,
 	}
 }
 
@@ -74,11 +68,8 @@ func (h *Handler) PrepareProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 
 	var (
-		beaconBz       []byte
-		blobSidecarsBz []byte
-		resp           *cmtabci.ResponsePrepareProposal
-		g, groupCtx    = errgroup.WithContext(ctx)
-		logger         = ctx.Logger().With("module", "prepare-proposal")
+		g, groupCtx = errgroup.WithContext(ctx)
+		logger      = ctx.Logger().With("module", "prepare-proposal")
 	)
 
 	defer func() {
@@ -108,21 +99,11 @@ func (h *Handler) PrepareProposalHandler(
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
-	// Fire off the next prepare proposal handler, marshal the block and
-	// marshal the blobs in parallel.
+	//nolint:mnd // We are always going to have two items in the comet block.
+	txs := make([][]byte, 2)
 	g.Go(func() error {
 		var localErr error
-		resp, localErr = h.nextPrepare(sdk.UnwrapSDKContext(groupCtx), req)
-		if err != nil {
-			return localErr
-		}
-
-		return nil
-	})
-
-	g.Go(func() error {
-		var localErr error
-		beaconBz, localErr = blk.MarshalSSZ()
+		txs[0], localErr = blk.MarshalSSZ()
 		if err != nil {
 			logger.Error("failed to marshal block", "error", err)
 			return localErr
@@ -132,7 +113,7 @@ func (h *Handler) PrepareProposalHandler(
 
 	g.Go(func() error {
 		var localErr error
-		blobSidecarsBz, localErr = blobs.MarshalSSZ()
+		txs[1], localErr = blobs.MarshalSSZ()
 		if err != nil {
 			logger.Error("failed to marshal blobs", "error", err)
 			return localErr
@@ -145,17 +126,9 @@ func (h *Handler) PrepareProposalHandler(
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
-	// Blob position is always the second in an array
-	// Inject the beacon kit block into the proposal.
-	// TODO: if comet includes txs this could break and or exceed max block size
-	// TODO: make more robust
-	// If the response is nil, the implementations of
-	// `nextPrepare` is bad.
-	if resp == nil {
-		return &cmtabci.ResponsePrepareProposal{}, ErrNextPrepareNilResp
-	}
-	resp.Txs = append([][]byte{beaconBz, blobSidecarsBz}, resp.Txs...)
-	return resp, nil
+	return &cmtabci.ResponsePrepareProposal{
+		Txs: txs,
+	}, nil
 }
 
 // ProcessProposalHandler is a wrapper around the process proposal handler

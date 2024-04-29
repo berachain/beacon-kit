@@ -33,10 +33,7 @@ import (
 )
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents(
-	nextPrepare sdk.PrepareProposalHandler,
-	nextProcess sdk.ProcessProposalHandler,
-) (
+func (r *BeaconKitRuntime) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
 ) {
@@ -56,8 +53,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 		&r.cfg.ABCI,
 		builderService,
 		chainService,
-		nextPrepare,
-		nextProcess,
 	)
 
 	return handler.PrepareProposalHandler,
