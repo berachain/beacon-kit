@@ -23,20 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package engineprimitives
 
-const (
-	// ExtraDataLength is the length of the extra data in bytes.
-	ExtraDataLength = 32
-
-	// MaxTxsPerPayload is the maximum number of transactions in a execution
-	// payload.
-	MaxTxsPerPayload uint64 = 1048576
-
-	// MaxDepositsPerBlock is the maximum number of deposits per block.
-	MaxDepositsPerBlock uint64 = 16
-
-	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
-	// execution payload.
-	MaxWithdrawalsPerPayload uint64 = 16
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 )
+
+// Transactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload.
+type Transactions [][]byte
+
+// HashTreeRoot returns the hash tree root of the Transactions list.
+func (txs Transactions) HashTreeRoot() (primitives.Root, error) {
+	var err error
+
+	roots := make([]primitives.Root, len(txs))
+	for i, tx := range txs {
+		roots[i], err = ssz.MerkleizeByteSlice[math.U64, primitives.Root](tx)
+		if err != nil {
+			return primitives.Root{}, err
+		}
+	}
+
+	return ssz.MerkleizeListComposite[any, math.U64](
+		roots, constants.MaxTxsPerPayload,
+	)
+}

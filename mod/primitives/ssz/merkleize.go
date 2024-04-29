@@ -51,7 +51,7 @@ func MerkleizeVecBasic[
 ](
 	value []B,
 ) (RootT, error) {
-	packed, err := Pack[U64T, U256L, SpecT, RootT](value)
+	packed, err := Pack[U64T, U256L, SpecT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -71,7 +71,7 @@ func MerkleizeListBasic[
 	if err != nil {
 		return [32]byte{}, err
 	}
-	root, err := Merkleize[U64T, RootT, RootT](
+	root, err := Merkleize[U64T, RootT](
 		packed,
 		ChunkCountBasicList[SpecT](value, limit),
 	)
@@ -158,9 +158,9 @@ func MerkleizeListComposite[
 			return RootT{}, err
 		}
 	}
-	root, err := Merkleize[U64T, RootT, RootT](
+	root, err := Merkleize[U64T, RootT](
 		htrs,
-		ChunkCountCompositeList[C, RootT](value, limit),
+		ChunkCountCompositeList[C](value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
