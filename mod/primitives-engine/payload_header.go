@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
-// var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
+var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //

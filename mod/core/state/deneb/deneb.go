@@ -28,6 +28,7 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
@@ -88,11 +89,11 @@ func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHe
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
-			32,
+			constants.RootLength,
 		)),
 		ReceiptsRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-			32,
+			constants.RootLength,
 		)),
 		LogsBloom: make([]byte, 256),
 		Random:    primitives.Bytes32{},
@@ -100,17 +101,23 @@ func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHe
 		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
 		GasUsed:   0,
 		Timestamp: 0,
-		ExtraData: make([]byte, 32),
+		ExtraData: make([]byte, constants.ExtraDataLength),
 		BaseFeePerGas: math.MustNewU256LFromBigEndian(
 			hexutil.MustDecode("0x3b9aca"),
 		),
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		TransactionsRoot: primitives.Root{},
-		WithdrawalsRoot:  primitives.Root{},
-		BlobGasUsed:      0,
-		ExcessBlobGas:    0,
+		TransactionsRoot: primitives.Root(common.Hex2BytesFixed(
+			"0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
+			constants.RootLength,
+		)),
+		WithdrawalsRoot: primitives.Root(common.Hex2BytesFixed(
+			"0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
+			constants.RootLength,
+		)),
+		BlobGasUsed:   0,
+		ExcessBlobGas: 0,
 	}
 }
 
