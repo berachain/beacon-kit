@@ -26,6 +26,8 @@
 package deneb
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -33,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"golang.org/x/sync/errgroup"
 )
 
 // DefaultBeaconState returns a default BeaconState.
@@ -40,7 +43,12 @@ import (
 // TODO: take in BeaconConfig params to determine the
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
-func DefaultBeaconState() *BeaconState {
+func DefaultBeaconState() (*BeaconState, error) {
+	defaultExecPayloadHeader, err := DefaultGenesisExecutionPayloadHeader()
+	if err != nil {
+		return nil, err
+	}
+
 	//nolint:mnd // default allocs.
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
@@ -63,7 +71,7 @@ func DefaultBeaconState() *BeaconState {
 		},
 		BlockRoots:                   make([]primitives.Root, 8),
 		StateRoots:                   make([]primitives.Root, 8),
-		LatestExecutionPayloadHeader: DefaultGenesisExecutionPayloadHeader(),
+		LatestExecutionPayloadHeader: defaultExecPayloadHeader,
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
@@ -77,13 +85,39 @@ func DefaultBeaconState() *BeaconState {
 		RandaoMixes:                  make([]primitives.Bytes32, 8),
 		Slashings:                    make([]uint64, 0),
 		TotalSlashing:                0,
-	}
+	}, nil
 }
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 //
-//nolint:mnd,lll // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHeaderDeneb {
+//nolint:lll // default values pulled from current eth-genesis.json file.
+func DefaultGenesisExecutionPayloadHeader() (
+	*engineprimitives.ExecutionPayloadHeaderDeneb, error,
+) {
+	// Get the merkle roots of empty transactions and withdrawals in parallel.
+	var (
+		g, _                 = errgroup.WithContext(context.Background())
+		emptyTxsRoot         primitives.Root
+		emptyWithdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var err error
+		emptyTxsRoot, err = engineprimitives.Transactions{}.HashTreeRoot()
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		emptyWithdrawalsRoot, err = engineprimitives.Withdrawals{}.HashTreeRoot()
+		return err
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
 	return &engineprimitives.ExecutionPayloadHeaderDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
@@ -108,17 +142,11 @@ func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHe
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		TransactionsRoot: primitives.Root(common.Hex2BytesFixed(
-			"0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
-			constants.RootLength,
-		)),
-		WithdrawalsRoot: primitives.Root(common.Hex2BytesFixed(
-			"0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
-			constants.RootLength,
-		)),
-		BlobGasUsed:   0,
-		ExcessBlobGas: 0,
-	}
+		TransactionsRoot: emptyTxsRoot,
+		WithdrawalsRoot:  emptyWithdrawalsRoot,
+		BlobGasUsed:      0,
+		ExcessBlobGas:    0,
+	}, nil
 }
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../types,../../../primitives-engine,../../../primitives,../../../primitives/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
