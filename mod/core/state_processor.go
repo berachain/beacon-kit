@@ -563,7 +563,7 @@ func (sp *StateProcessor) processRewardsAndPenalties(
 		return err
 	}
 
-	if sp.cs.SlotToEpoch(slot) == constants.GenesisEpoch {
+	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
 		return nil
 	}
 

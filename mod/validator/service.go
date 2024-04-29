@@ -167,11 +167,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, beacontypes.ErrNilBlk
 	}
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, nil, err
 	}
-	parentEth1BlockHash := latestExecutionPayload.GetBlockHash()
+	parentEth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Get the payload for the block.
 	envelope, err := s.localBuilder.RetrieveOrBuildPayload(

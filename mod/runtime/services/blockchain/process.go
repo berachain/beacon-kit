@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
 )
@@ -223,23 +224,68 @@ func (s *Service) PostBlockProcess(
 		return nil
 	}
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	prevEth1Block := latestExecutionPayload.GetBlockHash()
+	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(
-		ctx,
-		prevEth1Block,
-	); err != nil {
+	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
 		return err
 	}
 
-	// Update the latest execution payload.
-	if err = st.UpdateLatestExecutionPayload(payload); err != nil {
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(ctx)
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			payload.GetTransactions(),
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			payload.GetWithdrawals(),
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err = g.Wait(); err != nil {
+		return err
+	}
+
+	// Set the latest execution payload header.
+	if err = st.SetLatestExecutionPayloadHeader(
+		&engineprimitives.ExecutionPayloadHeaderDeneb{
+			ParentHash:       payload.GetParentHash(),
+			FeeRecipient:     payload.GetFeeRecipient(),
+			StateRoot:        payload.GetStateRoot(),
+			ReceiptsRoot:     payload.GetReceiptsRoot(),
+			LogsBloom:        payload.GetLogsBloom(),
+			Random:           payload.GetPrevRandao(),
+			Number:           payload.GetNumber(),
+			GasLimit:         payload.GetGasLimit(),
+			GasUsed:          payload.GetGasUsed(),
+			Timestamp:        payload.GetTimestamp(),
+			ExtraData:        payload.GetExtraData(),
+			BaseFeePerGas:    payload.GetBaseFeePerGas(),
+			BlockHash:        payload.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      payload.GetBlobGasUsed(),
+			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		},
+	); err != nil {
 		return err
 	}
 
