@@ -5,7 +5,6 @@ go 1.22.2
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba
