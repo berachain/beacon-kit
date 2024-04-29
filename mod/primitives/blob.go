@@ -23,9 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg
+package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"reflect"
 
-// Proof is a KZG proof.
-type Proof = primitives.Bytes48
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
+
+// Blob represents an EIP-4844 data blob.
+type Blob [131072]byte
+
+// UnmarshalJSON parses a blob in hex syntax.
+func (b *Blob) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+}
+
+// MarshalText returns the hex representation of b.
+func (b Blob) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(b[:]).MarshalText()
+}

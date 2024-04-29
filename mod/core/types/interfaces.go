@@ -27,36 +27,8 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 )
-
-// BeaconBlock is the interface for a beacon block.
-type BeaconBlock interface {
-	ReadOnlyBeaconBlock
-	WriteOnlyBeaconBlock
-}
-
-// WriteOnlyBeaconBlock is the interface for a write-only beacon block.
-type WriteOnlyBeaconBlock interface {
-}
-
-// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	Version() uint32
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() primitives.Root
-	GetStateRoot() primitives.Root
-	GetBody() BeaconBlockBody
-	GetHeader() *primitives.BeaconBlockHeader
-}
 
 // BeaconBlockBody is the interface for a beacon block body.
 type BeaconBlockBody interface {
@@ -68,8 +40,8 @@ type BeaconBlockBody interface {
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*primitives.Deposit)
 	SetEth1Data(*primitives.Eth1Data)
-	SetExecutionData(engineprimitives.ExecutionPayload) error
-	SetBlobKzgCommitments(kzg.Commitments)
+	SetExecutionData(primitives.ExecutionPayload) error
+	SetBlobKzgCommitments(primitives.Commitments)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
@@ -85,8 +57,8 @@ type ReadOnlyBeaconBlockBody interface {
 	GetEth1Data() *primitives.Eth1Data
 	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() primitives.BLSSignature
-	GetExecutionPayload() engineprimitives.ExecutionPayload
-	GetBlobKzgCommitments() kzg.Commitments
+	GetExecutionPayload() primitives.ExecutionPayload
+	GetBlobKzgCommitments() primitives.Commitments
 	GetTopLevelRoots() ([][32]byte, error)
 }
 

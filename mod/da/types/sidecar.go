@@ -27,7 +27,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 )
 
@@ -35,16 +34,16 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/math,../../primitives/kzg,../../primitives,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../primitives/math,../../primitives,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
 	// Blob represents the blob data.
-	Blob kzg.Blob
+	Blob primitives.Blob
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment kzg.Commitment
+	KzgCommitment primitives.Commitment
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof kzg.Proof
+	KzgProof primitives.Proof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
 	BeaconBlockHeader *primitives.BeaconBlockHeader
@@ -58,9 +57,9 @@ type BlobSidecar struct {
 func BuildBlobSidecar(
 	index uint64,
 	header *primitives.BeaconBlockHeader,
-	blob *kzg.Blob,
-	commitment kzg.Commitment,
-	proof kzg.Proof,
+	blob *primitives.Blob,
+	commitment primitives.Commitment,
+	proof primitives.Proof,
 	inclusionProof [][32]byte,
 ) *BlobSidecar {
 	return &BlobSidecar{

@@ -23,18 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package primitives
 
 import (
+	"errors"
 	stdmath "math"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
-	"github.com/cockroachdb/errors"
 )
 
 //nolint:gochecknoglobals // I'd prefer globals over magic numbers.
@@ -57,25 +55,25 @@ var (
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path body.go -objs BeaconBlockBodyDeneb -include ../../primitives,../../primitives/math,../../primitives/kzg,../../primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./primitives.go,./payload.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal primitives.BLSSignature `ssz-size:"96"`
+	RandaoReveal BLSSignature `ssz-size:"96"`
 
 	// Eth1Data is the data from the Eth1 chain.
-	Eth1Data *primitives.Eth1Data
+	Eth1Data *Eth1Data
 
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*primitives.Deposit `ssz-max:"16"`
+	Deposits []*Deposit `ssz-max:"16"`
 
 	// ExecutionPayload is the execution payload of the body.
-	ExecutionPayload *engineprimitives.ExecutableDataDeneb
+	ExecutionPayload *ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments []kzg.Commitment `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []Commitment `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
@@ -84,50 +82,48 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() kzg.Commitments {
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() Commitments {
 	return b.BlobKzgCommitments
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyDeneb) GetGraffiti() primitives.Bytes32 {
+func (b *BeaconBlockBodyDeneb) GetGraffiti() Bytes32 {
 	return b.Graffiti
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
-func (b *BeaconBlockBodyDeneb) GetRandaoReveal() primitives.BLSSignature {
+func (b *BeaconBlockBodyDeneb) GetRandaoReveal() BLSSignature {
 	return b.RandaoReveal
 }
 
 // GetEth1Data returns the Eth1Data of the Body.
-func (b *BeaconBlockBodyDeneb) GetEth1Data() *primitives.Eth1Data {
+func (b *BeaconBlockBodyDeneb) GetEth1Data() *Eth1Data {
 	return b.Eth1Data
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 //
-//nolint:lll
-func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionPayload {
+
+func (b *BeaconBlockBodyDeneb) GetExecutionPayload() ExecutionPayload {
 	return b.ExecutionPayload
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*primitives.Deposit {
+func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(
-	deposits []*primitives.Deposit,
-) {
+func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
 	b.Deposits = deposits
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
-	executionData engineprimitives.ExecutionPayload,
+	executionData ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.(*engineprimitives.ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}
@@ -137,16 +133,14 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
-	commitments kzg.Commitments,
+	commitments Commitments,
 ) {
 	b.BlobKzgCommitments = commitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetEth1Data(
-	eth1Data *primitives.Eth1Data,
-) {
+func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
 
@@ -168,7 +162,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	// graffiti
 	layer[2] = b.GetGraffiti()
 
-	layer[3], err = primitives.Deposits(b.GetDeposits()).HashTreeRoot()
+	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
@@ -184,10 +178,10 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData engineprimitives.ExecutionPayload,
+	executionData ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.(*engineprimitives.ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}

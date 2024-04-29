@@ -99,14 +99,24 @@ func (h *Handler) ProcessProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
+	// We have to keep a copy of beaconBz to re-inject it into the proposal
+	// after the underlying process proposal handler has run. This is to avoid
+	// making a copy of the entire request.
+	//
+	// TODO: there has to be a more friendly way to handle this, but hey it
+	// works.
+	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
+		return &cmtabci.ResponseProcessProposal{
+			Status: cmtabci.ResponseProcessProposal_REJECT,
+		}, nil
+	}
+
 	// If the request is nil we can just accept the proposal and it'll slash the
 	// proposer.
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		req,
-		BeaconBlockTxIndex,
+		req, BeaconBlockTxIndex,
 		h.chainService.ChainSpec().
-			ActiveForkVersionForSlot(math.Slot(req.Height)),
-	)
+			ActiveForkVersionForSlot(math.Slot(req.Height)))
 	if err != nil {
 		logger.Error(
 			"failed to retrieve beacon block from request",
@@ -136,26 +146,6 @@ func (h *Handler) ProcessProposalHandler(
 			Status: cmtabci.ResponseProcessProposal_REJECT,
 		}, err
 	}
-
-	// We have to keep a copy of beaconBz to re-inject it into the proposal
-	// after the underlying process proposal handler has run. This is to avoid
-	// making a copy of the entire request.
-	//
-	// TODO: there has to be a more friendly way to handle this, but hey it
-	// works.
-	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
-		}, nil
-	}
-	beaconBz := req.Txs[BeaconBlockTxIndex]
-	blobsBz := req.Txs[BlobSidecarsTxIndex]
-	defer func() {
-		req.Txs = append([][]byte{beaconBz, blobsBz}, req.Txs...)
-	}()
-	req.Txs = append(
-		req.Txs[:BlobSidecarsTxIndex], req.Txs[BlobSidecarsTxIndex+1:]...,
-	)
 
 	// return h.nextProcess(ctx, req)
 	return &cmtabci.ResponseProcessProposal{

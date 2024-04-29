@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -40,7 +39,7 @@ type BuilderService interface {
 		context.Context,
 		state.BeaconState,
 		math.Slot,
-	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
+	) (primitives.BeaconBlock, *datypes.BlobSidecars, error)
 }
 
 type BlockchainService interface {
@@ -49,14 +48,14 @@ type BlockchainService interface {
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
+		primitives.ReadOnlyBeaconBlock,
 		*datypes.BlobSidecars,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
+		primitives.ReadOnlyBeaconBlock,
 	) error
 	ChainSpec() primitives.ChainSpec
-	ValidatePayloadOnBlk(context.Context, beacontypes.ReadOnlyBeaconBlock) error
+	ValidatePayloadOnBlk(context.Context, primitives.ReadOnlyBeaconBlock) error
 }

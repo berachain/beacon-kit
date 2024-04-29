@@ -127,11 +127,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
 ) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
-	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
+	withdrawals := make([]*primitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*engineprimitives.Withdrawal)(
+		withdrawals[i] = (*primitives.Withdrawal)(
 			unsafe.Pointer(withdrawal),
 		)
 	}
@@ -167,7 +167,7 @@ func executableDataToExecutionPayloadHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = primitives.Withdrawals(
 			withdrawals,
 		).HashTreeRoot()
 		return withdrawalsRootErr
