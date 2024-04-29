@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 type Option = func(*Service) error
@@ -62,7 +61,7 @@ func WithConfig(cfg *Config) Option {
 }
 
 // WithDepositStore sets the deposit store.
-func WithDepositStore(ds *deposit.KVStore) Option {
+func WithDepositStore(ds DepositStore) Option {
 	return func(s *Service) error {
 		s.ds = ds
 		return nil

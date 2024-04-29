@@ -44,6 +44,13 @@ type BlobFactory[BeaconBlockBodyT da.BeaconBlockBody] interface {
 	) (*datypes.BlobSidecars, error)
 }
 
+// DepositStore defines the interface for deposit storage.
+type DepositStore interface {
+	ExpectedDeposits(
+		numView uint64,
+	) ([]*primitives.Deposit, error)
+}
+
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[BeaconStateT builder.BeaconState] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
