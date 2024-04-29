@@ -23,18 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package kzg_test
+package primitives_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/stretchr/testify/require"
 )
 
 func TestKzgCommitmentToVersionedHash(t *testing.T) {
-	commitment := kzg.Commitment{}
+	commitment := primitives.Commitment{}
 	copy(commitment[:], []byte("test commitment"))
 	// Assuming BlobCommitmentVersion is a byte value
 	expectedPrefix := constants.BlobCommitmentVersion
@@ -52,11 +52,11 @@ func TestKzgCommitmentToVersionedHash(t *testing.T) {
 }
 
 func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
-	commitments := make([]kzg.Commitment, 2)
+	commitments := make([]primitives.Commitment, 2)
 	copy(commitments[0][:], "commitment 1")
 	copy(commitments[1][:], "commitment 2")
 
-	hashes := kzg.Commitments(commitments).ToVersionedHashes()
+	hashes := primitives.Commitments(commitments).ToVersionedHashes()
 
 	if len(hashes) != len(commitments) {
 		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))

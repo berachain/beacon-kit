@@ -26,7 +26,7 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 )
 
@@ -45,11 +45,11 @@ type BuiltExecutionPayloadEnv interface {
 // BlobsBundle is an interface for the blobs bundle.
 type BlobsBundle interface {
 	// GetCommitments returns the commitments in the blobs bundle.
-	GetCommitments() []kzg.Commitment
+	GetCommitments() []primitives.Commitment
 	// GetProofs returns the proofs in the blobs bundle.
-	GetProofs() []kzg.Proof
+	GetProofs() []primitives.Proof
 	// GetBlobs returns the blobs in the blobs bundle.
-	GetBlobs() []*kzg.Blob
+	GetBlobs() []*primitives.Blob
 }
 
 // ExecutionPayloadEnvelope is a struct that holds the execution payload and

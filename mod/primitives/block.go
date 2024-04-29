@@ -23,10 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
@@ -34,7 +33,7 @@ import (
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include body.go,../../primitives/kzg,../../primitives/math,../../primitives,../.././primitives-engine,../../primitives,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ./primitives.go,./payload.go,./withdrawal.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot
@@ -43,10 +42,10 @@ type BeaconBlockDeneb struct {
 	ProposerIndex math.ValidatorIndex
 
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot primitives.Root
+	ParentBlockRoot Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.Root
+	StateRoot Root
 
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
@@ -79,23 +78,23 @@ func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetParentBlockRoot() primitives.Root {
+func (b *BeaconBlockDeneb) GetParentBlockRoot() Root {
 	return b.ParentBlockRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetStateRoot() primitives.Root {
+func (b *BeaconBlockDeneb) GetStateRoot() Root {
 	return b.StateRoot
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
-func (b BeaconBlockDeneb) GetHeader() *primitives.BeaconBlockHeader {
+func (b BeaconBlockDeneb) GetHeader() *BeaconBlockHeader {
 	bodyRoot, err := b.GetBody().HashTreeRoot()
 	if err != nil {
 		return nil
 	}
 
-	return &primitives.BeaconBlockHeader{
+	return &BeaconBlockHeader{
 		Slot:          b.Slot,
 		ProposerIndex: b.ProposerIndex,
 		ParentRoot:    b.ParentBlockRoot,

@@ -27,9 +27,9 @@ package runtime
 
 import (
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
@@ -62,7 +62,7 @@ func WithLogger(logger log.Logger) Option {
 // WithBeaconStorageBackend sets the BeaconStorageBackend
 // of the BeaconKitRuntime.
 func WithBeaconStorageBackend(
-	fscp BeaconStorageBackend[types.ReadOnlyBeaconBlock],
+	fscp BeaconStorageBackend[primitives.ReadOnlyBeaconBlock],
 ) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp

@@ -48,7 +48,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk beacontypes.ReadOnlyBeaconBlock,
+	blk primitives.ReadOnlyBeaconBlock,
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
@@ -145,7 +145,7 @@ func (s *Service) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service) ValidateBlock(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBlock,
+	blk primitives.ReadOnlyBeaconBlock,
 ) error {
 	return s.bv.ValidateBlock(
 		s.BeaconState(ctx), blk,
@@ -155,7 +155,7 @@ func (s *Service) ValidateBlock(
 // ValidatePayload validates the execution payload on the block.
 func (s *Service) ValidatePayloadOnBlk(
 	ctx context.Context,
-	blk beacontypes.ReadOnlyBeaconBlock,
+	blk primitives.ReadOnlyBeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
@@ -197,7 +197,7 @@ func (s *Service) ValidatePayloadOnBlk(
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk beacontypes.ReadOnlyBeaconBlock,
+	blk primitives.ReadOnlyBeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -253,7 +253,7 @@ func (s *Service) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = primitives.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

@@ -49,7 +49,7 @@ func NewBlockValidator(cs primitives.ChainSpec) *BlockValidator {
 // ValidateBlock validates the incoming block.
 func (bv *BlockValidator) ValidateBlock(
 	st state.BeaconState,
-	blk types.ReadOnlyBeaconBlock,
+	blk primitives.ReadOnlyBeaconBlock,
 ) error {
 	// Get the block body.
 	body := blk.GetBody()
