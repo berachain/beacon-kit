@@ -27,7 +27,6 @@ package abci
 
 import (
 	"errors"
-	"runtime/debug"
 	"time"
 
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
@@ -36,25 +35,23 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/sync/errgroup"
+	ssz "github.com/ferranbt/fastssz"
+	"github.com/sourcegraph/conc/iter"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler struct {
-	cfg            *Config
 	builderService BuilderService
 	chainService   BlockchainService
 }
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler(
-	cfg *Config,
 	builderService BuilderService,
 	chainService BlockchainService,
 ) *Handler {
 	return &Handler{
-		cfg:            cfg,
 		builderService: builderService,
 		chainService:   chainService,
 	}
@@ -65,70 +62,33 @@ func NewHandler(
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.RequestPrepareProposal,
 ) (*cmtabci.ResponsePrepareProposal, error) {
+	logger := ctx.Logger().With("module", "prepare-proposal")
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 
-	var (
-		g, groupCtx = errgroup.WithContext(ctx)
-		logger      = ctx.Logger().With("module", "prepare-proposal")
-	)
-
-	defer func() {
-		if r := recover(); r != nil {
-			debug.PrintStack()
-		}
-	}()
-
-	st := h.chainService.BeaconState(groupCtx)
+	st := h.chainService.BeaconState(ctx)
 
 	// Process the Slot to set the state root for the block.
 	if err := h.chainService.ProcessSlot(st); err != nil {
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
-	// We start by requesting the validator service to build us a block. This
-	// may be from pulling a previously built payload from the local cache or it
-	// may be by asking for a forkchoice from the execution client, depending on
-	// timing.
 	blk, blobs, err := h.builderService.RequestBestBlock(
-		ctx,
-		st,
-		math.Slot(req.Height),
-	)
+		ctx, st, math.Slot(req.Height))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
 		return &cmtabci.ResponsePrepareProposal{}, err
 	}
 
-	//nolint:mnd // We are always going to have two items in the comet block.
-	txs := make([][]byte, 2)
-	g.Go(func() error {
-		var localErr error
-		txs[0], localErr = blk.MarshalSSZ()
-		if err != nil {
-			logger.Error("failed to marshal block", "error", err)
-			return localErr
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		var localErr error
-		txs[1], localErr = blobs.MarshalSSZ()
-		if err != nil {
-			logger.Error("failed to marshal blobs", "error", err)
-			return localErr
-		}
-		return nil
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	if err = g.Wait(); err != nil {
-		return &cmtabci.ResponsePrepareProposal{}, err
-	}
+	// Serialize the block and blobs.
+	txs, err := iter.MapErr[ssz.Marshaler, []byte](
+		[]ssz.Marshaler{blk, blobs},
+		func(m *ssz.Marshaler) ([]byte, error) {
+			return (*m).MarshalSSZ()
+		})
 
 	return &cmtabci.ResponsePrepareProposal{
 		Txs: txs,
-	}, nil
+	}, err
 }
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
@@ -143,7 +103,7 @@ func (h *Handler) ProcessProposalHandler(
 	// proposer.
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
-		h.cfg.BeaconBlockPosition,
+		BeaconBlockTxIndex,
 		h.chainService.ChainSpec().
 			ActiveForkVersionForSlot(math.Slot(req.Height)),
 	)
@@ -177,33 +137,24 @@ func (h *Handler) ProcessProposalHandler(
 		}, err
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			debug.PrintStack()
-		}
-	}()
-
 	// We have to keep a copy of beaconBz to re-inject it into the proposal
 	// after the underlying process proposal handler has run. This is to avoid
 	// making a copy of the entire request.
 	//
 	// TODO: there has to be a more friendly way to handle this, but hey it
 	// works.
-
 	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
 		return &cmtabci.ResponseProcessProposal{
 			Status: cmtabci.ResponseProcessProposal_REJECT,
 		}, nil
 	}
-	pos := h.cfg.BeaconBlockPosition
-	beaconBz := req.Txs[pos]
-	blobPos := h.cfg.BlobSidecarsBlockPosition
-	blobsBz := req.Txs[blobPos]
+	beaconBz := req.Txs[BeaconBlockTxIndex]
+	blobsBz := req.Txs[BlobSidecarsTxIndex]
 	defer func() {
 		req.Txs = append([][]byte{beaconBz, blobsBz}, req.Txs...)
 	}()
 	req.Txs = append(
-		req.Txs[:blobPos], req.Txs[blobPos+1:]...,
+		req.Txs[:BlobSidecarsTxIndex], req.Txs[BlobSidecarsTxIndex+1:]...,
 	)
 
 	// return h.nextProcess(ctx, req)

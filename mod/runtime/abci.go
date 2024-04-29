@@ -50,7 +50,6 @@ func (r *BeaconKitRuntime) BuildABCIComponents() (
 	}
 
 	handler := abci.NewHandler(
-		&r.cfg.ABCI,
 		builderService,
 		chainService,
 	)

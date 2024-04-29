@@ -53,7 +53,8 @@ func (h *Handler) FinalizeBlock(
 	// TODO: Use protobuf and .(type)?
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
-		h.cfg.BeaconBlockPosition,
+
+		BeaconBlockTxIndex,
 		h.chainService.ChainSpec().ActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		),
@@ -63,7 +64,8 @@ func (h *Handler) FinalizeBlock(
 	}
 
 	blobSideCars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(
-		req, h.cfg.BlobSidecarsBlockPosition,
+		req,
+		BlobSidecarsTxIndex,
 	)
 	if err != nil {
 		return err

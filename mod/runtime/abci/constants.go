@@ -26,31 +26,10 @@
 package abci
 
 const (
-	// defaultBeaconBlockPosition is the default position of the beacon block in
-	// the proposal.
-	defaultBeaconBlockPosition = 0
-	// defaultBlobSidecarsBlockPosition is the default position of the blob
-	// sidecars in the proposal.
-	defaultBlobSidecarsBlockPosition = 1
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
 )
-
-// DefaultABCIConfig returns the default configuration for the proposal service.
-func DefaultABCIConfig() Config {
-	return Config{
-		BeaconBlockPosition:       defaultBeaconBlockPosition,
-		BlobSidecarsBlockPosition: defaultBlobSidecarsBlockPosition,
-	}
-}
-
-// ABCI is a configuration struct for the cosmos proposal handler.
-//
-//nolint:lll // struct tags.
-type Config struct {
-	// BeaconBlockPosition is the position of the beacon block
-	// in the cometbft proposal.
-	BeaconBlockPosition uint `mapstructure:"beacon-block-proposal-position"`
-
-	// BlobSidecarsBlockPosition is the position of the blob sidecars
-	// in the cometbft proposal.
-	BlobSidecarsBlockPosition uint `mapstructure:"blob-sidecars-block-proposal-position"`
-}
