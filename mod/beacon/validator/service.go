@@ -154,7 +154,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := beacontypes.EmptyBeaconBlock[primitives.BeaconBlock](
+	blk, err := beacontypes.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,

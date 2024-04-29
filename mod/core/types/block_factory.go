@@ -26,8 +26,6 @@
 package types
 
 import (
-	"unsafe"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
@@ -35,18 +33,18 @@ import (
 
 // BeaconBlock assembles a new beacon block from
 // the given slot, time, execution data, and version.
-func NewBeaconBlock[BeaconBlockT primitives.BeaconBlock](
+func NewBeaconBlock(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	forkVersion uint32,
 	reveal primitives.BLSSignature,
-) (BeaconBlockT, error) {
-	var block BeaconBlockT
+) (primitives.BeaconBlock, error) {
+	var block primitives.BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		blockDeneb := &primitives.BeaconBlockDeneb{
+		block = &primitives.BeaconBlockDeneb{
 			Slot:            slot,
 			ProposerIndex:   proposerIndex,
 			ParentBlockRoot: parentBlockRoot,
@@ -56,7 +54,6 @@ func NewBeaconBlock[BeaconBlockT primitives.BeaconBlock](
 				Graffiti:     [32]byte{},
 			},
 		}
-		block = *(*BeaconBlockT)(unsafe.Pointer(&blockDeneb))
 	default:
 		return block, ErrForkVersionNotSupported
 	}
@@ -65,16 +62,15 @@ func NewBeaconBlock[BeaconBlockT primitives.BeaconBlock](
 
 // EmptyBeaconBlock assembles a new beacon block
 // with no execution data.
-func EmptyBeaconBlock[BeaconBlockT primitives.BeaconBlock](
+func EmptyBeaconBlock(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	version uint32,
 	reveal primitives.BLSSignature,
-) (BeaconBlockT, error) {
-	var block BeaconBlockT
-	newBlock, err := NewBeaconBlock[BeaconBlockT](
+) (primitives.BeaconBlock, error) {
+	return NewBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -82,10 +78,6 @@ func EmptyBeaconBlock[BeaconBlockT primitives.BeaconBlock](
 		version,
 		reveal,
 	)
-	if err != nil {
-		return block, err
-	}
-	return newBlock, nil
 }
 
 // BeaconBlockFromSSZ assembles a new beacon block
