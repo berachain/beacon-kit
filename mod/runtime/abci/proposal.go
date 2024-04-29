@@ -26,49 +26,18 @@
 package abci
 
 import (
-	"context"
 	"errors"
 	"runtime/debug"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	abcitypes "github.com/berachain/beacon-kit/mod/runtime/abci/types"
+	"github.com/berachain/beacon-kit/mod/runtime/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
-
-type BuilderService interface {
-	RequestBestBlock(
-		context.Context,
-		state.BeaconState,
-		math.Slot,
-	) (beacontypes.BeaconBlock, *datypes.BlobSidecars, error)
-}
-
-type BlockchainService interface {
-	ProcessSlot(state.BeaconState) error
-	BeaconState(context.Context) state.BeaconState
-	ProcessBeaconBlock(
-		context.Context,
-		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
-		*datypes.BlobSidecars,
-	) error
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		beacontypes.ReadOnlyBeaconBlock,
-	) error
-	ChainSpec() primitives.ChainSpec
-	ValidatePayloadOnBlk(context.Context, beacontypes.ReadOnlyBeaconBlock) error
-}
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
@@ -196,9 +165,10 @@ func (h *Handler) ProcessProposalHandler(
 ) (*cmtabci.ResponseProcessProposal, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
+
 	// If the request is nil we can just accept the proposal and it'll slash the
 	// proposer.
-	blk, err := abcitypes.ReadOnlyBeaconBlockFromABCIRequest(
+	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
 		h.cfg.BeaconBlockPosition,
 		h.chainService.ChainSpec().

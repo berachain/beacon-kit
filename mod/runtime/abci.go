@@ -62,5 +62,5 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 
 	return handler.PrepareProposalHandler,
 		handler.ProcessProposalHandler,
-		handler.PreBlocker
+		handler.FinalizeBlock
 }
