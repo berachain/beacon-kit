@@ -2,8 +2,13 @@ package ssz
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
+
+	"cosmossdk.io/errors"
 )
+
+var UnboundedSSZFieldSizeMarker = "?"
 
 // DetermineSize returns the required byte size of a buffer for
 // using SSZ to marshal an object.
@@ -169,4 +174,54 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 	default:
 		return 0
 	}
+}
+
+func determineFieldType(field reflect.StructField) (reflect.Type, error) {
+	fieldSizeTags, exists, err := parseSSZFieldTags(field)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse ssz struct field tags")
+	}
+	if exists {
+		// If the field does indeed specify ssz struct tags, we infer the field's type.
+		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil
+	}
+	return field.Type, nil
+}
+
+func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
+	tag, exists := field.Tag.Lookup("ssz-size")
+	if !exists {
+		return nil, false, nil
+	}
+	items := strings.Split(tag, ",")
+	sizes := make([]uint64, len(items))
+	var err error
+	for i := 0; i < len(items); i++ {
+		// If a field is unbounded, we mark it with a size of 0.
+		if items[i] == UnboundedSSZFieldSizeMarker {
+			sizes[i] = 0
+			continue
+		}
+		sizes[i], err = strconv.ParseUint(items[i], 10, 64)
+		if err != nil {
+			return nil, false, err
+		}
+	}
+	return sizes, true, nil
+}
+
+func inferFieldTypeFromSizeTags(field reflect.StructField, sizes []uint64) reflect.Type {
+	innerElement := field.Type.Elem()
+	for i := 1; i < len(sizes); i++ {
+		innerElement = innerElement.Elem()
+	}
+	currentType := innerElement
+	for i := len(sizes) - 1; i >= 0; i-- {
+		if sizes[i] == 0 {
+			currentType = reflect.SliceOf(currentType)
+		} else {
+			currentType = reflect.ArrayOf(int(sizes[i]), currentType)
+		}
+	}
+	return currentType
 }
