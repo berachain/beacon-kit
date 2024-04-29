@@ -74,7 +74,7 @@ func CollectValidatorsCmd() *cobra.Command {
 			}
 
 			beaconState := &deneb.BeaconState{}
-			
+
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
 			); err != nil {
@@ -100,7 +100,6 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
