@@ -25,4 +25,4 @@
 
 package abi
 
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=abi --type=BeaconDepositContract --out=bdc.go
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=abi --type=BeaconDepositContract --out=bdc.go

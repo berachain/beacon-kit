@@ -46,7 +46,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/go-ethereum v1.14.0
-	github.com/ferranbt/fastssz v0.1.4-0.20240424151255-906b39fdcf09
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/logrusorgru/aurora v2.0.3+incompatible

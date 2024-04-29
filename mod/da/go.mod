@@ -13,7 +13,7 @@ require (
 	github.com/cockroachdb/errors v1.11.1
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.1
-	github.com/ferranbt/fastssz v0.1.4-0.20240424151255-906b39fdcf09
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
