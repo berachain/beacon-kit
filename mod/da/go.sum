@@ -6,6 +6,10 @@ github.com/VictoriaMetrics/fastcache v1.12.1 h1:i0mICQuojGDL3KblA7wUNlY5lOK6a4bw
 github.com/VictoriaMetrics/fastcache v1.12.1/go.mod h1:tX04vaqcNoQeGLD+ra5pU5sWkuxnzWhEzLwhP9w653o=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c h1:5oNzsJ8NpksMOBMzZ9bmOYuIRaF5IirLAGELpb3mW2k=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c/go.mod h1:rqZvVlIpK+KXXfYD01+QILvxz4P7YTau5DGDBsEK3SU=
+github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c h1:9k09C/AAVnLF7jDe20wwEcT9i2Agph5VWcOxz7HJSvM=
+github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c/go.mod h1:ImFgPi09gc8QdePo0zlpCLiUqIbAcgMr7LafXO327UI=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
@@ -52,8 +56,8 @@ github.com/ethereum/c-kzg-4844 v1.0.1 h1:pGixCbGizcVKSwoV70ge48+PrbB+iSKs2rjgfE4
 github.com/ethereum/c-kzg-4844 v1.0.1/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
 github.com/ethereum/go-ethereum v1.14.0 h1:xRWC5NlB6g1x7vNy4HDBLuqVNbtLrc7v8S6+Uxim1LU=
 github.com/ethereum/go-ethereum v1.14.0/go.mod h1:1STrq471D0BQbCX9He0hUj4bHxX2k6mt5nOQJhDNOJ8=
-github.com/ferranbt/fastssz v0.1.4-0.20240424151255-906b39fdcf09 h1:TC/17NgRymOZzoNHzxmGfD8fziwySv3mnDHYt3isWa8=
-github.com/ferranbt/fastssz v0.1.4-0.20240424151255-906b39fdcf09/go.mod h1:EGSbefgAPd3M0hlBwOCw4Mkj+0YAaSnXw1QeLasY6XQ=
+github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 h1:UoDO5Z+y7ttaMmewhs7G6ftAdQ4UnPus/g23KmtbQBk=
+github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1/go.mod h1:EGSbefgAPd3M0hlBwOCw4Mkj+0YAaSnXw1QeLasY6XQ=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmVXmkdnm1bU=
