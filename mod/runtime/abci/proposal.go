@@ -62,9 +62,8 @@ func NewHandler(
 func (h *Handler) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.RequestPrepareProposal,
 ) (*cmtabci.ResponsePrepareProposal, error) {
-	logger := ctx.Logger().With("module", "prepare-proposal")
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
-
+	logger := ctx.Logger().With("module", "prepare-proposal")
 	st := h.chainService.BeaconState(ctx)
 
 	// Process the Slot to set the state root for the block.
