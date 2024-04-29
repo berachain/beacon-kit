@@ -23,51 +23,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package abi
 
-import (
-	"github.com/berachain/beacon-kit/mod/execution"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	"github.com/berachain/beacon-kit/mod/storage/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-)
-
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
-}
-
-func WithExecutionEngine(
-	ee *execution.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
-	}
-}
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=abi --type=BeaconDepositContract --out=bdc.go

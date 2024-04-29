@@ -23,40 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package jwt
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+import "github.com/cockroachdb/errors"
+
+var (
+	// ErrLengthMismatch is returned when a JWT secret length is not as
+	// expected.
+	ErrLengthMismatch = errors.New(
+		"JWT secret length mismatch")
+
+	// ErrContainsIllegalCharacter is returned when a JWT secret contains
+	// illegal characters.
+	ErrContainsIllegalCharacter = errors.New(
+		"JWT secret contains illegal character(s)")
 )
-
-// BlsSignerInput is the input for the dep inject framework.
-type BlsSignerInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
-
-// BlsSignerOutput is the output for the dep inject framework.
-type BlsSignerOutput struct {
-	depinject.Out
-	BlsSigner primitives.BLSSigner
-}
-
-// ProvideBlsSigner is a function that provides the module to the application.
-func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
-	key, err := signer.NewFromCometBFTNodeKey(
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
-			"/config/priv_validator_key.json",
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return BlsSignerOutput{
-		BlsSigner: key,
-	}
-}

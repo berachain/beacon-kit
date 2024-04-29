@@ -26,8 +26,13 @@
 package client
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
+	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
 // processPayloadStatusResult processes the payload status result and
@@ -47,4 +52,16 @@ func processPayloadStatusResult(
 	default:
 		return nil, ErrUnknownPayloadStatus
 	}
+}
+
+// buildSignedJWT builds a signed JWT from the provided JWT secret.
+func buildSignedJWT(s *jwt.Secret) (string, error) {
+	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
+		"iat": &gjwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
+	}
+	return str, nil
 }

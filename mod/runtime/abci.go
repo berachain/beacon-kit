@@ -26,9 +26,9 @@
 package runtime
 
 import (
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

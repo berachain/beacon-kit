@@ -28,13 +28,13 @@ package config
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
 	"github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/validator"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"

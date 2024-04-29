@@ -28,11 +28,11 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 

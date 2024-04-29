@@ -28,7 +28,6 @@ package randao
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -43,7 +42,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cs     primitives.ChainSpec
-	signer core.BLSSigner
+	signer primitives.BLSSigner
 	logger log.Logger[any]
 }
 
