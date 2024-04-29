@@ -213,7 +213,7 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Dequeue deposits from the state.
-	//nolint:contextcheck // not needed.
+	
 	deposits, err := s.ds.ExpectedDeposits(
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
