@@ -26,6 +26,9 @@
 package constants
 
 const (
+	// LogsBloomLength the length of a LogsBloom in bytes.
+	LogsBloomLength = 256
+
 	// ExtraDataLength is the length of the extra data in bytes.
 	ExtraDataLength = 32
 

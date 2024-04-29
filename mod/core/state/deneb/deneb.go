@@ -89,8 +89,6 @@ func DefaultBeaconState() (*BeaconState, error) {
 }
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
-//
-//nolint:lll // default values pulled from current eth-genesis.json file.
 func DefaultGenesisExecutionPayloadHeader() (
 	*engineprimitives.ExecutionPayloadHeaderDeneb, error,
 ) {
@@ -129,7 +127,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 			constants.RootLength,
 		)),
-		LogsBloom: make([]byte, 256),
+		LogsBloom: make([]byte, constants.LogsBloomLength),
 		Random:    primitives.Bytes32{},
 		Number:    0,
 		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
