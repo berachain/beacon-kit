@@ -47,3 +47,7 @@ type BeaconBlockBody interface {
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
 }
+
+type IndexDB interface {
+	Set(index uint64, key []byte, value []byte) error
+}

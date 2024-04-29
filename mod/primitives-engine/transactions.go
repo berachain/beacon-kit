@@ -32,31 +32,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 )
 
-// Withdrawal represents a validator withdrawal from the consensus layer.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives,../primitives/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
-type Withdrawal struct {
-	Index     math.U64                    `json:"index"`
-	Validator math.ValidatorIndex         `json:"validatorIndex"`
-	Address   primitives.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    math.Gwei                   `json:"amount"`
-}
+// Transactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload.
+type Transactions [][]byte
 
-// Equals returns true if the Withdrawal is equal to the other.
-func (w *Withdrawal) Equals(other *Withdrawal) bool {
-	return w.Index == other.Index &&
-		w.Validator == other.Validator &&
-		w.Address == other.Address &&
-		w.Amount == other.Amount
-}
+// HashTreeRoot returns the hash tree root of the Transactions list.
+func (txs Transactions) HashTreeRoot() (primitives.Root, error) {
+	var err error
 
-// Withdrawals represents a slice of withdrawals.
-type Withdrawals []*Withdrawal
+	roots := make([]primitives.Root, len(txs))
+	for i, tx := range txs {
+		roots[i], err = ssz.MerkleizeByteSlice[math.U64, primitives.Root](tx)
+		if err != nil {
+			return primitives.Root{}, err
+		}
+	}
 
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
-	// TODO: read max withdrawals from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
-		w, constants.MaxWithdrawalsPerPayload,
+		roots, constants.MaxTxsPerPayload,
 	)
 }
