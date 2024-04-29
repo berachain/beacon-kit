@@ -29,12 +29,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
+//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -field-override executionPayloadHeaderDenebMarshaling -out payload_header.json.go
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../primitives,../primitives/math,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
 //nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
@@ -55,6 +57,12 @@ type ExecutionPayloadHeaderDeneb struct {
 	WithdrawalsRoot  primitives.Root             `json:"withdrawalsRoot"  ssz-size:"32"`
 	BlobGasUsed      math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                    `json:"excessBlobGas"`
+}
+
+// JSON type overrides for ExecutionPayloadHeaderDeneb.
+type executionPayloadHeaderDenebMarshaling struct {
+	ExtraData hexutil.Bytes
+	LogsBloom hexutil.Bytes
 }
 
 // Version returns the version of the ExecutionPayloadHeaderDeneb.
