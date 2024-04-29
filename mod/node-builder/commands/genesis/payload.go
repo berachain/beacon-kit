@@ -87,7 +87,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			beaconState := &deneb.BeaconState{}
-			//nolint:musttag // false positive?
+
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
 			); err != nil {
@@ -104,7 +104,6 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				)
 			}
 
-			//nolint:musttag // false positive?
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
