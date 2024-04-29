@@ -25,6 +25,8 @@
 
 package ssz
 
+// Generic SSZType . All marshallable objects need to declare their type for reflection
+
 // Basic defines an interface for SSZ basic types which includes methods for
 // determining the size of the SSZ encoding and computing the hash tree root.
 type Basic[SpecT any, RootT ~[32]byte] interface {
@@ -39,7 +41,6 @@ type Basic[SpecT any, RootT ~[32]byte] interface {
 // types that are composed of other SSZ encodable values.
 type Composite[SpecT any, RootT ~[32]byte] interface {
 	Basic[SpecT, RootT]
-	Elements() []Marshallable
 }
 
 // Container is an interface for SSZ container types that can be marshaled and
@@ -88,6 +89,10 @@ type (
 	}
 )
 
+type SSZTypeGeneric interface {
+	Type
+}
+
 const (
 	// KindUndefined is a sentinel zero value.
 	KindUndefined Kind = iota
@@ -104,3 +109,16 @@ const (
 	// KindContainer is a SSZ container.
 	KindContainer
 )
+
+type Serializer struct {
+	ISerializer
+}
+
+type ISerializer interface {
+	Elements(s SSZTypeGeneric) []SSZTypeGeneric
+	MarshalSSZ(s SSZTypeGeneric) ([]byte, error)
+}
+
+func NewSerializer() Serializer {
+	return *new(Serializer)
+}
