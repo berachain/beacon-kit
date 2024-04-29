@@ -35,12 +35,13 @@ import (
 // The function is implemented according to the SSZ specification
 // at
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md#vectors-containers-lists
-func MarshalComposite[SpecT any, RootT ~[32]byte](c Composite[SpecT, RootT]) ([]byte, error) {
-	elems := c.Elements()
+func MarshalComposite(c SSZTypeGeneric) ([]byte, error) {
+	s := NewSerializer()
+	elems := s.Elements(c)
 	bzs, err := iter.MapErr(
 		elems,
-		func(elem *Marshallable) ([]byte, error) {
-			return (*elem).MarshalSSZ()
+		func(elem *SSZTypeGeneric) ([]byte, error) {
+			return s.MarshalSSZ(*elem)
 		},
 	)
 	if err != nil {
@@ -58,9 +59,8 @@ func MarshalComposite[SpecT any, RootT ~[32]byte](c Composite[SpecT, RootT]) ([]
 	for i, v := range elems {
 		// Carry over the offset of the previous variable part.
 		prefixSumVariableLen[i+1] = prefixSumVariableLen[i]
-
 		// If the type is fixed-size, add the data to the fixed part.
-		if IsFixedSize(v.Type()) {
+		if IsFixedSize(v) {
 			fixedParts[i] = bzs[i]
 			fixedLen += uint32(len(bzs[i]))
 		} else {
