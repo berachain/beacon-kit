@@ -231,11 +231,36 @@ func (s *Service) PostBlockProcess(
 	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(
-		ctx,
-		prevEth1Block,
-	); err != nil {
+	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
 		s.Logger().Error("failed to process logs", "error", err)
+		return err
+	}
+
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(ctx)
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var err error
+		txsRoot, err = engineprimitives.Transactions(
+			payload.GetTransactions(),
+		).HashTreeRoot()
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		withdrawalsRoot, err = engineprimitives.Withdrawals(
+			payload.GetWithdrawals(),
+		).HashTreeRoot()
+		return err
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err = g.Wait(); err != nil {
 		return err
 	}
 
@@ -255,8 +280,8 @@ func (s *Service) PostBlockProcess(
 			ExtraData:        payload.GetExtraData(),
 			BaseFeePerGas:    payload.GetBaseFeePerGas(),
 			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: primitives.Root{}, // TODO: fix
-			WithdrawalsRoot:  primitives.Root{}, // TODO: fix
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
 			BlobGasUsed:      payload.GetBlobGasUsed(),
 			ExcessBlobGas:    payload.GetExcessBlobGas(),
 		},

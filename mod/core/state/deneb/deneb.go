@@ -107,8 +107,8 @@ func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHe
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		TransactionsRoot: primitives.Root{}, // TODO: fix
-		WithdrawalsRoot:  primitives.Root{}, // TODO: fix
+		TransactionsRoot: primitives.Root{},
+		WithdrawalsRoot:  primitives.Root{},
 		BlobGasUsed:      0,
 		ExcessBlobGas:    0,
 	}

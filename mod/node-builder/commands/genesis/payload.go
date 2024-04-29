@@ -26,6 +26,7 @@
 package genesis
 
 import (
+	"context"
 	"encoding/json"
 	"unsafe"
 
@@ -42,6 +43,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func AddExecutionPayloadCmd() *cobra.Command {
@@ -149,15 +151,32 @@ func executableDataToExecutionPayloadHeader(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
-	txsRoot, err := engineprimitives.Transactions(data.Transactions).
-		HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(context.Background())
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+		err             error
+	)
 
-	withdrawalsRoot, err := engineprimitives.Withdrawals(withdrawals).
-		HashTreeRoot()
-	if err != nil {
+	g.Go(func() error {
+		var err error
+		txsRoot, err = engineprimitives.Transactions(
+			data.Transactions,
+		).HashTreeRoot()
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		withdrawalsRoot, err = engineprimitives.Withdrawals(
+			withdrawals,
+		).HashTreeRoot()
+		return err
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err = g.Wait(); err != nil {
 		return nil, err
 	}
 
