@@ -102,7 +102,7 @@ func WithRandaoProcessor(rp RandaoProcessor[state.BeaconState]) Option {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer BLSSigner) Option {
+func WithSigner(signer primitives.BLSSigner) Option {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

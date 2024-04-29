@@ -26,7 +26,6 @@
 package randao
 
 import (
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -35,7 +34,7 @@ type Option func(*Processor) error
 
 // WithSigner sets the signer.
 func WithSigner(
-	signer core.BLSSigner,
+	signer primitives.BLSSigner,
 ) Option {
 	return func(p *Processor) error {
 		p.signer = signer
