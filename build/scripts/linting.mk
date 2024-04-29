@@ -22,7 +22,7 @@ golangci:
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "All modules complete\n"
+	@printf "All modules complete\n"
 	
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
@@ -34,7 +34,7 @@ golangci-fix:
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "All modules complete\n"
+	@printf "All modules complete\n"
 
 #################
 #    golines    #
