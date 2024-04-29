@@ -244,19 +244,19 @@ func (s *Service) PostBlockProcess(
 	)
 
 	g.Go(func() error {
-		var err error
-		txsRoot, err = engineprimitives.Transactions(
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
 			payload.GetTransactions(),
 		).HashTreeRoot()
-		return err
+		return txsRootErr
 	})
 
 	g.Go(func() error {
-		var err error
-		withdrawalsRoot, err = engineprimitives.Withdrawals(
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
-		return err
+		return withdrawalsRootErr
 	})
 
 	// If deriving either of the roots fails, return the error.

@@ -156,27 +156,26 @@ func executableDataToExecutionPayloadHeader(
 		g, _            = errgroup.WithContext(context.Background())
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
-		err             error
 	)
 
 	g.Go(func() error {
-		var err error
-		txsRoot, err = engineprimitives.Transactions(
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
 			data.Transactions,
 		).HashTreeRoot()
-		return err
+		return txsRootErr
 	})
 
 	g.Go(func() error {
-		var err error
-		withdrawalsRoot, err = engineprimitives.Withdrawals(
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
 			withdrawals,
 		).HashTreeRoot()
-		return err
+		return withdrawalsRootErr
 	})
 
 	// If deriving either of the roots fails, return the error.
-	if err = g.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 

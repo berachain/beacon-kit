@@ -79,6 +79,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetParentHash() primitives.ExecutionHash {
 
 // GetFeeRecipient returns the fee recipient address of the
 // ExecutionPayloadHeaderDeneb.
+//
+//nolint:lll // long variable names.
 func (d *ExecutionPayloadHeaderDeneb) GetFeeRecipient() primitives.ExecutionAddress {
 	return d.FeeRecipient
 }
@@ -98,7 +100,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetLogsBloom() []byte {
 	return d.LogsBloom
 }
 
-// GetPrevRandao returns the previous Randao value of the ExecutionPayloadHeaderDeneb.
+// GetPrevRandao returns the previous Randao value of the
+// ExecutionPayloadHeaderDeneb.
 func (d *ExecutionPayloadHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
 	return d.Random
 }
@@ -128,7 +131,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetExtraData() []byte {
 	return d.ExtraData
 }
 
-// GetBaseFeePerGas returns the base fee per gas of the ExecutionPayloadHeaderDeneb.
+// GetBaseFeePerGas returns the base fee per gas of the
+// ExecutionPayloadHeaderDeneb.
 func (d *ExecutionPayloadHeaderDeneb) GetBaseFeePerGas() math.Wei {
 	return d.BaseFeePerGas
 }
@@ -144,7 +148,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetTransactionsRoot() primitives.Root {
 	return d.TransactionsRoot
 }
 
-// GetWithdrawalsRoot returns the withdrawals root of the ExecutionPayloadHeaderDeneb.
+// GetWithdrawalsRoot returns the withdrawals root of the
+// ExecutionPayloadHeaderDeneb.
 func (d *ExecutionPayloadHeaderDeneb) GetWithdrawalsRoot() primitives.Root {
 	return d.WithdrawalsRoot
 }
@@ -154,7 +159,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetBlobGasUsed() math.U64 {
 	return d.BlobGasUsed
 }
 
-// GetExcessBlobGas returns the excess blob gas of the ExecutionPayloadHeaderDeneb.
+// GetExcessBlobGas returns the excess blob gas of the
+// ExecutionPayloadHeaderDeneb.
 func (d *ExecutionPayloadHeaderDeneb) GetExcessBlobGas() math.U64 {
 	return d.ExcessBlobGas
 }
