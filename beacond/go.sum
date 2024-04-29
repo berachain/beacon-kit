@@ -93,8 +93,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5 h1:iO6meTgyXN37vo8yGGlKdlJKQWbDSRCQQDk0gGVuagk=
-github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5/go.mod h1:O77JlWCrRyVoxu2GWq8jV5SkR+257mFuaNiWD3PU7wo=
+github.com/berachain/cometbft v0.0.0-20240429150935-1ff1c69c7d75 h1:Ao2XIVYK/8VmaRjsSYxZFuneuecR2GQwIMLRPjNLMVY=
+github.com/berachain/cometbft v0.0.0-20240429150935-1ff1c69c7d75/go.mod h1:O77JlWCrRyVoxu2GWq8jV5SkR+257mFuaNiWD3PU7wo=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa h1:Ohct5zMTsFOvCz34QgkYXzdCkfpQMg5tApN6X2mj+dc=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa/go.mod h1:2EQXmcWRQsrnP8j60jgwuWrHhFoPwTWsq5TAAbvy92s=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=

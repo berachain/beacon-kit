@@ -18,7 +18,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives => ./primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ./primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ./storage
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240429150935-1ff1c69c7d75
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa
 )
 
