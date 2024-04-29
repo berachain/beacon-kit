@@ -32,4 +32,11 @@ const (
 	// MaxTxsPerPayload is the maximum number of transactions in a execution
 	// payload.
 	MaxTxsPerPayload uint64 = 1048576
+
+	// MaxDepositsPerBlock is the maximum number of deposits per block.
+	MaxDepositsPerBlock uint64 = 16
+
+	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
+	// execution payload.
+	MaxWithdrawalsPerPayload uint64 = 16
 )
