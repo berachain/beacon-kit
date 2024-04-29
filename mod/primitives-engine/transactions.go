@@ -23,38 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package engineprimitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/math"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+)
 
-// Deposit into the consensus layer from the deposit contract in the execution
-// layer.
-type DepositData struct {
-	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+// Transactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload.
+type Transactions [][]byte
 
-	// A staking credentials with
-	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
+// HashTreeRoot returns the hash tree root of the Transactions list.
+func (txs Transactions) HashTreeRoot() (primitives.Root, error) {
+	var err error
 
-	// Deposit amount in gwei.
-	Amount math.Gwei `json:"amount"`
-
-	// Signature of the deposit data.
-	Signature BLSSignature `json:"signature" ssz-max:"96"`
-}
-
-// NewDeposit creates a new Deposit instance.
-func NewDepositData(
-	pubkey BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature BLSSignature,
-) *DepositData {
-	return &DepositData{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
+	roots := make([]primitives.Root, len(txs))
+	for i, tx := range txs {
+		roots[i], err = ssz.MerkleizeByteSlice[math.U64, primitives.Root](tx)
+		if err != nil {
+			return primitives.Root{}, err
+		}
 	}
+
+	return ssz.MerkleizeListComposite[any, math.U64](
+		roots, constants.MaxTxsPerPayload,
+	)
 }

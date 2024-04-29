@@ -28,10 +28,10 @@ package core
 import (
 	"fmt"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
@@ -47,7 +47,7 @@ type StateProcessor struct {
 	cs     primitives.ChainSpec
 	bv     BlobVerifier
 	rp     RandaoProcessor
-	logger log.Logger
+	logger log.Logger[any]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -55,13 +55,13 @@ func NewStateProcessor(
 	cs primitives.ChainSpec,
 	bv BlobVerifier,
 	rp RandaoProcessor,
-	logger log.Logger,
+	logger log.Logger[any],
 ) *StateProcessor {
 	return &StateProcessor{
 		cs:     cs,
 		bv:     bv,
 		rp:     rp,
-		logger: logger.With("module", "state-processor"),
+		logger: logger,
 	}
 }
 
@@ -166,7 +166,7 @@ func (sp *StateProcessor) ProcessSlot(
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor) ProcessBlobs(
 	st state.BeaconState,
-	avs AvailabilityStore,
+	avs AvailabilityStore[types.ReadOnlyBeaconBlock],
 	sidecars *datypes.BlobSidecars,
 ) error {
 	slot, err := st.GetSlot()
@@ -563,7 +563,7 @@ func (sp *StateProcessor) processRewardsAndPenalties(
 		return err
 	}
 
-	if sp.cs.SlotToEpoch(slot) == constants.GenesisEpoch {
+	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
 		return nil
 	}
 

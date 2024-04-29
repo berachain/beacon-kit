@@ -92,6 +92,8 @@ func MustNewU256LFromBigEndian(b []byte) U256L {
 func NewU256LFromBigInt(b *big.Int) (U256L, error) {
 	if b == nil {
 		return U256L{}, ErrNilBigInt
+	} else if b.Sign() < 0 {
+		return U256L{}, ErrNegativeBigInt(b)
 	}
 	return NewU256LFromBigEndian(b.Bytes())
 }

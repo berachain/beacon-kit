@@ -26,10 +26,12 @@
 package genesis
 
 import (
+	"context"
 	"encoding/json"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -41,6 +43,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func AddExecutionPayloadCmd() *cobra.Command {
@@ -92,9 +95,14 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			beaconState.LatestExecutionPayload = executableDataToExecutionPayload(
-				payload,
-			)
+			beaconState.LatestExecutionPayloadHeader, err =
+				executableDataToExecutionPayloadHeader(payload)
+			if err != nil {
+				return errors.Wrap(
+					err,
+					"failed to convert executable data to execution payload header",
+				)
+			}
 
 			//nolint:musttag // false positive?
 			appGenesisState["beacon"], err = json.Marshal(beaconState)
@@ -115,12 +123,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 	return cmd
 }
 
-// Converts the eth executable data type to the beacon execution payload
+// Converts the eth executable data type to the beacon execution payload header
 // interface.
-// TODO: should function should handle errors gracefully.
-func executableDataToExecutionPayload(
+func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) *engineprimitives.ExecutableDataDeneb {
+) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -144,23 +151,53 @@ func executableDataToExecutionPayload(
 		excessBlobGas = *data.ExcessBlobGas
 	}
 
-	return &engineprimitives.ExecutableDataDeneb{
-		ParentHash:    data.ParentHash,
-		FeeRecipient:  data.FeeRecipient,
-		StateRoot:     data.StateRoot,
-		ReceiptsRoot:  data.ReceiptsRoot,
-		LogsBloom:     data.LogsBloom,
-		Random:        data.Random,
-		Number:        math.U64(data.Number),
-		GasLimit:      math.U64(data.GasLimit),
-		GasUsed:       math.U64(data.GasUsed),
-		Timestamp:     math.U64(data.Timestamp),
-		ExtraData:     data.ExtraData,
-		BaseFeePerGas: math.MustNewU256LFromBigInt(data.BaseFeePerGas),
-		BlockHash:     data.BlockHash,
-		Transactions:  data.Transactions,
-		Withdrawals:   withdrawals,
-		BlobGasUsed:   math.U64(blobGasUsed),
-		ExcessBlobGas: math.U64(excessBlobGas),
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(context.Background())
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			data.Transactions,
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			withdrawals,
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
+
+	executionPayloadHeader := &engineprimitives.ExecutionPayloadHeaderDeneb{
+		ParentHash:       data.ParentHash,
+		FeeRecipient:     data.FeeRecipient,
+		StateRoot:        primitives.Bytes32(data.StateRoot),
+		ReceiptsRoot:     primitives.Bytes32(data.ReceiptsRoot),
+		LogsBloom:        data.LogsBloom,
+		Random:           primitives.Bytes32(data.Random),
+		Number:           math.U64(data.Number),
+		GasLimit:         math.U64(data.GasLimit),
+		GasUsed:          math.U64(data.GasUsed),
+		Timestamp:        math.U64(data.Timestamp),
+		ExtraData:        data.ExtraData,
+		BaseFeePerGas:    math.MustNewU256LFromBigInt(data.BaseFeePerGas),
+		BlockHash:        data.BlockHash,
+		TransactionsRoot: txsRoot,
+		WithdrawalsRoot:  withdrawalsRoot,
+		BlobGasUsed:      math.U64(blobGasUsed),
+		ExcessBlobGas:    math.U64(excessBlobGas),
+	}
+
+	return executionPayloadHeader, nil
 }

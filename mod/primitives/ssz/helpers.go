@@ -207,7 +207,7 @@ func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
 	if err != nil {
 		return RootT{}, err
 	}
-	return Merkleize[U64T, RootT, RootT](
+	return Merkleize[U64T, RootT](
 		chunks,
 		numChunks,
 	)

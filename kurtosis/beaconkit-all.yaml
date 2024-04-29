@@ -39,6 +39,9 @@ validators:
   - el_type: erigon
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+  - el_type: ethereumjs
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local  
 full_nodes:
   - el_type: besu
     cl_type: beaconkit
@@ -57,6 +60,10 @@ full_nodes:
   - el_type: erigon
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+  - el_type: ethereumjs
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+    replicas: 1 
 rpc_endpoints:
   - type: nginx
     services:
@@ -66,6 +73,7 @@ rpc_endpoints:
       - el-full-reth-3:8545
       - el-full-geth-4:8545
       - el-full-erigon-5:8545
+      - el-full-ethereumjs-6:8545
 additional_services: 
   - "goomy_blob"
   - "prometheus"

@@ -26,9 +26,9 @@
 package validator
 
 import (
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
@@ -86,7 +86,7 @@ func WithRemoteBuilders(builders ...PayloadBuilder[state.BeaconState]) Option {
 }
 
 // WithLogger sets the logger for the service.
-func WithLogger(logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(s *Service) error {
 		s.logger = logger
 		return nil

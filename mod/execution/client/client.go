@@ -33,9 +33,9 @@ import (
 	"sync"
 	"time"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -50,7 +50,7 @@ type EngineClient struct {
 
 	cfg          *Config
 	capabilities map[string]struct{}
-	logger       log.Logger
+	logger       log.Logger[any]
 	jwtSecret    *jwt.Secret
 
 	// engineCache is an all-in-one cache for data

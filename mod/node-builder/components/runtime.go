@@ -62,7 +62,8 @@ func ProvideRuntime(
 	signer runtime.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	bsb runtime.BeaconStorageBackend,
+	// TODO: this is really poor coupling, we should fix.
+	bsb runtime.BeaconStorageBackend[types.ReadOnlyBeaconBlock],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -78,7 +79,9 @@ func ProvideRuntime(
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
 		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(logger),
+		engineclient.WithLogger(
+			logger.With("module", "beacon-kit.engine.client"),
+		),
 	)
 
 	// TODO: move.
@@ -103,7 +106,9 @@ func ProvideRuntime(
 
 	// Build the local builder service.
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
-		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
+		payloadbuilder.WithLogger(
+			logger.With("service", "payload-builder"),
+		),
 		payloadbuilder.WithChainSpec(chainSpec),
 		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
@@ -162,7 +167,7 @@ func ProvideRuntime(
 				chainSpec,
 				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
-				logger,
+				logger.With("module", "state-processor"),
 			)),
 	)
 

@@ -26,26 +26,27 @@
 package da
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	"reflect"
+
+	"github.com/berachain/beacon-kit/mod/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[BBB BeaconBlockBody] struct {
+type SidecarFactory[BeaconBlockBodyT BeaconBlockBody] struct {
 	cs          ChainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[BBB BeaconBlockBody](
+func NewSidecarFactory[BeaconBlockBodyT BeaconBlockBody](
 	cs ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
-) *SidecarFactory[BBB] {
-	return &SidecarFactory[BBB]{
+) *SidecarFactory[BeaconBlockBodyT] {
+	return &SidecarFactory[BeaconBlockBodyT]{
 		cs: cs,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
@@ -53,16 +54,16 @@ func NewSidecarFactory[BBB BeaconBlockBody](
 }
 
 // BuildSidecar builds a sidecar.
-func (f *SidecarFactory[BBB]) BuildSidecars(
-	blk BeaconBlock[BBB],
+func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
+	blk BeaconBlock[BeaconBlockBodyT],
 	bundle engineprimitives.BlobsBundle,
-) (*datypes.BlobSidecars, error) {
+) (*types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
-		sidecars    = make([]*datypes.BlobSidecar, numBlobs)
+		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
 	)
@@ -75,7 +76,7 @@ func (f *SidecarFactory[BBB]) BuildSidecars(
 			if err != nil {
 				return err
 			}
-			sidecars[i] = datypes.BuildBlobSidecar(
+			sidecars[i] = types.BuildBlobSidecar(
 				i,
 				blk.GetHeader(),
 				blobs[i],
@@ -87,11 +88,11 @@ func (f *SidecarFactory[BBB]) BuildSidecars(
 		})
 	}
 
-	return &datypes.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[BBB]) BuildKZGInclusionProof(
+func (f *SidecarFactory[BeaconBlockBodyT]) BuildKZGInclusionProof(
 	body BeaconBlockBody,
 	index uint64,
 ) ([][32]byte, error) {
@@ -114,7 +115,7 @@ func (f *SidecarFactory[BBB]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
+func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 	body BeaconBlockBody,
 ) ([][32]byte, error) {
 	membersRoots, err := body.GetTopLevelRoots()
@@ -125,7 +126,9 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 		[32]byte, [32]byte,
 	](
 		membersRoots,
-		uint64(types.BodyLengthDeneb),
+		//#nosec:G701 // NumField will never be negative
+		// nor exceed 2^64-1 in practice.
+		uint64(reflect.TypeOf(body).NumField()),
 	)
 	if err != nil {
 		return nil, err
@@ -139,7 +142,7 @@ func (f *SidecarFactory[BBB]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[BBB]) BuildCommitmentProof(
+func (f *SidecarFactory[BeaconBlockBodyT]) BuildCommitmentProof(
 	body BeaconBlockBody,
 	index uint64,
 ) ([][32]byte, error) {

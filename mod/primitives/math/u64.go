@@ -252,8 +252,8 @@ func GweiFromWei(i *big.Int) Gwei {
 // ToWei converts a value from Gwei to Wei.
 //
 
-func (g Gwei) ToWei() *big.Int {
-	gweiAmount := big.NewInt(0).SetUint64(g.Unwrap())
+func (u Gwei) ToWei() *big.Int {
+	gweiAmount := big.NewInt(0).SetUint64(u.Unwrap())
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
 	return gweiAmount.Mul(gweiAmount, intToGwei)
 }

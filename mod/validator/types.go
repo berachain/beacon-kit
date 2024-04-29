@@ -37,9 +37,9 @@ import (
 )
 
 // BlobFactory is the interface for building blobs.
-type BlobFactory[BBB da.BeaconBlockBody] interface {
+type BlobFactory[BeaconBlockBodyT da.BeaconBlockBody] interface {
 	BuildSidecars(
-		blk da.BeaconBlock[BBB],
+		blk da.BeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
 	) (*datypes.BlobSidecars, error)
 }
