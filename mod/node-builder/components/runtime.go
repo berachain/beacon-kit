@@ -59,7 +59,7 @@ import (
 func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
-	signer runtime.BLSSigner,
+	signer primitives.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
