@@ -11,7 +11,6 @@ replace (
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240421190920-f31a6a3024ba
 
-	github.com/berachain/beacon-kit/mod/core => ../core
 	github.com/berachain/beacon-kit/mod/da => ../da
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
