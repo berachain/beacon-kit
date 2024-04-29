@@ -79,7 +79,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() Withdrawals
+	GetWithdrawals() []*Withdrawal
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.

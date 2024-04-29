@@ -117,7 +117,9 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		// deposit_data_list = List[DepositData,
 		// 2**DEPOSIT_CONTRACT_TREE_DEPTH](*leaves[:index + 1])
 		// state.eth1_data.deposit_root = hash_tree_root(deposit_data_list)
-		sp.processDeposit(emptySt, deposit)
+		if err = sp.processDeposit(emptySt, deposit); err != nil {
+			return err
+		}
 	}
 
 	// Step 3: Process Activations
@@ -168,7 +170,11 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	// state.next_sync_committee = get_next_sync_committee(state)
 
 	// Step 6: Initialize the execution payload header
-	emptySt.SetLatestExecutionPayloadHeader(genesis.ExecutionPayloadHeader)
+	if err = emptySt.SetLatestExecutionPayloadHeader(
+		genesis.ExecutionPayloadHeader,
+	); err != nil {
+		return err
+	}
 
 	return nil
 }

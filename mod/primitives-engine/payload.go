@@ -54,7 +54,7 @@ type ExecutableDataDeneb struct {
 	BaseFeePerGas math.Wei                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     primitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                    `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   Withdrawals                 `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals   []*Withdrawal               `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                    `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                    `json:"excessBlobGas"`
 }
@@ -152,7 +152,7 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() Withdrawals {
+func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
 }
 

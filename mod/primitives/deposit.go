@@ -66,6 +66,7 @@ func NewDeposit(
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
+		Index:       index,
 	}
 }
 
