@@ -36,6 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
+type KVStore interface{}
+
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
