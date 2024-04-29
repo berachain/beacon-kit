@@ -29,6 +29,9 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/staking"
+	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/core/types"
@@ -45,9 +48,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	"github.com/berachain/beacon-kit/mod/validator"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )

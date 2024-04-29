@@ -5,6 +5,7 @@ go 1.22.2
 replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod => ../mod
+	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
@@ -13,7 +14,7 @@ replace (
 
 require (
 	cosmossdk.io/log v1.3.1
-	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
 	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
@@ -41,6 +42,7 @@ require (
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/gogoproto v1.4.12 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20231025140028-3c0104f4b233 // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -51,7 +53,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.1 // indirect
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
+	github.com/ferranbt/fastssz v0.1.4-0.20240424151255-906b39fdcf09 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gballet/go-verkle v0.1.1-0.20231031103413-a67434b50f46 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
@@ -83,6 +85,7 @@ require (
 	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20240415200132-cd0c3c405d11 // indirect
 	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240415200132-cd0c3c405d11 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.14 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
