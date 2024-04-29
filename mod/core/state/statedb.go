@@ -43,7 +43,7 @@ type StateDB struct {
 	*beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	]
@@ -55,7 +55,7 @@ func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	],
@@ -252,7 +252,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		}
 	}
 
-	latestExecutionPayload, err := s.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -308,8 +308,8 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	activeFork := s.cs.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
-		executionPayload, ok :=
-			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
+		executionPayloadHeader, ok :=
+			latestExecutionPayloadHeader.(*engineprimitives.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
@@ -321,7 +321,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			LatestExecutionPayload:       executionPayload,
+			LatestExecutionPayloadHeader: executionPayloadHeader,
 			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,

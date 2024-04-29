@@ -32,6 +32,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
+
+// ExecutableDataDeneb is the execution payload for Deneb.
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../primitives,../primitives/math,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
@@ -39,10 +42,10 @@ import (
 type ExecutableDataDeneb struct {
 	ParentHash    primitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  primitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     primitives.ExecutionHash    `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  primitives.ExecutionHash    `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	StateRoot     primitives.Bytes32          `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  primitives.Bytes32          `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 	LogsBloom     []byte                      `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        primitives.ExecutionHash    `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Random        primitives.Bytes32          `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 	Number        math.U64                    `json:"blockNumber"                  gencodec:"required"`
 	GasLimit      math.U64                    `json:"gasLimit"                     gencodec:"required"`
 	GasUsed       math.U64                    `json:"gasUsed"                      gencodec:"required"`
@@ -89,12 +92,12 @@ func (d *ExecutableDataDeneb) GetFeeRecipient() primitives.ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() primitives.ExecutionHash {
+func (d *ExecutableDataDeneb) GetStateRoot() primitives.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() primitives.ExecutionHash {
+func (d *ExecutableDataDeneb) GetReceiptsRoot() primitives.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -104,28 +107,28 @@ func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() [32]byte {
+func (d *ExecutableDataDeneb) GetPrevRandao() primitives.Bytes32 {
 	return d.Random
 }
 
 // GetNumber returns the block number of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetNumber() uint64 {
-	return d.Number.Unwrap()
+func (d *ExecutableDataDeneb) GetNumber() math.U64 {
+	return d.Number
 }
 
 // GetGasLimit returns the gas limit of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasLimit() uint64 {
-	return d.GasLimit.Unwrap()
+func (d *ExecutableDataDeneb) GetGasLimit() math.U64 {
+	return d.GasLimit
 }
 
 // GetGasUsed returns the gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasUsed() uint64 {
-	return d.GasUsed.Unwrap()
+func (d *ExecutableDataDeneb) GetGasUsed() math.U64 {
+	return d.GasUsed
 }
 
 // GetTimestamp returns the timestamp of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTimestamp() uint64 {
-	return d.Timestamp.Unwrap()
+func (d *ExecutableDataDeneb) GetTimestamp() math.U64 {
+	return d.Timestamp
 }
 
 // GetExtraData returns the extra data of the ExecutableDataDeneb.
@@ -154,13 +157,11 @@ func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlobGasUsed() *uint64 {
-	v := d.BlobGasUsed.Unwrap()
-	return &v
+func (d *ExecutableDataDeneb) GetBlobGasUsed() math.U64 {
+	return d.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetExcessBlobGas() *uint64 {
-	v := d.ExcessBlobGas.Unwrap()
-	return &v
+func (d *ExecutableDataDeneb) GetExcessBlobGas() math.U64 {
+	return d.ExcessBlobGas
 }

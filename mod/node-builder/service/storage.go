@@ -30,13 +30,16 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/storage/deposit"
 )
 
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend interface {
-	AvailabilityStore(ctx context.Context) core.AvailabilityStore
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[types.ReadOnlyBeaconBlock]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) *deposit.KVStore
 }

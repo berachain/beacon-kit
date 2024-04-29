@@ -29,48 +29,46 @@ import (
 	"context"
 	"errors"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	db "github.com/berachain/beacon-kit/mod/storage"
-	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
 	"github.com/sourcegraph/conc/iter"
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store struct {
+type Store[ReadOnlyBeaconBlockT any] struct {
+	IndexDB
 	chainSpec primitives.ChainSpec
-	*filedb.RangeDB
 }
 
 // NewStore creates a new instance of the AvailabilityStore.
-func NewStore(
+func NewStore[ReadOnlyBeaconBlockT any](
 	chainSpec primitives.ChainSpec,
-	db db.DB,
-) *Store {
-	return &Store{
+	db IndexDB,
+) *Store[ReadOnlyBeaconBlockT] {
+	return &Store[ReadOnlyBeaconBlockT]{
 		chainSpec: chainSpec,
-		RangeDB:   filedb.NewRangeDB(db),
+		IndexDB:   db,
 	}
 }
 
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
-func (s *Store) IsDataAvailable(
+func (s *Store[ReadOnlyBeaconBlockT]) IsDataAvailable(
 	ctx context.Context,
 	slot math.Slot,
-	b beacontypes.ReadOnlyBeaconBlock,
+	//
+	blk ReadOnlyBeaconBlockT,
 ) bool {
 	_ = ctx
 	_ = slot
-	_ = b
+	_ = blk
 	return true
 }
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store) Persist(
+func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {

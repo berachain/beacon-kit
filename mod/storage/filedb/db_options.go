@@ -28,7 +28,7 @@ package file
 import (
 	"os"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/spf13/afero"
 )
 
@@ -60,7 +60,7 @@ func WithFileExtension(extension string) Option {
 }
 
 // WithLogger sets the logger for the database.
-func WithLogger(logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(db *DB) error {
 		db.logger = logger
 		return nil

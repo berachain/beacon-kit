@@ -60,11 +60,11 @@ func (pv *PayloadValidator) ValidatePayload(
 		return types.ErrNilPayload
 	}
 
-	latestExecutionPayload, err := st.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	safeHash := latestExecutionPayload.GetBlockHash()
+	safeHash := latestExecutionPayloadHeader.GetBlockHash()
 
 	if safeHash != payload.GetParentHash() {
 		return fmt.Errorf(

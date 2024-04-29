@@ -66,8 +66,8 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		}
 	}
 
-	if err := s.UpdateLatestExecutionPayload(
-		st.LatestExecutionPayload,
+	if err := s.SetLatestExecutionPayloadHeader(
+		st.LatestExecutionPayloadHeader,
 	); err != nil {
 		return err
 	}

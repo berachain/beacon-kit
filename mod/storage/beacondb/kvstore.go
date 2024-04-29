@@ -67,7 +67,7 @@ type Validator interface {
 type KVStore[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadT SSZMarshallable,
+	ExecutionPayloadHeaderT SSZMarshallable,
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
@@ -91,14 +91,12 @@ type KVStore[
 	stateRoots sdkcollections.Map[uint64, [32]byte]
 
 	// Eth1
-	// latestExecutionPayload stores the latest execution payload.
-
-	latestExecutionPayload sdkcollections.Item[ExecutionPayloadT]
-
 	// eth1Data stores the latest eth1 data.
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
+	// latestExecutionPayloadHeader stores the latest execution payload header.
+	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
@@ -134,19 +132,19 @@ type KVStore[
 func New[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadT SSZMarshallable,
+	ExecutionPayloadHeaderT SSZMarshallable,
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
-	executionPayloadFactory func() ExecutionPayloadT,
+	executionPayloadHeaderFactory func() ExecutionPayloadHeaderT,
 ) *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
 		ForkT, BeaconBlockHeaderT,
-		ExecutionPayloadT, Eth1DataT, ValidatorT,
+		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
@@ -181,15 +179,6 @@ func New[
 			sdkcollections.Uint64Key,
 			encoding.Bytes32ValueCodec{},
 		),
-
-		latestExecutionPayload: sdkcollections.NewItem[ExecutionPayloadT](
-			schemaBuilder,
-			sdkcollections.NewPrefix(keys.LatestExecutionPayloadPrefix),
-			keys.LatestExecutionPayloadPrefix,
-			encoding.SSZInterfaceCodec[ExecutionPayloadT]{
-				Factory: executionPayloadFactory,
-			},
-		),
 		eth1Data: sdkcollections.NewItem[Eth1DataT](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.Eth1DataPrefix),
@@ -201,6 +190,14 @@ func New[
 			sdkcollections.NewPrefix(keys.Eth1DepositIndexPrefix),
 			keys.Eth1DepositIndexPrefix,
 			sdkcollections.Uint64Value,
+		),
+		latestExecutionPayloadHeader: sdkcollections.NewItem[ExecutionPayloadHeaderT](
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.LatestExecutionPayloadHeaderPrefix),
+			keys.LatestExecutionPayloadHeaderPrefix,
+			encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{
+				Factory: executionPayloadHeaderFactory,
+			},
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,

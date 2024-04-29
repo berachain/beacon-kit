@@ -26,7 +26,7 @@
 package builder
 
 import (
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -38,7 +38,7 @@ import (
 type PayloadBuilder struct {
 	cfg       *Config
 	chainSpec primitives.ChainSpec
-	logger    log.Logger
+	logger    log.Logger[any]
 
 	// ee is the execution engine.
 	ee ExecutionEngine
