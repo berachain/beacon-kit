@@ -36,9 +36,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -319,7 +319,7 @@ func (s *EngineClient) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.
-	token, err := s.jwtSecret.BuildSignedJWT()
+	token, err := buildSignedJWT(s.jwtSecret)
 	if err != nil {
 		s.logger.Error("failed to build JWT token", "err", err)
 		return header, err

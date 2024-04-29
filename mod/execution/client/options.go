@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns
