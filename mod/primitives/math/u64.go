@@ -143,7 +143,7 @@ func (u U64) NextPowerOfTwo() U64 {
 	if u == 0 {
 		return 1
 	}
-	if u > 1 << 63 {
+	if u > 1<<63 {
 		panic("Next power of 2 is 1 << 64.")
 	}
 	u--

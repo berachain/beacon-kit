@@ -184,11 +184,16 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 		},
 		{
 			name:     "large number",
+			value:    math.U64(1<<20 + 1<<46),
+			expected: math.U64(1 << 47),
+		},
+		{
+			name:     "large number with lots zeros",
 			value:    math.U64(1<<62 + 1),
 			expected: math.U64(1 << 63),
 		},
 		{
-			name:     "large number",
+			name:     "large number at the limit",
 			value:    math.U64(1 << 63),
 			expected: math.U64(1 << 63),
 		},
