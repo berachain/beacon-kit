@@ -82,8 +82,8 @@ func DefaultBeaconState() *BeaconState {
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 //
 //nolint:mnd,lll // default values pulled from current eth-genesis.json file.
-func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionHeaderDeneb {
-	return &engineprimitives.ExecutionHeaderDeneb{
+func DefaultGenesisExecutionPayloadHeader() *engineprimitives.ExecutionPayloadHeaderDeneb {
+	return &engineprimitives.ExecutionPayloadHeaderDeneb{
 		ParentHash:   primitives.ExecutionHash{},
 		FeeRecipient: primitives.ExecutionAddress{},
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
@@ -130,9 +130,9 @@ type BeaconState struct {
 	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1Data                     *primitives.Eth1Data                   `json:"eth1Data"`
-	Eth1DepositIndex             uint64                                 `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *engineprimitives.ExecutionHeaderDeneb `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *primitives.Eth1Data                          `json:"eth1Data"`
+	Eth1DepositIndex             uint64                                        `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *engineprimitives.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
 	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`

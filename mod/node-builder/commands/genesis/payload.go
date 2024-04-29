@@ -125,7 +125,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 // interface.
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) (*engineprimitives.ExecutionHeaderDeneb, error) {
+) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -161,7 +161,7 @@ func executableDataToExecutionPayloadHeader(
 		return nil, err
 	}
 
-	executionPayloadHeader := &engineprimitives.ExecutionHeaderDeneb{
+	executionPayloadHeader := &engineprimitives.ExecutionPayloadHeaderDeneb{
 		ParentHash:       data.ParentHash,
 		FeeRecipient:     data.FeeRecipient,
 		StateRoot:        primitives.Bytes32(data.StateRoot),

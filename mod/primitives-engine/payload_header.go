@@ -31,13 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
 
-var _ ExecutionPayloadHeader = (*ExecutionHeaderDeneb)(nil)
+// var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
 
-// ExecutionHeaderDeneb is the execution header payload of Deneb.
+// ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionHeaderDeneb -include ../primitives,../primitives/math,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../primitives,../primitives/math,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
 //nolint:lll
-type ExecutionHeaderDeneb struct {
+type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       primitives.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 	FeeRecipient     primitives.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
 	StateRoot        primitives.Bytes32          `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
@@ -57,104 +57,104 @@ type ExecutionHeaderDeneb struct {
 	ExcessBlobGas    math.U64                    `json:"excessBlobGas"`
 }
 
-// Version returns the version of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) Version() uint32 {
+// Version returns the version of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) Version() uint32 {
 	return version.Deneb
 }
 
-// IsNil checks if the ExecutionHeaderDeneb is nil.
-func (d *ExecutionHeaderDeneb) IsNil() bool {
+// IsNil checks if the ExecutionPayloadHeaderDeneb is nil.
+func (d *ExecutionPayloadHeaderDeneb) IsNil() bool {
 	return d == nil
 }
 
-// IsBlinded checks if the ExecutionHeaderDeneb is blinded.
-func (d *ExecutionHeaderDeneb) IsBlinded() bool {
+// IsBlinded checks if the ExecutionPayloadHeaderDeneb is blinded.
+func (d *ExecutionPayloadHeaderDeneb) IsBlinded() bool {
 	return false
 }
 
-// GetParentHash returns the parent hash of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetParentHash() primitives.ExecutionHash {
+// GetParentHash returns the parent hash of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetParentHash() primitives.ExecutionHash {
 	return d.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the
-// ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetFeeRecipient() primitives.ExecutionAddress {
+// ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetFeeRecipient() primitives.ExecutionAddress {
 	return d.FeeRecipient
 }
 
-// GetStateRoot returns the state root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetStateRoot() primitives.Bytes32 {
+// GetStateRoot returns the state root of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetStateRoot() primitives.Bytes32 {
 	return d.StateRoot
 }
 
-// GetReceiptsRoot returns the receipts root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetReceiptsRoot() primitives.Bytes32 {
+// GetReceiptsRoot returns the receipts root of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetReceiptsRoot() primitives.Bytes32 {
 	return d.ReceiptsRoot
 }
 
-// GetLogsBloom returns the logs bloom of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetLogsBloom() []byte {
+// GetLogsBloom returns the logs bloom of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetLogsBloom() []byte {
 	return d.LogsBloom
 }
 
-// GetPrevRandao returns the previous Randao value of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
+// GetPrevRandao returns the previous Randao value of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
 	return d.Random
 }
 
-// GetNumber returns the block number of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetNumber() math.U64 {
+// GetNumber returns the block number of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetNumber() math.U64 {
 	return d.Number
 }
 
-// GetGasLimit returns the gas limit of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetGasLimit() math.U64 {
+// GetGasLimit returns the gas limit of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetGasLimit() math.U64 {
 	return d.GasLimit
 }
 
-// GetGasUsed returns the gas used of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetGasUsed() math.U64 {
+// GetGasUsed returns the gas used of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetGasUsed() math.U64 {
 	return d.GasUsed
 }
 
-// GetTimestamp returns the timestamp of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetTimestamp() math.U64 {
+// GetTimestamp returns the timestamp of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetTimestamp() math.U64 {
 	return d.Timestamp
 }
 
-// GetExtraData returns the extra data of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetExtraData() []byte {
+// GetExtraData returns the extra data of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetExtraData() []byte {
 	return d.ExtraData
 }
 
-// GetBaseFeePerGas returns the base fee per gas of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetBaseFeePerGas() math.Wei {
+// GetBaseFeePerGas returns the base fee per gas of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetBaseFeePerGas() math.Wei {
 	return d.BaseFeePerGas
 }
 
-// GetBlockHash returns the block hash of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetBlockHash() primitives.ExecutionHash {
+// GetBlockHash returns the block hash of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() primitives.ExecutionHash {
 	return d.BlockHash
 }
 
 // GetTransactionsRoot returns the transactions root of the
-// ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetTransactionsRoot() primitives.Root {
+// ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetTransactionsRoot() primitives.Root {
 	return d.TransactionsRoot
 }
 
-// GetWithdrawalsRoot returns the withdrawals root of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetWithdrawalsRoot() primitives.Root {
+// GetWithdrawalsRoot returns the withdrawals root of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetWithdrawalsRoot() primitives.Root {
 	return d.WithdrawalsRoot
 }
 
-// GetBlobGasUsed returns the blob gas used of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetBlobGasUsed() math.U64 {
+// GetBlobGasUsed returns the blob gas used of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetBlobGasUsed() math.U64 {
 	return d.BlobGasUsed
 }
 
-// GetExcessBlobGas returns the excess blob gas of the ExecutionHeaderDeneb.
-func (d *ExecutionHeaderDeneb) GetExcessBlobGas() math.U64 {
+// GetExcessBlobGas returns the excess blob gas of the ExecutionPayloadHeaderDeneb.
+func (d *ExecutionPayloadHeaderDeneb) GetExcessBlobGas() math.U64 {
 	return d.ExcessBlobGas
 }

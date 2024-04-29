@@ -61,7 +61,7 @@ type Keeper struct {
 
 // TODO: move this.
 func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
-	return &engineprimitives.ExecutionHeaderDeneb{}
+	return &engineprimitives.ExecutionPayloadHeaderDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
