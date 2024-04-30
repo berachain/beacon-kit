@@ -123,21 +123,12 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 	}
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
-	](
-		membersRoots,
-		//#nosec:G701 // NumField will never be negative
-		// nor exceed 2^64-1 in practice.
-		uint64(primitives.BodyLengthDeneb-1),
-	)
+	](membersRoots, uint64(primitives.BodyLengthDeneb-1))
 	if err != nil {
 		return nil, err
 	}
 
-	topProof, err := tree.MerkleProof(f.kzgPosition)
-	if err != nil {
-		return nil, err
-	}
-	return topProof, nil
+	return tree.MerkleProof(f.kzgPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.
