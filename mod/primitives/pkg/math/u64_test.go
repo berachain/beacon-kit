@@ -28,7 +28,7 @@ package math_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 

@@ -25,12 +25,15 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+)
 
 // BlobProofArgs represents the arguments for a blob proof.
 type BlobProofArgs struct {
 	// Blob is the blob.
-	Blobs []*primitives.Blob
+	Blobs []*eip4844.Blob
 	// Proof is the KZG proof.
 	Proofs []primitives.Proof
 	// Commitment is the KZG commitment.

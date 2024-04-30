@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
 

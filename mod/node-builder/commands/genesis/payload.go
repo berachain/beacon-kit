@@ -34,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"

@@ -30,7 +30,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )

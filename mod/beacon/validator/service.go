@@ -34,7 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service is responsible for building beacon blocks.

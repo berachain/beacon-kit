@@ -26,8 +26,8 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 //nolint:lll

@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread

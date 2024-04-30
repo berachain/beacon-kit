@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type (

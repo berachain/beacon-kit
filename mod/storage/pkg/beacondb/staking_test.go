@@ -31,7 +31,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"

@@ -26,7 +26,7 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 

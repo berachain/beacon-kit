@@ -29,7 +29,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	"github.com/stretchr/testify/require"
 )

@@ -38,7 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"

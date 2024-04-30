@@ -30,6 +30,7 @@ import (
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -50,8 +51,8 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
-	blob *primitives.Blob,
-	proof primitives.Proof,
+	blob *eip4844.Blob,
+	proof eip4844.Proof,
 	commitment primitives.Commitment,
 ) error {
 	return v.Context.

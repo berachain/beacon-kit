@@ -30,7 +30,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	huint256 "github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )

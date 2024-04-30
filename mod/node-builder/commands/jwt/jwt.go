@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"

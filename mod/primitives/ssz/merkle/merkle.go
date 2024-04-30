@@ -26,7 +26,7 @@
 package merkle
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // MerkleTree returns a Merkle tree of the given leaves.

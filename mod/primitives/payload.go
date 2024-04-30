@@ -26,7 +26,7 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -36,7 +36,7 @@ var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ./primitives.go,./execution.go,./math,./withdrawal.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ./primitives.go,./execution.go,./pkg/math,./withdrawal.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {

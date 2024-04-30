@@ -27,7 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // WriteGenesisStateDeneb writes the genesis state to the state db.

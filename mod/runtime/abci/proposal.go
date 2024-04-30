@@ -30,7 +30,7 @@ import (
 	"time"
 
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"

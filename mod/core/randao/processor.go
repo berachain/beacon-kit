@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 	"github.com/go-faster/xor"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"

@@ -27,7 +27,7 @@ package beacondb
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
