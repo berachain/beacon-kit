@@ -117,8 +117,9 @@ linters-settings:
       - os.WriteFile
       - prometheus.ExponentialBuckets.*
       - prometheus.LinearBuckets
+      - ssz.*
     ignored-files:
-      - ssz/**/*.go
+      - ssz/*.go
 
   gomodguard:
     blocked:
