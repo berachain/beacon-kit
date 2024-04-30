@@ -34,8 +34,8 @@ import (
 // PrepareProposal is called by the consensus engine to prepare a proposal for
 // the next block.
 func (app BeaconApp) PrepareProposal(
-	req *abci.RequestPrepareProposal,
-) (*abci.ResponsePrepareProposal, error) {
+	req *abci.PrepareProposalRequest,
+) (*abci.PrepareProposalResponse, error) {
 	start := time.Now()
 	defer func() {
 		app.Logger().
@@ -48,8 +48,8 @@ func (app BeaconApp) PrepareProposal(
 // ProcessProposal is called by the consensus engine when a new proposal block
 // is received.
 func (app BeaconApp) ProcessProposal(
-	req *abci.RequestProcessProposal,
-) (*abci.ResponseProcessProposal, error) {
+	req *abci.ProcessProposalRequest,
+) (*abci.ProcessProposalResponse, error) {
 	start := time.Now()
 	defer func() {
 		app.Logger().
@@ -61,8 +61,8 @@ func (app BeaconApp) ProcessProposal(
 
 // but before committing it to the consensus state.
 func (app BeaconApp) FinalizeBlock(
-	req *abci.RequestFinalizeBlock,
-) (*abci.ResponseFinalizeBlock, error) {
+	req *abci.FinalizeBlockRequest,
+) (*abci.FinalizeBlockResponse, error) {
 	start := time.Now()
 	defer func() {
 		app.Logger().
@@ -73,7 +73,7 @@ func (app BeaconApp) FinalizeBlock(
 }
 
 // Commit is our custom implementation of the ABCI method Commit.
-func (app BeaconApp) Commit() (*abci.ResponseCommit, error) {
+func (app BeaconApp) Commit() (*abci.CommitResponse, error) {
 	start := time.Now()
 	defer func() {
 		app.Logger().

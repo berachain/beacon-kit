@@ -60,22 +60,22 @@ func NewHandler(
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *Handler) PrepareProposalHandler(
-	ctx sdk.Context, req *cmtabci.RequestPrepareProposal,
-) (*cmtabci.ResponsePrepareProposal, error) {
+	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
+) (*cmtabci.PrepareProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 	st := h.chainService.BeaconState(ctx)
 
 	// Process the Slot to set the state root for the block.
 	if err := h.chainService.ProcessSlot(st); err != nil {
-		return &cmtabci.ResponsePrepareProposal{}, err
+		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx, st, math.Slot(req.Height))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
-		return &cmtabci.ResponsePrepareProposal{}, err
+		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
 	// Serialize the block and blobs.
@@ -85,7 +85,7 @@ func (h *Handler) PrepareProposalHandler(
 			return (*m).MarshalSSZ()
 		})
 
-	return &cmtabci.ResponsePrepareProposal{
+	return &cmtabci.PrepareProposalResponse{
 		Txs: txs,
 	}, err
 }
@@ -93,8 +93,8 @@ func (h *Handler) PrepareProposalHandler(
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *Handler) ProcessProposalHandler(
-	ctx sdk.Context, req *cmtabci.RequestProcessProposal,
-) (*cmtabci.ResponseProcessProposal, error) {
+	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
@@ -110,8 +110,8 @@ func (h *Handler) ProcessProposalHandler(
 			err,
 		)
 
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, nil
 	}
 
@@ -128,12 +128,12 @@ func (h *Handler) ProcessProposalHandler(
 		err,
 		engineclient.ErrSyncingPayloadStatus,
 	) {
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
 
-	return &cmtabci.ResponseProcessProposal{
-		Status: cmtabci.ResponseProcessProposal_ACCEPT,
+	return &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 	}, nil
 }
