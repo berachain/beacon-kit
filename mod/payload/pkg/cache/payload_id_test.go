@@ -28,7 +28,7 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/payload/cache"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/stretchr/testify/require"
 )
 

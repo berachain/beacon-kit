@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
-	"github.com/berachain/beacon-kit/mod/payload/builder"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
