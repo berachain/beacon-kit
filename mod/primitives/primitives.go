@@ -39,7 +39,7 @@ type (
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
-	Domain = Bytes32
+	Domain = bytes.B32
 
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -48,11 +48,11 @@ type (
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Root = Bytes32
+	Root = bytes.B32
 
 	// Hash32 as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Hash32 = Bytes32
+	Hash32 = bytes.B32
 
 	// Version as per the Ethereum 2.0 specification.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -64,7 +64,7 @@ type (
 
 	// ValidatorIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSPubkey = Bytes48
+	BLSPubkey = bytes.B48
 
 	// BLSSignature as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
