@@ -26,10 +26,13 @@
 package components
 
 import (
+	"strings"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 )
 
@@ -47,7 +50,7 @@ type JWTSecretOutput struct {
 
 // ProvideJWTSecret is a function that provides the module to the application.
 func ProvideJWTSecret(in JWTSecretInput) JWTSecretOutput {
-	jwtSecret, err := jwt.LoadFromFile(
+	jwtSecret, err := LoadJWTFromFile(
 		cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
 	if err != nil {
 		panic(err)
@@ -56,4 +59,14 @@ func ProvideJWTSecret(in JWTSecretInput) JWTSecretOutput {
 	return JWTSecretOutput{
 		JWTSecret: jwtSecret,
 	}
+}
+
+// LoadJWTFromFile reads the JWT secret from a file and returns it.
+func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
+	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
+	if err != nil {
+		// Return an error if the file cannot be read.
+		return nil, err
+	}
+	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

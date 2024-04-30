@@ -10,17 +10,20 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240421190920-f31a6a3024ba
+	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 
 	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod => ../mod
+	github.com/berachain/beacon-kit/mod/core => ../mod/core
 	github.com/berachain/beacon-kit/mod/da => ../mod/da
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
 	github.com/berachain/beacon-kit/mod/log => ../mod/log
+	github.com/berachain/beacon-kit/mod/node-builder => ../mod/node-builder
 	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
+	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240413210726-5bbc2bdb48b5
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240429150935-1ff1c69c7d75
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa
 )
 
@@ -30,10 +33,12 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240221095859-541df89f2bb4
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/core v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-db v1.0.2
@@ -66,6 +71,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
@@ -117,8 +123,6 @@ require (
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect

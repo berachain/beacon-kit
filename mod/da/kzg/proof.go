@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/kzg/gokzg"
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cockroachdb/errors"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -40,9 +40,9 @@ type BlobProofVerifier interface {
 	// VerifyBlobProof verifies that the blob data corresponds to the provided
 	// commitment.
 	VerifyBlobProof(
-		blob *kzg.Blob,
-		proof kzg.Proof,
-		commitment kzg.Commitment,
+		blob *primitives.Blob,
+		proof primitives.Proof,
+		commitment primitives.Commitment,
 	) error
 
 	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
@@ -87,9 +87,9 @@ func ArgsFromSidecars(
 	scs *types.BlobSidecars,
 ) *prooftypes.BlobProofArgs {
 	proofArgs := &prooftypes.BlobProofArgs{
-		Blobs:       make([]*kzg.Blob, len(scs.Sidecars)),
-		Proofs:      make([]kzg.Proof, len(scs.Sidecars)),
-		Commitments: make([]kzg.Commitment, len(scs.Sidecars)),
+		Blobs:       make([]*primitives.Blob, len(scs.Sidecars)),
+		Proofs:      make([]primitives.Proof, len(scs.Sidecars)),
+		Commitments: make([]primitives.Commitment, len(scs.Sidecars)),
 	}
 	for i, sidecar := range scs.Sidecars {
 		proofArgs.Blobs[i] = &sidecar.Blob

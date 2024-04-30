@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -49,18 +48,6 @@ type AvailabilityStore[ReadOnlyBeaconBlockT any] interface {
 	Persist(math.Slot, *datypes.BlobSidecars) error
 }
 
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() primitives.BLSPubkey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (primitives.BLSSignature, error)
-}
-
 // BlobVerifier is the interface for the blobs processor.
 type BlobVerifier interface {
 	VerifyBlobs(
@@ -72,7 +59,7 @@ type BlobVerifier interface {
 type RandaoProcessor interface {
 	ProcessRandao(
 		state.BeaconState,
-		types.BeaconBlock,
+		primitives.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
 		state.BeaconState,

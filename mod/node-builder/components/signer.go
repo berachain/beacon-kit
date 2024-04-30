@@ -28,6 +28,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -42,7 +43,7 @@ type BlsSignerInput struct {
 // BlsSignerOutput is the output for the dep inject framework.
 type BlsSignerOutput struct {
 	depinject.Out
-	BlsSigner *signer.BLSSigner
+	BlsSigner primitives.BLSSigner
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.

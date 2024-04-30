@@ -68,7 +68,7 @@ func NewStateProcessor(
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
 	st state.BeaconState,
-	blk types.ReadOnlyBeaconBlock,
+	blk primitives.BeaconBlock,
 	/*validateSignature bool, */
 	validateResult bool,
 ) error {
@@ -166,7 +166,7 @@ func (sp *StateProcessor) ProcessSlot(
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor) ProcessBlobs(
 	st state.BeaconState,
-	avs AvailabilityStore[types.ReadOnlyBeaconBlock],
+	avs AvailabilityStore[primitives.ReadOnlyBeaconBlock],
 	sidecars *datypes.BlobSidecars,
 ) error {
 	slot, err := st.GetSlot()
@@ -208,7 +208,7 @@ func (sp *StateProcessor) ProcessBlobs(
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
-	blk types.BeaconBlock,
+	blk primitives.BeaconBlock,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -263,7 +263,7 @@ func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 // processHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processHeader(
 	st state.BeaconState,
-	blk types.BeaconBlock,
+	blk primitives.BeaconBlock,
 ) error {
 	// TODO: this function is really confusing, can probably just
 	// be removed and the logic put in the ProcessBlock function.
@@ -520,7 +520,7 @@ func (sp *StateProcessor) processWithdrawals(
 // ensures it matches the local state.
 func (sp *StateProcessor) processRandaoReveal(
 	st state.BeaconState,
-	blk types.BeaconBlock,
+	blk primitives.BeaconBlock,
 ) error {
 	return sp.rp.ProcessRandao(st, blk)
 }

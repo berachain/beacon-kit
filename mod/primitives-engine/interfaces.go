@@ -28,6 +28,7 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/ethereum/go-ethereum/common"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -59,7 +60,7 @@ type ExecutionPayloadBody interface {
 	Version() uint32
 	IsBlinded() bool
 	GetPrevRandao() primitives.Bytes32
-	GetBlockHash() primitives.ExecutionHash
+	GetBlockHash() common.Hash
 	GetParentHash() primitives.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
@@ -79,7 +80,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []*primitives.Withdrawal
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.

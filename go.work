@@ -3,13 +3,16 @@ go 1.22.2
 use (
 	./beacond
 	./build/tools
-	./mod
+	./mod/beacon
+	./mod/core
 	./mod/da
 	./mod/execution
 	./mod/log
+	./mod/node-builder
 	./mod/payload
 	./mod/primitives
 	./mod/primitives-engine
+	./mod/runtime
 	./mod/storage
 	./testing
 )

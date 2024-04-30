@@ -36,6 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
+type KVStore interface{}
+
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
@@ -128,12 +130,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *primitives.Validator
 		balance           math.Gwei
 		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
+		withdrawals       = make([]*primitives.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -179,7 +181,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &engineprimitives.Withdrawal{
+		withdrawal := &primitives.Withdrawal{
 			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,

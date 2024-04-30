@@ -22,7 +22,7 @@ golangci:
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "All modules complete\n"
+	@printf "All modules complete\n"
 	
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
@@ -34,7 +34,7 @@ golangci-fix:
 		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "All modules complete\n"
+	@printf "All modules complete\n"
 
 #################
 #    golines    #
@@ -58,7 +58,7 @@ license:
 		(cd $$dir && go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "License check complete for all modules\n"
+	@printf "License check complete for all modules\n"
 
 license-fix:
 	@echo "--> Running addlicense"
@@ -70,7 +70,7 @@ license-fix:
 		(cd $$dir && go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header ./. ) || exit 1; \
 		count=$$((count + 1)); \
 	done
-	printf "License application complete for all modules\n"
+	@printf "License application complete for all modules\n"
 
 
 #################
@@ -85,8 +85,9 @@ nilaway:
 	for dir in $$dirs; do \
 		count=$$((count + 1)); \
 		printf "[%d/%d modules complete] Running nilaway in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,runtime/services/staking/abi" -v ./...) || exit 1; \
+		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,staking/abi" -v ./...) || exit 1; \
 	done
+	@printf "Nilaway complete for all modules\n"
 #################
 #     gosec     #
 #################

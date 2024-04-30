@@ -26,17 +26,14 @@
 package runtime
 
 import (
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents(
-	nextPrepare sdk.PrepareProposalHandler,
-	nextProcess sdk.ProcessProposalHandler,
-) (
+func (r *BeaconKitRuntime) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
 ) {
@@ -53,14 +50,11 @@ func (r *BeaconKitRuntime) BuildABCIComponents(
 	}
 
 	handler := abci.NewHandler(
-		&r.cfg.ABCI,
 		builderService,
 		chainService,
-		nextPrepare,
-		nextProcess,
 	)
 
 	return handler.PrepareProposalHandler,
 		handler.ProcessProposalHandler,
-		handler.PreBlocker
+		handler.FinalizeBlock
 }

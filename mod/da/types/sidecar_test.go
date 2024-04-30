@@ -31,14 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/types"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSidecarMarshalling(t *testing.T) {
 	// Create a sample BlobSidecar
-	blob := kzg.Blob{}
+	blob := primitives.Blob{}
 	for i := range blob {
 		blob[i] = byte(i % 256)
 	}

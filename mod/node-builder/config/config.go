@@ -28,13 +28,12 @@ package config
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
 	"github.com/berachain/beacon-kit/mod/payload/builder"
-	"github.com/berachain/beacon-kit/mod/runtime/abci"
-	"github.com/berachain/beacon-kit/mod/validator"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -44,7 +43,6 @@ import (
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ABCI:           abci.DefaultABCIConfig(),
 		Engine:         engineclient.DefaultConfig(),
 		KZG:            kzg.DefaultConfig(),
 		PayloadBuilder: builder.DefaultConfig(),
@@ -54,9 +52,6 @@ func DefaultConfig() *Config {
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// ABCI is the configuration for ABCI related settings.
-	ABCI abci.Config `mapstructure:"abci"`
-
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
 

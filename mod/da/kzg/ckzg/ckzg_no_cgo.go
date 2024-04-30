@@ -29,14 +29,14 @@ package ckzg
 
 import (
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/kzg"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // VerifyBlobProof will error since cgo is not enabled.
 func (v Verifier) VerifyBlobProof(
-	*kzg.Blob,
-	kzg.Proof,
-	kzg.Commitment,
+	*primitives.Blob,
+	primitives.Proof,
+	primitives.Commitment,
 ) error {
 	return ErrCGONotEnabled
 }
