@@ -46,25 +46,21 @@ func NewSerializeErrorMaximumLengthReached(size int) *SerializeError {
 
 // NewSerializeErrorInvalidInstance creates a new SerializeError for invalid instances.
 func NewSerializeErrorInvalidInstance(err error) *SerializeError {
-	return &SerializeError{Err: fmt.Errorf("invalid instance: %v", err)}
+	return &SerializeError{Err: fmt.Errorf("invalid instance: %w", err)}
 }
 
 // NewSerializeErrorInvalidType creates a new SerializeError for invalid types.
 func NewSerializeErrorInvalidType(err error) *SerializeError {
-	return &SerializeError{Err: fmt.Errorf("invalid type: %v", err)}
+	return &SerializeError{Err: fmt.Errorf("invalid type: %w", err)}
 }
 
-// Serializable is an interface for data structures that can be serialized using SSZ.
-type Serializable interface {
-	Serialize(buffer *[]byte) (int, error)
-}
 type Serializer struct {
 	ISerializer
 }
 
 type ISerializer interface {
-	Elements(s SSZTypeGeneric) []SSZTypeGeneric
-	MarshalSSZ(s SSZTypeGeneric) ([]byte, error)
+	Elements(s GenericSSZType) []GenericSSZType
+	MarshalSSZ(s GenericSSZType) ([]byte, error)
 }
 
 func NewSerializer() Serializer {
@@ -141,9 +137,9 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 }
 
 // TODO - no longer needed?
-func (s *Serializer) Elements(c SSZTypeGeneric) []SSZTypeGeneric {
-	return make([]SSZTypeGeneric, 0)
-}
+// func (s *Serializer) Elements(c SSZTypeGeneric) []SSZTypeGeneric {
+// 	return make([]SSZTypeGeneric, 0)
+// }
 
 // TODO
 

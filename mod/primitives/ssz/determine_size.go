@@ -33,8 +33,6 @@ import (
 	"cosmossdk.io/errors"
 )
 
-var UnboundedSSZFieldSizeMarker = "?"
-
 // DetermineSize returns the required byte size of a buffer for
 // using SSZ to marshal an object.
 func DetermineSize(val reflect.Value) uint64 {
@@ -63,7 +61,7 @@ func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
 	return kind == reflect.Array && isBasicType(typ.Elem().Kind())
 }
 
-func isRootsArray(val reflect.Value, typ reflect.Type) bool {
+func isRootsArray(_ reflect.Value, typ reflect.Type) bool {
 	elemTyp := typ.Elem()
 	elemKind := elemTyp.Kind()
 	isByteArray := elemKind == reflect.Array && elemTyp.Elem().Kind() == reflect.Uint8

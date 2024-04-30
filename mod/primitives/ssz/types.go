@@ -56,6 +56,6 @@ type (
 		Kind() Kind
 	}
 )
-type SSZTypeGeneric interface {
+type GenericSSZType interface {
 	Type
 }

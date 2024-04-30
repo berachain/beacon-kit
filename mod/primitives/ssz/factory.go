@@ -32,29 +32,10 @@ import (
 	"github.com/dgraph-io/ristretto"
 )
 
-var enableCache = false
-
-// ToggleCache enables caching of ssz hash tree root. It is disabled by default.
-func ToggleCache(val bool) {
-	enableCache = val
-}
-
-// StructFactory exports an implementation of a interface
-// containing helpers for marshaling/unmarshaling, and determining
-// the hash tree root of struct values.
-var StructFactory = newStructSSZ()
-var basicFactory = newBasicSSZ()
-var basicArrayFactory = newBasicArraySSZ()
-var rootsArrayFactory = newRootsArraySSZ()
-var compositeArrayFactory = newCompositeArraySSZ()
-var basicSliceFactory = newBasicSliceSSZ()
-var stringFactory = newStringSSZ()
-var compositeSliceFactory = newCompositeSliceSSZ()
-
-// SSZAble defines a type which can marshal/unmarshal and compute its
+// Serializable defines a type which can marshal/unmarshal and compute its
 // hash tree root according to the Simple Serialize specification.
 // See: https://github.com/ethereum/eth2.0-specs/blob/v0.8.2/specs/simple-serialize.md.
-type SSZAble interface {
+type Serializable interface {
 	// Root(val reflect.Value, typ reflect.Type, fieldName string, maxCapacity uint64) ([32]byte, error)
 	// Marshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
 	// Unmarshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
@@ -64,7 +45,19 @@ type SSZAble interface {
 // core type it belongs to, and then returns and implementation of
 // SSZ-able that contains marshal, unmarshal, and hash tree root related
 // functions for use.
-func SSZFactory(val reflect.Value, typ reflect.Type) (SSZAble, error) {
+func Factory(val reflect.Value, typ reflect.Type) (Serializable, error) {
+	// StructFactory exports an implementation of a interface
+	// containing helpers for marshaling/unmarshaling, and determining
+	// the hash tree root of struct values.
+	var StructFactory = newStructSSZ()
+	var basicFactory = newBasicSSZ()
+	var basicArrayFactory = newBasicArraySSZ()
+	var rootsArrayFactory = newRootsArraySSZ()
+	var compositeArrayFactory = newCompositeArraySSZ()
+	var basicSliceFactory = newBasicSliceSSZ()
+	var stringFactory = newStringSSZ()
+	var compositeSliceFactory = newCompositeSliceSSZ()
+
 	kind := typ.Kind()
 	switch {
 	case isBasicType(kind) || isBasicTypeArray(typ, typ.Kind()):
@@ -94,7 +87,7 @@ func SSZFactory(val reflect.Value, typ reflect.Type) (SSZAble, error) {
 	case kind == reflect.Struct:
 		return StructFactory, nil
 	case kind == reflect.Ptr:
-		return SSZFactory(val.Elem(), typ.Elem())
+		return Factory(val.Elem(), typ.Elem())
 	default:
 		return nil, fmt.Errorf("unsupported kind: %v", kind)
 	}
