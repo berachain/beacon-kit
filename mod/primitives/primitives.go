@@ -26,8 +26,9 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 //nolint:lll
@@ -38,34 +39,34 @@ type (
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
-	Domain = Bytes32
+	Domain = bytes.B32
 
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	//nolint:lll
-	DomainType = Bytes4
+	DomainType = bytes.B4
 
 	// Root as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Root = Bytes32
+	Root = bytes.B32
 
 	// Hash32 as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Hash32 = Bytes32
+	Hash32 = bytes.B32
 
 	// Version as per the Ethereum 2.0 specification.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Version = Bytes4
+	Version = bytes.B4
 
 	// ForkDigest as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ForkDigest = Bytes4
+	ForkDigest = bytes.B4
 
 	// ValidatorIndex as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSPubkey = Bytes48
+	BLSPubkey = bytes.B48
 
 	// BLSSignature as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSSignature = Bytes96
+	BLSSignature = bytes.B96
 )

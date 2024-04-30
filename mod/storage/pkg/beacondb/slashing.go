@@ -29,7 +29,7 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func (kv *KVStore[

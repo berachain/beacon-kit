@@ -25,7 +25,7 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/math"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
 func (kv *KVStore[

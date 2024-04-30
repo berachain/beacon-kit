@@ -26,8 +26,9 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -36,16 +37,16 @@ var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ./primitives.go,./execution.go,./math,./withdrawal.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ./pkg/bytes,./primitives.go,./execution.go,./pkg/math,./withdrawal.go,./pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     Bytes32          `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  Bytes32          `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	StateRoot     bytes.B32        `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  bytes.B32        `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 	LogsBloom     []byte           `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        Bytes32          `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Random        bytes.B32        `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 	Number        math.U64         `json:"blockNumber"                  gencodec:"required"`
 	GasLimit      math.U64         `json:"gasLimit"                     gencodec:"required"`
 	GasUsed       math.U64         `json:"gasUsed"                      gencodec:"required"`
@@ -92,12 +93,12 @@ func (d *ExecutableDataDeneb) GetFeeRecipient() ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() Bytes32 {
+func (d *ExecutableDataDeneb) GetStateRoot() bytes.B32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() Bytes32 {
+func (d *ExecutableDataDeneb) GetReceiptsRoot() bytes.B32 {
 	return d.ReceiptsRoot
 }
 
@@ -107,7 +108,7 @@ func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() Bytes32 {
+func (d *ExecutableDataDeneb) GetPrevRandao() bytes.B32 {
 	return d.Random
 }
 

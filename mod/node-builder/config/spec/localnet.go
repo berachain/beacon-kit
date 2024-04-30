@@ -27,8 +27,8 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	chain "github.com/berachain/beacon-kit/mod/primitives/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	chain "github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
 )
 

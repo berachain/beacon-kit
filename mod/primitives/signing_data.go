@@ -28,14 +28,14 @@ package primitives
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ./primitives.go,./bytes.go -output signing_data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ./primitives.go,./pkg/bytes -output signing_data.ssz.go
 type SigningData struct {
 	ObjectRoot Root   `ssz-size:"32"`
 	Domain     Domain `ssz-size:"32"`

@@ -25,7 +25,7 @@
 
 package primitives
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ./execution.go,./primitives.go,./bytes.go,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ./execution.go,./primitives.go,./pkg/bytes,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
 	DepositRoot Root `json:"depositRoot"  ssz-size:"32"`

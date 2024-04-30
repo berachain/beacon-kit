@@ -26,8 +26,8 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
@@ -45,11 +45,11 @@ type BuiltExecutionPayloadEnv interface {
 // BlobsBundle is an interface for the blobs bundle.
 type BlobsBundle interface {
 	// GetCommitments returns the commitments in the blobs bundle.
-	GetCommitments() []primitives.Commitment
+	GetCommitments() []eip4844.KZGCommitment
 	// GetProofs returns the proofs in the blobs bundle.
-	GetProofs() []primitives.Proof
+	GetProofs() []eip4844.KZGProof
 	// GetBlobs returns the blobs in the blobs bundle.
-	GetBlobs() []*primitives.Blob
+	GetBlobs() []*eip4844.Blob
 }
 
 // ExecutionPayloadEnvelope is a struct that holds the execution payload and

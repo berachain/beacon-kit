@@ -25,7 +25,7 @@
 
 package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/math"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 // SigVerificationFn is a function that verifies a signature.
 type SigVerificationFn func(pubkey, message, signature []byte) bool
@@ -34,7 +34,7 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./math/,./primitives.go,./bytes.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./pkg/math/,./primitives.go,./pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`

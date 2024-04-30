@@ -31,16 +31,16 @@ import (
 	"unsafe"
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
-	blob *primitives.Blob,
-	proof primitives.Proof,
-	commitment primitives.Commitment,
+	blob *eip4844.Blob,
+	proof eip4844.KZGProof,
+	commitment eip4844.KZGCommitment,
 ) error {
 	if valid, err := ckzg4844.VerifyBlobKZGProof(
 		(*ckzg4844.Blob)(blob),

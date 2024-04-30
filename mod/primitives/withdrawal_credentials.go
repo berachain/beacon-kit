@@ -25,12 +25,14 @@
 
 package primitives
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+
 // EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
 const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
-type WithdrawalCredentials Bytes32
+type WithdrawalCredentials bytes.B32
 
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
@@ -57,19 +59,19 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*Bytes32)(wc).UnmarshalJSON(input)
+	return (*bytes.B32)(wc).UnmarshalJSON(input)
 }
 
 // String returns the hex string representation of Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) String() string {
-	return Bytes32(wc).String()
+	return bytes.B32(wc).String()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
-	return Bytes32(wc).MarshalText()
+	return bytes.B32(wc).MarshalText()
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.

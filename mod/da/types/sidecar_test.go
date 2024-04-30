@@ -30,14 +30,15 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/types"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSidecarMarshalling(t *testing.T) {
 	// Create a sample BlobSidecar
-	blob := primitives.Blob{}
+	blob := eip4844.Blob{}
 	for i := range blob {
 		blob[i] = byte(i % 256)
 	}

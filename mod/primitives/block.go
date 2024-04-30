@@ -26,13 +26,13 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ./math,./primitives.go,./header.go,./payload.go,./withdrawal.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ./pkg/math,./primitives.go,./header.go,./payload.go,./withdrawal.go,./pkg/eip4844,./pkg/bytes,./eth1data.go,./pkg/math,./execution.go,./deposit.go,./withdrawal_credentials.go,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
 	BeaconBlockHeaderBase

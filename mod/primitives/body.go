@@ -29,8 +29,10 @@ import (
 	"errors"
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
-	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 const (
@@ -75,7 +77,7 @@ func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyBase) GetGraffiti() Bytes32 {
+func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 	return b.Graffiti
 }
 
@@ -92,7 +94,7 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./primitives.go,./payload.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./primitives.go,./payload.go,./pkg/eip4844,./pkg/bytes,./eth1data.go,./pkg/math,./execution.go,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 
@@ -100,7 +102,7 @@ type BeaconBlockBodyDeneb struct {
 	ExecutionPayload *ExecutableDataDeneb
 
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments []Commitment `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []eip4844.KZGCommitment `ssz-size:"?,48" ssz-max:"16"`
 }
 
 // IsNil checks if the BeaconBlockBodyDeneb is nil.
@@ -126,14 +128,16 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() Commitments {
+//
+//nolint:lll // annoying to fix.
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() eip4844.KZGCommitments[ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
-	commitments Commitments,
+	commitments eip4844.KZGCommitments[ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }

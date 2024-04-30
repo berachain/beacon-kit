@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -105,7 +106,7 @@ func (s *Eth1Client) GetPayloadV3(
 	result := &engineprimitives.ExecutionPayloadEnvelope[
 		*primitives.ExecutableDataDeneb,
 		*engineprimitives.BlobsBundleV1[
-			primitives.Commitment, primitives.Proof, primitives.Blob,
+			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 		],
 	]{}
 	if err := s.Client.Client().CallContext(

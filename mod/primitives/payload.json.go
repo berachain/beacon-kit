@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -18,10 +19,10 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutableDataDeneb struct {
 		ParentHash    common.Hash     `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  common.Address  `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     Bytes32         `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  Bytes32         `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+		StateRoot     bytes.B32       `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+		ReceiptsRoot  bytes.B32       `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 		LogsBloom     hexutil.Bytes   `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        Bytes32         `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+		Random        bytes.B32       `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 		Number        math.U64        `json:"blockNumber"                  gencodec:"required"`
 		GasLimit      math.U64        `json:"gasLimit"                     gencodec:"required"`
 		GasUsed       math.U64        `json:"gasUsed"                      gencodec:"required"`
@@ -65,10 +66,10 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutableDataDeneb struct {
 		ParentHash    *common.Hash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  *common.Address `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     *Bytes32        `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  *Bytes32        `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+		StateRoot     *bytes.B32      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+		ReceiptsRoot  *bytes.B32      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 		LogsBloom     *hexutil.Bytes  `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        *Bytes32        `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+		Random        *bytes.B32      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 		Number        *math.U64       `json:"blockNumber"                  gencodec:"required"`
 		GasLimit      *math.U64       `json:"gasLimit"                     gencodec:"required"`
 		GasUsed       *math.U64       `json:"gasUsed"                      gencodec:"required"`
