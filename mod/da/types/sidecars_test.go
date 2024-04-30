@@ -88,8 +88,10 @@ func TestValidateBlockRoots(t *testing.T) {
 		Index: 0,
 		Blob:  primitives.Blob{},
 		BeaconBlockHeader: &primitives.BeaconBlockHeader{
-			StateRoot: [32]byte{1},
-			BodyRoot:  [32]byte{2},
+			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+				StateRoot: [32]byte{1},
+			},
+			BodyRoot: [32]byte{2},
 		},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),
@@ -119,8 +121,10 @@ func TestValidateBlockRoots(t *testing.T) {
 		Index: 0,
 		Blob:  primitives.Blob{},
 		BeaconBlockHeader: &primitives.BeaconBlockHeader{
-			StateRoot: [32]byte{},
-			BodyRoot:  [32]byte{},
+			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+				StateRoot: [32]byte{1},
+			},
+			BodyRoot: [32]byte{3},
 		},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),

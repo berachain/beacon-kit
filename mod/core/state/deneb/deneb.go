@@ -63,11 +63,13 @@ func DefaultBeaconState() (*BeaconState, error) {
 			Epoch: 0,
 		},
 		LatestBlockHeader: &primitives.BeaconBlockHeader{
-			Slot:          0,
-			ProposerIndex: 0,
-			ParentRoot:    primitives.Root{},
-			StateRoot:     primitives.Root{},
-			BodyRoot:      primitives.Root{},
+			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+				Slot:            0,
+				ProposerIndex:   0,
+				ParentBlockRoot: primitives.Root{},
+				StateRoot:       primitives.Root{},
+			},
+			BodyRoot: primitives.Root{},
 		},
 		BlockRoots:                   make([]primitives.Root, 8),
 		StateRoots:                   make([]primitives.Root, 8),
