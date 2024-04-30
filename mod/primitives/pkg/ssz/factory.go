@@ -35,9 +35,14 @@ import (
 // Serializable defines a type which can marshal/unmarshal and compute its
 // hash tree root according to the Simple Serialize specification.
 // See: https://github.com/ethereum/eth2.0-specs/blob/v0.8.2/specs/simple-serialize.md.
+//
+//nolint:lll
 type Serializable interface {
+	//nolint:lll
 	// Root(val reflect.Value, typ reflect.Type, fieldName string, maxCapacity uint64) ([32]byte, error)
+	//nolint:lll
 	// Marshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
+	//nolint:lll
 	// Unmarshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
 }
 
@@ -109,7 +114,8 @@ const BasicArraySizeCache = 100000
 func newBasicArraySSZ() *basicArraySSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
-		NumCounters: BasicArraySizeCache, // number of keys to track frequency of (1M).
+		// number of keys to track frequency of (1M).
+		NumCounters: BasicArraySizeCache,
 		//nolint:mnd // explained in comment or not a magic number
 		MaxCost: 1 << 22, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
@@ -131,7 +137,8 @@ const BasicTypeCacheSize = 100000
 func newBasicSSZ() *basicSSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
-		NumCounters: BasicTypeCacheSize, // number of keys to track frequency of (100K).
+		// number of keys to track frequency of (100K).
+		NumCounters: BasicTypeCacheSize,
 		//nolint:mnd // explained in comment or not a magic number
 		MaxCost: 1 << 23, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
@@ -155,7 +162,8 @@ const RootsArraySizeCache = 100000
 func newRootsArraySSZ() *rootsArraySSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
-		NumCounters: RootsArraySizeCache, // number of keys to track frequency of (100000).
+		// number of keys to track frequency of (100000).
+		NumCounters: RootsArraySizeCache,
 		//nolint:mnd // explained in comment or not a magic number
 		MaxCost: 1 << 23, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.

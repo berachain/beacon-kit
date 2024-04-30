@@ -64,7 +64,9 @@ func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
 func isRootsArray(_ reflect.Value, typ reflect.Type) bool {
 	elemTyp := typ.Elem()
 	elemKind := elemTyp.Kind()
-	isByteArray := elemKind == reflect.Array && elemTyp.Elem().Kind() == reflect.Uint8
+	arrCheck := elemKind == reflect.Array
+	uintCheck := elemTyp.Elem().Kind() == reflect.Uint8
+	isByteArray := arrCheck && uintCheck
 	return isByteArray && elemTyp.Len() == 32
 }
 
@@ -223,10 +225,13 @@ func determineSizeSliceOrArray(val reflect.Value, typ reflect.Type) uint64 {
 func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 	fieldSizeTags, exists, err := parseSSZFieldTags(field)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse ssz struct field tags")
+		return nil, errors.Wrap(
+			err,
+			"could not parse ssz struct field tags")
 	}
 	if exists {
-		// If the field does indeed specify ssz struct tags, we infer the field's type.
+		// If the field does indeed specify ssz struct tags
+		// we infer the field's type.
 		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil
 	}
 	return field.Type, nil
@@ -254,7 +259,8 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	return sizes, true, nil
 }
 
-func inferFieldTypeFromSizeTags(field reflect.StructField, sizes []uint64) reflect.Type {
+func inferFieldTypeFromSizeTags(
+	field reflect.StructField, sizes []uint64) reflect.Type {
 	innerElement := field.Type.Elem()
 	for i := 1; i < len(sizes); i++ {
 		innerElement = innerElement.Elem()
