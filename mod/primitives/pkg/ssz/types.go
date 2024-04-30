@@ -46,3 +46,16 @@ type Composite[SpecT any, RootT ~[32]byte] interface {
 type Container[SpecT any, RootT ~[32]byte] interface {
 	Composite[SpecT, RootT]
 }
+
+type (
+	// Kind represents different types of SSZ'able data.
+	Kind uint8
+
+	// Type represents a SSZ type.
+	Type interface {
+		Kind() Kind
+	}
+)
+type GenericSSZType interface {
+	Type
+}
