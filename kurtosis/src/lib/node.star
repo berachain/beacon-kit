@@ -28,7 +28,8 @@ def collect_validator(plan, cl_service_name):
 def start(persistent_peers):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
-    set_config += '\nsed -i "s/^prometheus_listen_addr = ":26660"$/prometheus_listen_addr = "0.0.0.0:26660"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/localhost:6060/0.0.0.0:6060/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/:26660/0.0.0.0:26660/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     persistent_peers_option = ""
     if persistent_peers != "":
