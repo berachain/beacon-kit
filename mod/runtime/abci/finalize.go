@@ -71,10 +71,7 @@ func (h *Handler) FinalizeBlock(
 	// Processing the incoming beacon block and blobs.
 	stCopy := st.Copy()
 	if err = h.chainService.ProcessBeaconBlock(
-		ctx,
-		stCopy,
-		blk,
-		blobSideCars,
+		ctx, stCopy, blk, blobSideCars,
 	); err != nil {
 		logger.Warn(
 			"failed to receive beacon block",

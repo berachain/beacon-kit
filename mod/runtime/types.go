@@ -25,8 +25,19 @@
 
 package runtime
 
+import "context"
+
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
 type AppOptions interface {
 	Get(string) interface{}
+}
+
+// Service is a struct that can be registered into a ServiceRegistry for
+// easy dependency management.
+type Service interface {
+	// Start spawns any goroutines required by the service.
+	Start(ctx context.Context)
+	// Status returns error if the service is not considered healthy.
+	Status() error
 }
