@@ -27,29 +27,19 @@ package primitives
 
 import (
 	"errors"
-	stdmath "math"
-	"reflect"
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 )
 
-//nolint:gochecknoglobals // I'd prefer globals over magic numbers.
-var (
+const (
 	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
 	// struct.
-	//#nosec:G701 // realistically won't exceed 255 fields.
-	BodyLengthDeneb = uint8(reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField())
-
-	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
-	//#nosec:G701 // realistically won't exceed 255 fields.
-	LogBodyLengthDeneb = uint8(
-		stdmath.Ceil(stdmath.Log2(float64(BodyLengthDeneb))),
-	)
+	BodyLengthDeneb uint64 = 6
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)
+	KZGPositionDeneb = BodyLengthDeneb - 1
 )
 
 // BeaconBlockBodyBase represents the base body of a beacon block that is
