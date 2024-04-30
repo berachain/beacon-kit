@@ -59,20 +59,3 @@ type (
 type SSZTypeGeneric interface {
 	Type
 }
-
-const (
-	// KindUndefined is a sentinel zero value.
-	KindUndefined Kind = iota
-	// KindUInt is a SSZ int type, include byte.
-	KindUInt
-	// KindBool is a SSZ bool type.
-	KindBool
-	// KindBytes is a SSZ fixed or dynamic bytes type.
-	KindBytes
-	// KindVector is a SSZ vector.
-	KindVector
-	// KindList is a SSZ list.
-	KindList
-	// KindContainer is a SSZ container.
-	KindContainer
-)

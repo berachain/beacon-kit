@@ -79,13 +79,10 @@ func IsUintLike(typ reflect.Type) bool {
 	case reflect.Uint32:
 		isUintLike = true
 	case reflect.Uint64:
-		fmt.Println("u64")
 		isUintLike = true
 	default:
 		return isUintLike
 	}
-
-	fmt.Println(isUintLike)
 
 	return isUintLike
 }
