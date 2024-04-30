@@ -133,7 +133,6 @@ func (h *Handler) ProcessProposalHandler(
 		}, err
 	}
 
-	// return h.nextProcess(ctx, req)
 	return &cmtabci.ResponseProcessProposal{
 		Status: cmtabci.ResponseProcessProposal_ACCEPT,
 	}, nil

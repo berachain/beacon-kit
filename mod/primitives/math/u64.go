@@ -140,8 +140,11 @@ func (u U64) Unwrap() uint64 {
 //
 //nolint:mnd,lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
-	if u == ^(U64(0)) {
-		panic("U64 is already the maximum value")
+	if u == 0 {
+		return 1
+	}
+	if u > 1<<63 {
+		panic("Next power of 2 is 1 << 64.")
 	}
 	u--
 	u |= u >> 1
@@ -149,6 +152,7 @@ func (u U64) NextPowerOfTwo() U64 {
 	u |= u >> 4
 	u |= u >> 8
 	u |= u >> 16
+	u |= u >> 32
 	u++
 	return u
 }
