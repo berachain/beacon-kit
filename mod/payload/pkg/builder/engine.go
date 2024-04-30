@@ -28,8 +28,8 @@ package builder
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -41,8 +41,8 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 	st BeaconState,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
-	headEth1Hash primitives.ExecutionHash,
-) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
+	headEth1Hash common.ExecutionHash,
+) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, nil, err

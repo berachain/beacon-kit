@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
@@ -42,7 +43,7 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cs     primitives.ChainSpec
-	signer primitives.BLSSigner
+	signer crypto.BLSSigner
 	logger log.Logger[any]
 }
 
@@ -124,16 +125,16 @@ func (p *Processor) ProcessRandao(
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
 	st state.BeaconState,
-) (primitives.BLSSignature, error) {
+) (crypto.BLSSignature, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 
 	// Get the current epoch.
 	slot, err := st.GetSlot()
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 
 	return p.buildReveal(
@@ -167,10 +168,10 @@ func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 func (p *Processor) buildReveal(
 	genesisValidatorsRoot primitives.Root,
 	epoch math.Epoch,
-) (primitives.BLSSignature, error) {
+) (crypto.BLSSignature, error) {
 	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 	return p.signer.Sign(signingRoot[:])
 }
@@ -178,7 +179,7 @@ func (p *Processor) buildReveal(
 // buildMix builds a new mix from a given mix and reveal.
 func (p *Processor) buildMix(
 	mix primitives.Bytes32,
-	reveal primitives.BLSSignature,
+	reveal crypto.BLSSignature,
 ) primitives.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Sum256(reveal[:])

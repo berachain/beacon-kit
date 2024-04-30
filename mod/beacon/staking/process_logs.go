@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -74,10 +75,10 @@ func (s *Service) unpackDepositLog(
 	}
 
 	return primitives.NewDeposit(
-		primitives.BLSPubkey(d.Pubkey),
+		crypto.BLSPubkey(d.Pubkey),
 		primitives.WithdrawalCredentials(d.Credentials),
 		math.Gwei(d.Amount),
-		primitives.BLSSignature(d.Signature),
+		crypto.BLSSignature(d.Signature),
 		d.Index,
 	), nil
 }

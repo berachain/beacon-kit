@@ -23,16 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package common
 
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() BLSPubkey
+import (
+	"github.com/ethereum/go-ethereum/common"
+)
 
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (BLSSignature, error)
-}
+type (
+	// ExecutionAddress represents an address on the execution layer
+	// which is derived via secp256k1 w/recovery bit.
+	//
+	// Related: https://eips.ethereum.org/EIPS/eip-55
+	ExecutionAddress = common.Address
+
+	// ExecutionHash represents a hash on the execution layer which is
+	// currently a Keccak256 hash.
+	ExecutionHash = common.Hash
+)
+
+//nolint:gochecknoglobals // alias.
+var (
+	HexToAddress   = common.HexToAddress
+	HexToHash      = common.HexToHash
+	Hex2BytesFixed = common.Hex2BytesFixed
+)

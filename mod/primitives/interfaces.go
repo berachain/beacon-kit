@@ -27,6 +27,8 @@ package primitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
@@ -43,15 +45,15 @@ type ExecutionPayloadBody interface {
 	Version() uint32
 	IsBlinded() bool
 	GetPrevRandao() Bytes32
-	GetBlockHash() ExecutionHash
-	GetParentHash() ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() ExecutionAddress
+	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() Bytes32
 	GetReceiptsRoot() Bytes32
 	GetLogsBloom() []byte
@@ -77,7 +79,7 @@ type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(ExecutionPayload) error
-	SetBlobKzgCommitments(eip4844.KZGCommitments[ExecutionHash])
+	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
@@ -92,9 +94,9 @@ type ReadOnlyBeaconBlockBody interface {
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
-	GetRandaoReveal() BLSSignature
+	GetRandaoReveal() crypto.BLSSignature
 	GetExecutionPayload() ExecutionPayload
-	GetBlobKzgCommitments() eip4844.KZGCommitments[ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 

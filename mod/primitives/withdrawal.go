@@ -26,6 +26,7 @@
 package primitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -33,12 +34,12 @@ import (
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ./pkg/math,./execution.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ./pkg/math,./pkg/common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     math.U64            `json:"index"`
-	Validator math.ValidatorIndex `json:"validatorIndex"`
-	Address   ExecutionAddress    `json:"address"        ssz-size:"20"`
-	Amount    math.Gwei           `json:"amount"`
+	Index     math.U64                `json:"index"`
+	Validator math.ValidatorIndex     `json:"validatorIndex"`
+	Address   common.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Amount    math.Gwei               `json:"amount"`
 }
 
 // Equals returns true if the Withdrawal is equal to the other.

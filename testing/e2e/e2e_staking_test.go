@@ -201,7 +201,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 // 	s.Require().NoError(err)
 
 // 	msg := beacontypes.DepositMessage{
-// 		Pubkey:      primitives.BLSPubkey(nodePubkey),
+// 		Pubkey:      crypto.BLSSignaturePubkey(nodePubkey),
 // 		Credentials: beacontypes.WithdrawalCredentials(credentials),
 // 		Amount:      math.Gwei(32 * suite.OneGwei),
 // 	}
