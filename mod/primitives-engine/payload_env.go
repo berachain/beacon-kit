@@ -48,7 +48,7 @@ type BlobsBundle interface {
 	// GetCommitments returns the commitments in the blobs bundle.
 	GetCommitments() []primitives.Commitment
 	// GetProofs returns the proofs in the blobs bundle.
-	GetProofs() []eip4844.Proof
+	GetProofs() []eip4844.KZGProof
 	// GetBlobs returns the blobs in the blobs bundle.
 	GetBlobs() []*eip4844.Blob
 }

@@ -29,7 +29,7 @@ import (
 	"math/big"
 
 	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"

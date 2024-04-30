@@ -106,7 +106,7 @@ func (s *Eth1Client) GetPayloadV3(
 	result := &engineprimitives.ExecutionPayloadEnvelope[
 		*primitives.ExecutableDataDeneb,
 		*engineprimitives.BlobsBundleV1[
-			primitives.Commitment, eip4844.Proof, eip4844.Blob,
+			primitives.Commitment, eip4844.KZGProof, eip4844.Blob,
 		],
 	]{}
 	if err := s.Client.Client().CallContext(

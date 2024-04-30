@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"
 )

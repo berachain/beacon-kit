@@ -28,7 +28,7 @@ package primitives
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

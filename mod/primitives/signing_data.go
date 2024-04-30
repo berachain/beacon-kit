@@ -28,7 +28,7 @@ package primitives
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.

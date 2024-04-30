@@ -42,7 +42,7 @@ type BlobProofVerifier interface {
 	// commitment.
 	VerifyBlobProof(
 		blob *eip4844.Blob,
-		proof primitives.Proof,
+		proof eip4844.KZGProof,
 		commitment primitives.Commitment,
 	) error
 
@@ -89,7 +89,7 @@ func ArgsFromSidecars(
 ) *prooftypes.BlobProofArgs {
 	proofArgs := &prooftypes.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(scs.Sidecars)),
-		Proofs:      make([]primitives.Proof, len(scs.Sidecars)),
+		Proofs:      make([]eip4844.KZGProof, len(scs.Sidecars)),
 		Commitments: make([]primitives.Commitment, len(scs.Sidecars)),
 	}
 	for i, sidecar := range scs.Sidecars {

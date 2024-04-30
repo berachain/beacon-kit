@@ -40,7 +40,7 @@ import (
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
 	blob *eip4844.Blob,
-	proof primitives.Proof,
+	proof eip4844.KZGProof,
 	commitment primitives.Commitment,
 ) error {
 	if valid, err := ckzg4844.VerifyBlobKZGProof(

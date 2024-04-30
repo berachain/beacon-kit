@@ -27,7 +27,7 @@ package signer
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/cometbft/cometbft/p2p"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"

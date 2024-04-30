@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
 

@@ -35,7 +35,7 @@ type BlobProofArgs struct {
 	// Blob is the blob.
 	Blobs []*eip4844.Blob
 	// Proof is the KZG proof.
-	Proofs []primitives.Proof
+	Proofs []eip4844.KZGProof
 	// Commitment is the KZG commitment.
 	Commitments []primitives.Commitment
 }

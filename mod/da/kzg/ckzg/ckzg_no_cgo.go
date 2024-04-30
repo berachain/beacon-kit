@@ -36,7 +36,7 @@ import (
 // VerifyBlobProof will error since cgo is not enabled.
 func (v Verifier) VerifyBlobProof(
 	*eip4844.Blob,
-	primitives.Proof,
+	eip4844.KZGProof,
 	primitives.Commitment,
 ) error {
 	return ErrCGONotEnabled

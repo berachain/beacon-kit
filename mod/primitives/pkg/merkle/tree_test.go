@@ -29,7 +29,7 @@ import (
 	"strconv"
 	"testing"
 
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/stretchr/testify/require"
 )

@@ -29,13 +29,10 @@ import (
 	"crypto/sha256"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/gohashtree"
 )
-
-// A KZG proof is a 48-byte slice.
-type Proof = Bytes48
 
 // Commitments represents a slice of KZG commitments.
 type Commitments []Commitment

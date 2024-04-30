@@ -30,7 +30,7 @@ import (
 	"reflect"
 	"testing"
 
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
 func TestSafeCopy(t *testing.T) {

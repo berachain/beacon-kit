@@ -52,7 +52,7 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
 	blob *eip4844.Blob,
-	proof eip4844.Proof,
+	proof eip4844.KZGProof,
 	commitment primitives.Commitment,
 ) error {
 	return v.Context.
