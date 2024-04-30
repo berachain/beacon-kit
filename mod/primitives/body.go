@@ -28,7 +28,6 @@ package primitives
 import (
 	"errors"
 	stdmath "math"
-	"reflect"
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -40,7 +39,7 @@ var (
 	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
 	// struct.
 	//#nosec:G701 // realistically won't exceed 255 fields.
-	BodyLengthDeneb = uint8(reflect.TypeOf(BeaconBlockBodyDeneb{}).NumField())
+	BodyLengthDeneb = 6
 
 	// LogBodyLengthDeneb is the Log_2 of BodyLength (6).
 	//#nosec:G701 // realistically won't exceed 255 fields.
