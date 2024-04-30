@@ -27,33 +27,49 @@ package primitives
 
 import "github.com/berachain/beacon-kit/mod/primitives/math"
 
+// BeaconBlockHeaderBase represents the base of a beacon block header.
+type BeaconBlockHeaderBase struct {
+	// Slot represents the position of the block in the chain.
+	// TODO: Put back to math.Slot after fastssz fixes.
+	Slot uint64
+
+	// ProposerIndex is the index of the validator who proposed the block.
+	// TODO: Put back to math.ProposerIndex after fastssz fixes.
+	ProposerIndex uint64
+
+	// ParentBlockRoot is the hash of the parent block
+	ParentBlockRoot Root
+
+	// StateRoot is the hash of the state at the block.
+	StateRoot Root
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlockHeaderBase) GetSlot() math.Slot {
+	return math.Slot(b.Slot)
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
+	return math.ValidatorIndex(b.ProposerIndex)
+}
+
+// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
+func (b *BeaconBlockHeaderBase) GetParentBlockRoot() Root {
+	return b.ParentBlockRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockHeaderBase) GetStateRoot() Root {
+	return b.StateRoot
+}
+
 // BeaconBlockHeader is the header of a beacon block.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ./primitives.go,./math,./bytes.go,./math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
-	// Slot is the slot number of the block.
-	Slot math.Slot `json:"slot"`
-	// ProposerIndex is the index of the proposer of the block.
-	ProposerIndex math.ValidatorIndex `json:"proposerIndex"`
-	// ParentRoot is the root of the parent block.
-	ParentRoot Root `json:"parentRoot"    ssz-size:"32"`
-	// StateRoot is the root of the beacon state after executing
-	// the block. Will be 0x00...00 prior to execution.
-	StateRoot Root `json:"stateRoot"     ssz-size:"32"`
+	// BeaconBlockHeaderBase is the base of the block.
+	BeaconBlockHeaderBase
 	// 	// BodyRoot is the root of the block body.
-	BodyRoot Root `json:"bodyRoot"      ssz-size:"32"`
+	BodyRoot Root `json:"bodyRoot"`
 }
-
-// // HashTreeRoot ssz hashes the BeaconBlockHeader object
-// func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
-// 	x, err := ssz.MerkleizeContainer[U64](b)
-// 	if err != nil {
-// 		return [32]byte{}, err
-// 	}
-// 	y, _ := fssz.HashWithDefaultHasher(b)
-// 	if x != y {
-// 		fmt.Println("HashTreeRoot mismatch", Root(x), Root(y))
-// 		panic("HashTreeRoot mismatch")
-// 	}
-// 	return x, nil
-// }

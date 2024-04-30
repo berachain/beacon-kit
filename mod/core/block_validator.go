@@ -79,7 +79,7 @@ func (bv *BlockValidator) ValidateBlock(
 	}
 
 	// Ensure the block is within the acceptable range.
-	if blk.GetSlot() <= latestBlockHeader.Slot {
+	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
 		return fmt.Errorf(
 			"block slot is too low, expected: > %d, got: %d",
 			latestBlockHeader.Slot,

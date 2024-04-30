@@ -45,10 +45,10 @@ func NewBeaconBlock(
 	switch forkVersion {
 	case version.Deneb:
 		block = &primitives.BeaconBlockDeneb{
-			BeaconBlockBase: primitives.BeaconBlockBase{
+			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
 
-				Slot:            slot,
-				ProposerIndex:   proposerIndex,
+				Slot:            uint64(slot),
+				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: parentBlockRoot,
 				StateRoot:       stateRoot},
 			Body: &primitives.BeaconBlockBodyDeneb{

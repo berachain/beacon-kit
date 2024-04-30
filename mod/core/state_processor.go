@@ -274,14 +274,17 @@ func (sp *StateProcessor) processHeader(
 
 	// Store as the new latest block
 	headerRaw := &primitives.BeaconBlockHeader{
-		Slot:          header.Slot,
-		ProposerIndex: header.ProposerIndex,
-		ParentRoot:    header.ParentRoot,
-		// state_root is zeroed and overwritten in the next `process_slot` call.
-		// with BlockHeaderState.UpdateStateRoot(), once the post state is
-		// available.
-		StateRoot: [32]byte{},
-		BodyRoot:  header.BodyRoot,
+		BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+			Slot:            header.Slot,
+			ProposerIndex:   header.ProposerIndex,
+			ParentBlockRoot: header.ParentBlockRoot,
+			// state_root is zeroed and overwritten in the next `process_slot`
+			// call.
+			// with BlockHeaderState.UpdateStateRoot(), once the post state is
+			// available.
+			StateRoot: [32]byte{},
+		},
+		BodyRoot: header.BodyRoot,
 	}
 	return st.SetLatestBlockHeader(headerRaw)
 }

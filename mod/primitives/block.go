@@ -26,51 +26,16 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
 )
-
-type BeaconBlockBase struct {
-	// Slot represents the position of the block in the chain.
-	Slot math.Slot
-
-	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.ValidatorIndex
-
-	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot Root
-
-	// StateRoot is the hash of the state at the block.
-	StateRoot Root
-}
-
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockBase) GetSlot() math.Slot {
-	return b.Slot
-}
-
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockBase) GetProposerIndex() math.ValidatorIndex {
-	return b.ProposerIndex
-}
-
-// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
-func (b *BeaconBlockBase) GetParentBlockRoot() Root {
-	return b.ParentBlockRoot
-}
-
-// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockBase) GetStateRoot() Root {
-	return b.StateRoot
-}
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ./primitives.go,./payload.go,./withdrawal.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ./math,./primitives.go,./header.go,./payload.go,./withdrawal.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
-	// BeaconBlockBase is the base of the BeaconBlockDeneb.
-	BeaconBlockBase
+	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
+	BeaconBlockHeaderBase
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
 	Body *BeaconBlockBodyDeneb
@@ -99,10 +64,11 @@ func (b BeaconBlockDeneb) GetHeader() *BeaconBlockHeader {
 	}
 
 	return &BeaconBlockHeader{
-		Slot:          b.GetSlot(),
-		ProposerIndex: b.ProposerIndex,
-		ParentRoot:    b.ParentBlockRoot,
-		StateRoot:     b.StateRoot,
-		BodyRoot:      bodyRoot,
+		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
+			Slot:            b.Slot,
+			ProposerIndex:   b.ProposerIndex,
+			ParentBlockRoot: b.ParentBlockRoot,
+			StateRoot:       b.StateRoot},
+		BodyRoot: bodyRoot,
 	}
 }
