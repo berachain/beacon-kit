@@ -77,7 +77,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         if: ${{ matrix.args == 'test-e2e' }}
-      - uses: debianmaster/actions-k3s@master
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
+      - name: Run a k8s cluster
+        uses: debianmaster/actions-k3s@master
         id: k3s
         with:
           version: 'latest'
