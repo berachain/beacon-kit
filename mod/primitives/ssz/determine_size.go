@@ -82,7 +82,8 @@ func isVariableSizeType(typ reflect.Type) bool {
 	case kind == reflect.Array:
 		return isVariableSizeType(typ.Elem())
 	case kind == reflect.Struct:
-		for i := 0; i < typ.NumField(); i++ {
+		n := typ.NumField()
+		for i := 0; i < n; i++ {
 			if strings.Contains(typ.Field(i).Name, "XXX_") {
 				continue
 			}
@@ -123,13 +124,15 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 		return uint64(val.Len())
 	case kind == reflect.Array || kind == reflect.Slice:
 		var num uint64
-		for i := 0; i < val.Len(); i++ {
+		n := val.Len()
+		for i := 0; i < n; i++ {
 			num += determineFixedSize(val.Index(i), typ.Elem())
 		}
 		return num
 	case kind == reflect.Struct:
 		totalSize := uint64(0)
-		for i := 0; i < typ.NumField(); i++ {
+		n := typ.NumField()
+		for i := range n {
 			if strings.Contains(typ.Field(i).Name, "XXX_") {
 				continue
 			}
@@ -163,7 +166,8 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 		return uint64(val.Len())
 	case kind == reflect.Slice || kind == reflect.Array:
 		totalSize := uint64(0)
-		for i := 0; i < val.Len(); i++ {
+		n := val.Len()
+		for i := range n {
 			varSize := DetermineSize(val.Index(i))
 			if isVariableSizeType(typ.Elem()) {
 				totalSize += varSize + BytesPerLengthOffset
@@ -223,7 +227,7 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	items := strings.Split(tag, ",")
 	sizes := make([]uint64, len(items))
 	var err error
-	for i := 0; i < len(items); i++ {
+	for i := range len(items) {
 		// If a field is unbounded, we mark it with a size of 0.
 		if items[i] == UnboundedSSZFieldSizeMarker {
 			sizes[i] = 0
