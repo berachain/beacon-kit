@@ -188,6 +188,8 @@ func (sp *StateProcessor) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err = sp.bv.VerifyBlobs(
 		sidecars,
+		// TODO: get the KZG offset per fork, this is currently
+		// hardcoded to deneb block body.
 		types.KZGOffset(sp.cs.MaxBlobCommitmentsPerBlock()),
 	); err != nil {
 		return err
