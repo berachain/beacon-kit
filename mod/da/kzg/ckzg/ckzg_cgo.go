@@ -31,7 +31,6 @@ import (
 	"unsafe"
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
@@ -41,7 +40,7 @@ import (
 func (v Verifier) VerifyBlobProof(
 	blob *eip4844.Blob,
 	proof eip4844.KZGProof,
-	commitment primitives.Commitment,
+	commitment eip4844.KZGCommitment,
 ) error {
 	if valid, err := ckzg4844.VerifyBlobKZGProof(
 		(*ckzg4844.Blob)(blob),

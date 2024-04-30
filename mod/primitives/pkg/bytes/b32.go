@@ -23,9 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eip4844
+package bytes
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import "github.com/ethereum/go-ethereum/common/hexutil"
 
-// A KZG proof is a 48-byte slice.
-type KZGProof = primitives.Bytes48
+// Bytes32 represents a 32-byte array.
+type Bytes32 [32]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
+func (h *Bytes32) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+// String returns the hex string representation of Bytes32.
+func (h Bytes32) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// HashTreeRoot returns the hash tree root of the Bytes32.
+func (h Bytes32) HashTreeRoot() ([32]byte, error) {
+	return h, nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
+func (h Bytes32) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
+func (h *Bytes32) UnmarshalText(text []byte) error {
+	return unmarshalTextHelper(h[:], text)
+}
+
+// SizeSSZ returns the size of its SSZ encoding in bytes.
+func (h Bytes32) SizeSSZ() int {
+	//nolint:mnd // vibes.
+	return 32
+}

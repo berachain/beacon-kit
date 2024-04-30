@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/kzg/gokzg"
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
 	"github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/cockroachdb/errors"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -43,7 +42,7 @@ type BlobProofVerifier interface {
 	VerifyBlobProof(
 		blob *eip4844.Blob,
 		proof eip4844.KZGProof,
-		commitment primitives.Commitment,
+		commitment eip4844.KZGCommitment,
 	) error
 
 	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
@@ -90,7 +89,7 @@ func ArgsFromSidecars(
 	proofArgs := &prooftypes.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(scs.Sidecars)),
 		Proofs:      make([]eip4844.KZGProof, len(scs.Sidecars)),
-		Commitments: make([]primitives.Commitment, len(scs.Sidecars)),
+		Commitments: make([]eip4844.KZGCommitment, len(scs.Sidecars)),
 	}
 	for i, sidecar := range scs.Sidecars {
 		proofArgs.Blobs[i] = &sidecar.Blob

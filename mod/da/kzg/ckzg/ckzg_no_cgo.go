@@ -29,7 +29,6 @@ package ckzg
 
 import (
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
@@ -37,7 +36,7 @@ import (
 func (v Verifier) VerifyBlobProof(
 	*eip4844.Blob,
 	eip4844.KZGProof,
-	primitives.Commitment,
+	eip4844.KZGCommitment,
 ) error {
 	return ErrCGONotEnabled
 }

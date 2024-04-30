@@ -99,7 +99,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,
-		n.VersionedHashes,
+		*(*[]common.Hash)(unsafe.Pointer(&n.VersionedHashes)),
 		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 	)
 	return err

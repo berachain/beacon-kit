@@ -26,8 +26,6 @@
 package da
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
@@ -126,9 +124,8 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 		[32]byte, [32]byte,
 	](
 		membersRoots,
-		//#nosec:G701 // NumField will never be negative
-		// nor exceed 2^64-1 in practice.
-		uint64(reflect.TypeOf(body).NumField()),
+		//nolint:mnd // TODO: do not hardcode body length.
+		5,
 	)
 	if err != nil {
 		return nil, err

@@ -23,18 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package eip4844
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-// BlobProofArgs represents the arguments for a blob proof.
-type BlobProofArgs struct {
-	// Blob is the blob.
-	Blobs []*eip4844.Blob
-	// Proof is the KZG proof.
-	Proofs []eip4844.KZGProof
-	// Commitment is the KZG commitment.
-	Commitments []eip4844.KZGCommitment
-}
+// A KZG proof is a 48-byte slice.
+type KZGProof = bytes.B48

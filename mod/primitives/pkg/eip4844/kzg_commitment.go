@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package eip4844
 
 import (
 	"crypto/sha256"
@@ -34,39 +34,15 @@ import (
 	"github.com/prysmaticlabs/gohashtree"
 )
 
-// Commitments represents a slice of KZG commitments.
-type Commitments []Commitment
-
-// ToVersionedHashes converts the commitments to a set of
-// versioned hashes. It is simplify a convenience method
-// for converting a slice of commitments to a slice of
-// versioned hashes.
-func (c Commitments) ToVersionedHashes() []ExecutionHash {
-	hashes := make([]ExecutionHash, len(c))
-	for i, bz := range c {
-		hashes[i] = bz.ToVersionedHash()
-	}
-	return hashes
-}
-
-// Leafify converts the commitments to a slice of leaves.
-func (c Commitments) Leafify() [][32]byte {
-	leaves := make([][32]byte, len(c))
-	for i, commitment := range c {
-		leaves[i] = commitment.ToHashChunks()[0]
-	}
-	return leaves
-}
-
-// Commitment is a KZG commitment.
-type Commitment [48]byte
+// KZGCommitment is a KZG commitment.
+type KZGCommitment [48]byte
 
 // ToVersionedHash converts this KZG commitment into a versioned hash
 // as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#kzg_commitment_to_versioned_hash
 //
 //nolint:lll
-func (c Commitment) ToVersionedHash() ExecutionHash {
+func (c KZGCommitment) ToVersionedHash() [32]byte {
 	hash := sha256.Sum256(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
@@ -75,7 +51,7 @@ func (c Commitment) ToVersionedHash() ExecutionHash {
 }
 
 // ToHashChunks converts this KZG commitment into a set of hash chunks.
-func (c Commitment) ToHashChunks() [][32]byte {
+func (c KZGCommitment) ToHashChunks() [][32]byte {
 	chunks := make([][32]byte, 2) //nolint:mnd // 2 chunks.
 	copy(chunks[0][:], c[:])
 	copy(chunks[1][:], c[constants.RootLength:])
@@ -84,17 +60,45 @@ func (c Commitment) ToHashChunks() [][32]byte {
 }
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c Commitment) HashTreeRoot() ([32]byte, error) {
+func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 	chunks := c.ToHashChunks()
 	return chunks[0], nil
 }
 
 // UnmarshalJSON parses a commitment in hex syntax.
-func (c *Commitment) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Commitment{}), input, c[:])
+func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(
+		reflect.TypeOf(KZGCommitment{}),
+		input,
+		c[:],
+	)
 }
 
 // MarshalText returns the hex representation of c.
-func (c Commitment) MarshalText() ([]byte, error) {
+func (c KZGCommitment) MarshalText() ([]byte, error) {
 	return hexutil.Bytes(c[:]).MarshalText()
+}
+
+// KZGCommitments represents a slice of KZG commitments.
+type KZGCommitments[HashT ~[32]byte] []KZGCommitment
+
+// ToVersionedHashes converts the commitments to a set of
+// versioned hashes. It is simplify a convenience method
+// for converting a slice of commitments to a slice of
+// versioned hashes.
+func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
+	hashes := make([]HashT, len(c))
+	for i, bz := range c {
+		hashes[i] = bz.ToVersionedHash()
+	}
+	return hashes
+}
+
+// Leafify converts the commitments to a slice of leaves.
+func (c KZGCommitments[HashT]) Leafify() [][32]byte {
+	leaves := make([][32]byte, len(c))
+	for i, commitment := range c {
+		leaves[i] = commitment.ToHashChunks()[0]
+	}
+	return leaves
 }

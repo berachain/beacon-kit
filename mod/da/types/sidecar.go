@@ -42,7 +42,7 @@ type BlobSidecar struct {
 	// Blob represents the blob data.
 	Blob eip4844.Blob
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment primitives.Commitment
+	KzgCommitment eip4844.KZGCommitment
 	// Kzg proof allows folr the verification of the KZG commitment.
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
@@ -59,7 +59,7 @@ func BuildBlobSidecar(
 	index uint64,
 	header *primitives.BeaconBlockHeader,
 	blob *eip4844.Blob,
-	commitment primitives.Commitment,
+	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
 	inclusionProof [][32]byte,
 ) *BlobSidecar {

@@ -29,7 +29,6 @@ import (
 	"unsafe"
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -53,7 +52,7 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 func (v Verifier) VerifyBlobProof(
 	blob *eip4844.Blob,
 	proof eip4844.KZGProof,
-	commitment primitives.Commitment,
+	commitment eip4844.KZGCommitment,
 ) error {
 	return v.Context.
 		VerifyBlobKZGProof(

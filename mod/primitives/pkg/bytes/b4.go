@@ -23,18 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package bytes
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-)
+import "github.com/ethereum/go-ethereum/common/hexutil"
 
-// BlobProofArgs represents the arguments for a blob proof.
-type BlobProofArgs struct {
-	// Blob is the blob.
-	Blobs []*eip4844.Blob
-	// Proof is the KZG proof.
-	Proofs []eip4844.KZGProof
-	// Commitment is the KZG commitment.
-	Commitments []eip4844.KZGCommitment
+// B4 represents a 4-byte array.
+type B4 [4]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for B4.
+func (h *B4) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+// String returns the hex string representation of B4.
+func (h B4) String() string {
+	return hexutil.Encode(h[:])
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for B4.
+func (h B4) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
+func (h *B4) UnmarshalText(text []byte) error {
+	return unmarshalTextHelper(h[:], text)
 }
