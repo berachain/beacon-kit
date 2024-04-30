@@ -25,38 +25,29 @@
 
 package bytes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-// B32 represents a 32-byte array.
-type B32 [32]byte
+// B96 represents a 96-byte array.
+type B96 [96]byte
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B32.
-func (h *B32) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON implements the json.Unmarshaler interface for Bytes96.
+func (h *B96) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
 }
 
-// String returns the hex string representation of B32.
-func (h B32) String() string {
+// String returns the hex string representation of Bytes96.
+func (h B96) String() string {
 	return hexutil.Encode(h[:])
 }
 
-// HashTreeRoot returns the hash tree root of the B32.
-func (h B32) HashTreeRoot() ([32]byte, error) {
-	return h, nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for B32.
-func (h B32) MarshalText() ([]byte, error) {
+// MarshalText implements the encoding.TextMarshaler interface for Bytes96.
+func (h B96) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B32.
-func (h *B32) UnmarshalText(text []byte) error {
+// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes96.
+func (h *B96) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
-}
-
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B32) SizeSSZ() int {
-	//nolint:mnd // vibes.
-	return 32
 }

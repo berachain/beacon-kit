@@ -26,6 +26,7 @@
 package primitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
@@ -90,7 +91,7 @@ type ReadOnlyBeaconBlockBody interface {
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
-	GetGraffiti() Bytes32
+	GetGraffiti() bytes.B32
 	GetRandaoReveal() BLSSignature
 	GetExecutionPayload() ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[ExecutionHash]

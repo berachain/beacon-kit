@@ -26,8 +26,6 @@
 package bytes
 
 import (
-	"fmt"
-
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -54,38 +52,4 @@ func (h B48) MarshalText() ([]byte, error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B48.
 func (h *B48) UnmarshalText(text []byte) error {
 	return unmarshalTextHelper(h[:], text)
-}
-
-// ------------------------------ Helpers ------------------------------
-
-// Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := hexutil.Bytes{}
-	if err := bz.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return fmt.Errorf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
-// Helper function to unmarshal text for various byte types.
-func unmarshalTextHelper(target []byte, text []byte) error {
-	bz := hexutil.Bytes{}
-	if err := bz.UnmarshalText(text); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return fmt.Errorf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
 }

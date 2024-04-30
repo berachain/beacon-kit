@@ -25,6 +25,22 @@
 
 package bytes
 
+import "github.com/ethereum/go-ethereum/common/hexutil"
+
+// MustFromHex returns the bytes represented by the given hex string.
+func MustFromHex(input string) []byte {
+	bz, err := FromHex(input)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// BytesFromHex returns the bytes represented by the given hex string.
+func FromHex(input string) ([]byte, error) {
+	return hexutil.Decode(input)
+}
+
 // SafeCopy creates a copy of the provided byte slice. If the input slice is
 // non-nil and has a length of 32 bytes, it assumes the slice represents a hash
 // and copies it into a fixed-size array before returning a slice of that array.

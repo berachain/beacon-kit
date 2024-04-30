@@ -29,6 +29,7 @@ import (
 	"errors"
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -76,7 +77,7 @@ func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyBase) GetGraffiti() Bytes32 {
+func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 	return b.Graffiti
 }
 
