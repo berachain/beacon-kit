@@ -65,7 +65,7 @@ func isRootsArray(_ reflect.Value, typ reflect.Type) bool {
 	elemTyp := typ.Elem()
 	elemKind := elemTyp.Kind()
 	isByteArray := elemKind == reflect.Array && elemTyp.Elem().Kind() == reflect.Uint8
-	return isByteArray && elemTyp.Len() == 32
+	return isByteArray && elemTyp.Len() == MakeMagicNumberMap()[32]
 }
 
 func isVariableSizeType(typ reflect.Type) bool {
@@ -105,17 +105,18 @@ func isVariableSizeType(typ reflect.Type) bool {
 
 func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
+	mndSkip := MakeMagicNumberMap()
 	switch {
 	case kind == reflect.Bool:
-		return 1
+		return uint64(mndSkip[1])
 	case kind == reflect.Uint8:
-		return 1
+		return uint64(mndSkip[1])
 	case kind == reflect.Uint16:
-		return 2
+		return uint64(mndSkip[2])
 	case kind == reflect.Uint32 || kind == reflect.Int32:
-		return 4
+		return uint64(mndSkip[4])
 	case kind == reflect.Uint64:
-		return 8
+		return uint64(mndSkip[8])
 	case kind == reflect.Array && typ.Elem().Kind() == reflect.Uint8:
 		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(typ.Len())
@@ -139,7 +140,7 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 			f := typ.Field(i)
 			fType, err := determineFieldType(f)
 			if err != nil {
-				return 0
+				return uint64(mndSkip[0])
 			}
 			totalSize += determineFixedSize(val.Field(i), fType)
 		}
@@ -151,7 +152,7 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 		}
 		return determineFixedSize(val.Elem(), typ.Elem())
 	default:
-		return 0
+		return uint64(mndSkip[0])
 	}
 }
 
