@@ -29,7 +29,7 @@ import (
 	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/storage/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 

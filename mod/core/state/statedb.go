@@ -33,7 +33,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/version"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 )
 
 type KVStore interface{}
