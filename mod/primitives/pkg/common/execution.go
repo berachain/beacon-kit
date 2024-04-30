@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package common
 
 import (
 	"github.com/ethereum/go-ethereum/common"
@@ -39,4 +39,11 @@ type (
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
+)
+
+//nolint:gochecknoglobals // alias.
+var (
+	HexToAddress   = common.HexToAddress
+	HexToHash      = common.HexToHash
+	Hex2BytesFixed = common.Hex2BytesFixed
 )

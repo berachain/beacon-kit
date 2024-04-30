@@ -36,8 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -218,8 +218,8 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 // It calls the eth_getLogs method via JSON-RPC.
 func (s *EngineClient) GetLogs(
 	ctx context.Context,
-	blockHash primitives.ExecutionHash,
-	addresses []primitives.ExecutionAddress,
+	blockHash common.ExecutionHash,
+	addresses []common.ExecutionAddress,
 ) ([]engineprimitives.Log, error) {
 	// Create a filter query for the block, to acquire all logs
 	// from contracts that we care about.

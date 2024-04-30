@@ -27,13 +27,14 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // PayloadAttributes is the attributes of a block payload.
 //
-//nolint:lll // struct tags.
+
 type PayloadAttributes[
 	Withdrawal SSZMarshallable,
 ] struct {
@@ -47,7 +48,7 @@ type PayloadAttributes[
 	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
 	// the execution client has a different fee recipient, it will typically
 	// ignore this value.
-	SuggestedFeeRecipient primitives.ExecutionAddress `json:"suggestedFeeRecipient"`
+	SuggestedFeeRecipient common.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
 	Withdrawals []Withdrawal `json:"withdrawals"`
@@ -65,7 +66,7 @@ func NewPayloadAttributes[
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
-	suggestedFeeReceipient primitives.ExecutionAddress,
+	suggestedFeeReceipient common.ExecutionAddress,
 	withdrawals []Withdrawal,
 	parentBeaconBlockRoot primitives.Root,
 ) (*PayloadAttributes[Withdrawal], error) {

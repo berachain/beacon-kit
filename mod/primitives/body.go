@@ -30,6 +30,7 @@ import (
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -131,14 +132,14 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 //
 //nolint:lll // annoying to fix.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() eip4844.KZGCommitments[ExecutionHash] {
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
-	commitments eip4844.KZGCommitments[ExecutionHash],
+	commitments eip4844.KZGCommitments[common.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }

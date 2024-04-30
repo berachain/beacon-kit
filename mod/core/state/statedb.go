@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -134,7 +135,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *primitives.Validator
 		balance           math.Gwei
-		withdrawalAddress primitives.ExecutionAddress
+		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]*primitives.Withdrawal, 0)
 	)
 

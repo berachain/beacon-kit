@@ -29,16 +29,15 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/mitchellh/mapstructure"
 )
 
 // StringToSliceHookFunc returns a DecodeHookFunc that converts
-// string to a `primitives.ExecutionAddresses` by parsing the string.
+// string to a `common.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
-		func(s string) (primitives.ExecutionAddress, error) {
+		func(s string) (common.ExecutionAddress, error) {
 			return common.HexToAddress(s), nil
 		},
 	)

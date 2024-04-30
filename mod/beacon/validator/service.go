@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -200,7 +201,7 @@ func (s *Service) RequestBestBlock(
 	body.SetEth1Data(&primitives.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
-		BlockHash:    primitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.
