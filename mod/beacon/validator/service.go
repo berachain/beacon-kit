@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -48,7 +49,7 @@ type Service struct {
 	chainSpec primitives.ChainSpec
 
 	// signer is used to retrieve the public key of this node.
-	signer primitives.BLSSigner
+	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[primitives.BeaconBlockBody]

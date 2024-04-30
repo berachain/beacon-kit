@@ -27,6 +27,7 @@ package primitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
@@ -92,7 +93,7 @@ type ReadOnlyBeaconBlockBody interface {
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
-	GetRandaoReveal() BLSSignature
+	GetRandaoReveal() crypto.BLSSignature
 	GetExecutionPayload() ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)

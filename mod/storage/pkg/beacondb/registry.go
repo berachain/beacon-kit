@@ -27,7 +27,7 @@ package beacondb
 
 import (
 	"cosmossdk.io/collections/indexes"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -75,7 +75,7 @@ func (kv *KVStore[
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) ValidatorIndexByPubkey(
-	pubkey primitives.BLSPubkey,
+	pubkey crypto.BLSPubkey,
 ) (math.ValidatorIndex, error) {
 	idx, err := kv.validators.Indexes.Pubkey.MatchExact(
 		kv.ctx,

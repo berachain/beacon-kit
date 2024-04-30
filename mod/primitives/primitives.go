@@ -61,12 +61,4 @@ type (
 	// ForkDigest as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = bytes.B4
-
-	// ValidatorIndex as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSPubkey = bytes.B48
-
-	// BLSSignature as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSSignature = bytes.B96
 )

@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +38,7 @@ import (
 func TestNewValidatorFromDeposit(t *testing.T) {
 	tests := []struct {
 		name                      string
-		pubkey                    primitives.BLSPubkey
+		pubkey                    crypto.BLSPubkey
 		withdrawalCredentials     primitives.WithdrawalCredentials
 		amount                    math.Gwei
 		effectiveBalanceIncrement math.Gwei

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -73,15 +74,15 @@ type LocalBuilder interface {
 type RandaoProcessor interface {
 	BuildReveal(
 		st state.BeaconState,
-	) (primitives.BLSSignature, error)
+	) (crypto.BLSSignature, error)
 	MixinNewReveal(
 		st state.BeaconState,
-		reveal primitives.BLSSignature,
+		reveal crypto.BLSSignature,
 	) error
 	VerifyReveal(
 		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
+		proposerPubkey crypto.BLSPubkey,
+		reveal crypto.BLSSignature,
 	) error
 }
 

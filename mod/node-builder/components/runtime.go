@@ -45,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
@@ -58,7 +59,7 @@ import (
 func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
-	signer primitives.BLSSigner,
+	signer crypto.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.

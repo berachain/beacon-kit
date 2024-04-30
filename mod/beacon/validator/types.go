@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -55,7 +56,7 @@ type DepositStore interface {
 type RandaoProcessor[BeaconStateT builder.BeaconState] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st BeaconStateT) (primitives.BLSSignature, error)
+	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for

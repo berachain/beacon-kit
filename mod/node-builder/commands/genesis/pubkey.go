@@ -32,6 +32,7 @@ import (
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -73,7 +74,7 @@ func AddPubkeyCmd() *cobra.Command {
 
 			// TODO: Should we do deposits here?
 			validator := primitives.NewValidatorFromDeposit(
-				primitives.BLSPubkey(valPubKey.Bytes()),
+				crypto.BLSPubkey(valPubKey.Bytes()),
 				primitives.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
@@ -86,7 +87,7 @@ func AddPubkeyCmd() *cobra.Command {
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir,
-					primitives.BLSPubkey(valPubKey.Bytes()).String())
+					crypto.BLSPubkey(valPubKey.Bytes()).String())
 				if err != nil {
 					return errors.Wrap(err, "failed to create output file path")
 				}
