@@ -39,21 +39,10 @@ func (h *Handler) FinalizeBlock(
 	ctx sdk.Context, req *cometabci.RequestFinalizeBlock,
 ) error {
 	logger := ctx.Logger().With("module", "pre-block")
-	st := h.chainService.BeaconState(ctx)
-
-	// Process the Slot.
-	if err := h.chainService.ProcessSlot(st); err != nil {
-		logger.Error("failed to process slot", "error", err)
-		return err
-	}
 
 	// Extract the beacon block from the ABCI request.
-	//
-	// TODO: Block factory struct?
-	// TODO: Use protobuf and .(type)?
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
-
 		BeaconBlockTxIndex,
 		h.chainService.ChainSpec().ActiveForkVersionForSlot(
 			math.Slot(req.Height),
@@ -68,6 +57,14 @@ func (h *Handler) FinalizeBlock(
 		BlobSidecarsTxIndex,
 	)
 	if err != nil {
+		return err
+	}
+
+	st := h.chainService.BeaconState(ctx)
+
+	// Process the Slot.
+	if err = h.chainService.ProcessSlot(st); err != nil {
+		logger.Error("failed to process slot", "error", err)
 		return err
 	}
 

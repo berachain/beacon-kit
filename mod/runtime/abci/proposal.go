@@ -98,20 +98,7 @@ func (h *Handler) ProcessProposalHandler(
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// We have to keep a copy of beaconBz to re-inject it into the proposal
-	// after the underlying process proposal handler has run. This is to avoid
-	// making a copy of the entire request.
-	//
-	// TODO: there has to be a more friendly way to handle this, but hey it
-	// works.
-	if req == nil || req.Txs == nil || len(req.Txs) < 2 {
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
-		}, nil
-	}
-
-	// If the request is nil we can just accept the proposal and it'll slash the
-	// proposer.
+	// Unmarshal the beacon block from the abci request.
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req, BeaconBlockTxIndex,
 		h.chainService.ChainSpec().
@@ -124,7 +111,7 @@ func (h *Handler) ProcessProposalHandler(
 		)
 
 		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_ACCEPT,
+			Status: cmtabci.ResponseProcessProposal_REJECT,
 		}, nil
 	}
 
@@ -146,7 +133,6 @@ func (h *Handler) ProcessProposalHandler(
 		}, err
 	}
 
-	// return h.nextProcess(ctx, req)
 	return &cmtabci.ResponseProcessProposal{
 		Status: cmtabci.ResponseProcessProposal_ACCEPT,
 	}, nil
