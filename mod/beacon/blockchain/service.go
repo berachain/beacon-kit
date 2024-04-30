@@ -36,7 +36,7 @@ type Service struct {
 	ee  ExecutionEngine
 	lb  LocalBuilder
 	sks StakingService
-	bv  *core.BlockValidator
+	bv  *core.BlockVerifier
 	sp  *core.StateProcessor
-	pv  *core.PayloadValidator
+	pv  *core.PayloadVerifier
 }

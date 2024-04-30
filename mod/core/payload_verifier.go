@@ -33,21 +33,21 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// PayloadValidator is responsible for validating incoming execution
+// PayloadVerifier is responsible for verifying incoming execution
 // payloads to ensure they are valid.
-type PayloadValidator struct {
+type PayloadVerifier struct {
 	cs primitives.ChainSpec
 }
 
-// NewPayloadValidator creates a new payload validator.
-func NewPayloadValidator(cs primitives.ChainSpec) *PayloadValidator {
-	return &PayloadValidator{
+// NewPayloadVerifier creates a new payload validator.
+func NewPayloadVerifier(cs primitives.ChainSpec) *PayloadVerifier {
+	return &PayloadVerifier{
 		cs: cs,
 	}
 }
 
-// ValidatePayload validates the incoming payload.
-func (pv *PayloadValidator) ValidatePayload(
+// VerifyPayload verifies the incoming payload.
+func (pv *PayloadVerifier) VerifyPayload(
 	st state.BeaconState,
 	body types.BeaconBlockBody,
 ) error {
@@ -80,7 +80,7 @@ func (pv *PayloadValidator) ValidatePayload(
 		return err
 	}
 
-	// When we are validating a payload we expect that it was produced by
+	// When we are verifying a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
 		uint64(pv.cs.SlotToEpoch(slot)) % pv.cs.EpochsPerHistoricalVector())

@@ -124,7 +124,7 @@ func (h *Handler) ProcessProposalHandler(
 	// TODO: figure out a way to prevent newPayload from being called twiced as
 	// it will be called again
 	// in PreBlocker.
-	if err = h.chainService.ValidatePayloadOnBlk(ctx, blk); errors.Is(
+	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.Is(
 		err,
 		engineclient.ErrSyncingPayloadStatus,
 	) {

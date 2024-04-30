@@ -64,7 +64,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.ValidatePayload(st, blk.GetBody())
+		return s.pv.VerifyPayload(st, blk.GetBody())
 	})
 
 	// Validate block in Parallel.
@@ -152,8 +152,8 @@ func (s *Service) ValidateBlock(
 	)
 }
 
-// ValidatePayload validates the execution payload on the block.
-func (s *Service) ValidatePayloadOnBlk(
+// VerifyPayload validates the execution payload on the block.
+func (s *Service) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk primitives.ReadOnlyBeaconBlock,
 ) error {
@@ -167,7 +167,7 @@ func (s *Service) ValidatePayloadOnBlk(
 	}
 
 	// Call the standard payload validator.
-	if err := s.pv.ValidatePayload(
+	if err := s.pv.VerifyPayload(
 		s.BeaconState(ctx),
 		body,
 	); err != nil {
