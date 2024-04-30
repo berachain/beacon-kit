@@ -52,11 +52,9 @@ var (
 	KZGPositionDeneb = uint64(BodyLengthDeneb - 1)
 )
 
-// BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
-// chain.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./primitives.go,./payload.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
-type BeaconBlockBodyDeneb struct {
+// BeaconBlockBodyBase represents the base body of a beacon block that is
+// shared between all forks.
+type BeaconBlockBodyBase struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal BLSSignature `ssz-size:"96"`
 
@@ -68,6 +66,45 @@ type BeaconBlockBodyDeneb struct {
 
 	// Deposits is the list of deposits included in the body.
 	Deposits []*Deposit `ssz-max:"16"`
+}
+
+// GetRandaoReveal returns the RandaoReveal of the Body.
+func (b *BeaconBlockBodyBase) GetRandaoReveal() BLSSignature {
+	return b.RandaoReveal
+}
+
+// GetEth1Data returns the Eth1Data of the Body.
+func (b *BeaconBlockBodyBase) GetEth1Data() *Eth1Data {
+	return b.Eth1Data
+}
+
+// SetBlobKzgCommitments sets the BlobKzgCommitments of the
+// BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
+	b.Eth1Data = eth1Data
+}
+
+// GetGraffiti returns the Graffiti of the Body.
+func (b *BeaconBlockBodyBase) GetGraffiti() Bytes32 {
+	return b.Graffiti
+}
+
+// GetDeposits returns the Deposits of the BeaconBlockBodyBase.
+func (b *BeaconBlockBodyBase) GetDeposits() []*Deposit {
+	return b.Deposits
+}
+
+// SetDeposits sets the Deposits of the BeaconBlockBodyBase.
+func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
+	b.Deposits = deposits
+}
+
+// BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
+// chain.
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./primitives.go,./payload.go,./kzg.go,./bytes.go,./eth1data.go,./math,./execution.go,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+type BeaconBlockBodyDeneb struct {
+	BeaconBlockBodyBase
 
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutableDataDeneb
@@ -81,41 +118,9 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 	return b == nil
 }
 
-// GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() Commitments {
-	return b.BlobKzgCommitments
-}
-
-// GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyDeneb) GetGraffiti() Bytes32 {
-	return b.Graffiti
-}
-
-// GetRandaoReveal returns the RandaoReveal of the Body.
-func (b *BeaconBlockBodyDeneb) GetRandaoReveal() BLSSignature {
-	return b.RandaoReveal
-}
-
-// GetEth1Data returns the Eth1Data of the Body.
-func (b *BeaconBlockBodyDeneb) GetEth1Data() *Eth1Data {
-	return b.Eth1Data
-}
-
 // GetExecutionPayload returns the ExecutionPayload of the Body.
-//
-
 func (b *BeaconBlockBodyDeneb) GetExecutionPayload() ExecutionPayload {
 	return b.ExecutionPayload
-}
-
-// GetDeposits returns the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) GetDeposits() []*Deposit {
-	return b.Deposits
-}
-
-// SetDeposits sets the Deposits of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetDeposits(deposits []*Deposit) {
-	b.Deposits = deposits
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
@@ -130,18 +135,17 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	return nil
 }
 
+// GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
+func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() Commitments {
+	return b.BlobKzgCommitments
+}
+
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 	commitments Commitments,
 ) {
 	b.BlobKzgCommitments = commitments
-}
-
-// SetBlobKzgCommitments sets the BlobKzgCommitments of the
-// BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
-	b.Eth1Data = eth1Data
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.

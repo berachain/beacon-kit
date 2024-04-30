@@ -33,21 +33,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// BlockValidator is responsible for validating incoming
-// BeaconBlocks.
-type BlockValidator struct {
+// BlockVerifier is responsible for verifying incoming BeaconBlocks.
+type BlockVerifier struct {
 	cs primitives.ChainSpec
 }
 
-// NewBlockValidator creates a new block validator.
-func NewBlockValidator(cs primitives.ChainSpec) *BlockValidator {
-	return &BlockValidator{
+// NewBlockVerifier creates a new block validator.
+func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
+	return &BlockVerifier{
 		cs: cs,
 	}
 }
 
 // ValidateBlock validates the incoming block.
-func (bv *BlockValidator) ValidateBlock(
+func (bv *BlockVerifier) ValidateBlock(
 	st state.BeaconState,
 	blk primitives.ReadOnlyBeaconBlock,
 ) error {
@@ -79,7 +78,7 @@ func (bv *BlockValidator) ValidateBlock(
 	}
 
 	// Ensure the block is within the acceptable range.
-	if blk.GetSlot() <= latestBlockHeader.Slot {
+	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
 		return fmt.Errorf(
 			"block slot is too low, expected: > %d, got: %d",
 			latestBlockHeader.Slot,

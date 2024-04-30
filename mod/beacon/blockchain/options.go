@@ -38,9 +38,9 @@ func WithBaseService(base service.BaseService) service.Option[Service] {
 	}
 }
 
-// WithBlockValidator is a function that returns an Option.
-// It sets the BlockValidator of the Service to the provided Service.
-func WithBlockValidator(bv *core.BlockValidator) service.Option[Service] {
+// WithBlockVerifier is a function that returns an Option.
+// It sets the BlockVerifier of the Service to the provided Service.
+func WithBlockVerifier(bv *core.BlockVerifier) service.Option[Service] {
 	return func(s *Service) error {
 		s.bv = bv
 		return nil
@@ -65,8 +65,8 @@ func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
 	}
 }
 
-// WithPayloadValidator is a function that returns an Option.
-func WithPayloadValidator(pv *core.PayloadValidator) service.Option[Service] {
+// WithPayloadVerifier is a function that returns an Option.
+func WithPayloadVerifier(pv *core.PayloadVerifier) service.Option[Service] {
 	return func(s *Service) error {
 		s.pv = pv
 		return nil
