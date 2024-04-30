@@ -29,9 +29,6 @@ import (
 	"encoding/binary"
 )
 
-// bitsPerByte is the number of bits in a byte.
-const bitsPerByte = 8
-
 // ----------------------------- Unmarshal -----------------------------
 
 // UnmarshalU256 unmarshals a big endian U256 from the src input.
@@ -124,7 +121,7 @@ func UnmarshalBitList(bv []byte) []bool {
 		// empty []bool of len 0
 		return make([]bool, 0)
 	}
-	arrL := bitsPerByte*(len(bv)-1) + msbi
+	arrL := BitsPerByte*(len(bv)-1) + msbi
 	var newArray = make([]bool, arrL)
 
 	// use a bitmask to get the bit value from the byte for all bytes in the
@@ -133,13 +130,13 @@ func UnmarshalBitList(bv []byte) []bool {
 	// we use the pre-calculated array size using msbi to only read whats
 	// relevant
 	for j := range len(bv) {
-		limit := bitsPerByte
+		limit := BitsPerByte
 		if j == len(bv)-1 {
 			limit = msbi
 		}
 		for i := range limit {
 			val := ((bv[j] & (1 << i)) >> i)
-			newArray[(bitsPerByte*j)+i] = (val == 1)
+			newArray[(BitsPerByte*j)+i] = (val == 1)
 		}
 	}
 
@@ -220,11 +217,11 @@ func MarshalNull[T any](T) []byte {
 func MarshalBitVector(bv []bool) []byte {
 	// Calculate the necessary byte length to represent the bit vector.
 	//nolint:mnd // per spec.
-	array := make([]byte, (len(bv)+7)/bitsPerByte)
+	array := make([]byte, (len(bv)+7)/BitsPerByte)
 	for i, val := range bv {
 		if val {
 			// set the corresponding bit in the byte slice.
-			array[i/bitsPerByte] |= 1 << (i % bitsPerByte)
+			array[i/BitsPerByte] |= 1 << (i % BitsPerByte)
 		}
 	}
 	// Return the byte slice representation of the bit vector.
@@ -240,14 +237,14 @@ func MarshalBitVector(bv []bool) []byte {
 func MarshalBitList(bv []bool) []byte {
 	// Allocate enough bytes to represent the bit list, plus one for the end
 	// bit.
-	array := make([]byte, (len(bv)/bitsPerByte)+1)
+	array := make([]byte, (len(bv)/BitsPerByte)+1)
 	for i, val := range bv {
 		if val {
 			// Set the bit at the appropriate position if the boolean is true.
-			array[i/8] |= 1 << (i % bitsPerByte)
+			array[i/8] |= 1 << (i % BitsPerByte)
 		}
 	}
 	// Set the additional bit at the end.
-	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
+	array[len(bv)/8] |= 1 << (len(bv) % BitsPerByte)
 	return array
 }
