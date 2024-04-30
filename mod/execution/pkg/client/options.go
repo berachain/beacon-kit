@@ -23,59 +23,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package client
 
 import (
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
+	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/payload/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 )
 
-// Option is a functional option for the builder.
-type Option = func(*PayloadBuilder) error
+// Option is a function type that takes a pointer to an engineClient and returns
+// an error.
+type Option func(*EngineClient) error
 
-// WithChainSpec sets the chain spec.
-func WithChainSpec(chainSpec primitives.ChainSpec) Option {
-	return func(pb *PayloadBuilder) error {
-		pb.chainSpec = chainSpec
+// WithEngineConfig is a function that returns an Option.
+func WithEngineConfig(cfg *Config) Option {
+	return func(s *EngineClient) error {
+		s.cfg = cfg
 		return nil
 	}
 }
 
-// WithConfig sets the builder config.
-func WithConfig(cfg *Config) Option {
-	return func(pb *PayloadBuilder) error {
-		pb.cfg = cfg
+// WithEth1Client is a function that returns an Option.
+func WithEth1Client(eth1Client *eth.Eth1Client) Option {
+	return func(s *EngineClient) error {
+		s.Eth1Client = eth1Client
 		return nil
 	}
 }
 
-// WithLogger sets the logger.
+// WithJWTSecret is a function that returns an Option.
+func WithJWTSecret(secret *jwt.Secret) Option {
+	return func(s *EngineClient) error {
+		s.jwtSecret = secret
+		return nil
+	}
+}
+
+// WithLogger is an option to set the logger for the EngineClient.
 func WithLogger(logger log.Logger[any]) Option {
-	return func(pb *PayloadBuilder) error {
-		pb.logger = logger
+	return func(s *EngineClient) error {
+		s.logger = logger
 		return nil
 	}
 }
 
-// WithExecutionEngine sets the execution engine.
-func WithExecutionEngine(ee ExecutionEngine) Option {
-	return func(pb *PayloadBuilder) error {
-		pb.ee = ee
-		return nil
-	}
-}
-
-// WithPayloadCache sets the payload cache.
-func WithPayloadCache(
-	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
-	],
-) Option {
-	return func(pb *PayloadBuilder) error {
-		pb.pc = pc
+// WithCacheConfig is an option to create a new cache
+// with the given config for the EngineClient.
+func WithCacheConfig(config cache.Config) Option {
+	return func(s *EngineClient) error {
+		s.engineCache = cache.NewEngineCache(config)
 		return nil
 	}
 }

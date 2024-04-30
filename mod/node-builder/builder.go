@@ -36,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/deposit"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"

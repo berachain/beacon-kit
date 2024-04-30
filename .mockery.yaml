@@ -28,7 +28,7 @@ mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.go"
 outpkg: "mocks"
 packages:
-  github.com/berachain/beacon-kit/mod/execution/client/ethclient:
+  github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient:
     config:
       recursive: True
       with-expecter: true
@@ -43,7 +43,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage:
+  github.com/berachain/beacon-kit/mod/storage/pkg/interfaces:
     config:
       recursive: False
       with-expecter: true

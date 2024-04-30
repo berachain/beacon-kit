@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // BeaconStorageBackend is an interface that provides the

@@ -32,7 +32,7 @@ import (
 	"fmt"
 	"strconv"
 
-	db "github.com/berachain/beacon-kit/mod/storage"
+	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 // two is a constant for the number 2.

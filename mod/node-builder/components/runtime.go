@@ -37,12 +37,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/da/kzg"
-	"github.com/berachain/beacon-kit/mod/execution"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/builder"
-	"github.com/berachain/beacon-kit/mod/payload/cache"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -93,7 +93,7 @@ func ProvideRuntime(
 	}
 
 	// Build the execution engine.
-	executionEngine := execution.NewEngine(engineClient, logger)
+	executionEngine := execution.New(engineClient, logger)
 
 	// Build the staking service.
 	stakingService := service.New[staking.Service](

@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	core "github.com/berachain/beacon-kit/mod/core"
-	deposit "github.com/berachain/beacon-kit/mod/storage/deposit"
+	deposit "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 
 	mock "github.com/stretchr/testify/mock"
 

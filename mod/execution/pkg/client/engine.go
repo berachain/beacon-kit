@@ -28,7 +28,7 @@ package client
 import (
 	"context"
 
-	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
+	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/version"

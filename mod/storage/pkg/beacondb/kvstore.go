@@ -32,9 +32,9 @@ import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb/collections/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb/index"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

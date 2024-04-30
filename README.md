@@ -3,30 +3,36 @@
 [![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
 [![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
 
-**A modular and customizable consensus layer for Ethereum based blockchains**
+## A modular and customizable consensus layer for Ethereum based blockchains
 
-![](.github/assets/banner.png)
+![banner](.github/assets/banner.png)
 
 ## What is BeaconKit
 
-BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains. The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
+BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to
+create a flexible, customizable consensus layer tailored for Ethereum-based
+blockchains. The framework offers the most user-friendly way to build and
+operate an EVM blockchain, while ensuring a functionally identical execution
+environment to that of the Ethereum Mainnet.
 
-First there was EVM Compatibility; next, EVM Equivalence; and now with BeaconKit, **EVM Identicality**.
+First there was EVM Compatibility; next, EVM Equivalence; and now with
+BeaconKit, **EVM Identicality**.
 
-## Why BeaconKit?
+## Why BeaconKit
 
 TODO: Talk about Polaris / Ethermint compatibility issue.
 
 ## Supported Execution Clients
 
-Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine) BeaconKit is able to support all 6 major Ethereum execution clients:
+Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine)
+BeaconKit is able to support all 6 major Ethereum execution clients:
 
 - **Geth**: Official Go implementation of the Ethereum protocol.
-- **Erigon**: Formerly known as Turbo-Geth, it is a more performant and feature-rich Ethereum client forked from `go-ethereum`.
-- **Nethermind**: .NET based Ethereum client with full support for Ethereum and other blockchain protocols.
-- **Besu**: An enterprise-grade Ethereum client developed under the Apache 2.0 license and written in Java.
-- **Reth**: A Rust-based Ethereum client, focusing on performance and reliability.
-- **Ethereumjs**: A Javascript based Ethereum client managed by the Ethereum Foundation.
+- **Erigon**: More performant, feature-rich client forked from `go-ethereum`.
+- **Nethermind**: .NET based client with full support for Ethereum protocols.
+- **Besu**: Enterprise-grade client, Apache 2.0 licensed, written in Java.
+- **Reth**: Rust-based client focusing on performance and reliability.
+- **Ethereumjs**: Javascript based client managed by the Ethereum Foundation.
 
 ## Running a Local Development Network
 
@@ -52,5 +58,7 @@ make start
 make start-reth # or start-geth start-besu start-erigon start-nethermind start-ethereumjs
 ```
 
-The account with `private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306` corresponding
-with `address=0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4` is preloaded with the native EVM token.
+The account with
+`private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306`
+corresponding with `address=0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4` is
+preloaded with the native EVM token.
