@@ -23,9 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package beacon
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // BeaconBlockHeaderBase represents the base of a beacon block header.
 type BeaconBlockHeaderBase struct {
@@ -38,10 +41,10 @@ type BeaconBlockHeaderBase struct {
 	ProposerIndex uint64
 
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot Root
+	ParentBlockRoot primitives.Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot Root
+	StateRoot primitives.Root
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -55,12 +58,12 @@ func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetParentBlockRoot() Root {
+func (b *BeaconBlockHeaderBase) GetParentBlockRoot() primitives.Root {
 	return b.ParentBlockRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockHeaderBase) GetStateRoot() Root {
+func (b *BeaconBlockHeaderBase) GetStateRoot() primitives.Root {
 	return b.StateRoot
 }
 
@@ -71,5 +74,5 @@ type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
 	// 	// BodyRoot is the root of the block body.
-	BodyRoot Root `json:"bodyRoot"`
+	BodyRoot primitives.Root `json:"bodyRoot"`
 }

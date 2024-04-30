@@ -27,9 +27,11 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -41,9 +43,9 @@ type BeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits([]*primitives.Deposit)
-	SetEth1Data(*primitives.Eth1Data)
-	SetExecutionData(primitives.ExecutionPayload) error
+	SetDeposits([]*staking.Deposit)
+	SetEth1Data(*beacon.Eth1Data)
+	SetExecutionData(beacon.ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 }
 
@@ -56,11 +58,11 @@ type ReadOnlyBeaconBlockBody interface {
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() []*primitives.Deposit
-	GetEth1Data() *primitives.Eth1Data
+	GetDeposits() []*staking.Deposit
+	GetEth1Data() *beacon.Eth1Data
 	GetGraffiti() primitives.Bytes32
 	GetRandaoReveal() crypto.BLSSignature
-	GetExecutionPayload() primitives.ExecutionPayload
+	GetExecutionPayload() beacon.ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }

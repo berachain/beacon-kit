@@ -33,3 +33,5 @@ type (
 	Bytes48 = bytes.B48
 	Bytes96 = bytes.B96
 )
+
+type Bool bool

@@ -27,17 +27,17 @@ package staking
 
 import (
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 // ProcessBlockEvents processes the logs from the deposit contract.
 func (s *Service) ProcessBlockEvents(
 	logs []engineprimitives.Log,
 ) error {
-	var deposits []*primitives.Deposit
+	var deposits []*staking.Deposit
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
 		if log.Address != s.ChainSpec().DepositContractAddress() {
@@ -68,15 +68,15 @@ func (s *Service) ProcessBlockEvents(
 // Deposit struct.
 func (s *Service) unpackDepositLog(
 	log engineprimitives.Log,
-) (*primitives.Deposit, error) {
+) (*staking.Deposit, error) {
 	d := &abi.BeaconDepositContractDeposit{}
 	if err := s.abi.UnpackLogs(d, DepositEventName, log); err != nil {
 		return nil, err
 	}
 
-	return primitives.NewDeposit(
+	return staking.NewDeposit(
 		crypto.BLSPubkey(d.Pubkey),
-		primitives.WithdrawalCredentials(d.Credentials),
+		staking.WithdrawalCredentials(d.Credentials),
 		math.Gwei(d.Amount),
 		crypto.BLSSignature(d.Signature),
 		d.Index,

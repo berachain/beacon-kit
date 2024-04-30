@@ -23,14 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -44,7 +46,7 @@ type ExecutionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool
-	GetPrevRandao() Bytes32
+	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
@@ -54,8 +56,8 @@ type ExecutionPayloadBody interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() Bytes32
-	GetReceiptsRoot() Bytes32
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
@@ -65,7 +67,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []*staking.Withdrawal
 }
 
 // BeaconBlockBody is the interface for a beacon block body.
@@ -76,7 +78,7 @@ type BeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits([]*Deposit)
+	SetDeposits([]*staking.Deposit)
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -91,7 +93,7 @@ type ReadOnlyBeaconBlockBody interface {
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() []*Deposit
+	GetDeposits() []*staking.Deposit
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
 	GetRandaoReveal() crypto.BLSSignature
@@ -114,8 +116,8 @@ type ReadOnlyBeaconBlock interface {
 	Version() uint32
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() Root
-	GetStateRoot() Root
+	GetParentBlockRoot() primitives.Root
+	GetStateRoot() primitives.Root
 	GetBody() BeaconBlockBody
 	GetHeader() *BeaconBlockHeader
 }

@@ -33,6 +33,8 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -48,7 +50,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk beacon.ReadOnlyBeaconBlock,
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
@@ -145,7 +147,7 @@ func (s *Service) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service) ValidateBlock(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk beacon.ReadOnlyBeaconBlock,
 ) error {
 	return s.bv.ValidateBlock(
 		s.BeaconState(ctx), blk,
@@ -155,7 +157,7 @@ func (s *Service) ValidateBlock(
 // VerifyPayload validates the execution payload on the block.
 func (s *Service) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk beacon.ReadOnlyBeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
 		return beacontypes.ErrNilBlk
@@ -197,7 +199,7 @@ func (s *Service) VerifyPayloadOnBlk(
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk beacon.ReadOnlyBeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -253,7 +255,7 @@ func (s *Service) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = primitives.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = staking.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package beacon
 
 import (
 	"errors"
@@ -35,6 +35,7 @@ import (
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 const (
@@ -59,7 +60,7 @@ type BeaconBlockBodyBase struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `ssz-max:"16"`
+	Deposits []*staking.Deposit `ssz-max:"16"`
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
@@ -84,12 +85,12 @@ func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) GetDeposits() []*Deposit {
+func (b *BeaconBlockBodyBase) GetDeposits() []*staking.Deposit {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBodyBase) SetDeposits(deposits []*staking.Deposit) {
 	b.Deposits = deposits
 }
 
@@ -162,7 +163,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	// graffiti
 	layer[2] = b.GetGraffiti()
 
-	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
+	layer[3], err = staking.Deposits(b.GetDeposits()).HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

@@ -23,12 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package beacon
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -56,7 +57,7 @@ type ExecutableDataDeneb struct {
 	BaseFeePerGas math.Wei                `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     common.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal           `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals   []*staking.Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                `json:"excessBlobGas"`
 }
@@ -154,7 +155,7 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
+func (d *ExecutableDataDeneb) GetWithdrawals() []*staking.Withdrawal {
 	return d.Withdrawals
 }
 

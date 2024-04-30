@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -59,7 +59,7 @@ type BlobVerifier interface {
 type RandaoProcessor interface {
 	ProcessRandao(
 		state.BeaconState,
-		primitives.BeaconBlock,
+		beacon.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
 		state.BeaconState,

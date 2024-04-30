@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -46,13 +47,13 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
+	availabilityStore *da.Store[beacon.ReadOnlyBeaconBlock]
 	beaconStore       *beacondb.KVStore[
 		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
+		*beacon.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
-		*primitives.Eth1Data,
-		*primitives.Validator,
+		*beacon.Eth1Data,
+		*beacon.Validator,
 	]
 	depositStore *deposit.KVStore
 	cfg          primitives.ChainSpec
@@ -71,15 +72,15 @@ func NewKeeper(
 	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore[primitives.ReadOnlyBeaconBlock](
+		availabilityStore: da.NewStore[beacon.ReadOnlyBeaconBlock](
 			cfg, filedb.NewRangeDB(fdb),
 		),
 		beaconStore: beacondb.New[
 			*primitives.Fork,
-			*primitives.BeaconBlockHeader,
+			*beacon.BeaconBlockHeader,
 			engineprimitives.ExecutionPayloadHeader,
-			*primitives.Eth1Data,
-			*primitives.Validator,
+			*beacon.Eth1Data,
+			*beacon.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
 		cfg:          cfg,
 		depositStore: ddb,
@@ -139,7 +140,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Keeper) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
+) core.AvailabilityStore[beacon.ReadOnlyBeaconBlock] {
 	return k.availabilityStore
 }
 

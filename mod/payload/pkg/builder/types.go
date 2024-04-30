@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 type BeaconState interface {
@@ -58,7 +59,7 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*staking.Withdrawal, error)
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao

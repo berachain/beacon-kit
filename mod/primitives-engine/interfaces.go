@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -80,7 +81,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*primitives.Withdrawal
+	GetWithdrawals() []*staking.Withdrawal
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.

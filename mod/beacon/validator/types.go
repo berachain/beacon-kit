@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 // BlobFactory is the interface for building blobs.
@@ -50,7 +51,7 @@ type BlobFactory[BeaconBlockBodyT da.BeaconBlockBody] interface {
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*primitives.Deposit, error)
+	) ([]*staking.Deposit, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
