@@ -27,6 +27,7 @@ package da
 
 import (
 	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
@@ -122,20 +123,12 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 	}
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
-	](
-		membersRoots,
-		//nolint:mnd // TODO: do not hardcode body length.
-		5,
-	)
+	](membersRoots, primitives.BodyLengthDeneb-1)
 	if err != nil {
 		return nil, err
 	}
 
-	topProof, err := tree.MerkleProof(f.kzgPosition)
-	if err != nil {
-		return nil, err
-	}
-	return topProof, nil
+	return tree.MerkleProof(f.kzgPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.
