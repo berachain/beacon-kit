@@ -225,13 +225,3 @@ func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 	}
 	return chunks[0]
 }
-
-// The obvious solution is to stop using the go-mnd linter.
-// https://forum.golangbridge.org/t/how-to-solve-the-magic-number-linter-warning/20421
-func MakeMagicNumberMap() []int {
-	a := make([]int, 100)
-	for i := range 100 {
-		a = append(a, i)
-	}
-	return a
-}

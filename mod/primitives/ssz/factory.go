@@ -109,8 +109,8 @@ const BasicArraySizeCache = 100000
 func newBasicArraySSZ() *basicArraySSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
-		NumCounters: BasicArraySizeCache,           // number of keys to track frequency of (1M).
-		MaxCost:     1 << MakeMagicNumberMap()[22], // maximum cost of cache (3MB).
+		NumCounters: BasicArraySizeCache, // number of keys to track frequency of (1M).
+		MaxCost:     1 << 22,             // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
 		BufferItems: 64, // number of keys per Get buffer.
 	})
