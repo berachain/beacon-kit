@@ -49,7 +49,7 @@ func Factory(val reflect.Value, typ reflect.Type) (Serializable, error) {
 	// StructFactory exports an implementation of a interface
 	// containing helpers for marshaling/unmarshaling, and determining
 	// the hash tree root of struct values.
-	var StructFactory = newStructSSZ()
+	var structFactory = newStructSSZ()
 	var basicFactory = newBasicSSZ()
 	var basicArrayFactory = newBasicArraySSZ()
 	var rootsArrayFactory = newRootsArraySSZ()
@@ -85,7 +85,7 @@ func Factory(val reflect.Value, typ reflect.Type) (Serializable, error) {
 			return compositeArrayFactory, nil
 		}
 	case kind == reflect.Struct:
-		return StructFactory, nil
+		return structFactory, nil
 	case kind == reflect.Ptr:
 		return Factory(val.Elem(), typ.Elem())
 	default:
@@ -113,6 +113,7 @@ func newBasicArraySSZ() *basicArraySSZ {
 		//nolint:mnd // explained in comment or not a magic number
 		MaxCost: 1 << 22, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
+		//nolint:mnd // explained in comment or not a magic number
 		BufferItems: 64, // number of keys per Get buffer.
 	})
 	return &basicArraySSZ{

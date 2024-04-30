@@ -83,7 +83,7 @@ func isVariableSizeType(typ reflect.Type) bool {
 		return isVariableSizeType(typ.Elem())
 	case kind == reflect.Struct:
 		n := typ.NumField()
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if strings.Contains(typ.Field(i).Name, "XXX_") {
 				continue
 			}
@@ -107,10 +107,10 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
 	switch {
 	case kind == reflect.Bool:
-		//nolint:mnd // static mapped types
+
 		return 1
 	case kind == reflect.Uint8:
-		//nolint:mnd // static mapped types
+
 		return 1
 	case kind == reflect.Uint16:
 		//nolint:mnd // static mapped types
@@ -130,7 +130,7 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	case kind == reflect.Array || kind == reflect.Slice:
 		var num uint64
 		n := val.Len()
-		for i := 0; i < n; i++ {
+		for i := range n {
 			num += determineFixedSize(val.Index(i), typ.Elem())
 		}
 		return num
@@ -183,7 +183,7 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 		return totalSize
 	case kind == reflect.Struct:
 		totalSize := uint64(0)
-		for i := 0; i < typ.NumField(); i++ {
+		for i := range typ.NumField() {
 			if strings.Contains(typ.Field(i).Name, "XXX_") {
 				continue
 			}

@@ -64,7 +64,7 @@ type ISerializer interface {
 }
 
 func NewSerializer() Serializer {
-	return *new(Serializer)
+	return Serializer{}
 }
 
 func RouteUint(val reflect.Value, typ reflect.Type) []byte {
@@ -119,7 +119,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	switch k {
 	case reflect.Bool:
 		return MarshalBool(reflect.ValueOf(c).Interface().(bool)), nil
-	//TODO(Chibera): handle composite types. same algo for all 3
+	// TODO(Chibera): handle composite types. same algo for all 3
 	// case KindList:
 	// 	return true
 	// case KindVector:
