@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/cockroachdb/errors"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
@@ -187,7 +186,7 @@ func (s *EngineClient) handleRPCError(err error) error {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			authErrMsg := "HTTP authentication to your execution client " +
 				"is not working. Please ensure you are setting a correct " +
-				"value for the " + flags.JWTSecretPath +
+				"value for the JWT secret path" +
 				"is set correctly, or use an IPC " +
 				"connection if on the same machine."
 			s.logger.Error(authErrMsg)

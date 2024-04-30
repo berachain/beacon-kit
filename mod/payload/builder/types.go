@@ -49,12 +49,14 @@ type ReadOnlyValidators interface {
 
 // ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetLatestExecutionPayload() (engineprimitives.ExecutionPayload, error)
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader, error,
+	)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao

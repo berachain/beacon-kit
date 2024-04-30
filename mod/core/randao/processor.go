@@ -28,10 +28,8 @@ package randao
 import (
 	"fmt"
 
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
@@ -44,8 +42,8 @@ import (
 // Processor is the randao processor.
 type Processor struct {
 	cs     primitives.ChainSpec
-	signer core.BLSSigner
-	logger log.Logger
+	signer primitives.BLSSigner
+	logger log.Logger[any]
 }
 
 // NewProcessor creates a new randao processor.
@@ -65,7 +63,7 @@ func NewProcessor(
 // process_randao in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandao(
 	st state.BeaconState,
-	blk beacontypes.BeaconBlock,
+	blk primitives.BeaconBlock,
 ) error {
 	// proposer := blk.
 	slot, err := st.GetSlot()

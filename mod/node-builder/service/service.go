@@ -81,7 +81,8 @@ func (s *BaseService) Logger() log.Logger {
 // AvailabilityStore returns the availability store from the BaseService.
 func (s *BaseService) AvailabilityStore(
 	ctx context.Context,
-) core.AvailabilityStore {
+	// TODO: this is really bad coupling on the generic here.
+) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
 	return s.bsb.AvailabilityStore(ctx)
 }
 

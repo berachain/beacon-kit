@@ -29,26 +29,25 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/staking"
+	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/da/kzg"
 	"github.com/berachain/beacon-kit/mod/execution"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/builder"
 	"github.com/berachain/beacon-kit/mod/payload/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/services/blockchain"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking"
-	"github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
-	"github.com/berachain/beacon-kit/mod/validator"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -59,10 +58,11 @@ import (
 func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
-	signer runtime.BLSSigner,
+	signer primitives.BLSSigner,
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	bsb runtime.BeaconStorageBackend,
+	// TODO: this is really poor coupling, we should fix.
+	bsb runtime.BeaconStorageBackend[primitives.ReadOnlyBeaconBlock],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -78,7 +78,9 @@ func ProvideRuntime(
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
 		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(logger),
+		engineclient.WithLogger(
+			logger.With("module", "beacon-kit.engine.client"),
+		),
 	)
 
 	// TODO: move.
@@ -103,7 +105,9 @@ func ProvideRuntime(
 
 	// Build the local builder service.
 	localBuilder := service.New[payloadbuilder.PayloadBuilder](
-		payloadbuilder.WithLogger(logger.With("service", "payload-builder")),
+		payloadbuilder.WithLogger(
+			logger.With("service", "payload-builder"),
+		),
 		payloadbuilder.WithChainSpec(chainSpec),
 		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
 		payloadbuilder.WithExecutionEngine(executionEngine),
@@ -134,9 +138,9 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	blobFactory := da.NewSidecarFactory[types.BeaconBlockBody](
+	blobFactory := da.NewSidecarFactory[primitives.BeaconBlockBody](
 		chainSpec,
-		types.KZGPositionDeneb,
+		primitives.KZGPositionDeneb,
 	)
 	validatorService := validator.NewService(
 		validator.WithBlobFactory(blobFactory),
@@ -162,7 +166,7 @@ func ProvideRuntime(
 				chainSpec,
 				da.NewBlobVerifier(blobProofVerifier),
 				randaoProcessor,
-				logger,
+				logger.With("module", "state-processor"),
 			)),
 	)
 

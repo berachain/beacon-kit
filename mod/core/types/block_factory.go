@@ -40,22 +40,22 @@ func NewBeaconBlock(
 	stateRoot primitives.Root,
 	forkVersion uint32,
 	reveal primitives.BLSSignature,
-) (BeaconBlock, error) {
-	var block BeaconBlock
+) (primitives.BeaconBlock, error) {
+	var block primitives.BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlockDeneb{
+		block = &primitives.BeaconBlockDeneb{
 			Slot:            slot,
 			ProposerIndex:   proposerIndex,
 			ParentBlockRoot: parentBlockRoot,
 			StateRoot:       stateRoot,
-			Body: &BeaconBlockBodyDeneb{
+			Body: &primitives.BeaconBlockBodyDeneb{
 				RandaoReveal: reveal,
 				Graffiti:     [32]byte{},
 			},
 		}
 	default:
-		return nil, ErrForkVersionNotSupported
+		return block, ErrForkVersionNotSupported
 	}
 	return block, nil
 }
@@ -69,7 +69,7 @@ func EmptyBeaconBlock(
 	stateRoot primitives.Root,
 	version uint32,
 	reveal primitives.BLSSignature,
-) (BeaconBlock, error) {
+) (primitives.BeaconBlock, error) {
 	return NewBeaconBlock(
 		slot,
 		proposerIndex,
@@ -85,17 +85,17 @@ func EmptyBeaconBlock(
 func BeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion uint32,
-) (BeaconBlock, error) {
-	var block BeaconBlock
+) (primitives.BeaconBlock, error) {
+	var block primitives.BeaconBlockDeneb
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlockDeneb{}
+		_ = block
 	default:
-		return nil, ErrForkVersionNotSupported
+		return &block, ErrForkVersionNotSupported
 	}
 
 	if err := block.UnmarshalSSZ(bz); err != nil {
-		return nil, err
+		return &block, err
 	}
-	return block, nil
+	return &block, nil
 }

@@ -28,6 +28,7 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/ethereum/go-ethereum/common"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -58,28 +59,35 @@ type ExecutionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool
-	GetPrevRandao() [32]byte
-	GetBlockHash() primitives.ExecutionHash
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.Hash
 	GetParentHash() primitives.ExecutionHash
-	GetNumber() uint64
-	GetGasLimit() uint64
-	GetGasUsed() uint64
-	GetTimestamp() uint64
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() primitives.ExecutionAddress
-	GetStateRoot() primitives.ExecutionHash
-	GetReceiptsRoot() primitives.ExecutionHash
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
 	GetLogsBloom() []byte
-	GetBlobGasUsed() *uint64
-	GetExcessBlobGas() *uint64
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }
 
 // ExecutionPayload represents the execution data of a block.
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []*primitives.Withdrawal
+}
+
+// ExecutionPayloadHeader represents the execution header of a block.
+type ExecutionPayloadHeader interface {
+	ExecutionPayloadBody
+	GetTransactionsRoot() primitives.Root
+	GetWithdrawalsRoot() primitives.Root
 }
 
 // PayloadAttributer represents payload attributes of a block.

@@ -31,13 +31,6 @@ const Template = `
 ###                                BeaconKit                                ###
 ###############################################################################
 
-[beacon-kit.abci]
-# Position of the beacon block in the proposal
-beacon-block-proposal-position = {{.BeaconKit.ABCI.BeaconBlockPosition}}
-
-# Position of the blob sidecars in the proposal
-blob-sidecars-block-proposal-position = {{.BeaconKit.ABCI.BlobSidecarsBlockPosition}}
-
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"

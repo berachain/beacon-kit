@@ -36,6 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/beacondb"
 )
 
+type KVStore interface{}
+
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
@@ -43,7 +45,7 @@ type StateDB struct {
 	*beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	]
@@ -55,7 +57,7 @@ func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	],
@@ -128,12 +130,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 	var (
 		validator         *primitives.Validator
 		balance           math.Gwei
 		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
+		withdrawals       = make([]*primitives.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -179,7 +181,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &engineprimitives.Withdrawal{
+		withdrawal := &primitives.Withdrawal{
 			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
@@ -252,7 +254,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		}
 	}
 
-	latestExecutionPayload, err := s.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -308,8 +310,8 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	activeFork := s.cs.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
-		executionPayload, ok :=
-			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
+		executionPayloadHeader, ok :=
+			latestExecutionPayloadHeader.(*engineprimitives.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
@@ -321,7 +323,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			LatestExecutionPayload:       executionPayload,
+			LatestExecutionPayloadHeader: executionPayloadHeader,
 			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,

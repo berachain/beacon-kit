@@ -26,10 +26,10 @@
 package client
 
 import (
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
-	"github.com/berachain/beacon-kit/mod/node-builder/utils/jwt"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/net/jwt"
 )
 
 // Option is a function type that takes a pointer to an engineClient and returns
@@ -61,9 +61,9 @@ func WithJWTSecret(secret *jwt.Secret) Option {
 }
 
 // WithLogger is an option to set the logger for the EngineClient.
-func WithLogger(logger log.Logger) Option {
+func WithLogger(logger log.Logger[any]) Option {
 	return func(s *EngineClient) error {
-		s.logger = logger.With("module", "beacon-kit.engine.client")
+		s.logger = logger
 		return nil
 	}
 }

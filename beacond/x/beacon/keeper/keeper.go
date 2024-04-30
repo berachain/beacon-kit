@@ -46,11 +46,11 @@ import (
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
 type Keeper struct {
-	availabilityStore *da.Store
+	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
 	beaconStore       *beacondb.KVStore[
 		*primitives.Fork,
 		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
+		engineprimitives.ExecutionPayloadHeader,
 		*primitives.Eth1Data,
 		*primitives.Validator,
 	]
@@ -59,8 +59,8 @@ type Keeper struct {
 }
 
 // TODO: move this.
-func DenebPayloadFactory() engineprimitives.ExecutionPayload {
-	return &engineprimitives.ExecutableDataDeneb{}
+func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
+	return &engineprimitives.ExecutionPayloadHeaderDeneb{}
 }
 
 // NewKeeper creates new instances of the Beacon Keeper.
@@ -71,11 +71,13 @@ func NewKeeper(
 	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore(cfg, fdb),
+		availabilityStore: da.NewStore[primitives.ReadOnlyBeaconBlock](
+			cfg, filedb.NewRangeDB(fdb),
+		),
 		beaconStore: beacondb.New[
 			*primitives.Fork,
 			*primitives.BeaconBlockHeader,
-			engineprimitives.ExecutionPayload,
+			engineprimitives.ExecutionPayloadHeader,
 			*primitives.Eth1Data,
 			*primitives.Validator,
 		](env.KVStoreService, DenebPayloadFactory),
@@ -137,7 +139,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Keeper) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore {
+) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
 	return k.availabilityStore
 }
 

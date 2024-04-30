@@ -28,8 +28,8 @@ package e2e_test
 import (
 	"math/big"
 
+	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
-	stakingabi "github.com/berachain/beacon-kit/mod/runtime/services/staking/abi"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"

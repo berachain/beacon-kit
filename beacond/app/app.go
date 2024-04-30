@@ -117,15 +117,7 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Components.
-	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
-		app.Mempool(),
-		app,
-	)
-	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
-		defaultProposalHandler.
-			PrepareProposalHandler(),
-		defaultProposalHandler.ProcessProposalHandler(),
-	)
+	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents()
 
 	// Set all the newly built ABCI Components on the App.
 	app.SetPrepareProposal(prepare)
