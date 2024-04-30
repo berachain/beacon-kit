@@ -170,37 +170,9 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
 	case kind == reflect.Slice || kind == reflect.Array:
-		totalSize := uint64(0)
-		n := val.Len()
-		for i := range n {
-			varSize := DetermineSize(val.Index(i))
-			if isVariableSizeType(typ.Elem()) {
-				totalSize += varSize + BytesPerLengthOffset
-			} else {
-				totalSize += varSize
-			}
-		}
-		return totalSize
+		return determineSizeSliceOrArray(val, typ)
 	case kind == reflect.Struct:
-		totalSize := uint64(0)
-		for i := range typ.NumField() {
-			if strings.Contains(typ.Field(i).Name, "XXX_") {
-				continue
-			}
-			f := typ.Field(i)
-			fType, err := determineFieldType(f)
-			if err != nil {
-				return 0
-			}
-			if isVariableSizeType(fType) {
-				varSize := determineVariableSize(val.Field(i), fType)
-				totalSize += varSize + BytesPerLengthOffset
-			} else {
-				varSize := determineFixedSize(val.Field(i), fType)
-				totalSize += varSize
-			}
-		}
-		return totalSize
+		return determineSizeStruct(val, typ)
 	case kind == reflect.Ptr:
 		if val.IsNil() {
 			newElem := reflect.New(typ.Elem()).Elem()
@@ -210,6 +182,42 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 	default:
 		return 0
 	}
+}
+
+func determineSizeStruct(val reflect.Value, typ reflect.Type) uint64 {
+	totalSize := uint64(0)
+	for i := range typ.NumField() {
+		if strings.Contains(typ.Field(i).Name, "XXX_") {
+			continue
+		}
+		f := typ.Field(i)
+		fType, err := determineFieldType(f)
+		if err != nil {
+			return 0
+		}
+		if isVariableSizeType(fType) {
+			varSize := determineVariableSize(val.Field(i), fType)
+			totalSize += varSize + BytesPerLengthOffset
+		} else {
+			varSize := determineFixedSize(val.Field(i), fType)
+			totalSize += varSize
+		}
+	}
+	return totalSize
+}
+
+func determineSizeSliceOrArray(val reflect.Value, typ reflect.Type) uint64 {
+	totalSize := uint64(0)
+	n := val.Len()
+	for i := range n {
+		varSize := DetermineSize(val.Index(i))
+		if isVariableSizeType(typ.Elem()) {
+			totalSize += varSize + BytesPerLengthOffset
+		} else {
+			totalSize += varSize
+		}
+	}
+	return totalSize
 }
 
 func determineFieldType(field reflect.StructField) (reflect.Type, error) {
