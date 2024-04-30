@@ -57,5 +57,5 @@ type BlockchainService interface {
 		primitives.ReadOnlyBeaconBlock,
 	) error
 	ChainSpec() primitives.ChainSpec
-	ValidatePayloadOnBlk(context.Context, primitives.ReadOnlyBeaconBlock) error
+	VerifyPayloadOnBlk(context.Context, primitives.ReadOnlyBeaconBlock) error
 }
