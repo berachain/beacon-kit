@@ -149,7 +149,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}, nil
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/bytes,../../types,../../../primitives-engine,../../../primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../types,../../../primitives-engine,../../../primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
