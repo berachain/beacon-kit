@@ -156,10 +156,10 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := service.New[blockchain.Service](
 		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
-		blockchain.WithBlockValidator(core.NewBlockValidator(chainSpec)),
+		blockchain.WithBlockVerifier(core.NewBlockVerifier(chainSpec)),
 		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithPayloadValidator(core.NewPayloadValidator(chainSpec)),
+		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
