@@ -101,7 +101,7 @@ func newStructSSZ() *structSSZ {
 
 type basicArraySSZ struct {
 	hashCache *ristretto.Cache
-	lock      sync.Mutex
+	_         sync.Mutex
 }
 
 const BasicArraySizeCache = 100000
@@ -122,7 +122,7 @@ func newBasicArraySSZ() *basicArraySSZ {
 
 type basicSSZ struct {
 	hashCache *ristretto.Cache
-	lock      sync.Mutex
+	_         sync.Mutex
 }
 
 const BasicTypeCacheSize = 100000
@@ -144,7 +144,7 @@ func newBasicSSZ() *basicSSZ {
 
 type rootsArraySSZ struct {
 	hashCache    *ristretto.Cache
-	lock         sync.Mutex
+	_            sync.Mutex
 	cachedLeaves map[string][][]byte
 	layers       map[string][][][]byte
 }
