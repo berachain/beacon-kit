@@ -30,6 +30,13 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 // B32 represents a 32-byte array.
 type B32 [32]byte
 
+// ToBytes32 is a utility function that transforms a byte slice into a fixed
+// 32-byte array. If the input exceeds 32 bytes, it gets truncated.
+func ToBytes32(input []byte) B32 {
+	//nolint:mnd // 32 bytes.
+	return B32(ExtendToSize(input, 32))
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B32.
 func (h *B32) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)

@@ -32,6 +32,13 @@ import (
 // B96 represents a 96-byte array.
 type B96 [96]byte
 
+// ToBytes96 is a utility function that transforms a byte slice into a fixed
+// 96-byte array. If the input exceeds 96 bytes, it gets truncated.
+func ToBytes96(input []byte) B96 {
+	//nolint:mnd // 96 bytes.
+	return B96(ExtendToSize(input, 96))
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes96.
 func (h *B96) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)

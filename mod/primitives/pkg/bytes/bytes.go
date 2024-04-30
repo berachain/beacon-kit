@@ -90,27 +90,6 @@ func CopyAndReverseEndianess(input []byte) []byte {
 	return copied
 }
 
-// ToBytes32 is a utility function that transforms a byte slice into a fixed
-// 32-byte array. If the input exceeds 32 bytes, it gets truncated.
-func ToBytes32(input []byte) [32]byte {
-	//nolint:mnd // 32 bytes.
-	return [32]byte(ExtendToSize(input, 32))
-}
-
-// ToBytes48 is a utility function that transforms a byte slice into a fixed
-// 48-byte array. If the input exceeds 48 bytes, it gets truncated.
-func ToBytes48(input []byte) [48]byte {
-	//nolint:mnd // 32 bytes.
-	return [48]byte(ExtendToSize(input, 48))
-}
-
-// ToBytes96 is a utility function that transforms a byte slice into a fixed
-// 96-byte array. If the input exceeds 96 bytes, it gets truncated.
-func ToBytes96(input []byte) [96]byte {
-	//nolint:mnd // 32 bytes.
-	return [96]byte(ExtendToSize(input, 96))
-}
-
 // ExtendToSize extends a byte slice to a specified length. It returns the
 // original slice if it's already larger.
 func ExtendToSize(slice []byte, length int) []byte {

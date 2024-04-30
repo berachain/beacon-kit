@@ -34,6 +34,13 @@ import (
 // B48 represents a 48-byte array.
 type B48 [48]byte
 
+// ToBytes48 is a utility function that transforms a byte slice into a fixed
+// 48-byte array. If the input exceeds 48 bytes, it gets truncated.
+func ToBytes48(input []byte) B48 {
+	//nolint:mnd // 48 bytes.
+	return B48(ExtendToSize(input, 48))
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B48.
 func (h *B48) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
