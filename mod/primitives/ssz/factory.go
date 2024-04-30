@@ -114,6 +114,7 @@ type basicArraySSZ struct {
 const BasicArraySizeCache = 100000
 
 func newBasicArraySSZ() *basicArraySSZ {
+	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: BasicArraySizeCache, // number of keys to track frequency of (1M).
 		MaxCost:     1 << 22,             // maximum cost of cache (3MB).
@@ -133,6 +134,7 @@ type basicSSZ struct {
 const BasicTypeCacheSize = 100000
 
 func newBasicSSZ() *basicSSZ {
+	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: BasicTypeCacheSize, // number of keys to track frequency of (100K).
 		MaxCost:     1 << 23,            // maximum cost of cache (3MB).
@@ -154,6 +156,7 @@ type rootsArraySSZ struct {
 const RootsArraySizeCache = 100000
 
 func newRootsArraySSZ() *rootsArraySSZ {
+	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: RootsArraySizeCache, // number of keys to track frequency of (100000).
 		MaxCost:     1 << 23,             // maximum cost of cache (3MB).

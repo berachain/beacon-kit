@@ -118,8 +118,10 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	case kind == reflect.Uint64:
 		return 8
 	case kind == reflect.Array && typ.Elem().Kind() == reflect.Uint8:
+		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(typ.Len())
 	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
+		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
 	case kind == reflect.Array || kind == reflect.Slice:
 		var num uint64
@@ -156,8 +158,10 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
 	switch {
 	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
+		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
 	case kind == reflect.String:
+		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
 	case kind == reflect.Slice || kind == reflect.Array:
 		totalSize := uint64(0)
@@ -245,6 +249,7 @@ func inferFieldTypeFromSizeTags(field reflect.StructField, sizes []uint64) refle
 		if sizes[i] == 0 {
 			currentType = reflect.SliceOf(currentType)
 		} else {
+			//#nosec:G701 // will not realistically cause a problem.
 			currentType = reflect.ArrayOf(int(sizes[i]), currentType)
 		}
 	}
