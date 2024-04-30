@@ -25,7 +25,10 @@
 
 package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // SigVerificationFn is a function that verifies a signature.
 type SigVerificationFn func(pubkey, message, signature []byte) bool
@@ -34,10 +37,10 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,./pkg/math/,./primitives.go,./pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./pkg/crypto,./withdrawal_credentials.go,./pkg/math/,./primitives.go,./pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey BLSPubkey `json:"pubkey" ssz-max:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-max:"48"`
 
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
@@ -51,13 +54,13 @@ type DepositMessage struct {
 func CreateAndSignDepositMessage(
 	forkData *ForkData,
 	domainType DomainType,
-	signer BLSSigner,
+	signer crypto.BLSSigner,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
-) (*DepositMessage, BLSSignature, error) {
+) (*DepositMessage, crypto.BLSSignature, error) {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {
-		return nil, BLSSignature{}, err
+		return nil, crypto.BLSSignature{}, err
 	}
 
 	depositMessage := DepositMessage{
@@ -68,12 +71,12 @@ func CreateAndSignDepositMessage(
 
 	signingRoot, err := ComputeSigningRoot(&depositMessage, domain)
 	if err != nil {
-		return nil, BLSSignature{}, err
+		return nil, crypto.BLSSignature{}, err
 	}
 
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {
-		return nil, BLSSignature{}, err
+		return nil, crypto.BLSSignature{}, err
 	}
 
 	return &depositMessage, signature, nil
@@ -83,7 +86,7 @@ func CreateAndSignDepositMessage(
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
-	signature BLSSignature,
+	signature crypto.BLSSignature,
 	isSignatureValid SigVerificationFn,
 	domainType DomainType,
 ) error {

@@ -26,8 +26,8 @@
 package signer
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cometbft/cometbft/p2p"
 	bls "github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -68,13 +68,13 @@ func NewFromCometBFTNodeKey(filePath string) (*BLSSigner, error) {
 }
 
 // PublicKey returns the public key of the signer.
-func (b *BLSSigner) PublicKey() primitives.BLSPubkey {
-	return primitives.BLSPubkey(b.SecretKey.PublicKey().Marshal())
+func (b *BLSSigner) PublicKey() crypto.BLSPubkey {
+	return crypto.BLSPubkey(b.SecretKey.PublicKey().Marshal())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
-func (b *BLSSigner) Sign(msg []byte) (primitives.BLSSignature, error) {
-	return primitives.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
+func (b *BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
+	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }

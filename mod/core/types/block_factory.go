@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -39,7 +40,7 @@ func NewBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	forkVersion uint32,
-	reveal primitives.BLSSignature,
+	reveal crypto.BLSSignature,
 ) (primitives.BeaconBlock, error) {
 	var block primitives.BeaconBlock
 	switch forkVersion {
@@ -71,7 +72,7 @@ func EmptyBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	version uint32,
-	reveal primitives.BLSSignature,
+	reveal crypto.BLSSignature,
 ) (primitives.BeaconBlock, error) {
 	return NewBeaconBlock(
 		slot,

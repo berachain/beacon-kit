@@ -25,7 +25,10 @@
 
 package primitives
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // EthSecp256k1CredentialPrefix is the prefix for an Ethereum secp256k1.
 const EthSecp256k1CredentialPrefix = byte(iota + 1)
@@ -37,7 +40,7 @@ type WithdrawalCredentials bytes.B32
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
 func NewCredentialsFromExecutionAddress(
-	address ExecutionAddress,
+	address common.ExecutionAddress,
 ) WithdrawalCredentials {
 	credentials := WithdrawalCredentials{}
 	credentials[0] = 0x01
@@ -47,13 +50,13 @@ func NewCredentialsFromExecutionAddress(
 
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
 func (wc WithdrawalCredentials) ToExecutionAddress() (
-	ExecutionAddress,
+	common.ExecutionAddress,
 	error,
 ) {
 	if wc[0] != EthSecp256k1CredentialPrefix {
-		return ExecutionAddress{}, ErrInvalidWithdrawalCredentials
+		return common.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
-	return ExecutionAddress(wc[12:]), nil
+	return common.ExecutionAddress(wc[12:]), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.

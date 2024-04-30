@@ -29,11 +29,12 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewCredentialsFromExecutionAddress(t *testing.T) {
-	address := primitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+	address := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	expectedCredentials := primitives.WithdrawalCredentials{}
 	expectedCredentials[0] = 0x01 // EthSecp256k1CredentialPrefix
 	copy(expectedCredentials[12:], address[:])
@@ -55,7 +56,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 	require.Equal(
 		t,
 		address,
-		primitives.ExecutionAddress(expectedCredentials[12:]),
+		common.ExecutionAddress(expectedCredentials[12:]),
 		"Expected address to be set correctly",
 	)
 	credentials := primitives.
@@ -69,7 +70,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 }
 
 func TestToExecutionAddress(t *testing.T) {
-	expectedAddress := primitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+	expectedAddress := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	credentials := primitives.WithdrawalCredentials{}
 	for i := range credentials {
 		// First byte should be 0x01

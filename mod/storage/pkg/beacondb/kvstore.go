@@ -30,7 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
@@ -57,7 +57,7 @@ type SSZMarshallable interface {
 
 type Validator interface {
 	SSZMarshallable
-	GetPubkey() primitives.BLSPubkey
+	GetPubkey() crypto.BLSPubkey
 	GetEffectiveBalance() math.Gwei
 	IsActive(math.Epoch) bool
 }

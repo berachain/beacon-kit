@@ -28,8 +28,8 @@ package builder
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // ExecutionEngine is the interface for the execution engine.
@@ -45,5 +45,5 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }

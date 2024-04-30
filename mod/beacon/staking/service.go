@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
@@ -58,14 +58,14 @@ type Service struct {
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blockHash primitives.ExecutionHash,
+	blockHash common.ExecutionHash,
 ) error {
 	// Gather all the logs corresponding to
 	// the addresses of interest from this block.
 	logsInBlock, err := s.ee.GetLogs(
 		ctx,
 		blockHash,
-		[]primitives.ExecutionAddress{
+		[]common.ExecutionAddress{
 			s.ChainSpec().DepositContractAddress(),
 		},
 	)

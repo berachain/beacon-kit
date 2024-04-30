@@ -29,8 +29,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
@@ -39,7 +39,7 @@ import (
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
 	result *engineprimitives.PayloadStatus,
-) (*primitives.ExecutionHash, error) {
+) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
 		return nil, ErrAcceptedPayloadStatus

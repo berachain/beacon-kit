@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
 type Option = func(*Service) error
@@ -100,7 +101,7 @@ func WithRandaoProcessor(rp RandaoProcessor[state.BeaconState]) Option {
 }
 
 // WithSigner sets the signer.
-func WithSigner(signer primitives.BLSSigner) Option {
+func WithSigner(signer crypto.BLSSigner) Option {
 	return func(s *Service) error {
 		s.signer = signer
 		return nil

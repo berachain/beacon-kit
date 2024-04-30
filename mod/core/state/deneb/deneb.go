@@ -30,10 +30,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"golang.org/x/sync/errgroup"
 )
@@ -77,7 +77,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 		Eth1Data: &primitives.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
-			BlockHash:    primitives.ExecutionHash{},
+			BlockHash:    common.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
 		Validators:                   make([]*primitives.Validator, 0),
@@ -119,8 +119,8 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}
 
 	return &engineprimitives.ExecutionPayloadHeaderDeneb{
-		ParentHash:   primitives.ExecutionHash{},
-		FeeRecipient: primitives.ExecutionAddress{},
+		ParentHash:   common.ExecutionHash{},
+		FeeRecipient: common.ExecutionAddress{},
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,
@@ -149,7 +149,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}, nil
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/bytes,../../types,../../../primitives-engine,../../../primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../types,../../../primitives-engine,../../../primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning

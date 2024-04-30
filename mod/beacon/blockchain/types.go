@@ -32,6 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -47,7 +49,7 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution
@@ -65,7 +67,7 @@ type LocalBuilder interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash primitives.ExecutionHash,
+		parentEth1Hash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 
@@ -73,15 +75,15 @@ type LocalBuilder interface {
 type RandaoProcessor interface {
 	BuildReveal(
 		st state.BeaconState,
-	) (primitives.BLSSignature, error)
+	) (crypto.BLSSignature, error)
 	MixinNewReveal(
 		st state.BeaconState,
-		reveal primitives.BLSSignature,
+		reveal crypto.BLSSignature,
 	) error
 	VerifyReveal(
 		st state.BeaconState,
-		proposerPubkey primitives.BLSPubkey,
-		reveal primitives.BLSSignature,
+		proposerPubkey crypto.BLSPubkey,
+		reveal crypto.BLSSignature,
 	) error
 }
 
@@ -90,7 +92,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		blockHash primitives.ExecutionHash,
+		blockHash common.ExecutionHash,
 	) error
 
 	PruneDepositEvents(

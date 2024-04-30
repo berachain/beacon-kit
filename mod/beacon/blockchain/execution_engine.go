@@ -30,8 +30,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -39,7 +39,7 @@ import (
 func (s *Service) sendFCU(
 	ctx context.Context,
 	st state.BeaconState,
-	headEth1Hash primitives.ExecutionHash,
+	headEth1Hash common.ExecutionHash,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Service) sendPostBlockFCU(
 	payload engineprimitives.ExecutionPayload,
 ) {
 	var (
-		headHash primitives.ExecutionHash
+		headHash common.ExecutionHash
 	)
 
 	// If we have a payload we want to set our head to it's block hash.

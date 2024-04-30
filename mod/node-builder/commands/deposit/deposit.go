@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -124,17 +125,17 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 }
 
 // convertPubkey converts a string to a public key.
-func convertPubkey(pubkey string) (primitives.BLSPubkey, error) {
+func convertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	// convert the public key to a BLSPubkey.
 	pubkeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
-		return primitives.BLSPubkey{}, err
+		return crypto.BLSPubkey{}, err
 	}
 	if len(pubkeyBytes) != constants.BLSPubkeyLength {
-		return primitives.BLSPubkey{}, ErrInvalidPubKeyLength
+		return crypto.BLSPubkey{}, ErrInvalidPubKeyLength
 	}
 
-	return primitives.BLSPubkey(pubkeyBytes), nil
+	return crypto.BLSPubkey(pubkeyBytes), nil
 }
 
 // convertWithdrawalCredentials converts a string to a withdrawal credentials.
@@ -167,16 +168,16 @@ func convertAmount(amount string) (math.Gwei, error) {
 }
 
 // convertSignature converts a string to a signature.
-func convertSignature(signature string) (primitives.BLSSignature, error) {
+func convertSignature(signature string) (crypto.BLSSignature, error) {
 	// convert the signature to a BLSSignature.
 	signatureBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 	if len(signatureBytes) != constants.BLSSignatureLength {
-		return primitives.BLSSignature{}, ErrInvalidSignatureLength
+		return crypto.BLSSignature{}, ErrInvalidSignatureLength
 	}
-	return primitives.BLSSignature(signatureBytes), nil
+	return crypto.BLSSignature(signatureBytes), nil
 }
 
 // convertVersion converts a string to a version.

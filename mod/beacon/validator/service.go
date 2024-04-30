@@ -34,6 +34,8 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -48,7 +50,7 @@ type Service struct {
 	chainSpec primitives.ChainSpec
 
 	// signer is used to retrieve the public key of this node.
-	signer primitives.BLSSigner
+	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[primitives.BeaconBlockBody]
@@ -199,7 +201,7 @@ func (s *Service) RequestBestBlock(
 	body.SetEth1Data(&primitives.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
-		BlockHash:    primitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	})
 
 	// If we get returned a nil blobs bundle, we should return an error.

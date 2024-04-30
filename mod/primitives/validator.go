@@ -27,6 +27,7 @@ package primitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -34,10 +35,10 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ./pkg/bytes,./primitives.go,./withdrawal_credentials.go,./pkg/math -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ./pkg/crypto,./pkg/bytes,./primitives.go,./withdrawal_credentials.go,./pkg/math -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey BLSPubkey `json:"pubkey"                     ssz-size:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
 	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
@@ -63,7 +64,7 @@ type Validator struct {
 //
 //nolint:lll
 func NewValidatorFromDeposit(
-	pubkey BLSPubkey,
+	pubkey crypto.BLSPubkey,
 	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
@@ -85,7 +86,7 @@ func NewValidatorFromDeposit(
 }
 
 // GetPubkey returns the public key of the validator.
-func (v *Validator) GetPubkey() BLSPubkey {
+func (v *Validator) GetPubkey() crypto.BLSPubkey {
 	return v.Pubkey
 }
 

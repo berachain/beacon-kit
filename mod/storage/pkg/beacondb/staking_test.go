@@ -30,7 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
@@ -48,10 +48,10 @@ func (m *mockValidator) IsActive(_ math.Epoch) bool {
 	return true
 }
 
-func (m *mockValidator) GetPubkey() primitives.BLSPubkey {
+func (m *mockValidator) GetPubkey() crypto.BLSPubkey {
 	// Return a mock BLS public key
 	// This is a mock implementation and should be replaced with actual logic
-	return primitives.BLSPubkey{}
+	return crypto.BLSPubkey{}
 }
 
 func (m *mockValidator) GetEffectiveBalance() math.Gwei {
