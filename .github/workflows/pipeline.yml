@@ -77,13 +77,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         if: ${{ matrix.args == 'test-e2e' }}
-      - name: Install Kurtosis
-        run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli=$(grep github.com/kurtosis-tech/kurtosis/api/golang ./testing/go.mod | awk '{print $2}' | sed 's/^v//') -y
-          sleep infinity
-          kurtosis engine --log-level=debug start
+      - name: Kurtosis Tests
+        uses: kurtosis-tech/kurtosis-github-action@v1
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}
         run: |
