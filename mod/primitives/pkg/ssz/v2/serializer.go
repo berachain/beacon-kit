@@ -28,6 +28,8 @@ package ssz
 import (
 	"fmt"
 	"reflect"
+
+	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // SerializeError represents serialization errors.
@@ -74,13 +76,13 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 	kind := typ.Kind()
 	switch kind {
 	case reflect.Uint8:
-		return MarshalU8(val.Interface().(uint8))
+		return ssz.MarshalU8(val.Interface().(uint8))
 	case reflect.Uint16:
-		return MarshalU16(val.Interface().(uint16))
+		return ssz.MarshalU16(val.Interface().(uint16))
 	case reflect.Uint32:
-		return MarshalU32(val.Interface().(uint32))
+		return ssz.MarshalU32(val.Interface().(uint32))
 	case reflect.Uint64:
-		return MarshalU64(val.Interface().(uint64))
+		return ssz.MarshalU64(val.Interface().(uint64))
 	// TODO(Chibera): Handle numbers over 64bit
 	// case reflect.Uint128:
 	// 	return MarshalU128(val.Interface().(uint128))
@@ -121,7 +123,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	}
 	switch k {
 	case reflect.Bool:
-		return MarshalBool(reflect.ValueOf(c).Interface().(bool)), nil
+		return ssz.MarshalBool(reflect.ValueOf(c).Interface().(bool)), nil
 	// TODO(Chibera): handle composite types. same algo for all 3
 	// case KindList:
 	// 	return true

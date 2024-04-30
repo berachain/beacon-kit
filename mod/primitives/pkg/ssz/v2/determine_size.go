@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/errors"
+	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // DetermineSize returns the required byte size of a buffer for
@@ -199,7 +200,7 @@ func determineSizeStruct(val reflect.Value, typ reflect.Type) uint64 {
 		}
 		if isVariableSizeType(fType) {
 			varSize := determineVariableSize(val.Field(i), fType)
-			totalSize += varSize + BytesPerLengthOffset
+			totalSize += varSize + ssz.BytesPerLengthOffset
 		} else {
 			varSize := determineFixedSize(val.Field(i), fType)
 			totalSize += varSize
@@ -214,7 +215,7 @@ func determineSizeSliceOrArray(val reflect.Value, typ reflect.Type) uint64 {
 	for i := range n {
 		varSize := DetermineSize(val.Index(i))
 		if isVariableSizeType(typ.Elem()) {
-			totalSize += varSize + BytesPerLengthOffset
+			totalSize += varSize + ssz.BytesPerLengthOffset
 		} else {
 			totalSize += varSize
 		}
@@ -250,7 +251,7 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	var err error
 	for i := range len(items) {
 		// If a field is unbounded, we mark it with a size of 0.
-		if items[i] == UnboundedSSZFieldSizeMarker {
+		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
 			sizes[i] = 0
 			continue
 		}

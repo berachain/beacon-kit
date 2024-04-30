@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// # Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -22,27 +22,11 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-
 package ssz
 
-// Basic defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type Basic[SpecT any, RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as RootT
-	// and an error if the computation fails.
-	HashTreeRoot( /*...args*/ ) (RootT, error)
-}
-
-// Composite is an interface that embeds the Basic interface. It is used for
-// types that are composed of other SSZ encodable values.
-type Composite[SpecT any, RootT ~[32]byte] interface {
-	Basic[SpecT, RootT]
-}
-
-// Container is an interface for SSZ container types that can be marshaled and
-// unmarshaled.
-type Container[SpecT any, RootT ~[32]byte] interface {
-	Composite[SpecT, RootT]
-}
+const (
+	BytesPerLengthOffset        = 4
+	BitsPerByte                 = 8
+	MaximumLength               = 1 << (BitsPerByte * BytesPerLengthOffset)
+	UnboundedSSZFieldSizeMarker = "?"
+)
