@@ -225,7 +225,7 @@ func determineSizeSliceOrArray(val reflect.Value, typ reflect.Type) uint64 {
 func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 	fieldSizeTags, exists, err := parseSSZFieldTags(field)
 	if err != nil {
-		return nil, errors.Wrap(
+		return reflect.TypeOf(reflect.Invalid), errors.Wrap(
 			err,
 			"could not parse ssz struct field tags")
 	}
@@ -240,7 +240,7 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	tag, exists := field.Tag.Lookup("ssz-size")
 	if !exists {
-		return nil, false, nil
+		return make([]uint64, 0), false, nil
 	}
 	items := strings.Split(tag, ",")
 	sizes := make([]uint64, len(items))
@@ -253,7 +253,7 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 		}
 		sizes[i], err = strconv.ParseUint(items[i], 10, 64)
 		if err != nil {
-			return nil, false, err
+			return make([]uint64, 0), false, err
 		}
 	}
 	return sizes, true, nil
