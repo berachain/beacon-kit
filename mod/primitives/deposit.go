@@ -28,7 +28,7 @@ package primitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution

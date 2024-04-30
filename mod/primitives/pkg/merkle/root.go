@@ -29,8 +29,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/primitives/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )

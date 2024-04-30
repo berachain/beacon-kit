@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // Merkleize hashes the packed value and returns the HTR.

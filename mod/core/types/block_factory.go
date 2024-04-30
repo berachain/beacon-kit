@@ -28,7 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // BeaconBlock assembles a new beacon block from

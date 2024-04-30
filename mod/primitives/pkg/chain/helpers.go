@@ -26,7 +26,7 @@
 package chain
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // ActiveForkVersion returns the active fork version for a given slot.

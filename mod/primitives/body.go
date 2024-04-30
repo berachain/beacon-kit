@@ -32,7 +32,7 @@ import (
 
 	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 //nolint:gochecknoglobals // I'd prefer globals over magic numbers.

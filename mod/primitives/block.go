@@ -26,7 +26,7 @@
 package primitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // BeaconBlockDeneb represents a block in the beacon chain during

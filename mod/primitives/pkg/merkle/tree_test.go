@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/stretchr/testify/require"
 )
 

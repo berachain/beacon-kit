@@ -28,7 +28,7 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/ssz/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkle"
 	"github.com/stretchr/testify/require"
 )
 

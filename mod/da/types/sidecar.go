@@ -27,8 +27,8 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
