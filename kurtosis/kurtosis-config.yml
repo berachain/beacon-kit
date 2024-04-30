@@ -1,0 +1,8 @@
+config-version: 2
+should-send-metrics: true
+kurtosis-clusters:
+  k3s:
+    type: "kubernetes"
+    config:
+      kubernetes-cluster-name: "default"
+      enclave-size-in-megabytes: 10
