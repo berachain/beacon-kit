@@ -26,13 +26,20 @@
 package ssz_test
 
 import (
+	"bytes"
+	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/math"
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
+	eth2codec "github.com/protolambda/ztyp/codec"
+	eth2spec "github.com/protolambda/ztyp/view"
 	"github.com/stretchr/testify/require"
 )
+
+const rrange = 100000
 
 func TestMarshalUnmarshalU256(t *testing.T) {
 	original := math.U256L{
@@ -255,5 +262,71 @@ func TestUnmarshalBitList(t *testing.T) {
 			input,
 			output,
 		)
+	}
+}
+
+func getRandBools() ([]bool, int, error) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	n := r.Intn(rrange)
+	rbytes := make([]byte, n)
+	rbools := make([]bool, n)
+	_, err := r.Read(rbytes)
+	if err != nil {
+		return nil, -1, err
+	}
+	for i, b := range rbytes {
+		rbools[i] = (b & (1 << (uint(i) % 8))) != 0
+	}
+
+	return rbools, n, nil
+}
+
+func TestEth2SpecBitVector(t *testing.T) {
+	var buf bytes.Buffer
+
+	for tt := 0; tt < 1000; tt++ {
+		rbools, n, err := getRandBools()
+		require.NoError(t, err)
+		buf.Reset()
+		bv := eth2spec.BitVectorType(uint64(n))
+		bvView, err := bv.FromBits(rbools)
+		require.NoError(t, err)
+		err = bvView.Serialize(eth2codec.NewEncodingWriter(&buf))
+		require.NoError(t, err)
+		expected := buf.Bytes()
+		actual := ssz.MarshalBitVector(rbools)
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf(
+				"MarshalBitVector(%v) = %08b; expect %08b",
+				rbools,
+				actual,
+				expected,
+			)
+		}
+	}
+}
+
+func TestEth2SpecBitList(t *testing.T) {
+	var buf bytes.Buffer
+
+	for tt := 0; tt < 1000; tt++ {
+		rbools, n, err := getRandBools()
+		require.NoError(t, err)
+		buf.Reset()
+		bv := eth2spec.BitListType(uint64(n))
+		bvView, err := bv.FromBits(rbools)
+		require.NoError(t, err)
+		err = bvView.Serialize(eth2codec.NewEncodingWriter(&buf))
+		require.NoError(t, err)
+		expected := buf.Bytes()
+		actual := ssz.MarshalBitList(rbools)
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf(
+				"MarshalBitList(%v) = %08b; expect %08b",
+				rbools,
+				actual,
+				expected,
+			)
+		}
 	}
 }
