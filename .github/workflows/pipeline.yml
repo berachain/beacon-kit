@@ -77,8 +77,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         if: ${{ matrix.args == 'test-e2e' }}
-      - name: Kurtosis Tests
-        uses: kurtosis-tech/kurtosis-github-action@v1
+      - uses: debianmaster/actions-k3s@master
+        id: k3s
+        with:
+          version: 'latest'
+      - run: |
+          kubectl get nodes
+          kubectl get pods -A
+          sleep 20
+          kubectl get pods -A
+      - name: Install Kurtosis
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli=$(grep github.com/kurtosis-tech/kurtosis/api/golang ./testing/go.mod | awk '{print $2}' | sed 's/^v//') -y
+          kurtosis engine --log-level=debug start
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}
         run: |
