@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package execution
+package engine
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/execution/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -43,8 +43,8 @@ type Engine struct {
 	logger log.Logger[any]
 }
 
-// NewExecuitionEngine creates a new Engine.
-func NewEngine(
+// New creates a new Engine.
+func New(
 	ec *client.EngineClient,
 	logger log.Logger[any],
 ) *Engine {

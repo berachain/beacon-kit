@@ -33,8 +33,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/execution/client/cache"
-	eth "github.com/berachain/beacon-kit/mod/execution/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
+	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"

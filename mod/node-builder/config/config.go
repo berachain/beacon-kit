@@ -29,7 +29,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/client"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/config/viper"
