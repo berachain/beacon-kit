@@ -107,14 +107,19 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
 	switch {
 	case kind == reflect.Bool:
+		//nolint:mnd // static mapped types
 		return 1
 	case kind == reflect.Uint8:
+		//nolint:mnd // static mapped types
 		return 1
 	case kind == reflect.Uint16:
+		//nolint:mnd // static mapped types
 		return 2
 	case kind == reflect.Uint32 || kind == reflect.Int32:
+		//nolint:mnd // static mapped types
 		return 4
 	case kind == reflect.Uint64:
+		//nolint:mnd // static mapped types
 		return 8
 	case kind == reflect.Array && typ.Elem().Kind() == reflect.Uint8:
 		//#nosec:G701 // will not realistically cause a problem.

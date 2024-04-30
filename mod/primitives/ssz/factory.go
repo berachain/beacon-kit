@@ -110,7 +110,8 @@ func newBasicArraySSZ() *basicArraySSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: BasicArraySizeCache, // number of keys to track frequency of (1M).
-		MaxCost:     1 << 22,             // maximum cost of cache (3MB).
+		//nolint:mnd // explained in comment or not a magic number
+		MaxCost: 1 << 22, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
 		BufferItems: 64, // number of keys per Get buffer.
 	})
@@ -130,8 +131,10 @@ func newBasicSSZ() *basicSSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: BasicTypeCacheSize, // number of keys to track frequency of (100K).
-		MaxCost:     1 << 23,            // maximum cost of cache (3MB).
+		//nolint:mnd // explained in comment or not a magic number
+		MaxCost: 1 << 23, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
+		//nolint:mnd // explained in comment or not a magic number
 		BufferItems: 64, // number of keys per Get buffer.
 	})
 	return &basicSSZ{
@@ -152,8 +155,10 @@ func newRootsArraySSZ() *rootsArraySSZ {
 	//#nosec:G703 // WIP. Error from cache can be ignored
 	cache, _ := ristretto.NewCache(&ristretto.Config{
 		NumCounters: RootsArraySizeCache, // number of keys to track frequency of (100000).
-		MaxCost:     1 << 23,             // maximum cost of cache (3MB).
+		//nolint:mnd // explained in comment or not a magic number
+		MaxCost: 1 << 23, // maximum cost of cache (3MB).
 		// 100,000 roots will take up approximately 3 MB in memory.
+		//nolint:mnd // explained in comment or not a magic number
 		BufferItems: 64, // number of keys per Get buffer.
 	})
 	return &rootsArraySSZ{
