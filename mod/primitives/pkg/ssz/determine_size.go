@@ -243,6 +243,9 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 		return make([]uint64, 0), false, nil
 	}
 	items := strings.Split(tag, ",")
+	if items == nil {
+		return make([]uint64, 0), false, nil
+	}
 	sizes := make([]uint64, len(items))
 	var err error
 	for i := range len(items) {
