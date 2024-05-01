@@ -52,11 +52,11 @@ type ExecutionEngine interface {
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// execution
+	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
 		req *engineprimitives.NewPayloadRequest,
-	) (bool, error)
+	) error
 }
 
 // LocalBuilder is the interface for the builder service.
