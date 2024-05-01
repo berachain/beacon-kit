@@ -32,8 +32,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -62,13 +62,13 @@ type DepInjectInput struct {
 type DepInjectOutput struct {
 	depinject.Out
 
-	Keeper *keeper.Keeper
+	Keeper *runtime.Keeper
 	Module appmodule.AppModule
 }
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := keeper.NewKeeper(
+	k := runtime.NewKeeper(
 		filedb.NewDB(
 			filedb.WithRootDirectory(
 				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),

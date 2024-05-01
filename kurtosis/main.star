@@ -13,6 +13,7 @@ constants = import_module("./src/constants.star")
 goomy_blob = import_module("./src/services/goomy/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
+pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -122,5 +123,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         if "grafana" in additional_services:
             grafana.start(plan, prometheus_url)
+
+        if "pyroscope" in additional_services:
+            pyroscope.run(plan)
 
     plan.print("Successfully launched development network")

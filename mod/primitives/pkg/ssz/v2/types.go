@@ -23,4 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package keeper_test
+package ssz
+
+type (
+	// Kind represents different types of SSZ'able data.
+	Kind uint8
+
+	// Type represents a SSZ type.
+	Type interface {
+		Kind() Kind
+	}
+)
+type GenericSSZType interface {
+	Type
+}

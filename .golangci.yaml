@@ -37,6 +37,10 @@ linters-settings:
     check:
       - switch
       - map
+    # Presence of "default" case in switch statements satisfies exhaustiveness,
+    # even if all enum members are not listed.
+    # Default: false
+    default-signifies-exhaustive: true
 
   exhaustruct:
     # List of regular expressions to exclude struct packages and their names from checks.
@@ -117,6 +121,9 @@ linters-settings:
       - os.WriteFile
       - prometheus.ExponentialBuckets.*
       - prometheus.LinearBuckets
+      - ssz.*
+    ignored-files:
+      - ssz/*.go
 
   gomodguard:
     blocked:
@@ -315,7 +322,6 @@ linters:
     - tagliatelle # checks the struct tags
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
-
 
 issues:
   # Maximum count of issues with the same text.

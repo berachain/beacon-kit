@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// # Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -22,27 +22,11 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+package ssz
 
-package main
-
-import (
-	"os"
-
-	app "github.com/berachain/beacon-kit/beacond/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+const (
+	BytesPerLengthOffset        = 4
+	BitsPerByte                 = 8
+	MaximumLength               = 1 << (BitsPerByte * BytesPerLengthOffset)
+	UnboundedSSZFieldSizeMarker = "?"
 )
-
-func main() {
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:            "beacond",
-				Description:     "beacond is a beacon node for any beacon-kit chain",
-				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				DepInjectConfig: app.Config(),
-			},
-		)
-	if err := nb.RunNode(); err != nil {
-		os.Exit(1)
-	}
-}

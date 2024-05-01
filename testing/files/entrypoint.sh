@@ -33,7 +33,7 @@ HOMEDIR="./.tmp/beacond"
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
-ETH_GENESIS=./beacond/eth-genesis.json # TODO: Fix this to not use a relative path or make it configurable
+ETH_GENESIS=./testing/files/eth-genesis.json # TODO: Fix this to not use a relative path or make it configurable
 
 # used to exit on first error (any non-zero exit code)
 set -e

@@ -78,3 +78,4 @@ additional_services:
   - "goomy_blob"
   - "prometheus"
   - "grafana"
+  - "pyroscope"
