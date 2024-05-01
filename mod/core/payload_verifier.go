@@ -52,12 +52,12 @@ func (pv *PayloadVerifier) VerifyPayload(
 	body types.BeaconBlockBody,
 ) error {
 	if body == nil || body.IsNil() {
-		return types.ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	payload := body.GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
-		return types.ErrNilPayload
+		return ErrNilPayload
 	}
 
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()

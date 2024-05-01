@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -60,7 +59,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	// Validate payload in Parallel.
@@ -165,12 +164,12 @@ func (s *Service) VerifyPayloadOnBlk(
 	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	body := blk.GetBody()
 	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	// Call the standard payload validator.

@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -39,7 +40,7 @@ import (
 type BeaconStorageBackend interface {
 	AvailabilityStore(
 		ctx context.Context,
-	) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock]
+	) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) *deposit.KVStore
 }

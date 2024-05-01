@@ -26,8 +26,62 @@
 package consensus
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
+
+// EmptyBeaconBlock assembles a new beacon block from
+// the given slot, time, execution data, and version. It
+// returns an error if the fork version is not supported.
+func EmptyBeaconBlock[
+	SlotT, ProposerIndexT ~uint64,
+	ParentBlockRootT, StateRootT ~[32]byte](
+	slot SlotT,
+	proposerIndex ProposerIndexT,
+	parentBlockRoot ParentBlockRootT,
+	stateRoot StateRootT,
+	forkVersion uint32,
+) (BeaconBlock, error) {
+	var block BeaconBlock
+	switch forkVersion {
+	case version.Deneb:
+		block = &BeaconBlockDeneb{
+			BeaconBlockHeaderBase: BeaconBlockHeaderBase{
+				//#nosec:G701 // this is safe.
+				Slot: uint64(slot),
+				//#nosec:G701 // this is safe.
+				ProposerIndex:   uint64(proposerIndex),
+				ParentBlockRoot: bytes.B32(parentBlockRoot),
+				StateRoot:       bytes.B32(stateRoot),
+			},
+			Body: &BeaconBlockBodyDeneb{},
+		}
+	default:
+		return block, ErrForkVersionNotSupported
+	}
+	return block, nil
+}
+
+// BeaconBlockFromSSZ assembles a new beacon block
+// from the given SSZ bytes and fork version.
+func BeaconBlockFromSSZ(
+	bz []byte,
+	forkVersion uint32,
+) (BeaconBlock, error) {
+	// TODO: switch is fugazi atm.
+	var block BeaconBlockDeneb
+	switch forkVersion {
+	case version.Deneb:
+		_ = block
+	default:
+		return &block, ErrForkVersionNotSupported
+	}
+
+	if err := block.UnmarshalSSZ(bz); err != nil {
+		return &block, err
+	}
+	return &block, nil
+}
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.

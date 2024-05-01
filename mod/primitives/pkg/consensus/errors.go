@@ -36,4 +36,8 @@ var (
 	ErrInvalidWithdrawalCredentials = errors.New(
 		"invalid withdrawal credentials",
 	)
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
 )

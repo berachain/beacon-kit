@@ -30,7 +30,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -155,7 +154,7 @@ func (s *Service) RequestBestBlock(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := beacontypes.EmptyBeaconBlock(
+	blk, err := consensus.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -164,8 +163,6 @@ func (s *Service) RequestBestBlock(
 	)
 	if err != nil {
 		return nil, nil, err
-	} else if blk == nil {
-		return nil, nil, beacontypes.ErrNilBlk
 	}
 
 	// The latest execution payload header, will be from the previous block
@@ -189,20 +186,20 @@ func (s *Service) RequestBestBlock(
 			err,
 		)
 	} else if envelope == nil {
-		return nil, nil, beacontypes.ErrNilPayload
+		return nil, nil, ErrNilPayload
 	}
 
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
-		return nil, nil, beacontypes.ErrNilBlkBody
+		return nil, nil, ErrNilBlkBody
 	}
 
 	// If we get returned a nil blobs bundle, we should return an error.
 	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
-		return nil, nil, beacontypes.ErrNilBlobsBundle
+		return nil, nil, ErrNilBlobsBundle
 	}
 
 	// Dequeue deposits from the state.
@@ -215,7 +212,7 @@ func (s *Service) RequestBestBlock(
 
 	payload := envelope.GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
-		return nil, nil, beacontypes.ErrNilPayload
+		return nil, nil, ErrNilPayload
 	}
 
 	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)

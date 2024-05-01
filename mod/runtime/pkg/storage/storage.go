@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -75,7 +76,7 @@ func NewBackend(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Backend) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock] {
+) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars] {
 	return k.availabilityStore
 }
 

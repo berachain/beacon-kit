@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"github.com/berachain/beacon-kit/mod/core"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
 )
 
@@ -37,6 +38,6 @@ type Service struct {
 	lb  LocalBuilder
 	sks StakingService
 	bv  *core.BlockVerifier
-	sp  *core.StateProcessor
+	sp  *core.StateProcessor[*datypes.BlobSidecars]
 	pv  *core.PayloadVerifier
 }

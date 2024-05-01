@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -64,7 +65,9 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[consensus.ReadOnlyBeaconBlock],
+	bsb runtime.BeaconStorageBackend[
+		consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars,
+	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -164,7 +167,7 @@ func ProvideRuntime(
 		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(
+			core.NewStateProcessor[*datypes.BlobSidecars](
 				chainSpec,
 				dablob.NewVerifier(blobProofVerifier),
 				randaoProcessor,
