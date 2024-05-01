@@ -193,6 +193,9 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.
+	//
+	// These two cases are semantically the same:
+	// https://github.com/ethereum/execution-apis/issues/270
 	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
 		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
