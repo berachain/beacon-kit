@@ -23,23 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package validator
 
-import (
-	"github.com/cockroachdb/errors"
-)
+import "errors"
 
 var (
-	// ErrInvalidExecutionValue is an error for when the
-	// execution value is invalid.
-	ErrInvalidExecutionValue = errors.New("invalid execution value")
-
 	// ErrForkVersionNotSupported is an error for when the fork
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
 
 	// ErrNilPayload is an error for when there is no payload
 	// in a beacon block.
@@ -50,9 +41,6 @@ var (
 
 	// ErrNilBlockHeader is returned when a block header from a block is nil.
 	ErrNilBlockHeader = errors.New("nil block header")
-
-	// ErrNilDeposits is an error for when the deposits are nil.
-	ErrNilDeposits = errors.New("nil deposits")
 
 	// ErrNilWithdrawal is an error for when the deposit is nil.
 	ErrNilWithdrawal = errors.New("nil withdrawal")

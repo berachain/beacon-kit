@@ -28,7 +28,6 @@ package encoding
 import (
 	"time"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
@@ -66,5 +65,5 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	if blkBz == nil {
 		return nil, ErrNilBeaconBlockInRequest
 	}
-	return beacontypes.BeaconBlockFromSSZ(blkBz, forkVersion)
+	return consensus.BeaconBlockFromSSZ(blkBz, forkVersion)
 }

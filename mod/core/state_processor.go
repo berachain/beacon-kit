@@ -271,7 +271,7 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 	// be removed and the logic put in the ProcessBlock function.
 	header := blk.GetHeader()
 	if header == nil {
-		return types.ErrNilBlockHeader
+		return ErrNilBlockHeader
 	}
 
 	// Store as the new latest block
