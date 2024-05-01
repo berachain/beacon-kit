@@ -36,7 +36,7 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ./pkg/crypto,./pkg/bytes,./primitives.go,./withdrawal_credentials.go,./pkg/math -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../crypto,../bytes,../../primitives.go,../staking,../math -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`

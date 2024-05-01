@@ -97,7 +97,7 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*staking.Deposit) {
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ./pkg/crypto,./primitives.go,./payload.go,./pkg/eip4844,./pkg/bytes,./eth1data.go,./pkg/math,./pkg/common,./deposit.go,./withdrawal_credentials.go,./withdrawal.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../crypto,../../primitives.go,./payload.go,../eip4844,../bytes,./eth1data.go,../math,../common,../staking,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 
