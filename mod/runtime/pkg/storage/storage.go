@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -41,10 +42,10 @@ import (
 // the generics defined using primitives.
 type KVStore = beacondb.KVStore[
 	*primitives.Fork,
-	*primitives.BeaconBlockHeader,
+	*beacon.BeaconBlockHeader,
 	engineprimitives.ExecutionPayloadHeader,
-	*primitives.Eth1Data,
-	*primitives.Validator,
+	*beacon.Eth1Data,
+	*beacon.Validator,
 ]
 
 // Backend is a struct that holds the storage backend. It
@@ -52,14 +53,14 @@ type KVStore = beacondb.KVStore[
 // required by the runtime.
 type Backend struct {
 	cs                primitives.ChainSpec
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
+	availabilityStore *da.Store[beacon.ReadOnlyBeaconBlock]
 	beaconStore       *KVStore
 	depositStore      *deposit.KVStore
 }
 
 func NewBackend(
 	cs primitives.ChainSpec,
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock],
+	availabilityStore *da.Store[beacon.ReadOnlyBeaconBlock],
 	beaconStore *KVStore,
 	depositStore *deposit.KVStore,
 ) *Backend {
@@ -74,7 +75,7 @@ func NewBackend(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Backend) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
+) core.AvailabilityStore[beacon.ReadOnlyBeaconBlock] {
 	return k.availabilityStore
 }
 
