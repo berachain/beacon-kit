@@ -55,6 +55,8 @@ type BeaconStorageBackend[ReadOnlyBeaconBlockT any] interface {
 
 // Keeper maintains the link to data storage and exposes access to the
 // underlying `BeaconState` methods for the x/beacon module.
+//
+// TODO: The keeper will eventually be dissolved.
 type Keeper struct {
 	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
 	beaconStore       *beacondb.KVStore[
