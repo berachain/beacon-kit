@@ -26,8 +26,6 @@
 package consensus
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -57,7 +55,7 @@ func EmptyBeaconBlock[
 			Body: &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return block, errors.New("unsupported fork version")
+		return block, ErrForkVersionNotSupported
 	}
 	return block, nil
 }
