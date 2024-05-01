@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -39,7 +38,7 @@ var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../common,../bytes,../../primitives.go,../common,../math,../staking,../bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../common,../bytes,./withdrawal.go,../../primitives.go,../common,../math,../bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
@@ -57,7 +56,7 @@ type ExecutableDataDeneb struct {
 	BaseFeePerGas math.Wei                `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
 	BlockHash     common.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*staking.Withdrawal   `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals   []*Withdrawal           `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                `json:"excessBlobGas"`
 }
@@ -155,7 +154,7 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*staking.Withdrawal {
+func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
 	return d.Withdrawals
 }
 

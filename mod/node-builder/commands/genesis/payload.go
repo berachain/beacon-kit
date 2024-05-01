@@ -33,9 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -128,11 +128,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
 ) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
-	withdrawals := make([]*staking.Withdrawal, len(data.Withdrawals))
+	withdrawals := make([]*consensus.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*staking.Withdrawal)(
+		withdrawals[i] = (*consensus.Withdrawal)(
 			unsafe.Pointer(withdrawal),
 		)
 	}
@@ -168,7 +168,7 @@ func executableDataToExecutionPayloadHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = staking.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
 			withdrawals,
 		).HashTreeRoot()
 		return withdrawalsRootErr

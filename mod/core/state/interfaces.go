@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -152,5 +151,5 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*staking.Withdrawal, error)
+	ExpectedWithdrawals() ([]*consensus.Withdrawal, error)
 }

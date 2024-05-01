@@ -29,19 +29,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../crypto,../bytes,../../primitives.go,../staking,../math -output validator.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path validator.go -objs Validator -include ../crypto,../bytes,../../primitives.go,./withdrawal_credentials.go,../math -output validator.ssz.go
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials staking.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -66,7 +65,7 @@ type Validator struct {
 //nolint:lll
 func NewValidatorFromDeposit(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials staking.WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
@@ -166,7 +165,7 @@ func (v Validator) IsPartiallyWithdrawable(
 //
 //nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == staking.EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective

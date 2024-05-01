@@ -31,10 +31,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
@@ -110,7 +110,7 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	depositMessage := staking.DepositMessage{
+	depositMessage := consensus.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
@@ -141,19 +141,19 @@ func convertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 
 // convertWithdrawalCredentials converts a string to a withdrawal credentials.
 func convertWithdrawalCredentials(credentials string) (
-	staking.WithdrawalCredentials,
+	consensus.WithdrawalCredentials,
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
-		return staking.WithdrawalCredentials{}, err
+		return consensus.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return staking.WithdrawalCredentials{},
+		return consensus.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return staking.WithdrawalCredentials(credentialsBytes), nil
+	return consensus.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // convertAmount converts a string to a deposit amount.

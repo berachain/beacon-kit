@@ -23,62 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package consensus
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// Deposit into the consensus layer from the deposit contract in the execution
-// layer.
+// Withdrawal represents a validator withdrawal from the consensus layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ./withdrawal_credentials.go,../math,../bytes,../crypto,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
-type Deposit struct {
-	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-max:"48"`
-
-	// A staking credentials with
-	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
-
-	// Deposit amount in gwei.
-	Amount math.Gwei `json:"amount"`
-
-	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature" ssz-max:"96"`
-
-	// Index of the deposit in the deposit contract.
-	Index uint64 `json:"index"`
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../math,../common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
+type Withdrawal struct {
+	Index     math.U64                `json:"index"`
+	Validator math.ValidatorIndex     `json:"validatorIndex"`
+	Address   common.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Amount    math.Gwei               `json:"amount"`
 }
 
-// NewDeposit creates a new Deposit instance.
-func NewDeposit(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature crypto.BLSSignature,
-	index uint64,
-) *Deposit {
-	return &Deposit{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
-		Index:       index,
-	}
+// Equals returns true if the Withdrawal is equal to the other.
+func (w *Withdrawal) Equals(other *Withdrawal) bool {
+	return w.Index == other.Index &&
+		w.Validator == other.Validator &&
+		w.Address == other.Address &&
+		w.Amount == other.Amount
 }
 
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
+// Withdrawals represents a slice of withdrawals.
+type Withdrawals []*Withdrawal
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (primitives.Root, error) {
-	// TODO: read max deposits from the chain spec.
+func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
+	// TODO: read max withdrawals from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
-		d, constants.MaxDepositsPerBlock,
+		w, constants.MaxWithdrawalsPerPayload,
 	)
 }

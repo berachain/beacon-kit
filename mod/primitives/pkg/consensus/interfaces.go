@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -67,7 +66,7 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []*staking.Withdrawal
+	GetWithdrawals() []*Withdrawal
 }
 
 // BeaconBlockBody is the interface for a beacon block body.
@@ -78,7 +77,7 @@ type BeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits([]*staking.Deposit)
+	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -93,7 +92,7 @@ type ReadOnlyBeaconBlockBody interface {
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() []*staking.Deposit
+	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
 	GetRandaoReveal() crypto.BLSSignature

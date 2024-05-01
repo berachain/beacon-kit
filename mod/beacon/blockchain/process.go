@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -255,7 +254,7 @@ func (s *Service) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = staking.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

@@ -33,7 +33,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -76,7 +75,7 @@ func AddPubkeyCmd() *cobra.Command {
 			// TODO: Should we do deposits here?
 			validator := consensus.NewValidatorFromDeposit(
 				crypto.BLSPubkey(valPubKey.Bytes()),
-				staking.NewCredentialsFromExecutionAddress(
+				consensus.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				1e9,  //nolint:mnd // temp.

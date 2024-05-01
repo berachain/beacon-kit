@@ -28,14 +28,12 @@ package consensus
 import (
 	"errors"
 
-	// engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine".
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 )
 
 const (
@@ -60,7 +58,7 @@ type BeaconBlockBodyBase struct {
 	Graffiti [32]byte `ssz-size:"32"`
 
 	// Deposits is the list of deposits included in the body.
-	Deposits []*staking.Deposit `ssz-max:"16"`
+	Deposits []*Deposit `ssz-max:"16"`
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
@@ -85,19 +83,19 @@ func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) GetDeposits() []*staking.Deposit {
+func (b *BeaconBlockBodyBase) GetDeposits() []*Deposit {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) SetDeposits(deposits []*staking.Deposit) {
+func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 	b.Deposits = deposits
 }
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../crypto,../../primitives.go,./payload.go,../eip4844,../bytes,./eth1data.go,../math,../common,../staking,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../crypto,../../primitives.go,./payload.go,../eip4844,../bytes,./eth1data.go,../math,../common,./deposit.go,./withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 
@@ -163,7 +161,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	// graffiti
 	layer[2] = b.GetGraffiti()
 
-	layer[3], err = staking.Deposits(b.GetDeposits()).HashTreeRoot()
+	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

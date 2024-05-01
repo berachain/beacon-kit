@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -326,7 +325,7 @@ func (sp *StateProcessor) processOperations(
 // local state.
 func (sp *StateProcessor) processDeposits(
 	st state.BeaconState,
-	deposits []*staking.Deposit,
+	deposits []*consensus.Deposit,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
@@ -344,7 +343,7 @@ func (sp *StateProcessor) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor) processDeposit(
 	st state.BeaconState,
-	dep *staking.Deposit,
+	dep *consensus.Deposit,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -378,7 +377,7 @@ func (sp *StateProcessor) processDeposit(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor) createValidator(
 	st state.BeaconState,
-	dep *staking.Deposit,
+	dep *consensus.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -407,7 +406,7 @@ func (sp *StateProcessor) createValidator(
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := staking.DepositMessage{
+	depositMessage := consensus.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
@@ -425,7 +424,7 @@ func (sp *StateProcessor) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *staking.Deposit,
+	dep *consensus.Deposit,
 ) error {
 	val := consensus.NewValidatorFromDeposit(
 		dep.Pubkey,

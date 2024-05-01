@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"golang.org/x/sync/errgroup"
@@ -111,7 +110,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 
 	g.Go(func() error {
 		var err error
-		emptyWithdrawalsRoot, err = staking.Withdrawals{}.HashTreeRoot()
+		emptyWithdrawalsRoot, err = consensus.Withdrawals{}.HashTreeRoot()
 		return err
 	})
 
@@ -151,7 +150,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}, nil
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives/pkg/consensus,../../../primitives/pkg/staking,../../types,../../../primitives-engine,../../../primitives/primitives.go,../../../primitives/fork.go,../../../primitives/alias.go,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives/pkg/consensus,../../types,../../../primitives-engine,../../../primitives/primitives.go,../../../primitives/fork.go,../../../primitives/alias.go,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
