@@ -80,6 +80,7 @@ type WriteOnlyBeaconBlockBody interface {
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	SetRandaoReveal(crypto.BLSSignature)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for

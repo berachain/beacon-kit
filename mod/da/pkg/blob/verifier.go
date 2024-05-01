@@ -23,33 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package blob
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da/kzg"
-	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"golang.org/x/sync/errgroup"
 )
 
-// BlobProofVerifier is a verifier for blobs.
-type BlobVerifier struct {
+// Verifier is a verifier for blobs.
+type Verifier struct {
 	proofVerifier kzg.BlobProofVerifier
 }
 
-// NewBlobVerifier creates a new BlobVerifier with the given proof verifier.
-func NewBlobVerifier(
+// NewVerifier creates a new Verifier with the given proof verifier.
+func NewVerifier(
 	proofVerifier kzg.BlobProofVerifier,
-) *BlobVerifier {
-	return &BlobVerifier{
+) *Verifier {
+	return &Verifier{
 		proofVerifier: proofVerifier,
 	}
 }
 
 // VerifyBlobs verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *BlobVerifier) VerifyBlobs(
+func (bv *Verifier) VerifyBlobs(
 	sidecars *types.BlobSidecars, kzgOffset uint64,
 ) error {
 	g, _ := errgroup.WithContext(context.Background())
@@ -72,7 +72,7 @@ func (bv *BlobVerifier) VerifyBlobs(
 	return g.Wait()
 }
 
-func (bv *BlobVerifier) VerifyInclusionProofs(
+func (bv *Verifier) VerifyInclusionProofs(
 	scs *types.BlobSidecars,
 	kzgOffset uint64,
 ) error {
@@ -80,7 +80,7 @@ func (bv *BlobVerifier) VerifyInclusionProofs(
 }
 
 // VerifyKZGProofs verifies the sidecars.
-func (bv *BlobVerifier) VerifyKZGProofs(
+func (bv *Verifier) VerifyKZGProofs(
 	scs *types.BlobSidecars,
 ) error {
 	switch len(scs.Sidecars) {

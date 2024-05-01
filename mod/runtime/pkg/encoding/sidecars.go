@@ -25,7 +25,7 @@
 
 package encoding
 
-import datypes "github.com/berachain/beacon-kit/mod/da/types"
+import datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 
 func UnmarshalBlobSidecarsFromABCIRequest(
 	req ABCIRequest,

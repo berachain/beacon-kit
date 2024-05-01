@@ -23,27 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build !ckzg
+package store
 
-package ckzg
-
-import (
-	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-)
-
-// VerifyBlobProof will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProof(
-	*eip4844.Blob,
-	eip4844.KZGProof,
-	eip4844.KZGCommitment,
-) error {
-	return ErrCGONotEnabled
-}
-
-// VerifyBlobProofBatch will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProofBatch(
-	*prooftypes.BlobProofArgs,
-) error {
-	return ErrCGONotEnabled
+// IndexDB is a database that allows prefixing by index.
+type IndexDB interface {
+	Set(index uint64, key []byte, value []byte) error
 }

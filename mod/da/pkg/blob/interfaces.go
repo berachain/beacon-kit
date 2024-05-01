@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package blob
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -47,8 +47,4 @@ type BeaconBlockBody interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
-}
-
-type IndexDB interface {
-	Set(index uint64, key []byte, value []byte) error
 }
