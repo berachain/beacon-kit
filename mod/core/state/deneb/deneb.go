@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -62,8 +63,8 @@ func DefaultBeaconState() (*BeaconState, error) {
 			),
 			Epoch: 0,
 		},
-		LatestBlockHeader: &primitives.BeaconBlockHeader{
-			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+		LatestBlockHeader: &consensus.BeaconBlockHeader{
+			BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
 				Slot:            0,
 				ProposerIndex:   0,
 				ParentBlockRoot: primitives.Root{},
@@ -74,13 +75,13 @@ func DefaultBeaconState() (*BeaconState, error) {
 		BlockRoots:                   make([]primitives.Root, 8),
 		StateRoots:                   make([]primitives.Root, 8),
 		LatestExecutionPayloadHeader: defaultExecPayloadHeader,
-		Eth1Data: &primitives.Eth1Data{
+		Eth1Data: &consensus.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
 			BlockHash:    common.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
-		Validators:                   make([]*primitives.Validator, 0),
+		Validators:                   make([]*consensus.Validator, 0),
 		Balances:                     make([]uint64, 0),
 		NextWithdrawalIndex:          0,
 		NextWithdrawalValidatorIndex: 0,
@@ -109,7 +110,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 
 	g.Go(func() error {
 		var err error
-		emptyWithdrawalsRoot, err = primitives.Withdrawals{}.HashTreeRoot()
+		emptyWithdrawalsRoot, err = consensus.Withdrawals{}.HashTreeRoot()
 		return err
 	})
 
@@ -149,7 +150,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}, nil
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../types,../../../primitives-engine,../../../primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives/pkg/consensus,../../types,../../../primitives-engine,../../../primitives/primitives.go,../../../primitives/fork.go,../../../primitives/alias.go,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
@@ -160,18 +161,18 @@ type BeaconState struct {
 	Fork                  *primitives.Fork `json:"fork"`
 
 	// History
-	LatestBlockHeader *primitives.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []primitives.Root             `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []primitives.Root             `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	LatestBlockHeader *consensus.BeaconBlockHeader `json:"latestBlockHeader"`
+	BlockRoots        []primitives.Root            `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []primitives.Root            `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1Data                     *primitives.Eth1Data                          `json:"eth1Data"`
+	Eth1Data                     *consensus.Eth1Data                           `json:"eth1Data"`
 	Eth1DepositIndex             uint64                                        `json:"eth1DepositIndex"`
 	LatestExecutionPayloadHeader *engineprimitives.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
-	Validators []*primitives.Validator `json:"validators" ssz-max:"1099511627776"`
-	Balances   []uint64                `json:"balances"   ssz-max:"1099511627776"`
+	Validators []*consensus.Validator `json:"validators" ssz-max:"1099511627776"`
+	Balances   []uint64               `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
 	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`

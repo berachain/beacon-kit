@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives_test
+package consensus_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,25 +40,25 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 	tests := []struct {
 		name                      string
 		pubkey                    crypto.BLSPubkey
-		withdrawalCredentials     primitives.WithdrawalCredentials
+		withdrawalCredentials     consensus.WithdrawalCredentials
 		amount                    math.Gwei
 		effectiveBalanceIncrement math.Gwei
 		maxEffectiveBalance       math.Gwei
-		want                      *primitives.Validator
+		want                      *consensus.Validator
 	}{
 		{
 			name:   "normal case",
 			pubkey: [48]byte{0x01},
-			withdrawalCredentials: primitives.
+			withdrawalCredentials: consensus.
 				NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x01},
 				),
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &primitives.Validator{
+			want: &consensus.Validator{
 				Pubkey: [48]byte{0x01},
-				WithdrawalCredentials: primitives.
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -81,16 +81,16 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		{
 			name:   "effective balance capped at max",
 			pubkey: [48]byte{0x02},
-			withdrawalCredentials: primitives.
+			withdrawalCredentials: consensus.
 				NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x02},
 				),
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &primitives.Validator{
+			want: &consensus.Validator{
 				Pubkey: [48]byte{0x02},
-				WithdrawalCredentials: primitives.
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x02},
 					),
@@ -113,16 +113,16 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		{
 			name:   "effective balance rounded down",
 			pubkey: [48]byte{0x03},
-			withdrawalCredentials: primitives.
+			withdrawalCredentials: consensus.
 				NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x03},
 				),
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &primitives.Validator{
+			want: &consensus.Validator{
 				Pubkey: [48]byte{0x03},
-				WithdrawalCredentials: primitives.
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x03},
 					),
@@ -145,7 +145,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := primitives.NewValidatorFromDeposit(
+			got := consensus.NewValidatorFromDeposit(
 				tt.pubkey,
 				tt.withdrawalCredentials,
 				tt.amount,
@@ -161,13 +161,13 @@ func TestValidator_IsActive(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name:  "active",
 			epoch: 10,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -176,7 +176,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, before activation",
 			epoch: 4,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -185,7 +185,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, after exit",
 			epoch: 16,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -203,13 +203,13 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 	tests := []struct {
 		name           string
 		finalizedEpoch math.Epoch
-		validator      *primitives.Validator
+		validator      *consensus.Validator
 		want           bool
 	}{
 		{
 			name:           "eligible",
 			finalizedEpoch: 10,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
@@ -220,7 +220,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 		{
 			name:           "not eligible, activation eligibility in future",
 			finalizedEpoch: 4,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
@@ -231,7 +231,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 		{
 			name:           "not eligible, already activated",
 			finalizedEpoch: 10,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch:            8,
 			},
@@ -253,12 +253,12 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name: "eligible",
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
@@ -268,7 +268,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		},
 		{
 			name: "not eligible, activation eligibility set",
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: 5,
 				EffectiveBalance:           maxEffectiveBalance,
 			},
@@ -276,7 +276,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		},
 		{
 			name: "not eligible, effective balance too low",
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
@@ -300,13 +300,13 @@ func TestValidator_IsSlashable(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name:  "slashable",
 			epoch: 10,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -316,7 +316,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, already slashed",
 			epoch: 10,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				Slashed:           true,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -326,7 +326,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, before activation",
 			epoch: 4,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -336,7 +336,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, after withdrawable",
 			epoch: 16,
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -356,15 +356,15 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 		name      string
 		balance   math.Gwei
 		epoch     math.Epoch
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name:    "fully withdrawable",
 			balance: 32e9,
 			epoch:   10,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -376,8 +376,8 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, non-eth1 credentials",
 			balance: 32e9,
 			epoch:   10,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					WithdrawalCredentials{0x00},
 				WithdrawableEpoch: 5,
 			},
@@ -387,8 +387,8 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, before withdrawable epoch",
 			balance: 32e9,
 			epoch:   4,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -400,8 +400,8 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, zero balance",
 			balance: 0,
 			epoch:   10,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -426,14 +426,14 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 	tests := []struct {
 		name      string
 		balance   math.Gwei
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name:    "partially withdrawable",
 			balance: 33e9,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -444,8 +444,8 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, non-eth1 credentials",
 			balance: 33e9,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.WithdrawalCredentials{
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.WithdrawalCredentials{
 					0x00,
 				},
 				EffectiveBalance: maxEffectiveBalance,
@@ -455,8 +455,8 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, not at max effective balance",
 			balance: 33e9,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -467,8 +467,8 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, no excess balance",
 			balance: 32e9,
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -494,13 +494,13 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name: "has eth1 credentials",
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
@@ -509,8 +509,8 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 		},
 		{
 			name: "does not have eth1 credentials",
-			validator: &primitives.Validator{
-				WithdrawalCredentials: primitives.WithdrawalCredentials{
+			validator: &consensus.Validator{
+				WithdrawalCredentials: consensus.WithdrawalCredentials{
 					0x00,
 				},
 			},
@@ -532,19 +532,19 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *primitives.Validator
+		validator *consensus.Validator
 		want      bool
 	}{
 		{
 			name: "has max effective balance",
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				EffectiveBalance: maxEffectiveBalance,
 			},
 			want: true,
 		},
 		{
 			name: "does not have max effective balance",
-			validator: &primitives.Validator{
+			validator: &consensus.Validator{
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
 			want: false,

@@ -23,9 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensus
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -80,5 +81,5 @@ func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
-	return (*Bytes32)(wc).UnmarshalText(text)
+	return (*primitives.Bytes32)(wc).UnmarshalText(text)
 }

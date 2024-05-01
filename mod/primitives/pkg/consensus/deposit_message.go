@@ -23,11 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensus
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // SigVerificationFn is a function that verifies a signature.
@@ -37,7 +39,7 @@ type SigVerificationFn func(pubkey, message, signature []byte) bool
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./pkg/crypto,./withdrawal_credentials.go,./pkg/math/,./primitives.go,./pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,../math,../crypto,../../primitives.go,../bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -52,8 +54,8 @@ type DepositMessage struct {
 
 // CreateAndSignDepositMessage creates and signs a deposit message.
 func CreateAndSignDepositMessage(
-	forkData *ForkData,
-	domainType DomainType,
+	forkData *primitives.ForkData,
+	domainType primitives.DomainType,
 	signer crypto.BLSSigner,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
@@ -69,7 +71,7 @@ func CreateAndSignDepositMessage(
 		Amount:      amount,
 	}
 
-	signingRoot, err := ComputeSigningRoot(&depositMessage, domain)
+	signingRoot, err := ssz.ComputeSigningRoot(&depositMessage, domain)
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
 	}
@@ -85,17 +87,17 @@ func CreateAndSignDepositMessage(
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
-	forkData *ForkData,
+	forkData *primitives.ForkData,
 	signature crypto.BLSSignature,
 	isSignatureValid SigVerificationFn,
-	domainType DomainType,
+	domainType primitives.DomainType,
 ) error {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {
 		return err
 	}
 
-	signingRoot, err := ComputeSigningRoot(d, domain)
+	signingRoot, err := ssz.ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}

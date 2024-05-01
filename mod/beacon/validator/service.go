@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -53,7 +54,7 @@ type Service struct {
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[primitives.BeaconBlockBody]
+	blobFactory BlobFactory[consensus.BeaconBlockBody]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
@@ -111,7 +112,7 @@ func (s *Service) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
-) (primitives.BeaconBlock, *datypes.BlobSidecars, error) {
+) (consensus.BeaconBlock, *datypes.BlobSidecars, error) {
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -234,7 +235,7 @@ func (s *Service) RequestBestBlock(
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
-	body.SetEth1Data(&primitives.Eth1Data{
+	body.SetEth1Data(&consensus.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
 		BlockHash:    common.ExecutionHash{},

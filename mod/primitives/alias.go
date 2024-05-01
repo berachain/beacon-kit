@@ -25,15 +25,13 @@
 
 package primitives
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 
-var (
-	// ErrDepositMessage is an error for when the deposit signature doesn't
-	// match.
-	ErrDepositMessage = errors.New("invalid deposit message")
-
-	// ErrInvalidWithdrawalCredentials is an error for when the.
-	ErrInvalidWithdrawalCredentials = errors.New(
-		"invalid withdrawal credentials",
-	)
+type (
+	Bytes4  = bytes.B4
+	Bytes32 = bytes.B32
+	Bytes48 = bytes.B48
+	Bytes96 = bytes.B96
 )
+
+type Bool bool

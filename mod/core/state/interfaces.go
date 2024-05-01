@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -57,9 +58,9 @@ type ReadOnlyBeaconState interface {
 	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*primitives.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (*consensus.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() ([]*primitives.Validator, error)
+	GetValidators() ([]*consensus.Validator, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
@@ -77,7 +78,7 @@ type WriteOnlyBeaconState interface {
 	SetFork(*primitives.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*primitives.BeaconBlockHeader) error
+	SetLatestBlockHeader(*consensus.BeaconBlockHeader) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -113,10 +114,10 @@ type ReadOnlyRandaoMixes interface {
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		math.ValidatorIndex,
-		*primitives.Validator,
+		*consensus.Validator,
 	) error
 
-	AddValidator(*primitives.Validator) error
+	AddValidator(*consensus.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
@@ -127,12 +128,12 @@ type ReadOnlyValidators interface {
 
 	ValidatorByIndex(
 		math.ValidatorIndex,
-	) (*primitives.Validator, error)
+	) (*consensus.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	SetEth1Data(*primitives.Eth1Data) error
+	SetEth1Data(*consensus.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
 		engineprimitives.ExecutionPayloadHeader,
@@ -141,7 +142,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetEth1Data() (*primitives.Eth1Data, error)
+	GetEth1Data() (*consensus.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
@@ -150,5 +151,5 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*primitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]*consensus.Withdrawal, error)
 }

@@ -27,8 +27,8 @@ package blob
 
 import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
 )
@@ -123,7 +123,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 	}
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
-	](membersRoots, primitives.BodyLengthDeneb-1)
+	](membersRoots, consensus.BodyLengthDeneb-1)
 	if err != nil {
 		return nil, err
 	}

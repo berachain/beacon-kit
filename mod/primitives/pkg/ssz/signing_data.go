@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package ssz
 
 import (
 	"encoding/binary"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
@@ -35,10 +36,10 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ./primitives.go,./pkg/bytes -output signing_data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ../../primitives.go,../bytes -output signing_data.ssz.go
 type SigningData struct {
-	ObjectRoot Root   `ssz-size:"32"`
-	Domain     Domain `ssz-size:"32"`
+	ObjectRoot primitives.Root   `ssz-size:"32"`
+	Domain     primitives.Domain `ssz-size:"32"`
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
@@ -47,11 +48,11 @@ type SigningData struct {
 //nolint:lll
 func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() ([32]byte, error) },
-	domain Domain,
-) (Root, error) {
+	domain primitives.Domain,
+) (primitives.Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()
 	if err != nil {
-		return Root{}, err
+		return primitives.Root{}, err
 	}
 	return (&SigningData{
 		ObjectRoot: objectRoot,
@@ -62,12 +63,12 @@ func ComputeSigningRoot(
 // ComputeSigningRootUInt64 computes the signing root of a uint64 value.
 func ComputeSigningRootUInt64(
 	value uint64,
-	domain Domain,
-) (Root, error) {
+	domain primitives.Domain,
+) (primitives.Root, error) {
 	bz := make([]byte, constants.RootLength)
 	binary.LittleEndian.PutUint64(bz, value)
 	return (&SigningData{
-		ObjectRoot: Root(bz),
+		ObjectRoot: primitives.Root(bz),
 		Domain:     domain,
 	}).HashTreeRoot()
 }

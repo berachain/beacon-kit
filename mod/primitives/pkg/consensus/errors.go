@@ -23,13 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensus
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+import "errors"
 
-type (
-	Bytes4  = bytes.B4
-	Bytes32 = bytes.B32
-	Bytes48 = bytes.B48
-	Bytes96 = bytes.B96
+var (
+	// ErrDepositMessage is an error for when the deposit signature doesn't
+	// match.
+	ErrDepositMessage = errors.New("invalid deposit message")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
 )

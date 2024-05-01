@@ -31,7 +31,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -40,7 +40,7 @@ type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
 	services *service.Registry
-	fscp     BeaconStorageBackend[primitives.ReadOnlyBeaconBlock]
+	fscp     BeaconStorageBackend[consensus.ReadOnlyBeaconBlock]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime

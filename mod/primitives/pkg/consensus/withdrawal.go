@@ -23,9 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensus
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -34,7 +35,7 @@ import (
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ./pkg/math,./pkg/common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../math,../common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
 	Index     math.U64                `json:"index"`
 	Validator math.ValidatorIndex     `json:"validatorIndex"`
@@ -54,7 +55,7 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 type Withdrawals []*Withdrawal
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (w Withdrawals) HashTreeRoot() (Root, error) {
+func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
 	// TODO: read max withdrawals from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
 		w, constants.MaxWithdrawalsPerPayload,

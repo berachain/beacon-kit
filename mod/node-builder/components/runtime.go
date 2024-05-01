@@ -45,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -63,7 +64,7 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[primitives.ReadOnlyBeaconBlock],
+	bsb runtime.BeaconStorageBackend[consensus.ReadOnlyBeaconBlock],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -141,9 +142,9 @@ func ProvideRuntime(
 	// Build the builder service.
 	validatorService := validator.NewService(
 		validator.WithBlobFactory(
-			dablob.NewSidecarFactory[primitives.BeaconBlockBody](
+			dablob.NewSidecarFactory[consensus.BeaconBlockBody](
 				chainSpec,
-				primitives.KZGPositionDeneb,
+				consensus.KZGPositionDeneb,
 			)),
 		validator.WithChainSpec(chainSpec),
 		validator.WithConfig(&cfg.Validator),

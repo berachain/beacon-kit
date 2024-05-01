@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -39,19 +40,19 @@ func NewBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	forkVersion uint32,
-) (primitives.BeaconBlock, error) {
-	var block primitives.BeaconBlock
+) (consensus.BeaconBlock, error) {
+	var block consensus.BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &primitives.BeaconBlockDeneb{
-			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+		block = &consensus.BeaconBlockDeneb{
+			BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
 				Slot:            uint64(slot),
 				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: parentBlockRoot,
 				StateRoot:       stateRoot,
 			},
-			Body: &primitives.BeaconBlockBodyDeneb{
-				BeaconBlockBodyBase: primitives.BeaconBlockBodyBase{},
+			Body: &consensus.BeaconBlockBodyDeneb{
+				BeaconBlockBodyBase: consensus.BeaconBlockBodyBase{},
 			},
 		}
 	default:
@@ -68,7 +69,7 @@ func EmptyBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	version uint32,
-) (primitives.BeaconBlock, error) {
+) (consensus.BeaconBlock, error) {
 	return NewBeaconBlock(
 		slot,
 		proposerIndex,
@@ -83,8 +84,8 @@ func EmptyBeaconBlock(
 func BeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion uint32,
-) (primitives.BeaconBlock, error) {
-	var block primitives.BeaconBlockDeneb
+) (consensus.BeaconBlock, error) {
+	var block consensus.BeaconBlockDeneb
 	switch forkVersion {
 	case version.Deneb:
 		_ = block

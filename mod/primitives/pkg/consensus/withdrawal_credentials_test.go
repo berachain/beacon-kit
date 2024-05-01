@@ -23,19 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives_test
+package consensus_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 	address := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
-	expectedCredentials := primitives.WithdrawalCredentials{}
+	expectedCredentials := consensus.WithdrawalCredentials{}
 	expectedCredentials[0] = 0x01 // EthSecp256k1CredentialPrefix
 	copy(expectedCredentials[12:], address[:])
 	for i := 1; i < 12; i++ {
@@ -59,7 +59,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 		common.ExecutionAddress(expectedCredentials[12:]),
 		"Expected address to be set correctly",
 	)
-	credentials := primitives.
+	credentials := consensus.
 		NewCredentialsFromExecutionAddress(address)
 	require.Equal(
 		t,
@@ -71,7 +71,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 
 func TestToExecutionAddress(t *testing.T) {
 	expectedAddress := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
-	credentials := primitives.WithdrawalCredentials{}
+	credentials := consensus.WithdrawalCredentials{}
 	for i := range credentials {
 		// First byte should be 0x01
 		switch {
@@ -95,7 +95,7 @@ func TestToExecutionAddress(t *testing.T) {
 }
 
 func TestToExecutionAddress_InvalidPrefix(t *testing.T) {
-	credentials := primitives.WithdrawalCredentials{}
+	credentials := consensus.WithdrawalCredentials{}
 	for i := range credentials {
 		credentials[i] = 0x00 // Invalid prefix
 	}

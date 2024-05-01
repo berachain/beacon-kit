@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
@@ -112,7 +113,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		}
 
 		// Create and sign the deposit message.
-		depositMsg, signature, err := primitives.CreateAndSignDepositMessage(
+		depositMsg, signature, err := consensus.CreateAndSignDepositMessage(
 			primitives.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,

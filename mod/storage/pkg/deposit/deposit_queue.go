@@ -32,14 +32,14 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	sdkcodec "cosmossdk.io/collections/codec"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
 // Queue is a simple queue implementation that uses a map and two sequences.
 // TODO: Check atomicity of write operations.
 type Queue struct {
 	// container is a map that holds the queue elements.
-	container sdkcollections.Map[uint64, *primitives.Deposit]
+	container sdkcollections.Map[uint64, *consensus.Deposit]
 	// headSeq is a sequence that points to the head of the queue.
 	headSeq sdkcollections.Sequence // inclusive
 	// length is an item that holds the length of the queue.
@@ -51,7 +51,7 @@ type Queue struct {
 // NewQueue creates a new queue with the provided prefix and name.
 func NewQueue(
 	schema *sdkcollections.SchemaBuilder, name string,
-	valueCodec sdkcodec.ValueCodec[*primitives.Deposit],
+	valueCodec sdkcodec.ValueCodec[*consensus.Deposit],
 ) *Queue {
 	var (
 		queueName   = name + "_queue"
@@ -85,7 +85,7 @@ func (q *Queue) Init(ctx context.Context) error {
 }
 
 // Peek wraps the peek method with a read lock.
-func (q *Queue) Peek(ctx context.Context) (*primitives.Deposit, error) {
+func (q *Queue) Peek(ctx context.Context) (*consensus.Deposit, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 	return q.UnsafePeek(ctx)
@@ -95,9 +95,9 @@ func (q *Queue) Peek(ctx context.Context) (*primitives.Deposit, error) {
 // It is unsafe to call this method without acquiring the read lock.
 func (q *Queue) UnsafePeek(
 	ctx context.Context,
-) (*primitives.Deposit, error) {
+) (*consensus.Deposit, error) {
 	var (
-		v       *primitives.Deposit
+		v       *consensus.Deposit
 		headIdx uint64
 		length  uint64
 		err     error
@@ -111,12 +111,12 @@ func (q *Queue) UnsafePeek(
 }
 
 // Pop returns the top element of the queue and removes it from the queue.
-func (q *Queue) Pop(ctx context.Context) (*primitives.Deposit, error) {
+func (q *Queue) Pop(ctx context.Context) (*consensus.Deposit, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	var (
-		v       *primitives.Deposit
+		v       *consensus.Deposit
 		headIdx uint64
 		err     error
 	)
@@ -145,7 +145,7 @@ func (q *Queue) Pop(ctx context.Context) (*primitives.Deposit, error) {
 func (q *Queue) PeekMulti(
 	ctx context.Context,
 	n uint64,
-) ([]*primitives.Deposit, error) {
+) ([]*consensus.Deposit, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
@@ -179,7 +179,7 @@ func (q *Queue) PeekMulti(
 func (q *Queue) PopMulti(
 	ctx context.Context,
 	n uint64,
-) ([]*primitives.Deposit, error) {
+) ([]*consensus.Deposit, error) {
 	if n == 0 {
 		return nil, nil
 	}
@@ -229,7 +229,7 @@ func (q *Queue) PopMulti(
 // Push adds a new element to the queue.
 func (q *Queue) Push(
 	ctx context.Context,
-	value *primitives.Deposit,
+	value *consensus.Deposit,
 ) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -246,7 +246,7 @@ func (q *Queue) Push(
 // PushMulti adds multiple new elements to the queue.
 func (q *Queue) PushMulti(
 	ctx context.Context,
-	values []*primitives.Deposit,
+	values []*consensus.Deposit,
 ) error {
 	if len(values) == 0 {
 		return nil
@@ -289,7 +289,7 @@ func (q *Queue) Len(ctx context.Context) (uint64, error) {
 
 // Container returns the underlying map container of the queue.
 func (q *Queue) Container() sdkcollections.Map[
-	uint64, *primitives.Deposit,
+	uint64, *consensus.Deposit,
 ] {
 	return q.container
 }
