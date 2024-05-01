@@ -138,7 +138,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest,
 ) (bool, error) {
-
 	// First we verify the block hash and versioned hashes are valid.
 	//
 	// TODO: is this required? Or will the EL handle this for us during
@@ -173,7 +172,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	// We abstract away some of the complexity and categorize status codes
 	// to make it easier to reason about.
 	switch {
-
 	// If we get accepted or syncing, we are going to optimistically
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
@@ -184,7 +182,14 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
-		return true, nil
+
+		// Under the optimistic condition, we will not return an error
+		// for this case otherwise, we will pass the error onto the caller
+		// to allow them to choose how to handle it.
+		if req.Optimistic {
+			return true, nil
+		}
+		return false, err
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.

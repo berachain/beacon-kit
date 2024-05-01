@@ -88,6 +88,12 @@ func (s *Service) ProcessBeaconBlock(
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
+			// Since this is called during FinalizeBlock, we want to assume
+			// the payload is valid, if it ends up not being valid later the
+			// node will simply AppHash which is completely fine, since this
+			// means we were syncing from a bad peer, and we would likely
+			// AppHash anyways.
+			true,
 		),
 	); err != nil {
 		s.Logger().
@@ -176,18 +182,20 @@ func (s *Service) VerifyPayloadOnBlk(
 
 	// We notify the engine of the new payload.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if _, err := s.ee.VerifyAndNotifyNewPayload(
+	if valid, err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
+			// We do not want to optimistically assume truth here.
+			false,
 		),
 	); err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
 		return err
+	} else if !valid {
+		return ErrInvalidPayload
 	}
 	return nil
 }
