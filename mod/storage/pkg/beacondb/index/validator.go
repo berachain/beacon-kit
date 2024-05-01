@@ -28,7 +28,7 @@ package index
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -56,7 +56,7 @@ type Validator interface {
 	// marshaled.
 	SizeSSZ() int
 	// GetPubkey returns the public key of the validator.
-	GetPubkey() primitives.BLSPubkey
+	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.
 	GetEffectiveBalance() math.Gwei
 }

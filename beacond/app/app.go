@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
@@ -55,7 +54,7 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	BeaconKeeper          *beaconkeeper.Keeper
+	BeaconKeeper          *beaconkitruntime.Keeper
 	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }

@@ -27,16 +27,16 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	chain "github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // LocalnetChainSpec is the ChainSpec for the localnet.
 func LocalnetChainSpec() chain.Spec[
 	primitives.DomainType,
 	math.Epoch,
-	primitives.ExecutionAddress,
+	common.ExecutionAddress,
 	math.Slot,
 ] {
 	//nolint:mnd // default config.
@@ -44,7 +44,7 @@ func LocalnetChainSpec() chain.Spec[
 		chain.SpecData[
 			primitives.Bytes4,
 			math.Epoch,
-			common.Address,
+			common.ExecutionAddress,
 			math.Slot,
 		]{
 			// // Gwei value constants.

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -44,7 +45,7 @@ type BeaconState interface {
 // ReadOnlyValidators has read access to validator methods.
 type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
-		primitives.BLSPubkey,
+		crypto.BLSPubkey,
 	) (math.ValidatorIndex, error)
 }
 

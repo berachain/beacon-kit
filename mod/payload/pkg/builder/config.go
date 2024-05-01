@@ -28,7 +28,7 @@ package builder
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 const (
@@ -47,7 +47,7 @@ type Config struct {
 	// SuggestedFeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
-	SuggestedFeeRecipient primitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
+	SuggestedFeeRecipient common.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 
 	// PayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
@@ -61,7 +61,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled:               true,
-		SuggestedFeeRecipient: primitives.ExecutionAddress{},
+		SuggestedFeeRecipient: common.ExecutionAddress{},
 		PayloadTimeout:        defaultPayloadTimeout,
 	}
 }

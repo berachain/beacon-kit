@@ -31,8 +31,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cockroachdb/errors"
 )
 
@@ -67,8 +67,8 @@ func (ee *Engine) Status() error {
 // TODO move.
 func (ee *Engine) GetLogs(
 	ctx context.Context,
-	blockHash primitives.ExecutionHash,
-	addrs []primitives.ExecutionAddress,
+	blockHash common.ExecutionHash,
+	addrs []common.ExecutionAddress,
 ) ([]engineprimitives.Log, error) {
 	return ee.ec.GetLogs(ctx, blockHash, addrs)
 }
@@ -88,7 +88,7 @@ func (ee *Engine) GetPayload(
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	ee.logger.Info("notifying forkchoice update",
 		"head_eth1_hash", req.State.HeadBlockHash,
 		"safe_eth1_hash", req.State.SafeBlockHash,

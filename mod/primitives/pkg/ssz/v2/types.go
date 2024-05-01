@@ -23,16 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package ssz
 
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() BLSPubkey
+type (
+	// Kind represents different types of SSZ'able data.
+	Kind uint8
 
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (BLSSignature, error)
+	// Type represents a SSZ type.
+	Type interface {
+		Kind() Kind
+	}
+)
+type GenericSSZType interface {
+	Type
 }

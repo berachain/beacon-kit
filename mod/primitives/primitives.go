@@ -28,13 +28,14 @@ package primitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 //nolint:lll
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]
+	ChainSpec = chain.Spec[DomainType, math.Epoch, common.ExecutionAddress, math.Slot]
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -61,12 +62,4 @@ type (
 	// ForkDigest as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = bytes.B4
-
-	// ValidatorIndex as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSPubkey = bytes.B48
-
-	// BLSSignature as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSSignature = bytes.B96
 )

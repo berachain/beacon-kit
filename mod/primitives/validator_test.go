@@ -29,7 +29,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +39,7 @@ import (
 func TestNewValidatorFromDeposit(t *testing.T) {
 	tests := []struct {
 		name                      string
-		pubkey                    primitives.BLSPubkey
+		pubkey                    crypto.BLSPubkey
 		withdrawalCredentials     primitives.WithdrawalCredentials
 		amount                    math.Gwei
 		effectiveBalanceIncrement math.Gwei
@@ -49,7 +51,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x01},
 			withdrawalCredentials: primitives.
 				NewCredentialsFromExecutionAddress(
-					primitives.ExecutionAddress{0x01},
+					common.ExecutionAddress{0x01},
 				),
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
@@ -58,7 +60,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -81,7 +83,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x02},
 			withdrawalCredentials: primitives.
 				NewCredentialsFromExecutionAddress(
-					primitives.ExecutionAddress{0x02},
+					common.ExecutionAddress{0x02},
 				),
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
@@ -90,7 +92,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x02},
+						common.ExecutionAddress{0x02},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -113,7 +115,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x03},
 			withdrawalCredentials: primitives.
 				NewCredentialsFromExecutionAddress(
-					primitives.ExecutionAddress{0x03},
+					common.ExecutionAddress{0x03},
 				),
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
@@ -122,7 +124,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x03},
+						common.ExecutionAddress{0x03},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -364,7 +366,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -388,7 +390,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -401,7 +403,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -433,7 +435,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -456,7 +458,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
@@ -468,7 +470,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -500,7 +502,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 			validator: &primitives.Validator{
 				WithdrawalCredentials: primitives.
 					NewCredentialsFromExecutionAddress(
-						primitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 			},
 			want: true,

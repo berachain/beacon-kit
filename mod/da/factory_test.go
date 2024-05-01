@@ -121,7 +121,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 // 		Eth1Data: &primitives.Eth1Data{
 // 			DepositRoot:  primitives.Root{},
 // 			DepositCount: 0,
-// 			BlockHash:    primitives.ExecutionHash{},
+// 			BlockHash:    common.ExecutionHash{},
 // 		},
 // 		ExecutionPayload: executionPayload,
 // 		BlobKzgCommitments: kzg.Commitments{

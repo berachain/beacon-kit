@@ -10,13 +10,13 @@
 #    beacond     #
 #################
 
-JWT_PATH = ${TESTAPP_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_DIR}/eth-genesis.json
-
+JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
+ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
+NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@JWT_SECRET_PATH=$(JWT_PATH) ./beacond/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 
 start-reth: ## start an ephemeral `reth` node
@@ -25,7 +25,7 @@ start-reth: ## start an ephemeral `reth` node
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
@@ -37,7 +37,7 @@ start-reth: ## start an ephemeral `reth` node
 start-geth: ## start an ephemeral `geth` node
 	rm -rf .tmp/geth
 	docker run \
-	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
 	--datadir .tmp/geth \
@@ -47,7 +47,7 @@ start-geth: ## start an ephemeral `geth` node
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
 	--http \
@@ -63,7 +63,7 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
@@ -72,14 +72,14 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_DIR)/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json
 
 start-besu: ## start an ephemeral `besu` node
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	hyperledger/besu:latest \
 	--data-path=.tmp/besu \
 	--genesis-file=../../${ETH_GENESIS_PATH} \
@@ -95,7 +95,7 @@ start-besu: ## start an ephemeral `besu` node
 start-erigon: ## start an ephemeral `erigon` node
 	rm -rf .tmp/erigon
 	docker run \
-    --rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+    --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
     -v $(PWD)/.tmp:/.tmp \
     thorax/erigon:v2.59.3 init \
     --datadir .tmp/erigon \
@@ -105,7 +105,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	thorax/erigon:v2.59.3 \
 	--http \
@@ -125,7 +125,7 @@ start-erigon: ## start an ephemeral `erigon` node
 start-ethereumjs:
 	rm -rf .tmp/ethereumjs
 	docker run \
-	--rm -v $(PWD)/${TESTAPP_DIR}:/${TESTAPP_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	-p 30303:30303 \
 	-p 8545:8545 \
