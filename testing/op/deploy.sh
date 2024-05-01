@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Set your L1 values here.
-L1_RPC_URL="http://localhost:64064"  # Replace with your L1 node URL
+L1_RPC_URL="http://localhost:64064"  # Replace with your L1 node URL.
 L1_RPC_KIND="basic"
-L1_CHAINID=80087
+L1_CHAINID=80088 # Replace with your L1 chain id.
 L2_CHAINID=42069
-# TODO: L1_block_time, l1 finalization period
+L1_BLOCK_TIME=6 # Replace with your L1 block time.
+L1_FINALIZATION_PERIOD=6 # Replace with your L1 block time.
 
 # Fill out environment variables in .env file
 cd ~/op-stack-deployment/optimism
@@ -44,9 +45,11 @@ echo "Timestamp: $timestamp"
 # TODO: make sure this works.
 awk -v hash="$hash" '/"l1StrtingBlockTag": "BLOCKHASH"/{$0="    \"l1StartingBlockTag\": \"" hash "\", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
 awk -v timestamp="$timestamp" '/"l2OutputOracleStartingTimestamp": TIMESTAMP/{$0="    \"l2OutputOracleStartingTimestamp\": " timestamp ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
+# TODO: set $number to "l2OutputOracleStartingBlockNumber"
 awk -v L1_CHAINID="$L1_CHAINID" '/"l1ChainID": L1_CHAINID/{$0="    \"l1ChainID\": " L1_CHAINID ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
 awk -v L2_CHAINID="$L2_CHAINID" '/"l2ChainID": L2_CHAINID/{$0="    \"l2ChainID\": " L2_CHAINID ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
-# TODO: L1_block_time, l1 finalization period
+# TODO: set L1_BLOCK_TIME to "l1BlockTime" 
+# TODO: set L1_FINALIZATION_PERIOD to "finalizationPeriodSeconds"
 
 # Print the updated JSON file
 echo "deploy-config/getting-started.json"
