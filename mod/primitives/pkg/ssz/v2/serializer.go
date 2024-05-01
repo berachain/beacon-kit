@@ -44,8 +44,13 @@ func (e *SerializeError) Error() string {
 // NewSerializeErrorMaximumLengthReached
 // creates a new SerializeError for maximum length reached.
 func NewSerializeErrorMaximumLengthReached(size int) *SerializeError {
-	//nolint:lll
-	return &SerializeError{Err: fmt.Errorf("the encoded length is %d which meets or exceeds the maximum length %d", size, MaximumLength)}
+	return &SerializeError{
+		Err: fmt.Errorf(
+			"the encoded length is %d which meets or exceeds the maximum length %d",
+			size,
+			MaximumLength,
+		),
+	}
 }
 
 // NewSerializeErrorInvalidInstance creates

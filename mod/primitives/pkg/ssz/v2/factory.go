@@ -34,16 +34,20 @@ import (
 
 // Serializable defines a type which can marshal/unmarshal and compute its
 // hash tree root according to the Simple Serialize specification.
-// See: https://github.com/ethereum/eth2.0-specs/blob/v0.8.2/specs/simple-serialize.md.
+// See:
+// https://github.com/ethereum/eth2.0-specs/blob/v0.8.2/specs/simple-serialize.md.
 //
 //nolint:lll
 type Serializable interface {
 	//nolint:lll
-	// Root(val reflect.Value, typ reflect.Type, fieldName string, maxCapacity uint64) ([32]byte, error)
+	// Root(val reflect.Value, typ reflect.Type, fieldName string, maxCapacity
+	// uint64) ([32]byte, error)
 	//nolint:lll
-	// Marshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
+	// Marshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset
+	// uint64) (uint64, error)
 	//nolint:lll
-	// Unmarshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error)
+	// Unmarshal(val reflect.Value, typ reflect.Type, buf []byte, startOffset
+	// uint64) (uint64, error)
 }
 
 // SSZFactory recursively walks down a type and determines which SSZ-able
