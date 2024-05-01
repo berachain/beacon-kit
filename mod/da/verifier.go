@@ -28,8 +28,8 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da/kzg"
-	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"golang.org/x/sync/errgroup"
 )
 

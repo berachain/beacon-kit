@@ -30,7 +30,7 @@ package ckzg
 import (
 	"unsafe"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )

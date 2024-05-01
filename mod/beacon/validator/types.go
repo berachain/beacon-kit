@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/da"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"

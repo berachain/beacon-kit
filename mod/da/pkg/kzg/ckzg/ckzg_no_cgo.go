@@ -28,7 +28,7 @@
 package ckzg
 
 import (
-	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 

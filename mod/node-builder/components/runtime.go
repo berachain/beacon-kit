@@ -36,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	"github.com/berachain/beacon-kit/mod/da"
-	"github.com/berachain/beacon-kit/mod/da/kzg"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
