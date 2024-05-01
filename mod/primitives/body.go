@@ -67,6 +67,11 @@ func (b *BeaconBlockBodyBase) GetRandaoReveal() crypto.BLSSignature {
 	return b.RandaoReveal
 }
 
+// SetRandaoReveal sets the RandaoReveal of the Body.
+func (b *BeaconBlockBodyBase) SetRandaoReveal(reveal crypto.BLSSignature) {
+	b.RandaoReveal = reveal
+}
+
 // GetEth1Data returns the Eth1Data of the Body.
 func (b *BeaconBlockBodyBase) GetEth1Data() *Eth1Data {
 	return b.Eth1Data

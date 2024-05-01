@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )

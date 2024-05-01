@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/da"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -52,14 +52,14 @@ type KVStore = beacondb.KVStore[
 // required by the runtime.
 type Backend struct {
 	cs                primitives.ChainSpec
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
+	availabilityStore *dastore.Store[primitives.ReadOnlyBeaconBlock]
 	beaconStore       *KVStore
 	depositStore      *deposit.KVStore
 }
 
 func NewBackend(
 	cs primitives.ChainSpec,
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock],
+	availabilityStore *dastore.Store[primitives.ReadOnlyBeaconBlock],
 	beaconStore *KVStore,
 	depositStore *deposit.KVStore,
 ) *Backend {

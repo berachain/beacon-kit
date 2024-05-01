@@ -28,7 +28,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"

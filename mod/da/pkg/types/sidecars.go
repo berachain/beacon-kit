@@ -33,7 +33,7 @@ import (
 
 // SideCars is a slice of blob side cars to be included in the block.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ../../primitives/pkg/bytes,./sidecar.go,../../primitives/pkg/math,../../primitives,../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecars.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ../../../primitives/pkg/bytes,./sidecar.go,../../../primitives/pkg/math,../../../primitives,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecars.ssz.go
 type BlobSidecars struct {
 	// Sidecars is a slice of blob side cars to be included in the block.
 	Sidecars []*BlobSidecar `ssz-max:"6"`
@@ -83,4 +83,9 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			return nil
 		},
 	)...)
+}
+
+// Len returns the number of sidecars in the sidecar.
+func (bs *BlobSidecars) Len() int {
+	return len(bs.Sidecars)
 }
