@@ -35,10 +35,6 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-type IndexDB interface {
-	Set(index uint64, key []byte, value []byte) error
-}
-
 // Store is the default implementation of the AvailabilityStore.
 type Store[ReadOnlyBeaconBlockT any] struct {
 	IndexDB
