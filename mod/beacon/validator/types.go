@@ -28,12 +28,13 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	da "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -50,7 +51,7 @@ type BlobFactory[BeaconBlockBodyT da.BeaconBlockBody] interface {
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*primitives.Deposit, error)
+	) ([]*consensus.Deposit, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.

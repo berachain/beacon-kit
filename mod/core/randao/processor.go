@@ -31,9 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -64,7 +66,7 @@ func NewProcessor(
 // process_randao in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandao(
 	st state.BeaconState,
-	blk primitives.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	// proposer := blk.
 	slot, err := st.GetSlot()
@@ -204,7 +206,7 @@ func (p *Processor) computeSigningRoot(
 		return primitives.Root{}, err
 	}
 
-	signingRoot, err := primitives.ComputeSigningRootUInt64(
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)

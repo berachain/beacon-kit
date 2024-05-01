@@ -31,6 +31,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -109,7 +110,7 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	depositMessage := primitives.DepositMessage{
+	depositMessage := consensus.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
@@ -140,19 +141,19 @@ func convertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 
 // convertWithdrawalCredentials converts a string to a withdrawal credentials.
 func convertWithdrawalCredentials(credentials string) (
-	primitives.WithdrawalCredentials,
+	consensus.WithdrawalCredentials,
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.DecodeString(credentials)
 	if err != nil {
-		return primitives.WithdrawalCredentials{}, err
+		return consensus.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return primitives.WithdrawalCredentials{},
+		return consensus.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return primitives.WithdrawalCredentials(credentialsBytes), nil
+	return consensus.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // convertAmount converts a string to a deposit amount.

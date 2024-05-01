@@ -33,9 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/da"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/storage"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -46,10 +47,10 @@ import (
 
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
-type BeaconStorageBackend[ReadOnlyBeaconBlockT any] interface {
+type BeaconStorageBackend[ReadOnlyBeaconBlockT, BlobSidecarsT any] interface {
 	AvailabilityStore(
 		ctx context.Context,
-	) core.AvailabilityStore[ReadOnlyBeaconBlockT]
+	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) *deposit.KVStore
 }
@@ -77,14 +78,14 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cs: cs,
-		Backend: *storage.NewBackend(cs, da.NewStore[primitives.ReadOnlyBeaconBlock](
+		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlock](
 			cs, filedb.NewRangeDB(fdb),
 		), beacondb.New[
 			*primitives.Fork,
-			*primitives.BeaconBlockHeader,
+			*consensus.BeaconBlockHeader,
 			engineprimitives.ExecutionPayloadHeader,
-			*primitives.Eth1Data,
-			*primitives.Validator,
+			*consensus.Eth1Data,
+			*consensus.Validator,
 		](env.KVStoreService, DenebPayloadFactory), ddb),
 	}
 }
