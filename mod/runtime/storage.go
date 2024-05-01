@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/storage"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -58,16 +59,8 @@ type BeaconStorageBackend[ReadOnlyBeaconBlockT any] interface {
 //
 // TODO: The keeper will eventually be dissolved.
 type Keeper struct {
-	availabilityStore *da.Store[primitives.ReadOnlyBeaconBlock]
-	beaconStore       *beacondb.KVStore[
-		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayloadHeader,
-		*primitives.Eth1Data,
-		*primitives.Validator,
-	]
-	depositStore *deposit.KVStore
-	cfg          primitives.ChainSpec
+	cs primitives.ChainSpec
+	storage.Backend
 }
 
 // TODO: move this.
@@ -79,22 +72,20 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
 func NewKeeper(
 	fdb *filedb.DB,
 	env appmodule.Environment,
-	cfg primitives.ChainSpec,
+	cs primitives.ChainSpec,
 	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
-		availabilityStore: da.NewStore[primitives.ReadOnlyBeaconBlock](
-			cfg, filedb.NewRangeDB(fdb),
-		),
-		beaconStore: beacondb.New[
+		cs: cs,
+		Backend: *storage.NewBackend(cs, da.NewStore[primitives.ReadOnlyBeaconBlock](
+			cs, filedb.NewRangeDB(fdb),
+		), beacondb.New[
 			*primitives.Fork,
 			*primitives.BeaconBlockHeader,
 			engineprimitives.ExecutionPayloadHeader,
 			*primitives.Eth1Data,
 			*primitives.Validator,
-		](env.KVStoreService, DenebPayloadFactory),
-		cfg:          cfg,
-		depositStore: ddb,
+		](env.KVStoreService, DenebPayloadFactory), ddb),
 	}
 }
 
@@ -107,7 +98,7 @@ func NewKeeper(
 func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.beaconStore.WithContext(ctx)
+	store := k.BeaconStore().WithContext(ctx)
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
 	if err != nil {
@@ -148,36 +139,14 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 	return validatorUpdates, nil
 }
 
-// AvailabilityStore returns the availability store struct initialized with a.
-func (k *Keeper) AvailabilityStore(
-	_ context.Context,
-) core.AvailabilityStore[primitives.ReadOnlyBeaconBlock] {
-	return k.availabilityStore
-}
-
-// BeaconState returns the beacon state struct initialized with a given
-// context and the store key.
-func (k *Keeper) BeaconState(
-	ctx context.Context,
-) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cfg)
-}
-
-// DepositStore returns the deposit store struct initialized with a.
-func (k *Keeper) DepositStore(
-	_ context.Context,
-) *deposit.KVStore {
-	return k.depositStore
-}
-
 // InitGenesis initializes the genesis state of the module.
 func (k *Keeper) InitGenesis(
 	ctx context.Context,
 	data *deneb.BeaconState,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Load the store.
-	store := k.beaconStore.WithContext(ctx)
-	sdb := state.NewBeaconStateFromDB(store, k.cfg)
+	store := k.BeaconStore().WithContext(ctx)
+	sdb := state.NewBeaconStateFromDB(store, k.cs)
 	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}

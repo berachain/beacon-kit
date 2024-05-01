@@ -31,7 +31,7 @@ import (
 
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/encoding"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
