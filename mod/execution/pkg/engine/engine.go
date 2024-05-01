@@ -138,13 +138,17 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest,
 ) (bool, error) {
+
 	// First we verify the block hash and versioned hashes are valid.
+	//
+	// TODO: is this required? Or will the EL handle this for us during
+	// new payload?
 	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
 		return false, err
 	}
 
-	// If the block already exists, we can skip sending the payload to the
-	// execution client.
+	// If the block already exists on our execution client
+	// we can skip sending the payload to speed things up a bit.
 	if req.SkipIfExists {
 		header, err := ee.ec.HeaderByHash(
 			ctx,
@@ -158,21 +162,32 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		return true, nil
 	}
 
-	// Then we can ask the EL to process the new payload.
+	// Otherwise we will send the payload to the execution client.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
 		req.ExecutionPayload,
 		req.VersionedHashes,
 		req.ParentBeaconBlockRoot,
 	)
+
+	// We abstract away some of the complexity and categorize status codes
+	// to make it easier to reason about.
 	switch {
+
+	// If we get accepted or syncing, we are going to optimistically
+	// say that the block is valid, this is utilized during syncing
+	// to allow the beacon-chain to continue processing blocks, while
+	// its execution client is fetching things over it's p2p layer.
 	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
 		errors.Is(err, client.ErrSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
 		)
-		return false, nil
+		return true, nil
+
+	// If we get invalid payload status, we will need to find a valid
+	// ancestor block and force a recovery.
 	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
 		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
@@ -180,8 +195,8 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
 		)
 		return false, ErrBadBlockProduced
-	case err != nil:
-		return false, err
 	}
-	return true, nil
+
+	// If we get any other error, we will just return it.
+	return err == nil, err
 }
