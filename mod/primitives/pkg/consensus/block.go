@@ -47,7 +47,9 @@ func EmptyBeaconBlock[
 	case version.Deneb:
 		block = &BeaconBlockDeneb{
 			BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-				Slot:            uint64(slot),
+				//#nosec:G701 // this is safe.
+				Slot: uint64(slot),
+				//#nosec:G701 // this is safe.
 				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: bytes.B32(parentBlockRoot),
 				StateRoot:       bytes.B32(stateRoot),
