@@ -137,13 +137,13 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest,
-) (bool, error) {
+) error {
 	// First we verify the block hash and versioned hashes are valid.
 	//
 	// TODO: is this required? Or will the EL handle this for us during
 	// new payload?
 	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
-		return false, err
+		return err
 	}
 
 	// If the block already exists on our execution client
@@ -158,7 +158,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 				"block_hash", req.ExecutionPayload.GetBlockHash(),
 			)
 		}
-		return true, nil
+		return nil
 	}
 
 	// Otherwise we will send the payload to the execution client.
@@ -187,9 +187,9 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		// for this case, otherwise, we will pass the error onto the caller
 		// to allow them to choose how to handle it.
 		if req.Optimistic {
-			return true, nil
+			return nil
 		}
-		return false, err
+		return err
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.
@@ -202,9 +202,9 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
 		)
-		return false, ErrBadBlockProduced
+		return ErrBadBlockProduced
 	}
 
 	// If we get any other error, we will just return it.
-	return err == nil, err
+	return err
 }

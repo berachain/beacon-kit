@@ -82,7 +82,7 @@ func (s *Service) ProcessBeaconBlock(
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if _, err = s.ee.VerifyAndNotifyNewPayload(
+	if err = s.ee.VerifyAndNotifyNewPayload(
 		ctx, engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
@@ -182,7 +182,7 @@ func (s *Service) VerifyPayloadOnBlk(
 
 	// We notify the engine of the new payload.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if valid, err := s.ee.VerifyAndNotifyNewPayload(
+	return s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
@@ -192,12 +192,7 @@ func (s *Service) VerifyPayloadOnBlk(
 			// We do not want to optimistically assume truth here.
 			false,
 		),
-	); err != nil {
-		return err
-	} else if !valid {
-		return ErrInvalidPayload
-	}
-	return nil
+	)
 }
 
 // PostBlockProcess is called after a block has been processed.

@@ -56,7 +56,7 @@ type ExecutionEngine interface {
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
 		req *engineprimitives.NewPayloadRequest,
-	) (bool, error)
+	) error
 }
 
 // LocalBuilder is the interface for the builder service.
