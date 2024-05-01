@@ -11,9 +11,9 @@ import (
 )
 
 const TestFileName = "fixtures/beacon_state_bellatrix.ssz" // https://goerli.beaconcha.in/slot/4744352
-const debug = false
+var debug = false
 
-func debugPrint(s ...any) {
+func debugPrint(debug bool, s ...any) {
 	if debug {
 		fmt.Println(s...)
 	}
@@ -31,11 +31,11 @@ func TestParityUint64(t *testing.T) {
 
 	s := sszv2.NewSerializer()
 	o2, err := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
-	debugPrint("Local Serializer output:", o2, err)
+	debugPrint(debug, "Local Serializer output:", o2, err)
 
 	res := make([]byte, 0)
 	res = ssz.MarshalUint64(res, slot)
-	debugPrint("FastSSZ Output:", res)
+	debugPrint(debug, "FastSSZ Output:", res)
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
 }
 
@@ -51,7 +51,7 @@ func BenchmarkNativeUint64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Native impl
 		o2, err := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
-		debugPrint("Local Serializer output:", o2, err)
+		debugPrint(false, "Local Serializer output:", o2, err)
 	}
 }
 
@@ -66,6 +66,59 @@ func BenchmarkFastSSZUint64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		res := make([]byte, 0)
 		res = ssz.MarshalUint64(res, sszState.LatestBlockHeader.Slot)
-		debugPrint("FastSSZ Output:", res)
+		debugPrint(false, "FastSSZ Output:", res)
+	}
+}
+
+func TestParityByteArray(t *testing.T) {
+	data, err := os.ReadFile(TestFileName)
+	require.NoError(t, err)
+
+	sszState := sszv2.BeaconStateBellatrix{}
+	err = sszState.UnmarshalSSZ(data)
+	require.NoError(t, err)
+
+	s := sszv2.NewSerializer()
+	exp, err := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+	debugPrint(debug, "Local Serializer output:", exp, err)
+
+	res := make([]byte, 0)
+	res, err = sszState.LatestBlockHeader.MarshalSSZ()
+	prInRes := res[16:48]
+
+	debugPrint(debug, "FastSSZ Output:", prInRes)
+	require.Equal(t, exp, prInRes, "local output and fastssz output doesnt match")
+}
+
+func BenchmarkNativeByteArray(b *testing.B) {
+	data, err := os.ReadFile(TestFileName)
+	require.NoError(b, err)
+
+	sszState := sszv2.BeaconStateBellatrix{}
+	err = sszState.UnmarshalSSZ(data)
+	require.NoError(b, err)
+
+	s := sszv2.NewSerializer()
+	for i := 0; i < b.N; i++ {
+		// Native impl
+		exp, err := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+		debugPrint(debug, "Local Serializer output:", exp, err)
+	}
+}
+
+func BenchmarkFastSSZByteArray(b *testing.B) {
+	debug = false
+	data, err := os.ReadFile(TestFileName)
+	require.NoError(b, err)
+
+	sszState := sszv2.BeaconStateBellatrix{}
+	err = sszState.UnmarshalSSZ(data)
+	require.NoError(b, err)
+
+	for i := 0; i < b.N; i++ {
+		res := make([]byte, 0)
+		res, err = sszState.LatestBlockHeader.MarshalSSZ()
+		prInRes := res[16:48]
+		debugPrint(debug, "FastSSZ Output:", prInRes)
 	}
 }
