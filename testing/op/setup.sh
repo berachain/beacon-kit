@@ -37,18 +37,3 @@ cd ..
 cd op-geth
 make geth
 cd ..
-
-# Stage 5: Install direnv
-brew install direnv
-direnv_hook='eval "$(direnv hook zsh)"'
-zsh_config="$HOME/.zshrc"
-
-# Check if the direnv hook already exists in the file
-if ! grep -qF "$direnv_hook" "$zsh_config"; then
-    # Append the direnv hook to the file
-    echo "$direnv_hook" >> "$zsh_config"
-    echo "direnv hook added to $zsh_config"
-else
-    echo "direnv hook already exists in $zsh_config"
-fi
-source $zsh_config
