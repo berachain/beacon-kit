@@ -184,7 +184,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		)
 
 		// Under the optimistic condition, we will not return an error
-		// for this case otherwise, we will pass the error onto the caller
+		// for this case, otherwise, we will pass the error onto the caller
 		// to allow them to choose how to handle it.
 		if req.Optimistic {
 			return true, nil
