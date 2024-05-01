@@ -225,3 +225,98 @@ func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 	}
 	return chunks[0]
 }
+
+// ReadOffset reads an offset from buf
+func ReadOffset(buf []byte) uint64 {
+	return uint64(binary.LittleEndian.Uint32(buf))
+}
+
+func safeReadOffset(buf []byte) (uint64, []byte, error) {
+	if len(buf) < 4 {
+		return 0, nil, fmt.Errorf("")
+	}
+	offset := ReadOffset(buf)
+	return offset, buf[4:], nil
+}
+
+// DecodeDynamicLength decodes the length from the dynamic input
+func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
+	if len(buf) == 0 {
+		return 0, nil
+	}
+	if len(buf) < 4 {
+		return 0, fmt.Errorf("not enough data")
+	}
+	offset := binary.LittleEndian.Uint32(buf[:4])
+	length, ok := DivideInt(int(offset), BytesPerLengthOffset)
+	if !ok {
+		return 0, fmt.Errorf("bad")
+	}
+	if length > maxSize {
+		return 0, fmt.Errorf("too big for the list")
+	}
+	return length, nil
+}
+
+// UnmarshalDynamic unmarshals the dynamic items from the input
+func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) error {
+	var err error
+	if length == 0 {
+		return nil
+	}
+
+	size := uint64(len(src))
+
+	indx := 0
+	dst := src
+
+	var offset, endOffset uint64
+	offset, dst = ReadOffset(src), dst[4:]
+
+	for {
+		if length != 1 {
+			endOffset, dst, err = safeReadOffset(dst)
+			if err != nil {
+				return err
+			}
+		} else {
+			endOffset = uint64(len(src))
+		}
+		if offset > endOffset {
+			return fmt.Errorf("four")
+		}
+		if endOffset > size {
+			return fmt.Errorf("five")
+		}
+
+		err := f(indx, src[offset:endOffset])
+		if err != nil {
+			return err
+		}
+
+		indx++
+
+		offset = endOffset
+		if length == 1 {
+			break
+		}
+		length--
+	}
+	return nil
+}
+
+func DivideInt2(a, b, max int) (int, error) {
+	num, ok := DivideInt(a, b)
+	if !ok {
+		return 0, fmt.Errorf("xx")
+	}
+	if num > max {
+		return 0, fmt.Errorf("yy")
+	}
+	return num, nil
+}
+
+// DivideInt divides the int fully
+func DivideInt(a, b int) (int, bool) {
+	return a / b, a%b == 0
+}

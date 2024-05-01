@@ -26,8 +26,10 @@
 package ssz
 
 import (
+	"encoding/binary"
 	"fmt"
 	"reflect"
+	"strings"
 
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
@@ -88,7 +90,7 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 		return ssz.MarshalU32(val.Interface().(uint32))
 	case reflect.Uint64:
 		return ssz.MarshalU64(val.Interface().(uint64))
-	// TODO(Chibera): Handle numbers over 64bit
+	// TODO(Chibera): Handle numbers over 64bit?
 	// case reflect.Uint128:
 	// 	return MarshalU128(val.Interface().(uint128))
 	// case reflect.Uint256:
@@ -118,30 +120,223 @@ func IsUintLike(typ reflect.Type) bool {
 	return isUintLike
 }
 
+func IsCompositeType(k reflect.Type) bool {
+	// array is fixed length and analogous to vector
+	// slice is variable and analogous to list
+	// Vectors, containers, lists, unions are considered composite types
+	// Since we pre-handle Arrays and slices we return false for now
+	// We only trigger on containers
+	if k.Kind() == reflect.Struct {
+		return true
+	}
+	return false
+}
+
+// MarshalSSZ takes a SSZ value, reflects on the type, and returns a buffer. 0 indexed, of the encoded value
 func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	typ := reflect.TypeOf(c)
+	val := reflect.ValueOf(c)
 	k := typ.Kind()
 	isUintLike := IsUintLike(typ)
 
 	if isUintLike {
 		return RouteUint(reflect.ValueOf(c), reflect.TypeOf(c)), nil
 	}
-	switch k {
-	case reflect.Bool:
+	switch {
+	case k == reflect.Bool:
 		return ssz.MarshalBool(reflect.ValueOf(c).Interface().(bool)), nil
-	// TODO(Chibera): handle composite types. same algo for all 3
-	// case KindList:
-	// 	return true
-	// case KindVector:
-	// 	return IsVariableSize(t.(VectorType).ElemType())
-	// case KindContainer:
-	// 	for _, ft := range t.(ContainerType).FieldTypes() {
-	// 		if IsVariableSize(ft) {
-	// 			return true
-	// 		}
-	// 	}
-	// 	return false
+	case k == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
+		return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
+	case k == reflect.Array && isBasicType(typ.Elem().Kind()):
+		return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+	case k == reflect.Slice && isVariableSizeType(typ.Elem()):
+		// Composite slice
+		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+	case k == reflect.Array && isVariableSizeType(typ):
+		// Composite arr
+		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+	// TODO(Chibera): fix me!
+	// Composite structs appear initially as pointers so we Look inside
+	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() == reflect.Struct:
+	// Composite struct
+	// buf := make([]byte, 0)
+	// _, err := s.MarshalStruct(val, typ, buf, 0)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return buf, nil
+	// case k == reflect.Ptr:
+	// 	return make([]byte, 0), nil
+	// Composite struct? Look inside?
+	// return s.MarshalSSZ(val.Elem())
 	default:
-		return make([]byte, 0), nil
+		return make([]byte, 0), fmt.Errorf("type %v is not serializable", val.Type())
 	}
+}
+
+// Marshal is the top level fn. it returns a properly encoded byte buffer. given a pre-existing buf and typ
+func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, startOffset uint64) (uint64, error) {
+	marshalled, err := s.MarshalSSZ(val)
+	if err != nil {
+		return startOffset, err
+	}
+	size := uint64(0)
+	if isVariableSizeType(typ) {
+		size = determineVariableSize(val, typ)
+	} else {
+		size = determineFixedSize(val, typ)
+	}
+	offset := startOffset + size
+	copy(input[startOffset:], marshalled)
+	return offset, err
+}
+
+func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type, cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error)) ([]byte, error) {
+	buf := make([]byte, val.Len())
+	cb(val, typ, buf, 0)
+	return buf, nil
+}
+
+func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+	index := startOffset
+	var err error
+	for i := 0; i < val.Len(); i++ {
+		index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return index, nil
+}
+
+func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+	if val.Kind() == reflect.Array {
+		for i := 0; i < val.Len(); i++ {
+			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
+		}
+		return startOffset + uint64(val.Len()), nil
+	}
+	if val.IsNil() {
+		item := make([]byte, typ.Len())
+		copy(buf[startOffset:], item)
+		return startOffset + uint64(typ.Len()), nil
+	}
+	copy(buf[startOffset:], val.Bytes())
+	return startOffset + uint64(val.Len()), nil
+}
+
+func (s *Serializer) UnmarshalByteArray(val reflect.Value, typ reflect.Type, input []byte, startOffset uint64) (uint64, error) {
+	offset := startOffset + uint64(len(input))
+	val.SetBytes(input[startOffset:offset])
+	return offset, nil
+}
+
+func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+	index := startOffset
+	err := fmt.Errorf("")
+	if val.Len() == 0 {
+		return index, nil
+	}
+	if !isVariableSizeType(typ.Elem()) {
+		for i := 0; i < val.Len(); i++ {
+			// If each element is not variable size, we simply encode sequentially and write
+			// into the buffer at the last index we wrote at.
+			index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
+			if err != nil {
+				return 0, err
+			}
+		}
+		return index, nil
+	}
+	fixedIndex := index
+	currentOffsetIndex := startOffset + uint64(val.Len())*BytesPerLengthOffset
+	nextOffsetIndex := currentOffsetIndex
+	// If the elements are variable size, we need to include offset indices
+	// in the serialized output list.
+	for i := 0; i < val.Len(); i++ {
+		nextOffsetIndex, err = s.Marshal(val.Index(i), typ.Elem(), buf, currentOffsetIndex)
+		if err != nil {
+			return 0, err
+		}
+		// Write the offset.
+		offsetBuf := make([]byte, BytesPerLengthOffset)
+		binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
+		copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
+
+		// We increase the offset indices accordingly.
+		currentOffsetIndex = nextOffsetIndex
+		fixedIndex += BytesPerLengthOffset
+	}
+	index = currentOffsetIndex
+	return index, nil
+}
+
+func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+	if typ.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			newVal := reflect.New(typ.Elem()).Elem()
+			return s.Marshal(newVal, newVal.Type(), buf, startOffset)
+		}
+		return s.Marshal(val.Elem(), typ.Elem(), buf, startOffset)
+	}
+	fixedIndex := startOffset
+	fixedLength := uint64(0)
+	// For every field, we add up the total length of the items depending if they
+	// are variable or fixed-size fields.
+	for i := 0; i < typ.NumField(); i++ {
+		// We skip protobuf related metadata fields.
+		if strings.Contains(typ.Field(i).Name, "XXX_") {
+			continue
+		}
+		fType, err := determineFieldType(typ.Field(i))
+		if err != nil {
+			return 0, err
+		}
+		if isVariableSizeType(fType) {
+			fixedLength += BytesPerLengthOffset
+		} else {
+			if val.Type().Kind() == reflect.Ptr && val.IsNil() {
+				elem := reflect.New(val.Type().Elem()).Elem()
+				fixedLength += determineFixedSize(elem, fType)
+			} else {
+				fixedLength += determineFixedSize(val.Field(i), fType)
+			}
+		}
+	}
+	currentOffsetIndex := startOffset + fixedLength
+	nextOffsetIndex := currentOffsetIndex
+	for i := 0; i < typ.NumField(); i++ {
+		// We skip protobuf related metadata fields.
+		if strings.Contains(typ.Field(i).Name, "XXX_") {
+			continue
+		}
+		fType, err := determineFieldType(typ.Field(i))
+		if err != nil {
+			return 0, err
+		}
+
+		if err != nil {
+			return 0, err
+		}
+		if !isVariableSizeType(fType) {
+			fixedIndex, err = s.Marshal(val.Field(i), fType, buf, fixedIndex)
+			if err != nil {
+				return 0, err
+			}
+		} else {
+			nextOffsetIndex, err = s.Marshal(val.Field(i), fType, buf, currentOffsetIndex)
+			if err != nil {
+				return 0, err
+			}
+			// Write the offset.
+			offsetBuf := make([]byte, BytesPerLengthOffset)
+			binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
+			copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
+
+			// We increase the offset indices accordingly.
+			currentOffsetIndex = nextOffsetIndex
+			fixedIndex += BytesPerLengthOffset
+		}
+	}
+	return currentOffsetIndex, nil
 }
