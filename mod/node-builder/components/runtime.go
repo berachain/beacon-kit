@@ -65,7 +65,9 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars],
+	bsb runtime.BeaconStorageBackend[
+		consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars,
+	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.

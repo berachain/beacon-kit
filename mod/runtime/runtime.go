@@ -41,7 +41,10 @@ type BeaconKitRuntime struct {
 	cfg      *config.Config
 	logger   log.Logger
 	services *service.Registry
-	fscp     BeaconStorageBackend[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars]
+	fscp     BeaconStorageBackend[
+		consensus.ReadOnlyBeaconBlock,
+		*datypes.BlobSidecars,
+	]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime

@@ -84,7 +84,9 @@ func WithStakingService(sks StakingService) service.Option[Service] {
 }
 
 // WithStateProcessor is a function that returns an Option.
-func WithStateProcessor(sp *core.StateProcessor[*datypes.BlobSidecars]) service.Option[Service] {
+func WithStateProcessor(
+	sp *core.StateProcessor[*datypes.BlobSidecars],
+) service.Option[Service] {
 	return func(s *Service) error {
 		s.sp = sp
 		return nil

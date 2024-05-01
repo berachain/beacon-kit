@@ -63,7 +63,9 @@ func WithLogger(logger log.Logger) Option {
 // WithBeaconStorageBackend sets the BeaconStorageBackend
 // of the BeaconKitRuntime.
 func WithBeaconStorageBackend(
-	fscp BeaconStorageBackend[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars],
+	fscp BeaconStorageBackend[
+		consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars,
+	],
 ) Option {
 	return func(r *BeaconKitRuntime) error {
 		r.fscp = fscp

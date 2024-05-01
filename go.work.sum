@@ -275,6 +275,8 @@ cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7/go.mod h1:3v0JJNNd8ye0cO
 cosmossdk.io/errors v1.0.0/go.mod h1:+hJZLuhdDE0pYN8HkOrVNwrIOYvUGnn6+4fjnJs/oV0=
 cosmossdk.io/log v1.2.0/go.mod h1:GNSCc/6+DhFIj1aLn/j7Id7PaO8DzNylUZoOYBL9+I4=
 cosmossdk.io/store v1.0.2/go.mod h1:EFtENTqVTuWwitGW1VwaBct+yDagk7oG/axBMPH+FXs=
+cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba h1:iWSDusxpOc/uJiDyI4zGSNiYXcirVswJwl/YDN/vhRI=
+cosmossdk.io/x/gov v0.0.0-20240421190920-f31a6a3024ba/go.mod h1:U3dpJtPOHf3nSskmNI50b7fD4xvFHBxmtPMraLmh1BE=
 cosmossdk.io/x/tx v0.13.2/go.mod h1:yhPokDCfXVIuAtyp49IFlWB5YAXUgD7Zek+ZHwsHzvU=
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
