@@ -72,7 +72,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
-	if len(sidecars.Sidecars) == 0 {
+	if sidecars.Len() == 0 {
 		return nil
 	}
 

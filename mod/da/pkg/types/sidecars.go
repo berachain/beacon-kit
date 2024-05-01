@@ -84,3 +84,8 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 		},
 	)...)
 }
+
+// Len returns the number of sidecars in the sidecar.
+func (bs *BlobSidecars) Len() int {
+	return len(bs.Sidecars)
+}
