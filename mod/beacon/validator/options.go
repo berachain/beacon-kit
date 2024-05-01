@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
@@ -37,7 +37,7 @@ type Option = func(*Service) error
 
 // WithBlobFactory sets the blob factory.
 func WithBlobFactory(
-	factory BlobFactory[beacon.BeaconBlockBody],
+	factory BlobFactory[consensus.BeaconBlockBody],
 ) Option {
 	return func(s *Service) error {
 		s.blobFactory = factory

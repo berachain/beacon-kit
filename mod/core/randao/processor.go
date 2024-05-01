@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -66,7 +66,7 @@ func NewProcessor(
 // process_randao in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandao(
 	st state.BeaconState,
-	blk beacon.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	// proposer := blk.
 	slot, err := st.GetSlot()

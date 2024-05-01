@@ -27,7 +27,6 @@ package staking
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"

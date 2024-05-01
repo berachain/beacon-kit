@@ -34,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
@@ -70,7 +70,7 @@ func NewStateProcessor(
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
 	st state.BeaconState,
-	blk beacon.BeaconBlock,
+	blk consensus.BeaconBlock,
 	/*validateSignature bool, */
 	validateResult bool,
 ) error {
@@ -168,7 +168,7 @@ func (sp *StateProcessor) ProcessSlot(
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor) ProcessBlobs(
 	st state.BeaconState,
-	avs AvailabilityStore[beacon.ReadOnlyBeaconBlock],
+	avs AvailabilityStore[consensus.ReadOnlyBeaconBlock],
 	sidecars *datypes.BlobSidecars,
 ) error {
 	slot, err := st.GetSlot()
@@ -212,7 +212,7 @@ func (sp *StateProcessor) ProcessBlobs(
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor) ProcessBlock(
 	st state.BeaconState,
-	blk beacon.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -267,7 +267,7 @@ func (sp *StateProcessor) processEpoch(st state.BeaconState) error {
 // processHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processHeader(
 	st state.BeaconState,
-	blk beacon.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	// TODO: this function is really confusing, can probably just
 	// be removed and the logic put in the ProcessBlock function.
@@ -277,8 +277,8 @@ func (sp *StateProcessor) processHeader(
 	}
 
 	// Store as the new latest block
-	headerRaw := &beacon.BeaconBlockHeader{
-		BeaconBlockHeaderBase: beacon.BeaconBlockHeaderBase{
+	headerRaw := &consensus.BeaconBlockHeader{
+		BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
 			Slot:            header.Slot,
 			ProposerIndex:   header.ProposerIndex,
 			ParentBlockRoot: header.ParentBlockRoot,
@@ -359,7 +359,7 @@ func (sp *StateProcessor) processDeposit(
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *beacon.Validator
+		var val *consensus.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return err
@@ -427,7 +427,7 @@ func (sp *StateProcessor) addValidatorToRegistry(
 	st state.BeaconState,
 	dep *staking.Deposit,
 ) error {
-	val := beacon.NewValidatorFromDeposit(
+	val := consensus.NewValidatorFromDeposit(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
@@ -527,7 +527,7 @@ func (sp *StateProcessor) processWithdrawals(
 // ensures it matches the local state.
 func (sp *StateProcessor) processRandaoReveal(
 	st state.BeaconState,
-	blk beacon.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	return sp.rp.ProcessRandao(st, blk)
 }
@@ -707,7 +707,7 @@ func (sp *StateProcessor) processSlashings(
 //nolint:unused // will be used later
 func (sp *StateProcessor) processSlash(
 	st state.BeaconState,
-	val *beacon.Validator,
+	val *consensus.Validator,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {

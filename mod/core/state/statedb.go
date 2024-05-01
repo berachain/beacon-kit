@@ -31,8 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -47,10 +47,10 @@ type KVStore interface{}
 type StateDB struct {
 	*beacondb.KVStore[
 		*primitives.Fork,
-		*beacon.BeaconBlockHeader,
+		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
-		*beacon.Eth1Data,
-		*beacon.Validator,
+		*consensus.Eth1Data,
+		*consensus.Validator,
 	]
 	cs primitives.ChainSpec
 }
@@ -59,10 +59,10 @@ type StateDB struct {
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
 		*primitives.Fork,
-		*beacon.BeaconBlockHeader,
+		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
-		*beacon.Eth1Data,
-		*beacon.Validator,
+		*consensus.Eth1Data,
+		*consensus.Validator,
 	],
 	cs primitives.ChainSpec,
 ) *StateDB {
@@ -135,7 +135,7 @@ func (s *StateDB) UpdateSlashingAtIndex(
 //nolint:lll
 func (s *StateDB) ExpectedWithdrawals() ([]*staking.Withdrawal, error) {
 	var (
-		validator         *beacon.Validator
+		validator         *consensus.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]*staking.Withdrawal, 0)

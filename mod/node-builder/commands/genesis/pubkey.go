@@ -31,7 +31,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/staking"
 	"github.com/cockroachdb/errors"
@@ -74,7 +74,7 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			// TODO: Should we do deposits here?
-			validator := beacon.NewValidatorFromDeposit(
+			validator := consensus.NewValidatorFromDeposit(
 				crypto.BLSPubkey(valPubKey.Bytes()),
 				staking.NewCredentialsFromExecutionAddress(
 					common.Address{},
@@ -119,7 +119,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeValidatorStruct(
 	outputDocument string,
-	validator *beacon.Validator,
+	validator *consensus.Validator,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := os.OpenFile(
