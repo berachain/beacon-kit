@@ -81,15 +81,15 @@ echo "deploy-config/getting-started.json"
 cat deploy-config/getting-started.json
 
 # Step 4: Deploy L1 smart contracts
-forge script scripts/Deploy.s.sol:Deploy --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
-forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
+forge script -vvv scripts/Deploy.s.sol:Deploy --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
+forge script -vvv scripts/Deploy.s.sol:Deploy --sig 'sync()' --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
 
 # Step 5: Build and run OP Node
 cd ~/op-stack-deployment/optimism/op-node
 
 go run cmd/main.go genesis l2 \
     --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
-    --deployment-dir ../packages/contracts-bedrock/deployments/getting-started/ \
+    --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/l1.json \
     --outfile.l2 genesis.json \
     --outfile.rollup rollup.json \
     --l1-rpc $L1_RPC_URL
