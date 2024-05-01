@@ -28,7 +28,7 @@ package gokzg
 import (
 	"unsafe"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )

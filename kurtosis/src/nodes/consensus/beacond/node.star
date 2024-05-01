@@ -1,13 +1,10 @@
 # Contains functionality for initializing and starting the nodes
 
-bash = import_module("./bash.star")  # Import helper module
+bash = import_module("../../../lib/bash.star")  # Import helper module
 
 def init_beacond(plan, is_first_validator, cl_service_name):
-    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
-
-    # Check if genesis file exists, if not then initialize the beacond
-    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --consensus-key-algo {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", "$BEACOND_CONSENSUS_KEY_ALGO")
-    bash.exec_on_service(plan, cl_service_name, init_node)
+    init_sh = get_init_sh
+    bash.exec_on_service(plan, cl_service_name, init_sh)
     if is_first_validator == True:
         create_beacond_config_directory(plan, cl_service_name)
     add_validator(plan, cl_service_name)
@@ -44,3 +41,32 @@ def start(persistent_peers):
     --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
+
+def get_init_sh():
+    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
+
+    # Check if genesis file exists, if not then initialize the beacond
+    command = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --consensus-key-algo {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", "$BEACOND_CONSENSUS_KEY_ALGO")
+    return command
+
+def get_add_validator_sh():
+    command = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    return command
+
+def get_collect_validator_sh():
+    command = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    return command
+
+def get_genesis_env_vars(cl_service_name):
+    return {
+        "BEACOND_MONIKER": cl_service_name,
+        "BEACOND_NET": "VALUE_2",
+        "BEACOND_HOME": "/root/.beacond",
+        "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+        "BEACOND_DEBUG": "false",
+        "BEACOND_KEYRING_BACKEND": "test",
+        "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
+        "BEACOND_ETH_CHAIN_ID": "80087",
+        "BEACOND_ENABLE_PROMETHEUS": "true",
+        "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
+    }

@@ -23,40 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package store
 
-import (
-	"context"
+import "errors"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+var (
+	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to
+	// store a
+	// nil sidecar.
+	ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
+
+	// ErrAttemptedToVerifyNilSidecars is returned when an attempt is made to
+	// verify
+	// nil sidecars.
+	ErrAttemptedToVerifyNilSidecars = errors.New(
+		"attempted to verify nil sidecars",
+	)
 )
-
-type BuilderService interface {
-	RequestBestBlock(
-		context.Context,
-		state.BeaconState,
-		math.Slot,
-	) (consensus.BeaconBlock, *datypes.BlobSidecars, error)
-}
-
-type BlockchainService interface {
-	ProcessSlot(state.BeaconState) error
-	BeaconState(context.Context) state.BeaconState
-	ProcessBeaconBlock(
-		context.Context,
-		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock,
-		*datypes.BlobSidecars,
-	) error
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock,
-	) error
-	ChainSpec() primitives.ChainSpec
-	VerifyPayloadOnBlk(context.Context, consensus.ReadOnlyBeaconBlock) error
-}

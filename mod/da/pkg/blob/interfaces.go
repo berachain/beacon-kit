@@ -23,27 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build !ckzg
-
-package ckzg
+package blob
 
 import (
-	prooftypes "github.com/berachain/beacon-kit/mod/da/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// VerifyBlobProof will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProof(
-	*eip4844.Blob,
-	eip4844.KZGProof,
-	eip4844.KZGCommitment,
-) error {
-	return ErrCGONotEnabled
+// BeaconBlock is a beacon block.
+type BeaconBlock[B BeaconBlockBody] interface {
+	GetBody() B
+	GetHeader() *consensus.BeaconBlockHeader
 }
 
-// VerifyBlobProofBatch will error since cgo is not enabled.
-func (v Verifier) VerifyBlobProofBatch(
-	*prooftypes.BlobProofArgs,
-) error {
-	return ErrCGONotEnabled
+// BeaconBlockBody is the body of a beacon block.
+type BeaconBlockBody interface {
+	HashTreeRoot() ([32]byte, error)
+	GetTopLevelRoots() ([][32]byte, error)
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+}
+
+// ChainSpec represents a chain spec.
+type ChainSpec interface {
+	MaxBlobCommitmentsPerBlock() uint64
 }

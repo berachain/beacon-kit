@@ -28,7 +28,6 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -41,22 +40,19 @@ func NewBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	forkVersion uint32,
-	reveal crypto.BLSSignature,
 ) (consensus.BeaconBlock, error) {
 	var block consensus.BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
 		block = &consensus.BeaconBlockDeneb{
 			BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
-
 				Slot:            uint64(slot),
 				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: parentBlockRoot,
-				StateRoot:       stateRoot},
+				StateRoot:       stateRoot,
+			},
 			Body: &consensus.BeaconBlockBodyDeneb{
-				BeaconBlockBodyBase: consensus.BeaconBlockBodyBase{
-					RandaoReveal: reveal,
-					Graffiti:     [32]byte{}},
+				BeaconBlockBodyBase: consensus.BeaconBlockBodyBase{},
 			},
 		}
 	default:
@@ -73,7 +69,6 @@ func EmptyBeaconBlock(
 	parentBlockRoot primitives.Root,
 	stateRoot primitives.Root,
 	version uint32,
-	reveal crypto.BLSSignature,
 ) (consensus.BeaconBlock, error) {
 	return NewBeaconBlock(
 		slot,
@@ -81,7 +76,6 @@ func EmptyBeaconBlock(
 		parentBlockRoot,
 		stateRoot,
 		version,
-		reveal,
 	)
 }
 

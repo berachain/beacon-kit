@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da_test
+package blob_test
 
 // TODO: Create a mock such that core/types doesn't need
 // to be imported here.

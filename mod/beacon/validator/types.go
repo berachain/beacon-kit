@@ -28,8 +28,8 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	da "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"

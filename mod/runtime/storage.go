@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/da"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -78,7 +78,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cs: cs,
-		Backend: *storage.NewBackend(cs, da.NewStore[consensus.ReadOnlyBeaconBlock](
+		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlock](
 			cs, filedb.NewRangeDB(fdb),
 		), beacondb.New[
 			*primitives.Fork,

@@ -35,8 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/da"
-	"github.com/berachain/beacon-kit/mod/da/kzg"
+	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -140,12 +140,12 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	blobFactory := da.NewSidecarFactory[consensus.BeaconBlockBody](
-		chainSpec,
-		consensus.KZGPositionDeneb,
-	)
 	validatorService := validator.NewService(
-		validator.WithBlobFactory(blobFactory),
+		validator.WithBlobFactory(
+			dablob.NewSidecarFactory[consensus.BeaconBlockBody](
+				chainSpec,
+				consensus.KZGPositionDeneb,
+			)),
 		validator.WithChainSpec(chainSpec),
 		validator.WithConfig(&cfg.Validator),
 		validator.WithDepositStore(bsb.DepositStore(nil)),
@@ -166,7 +166,7 @@ func ProvideRuntime(
 		blockchain.WithStateProcessor(
 			core.NewStateProcessor(
 				chainSpec,
-				da.NewBlobVerifier(blobProofVerifier),
+				dablob.NewVerifier(blobProofVerifier),
 				randaoProcessor,
 				logger.With("module", "state-processor"),
 			)),

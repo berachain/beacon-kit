@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package store
 
 import (
 	"context"
 	"errors"
 
-	"github.com/berachain/beacon-kit/mod/da/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
@@ -41,8 +41,8 @@ type Store[ReadOnlyBeaconBlockT any] struct {
 	chainSpec primitives.ChainSpec
 }
 
-// NewStore creates a new instance of the AvailabilityStore.
-func NewStore[ReadOnlyBeaconBlockT any](
+// New creates a new instance of the AvailabilityStore.
+func New[ReadOnlyBeaconBlockT any](
 	chainSpec primitives.ChainSpec,
 	db IndexDB,
 ) *Store[ReadOnlyBeaconBlockT] {
@@ -57,7 +57,6 @@ func NewStore[ReadOnlyBeaconBlockT any](
 func (s *Store[ReadOnlyBeaconBlockT]) IsDataAvailable(
 	ctx context.Context,
 	slot math.Slot,
-	//
 	blk ReadOnlyBeaconBlockT,
 ) bool {
 	_ = ctx
@@ -73,7 +72,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
-	if len(sidecars.Sidecars) == 0 {
+	if sidecars.Len() == 0 {
 		return nil
 	}
 
