@@ -81,10 +81,8 @@ echo "deploy-config/getting-started.json"
 cat deploy-config/getting-started.json
 
 # Step 4: Deploy L1 smart contracts
-mkdir deployments/getting-started
 forge script scripts/Deploy.s.sol:Deploy --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
 forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --private-key $admin_private_key --broadcast --rpc-url $L1_RPC_URL
-
 
 # Step 5: Build and run OP Node
 cd ~/op-stack-deployment/optimism/op-node
