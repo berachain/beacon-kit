@@ -1,17 +1,16 @@
 #!/bin/bash
 
-cd ~/op-stack-deployment/optimism/op-proposer
+cd ~/op-stack-deployment/optimism
+direnv allow 
 
-# Set based on the wallets from deploy.sh
-export PROPOSER_KEY=""
-export L1_RPC="http://localhost:64064"
-export L2OO_ADDR="" # TODO
+cd op-node
 
 ./bin/op-proposer \
-    --poll-interval 5s \
-    --rpc.port 8560 \
-    --rollup-rpc http://localhost:8547 \
-    --l2oo-address $L2OO_ADDR \
-    --private-key $PROPOSER_KEY \
-    --l1-eth-rpc $L1_RPC
-    
+  --poll-interval=12s \
+  --rpc.port=8560 \
+  --rollup-rpc=http://localhost:8547 \
+  --private-key=$GS_PROPOSER_PRIVATE_KEY \
+  --l1-eth-rpc=$L1_RPC_URL
+
+# TODO: add this flag back once L1 contract addresses are set correctly  
+# --l2oo-address=$(cat ../packages/contracts-bedrock/deployments/getting-started/L2OutputOracleProxy.json | jq -r .address) \
