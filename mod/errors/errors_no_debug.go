@@ -28,7 +28,7 @@
 package errors
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 )
 
 var New = errors.New
