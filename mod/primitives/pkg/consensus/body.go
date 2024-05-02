@@ -43,7 +43,18 @@ const (
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = BodyLengthDeneb - 1
+
+	// KZGMerkleIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// in the merkle tree built from the block body.
+	KZGMerkleIndexDeneb = 26
 )
+
+// TODO: deprecate / improve this.
+func BlockBodyKZGOffset(
+	cs common.ChainSpec,
+) uint64 {
+	return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+}
 
 // BeaconBlockBodyBase represents the base body of a beacon block that is
 // shared between all forks.
@@ -100,7 +111,7 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../crypto,../../primitives.go,./payload.go,../eip4844,../bytes,./eth1data.go,../math,../common,./deposit.go,./withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../crypto,./payload.go,../eip4844,../bytes,./eth1data.go,../math,../common,./deposit.go,./withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 
