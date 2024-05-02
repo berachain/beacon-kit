@@ -38,7 +38,7 @@ var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -field-override executionPayloadHeaderDenebMarshaling -out payload_header.json.go
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../primitives/pkg/bytes,../primitives/alias.go,../primitives/primitives.go,../primitives/pkg/consensus,../primitives/pkg/common,../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../primitives/pkg/bytes,../primitives/mod.go,../primitives/pkg/consensus,../primitives/pkg/common,../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
 //nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       common.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`

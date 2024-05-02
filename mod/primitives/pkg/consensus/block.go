@@ -86,7 +86,7 @@ func BeaconBlockFromSSZ(
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../common,../crypto,../math,../../primitives.go,./header.go,./withdrawal_credentials.go,./withdrawal.go,./deposit.go,./payload.go,./deposit.go,../eip4844,../bytes,./eth1data.go,../math,../common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../common,../crypto,../math,..,./header.go,./withdrawal_credentials.go,./withdrawal.go,./deposit.go,./payload.go,./deposit.go,../eip4844,../bytes,./eth1data.go,../math,../common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
 	BeaconBlockHeaderBase

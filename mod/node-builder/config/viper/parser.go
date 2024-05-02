@@ -34,7 +34,7 @@ import (
 )
 
 // StringToSliceHookFunc returns a DecodeHookFunc that converts
-// string to a `common.ExecutionAddresses` by parsing the string.
+// string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
 		func(s string) (common.ExecutionAddress, error) {

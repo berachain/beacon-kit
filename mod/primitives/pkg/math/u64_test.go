@@ -203,6 +203,7 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.NextPowerOfTwo()
 			require.Equal(t, tt.expected, result)
+			require.Equal(t, tt.expected, math.U64(uint64(1)<<tt.value.ILog2Ceil()))
 		})
 	}
 }
@@ -254,6 +255,48 @@ func TestU64_ILog2Ceil(t *testing.T) {
 		})
 	}
 }
+
+func TestU64_ILog2Floor(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected uint8
+	}{
+		{
+			name:     "zero",
+			value:    math.U64(0),
+			expected: 0,
+		},
+		{
+			name:     "one",
+			value:    math.U64(1),
+			expected: 0,
+		},
+		{
+			name:     "power of two",
+			value:    math.U64(8),
+			expected: 3,
+		},
+		{
+			name:     "not a power of two",
+			value:    math.U64(9),
+			expected: 3,
+		},
+		{
+			name:     "max uint64",
+			value:    math.U64(1<<64 - 1),
+			expected: 63,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.ILog2Floor()
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestU64_PrevPowerOfTwo(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -316,6 +359,7 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.PrevPowerOfTwo()
 			require.Equal(t, tt.expected, result)
+			require.Equal(t, tt.expected, math.U64(uint64(1)<<tt.value.ILog2Floor()))
 		})
 	}
 }

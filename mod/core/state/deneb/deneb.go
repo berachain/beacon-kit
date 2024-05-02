@@ -54,7 +54,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 	return &BeaconState{
 		GenesisValidatorsRoot: primitives.Root{},
 		Slot:                  0,
-		Fork: &primitives.Fork{
+		Fork: &consensus.Fork{
 			PreviousVersion: version.FromUint32[primitives.Version](
 				version.Deneb,
 			),
@@ -150,15 +150,15 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}, nil
 }
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives/pkg/consensus,../../types,../../../primitives-engine,../../../primitives/primitives.go,../../../primitives/fork.go,../../../primitives/alias.go,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives/mod.go,../../../primitives/pkg/consensus,../../../primitives-engine,../../../primitives/mod.go,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.Root  `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  math.Slot        `json:"slot"`
-	Fork                  *primitives.Fork `json:"fork"`
+	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  math.Slot       `json:"slot"`
+	Fork                  *consensus.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *consensus.BeaconBlockHeader `json:"latestBlockHeader"`
