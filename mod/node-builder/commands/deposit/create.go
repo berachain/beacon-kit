@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -86,7 +87,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		)
 
 		// Get the BLS signer.
-		blsSigner, err := getBLSSigner(logger, cmd)
+		blsSigner, err := getBLSSigner(cmd)
 		if err != nil {
 			return err
 		}
@@ -153,10 +154,9 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 
 // getBLSSigner returns a BLS signer based on the override node key flag.
 func getBLSSigner(
-	logger log.Logger,
 	cmd *cobra.Command,
-) (*signer.BLSSigner, error) {
-	var blsSigner *signer.BLSSigner
+) (crypto.BLSSigner, error) {
+	var blsSigner crypto.BLSSigner
 	// If the override node key flag is set, a validator private key must be
 	// provided.
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
@@ -200,9 +200,7 @@ func getBLSSigner(
 	if err = depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(
-				logger,
 				viper.GetViper(),
-				spec.LocalnetChainSpec(),
 			),
 			depinject.Provide(
 				components.ProvideBlsSigner,
