@@ -6,6 +6,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/core => ../mod/core
+	github.com/berachain/beacon-kit/mod/errors => ../mod/errors
 	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
@@ -15,8 +16,8 @@ replace (
 require (
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
-	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/kurtosis-tech/kurtosis/api/golang v0.88.17
@@ -34,6 +35,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
