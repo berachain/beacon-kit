@@ -26,7 +26,7 @@
 //go:build debug
 // +build debug
 
-package cockroacherrors
+package cockroachdberrors
 
 import (
 	"github.com/cockroachdb/errors"

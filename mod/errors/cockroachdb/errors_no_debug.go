@@ -25,7 +25,7 @@
 
 //go:build !debug
 
-package cockroacherrors
+package cockroachdberrors
 
 import (
 	"github.com/pkg/errors"
