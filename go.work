@@ -14,5 +14,6 @@ use (
 	./mod/primitives-engine
 	./mod/runtime
 	./mod/storage
+	./mod/errors
 	./testing
 )
