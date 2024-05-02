@@ -20,7 +20,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.2
-ARG RUNNER_IMAGE=ghcr.io/foundry-rs/foundry
+ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -117,9 +117,14 @@ FROM ${RUNNER_IMAGE}
 # Build args
 ARG APP_NAME
 
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/forge /usr/bin/forge 
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/cast /usr/bin/cast
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/anvil /usr/bin/anvil
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/chisel /usr/bin/chisel
+
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash sed curl
+    apk add --no-cache bash sed curl jq
 
 #ENTRYPOINT [ "./beacond" ]
