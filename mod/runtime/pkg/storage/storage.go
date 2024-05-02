@@ -42,7 +42,7 @@ import (
 // KVStore is a type alias for the beacon store with
 // the generics defined using primitives.
 type KVStore = beacondb.KVStore[
-	*primitives.Fork,
+	*consensus.Fork,
 	*consensus.BeaconBlockHeader,
 	engineprimitives.ExecutionPayloadHeader,
 	*consensus.Eth1Data,

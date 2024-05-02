@@ -23,44 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bytes
+package consensus
 
 import (
-	"fmt"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ------------------------------ Helpers ------------------------------
-
-// Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := hexutil.Bytes{}
-	if err := bz.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return fmt.Errorf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
-// Helper function to unmarshal text for various byte types.
-func unmarshalTextHelper(target []byte, text []byte) error {
-	bz := hexutil.Bytes{}
-	if err := bz.UnmarshalText(text); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return fmt.Errorf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
+// Fork as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
+//
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../bytes,../math,../common -output fork.ssz.go
+//nolint:lll
+type Fork struct {
+	// PreviousVersion is the last version before the fork.
+	PreviousVersion common.Version
+	// CurrentVersion is the first version after the fork.
+	CurrentVersion common.Version
+	// Epoch is the epoch at which the fork occurred.
+	Epoch math.Epoch
 }

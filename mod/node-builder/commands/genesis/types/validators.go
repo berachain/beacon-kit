@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/consensus,../../../../primitives/pkg/bytes,../../../../primitives,../../../../primitives/pkg/math,../../../../core/types -output validators.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/consensus,../../../../primitives/pkg/bytes,../../../../primitives,../../../../primitives/pkg/math -output validators.ssz.go
 type ValidatorsMarshaling struct {
 	Validators []*consensus.Validator `json:"validators" ssz-max:"1099511627776"`
 }
