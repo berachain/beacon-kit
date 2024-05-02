@@ -25,7 +25,7 @@
 
 package encoding
 
-import errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrNilBeaconBlockInRequest is an error for when

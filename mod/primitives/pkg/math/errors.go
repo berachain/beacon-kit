@@ -28,7 +28,7 @@ package math
 import (
 	"math/big"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 var (

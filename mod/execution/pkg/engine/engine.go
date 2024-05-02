@@ -29,7 +29,7 @@ import (
 	"context"
 	"fmt"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"

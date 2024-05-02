@@ -29,7 +29,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	sha256 "github.com/minio/sha256-simd"

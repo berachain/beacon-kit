@@ -28,7 +28,7 @@ package merkle
 import (
 	"fmt"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // verifySufficientDepth ensures that the depth is sufficient to build a tree.

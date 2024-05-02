@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
 	"github.com/cosmos/cosmos-sdk/client"

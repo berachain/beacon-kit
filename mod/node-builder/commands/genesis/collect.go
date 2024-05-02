@@ -32,7 +32,7 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/cosmos/cosmos-sdk/server"

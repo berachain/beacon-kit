@@ -29,7 +29,7 @@ import (
 	"os"
 	"path/filepath"
 
-	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/spf13/afero"
 )
