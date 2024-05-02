@@ -28,7 +28,6 @@ package builder
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -65,5 +64,5 @@ type ReadOnlyWithdrawals interface {
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (bytes.B32, error)
+	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 }

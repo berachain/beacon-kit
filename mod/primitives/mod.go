@@ -32,34 +32,21 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-//nolint:lll
 type (
-	// ChainSpec defines an interface for chain-specific parameters.
+	// Export `pkg/bytes`.
+	Bytes4  = bytes.B4
+	Bytes32 = bytes.B32
+	Bytes48 = bytes.B48
+	Bytes96 = bytes.B96
+
+	// Export `pkg/chain`
 	ChainSpec = chain.Spec[DomainType, math.Epoch, common.ExecutionAddress, math.Slot]
 
-	// Domain as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//nolint:lll
-	Domain = bytes.B32
-
-	// DomainType as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//nolint:lll
+	// Export `pkg/common`
+	Domain     = bytes.B32
 	DomainType = bytes.B4
-
-	// Root as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Root = bytes.B32
-
-	// Hash32 as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Hash32 = bytes.B32
-
-	// Version as per the Ethereum 2.0 specification.
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Version = bytes.B4
-
-	// ForkDigest as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Root       = bytes.B32
+	Hash32     = bytes.B32
+	Version    = bytes.B4
 	ForkDigest = bytes.B4
 )
