@@ -155,8 +155,8 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 // getBLSSigner returns a BLS signer based on the override node key flag.
 func getBLSSigner(
 	cmd *cobra.Command,
-) (*signer.BLSSigner, error) {
-	var blsSigner *signer.BLSSigner
+) (crypto.BLSSigner, error) {
+	var blsSigner crypto.BLSSigner
 	// If the override node key flag is set, a validator private key must be
 	// provided.
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
@@ -197,7 +197,6 @@ func getBLSSigner(
 		return blsSigner, nil
 	}
 
-	var interfaceSigner crypto.BLSSigner
 	if err = depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(
@@ -207,12 +206,10 @@ func getBLSSigner(
 				components.ProvideBlsSigner,
 			),
 		),
-		&interfaceSigner,
+		&blsSigner,
 	); err != nil {
 		return nil, err
 	}
-	//nolint: errcheck // components.ProviderBlsSigner returns the correct type
-	blsSigner = interfaceSigner.(*signer.BLSSigner)
 
 	return blsSigner, nil
 }
