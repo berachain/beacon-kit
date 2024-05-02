@@ -36,4 +36,5 @@ var New = errors.New
 var Wrap = errors.Wrap
 var Wrapf = errors.Wrapf
 var Is = errors.Is
+var As = errors.As
 
