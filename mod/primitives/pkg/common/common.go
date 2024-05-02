@@ -23,19 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package common
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 //nolint:lll
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, math.Epoch, common.ExecutionAddress, math.Slot]
+	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

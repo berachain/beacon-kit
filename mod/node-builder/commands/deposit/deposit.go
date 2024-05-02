@@ -117,7 +117,7 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 	}
 
 	return depositMessage.VerifyCreateValidator(
-		primitives.NewForkData(currentVersion, genesisValidatorRoot),
+		consensus.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
 		blst.VerifySignaturePubkeyBytes,
 		// TODO: needs to be configurable.

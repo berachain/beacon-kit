@@ -34,7 +34,7 @@ import (
 
 // LocalnetChainSpec is the ChainSpec for the localnet.
 func LocalnetChainSpec() chain.Spec[
-	primitives.DomainType,
+	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
@@ -56,28 +56,28 @@ func LocalnetChainSpec() chain.Spec[
 			SlotsPerEpoch:          8,
 			SlotsPerHistoricalRoot: 1,
 			// Signature domains.
-			DomainTypeProposer: primitives.DomainType{
+			DomainTypeProposer: common.DomainType{
 				0x00, 0x00, 0x00, 0x00,
 			},
-			DomainTypeAttester: primitives.DomainType{
+			DomainTypeAttester: common.DomainType{
 				0x01, 0x00, 0x00, 0x00,
 			},
-			DomainTypeRandao: primitives.DomainType{
+			DomainTypeRandao: common.DomainType{
 				0x02, 0x00, 0x00, 0x00,
 			},
-			DomainTypeDeposit: primitives.DomainType{
+			DomainTypeDeposit: common.DomainType{
 				0x03, 0x00, 0x00, 0x00,
 			},
-			DomainTypeVoluntaryExit: primitives.DomainType{
+			DomainTypeVoluntaryExit: common.DomainType{
 				0x04, 0x00, 0x00, 0x00,
 			},
-			DomainTypeSelectionProof: primitives.DomainType{
+			DomainTypeSelectionProof: common.DomainType{
 				0x05, 0x00, 0x00, 0x00,
 			},
-			DomainTypeAggregateAndProof: primitives.DomainType{
+			DomainTypeAggregateAndProof: common.DomainType{
 				0x06, 0x00, 0x00, 0x00,
 			},
-			DomainTypeApplicationMask: primitives.DomainType{
+			DomainTypeApplicationMask: common.DomainType{
 				0x00, 0x00, 0x00, 0x01,
 			},
 			// Eth1-related values.

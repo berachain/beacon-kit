@@ -26,7 +26,7 @@
 package consensus
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,7 +36,7 @@ import (
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../../primitives.go,../common,./withdrawal_credentials.go,../math,../bytes,../crypto,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../common,./withdrawal_credentials.go,../math,../bytes,../crypto,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-max:"48"`
@@ -76,7 +76,7 @@ func NewDeposit(
 type Deposits []*Deposit
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (primitives.Root, error) {
+func (d Deposits) HashTreeRoot() (common.Root, error) {
 	// TODO: read max deposits from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
 		d, constants.MaxDepositsPerBlock,

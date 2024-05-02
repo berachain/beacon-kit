@@ -23,15 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package primitives
 
-const (
-	// KZGMerkleIndex is the merkle index of BlobKzgCommitments' root
-	// in the merkle tree built from the block body.
-	KZGMerkleIndex = 26
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// TODO: depreacate.
-func KZGOffset(maxBlobCommitmentsPerBlock uint64) uint64 {
-	return KZGMerkleIndex * maxBlobCommitmentsPerBlock
-}
+type (
+	// Export `pkg/bytes`.
+	Bytes4  = bytes.B4
+	Bytes32 = bytes.B32
+	Bytes48 = bytes.B48
+	Bytes96 = bytes.B96
+
+	// Export `pkg/chain`.
+	ChainSpec = chain.Spec[
+		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
+	]
+
+	// Export `pkg/common`.
+	Domain     = common.Domain
+	DomainType = common.DomainType
+	// TODO: figure out why fastssz blows up on some aliases.
+	Root   = bytes.B32
+	Hash32 = common.Hash32
+	// TODO: figure out why fastssz blows up on some aliases.
+	Version    = bytes.B4
+	ForkDigest = common.ForkDigest
+)

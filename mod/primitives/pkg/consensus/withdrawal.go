@@ -26,7 +26,6 @@
 package consensus
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -55,7 +54,7 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 type Withdrawals []*Withdrawal
 
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (w Withdrawals) HashTreeRoot() (primitives.Root, error) {
+func (w Withdrawals) HashTreeRoot() (common.Root, error) {
 	// TODO: read max withdrawals from the chain spec.
 	return ssz.MerkleizeListComposite[any, math.U64](
 		w, constants.MaxWithdrawalsPerPayload,

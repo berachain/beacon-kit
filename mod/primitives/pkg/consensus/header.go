@@ -26,7 +26,7 @@
 package consensus
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -41,10 +41,10 @@ type BeaconBlockHeaderBase struct {
 	ProposerIndex uint64
 
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot primitives.Root
+	ParentBlockRoot common.Root
 
 	// StateRoot is the hash of the state at the block.
-	StateRoot primitives.Root
+	StateRoot common.Root
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -58,21 +58,21 @@ func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetParentBlockRoot() primitives.Root {
+func (b *BeaconBlockHeaderBase) GetParentBlockRoot() common.Root {
 	return b.ParentBlockRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockHeaderBase) GetStateRoot() primitives.Root {
+func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
 	return b.StateRoot
 }
 
 // BeaconBlockHeader is the header of a beacon block.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ../../primitives.go,../math,../bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeader -include ../common,../math,../bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
 	// 	// BodyRoot is the root of the block body.
-	BodyRoot primitives.Root `json:"bodyRoot"`
+	BodyRoot common.Root `json:"bodyRoot"`
 }

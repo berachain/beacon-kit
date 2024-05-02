@@ -23,23 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package consensus
+
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork_data.go -objs ForkData -include ./pkg/bytes,./primitives.go -output fork_data.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork_data.go -objs ForkData -include ../bytes,../common -output fork_data.ssz.go
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion Version `ssz-size:"4"`
+	CurrentVersion common.Version `ssz-size:"4"`
 	// GenesisValidatorsRoot is the root of the genesis validators.
-	GenesisValidatorsRoot Root `ssz-size:"32"`
+	GenesisValidatorsRoot common.Root `ssz-size:"32"`
 }
 
 // NewForkData creates a new ForkData struct.
 func NewForkData(
-	currentVersion Version, genesisValidatorsRoot Root,
+	currentVersion common.Version, genesisValidatorsRoot common.Root,
 ) *ForkData {
 	return &ForkData{
 		CurrentVersion:        currentVersion,
@@ -52,14 +54,14 @@ func NewForkData(
 //
 //nolint:lll
 func (fv ForkData) ComputeDomain(
-	domainType DomainType,
-) (Domain, error) {
+	domainType common.DomainType,
+) (common.Domain, error) {
 	forkDataRoot, err := fv.HashTreeRoot()
 	if err != nil {
-		return Domain{}, err
+		return common.Domain{}, err
 	}
 
-	return Domain(
+	return common.Domain(
 		append(
 			domainType[:],
 			forkDataRoot[:28]...),

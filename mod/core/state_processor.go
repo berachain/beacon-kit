@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -188,9 +187,7 @@ func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err = sp.bv.VerifyBlobs(
 		sidecars,
-		// TODO: get the KZG offset per fork, this is currently
-		// hardcoded to deneb block body.
-		types.KZGOffset(sp.cs.MaxBlobCommitmentsPerBlock()),
+		consensus.BlockBodyKZGOffset(sp.cs),
 	); err != nil {
 		return err
 	}
@@ -295,7 +292,7 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 // local state.
 func (sp *StateProcessor[SidecarsT]) processOperations(
 	st state.BeaconState,
-	body types.BeaconBlockBody,
+	body consensus.BeaconBlockBody,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
 	// of deposits.
@@ -399,7 +396,7 @@ func (sp *StateProcessor[SidecarsT]) createValidator(
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := primitives.NewForkData(
+	fd := consensus.NewForkData(
 		version.FromUint32[primitives.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -629,7 +626,7 @@ func (sp *StateProcessor[SidecarsT]) processSlashingsReset(
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[SidecarsT]) processProposerSlashing(
 	_ state.BeaconState,
-	// ps types.ProposerSlashing,
+	// ps ProposerSlashing,
 ) error {
 	return nil
 }
@@ -640,7 +637,7 @@ func (sp *StateProcessor[SidecarsT]) processProposerSlashing(
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[SidecarsT]) processAttesterSlashing(
 	_ state.BeaconState,
-	// as types.AttesterSlashing,
+	// as AttesterSlashing,
 ) error {
 	return nil
 }
