@@ -62,7 +62,6 @@ func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 func (db *RangeDB) GetAllKeys(index uint64) ([][]byte, error) {
 	var keys [][]byte
 
-	// Assuming DB has a method to get all keys
 	allKeys, err := db.DB.GetAllKeys()
 	if err != nil {
 		return nil, err

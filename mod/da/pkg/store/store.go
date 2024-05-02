@@ -112,11 +112,11 @@ func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 		return err
 	}
 
-	return s.Prune(slot)
+	return s.PruneBlobs(slot)
 }
 
-// Prune removes all blobs whose block number is not within the DA period.
-func (s *Store[ReadOnlyBeaconBlockT]) Prune(currentSlot math.Slot) error {
+// PruneBlobs removes all blobs whose slot number is not within the DA period.
+func (s *Store[ReadOnlyBeaconBlockT]) PruneBlobs(currentSlot math.Slot) error {
 	// Get all blobs from the store.
 	blobs, err := s.GetAllBlobs(currentSlot)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) Prune(currentSlot math.Slot) error {
 
 	// Iterate over the blobs.
 	for _, blob := range blobs {
-		// If the blob's block number is not within the DA period, delete it.
+		// If the blob's slot number is not within the DA period, delete it.
 		if !s.chainSpec.WithinDAPeriod(
 			blob.BeaconBlockHeader.GetSlot(),
 			currentSlot,
@@ -158,7 +158,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) GetAllBlobs(
 			return nil, err
 		}
 
-		/* Assuming the value is serialized
+		/* As the value is serialized
 		and needs to be unmarshalled into a BlobSidecar.*/
 		var blob types.BlobSidecar
 		if err = blob.UnmarshalSSZ(value); err != nil {
@@ -173,7 +173,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) GetAllBlobs(
 
 func (s *Store[ReadOnlyBeaconBlockT]) DeleteBlob(
 	index uint64,
-	blobID []byte,
+	key []byte,
 ) error {
-	return s.IndexDB.Delete(index, blobID)
+	return s.IndexDB.Delete(index, key)
 }
