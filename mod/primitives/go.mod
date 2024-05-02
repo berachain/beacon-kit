@@ -2,9 +2,13 @@ module github.com/berachain/beacon-kit/mod/primitives
 
 go 1.22.2
 
+replace (
+	github.com/berachain/beacon-kit/mod/errors	 => ../errors
+)
+
 require (
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	cosmossdk.io/errors v1.0.1
-	github.com/cockroachdb/errors v1.11.1
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1

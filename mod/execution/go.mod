@@ -6,13 +6,14 @@ replace (
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
+	github.com/berachain/beacon-kit/mod/errors	 => ../errors
 )
 
 require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
-	github.com/cockroachdb/errors v1.11.1
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240429161625-c105cec3420c
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
