@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 

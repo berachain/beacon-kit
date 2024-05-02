@@ -25,7 +25,7 @@
 
 package builder
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is

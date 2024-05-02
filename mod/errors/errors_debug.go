@@ -29,7 +29,7 @@
 package errors
 
 import (
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 var New = errors.New

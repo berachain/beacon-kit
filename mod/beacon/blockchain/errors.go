@@ -25,7 +25,7 @@
 
 package blockchain
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidPayload indicates that the payload of a beacon block is

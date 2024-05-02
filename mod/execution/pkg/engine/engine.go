@@ -29,11 +29,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/cockroachdb/errors"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
