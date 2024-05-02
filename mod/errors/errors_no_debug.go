@@ -28,13 +28,8 @@
 package errors
 
 import (
-	stdErrors "errors"
+	"errors"
 )
 
-func NewError(msg string) error {
-	return stdErrors.New(msg)
-}
-
-func NewCockroachError(msg string) error {
-	return stdErrors.New(msg)
-}
+var New = errors.New
+var Wrapf = errors.Wrapf

@@ -29,15 +29,8 @@
 package errors
 
 import (
-	stdErrors "errors"
-
-	cockroachErrors "github.com/cockroachdb/errors"
+	"github.com/cockroachdb/errors"
 )
 
-func NewError(msg string) error {
-	return stdErrors.New(msg)
-}
-
-func NewCockroachError(msg string) error {
-	return cockroachErrors.New(msg)
-}
+var New = errors.New
+var Wrapf = errors.Wrapf
