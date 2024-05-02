@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -49,7 +48,7 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error)
 
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
@@ -67,7 +66,7 @@ type LocalBuilder interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		parentEth1Hash primitives.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 
@@ -92,7 +91,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		blockHash common.ExecutionHash,
+		blockHash primitives.ExecutionHash,
 	) error
 
 	PruneDepositEvents(

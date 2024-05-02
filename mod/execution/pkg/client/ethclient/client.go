@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -56,13 +55,13 @@ func NewEth1Client(client *ethclient.Client) (*Eth1Client, error) {
 func (s *Eth1Client) NewPayloadV3(
 	ctx context.Context,
 	payload *consensus.ExecutableDataDeneb,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
 	result := &engineprimitives.PayloadStatus{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
-		(*common.ExecutionHash)(parentBlockRoot),
+		(*primitives.ExecutionHash)(parentBlockRoot),
 	); err != nil {
 		return nil, err
 	}
@@ -122,7 +121,7 @@ func (s *Eth1Client) GetPayloadV3(
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client) ExecutionBlockByHash(
-	ctx context.Context, hash common.ExecutionHash, withTxs bool,
+	ctx context.Context, hash primitives.ExecutionHash, withTxs bool,
 ) (*engineprimitives.Block, error) {
 	result := &engineprimitives.Block{}
 	err := s.Client.Client().CallContext(

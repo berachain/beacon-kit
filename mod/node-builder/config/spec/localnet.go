@@ -36,7 +36,7 @@ import (
 func LocalnetChainSpec() chain.Spec[
 	primitives.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
+	primitives.ExecutionAddress,
 	math.Slot,
 ] {
 	//nolint:mnd // default config.
@@ -44,7 +44,7 @@ func LocalnetChainSpec() chain.Spec[
 		chain.SpecData[
 			primitives.Bytes4,
 			math.Epoch,
-			common.ExecutionAddress,
+			primitives.ExecutionAddress,
 			math.Slot,
 		]{
 			// // Gwei value constants.

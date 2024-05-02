@@ -31,7 +31,6 @@ import (
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cockroachdb/errors"
@@ -41,9 +40,9 @@ import (
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
 	payload engineprimitives.ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot *primitives.Root,
-) (*common.ExecutionHash, error) {
+) (*primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -77,7 +76,7 @@ func (s *EngineClient) NewPayload(
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context,
 	payload engineprimitives.ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
@@ -94,7 +93,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *engineprimitives.ForkchoiceState,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *primitives.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 

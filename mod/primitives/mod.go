@@ -45,11 +45,14 @@ type (
 	]
 
 	// Export `pkg/common`.
+	Domain           = common.Domain
+	DomainType       = common.DomainType
+	ExecutionAddress = common.ExecutionAddress
+	ExecutionHash    = common.ExecutionHash
 	// TODO: figure out why fastssz blows up on some aliases.
-	Domain     = common.Domain
-	DomainType = common.DomainType
-	Root       = bytes.B32
-	Hash32     = common.Hash32
+	Root   = bytes.B32
+	Hash32 = common.Hash32
+	// TODO: figure out why fastssz blows up on some aliases.
 	Version    = bytes.B4
-	ForkDigest = bytes.B4
+	ForkDigest = common.ForkDigest
 )

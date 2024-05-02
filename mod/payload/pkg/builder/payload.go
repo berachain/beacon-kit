@@ -32,7 +32,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -44,7 +43,7 @@ func (pb *PayloadBuilder) RequestPayload(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
+	parentEth1Hash primitives.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
 	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
@@ -97,7 +96,7 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
+	parentEth1Hash primitives.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
@@ -143,7 +142,7 @@ func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	st BeaconState,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
+	parentEth1Hash primitives.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// We first attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root. If we have, and we are able

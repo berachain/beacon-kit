@@ -29,7 +29,6 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	gengine "github.com/ethereum/go-ethereum/beacon/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -42,7 +41,7 @@ type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayload
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []common.ExecutionHash
+	VersionedHashes []primitives.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
 	// SkipIfExists is a flag that indicates if the payload should be skipped
@@ -56,7 +55,7 @@ type NewPayloadRequest struct {
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest(
 	executionPayload ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []primitives.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
 	optimistic bool,
@@ -83,10 +82,10 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	data := gengine.ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
-		StateRoot:     common.ExecutionHash(payload.GetStateRoot()),
-		ReceiptsRoot:  common.ExecutionHash(payload.GetReceiptsRoot()),
+		StateRoot:     primitives.ExecutionHash(payload.GetStateRoot()),
+		ReceiptsRoot:  primitives.ExecutionHash(payload.GetReceiptsRoot()),
 		LogsBloom:     payload.GetLogsBloom(),
-		Random:        common.ExecutionHash(payload.GetPrevRandao()),
+		Random:        primitives.ExecutionHash(payload.GetPrevRandao()),
 		Number:        payload.GetNumber().Unwrap(),
 		GasLimit:      payload.GetGasLimit().Unwrap(),
 		GasUsed:       payload.GetGasUsed().Unwrap(),
@@ -103,7 +102,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	_, err := gengine.ExecutableDataToBlock(
 		data,
 		n.VersionedHashes,
-		(*common.ExecutionHash)(n.ParentBeaconBlockRoot),
+		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 	)
 	return err
 }
