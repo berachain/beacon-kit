@@ -14,7 +14,7 @@
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// THE FTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -43,7 +43,18 @@ const (
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = BodyLengthDeneb - 1
+
+	// KZGMerkleIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// in the merkle tree built from the block body.
+	KZGMerkleIndexDeneb = 26
 )
+
+// TODO: deprecate / improve this.
+func BlockBodyKZGOffset(
+	cs common.ChainSpec,
+) uint64 {
+	return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+}
 
 // BeaconBlockBodyBase represents the base body of a beacon block that is
 // shared between all forks.
