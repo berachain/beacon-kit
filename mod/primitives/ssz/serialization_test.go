@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/ssz"
 	eth2codec "github.com/protolambda/ztyp/codec"
 	eth2spec "github.com/protolambda/ztyp/view"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -295,14 +296,15 @@ func TestEth2SpecBitVector(t *testing.T) {
 		require.NoError(t, err)
 		expected := buf.Bytes()
 		actual := ssz.MarshalBitVector(rbools)
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf(
-				"MarshalBitVector(%v) = %08b; expect %08b",
-				rbools,
-				actual,
-				expected,
-			)
-		}
+		assert.Equalf(
+			t,
+			expected,
+			actual,
+			"MarshalBitVector: actual %08b; expect %08b",
+			actual,
+			expected,
+		)
+
 	}
 }
 
@@ -320,13 +322,13 @@ func TestEth2SpecBitList(t *testing.T) {
 		require.NoError(t, err)
 		expected := buf.Bytes()
 		actual := ssz.MarshalBitList(rbools)
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf(
-				"MarshalBitList(%v) = %08b; expect %08b",
-				rbools,
-				actual,
-				expected,
-			)
-		}
+		assert.Equalf(
+			t,
+			expected,
+			actual,
+			"MarshalBitList: actual %08b; expect %08b",
+			actual,
+			expected,
+		)
 	}
 }
