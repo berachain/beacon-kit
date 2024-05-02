@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cockroachdb/errors"
 )
@@ -80,7 +81,7 @@ func (s *EngineClient) callNewPayloadRPC(
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
 	switch payloadPb := payload.(type) {
-	case *primitives.ExecutableDataDeneb:
+	case *consensus.ExecutableDataDeneb:
 		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
 	default:
 		return nil, ErrInvalidPayloadType

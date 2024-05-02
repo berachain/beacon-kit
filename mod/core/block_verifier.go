@@ -29,8 +29,8 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
 // BlockVerifier is responsible for verifying incoming BeaconBlocks.
@@ -48,12 +48,12 @@ func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
 // ValidateBlock validates the incoming block.
 func (bv *BlockVerifier) ValidateBlock(
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	// Get the block body.
 	body := blk.GetBody()
 	if body == nil || body.IsNil() {
-		return types.ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	// Get the current slot.

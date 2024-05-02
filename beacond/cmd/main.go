@@ -26,6 +26,8 @@
 package main
 
 import (
+	"os"
+
 	app "github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
 )
@@ -40,5 +42,7 @@ func main() {
 				DepInjectConfig: app.Config(),
 			},
 		)
-	nb.RunNode()
+	if err := nb.RunNode(); err != nil {
+		os.Exit(1)
+	}
 }

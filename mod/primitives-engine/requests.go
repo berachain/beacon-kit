@@ -48,6 +48,9 @@ type NewPayloadRequest struct {
 	// SkipIfExists is a flag that indicates if the payload should be skipped
 	// if it already exists in the database of the execution client.
 	SkipIfExists bool
+	// Optimistic is a flag that indicates if the payload should be
+	// optimistically deemed valid. This is useful during syncing.
+	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -56,12 +59,14 @@ func BuildNewPayloadRequest(
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
+	optimistic bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 		SkipIfExists:          skipIfExists,
+		Optimistic:            optimistic,
 	}
 }
 
@@ -75,8 +80,6 @@ func BuildNewPayloadRequest(
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
-	blobGasUsed := payload.GetBlobGasUsed().Unwrap()
-	excessBlobGas := payload.GetExcessBlobGas().Unwrap()
 	data := gengine.ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
@@ -94,8 +97,8 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
-		BlobGasUsed:   &blobGasUsed,
-		ExcessBlobGas: &excessBlobGas,
+		BlobGasUsed:   payload.GetBlobGasUsed().UnwrapPtr(),
+		ExcessBlobGas: payload.GetExcessBlobGas().UnwrapPtr(),
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,

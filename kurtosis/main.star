@@ -13,6 +13,7 @@ constants = import_module("./src/constants.star")
 goomy_blob = import_module("./src/services/goomy/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
+pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -41,10 +42,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
 
     # 3. Perform genesis ceremony
-    node_peering_info = beacond.perform_genesis_ceremony(plan, validators, jwt_file)
+    beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
+
+    consensus_node_peering_info = []
 
     # 4. Start network validators
     for n, validator in enumerate(validators):
@@ -60,7 +63,9 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
             })
 
         # 4b. Launch CL
-        beacond_service = beacond.create_node(plan, validator.cl_image, node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
+        beacond_service = beacond.create_node(plan, validator.cl_image, consensus_node_peering_info[:n], el_client["name"], jwt_file, kzg_trusted_setup, n)
+        peer_info = beacond.get_peer_info(plan, beacond_service.name)
+        consensus_node_peering_info.append(peer_info)
         if validator.el_type != "ethereumjs":
             metrics_enabled_services.append({
                 "name": beacond_service.name,
@@ -83,7 +88,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         # 4b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
-        full_node_config = beacond.create_full_node_config(plan, full.cl_image, node_peering_info, el_client["name"], jwt_file, kzg_trusted_setup, n)
+        full_node_config = beacond.create_full_node_config(plan, full.cl_image, consensus_node_peering_info, el_client["name"], jwt_file, kzg_trusted_setup, n)
         full_node_configs[cl_service_name] = full_node_config
 
     if full_node_configs != {}:
@@ -122,5 +127,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
 
         if "grafana" in additional_services:
             grafana.start(plan, prometheus_url)
+
+        if "pyroscope" in additional_services:
+            pyroscope.run(plan)
 
     plan.print("Successfully launched development network")

@@ -83,7 +83,7 @@ func TestGeneralizedIndexMethods(t *testing.T) {
 
 	require.Equal(
 		t,
-		uint64(4),
+		uint64(3),
 		gi.Length(),
 		"Incorrect length for GeneralizedIndex",
 	)

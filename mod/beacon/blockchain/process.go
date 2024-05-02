@@ -29,10 +29,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -48,7 +48,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
@@ -59,7 +59,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	// Validate payload in Parallel.
@@ -82,12 +82,18 @@ func (s *Service) ProcessBeaconBlock(
 	// Then we notify the engine of the new payload.
 	body := blk.GetBody()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if _, err = s.ee.VerifyAndNotifyNewPayload(
+	if err = s.ee.VerifyAndNotifyNewPayload(
 		ctx, engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
+			// Since this is called during FinalizeBlock, we want to assume
+			// the payload is valid, if it ends up not being valid later the
+			// node will simply AppHash which is completely fine, since this
+			// means we were syncing from a bad peer, and we would likely
+			// AppHash anyways.
+			true,
 		),
 	); err != nil {
 		s.Logger().
@@ -145,7 +151,7 @@ func (s *Service) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service) ValidateBlock(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	return s.bv.ValidateBlock(
 		s.BeaconState(ctx), blk,
@@ -155,15 +161,15 @@ func (s *Service) ValidateBlock(
 // VerifyPayload validates the execution payload on the block.
 func (s *Service) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	body := blk.GetBody()
 	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	// Call the standard payload validator.
@@ -176,20 +182,17 @@ func (s *Service) VerifyPayloadOnBlk(
 
 	// We notify the engine of the new payload.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if _, err := s.ee.VerifyAndNotifyNewPayload(
+	return s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
+			// We do not want to optimistically assume truth here.
+			false,
 		),
-	); err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
-		return err
-	}
-	return nil
+	)
 }
 
 // PostBlockProcess is called after a block has been processed.
@@ -197,7 +200,7 @@ func (s *Service) VerifyPayloadOnBlk(
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -253,7 +256,7 @@ func (s *Service) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = primitives.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

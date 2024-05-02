@@ -31,7 +31,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
 )
 
@@ -80,7 +80,7 @@ func NewStore(kvsp store.KVStoreService) *KVStore {
 		depositQueue: NewQueue(
 			schemaBuilder,
 			KeyDepositPrefix,
-			encoding.SSZValueCodec[*primitives.Deposit]{},
+			encoding.SSZValueCodec[*consensus.Deposit]{},
 		),
 	}
 }
@@ -88,24 +88,24 @@ func NewStore(kvsp store.KVStoreService) *KVStore {
 // ExpectedDeposits returns the first numPeek deposits in the queue.
 func (kv *KVStore) ExpectedDeposits(
 	numView uint64,
-) ([]*primitives.Deposit, error) {
+) ([]*consensus.Deposit, error) {
 	return kv.depositQueue.PeekMulti(context.TODO(), numView)
 }
 
 // EnqueueDeposit pushes the deposit to the queue.
-func (kv *KVStore) EnqueueDeposit(deposit *primitives.Deposit) error {
+func (kv *KVStore) EnqueueDeposit(deposit *consensus.Deposit) error {
 	return kv.depositQueue.Push(context.TODO(), deposit)
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*primitives.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(deposits []*consensus.Deposit) error {
 	return kv.depositQueue.PushMulti(context.TODO(), deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
 func (kv *KVStore) DequeueDeposits(
 	numDequeue uint64,
-) ([]*primitives.Deposit, error) {
+) ([]*consensus.Deposit, error) {
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
 

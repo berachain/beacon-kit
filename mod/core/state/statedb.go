@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -44,11 +45,11 @@ type KVStore interface{}
 //nolint:revive // todo fix somehow
 type StateDB struct {
 	*beacondb.KVStore[
-		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
+		*consensus.Fork,
+		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
-		*primitives.Eth1Data,
-		*primitives.Validator,
+		*consensus.Eth1Data,
+		*consensus.Validator,
 	]
 	cs primitives.ChainSpec
 }
@@ -56,11 +57,11 @@ type StateDB struct {
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
-		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
+		*consensus.Fork,
+		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
-		*primitives.Eth1Data,
-		*primitives.Validator,
+		*consensus.Eth1Data,
+		*consensus.Validator,
 	],
 	cs primitives.ChainSpec,
 ) *StateDB {
@@ -131,12 +132,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
+func (s *StateDB) ExpectedWithdrawals() ([]*consensus.Withdrawal, error) {
 	var (
-		validator         *primitives.Validator
+		validator         *consensus.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		withdrawals       = make([]*primitives.Withdrawal, 0)
+		withdrawals       = make([]*consensus.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -182,7 +183,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*primitives.Withdrawal, error) {
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &primitives.Withdrawal{
+		withdrawal := &consensus.Withdrawal{
 			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,

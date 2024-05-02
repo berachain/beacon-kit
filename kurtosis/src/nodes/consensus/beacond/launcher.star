@@ -1,6 +1,6 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
 execution = import_module("../../execution/execution.star")
-node = import_module("../../../lib/node.star")
+node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
@@ -67,81 +67,58 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     num_validators = len(validators)
 
     node_peering_info = []
-    for n, validator in enumerate(validators):
+    beacond_configs = []
+
+    # Generate gentx from all but last validator node
+    for n in range(num_validators - 1):
+        sh_cmd = "{} && {}".format(node.get_init_sh(), node.get_add_validator_sh())
+
+        node_beacond_config = "node-beacond-config-{}".format(n)
         cl_service_name = "cl-validator-beaconkit-{}".format(n)
-        engine_dial_url = ""  # not needed for this step
-        beacond_config = get_config(
-            validator.cl_image,
-            engine_dial_url,
-            cl_service_name,
-            expose_ports = False,
-            jwt_file = jwt_file,
+        beacond_configs.append(node_beacond_config)
+        plan.run_sh(
+            run = sh_cmd,
+            image = validators[n].cl_image,
+            env_vars = node.get_genesis_env_vars(cl_service_name),
+            store = [
+                StoreSpec(src = "/root/.beacond", name = node_beacond_config),
+            ],
+            description = "Initialize and store config for validator {}".format(n),
         )
 
-        if n > 0:
-            beacond_config.files["/root/.beacond/config"] = Directory(
-                artifact_names = ["cosmos-genesis-{}".format(n - 1)],
-            )
-
-        if n == num_validators - 1 and n != 0:
-            collected_gentx = []
-            for other_validator_id in range(num_validators - 1):
-                collected_gentx.append("cosmos-gentx-{}".format(other_validator_id))
-
-            beacond_config.files["/root/.beacond/config/gentx"] = Directory(
-                artifact_names = collected_gentx,
-            )
-
-        plan.add_service(
-            name = cl_service_name,
-            config = beacond_config,
-        )
-
-        # Initialize the Cosmos genesis file
-        if n == 0:
-            is_first_validator = True
-
+    final_config_folders = {}
+    mv_all_gentx_cmd = ""
+    for x, beacond_config in enumerate(beacond_configs):
+        final_config_folders["/tmp/{}".format(beacond_config)] = beacond_config
+        if x < len(beacond_configs) - 1:
+            mv_all_gentx_cmd += ("mv /tmp/{}/.beacond/config/gentx/gen* /root/.beacond/config/gentx/ && ".format(beacond_config))
         else:
-            is_first_validator = False
-        node.init_beacond(plan, is_first_validator, cl_service_name)
+            mv_all_gentx_cmd += ("mv /tmp/{}/.beacond/config/gentx/gen* /root/.beacond/config/gentx/".format(beacond_config))
 
-        peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
+    # Final run will collect all gentx from all previous nodes to create final genesis
+    final_config_folder = "node-beacond-config-{}".format(num_validators - 1)
+    cl_service_name = "cl-validator-beaconkit-{}".format(num_validators - 1)
+    final_sh_cmd = "{} && {} && {} && {} && {}".format(
+        node.get_init_sh(),
+        node.get_add_validator_sh(),
+        "cp -R /root /tmp/{}".format(final_config_folder),  # Store final gentx to the side for easy file artifact storage later
+        mv_all_gentx_cmd,
+        node.get_collect_validator_sh(),
+    )
 
-        node_peering_info.append(peer_result["output"])
-
-        file_suffix = "{}".format(n)
-        if n == num_validators - 1:
-            file_suffix = "final"
-
-        node_beacond_config = plan.store_service_files(
-            service_name = cl_service_name,
-            src = "/root/.beacond",
-            name = "node-beacond-config-{}".format(n),
-        )
-
-        genesis_artifact = plan.store_service_files(
-            # The service name of a preexisting service from which the file will be copied.
-            service_name = cl_service_name,
-            # The path on the service's container that will be copied into a files artifact.
-            # MANDATORY
-            src = "/root/.beacond/config/genesis.json",
-            # The name to give the files artifact that will be produced.
-            # If not specified, it will be auto-generated.
-            # OPTIONAL
-            name = "cosmos-genesis-{}".format(file_suffix),
-        )
-
-        gentx_artifact = plan.store_service_files(
-            service_name = cl_service_name,
-            src = "/root/.beacond/config/gentx/*",
-            name = "cosmos-gentx-{}".format(n),
-        )
-
-        # Node has completed its genesis step. We will add it back later once genesis is complete
-        plan.remove_service(
-            cl_service_name,
-        )
-    return node_peering_info
+    # Run final gentx generation
+    sh_cmd = final_sh_cmd
+    plan.run_sh(
+        run = sh_cmd,
+        image = validators[n].cl_image,
+        env_vars = node.get_genesis_env_vars(cl_service_name),
+        files = final_config_folders,
+        store = [
+            StoreSpec(src = "/tmp/{}/.beacond".format(final_config_folder), name = final_config_folder),
+            StoreSpec(src = "/root/.beacond/config/genesis.json", name = "cosmos-genesis-final"),
+        ],
+        description = "Initialize and store final node's config && final genesis file",
+    )
 
 def get_persistent_peers(plan, peers):
     persistent_peers = peers[:]
@@ -215,3 +192,7 @@ def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_fi
     plan.print(beacond_config)
 
     return beacond_config
+
+def get_peer_info(plan, cl_service_name):
+    peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
+    return peer_result["output"]

@@ -74,20 +74,25 @@ func NewNodeBuilder[T servertypes.Application]() *NodeBuilder[T] {
 }
 
 // Run runs the application.
-func (nb *NodeBuilder[T]) RunNode() {
-	rootCmd := nb.BuildRootCmd()
+func (nb *NodeBuilder[T]) RunNode() error {
+	rootCmd, err := nb.BuildRootCmd()
+	if err != nil {
+		return err
+	}
+
 	// Run the root command.
-	if err := svrcmd.Execute(
+	if err = svrcmd.Execute(
 		rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 // BuildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
+func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -113,7 +118,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 		&mm,
 		&clientCtx,
 	); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	rootCmd := &cobra.Command{
@@ -183,8 +188,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return rootCmd
+	return rootCmd, nil
 }
