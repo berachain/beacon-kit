@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
@@ -114,7 +113,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 
 		// Create and sign the deposit message.
 		depositMsg, signature, err := consensus.CreateAndSignDepositMessage(
-			primitives.NewForkData(currentVersion, genesisValidatorRoot),
+			consensus.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,
 			credentials,
@@ -126,7 +125,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 
 		// Verify the deposit message.
 		if err = depositMsg.VerifyCreateValidator(
-			primitives.NewForkData(currentVersion, genesisValidatorRoot),
+			consensus.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			blst.VerifySignaturePubkeyBytes,
 			spec.LocalnetChainSpec().DomainTypeDeposit(),

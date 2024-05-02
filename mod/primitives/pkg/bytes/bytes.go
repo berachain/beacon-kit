@@ -25,7 +25,11 @@
 
 package bytes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // MustFromHex returns the bytes represented by the given hex string.
 func MustFromHex(input string) []byte {
@@ -107,4 +111,38 @@ func PrependExtendToSize(slice []byte, length int) []byte {
 		return slice
 	}
 	return append(make([]byte, length-len(slice)), slice...)
+}
+
+// ------------------------------ Helpers ------------------------------
+
+// Helper function to unmarshal JSON for various byte types.
+func unmarshalJSONHelper(target []byte, input []byte) error {
+	bz := hexutil.Bytes{}
+	if err := bz.UnmarshalJSON(input); err != nil {
+		return err
+	}
+	if len(bz) != len(target) {
+		return fmt.Errorf(
+			"incorrect length, expected %d bytes but got %d",
+			len(target), len(bz),
+		)
+	}
+	copy(target, bz)
+	return nil
+}
+
+// Helper function to unmarshal text for various byte types.
+func unmarshalTextHelper(target []byte, text []byte) error {
+	bz := hexutil.Bytes{}
+	if err := bz.UnmarshalText(text); err != nil {
+		return err
+	}
+	if len(bz) != len(target) {
+		return fmt.Errorf(
+			"incorrect length, expected %d bytes but got %d",
+			len(target), len(bz),
+		)
+	}
+	copy(target, bz)
+	return nil
 }

@@ -26,7 +26,6 @@
 package consensus
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -45,7 +44,7 @@ type ExecutionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool
-	GetPrevRandao() primitives.Bytes32
+	GetPrevRandao() bytes.B32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
@@ -55,8 +54,8 @@ type ExecutionPayloadBody interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
+	GetStateRoot() bytes.B32
+	GetReceiptsRoot() bytes.B32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
@@ -116,8 +115,8 @@ type ReadOnlyBeaconBlock interface {
 	Version() uint32
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() primitives.Root
-	GetStateRoot() primitives.Root
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
 	GetBody() BeaconBlockBody
 	GetHeader() *BeaconBlockHeader
 }
