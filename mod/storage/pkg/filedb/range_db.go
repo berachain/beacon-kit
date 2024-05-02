@@ -58,6 +58,27 @@ func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 	return db.DB.Get(db.prefix(index, key))
 }
 
+// GetAllKeys retrieves all keys from the database.
+func (db *RangeDB) GetAllKeys(index uint64) ([][]byte, error) {
+	var keys [][]byte
+
+	// Assuming DB has a method to get all keys
+	allKeys, err := db.DB.GetAllKeys()
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter keys that match the index prefix
+	prefix := []byte(fmt.Sprintf("%d/", index))
+	for _, key := range allKeys {
+		if bytes.HasPrefix(key, prefix) {
+			keys = append(keys, key)
+		}
+	}
+
+	return keys, nil
+}
+
 // Has checks if the given index and key exist in the database.
 // It prefixes the key with the index and a slash before querying the underlying
 // database.

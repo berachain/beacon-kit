@@ -28,6 +28,7 @@ package filedb
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/cockroachdb/errors"
@@ -61,6 +62,33 @@ func NewDB(opts ...Option) *DB {
 // Get retrieves the value for a key.
 func (db *DB) Get(key []byte) ([]byte, error) {
 	return afero.ReadFile(db.fs, db.pathForKey(key))
+}
+
+func (db *DB) GetAllKeys() ([][]byte, error) {
+	var keys [][]byte
+
+	err := afero.Walk(db.fs, "/", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories
+		if info.IsDir() {
+			return nil
+		}
+
+		// Remove the extension from the file name to get the key
+		key := strings.TrimSuffix(info.Name(), "."+db.extension)
+
+		keys = append(keys, []byte(key))
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return keys, nil
 }
 
 // Has returns true if the key exists in the database.

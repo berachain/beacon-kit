@@ -28,4 +28,7 @@ package store
 // IndexDB is a database that allows prefixing by index.
 type IndexDB interface {
 	Set(index uint64, key []byte, value []byte) error
+	Delete(index uint64, key []byte) error
+	GetAllKeys(index uint64) ([][]byte, error)
+	Get(index uint64, key []byte) ([]byte, error)
 }

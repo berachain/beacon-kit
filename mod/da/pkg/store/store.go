@@ -28,7 +28,6 @@ package store
 import (
 	"context"
 	"errors"
-
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -94,7 +93,7 @@ func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 	}
 
 	// Store each sidecar in parallel.
-	return errors.Join(iter.Map(
+	err := errors.Join(iter.Map(
 		sidecars.Sidecars,
 		func(sidecar **types.BlobSidecar) error {
 			if *sidecar == nil {
@@ -108,4 +107,60 @@ func (s *Store[ReadOnlyBeaconBlockT]) Persist(
 			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
 		},
 	)...)
+	if err != nil {
+		return err
+	}
+
+	return s.Prune(slot)
+}
+
+// Prune removes all blobs whose block number is not within the DA period.
+func (s *Store[ReadOnlyBeaconBlockT]) Prune(currentSlot math.Slot) error {
+	// Get all blobs from the store.
+	blobs, err := s.GetAllBlobs(currentSlot)
+	if err != nil {
+		return err
+	}
+
+	// Iterate over the blobs.
+	for _, blob := range blobs {
+		// If the blob's block number is not within the DA period, delete it.
+		if !s.chainSpec.WithinDAPeriod(blob.BeaconBlockHeader.GetSlot(), currentSlot) {
+			if err := s.DeleteBlob(uint64(currentSlot), blob.KzgCommitment[:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Store[ReadOnlyBeaconBlockT]) GetAllBlobs(currentSlot math.Slot) ([]*types.BlobSidecar, error) {
+	var blobs []*types.BlobSidecar
+
+	keys, err := s.IndexDB.GetAllKeys(uint64(currentSlot))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range keys {
+		value, err := s.IndexDB.Get(uint64(currentSlot), key)
+		if err != nil {
+			return nil, err
+		}
+
+		// Assuming the value is serialized and needs to be unmarshalled into a BlobSidecar
+		var blob types.BlobSidecar
+		if err := blob.UnmarshalSSZ(value); err != nil {
+			return nil, err
+		}
+
+		blobs = append(blobs, &blob)
+	}
+
+	return blobs, nil
+}
+
+func (s *Store[ReadOnlyBeaconBlockT]) DeleteBlob(index uint64, blobID []byte) error {
+	return s.IndexDB.Delete(index, blobID)
 }
