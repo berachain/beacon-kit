@@ -32,8 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-var New = errors.New
-var Wrap = errors.Wrap
-var Wrapf = errors.Wrapf
-var Is = errors.Is
-var As = errors.As
+var New = errors.New     //nolint:gochecknoglobals // aliasing a global variable
+var Wrap = errors.Wrap   //nolint:gochecknoglobals // aliasing a global variable
+var Wrapf = errors.Wrapf //nolint:gochecknoglobals // aliasing a global variable
+var Is = errors.Is       //nolint:gochecknoglobals // aliasing a global variable
+var As = errors.As       //nolint:gochecknoglobals // aliasing a global variable

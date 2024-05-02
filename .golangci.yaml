@@ -205,13 +205,6 @@ linters-settings:
     # Default: false
     all: true
 
-  gochecknoglobals:
-    # checks that no global variables exist
-    enable: true
-    exclude-files:
-      - mod/errors/errors_no_debug.go
-      - mod/errors/errors_debug.go
-
 linters:
   disable-all: true
   enable:
@@ -240,6 +233,7 @@ linters:
     - forbidigo # forbids identifiers
     - funlen # tool for detection of long functions
     - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
+    - gochecknoglobals # checks that no global variables exist
     - gochecknoinits # checks that no init functions are present in Go code
     - gochecksumtype # checks exhaustiveness on Go "sum types"
     - gocognit # computes and checks the cognitive complexity of functions
