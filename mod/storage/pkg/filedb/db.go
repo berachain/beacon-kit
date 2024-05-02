@@ -67,22 +67,25 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 func (db *DB) GetAllKeys() ([][]byte, error) {
 	var keys [][]byte
 
-	err := afero.Walk(db.fs, "/", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	err := afero.Walk(
+		db.fs,
+		"/",
+		func(_ string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
 
-		// Skip directories
-		if info.IsDir() {
+			// Skip directories
+			if info.IsDir() {
+				return nil
+			}
+
+			// Remove the extension from the file name to get the key
+			key := strings.TrimSuffix(info.Name(), "."+db.extension)
+
+			keys = append(keys, []byte(key))
 			return nil
-		}
-
-		// Remove the extension from the file name to get the key
-		key := strings.TrimSuffix(info.Name(), "."+db.extension)
-
-		keys = append(keys, []byte(key))
-		return nil
-	})
+		})
 
 	if err != nil {
 		return nil, err
