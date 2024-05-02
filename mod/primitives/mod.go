@@ -48,7 +48,7 @@ type (
 	Domain     = common.Domain
 	DomainType = common.DomainType
 	Root       = bytes.B32
-	Hash32     = bytes.B32
-	Version    = bytes.B4
+	Hash32     = common.Hash32
+	Version    = common.Version
 	ForkDigest = bytes.B4
 )
