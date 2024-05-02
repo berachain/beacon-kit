@@ -13,6 +13,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/core => ../core
 	github.com/berachain/beacon-kit/mod/da => ../da
+	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/payload => ../payload
@@ -20,7 +21,6 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/berachain/beacon-kit/mod/errors	 => ../errors
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20240429150935-1ff1c69c7d75
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240421231814-4a0efcf4f9fa
 )
@@ -35,13 +35,13 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/core v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
@@ -91,6 +91,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
+	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
