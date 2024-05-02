@@ -201,7 +201,7 @@ func (u U64) ILog2Floor() uint8 {
 		return 0
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u)))
+	return U64NumBits - 1 - uint8(bits.LeadingZeros64(uint64(u)))
 }
 
 // ---------------------------- Gwei Methods ----------------------------

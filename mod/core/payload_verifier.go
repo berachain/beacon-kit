@@ -29,8 +29,8 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
 // PayloadVerifier is responsible for verifying incoming execution
@@ -49,7 +49,7 @@ func NewPayloadVerifier(cs primitives.ChainSpec) *PayloadVerifier {
 // VerifyPayload verifies the incoming payload.
 func (pv *PayloadVerifier) VerifyPayload(
 	st state.BeaconState,
-	body types.BeaconBlockBody,
+	body consensus.BeaconBlockBody,
 ) error {
 	if body == nil || body.IsNil() {
 		return ErrNilBlkBody

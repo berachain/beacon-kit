@@ -45,7 +45,7 @@ type KVStore interface{}
 //nolint:revive // todo fix somehow
 type StateDB struct {
 	*beacondb.KVStore[
-		*primitives.Fork,
+		*consensus.Fork,
 		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
 		*consensus.Eth1Data,
@@ -57,7 +57,7 @@ type StateDB struct {
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
 	bdb *beacondb.KVStore[
-		*primitives.Fork,
+		*consensus.Fork,
 		*consensus.BeaconBlockHeader,
 		engineprimitives.ExecutionPayloadHeader,
 		*consensus.Eth1Data,
