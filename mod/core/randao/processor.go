@@ -195,7 +195,7 @@ func (p *Processor) computeSigningRoot(
 	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
-	fd := primitives.NewForkData(
+	fd := consensus.NewForkData(
 		version.FromUint32[primitives.Version](
 			p.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
