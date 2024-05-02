@@ -126,9 +126,14 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // ---------------------------- U64 Methods ----------------------------
 
-// Unwrap returns the underlying uint64 value of U64.
+// Unwrap returns a copy of the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {
 	return uint64(u)
+}
+
+// UnwrapPtr returns a pointer to the underlying uint64 value of U64.
+func (u U64) UnwrapPtr() *uint64 {
+	return (*uint64)(&u)
 }
 
 // Get the power of 2 for given input, or the closest higher power of 2 if the
@@ -199,51 +204,6 @@ func (u U64) ILog2Floor() uint8 {
 	return U64NumBits - uint8(bits.LeadingZeros64(uint64(u)))
 }
 
-// type U64Vector[U ~uint64] []U
-
-// func (v U64Vector[U]) HashTreeRoot() ([32]byte, error) {
-// 	return ssz.MerkleizeVecBasic[U64, U, [32]byte](v)
-// }
-
-// func (v U64Vector[U]) SizeSSZ() int {
-// 	return int(ssz.SizeOfComposite[[32]byte, U64Vector[U]](v))
-// }
-
-// type U64List []U64
-
-// func (v U64List) HashTreeRoot() ([32]byte, error) {
-// 	return ssz.MerkleizeListBasic[U64, U64, [32]byte](v, 16)
-// }
-
-// func (v U64List) SizeSSZ() int {
-// 	return int(ssz.SizeOfComposite[[32]byte, U64List](v))
-// }
-
-// type U64Container struct {
-// 	Field2 U64List
-// 	Field1 U64
-// }
-
-// func (c U64Container) SizeSSZ() int {
-// 	return c.Field1.SizeSSZ() + c.Field2.SizeSSZ()
-// }
-
-// func (c U64Container) HashTreeRoot() ([32]byte, error) {
-// 	return ssz.MerkleizeContainer[U64, U64Container, [32]byte](c)
-// }
-
-// //go:generate go run github.com
-// /ferranbt/fastssz/sszgen -objs U64List2,U64Container2 --path ./u64
-// .go -output bet.ssz.go
-// type U64List2 struct {
-// 	Data []uint64 `ssz-max:"16"`
-// }
-
-// type U64Container2 struct {
-// 	Field2 []uint64 `ssz-max:"16"`
-// 	Field1 U64
-// }
-
 // ---------------------------- Gwei Methods ----------------------------
 
 // GweiToWei returns the value of Wei in Gwei.
@@ -254,8 +214,6 @@ func GweiFromWei(i *big.Int) Gwei {
 }
 
 // ToWei converts a value from Gwei to Wei.
-//
-
 func (u Gwei) ToWei() *big.Int {
 	gweiAmount := big.NewInt(0).SetUint64(u.Unwrap())
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
