@@ -69,7 +69,7 @@ build_tags += $(BUILD_TAGS)
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath
+  BUILD_FLAGS += -trimpath 
 endif
 
 # Check for debug option
