@@ -23,18 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build !debug
+//go:build debug
+// +build debug
 
-package errors
+package cockroacherrors
 
 import (
-	stdErrors "errors"
+	"github.com/cockroachdb/errors"
 )
 
-func NewError(msg string) error {
-	return stdErrors.New(msg)
-}
-
-func NewCockroachError(msg string) error {
-	return stdErrors.New(msg)
-}
+var New = errors.New
+var Wrapf = errors.Wrapf
