@@ -75,7 +75,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyValidators
 
 	SetGenesisValidatorsRoot(root primitives.Root) error
-	SetFork(*primitives.Fork) error
+	SetFork(*consensus.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(*consensus.BeaconBlockHeader) error

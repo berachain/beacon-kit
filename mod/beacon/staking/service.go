@@ -82,6 +82,5 @@ func (s *Service) PruneDepositEvents(st state.BeaconState) error {
 	if err != nil {
 		return err
 	}
-	s.Logger().Info("🍇 pruning deposit events", "index", idx)
 	return s.ds.PruneToIndex(idx)
 }

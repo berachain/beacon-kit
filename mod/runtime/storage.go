@@ -81,7 +81,7 @@ func NewKeeper(
 		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlock](
 			cs, filedb.NewRangeDB(fdb),
 		), beacondb.New[
-			*primitives.Fork,
+			*consensus.Fork,
 			*consensus.BeaconBlockHeader,
 			engineprimitives.ExecutionPayloadHeader,
 			*consensus.Eth1Data,
