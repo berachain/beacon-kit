@@ -34,9 +34,9 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	"github.com/cockroachdb/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

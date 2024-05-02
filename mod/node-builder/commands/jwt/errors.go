@@ -25,7 +25,7 @@
 
 package jwt
 
-import "github.com/cockroachdb/errors"
+import errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 
 var (
 	// ErrNoClientCtx indicates that the client context was not found.

@@ -25,7 +25,7 @@
 
 package randao
 
-import "github.com/cockroachdb/errors"
+import errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 
 // ErrInvalidSignature is returned when the signature is invalid.
 var ErrInvalidSignature = errors.New("invalid signature")

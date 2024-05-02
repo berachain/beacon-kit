@@ -29,8 +29,8 @@ import (
 	"os"
 	"testing"
 
+	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt/mocks"
-	"github.com/cockroachdb/errors"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -29,8 +29,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
+	errors "github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cockroachdb/errors"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

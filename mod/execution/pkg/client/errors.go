@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors/cockroachdb"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -43,7 +43,7 @@ const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID a
 
 var (
 	// ErrNotStarted indicates that the execution client is not started.
-	ErrNotStarted = errors.New("engine client is not started")
+	ErrNotStarted = cockroacherrors.New("engine client is not started")
 
 	// ErrInvalidJWTSecretLength indicates incorrect JWT secret length.
 	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
