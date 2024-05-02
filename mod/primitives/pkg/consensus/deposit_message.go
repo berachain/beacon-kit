@@ -26,7 +26,7 @@
 package consensus
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -55,7 +55,7 @@ type DepositMessage struct {
 // CreateAndSignDepositMessage creates and signs a deposit message.
 func CreateAndSignDepositMessage(
 	forkData *ForkData,
-	domainType primitives.DomainType,
+	domainType common.DomainType,
 	signer crypto.BLSSigner,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
@@ -90,7 +90,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature crypto.BLSSignature,
 	isSignatureValid SigVerificationFn,
-	domainType primitives.DomainType,
+	domainType common.DomainType,
 ) error {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {

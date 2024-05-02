@@ -39,12 +39,14 @@ type (
 	Bytes48 = bytes.B48
 	Bytes96 = bytes.B96
 
-	// Export `pkg/chain`
-	ChainSpec = chain.Spec[DomainType, math.Epoch, common.ExecutionAddress, math.Slot]
+	// Export `pkg/chain`.
+	ChainSpec = chain.Spec[
+		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
+	]
 
-	// Export `pkg/common`
-	Domain     = bytes.B32
-	DomainType = bytes.B4
+	// Export `pkg/common`.
+	Domain     = common.Domain
+	DomainType = common.DomainType
 	Root       = bytes.B32
 	Hash32     = bytes.B32
 	Version    = bytes.B4
