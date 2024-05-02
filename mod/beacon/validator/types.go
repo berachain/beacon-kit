@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -68,6 +69,6 @@ type PayloadBuilder[BeaconStateT builder.BeaconState] interface {
 		st builder.BeaconState,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash primitives.ExecutionHash,
+		parentEth1Hash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }

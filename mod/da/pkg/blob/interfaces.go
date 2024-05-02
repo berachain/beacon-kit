@@ -26,7 +26,7 @@
 package blob
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
@@ -41,7 +41,7 @@ type BeaconBlock[B BeaconBlockBody] interface {
 type BeaconBlockBody interface {
 	HashTreeRoot() ([32]byte, error)
 	GetTopLevelRoots() ([][32]byte, error)
-	GetBlobKzgCommitments() eip4844.KZGCommitments[primitives.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // ChainSpec represents a chain spec.

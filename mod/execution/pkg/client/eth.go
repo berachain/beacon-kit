@@ -29,8 +29,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // HeaderByNumber retrieves the block header by its number.
@@ -66,7 +66,7 @@ func (s *EngineClient) HeaderByNumber(
 // HeaderByHash retrieves the block header by its hash.
 func (s *EngineClient) HeaderByHash(
 	ctx context.Context,
-	hash primitives.ExecutionHash,
+	hash common.ExecutionHash,
 ) (*engineprimitives.Header, error) {
 	// Check the cache for the header.
 	header, ok := s.engineCache.HeaderByHash(hash)

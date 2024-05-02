@@ -78,7 +78,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 		Eth1Data: &consensus.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
-			BlockHash:    primitives.ExecutionHash{},
+			BlockHash:    common.ExecutionHash{},
 		},
 		Eth1DepositIndex:             0,
 		Validators:                   make([]*consensus.Validator, 0),
@@ -120,8 +120,8 @@ func DefaultGenesisExecutionPayloadHeader() (
 	}
 
 	return &engineprimitives.ExecutionPayloadHeaderDeneb{
-		ParentHash:   primitives.ExecutionHash{},
-		FeeRecipient: primitives.ExecutionAddress{},
+		ParentHash:   common.ExecutionHash{},
+		FeeRecipient: common.ExecutionAddress{},
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,
