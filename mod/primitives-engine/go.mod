@@ -2,7 +2,10 @@ module github.com/berachain/beacon-kit/mod/primitives-engine
 
 go 1.22.2
 
-replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
+replace (
+	github.com/berachain/beacon-kit/mod/errors => ../errors
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
+)
 
 require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
@@ -14,6 +17,7 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
