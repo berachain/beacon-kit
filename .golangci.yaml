@@ -121,10 +121,6 @@ linters-settings:
       - prometheus.ExponentialBuckets.*
       - prometheus.LinearBuckets
       - ssz.*
-    ignored-files:
-      - mod/primitives/pkg/ssz/*.go
-      - mod/primitives/pkg/ssz/v2/*.go
-      - ssz/v2/*.go
 
   gomodguard:
     blocked:
