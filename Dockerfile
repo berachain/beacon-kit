@@ -58,6 +58,7 @@ COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
 COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
+COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
@@ -71,6 +72,7 @@ RUN go work use ./mod/primitives
 RUN go work use ./mod/primitives-engine
 RUN go work use ./mod/runtime
 RUN go work use ./mod/storage
+RUN go work use ./mod/errors
 
 
 # Download the go module dependencies

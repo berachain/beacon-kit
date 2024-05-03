@@ -29,9 +29,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 	"github.com/prysmaticlabs/gohashtree"
 )

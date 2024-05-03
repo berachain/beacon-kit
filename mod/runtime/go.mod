@@ -13,6 +13,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/core => ../core
 	github.com/berachain/beacon-kit/mod/da => ../da
+	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/node-builder => ../node-builder
@@ -30,12 +31,12 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/core v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/cockroachdb/errors v1.11.1
 	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -66,6 +67,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect

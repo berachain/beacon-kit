@@ -25,7 +25,7 @@
 
 package engine
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrExecutionClientDisconnected represents an error when

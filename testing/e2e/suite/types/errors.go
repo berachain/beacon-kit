@@ -25,7 +25,7 @@
 
 package types
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrPublicPortNotFound is returned when the public port is not found.

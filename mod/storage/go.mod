@@ -6,14 +6,16 @@ replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
 replace github.com/berachain/beacon-kit/mod/log => ../log
 
+replace github.com/berachain/beacon-kit/mod/errors => ../errors
+
 require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.0
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/store v1.1.0
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
-	github.com/cockroachdb/errors v1.11.1
 	github.com/cockroachdb/pebble v1.1.0
 	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -39,6 +41,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
