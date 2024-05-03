@@ -26,21 +26,20 @@
 package jwt
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
 // BuildSignedJWT builds a signed JWT from the provided JWT secret.
-func BuildSignedJWT(s *jwt.Secret) (string, error) {
+func BuildSignedJWT(s *Secret) (string, error) {
 	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
 		"iat": &gjwt.NumericDate{Time: time.Now()},
 	})
 	str, err := token.SignedString(s[:])
 	if err != nil {
-		return "", errors.Newf("failed to create JWT token: %w", err)
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
 	}
 	return str, nil
 }

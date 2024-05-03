@@ -84,7 +84,9 @@ func (s *BaseService) Logger() log.Logger {
 func (s *BaseService) AvailabilityStore(
 	ctx context.Context,
 	// TODO: this is really bad coupling on the generic here.
-) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars] {
+) core.AvailabilityStore[
+	consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+] {
 	return s.bsb.AvailabilityStore(ctx)
 }
 

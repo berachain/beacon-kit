@@ -26,8 +26,7 @@
 package abi
 
 import (
-	"errors"
-
+	"github.com/berachain/beacon-kit/mod/errors"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )

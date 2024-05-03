@@ -40,7 +40,10 @@ import (
 type BeaconStorageBackend interface {
 	AvailabilityStore(
 		ctx context.Context,
-	) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars]
+	) core.AvailabilityStore[
+		consensus.ReadOnlyBeaconBlockBody,
+		*datypes.BlobSidecars,
+	]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) *deposit.KVStore
 }

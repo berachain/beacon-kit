@@ -61,9 +61,7 @@ type AppInfo[T servertypes.Application] struct {
 }
 
 // NodeBuilder is a struct that holds the application information.
-type NodeBuilder[
-	T servertypes.Application,
-] struct {
+type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
 }

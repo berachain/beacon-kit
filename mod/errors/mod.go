@@ -32,7 +32,7 @@ import (
 // TODO: eventually swap out via build flags if we believe there is value
 // to doing so.
 //
-//nolint:gochecknoglobals // aliasing a global variable
+//nolint:gochecknoglobals // used an alias.
 var (
 	New   = errors.New
 	Newf  = errors.Newf
@@ -40,4 +40,5 @@ var (
 	Wrapf = errors.Wrapf
 	Is    = errors.Is
 	As    = errors.As
+	Join  = errors.Join
 )
