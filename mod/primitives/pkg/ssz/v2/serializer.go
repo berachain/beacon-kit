@@ -145,13 +145,17 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	switch {
 	case k == reflect.Bool:
 		return ssz.MarshalBool(reflect.ValueOf(c).Interface().(bool)), nil
+	// 1 dimensional array of uint8s
 	case k == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
 	case k == reflect.Array && isBasicType(typ.Elem().Kind()):
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
 	case k == reflect.Slice && isVariableSizeType(typ.Elem()):
 		// Composite slice
-		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		// return s.MarshalSSZ(val.Elem())
+		return s.ParseArrayMembers2D(val)
 	case k == reflect.Array && isVariableSizeType(typ):
 		// Composite arr
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
@@ -176,7 +180,9 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 
 // Marshal is the top level fn. it returns a properly encoded byte buffer. given a pre-existing buf and typ
 func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, startOffset uint64) (uint64, error) {
-	marshalled, err := s.MarshalSSZ(val)
+	marshalled, err := s.MarshalSSZ(val.Interface())
+
+	// fmt.Println("Marshal called1", val, typ, len(input), startOffset, marshalled, input)
 	if err != nil {
 		return startOffset, err
 	}
@@ -187,13 +193,62 @@ func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, 
 		size = determineFixedSize(val, typ)
 	}
 	offset := startOffset + size
-	copy(input[startOffset:], marshalled)
+	input = append(input[startOffset:], marshalled...)
+	// fmt.Println("Marshal called2", val, typ, len(input), startOffset, marshalled, input)
+	// copy(input[startOffset:], marshalled)
 	return offset, err
 }
 
 func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type, cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error)) ([]byte, error) {
-	buf := make([]byte, val.Len())
+	len := val.Len()
+	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+		len = s.GetNDimensionalArrayLength(val)
+	}
+	buf := make([]byte, len)
 	cb(val, typ, buf, 0)
+	return buf, nil
+}
+
+// Recursive function to calculate the length of an N-dimensional array
+func (s *Serializer) GetNDimensionalArrayLength(val reflect.Value) int {
+	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
+		return 1 // Non-array/slice values are treated as having a length of 1
+	}
+	length := val.Len()
+	if length == 0 {
+		return 0 // Early return for empty arrays/slices
+	}
+	// Recursively calculate the length of the first element if it is an array/slice
+	elementLength := s.GetNDimensionalArrayLength(val.Index(0))
+	return length * elementLength
+}
+
+// Function to determine the dimensionality of an N-dimensional array
+func (s *Serializer) GetArrayDimensionality(val reflect.Value) int {
+	dimensionality := 0
+	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+		dimensionality++
+		val = val.Index(0) // Move to the next nested array
+	}
+	return dimensionality
+}
+
+func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
+	var buf []byte
+	d := s.GetArrayDimensionality(val)
+	if d > 3 {
+		return nil, fmt.Errorf("Arrays with >3 dimensions not yet supported. Found %v dimensions", d)
+	}
+
+	if d == 2 {
+		for i := range val.Len() {
+			buf2, _ := s.MarshalToDefaultBuffer(
+				val.Index(i),
+				reflect.TypeOf(val.Index(i).Interface()),
+				s.MarshalByteArray)
+			buf = append(buf, buf2...)
+		}
+	}
 	return buf, nil
 }
 
@@ -233,7 +288,7 @@ func (s *Serializer) UnmarshalByteArray(val reflect.Value, typ reflect.Type, inp
 
 func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	index := startOffset
-	err := fmt.Errorf("")
+	err := fmt.Errorf("Failed to MarshalComposite from %v of typ %v", val, typ)
 	if val.Len() == 0 {
 		return index, nil
 	}
@@ -315,9 +370,6 @@ func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []by
 			return 0, err
 		}
 
-		if err != nil {
-			return 0, err
-		}
 		if !isVariableSizeType(fType) {
 			fixedIndex, err = s.Marshal(val.Field(i), fType, buf, fixedIndex)
 			if err != nil {

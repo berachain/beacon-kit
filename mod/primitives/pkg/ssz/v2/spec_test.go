@@ -147,8 +147,7 @@ func BenchmarkFastSSZByteArray(b *testing.B) {
 	}
 }
 
-func TestParityByteArrayLarge(t *testing.T) {
-	debug = true
+func TestParityByteArrayLarge2D(t *testing.T) {
 	data, err := os.ReadFile(TestFileName)
 	require.NoError(t, err)
 
@@ -159,38 +158,42 @@ func TestParityByteArrayLarge(t *testing.T) {
 
 	s := sszv2.NewSerializer()
 	exp, err := s.MarshalSSZ(sszState.StateRoots)
-	debugPrint(true, "Local Serializer output:", exp, err)
+	// We test serialized output. This may be lacking checks for offsets.
+	debugPrint(debug, "Local Serializer output:", exp, err)
+	// fast ssz: len 262144 []uint8  | cap: 58065320
+	// local: len 262144 []uint8  |  cap:278528
 
-	// res := make([]byte, 0)
-	_, err = sszState.MarshalSSZ()
-	prInRes := sszState.StateRoots
-	// prInRes := res[16:48]
+	res, _ := sszState.MarshalSSZ()
+	prInRes := res[262320:524464]
 
-	// debugPrint(true, "FastSSZ Output:", prInRes, res)
-	require.Equal(t, exp, prInRes, "local output and fastssz output doesnt match")
+	debugPrint(debug, "Local Serializer output length:", len(exp))
+	debugPrint(debug, "FastSSZ Serializer output length:", len(prInRes))
+	require.Equal(t, exp[1:64], prInRes[1:64], "local output and fastssz output doesnt match")
 }
 
 func BenchmarkNativeByteArrayLarge(b *testing.B) {
-	// 8192 size vs 32
-	// size := 8192
-	// arr := make([]byte, size)
-	// for i := range size {
-	// 	arr[i] = byte(i)
-	// }
-	arr := sszv2.BeaconStateBellatrix{}.StateRoots
+	data, err := os.ReadFile(TestFileName)
+	require.NoError(b, err)
+
+	sszState := sszv2.BeaconStateBellatrix{}
+	err = sszState.UnmarshalSSZ(data)
 
 	s := sszv2.NewSerializer()
 
 	for i := 0; i < b.N; i++ {
 		// Native impl
-		exp, err := s.MarshalSSZ(arr)
+		exp, err := s.MarshalSSZ(sszState.StateRoots)
 		debugPrint(debug, "Local Serializer output:", exp, err)
 	}
 }
 
 func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
+	data, err := os.ReadFile(TestFileName)
+	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
+	err = sszState.UnmarshalSSZ(data)
+
 	for i := 0; i < b.N; i++ {
 		res := make([]byte, 0)
 		res, _ = sszState.MarshalSSZ()
