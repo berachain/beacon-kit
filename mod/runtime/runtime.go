@@ -42,7 +42,7 @@ type BeaconKitRuntime struct {
 	logger   log.Logger
 	services *service.Registry
 	fscp     BeaconStorageBackend[
-		consensus.ReadOnlyBeaconBlock,
+		consensus.ReadOnlyBeaconBlockBody,
 		*datypes.BlobSidecars,
 	]
 }

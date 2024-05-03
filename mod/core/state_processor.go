@@ -165,7 +165,7 @@ func (sp *StateProcessor[SidecarsT]) ProcessSlot(
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
 	st state.BeaconState,
-	avs AvailabilityStore[consensus.ReadOnlyBeaconBlock, SidecarsT],
+	avs AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, SidecarsT],
 	sidecars SidecarsT,
 ) error {
 	slot, err := st.GetSlot()

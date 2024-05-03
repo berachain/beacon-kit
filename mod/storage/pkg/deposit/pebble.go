@@ -27,12 +27,12 @@ package deposit
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"slices"
 
 	corestore "cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/cockroachdb/pebble"
 )
 

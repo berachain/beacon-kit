@@ -215,21 +215,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, ErrNilPayload
 	}
 
-	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s.logger.Info("finished assembling beacon block 🛟",
-		"slot", slot, "deposits", len(deposits))
-
-	// Assemble the block body.
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(&consensus.Eth1Data{
@@ -241,6 +231,20 @@ func (s *Service) RequestBestBlock(
 	// Set the reveal on the block body.
 	body.SetRandaoReveal(reveal)
 
+	// Set the execution data.
+	if err = body.SetExecutionData(payload); err != nil {
+		return nil, nil, err
+	}
+
+	// Build the sidecars for the block.
+	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	s.logger.Info("finished assembling beacon block 🛟",
+		"slot", slot, "deposits", len(deposits))
+
 	// Set the execution payload on the block body.
-	return blk, blobSidecars, body.SetExecutionData(payload)
+	return blk, blobSidecars, nil
 }

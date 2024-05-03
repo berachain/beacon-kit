@@ -27,10 +27,10 @@ package merkle
 
 import (
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"sort"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 

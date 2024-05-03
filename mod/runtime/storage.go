@@ -78,15 +78,18 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cs: cs,
-		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlock](
-			cs, filedb.NewRangeDB(fdb),
-		), beacondb.New[
-			*consensus.Fork,
-			*consensus.BeaconBlockHeader,
-			engineprimitives.ExecutionPayloadHeader,
-			*consensus.Eth1Data,
-			*consensus.Validator,
-		](env.KVStoreService, DenebPayloadFactory), ddb),
+		Backend: *storage.NewBackend(
+			cs,
+			dastore.New[consensus.ReadOnlyBeaconBlockBody](
+				cs, filedb.NewRangeDB(fdb),
+			),
+			beacondb.New[
+				*consensus.Fork,
+				*consensus.BeaconBlockHeader,
+				engineprimitives.ExecutionPayloadHeader,
+				*consensus.Eth1Data,
+				*consensus.Validator,
+			](env.KVStoreService, DenebPayloadFactory), ddb),
 	}
 }
 

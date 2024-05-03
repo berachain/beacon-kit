@@ -27,11 +27,11 @@ package deposit
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
 	sdkcodec "cosmossdk.io/collections/codec"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 

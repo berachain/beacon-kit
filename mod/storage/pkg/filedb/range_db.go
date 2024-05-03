@@ -28,10 +28,10 @@ package filedb
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 

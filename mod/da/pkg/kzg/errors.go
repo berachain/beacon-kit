@@ -25,7 +25,7 @@
 
 package kzg
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 
