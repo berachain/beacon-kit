@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:wastedassign
-//nolint:mnd 
-//nolint:gocognit
-//nolint:godot
-//nolint:lll
+//nolint:ineffassign // experimental
+//nolint:wastedassign // experimental
+//nolint:mnd // experimental
+//nolint:gocognit // experimental
+//nolint:godot // experimental
+//nolint:lll // experimental
 package ssz
 
 import (
@@ -301,7 +302,7 @@ func (s *Serializer) UnmarshalByteArray(val reflect.Value, typ reflect.Type, inp
 func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	index := startOffset
 	//nolint:ineffassign // its fine. we reuse the err
-	err := fmt.Errorf("Failed to MarshalComposite from %v of typ %v", val, typ)
+	err := fmt.Errorf("failed to MarshalComposite from %v of typ %v", val, typ)
 	if val.Len() == 0 {
 		return index, nil
 	}
