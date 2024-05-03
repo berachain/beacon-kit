@@ -35,6 +35,7 @@ import (
 //nolint:gochecknoglobals // aliasing a global variable
 var (
 	New   = errors.New
+	Newf  = errors.Newf
 	Wrap  = errors.Wrap
 	Wrapf = errors.Wrapf
 	Is    = errors.Is

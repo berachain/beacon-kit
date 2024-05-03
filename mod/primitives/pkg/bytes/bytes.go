@@ -26,8 +26,7 @@
 package bytes
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -122,7 +121,7 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return fmt.Errorf(
+		return errors.Newf(
 			"incorrect length, expected %d bytes but got %d",
 			len(target), len(bz),
 		)
@@ -138,7 +137,7 @@ func unmarshalTextHelper(target []byte, text []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return fmt.Errorf(
+		return errors.Newf(
 			"incorrect length, expected %d bytes but got %d",
 			len(target), len(bz),
 		)

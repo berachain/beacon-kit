@@ -106,7 +106,7 @@ func AddPubkeyCmd() *cobra.Command {
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "gentx")
 	if err := os.MkdirAll(writePath, 0o700); err != nil {
-		return "", fmt.Errorf(
+		return "", errors.Newf(
 			"could not create directory %q: %w",
 			writePath,
 			err,

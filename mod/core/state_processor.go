@@ -26,9 +26,8 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -458,7 +457,7 @@ func (sp *StateProcessor[SidecarsT]) processWithdrawals(
 
 	// Ensure the withdrawals have the same length
 	if len(expectedWithdrawals) != len(payloadWithdrawals) {
-		return fmt.Errorf(
+		return errors.Newf(
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
@@ -468,7 +467,7 @@ func (sp *StateProcessor[SidecarsT]) processWithdrawals(
 	for i, wd := range expectedWithdrawals {
 		// Ensure the withdrawals match the local state.
 		if !wd.Equals(payloadWithdrawals[i]) {
-			return fmt.Errorf(
+			return errors.Newf(
 				"withdrawals do not match expected %s, got %s",
 				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)
@@ -578,7 +577,7 @@ func (sp *StateProcessor[SidecarsT]) processRewardsAndPenalties(
 		return err
 	}
 	if len(validators) != len(rewards) || len(validators) != len(penalties) {
-		return fmt.Errorf(
+		return errors.Newf(
 			"mismatched rewards and penalties lengths: %d, %d, %d",
 			len(validators), len(rewards), len(penalties),
 		)
