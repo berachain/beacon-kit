@@ -23,10 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:godot
-//nolint:tagliatelle
-//nolint:mnd
-//nolint:wastedassign
+//nolint:godot // imported test fixture from fast ssz
+//nolint:tagliatelle // imported test fixture
+//nolint:mnd // imported test fixture
+//nolint:wastedassign // imported test fixture
 package ssz
 
 type BeaconBlockHeader struct {
