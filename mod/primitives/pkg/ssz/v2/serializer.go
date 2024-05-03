@@ -270,7 +270,7 @@ func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf 
 
 func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	if val.Kind() == reflect.Array {
-		for i := 0; i < val.Len(); i++ {
+		for i := range val.Len() {
 			//#nosec:G701 // int overflow should be caught earlier in the stack
 			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
 		}
@@ -280,6 +280,7 @@ func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf [
 	if val.IsNil() {
 		item := make([]byte, typ.Len())
 		copy(buf[startOffset:], item)
+		//#nosec:G701 // int overflow should be caught earlier in the stack
 		return startOffset + uint64(typ.Len()), nil
 	}
 	copy(buf[startOffset:], val.Bytes())
@@ -301,7 +302,7 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 		return index, nil
 	}
 	if !isVariableSizeType(typ.Elem()) {
-		for i := 0; i < val.Len(); i++ {
+		for i := range val.Len() {
 			// If each element is not variable size, we simply encode sequentially and write
 			// into the buffer at the last index we wrote at.
 			index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
@@ -317,7 +318,7 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 	nextOffsetIndex := currentOffsetIndex
 	// If the elements are variable size, we need to include offset indices
 	// in the serialized output list.
-	for i := 0; i < val.Len(); i++ {
+	for i := range val.Len() {
 		nextOffsetIndex, err = s.Marshal(val.Index(i), typ.Elem(), buf, currentOffsetIndex)
 		if err != nil {
 			return 0, err
@@ -348,7 +349,7 @@ func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []by
 	fixedLength := uint64(0)
 	// For every field, we add up the total length of the items depending if they
 	// are variable or fixed-size fields.
-	for i := 0; i < typ.NumField(); i++ {
+	for i := range typ.NumField() {
 		// We skip protobuf related metadata fields.
 		if strings.Contains(typ.Field(i).Name, "XXX_") {
 			continue
@@ -370,7 +371,7 @@ func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []by
 	}
 	currentOffsetIndex := startOffset + fixedLength
 	nextOffsetIndex := currentOffsetIndex
-	for i := 0; i < typ.NumField(); i++ {
+	for i := range typ.NumField() {
 		// We skip protobuf related metadata fields.
 		if strings.Contains(typ.Field(i).Name, "XXX_") {
 			continue
