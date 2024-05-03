@@ -130,6 +130,8 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
+	// If the blobs needed to process the block are not available, we
+	// return an error.
 	if !avs.IsDataAvailable(ctx, slot, body) {
 		return ErrDataNotAvailable
 	}
