@@ -23,6 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+//nolint:wastedassign 
+//nolint:ineffassign
+//nolint:mnd 
 package ssz
 
 import (
