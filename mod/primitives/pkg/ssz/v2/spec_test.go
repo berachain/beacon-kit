@@ -35,6 +35,7 @@ import (
 )
 
 const TestFileName = "fixtures/beacon_state_bellatrix.ssz" // https://goerli.beaconcha.in/slot/4744352
+// nolint:gochecknoglobals
 var debug = false
 
 func debugPrint(debug bool, s ...any) {
@@ -55,14 +56,15 @@ func TestParityUint64(t *testing.T) {
 	require.NoError(t, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(t, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(t, err2)
 
 	object := sszState.LatestBlockHeader
 	slot := object.Slot
 
 	s := sszv2.NewSerializer()
-	o2, err := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
+	o2, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
+	require.NoError(t, err3)
 	debugPrint(debug, "Local Serializer output:", o2, err)
 
 	res := make([]byte, 0)
@@ -76,13 +78,14 @@ func BenchmarkNativeUint64(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(b, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	s := sszv2.NewSerializer()
 	runBench(b, func() {
-		o2, err := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
-		debugPrint(false, "Local Serializer output:", o2, err)
+		o2, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
+		require.NoError(b, err3)
+		debugPrint(false, "Local Serializer output:", o2, err3)
 	})
 }
 
@@ -91,8 +94,8 @@ func BenchmarkFastSSZUint64(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(b, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	runBench(b, func() {
 		res := make([]byte, 0)
@@ -106,15 +109,16 @@ func TestParityByteArray(t *testing.T) {
 	require.NoError(t, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(t, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(t, err2)
 
 	s := sszv2.NewSerializer()
-	exp, err := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+	exp, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+	require.NoError(t, err3)
 	debugPrint(debug, "Local Serializer output:", exp, err)
 
-	res := make([]byte, 0)
-	res, err = sszState.LatestBlockHeader.MarshalSSZ()
+	res, err4 := sszState.LatestBlockHeader.MarshalSSZ()
+	require.NoError(t, err4)
 	prInRes := res[16:48]
 
 	debugPrint(debug, "FastSSZ Output:", prInRes)
@@ -126,15 +130,15 @@ func BenchmarkNativeByteArray(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(b, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
 		// Native impl
-		exp, err := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
-		debugPrint(debug, "Local Serializer output:", exp, err)
+		exp, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+		debugPrint(debug, "Local Serializer output:", exp, err3)
 	})
 }
 
@@ -144,12 +148,12 @@ func BenchmarkFastSSZByteArray(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
-	require.NoError(b, err)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	runBench(b, func() {
-		res := make([]byte, 0)
-		res, err = sszState.LatestBlockHeader.MarshalSSZ()
+		res, err3 := sszState.LatestBlockHeader.MarshalSSZ()
+		require.NoError(b, err3)
 		prInRes := res[16:48]
 		debugPrint(debug, "FastSSZ Output:", prInRes)
 	})
@@ -165,13 +169,15 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 	require.NoError(t, err)
 
 	s := sszv2.NewSerializer()
-	exp, err := s.MarshalSSZ(sszState.StateRoots)
+	exp, err2 := s.MarshalSSZ(sszState.StateRoots)
+	require.NoError(t, err2)
 	// We test serialized output. This may be lacking checks for offsets.
-	debugPrint(debug, "Local Serializer output:", exp, err)
+	debugPrint(debug, "Local Serializer output:", exp, err2)
 	// fast ssz: len 262144 []uint8  | cap: 58065320
 	// local: len 262144 []uint8  |  cap:278528
 
-	res, _ := sszState.MarshalSSZ()
+	res, err3 := sszState.MarshalSSZ()
+	require.NoError(t, err3)
 	prInRes := res[262320:524464]
 
 	debugPrint(debug, "Local Serializer output length:", len(exp))
@@ -184,13 +190,15 @@ func BenchmarkNativeByteArrayLarge(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
 		// Native impl
-		exp, err := s.MarshalSSZ(sszState.StateRoots)
+		exp, err3 := s.MarshalSSZ(sszState.StateRoots)
+		require.NoError(b, err3)
 		debugPrint(debug, "Local Serializer output:", exp, err)
 	})
 }
@@ -200,11 +208,12 @@ func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
 	require.NoError(b, err)
 
 	sszState := sszv2.BeaconStateBellatrix{}
-	err = sszState.UnmarshalSSZ(data)
+	err2 := sszState.UnmarshalSSZ(data)
+	require.NoError(b, err2)
 
 	runBench(b, func() {
-		res := make([]byte, 0)
-		res, _ = sszState.MarshalSSZ()
+		res, err3 := sszState.MarshalSSZ()
+		require.NoError(b, err3)
 		prInRes := res[262320:524464]
 		debugPrint(debug, "FastSSZ Output:", prInRes)
 	})

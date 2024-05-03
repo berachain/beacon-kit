@@ -127,10 +127,7 @@ func IsCompositeType(k reflect.Type) bool {
 	// Vectors, containers, lists, unions are considered composite types
 	// Since we pre-handle Arrays and slices we return false for now
 	// We only trigger on containers
-	if k.Kind() == reflect.Struct {
-		return true
-	}
-	return false
+	return k.Kind() == reflect.Struct
 }
 
 // MarshalSSZ takes a SSZ value, reflects on the type, and returns a buffer. 0 indexed, of the encoded value
@@ -187,13 +184,14 @@ func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, 
 	if err != nil {
 		return startOffset, err
 	}
-	size := uint64(0)
+	var size uint64
 	if isVariableSizeType(typ) {
 		size = determineVariableSize(val, typ)
 	} else {
 		size = determineFixedSize(val, typ)
 	}
 	offset := startOffset + size
+	//nolint:wastedassign // the underlying passed in input buffer is read so its not a wasted assign at all
 	input = append(input[startOffset:], marshalled...)
 	// fmt.Println("Marshal called2", val, typ, len(input), startOffset, marshalled, input)
 	// copy(input[startOffset:], marshalled)
@@ -201,11 +199,11 @@ func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, 
 }
 
 func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type, cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error)) ([]byte, error) {
-	len := val.Len()
+	aLen := val.Len()
 	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
-		len = s.GetNDimensionalArrayLength(val)
+		aLen = s.GetNDimensionalArrayLength(val)
 	}
-	buf := make([]byte, len)
+	buf := make([]byte, aLen)
 	_, err := cb(val, typ, buf, 0)
 	return buf, err
 }
@@ -259,7 +257,7 @@ func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
 func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	index := startOffset
 	var err error
-	for i := 0; i < val.Len(); i++ {
+	for i := range val.Len() {
 		index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
 		if err != nil {
 			return 0, err

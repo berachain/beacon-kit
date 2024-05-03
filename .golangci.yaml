@@ -123,6 +123,7 @@ linters-settings:
       - ssz.*
     ignored-files:
       - ssz/*.go
+      - ssz/v2/*.go
 
   gomodguard:
     blocked:
