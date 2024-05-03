@@ -98,19 +98,20 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     # Final run will collect all gentx from all previous nodes to create final genesis
     final_config_folder = "node-beacond-config-{}".format(num_validators - 1)
     cl_service_name = "cl-validator-beaconkit-{}".format(num_validators - 1)
-    final_sh_cmd = "{} && {} && {} && {} && {}".format(
+
+    last_cmd = "{} && {}".format(mv_all_gentx_cmd, node.get_collect_validator_sh()) if num_validators > 1 else node.get_collect_validator_sh()
+    final_sh_cmd = "{} && {} && {} && {}".format(
         node.get_init_sh(),
         node.get_add_validator_sh(),
         "cp -R /root /tmp/{}".format(final_config_folder),  # Store final gentx to the side for easy file artifact storage later
-        mv_all_gentx_cmd,
-        node.get_collect_validator_sh(),
+        last_cmd,
     )
 
     # Run final gentx generation
     sh_cmd = final_sh_cmd
     plan.run_sh(
         run = sh_cmd,
-        image = validators[n].cl_image,
+        image = validators[num_validators - 1].cl_image,
         env_vars = node.get_genesis_env_vars(cl_service_name),
         files = final_config_folders,
         store = [

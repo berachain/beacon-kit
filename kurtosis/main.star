@@ -38,6 +38,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
             node_module = import_module(node_path)
             node_modules[node.el_type] = node_module
 
+    for node in full_nodes:
+        if node.el_type not in node_modules.keys():
+            node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
+            node_module = import_module(node_path)
+            node_modules[node.el_type] = node_module
+
     # 2. Upload files
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
 
