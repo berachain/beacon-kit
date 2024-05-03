@@ -25,9 +25,7 @@
 
 package bytes
 
-import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 
 // B96 represents a 96-byte array.
 type B96 [96]byte
@@ -46,7 +44,7 @@ func (h *B96) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of Bytes96.
 func (h B96) String() string {
-	return hexutil.Encode(h[:])
+	return string(hex.StrFromBytes(h[:]))
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes96.

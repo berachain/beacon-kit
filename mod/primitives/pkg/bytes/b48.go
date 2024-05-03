@@ -25,9 +25,7 @@
 
 package bytes
 
-import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 
 // ------------------------------ B48 ------------------------------
 
@@ -48,7 +46,7 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of B48.
 func (h B48) String() string {
-	return hexutil.Encode(h[:])
+	return string(hex.StrFromBytes(h[:]))
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B48.

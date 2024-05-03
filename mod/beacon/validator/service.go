@@ -155,10 +155,8 @@ func (s *Service) RequestBestBlock(
 
 	// Create a new empty block from the current state.
 	blk, err := consensus.EmptyBeaconBlock(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		stateRoot,
+		slot, proposerIndex,
+		parentBlockRoot, stateRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {

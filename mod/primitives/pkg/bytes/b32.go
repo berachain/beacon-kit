@@ -25,7 +25,7 @@
 
 package bytes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 
 // B32 represents a 32-byte array.
 type B32 [32]byte
@@ -44,7 +44,7 @@ func (h *B32) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of B32.
 func (h B32) String() string {
-	return hexutil.Encode(h[:])
+	return string(hex.StrFromBytes(h[:]))
 }
 
 // HashTreeRoot returns the hash tree root of the B32.
