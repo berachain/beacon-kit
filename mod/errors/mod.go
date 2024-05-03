@@ -26,9 +26,7 @@
 package errors
 
 import (
-	stdliberrors "errors"
-
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // TODO: eventually swap out via build flags if we believe there is value
@@ -39,6 +37,6 @@ var (
 	New   = errors.New
 	Wrap  = errors.Wrap
 	Wrapf = errors.Wrapf
-	Is    = stdliberrors.Is
-	As    = stdliberrors.As
+	Is    = errors.Is
+	As    = errors.As
 )
