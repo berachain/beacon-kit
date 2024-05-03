@@ -47,7 +47,6 @@ require (
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
@@ -138,6 +137,7 @@ require (
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/glog v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect

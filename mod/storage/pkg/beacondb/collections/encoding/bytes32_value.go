@@ -27,9 +27,9 @@ package encoding
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"cosmossdk.io/collections/codec"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // Bytes32ValueCodec provides methods to encode and decode [32]byte values.
@@ -47,7 +47,7 @@ func (Bytes32ValueCodec) Encode(value [32]byte) ([]byte, error) {
 func (Bytes32ValueCodec) Decode(b []byte) ([32]byte, error) {
 	var v [32]byte
 	if len(b) != len(v) {
-		return v, fmt.Errorf(
+		return v, errors.Newf(
 			"invalid length: expected %d, got %d",
 			len(v),
 			len(b),

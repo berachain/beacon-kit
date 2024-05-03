@@ -27,7 +27,6 @@ package deposit
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 	"slices"
 
@@ -61,7 +60,7 @@ func NewPebbleDBWithOpts(name, dataDir string) (*PebbleDB, error) {
 	dbPath := filepath.Join(dataDir, name+DBFileSuffix)
 	db, err := pebble.Open(dbPath, do)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open PebbleDB: %w", err)
+		return nil, errors.Newf("failed to open PebbleDB: %w", err)
 	}
 
 	return &PebbleDB{storage: db}, nil
@@ -85,7 +84,7 @@ func (db *PebbleDB) Get(key []byte) ([]byte, error) {
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("failed to perform PebbleDB read: %w", err)
+		return nil, errors.Newf("failed to perform PebbleDB read: %w", err)
 	}
 
 	if len(bz) == 0 {
@@ -107,7 +106,7 @@ func (db *PebbleDB) Has(key []byte) (bool, error) {
 func (db *PebbleDB) Delete(key []byte) error {
 	err := db.storage.Delete(key, &pebble.WriteOptions{Sync: false})
 	if err != nil {
-		return fmt.Errorf("failed to delete key from PebbleDB: %w", err)
+		return errors.Newf("failed to delete key from PebbleDB: %w", err)
 	}
 	return nil
 }
@@ -122,7 +121,7 @@ func (db *PebbleDB) Set(key, value []byte) error {
 
 	err := db.storage.Set(key, value, &pebble.WriteOptions{Sync: false})
 	if err != nil {
-		return fmt.Errorf("failed to set key-value pair in PebbleDB: %w", err)
+		return errors.Newf("failed to set key-value pair in PebbleDB: %w", err)
 	}
 	return nil
 }
@@ -136,7 +135,7 @@ func (db *PebbleDB) Iterator(start, end []byte) (corestore.Iterator, error) {
 		&pebble.IterOptions{LowerBound: start, UpperBound: end},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create PebbleDB iterator: %w", err)
+		return nil, errors.Newf("failed to create PebbleDB iterator: %w", err)
 	}
 
 	return newPebbleDBIterator(itr, start, end, false), nil
@@ -153,7 +152,7 @@ func (db *PebbleDB) ReverseIterator(
 		&pebble.IterOptions{LowerBound: start, UpperBound: end},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create PebbleDB iterator: %w", err)
+		return nil, errors.Newf("failed to create PebbleDB iterator: %w", err)
 	}
 
 	return newPebbleDBIterator(itr, start, end, true), nil
@@ -310,7 +309,7 @@ func (b *pebbleDBBatch) Delete(key []byte) error {
 func (b *pebbleDBBatch) Write() error {
 	err := b.batch.Commit(&pebble.WriteOptions{Sync: false})
 	if err != nil {
-		return fmt.Errorf("failed to write PebbleDB batch: %w", err)
+		return errors.Newf("failed to write PebbleDB batch: %w", err)
 	}
 
 	return nil
@@ -319,7 +318,7 @@ func (b *pebbleDBBatch) Write() error {
 func (b *pebbleDBBatch) WriteSync() error {
 	err := b.batch.Commit(&pebble.WriteOptions{Sync: true})
 	if err != nil {
-		return fmt.Errorf("failed to write PebbleDB batch: %w", err)
+		return errors.Newf("failed to write PebbleDB batch: %w", err)
 	}
 
 	return nil

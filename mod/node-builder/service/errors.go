@@ -26,19 +26,19 @@
 //nolint:gochecknoglobals // this file contains functions for use as errors.
 package service
 
-import "fmt"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// errServiceAlreadyExists defines an error for when a service already
 	// exists.
 	errServiceAlreadyExists = func(serviceName string) error {
-		return fmt.Errorf("service already exists: %v", serviceName)
+		return errors.Newf("service already exists: %v", serviceName)
 	}
 
 	// errInputIsNotPointer defines an error for when the input must
 	// be of pointer type.
 	errInputIsNotPointer = func(valueType interface{}) error {
-		return fmt.Errorf(
+		return errors.Newf(
 			"input must be of pointer type, received value type instead: %T",
 			valueType,
 		)
@@ -46,6 +46,6 @@ var (
 
 	// errUnknownService defines is returned when an unknown service is seen.
 	errUnknownService = func(serviceType interface{}) error {
-		return fmt.Errorf("unknown service: %T", serviceType)
+		return errors.Newf("unknown service: %T", serviceType)
 	}
 )

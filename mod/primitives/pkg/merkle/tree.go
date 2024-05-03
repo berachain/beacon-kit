@@ -171,7 +171,7 @@ func (m *Tree[LeafT, RootT]) HashTreeRoot() ([32]byte, error) {
 func (m *Tree[LeafT, RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
-		return nil, fmt.Errorf(
+		return nil, errors.Newf(
 			"merkle index out of range in tree, max range: %d, received: %d",
 			numLeaves,
 			leafIndex,

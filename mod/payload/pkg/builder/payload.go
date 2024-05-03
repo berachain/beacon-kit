@@ -27,9 +27,9 @@ package builder
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -56,7 +56,7 @@ func (pb *PayloadBuilder) RequestPayload(
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, fmt.Errorf("%w error when getting payload attributes", err)
+		return nil, errors.Newf("%w error when getting payload attributes", err)
 	}
 
 	// Submit the forkchoice update to the execution client.

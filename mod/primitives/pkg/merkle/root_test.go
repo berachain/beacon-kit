@@ -33,6 +33,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
@@ -191,7 +192,7 @@ func requireGoHashTreeEquivalence(
 			numRoutines,
 		)
 		if err != nil {
-			errChan <- fmt.Errorf("HashTreeRoot failed: %w", err)
+			errChan <- errors.Newf("HashTreeRoot failed: %w", err)
 			return
 		}
 	}()
@@ -204,7 +205,7 @@ func requireGoHashTreeEquivalence(
 			inputList,
 		)
 		if err != nil {
-			errChan <- fmt.Errorf("gohashtree.Hash failed: %w", err)
+			errChan <- errors.Newf("gohashtree.Hash failed: %w", err)
 		}
 	}()
 

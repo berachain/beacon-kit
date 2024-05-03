@@ -26,9 +26,8 @@
 package randao
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -213,7 +212,7 @@ func (p *Processor) computeSigningRoot(
 
 	if err != nil {
 		return primitives.Root{},
-			fmt.Errorf("failed to compute signing root: %w", err)
+			errors.Newf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil
 }

@@ -25,16 +25,21 @@
 
 package jwt
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"fmt"
+	"time"
 
-var (
-	// ErrLengthMismatch is returned when a JWT secret length is not as
-	// expected.
-	ErrLengthMismatch = errors.New(
-		"JWT secret length mismatch")
-
-	// ErrContainsIllegalCharacter is returned when a JWT secret contains
-	// illegal characters.
-	ErrContainsIllegalCharacter = errors.New(
-		"JWT secret contains illegal character(s)")
+	gjwt "github.com/golang-jwt/jwt/v5"
 )
+
+// BuildSignedJWT builds a signed JWT from the provided JWT secret.
+func BuildSignedJWT(s *Secret) (string, error) {
+	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
+		"iat": &gjwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", fmt.Errorf("failed to create JWT token: %w", err)
+	}
+	return str, nil
+}
