@@ -131,7 +131,7 @@ func (s *Service) ProcessBeaconBlock(
 	}
 
 	if !avs.IsDataAvailable(ctx, slot, body) {
-
+		return ErrDataNotAvailable
 	}
 
 	// Prune deposits

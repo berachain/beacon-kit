@@ -76,7 +76,8 @@ func NewBackend(
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k *Backend) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars] {
+) core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody,
+	*datypes.BlobSidecars] {
 	return k.availabilityStore
 }
 
