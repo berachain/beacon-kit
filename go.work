@@ -6,6 +6,7 @@ use (
 	./mod/beacon
 	./mod/core
 	./mod/da
+	./mod/errors
 	./mod/execution
 	./mod/log
 	./mod/node-builder
@@ -14,6 +15,5 @@ use (
 	./mod/primitives-engine
 	./mod/runtime
 	./mod/storage
-	./mod/errors
 	./testing
 )

@@ -2,11 +2,11 @@ module github.com/berachain/beacon-kit/mod/storage
 
 go 1.22.2
 
-replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
-
-replace github.com/berachain/beacon-kit/mod/log => ../log
-
-replace github.com/berachain/beacon-kit/mod/errors => ../errors
+replace (
+	github.com/berachain/beacon-kit/mod/errors => ../errors
+	github.com/berachain/beacon-kit/mod/log => ../log
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
+)
 
 require (
 	cosmossdk.io/collections v0.4.0
