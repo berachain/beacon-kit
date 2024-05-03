@@ -10,6 +10,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/holiman/uint256 v1.2.4
 	github.com/minio/sha256-simd v1.0.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta

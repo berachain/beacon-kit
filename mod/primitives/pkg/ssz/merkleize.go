@@ -26,7 +26,6 @@
 package ssz
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -101,7 +100,7 @@ func MerkleizeContainer[
 	for i := range numFields {
 		fieldValue := rValue.Field(i)
 		if !fieldValue.CanInterface() {
-			return RootT{}, fmt.Errorf(
+			return RootT{}, errors.Newf(
 				"cannot interface with field %v",
 				fieldValue,
 			)
@@ -110,7 +109,7 @@ func MerkleizeContainer[
 		// TODO: handle different types.
 		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
 		if !ok {
-			return RootT{}, fmt.Errorf(
+			return RootT{}, errors.Newf(
 				"field %d does not implement Hashable",
 				i,
 			)
