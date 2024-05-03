@@ -26,8 +26,10 @@
 package abci
 
 import (
-	"errors"
+	"fmt"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -85,6 +87,8 @@ func (h *Handler) PrepareProposalHandler(
 			return (*m).MarshalSSZ()
 		})
 
+	fmt.Println(blobs.Len(), "DO WE HAVE BLOBS?")
+	fmt.Println(len(txs), "DO WE HAVE TXS?")
 	return &cmtabci.ResponsePrepareProposal{
 		Txs: txs,
 	}, err

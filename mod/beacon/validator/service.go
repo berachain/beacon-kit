@@ -229,6 +229,8 @@ func (s *Service) RequestBestBlock(
 	body.SetDeposits(deposits)
 
 	// Set the KZG commitments on the block body.
+
+	fmt.Println("COMMITMENTS", blobsBundle.GetCommitments())
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.

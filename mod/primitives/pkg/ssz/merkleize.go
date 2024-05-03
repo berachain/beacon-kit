@@ -26,9 +26,10 @@
 package ssz
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )

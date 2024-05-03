@@ -27,7 +27,8 @@ package deposit
 
 import (
 	"context"
-	"errors"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"

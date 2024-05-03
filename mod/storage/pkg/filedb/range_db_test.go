@@ -26,8 +26,9 @@
 package filedb_test
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	"cosmossdk.io/log"
 	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"

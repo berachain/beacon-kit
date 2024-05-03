@@ -26,7 +26,7 @@
 package beacondb
 
 import (
-	"errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"

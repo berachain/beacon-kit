@@ -26,7 +26,7 @@
 package consensus
 
 import (
-	"errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"

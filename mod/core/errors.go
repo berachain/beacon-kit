@@ -25,7 +25,7 @@
 
 package core
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrStateRootMismatch is returned when the state root in a block header

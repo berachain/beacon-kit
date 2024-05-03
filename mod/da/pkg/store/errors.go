@@ -25,7 +25,7 @@
 
 package store
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrAttemptedToStoreNilSidecar is returned when an attempt is made to

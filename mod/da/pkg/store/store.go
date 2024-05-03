@@ -27,9 +27,9 @@ package store
 
 import (
 	"context"
-	"errors"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
