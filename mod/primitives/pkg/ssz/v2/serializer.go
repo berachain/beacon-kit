@@ -31,6 +31,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
@@ -47,7 +48,7 @@ func (e *SerializeError) Error() string {
 // creates a new SerializeError for maximum length reached.
 func NewSerializeErrorMaximumLengthReached(size int) *SerializeError {
 	return &SerializeError{
-		Err: fmt.Errorf(
+		Err: errors.Newf(
 			"the encoded length is %d which meets or exceeds the maximum length %d",
 			size,
 			MaximumLength,
@@ -58,12 +59,12 @@ func NewSerializeErrorMaximumLengthReached(size int) *SerializeError {
 // NewSerializeErrorInvalidInstance creates
 // a new SerializeError for invalid instances.
 func NewSerializeErrorInvalidInstance(err error) *SerializeError {
-	return &SerializeError{Err: fmt.Errorf("invalid instance: %w", err)}
+	return &SerializeError{Err: errors.Newf("invalid instance: %w", err)}
 }
 
 // NewSerializeErrorInvalidType creates a new SerializeError for invalid types.
 func NewSerializeErrorInvalidType(err error) *SerializeError {
-	return &SerializeError{Err: fmt.Errorf("invalid type: %w", err)}
+	return &SerializeError{Err: errors.Newf("invalid type: %w", err)}
 }
 
 type Serializer struct {

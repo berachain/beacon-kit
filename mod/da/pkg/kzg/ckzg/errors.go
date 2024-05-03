@@ -25,7 +25,7 @@
 
 package ckzg
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidProof is returned when a proof is invalid.

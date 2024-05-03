@@ -29,8 +29,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/require"
 )
@@ -40,7 +40,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	sidecar := types.BlobSidecar{
 		Index:             0,
 		Blob:              eip4844.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{},
+		BeaconBlockHeader: &consensus.BeaconBlockHeader{},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
@@ -88,8 +88,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	validSidecar := types.BlobSidecar{
 		Index: 0,
 		Blob:  eip4844.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{
-			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+		BeaconBlockHeader: &consensus.BeaconBlockHeader{
+			BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
 				StateRoot: [32]byte{1},
 			},
 			BodyRoot: [32]byte{2},
@@ -121,8 +121,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	differentBlockRootSidecar := types.BlobSidecar{
 		Index: 0,
 		Blob:  eip4844.Blob{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{
-			BeaconBlockHeaderBase: primitives.BeaconBlockHeaderBase{
+		BeaconBlockHeader: &consensus.BeaconBlockHeader{
+			BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
 				StateRoot: [32]byte{1},
 			},
 			BodyRoot: [32]byte{3},

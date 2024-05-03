@@ -15,6 +15,7 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/core => ../mod/core
 	github.com/berachain/beacon-kit/mod/da => ../mod/da
+	github.com/berachain/beacon-kit/mod/errors => ../mod/errors
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
 	github.com/berachain/beacon-kit/mod/log => ../mod/log
 	github.com/berachain/beacon-kit/mod/node-builder => ../mod/node-builder
@@ -71,6 +72,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect

@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/randao"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
@@ -45,6 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -63,7 +65,9 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[primitives.ReadOnlyBeaconBlock],
+	bsb runtime.BeaconStorageBackend[
+		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -141,9 +145,9 @@ func ProvideRuntime(
 	// Build the builder service.
 	validatorService := validator.NewService(
 		validator.WithBlobFactory(
-			dablob.NewSidecarFactory[primitives.BeaconBlockBody](
+			dablob.NewSidecarFactory[consensus.BeaconBlockBody](
 				chainSpec,
-				primitives.KZGPositionDeneb,
+				consensus.KZGPositionDeneb,
 			)),
 		validator.WithChainSpec(chainSpec),
 		validator.WithConfig(&cfg.Validator),
@@ -163,7 +167,7 @@ func ProvideRuntime(
 		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
-			core.NewStateProcessor(
+			core.NewStateProcessor[*datypes.BlobSidecars](
 				chainSpec,
 				dablob.NewVerifier(blobProofVerifier),
 				randaoProcessor,

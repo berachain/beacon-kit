@@ -27,9 +27,9 @@ package ssz
 
 import (
 	"encoding/binary"
-	"fmt"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -164,7 +164,10 @@ func Pack[
 		}
 
 		if !fieldValue.CanInterface() {
-			return nil, fmt.Errorf("cannot interface with field %v", fieldValue)
+			return nil, errors.Newf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
 		}
 
 		// TODO: Do we need a safety check for Basic only here?
@@ -172,7 +175,7 @@ func Pack[
 		el, ok := reflect.ValueOf(el).
 			Interface().(interface{ MarshalSSZ() ([]byte, error) })
 		if !ok {
-			return nil, fmt.Errorf("unsupported type %T", el)
+			return nil, errors.Newf("unsupported type %T", el)
 		}
 
 		// TODO: Do we need a safety check for Basic only here?

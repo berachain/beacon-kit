@@ -29,8 +29,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
-	primitives "github.com/berachain/beacon-kit/mod/primitives"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,7 +47,7 @@ func TestSidecarMarshalling(t *testing.T) {
 		Blob:              blob,
 		KzgCommitment:     [48]byte{},
 		KzgProof:          [48]byte{},
-		BeaconBlockHeader: &primitives.BeaconBlockHeader{},
+		BeaconBlockHeader: &consensus.BeaconBlockHeader{},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),

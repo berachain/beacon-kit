@@ -29,29 +29,28 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[ReadOnlyBeaconBlockT any] interface {
+type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, ReadOnlyBeaconBlockT,
+		context.Context, math.Slot, ReadOnlyBeaconBlockBodyT,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, *datypes.BlobSidecars) error
+	Persist(math.Slot, SidecarsT) error
 }
 
 // BlobVerifier is the interface for the blobs processor.
-type BlobVerifier interface {
+type BlobVerifier[SidecarsT any] interface {
 	VerifyBlobs(
-		sidecars *datypes.BlobSidecars, kzgOffset uint64,
+		sidecars SidecarsT, kzgOffset uint64,
 	) error
 }
 
@@ -59,7 +58,7 @@ type BlobVerifier interface {
 type RandaoProcessor interface {
 	ProcessRandao(
 		state.BeaconState,
-		primitives.BeaconBlock,
+		consensus.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
 		state.BeaconState,

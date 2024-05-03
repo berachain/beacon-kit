@@ -25,7 +25,7 @@
 
 package types
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrSidecarContainsDifferingBlockRoots is returned when a sidecar contains

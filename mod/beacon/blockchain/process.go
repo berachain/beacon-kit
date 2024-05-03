@@ -29,10 +29,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -48,7 +48,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
@@ -59,7 +59,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	// Validate payload in Parallel.
@@ -79,28 +79,6 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// Then we notify the engine of the new payload.
-	body := blk.GetBody()
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = s.ee.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
-			body.GetExecutionPayload(),
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			false,
-			// Since this is called during FinalizeBlock, we want to assume
-			// the payload is valid, if it ends up not being valid later the
-			// node will simply AppHash which is completely fine, since this
-			// means we were syncing from a bad peer, and we would likely
-			// AppHash anyways.
-			true,
-		),
-	); err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
-		return err
-	}
-
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
 	g.Go(func() error {
@@ -111,12 +89,43 @@ func (s *Service) ProcessBeaconBlock(
 		)
 	})
 
+	body := blk.GetBody()
+
+	// We can also parallelize the call to the execution layer.
 	g.Go(func() error {
+		// Then we notify the engine of the new payload.
+		parentBeaconBlockRoot := blk.GetParentBlockRoot()
+		if err = s.ee.VerifyAndNotifyNewPayload(
+			ctx, engineprimitives.BuildNewPayloadRequest(
+				body.GetExecutionPayload(),
+				body.GetBlobKzgCommitments().ToVersionedHashes(),
+				&parentBeaconBlockRoot,
+				false,
+				// Since this is called during FinalizeBlock, we want to assume
+				// the payload is valid, if it ends up not being valid later the
+				// node will simply AppHash which is completely fine, since this
+				// means we were syncing from a bad peer, and we would likely
+				// AppHash anyways.
+				true,
+			),
+		); err != nil {
+			s.Logger().
+				Error("failed to notify engine of new payload", "error", err)
+			return err
+		}
+
+		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
 			st,
 			blk,
 		)
 	})
+
+	// We ask for the slot before waiting as a minor optimization.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
 
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	// of the goroutines returned an error.
@@ -125,21 +134,15 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// TODO: Validate the data availability as well as check for the
-	// minimum DA required time.
-	// daStartTime := time.Now()
-	// if avs != nil {
-	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability
-	// (AvailabilityStore.IsDataAvailable)")
-	// 	}
-	// } else {
-	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability")
-	// 	}
-	// }
+	// If the blobs needed to process the block are not available, we
+	// return an error.
+	if !avs.IsDataAvailable(ctx, slot, body) {
+		return ErrDataNotAvailable
+	}
 
-	// Prune deposits
+	// Prune deposits.
+	// TODO: This should be moved into a go-routine in the background.
+	// Watching for logs should be completely decoupled as well.
 	if err = s.sks.PruneDepositEvents(st); err != nil {
 		s.Logger().Error("failed to prune deposit events", "error", err)
 		return err
@@ -151,7 +154,7 @@ func (s *Service) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service) ValidateBlock(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	return s.bv.ValidateBlock(
 		s.BeaconState(ctx), blk,
@@ -161,15 +164,15 @@ func (s *Service) ValidateBlock(
 // VerifyPayload validates the execution payload on the block.
 func (s *Service) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
-		return beacontypes.ErrNilBlk
+		return ErrNilBlk
 	}
 
 	body := blk.GetBody()
 	if body.IsNil() {
-		return beacontypes.ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	// Call the standard payload validator.
@@ -200,7 +203,7 @@ func (s *Service) VerifyPayloadOnBlk(
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk primitives.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -256,7 +259,7 @@ func (s *Service) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = primitives.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

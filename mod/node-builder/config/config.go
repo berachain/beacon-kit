@@ -26,9 +26,8 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
@@ -85,7 +84,7 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	v, ok := opts.(*viper.Viper)
 	if !ok {
-		return nil, fmt.Errorf("invalid application options type: %T", opts)
+		return nil, errors.Newf("invalid application options type: %T", opts)
 	}
 
 	type cfgUnmarshaller struct {
@@ -99,7 +98,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDialURLFunc(),
 		))); err != nil {
-		return nil, fmt.Errorf(
+		return nil, errors.Newf(
 			"failed to decode beacon-kit configuration: %w",
 			err,
 		)

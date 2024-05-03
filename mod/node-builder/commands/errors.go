@@ -25,7 +25,7 @@
 
 package commands
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrNoClientCtx indicates that the client context was not found.

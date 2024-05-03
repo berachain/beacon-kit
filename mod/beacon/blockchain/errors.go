@@ -25,7 +25,7 @@
 
 package blockchain
 
-import "github.com/cockroachdb/errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidPayload indicates that the payload of a beacon block is
@@ -34,4 +34,12 @@ var (
 	// ErrNoPayloadInBeaconBlock indicates that a beacon block was expected to
 	// have a payload, but none was found.
 	ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")
+	// ErrNilBlkBody is an error for when the block body is nil.
+	ErrNilBlkBody = errors.New("nil block body")
+	// ErrNilBlockHeader is returned when a block header from a block is nil.
+	ErrNilBlockHeader = errors.New("nil block header")
+	// ErrNilBlk is an error for when the beacon block is nil.
+	ErrNilBlk = errors.New("nil beacon block")
+	// ErrDataNotAvailable.
+	ErrDataNotAvailable = errors.New("data not available")
 )

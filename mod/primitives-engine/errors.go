@@ -25,7 +25,7 @@
 
 package engineprimitives
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
