@@ -36,7 +36,7 @@ import (
 
 const TestFileName = "fixtures/beacon_state_bellatrix.ssz" // https://goerli.beaconcha.in/slot/4744352
 //nolint:gochecknoglobals // test debug print toggle
-debug := false
+var debug = false
 
 func debugPrint(debug bool, s ...any) {
 	if debug {
