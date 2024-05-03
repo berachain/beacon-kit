@@ -27,7 +27,6 @@ package ssz
 
 import (
 	"encoding/binary"
-	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -228,33 +227,4 @@ func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 		return RootT{}
 	}
 	return chunks[0]
-}
-
-// ReadOffset reads an offset from buf
-func ReadOffset(buf []byte) uint64 {
-	return uint64(binary.LittleEndian.Uint32(buf))
-}
-
-func safeReadOffset(buf []byte) (uint64, []byte, error) {
-	if len(buf) < 4 {
-		return 0, nil, fmt.Errorf("")
-	}
-	offset := ReadOffset(buf)
-	return offset, buf[4:], nil
-}
-
-func DivideInt2(a, b, max int) (int, error) {
-	num, ok := DivideInt(a, b)
-	if !ok {
-		return 0, fmt.Errorf("xx")
-	}
-	if num > max {
-		return 0, fmt.Errorf("yy")
-	}
-	return num, nil
-}
-
-// DivideInt divides the int fully
-func DivideInt(a, b int) (int, bool) {
-	return a / b, a%b == 0
 }
