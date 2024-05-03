@@ -23,7 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:all
+//nolint:godot
+//nolint:tagliatelle
+//nolint:mnd
+//nolint:wastedassign
 package ssz
 
 type BeaconBlockHeader struct {
