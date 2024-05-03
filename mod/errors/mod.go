@@ -39,4 +39,5 @@ var (
 	Wrapf = errors.Wrapf
 	Is    = errors.Is
 	As    = errors.As
+	Join  = errors.Join
 )
