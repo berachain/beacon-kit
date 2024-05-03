@@ -32,19 +32,19 @@ func (_m *BeaconStorageBackend) EXPECT() *BeaconStorageBackend_Expecter {
 }
 
 // AvailabilityStore provides a mock function with given fields: ctx
-func (_m *BeaconStorageBackend) AvailabilityStore(ctx context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars] {
+func (_m *BeaconStorageBackend) AvailabilityStore(ctx context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars] {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AvailabilityStore")
 	}
 
-	var r0 core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars]
-	if rf, ok := ret.Get(0).(func(context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars]); ok {
+	var r0 core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars]
+	if rf, ok := ret.Get(0).(func(context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars]); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars])
+			r0 = ret.Get(0).(core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars])
 		}
 	}
 
@@ -69,12 +69,12 @@ func (_c *BeaconStorageBackend_AvailabilityStore_Call) Run(run func(ctx context.
 	return _c
 }
 
-func (_c *BeaconStorageBackend_AvailabilityStore_Call) Return(_a0 core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars]) *BeaconStorageBackend_AvailabilityStore_Call {
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) Return(_a0 core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars]) *BeaconStorageBackend_AvailabilityStore_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconStorageBackend_AvailabilityStore_Call) RunAndReturn(run func(context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlock, *types.BlobSidecars]) *BeaconStorageBackend_AvailabilityStore_Call {
+func (_c *BeaconStorageBackend_AvailabilityStore_Call) RunAndReturn(run func(context.Context) core.AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, *types.BlobSidecars]) *BeaconStorageBackend_AvailabilityStore_Call {
 	_c.Call.Return(run)
 	return _c
 }
