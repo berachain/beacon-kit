@@ -122,8 +122,8 @@ linters-settings:
       - prometheus.LinearBuckets
       - ssz.*
     ignored-files:
-      - ssz/*.go
-      - ssz/v2/*.go
+      - pkg/ssz/*.go
+      - pkg/ssz/v2/*.go
 
   gomodguard:
     blocked:

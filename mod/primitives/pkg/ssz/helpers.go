@@ -243,53 +243,6 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 	return offset, buf[4:], nil
 }
 
-// UnmarshalDynamic unmarshals the dynamic items from the input
-func UnmarshalDynamic(src []byte, length int, f func(indx int, b []byte) error) error {
-	var err error
-	if length == 0 {
-		return nil
-	}
-
-	size := uint64(len(src))
-
-	indx := 0
-	dst := src
-
-	var offset, endOffset uint64
-	offset, dst = ReadOffset(src), dst[4:]
-
-	for {
-		if length != 1 {
-			endOffset, dst, err = safeReadOffset(dst)
-			if err != nil {
-				return err
-			}
-		} else {
-			endOffset = uint64(len(src))
-		}
-		if offset > endOffset {
-			return fmt.Errorf("four")
-		}
-		if endOffset > size {
-			return fmt.Errorf("five")
-		}
-
-		err := f(indx, src[offset:endOffset])
-		if err != nil {
-			return err
-		}
-
-		indx++
-
-		offset = endOffset
-		if length == 1 {
-			break
-		}
-		length--
-	}
-	return nil
-}
-
 func DivideInt2(a, b, max int) (int, error) {
 	num, ok := DivideInt(a, b)
 	if !ok {

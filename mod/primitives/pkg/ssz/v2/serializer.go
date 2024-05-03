@@ -295,6 +295,7 @@ func (s *Serializer) UnmarshalByteArray(val reflect.Value, typ reflect.Type, inp
 
 func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	index := startOffset
+	//nolint:ineffassign // its fine. we reuse the err
 	err := fmt.Errorf("Failed to MarshalComposite from %v of typ %v", val, typ)
 	if val.Len() == 0 {
 		return index, nil
