@@ -2,23 +2,25 @@ package hex
 
 import (
 	"encoding/hex"
-	"errors"
-)
-
-var (
-	ErrEmptyString   = errors.New("empty hex string")
-	ErrMissingPrefix = errors.New("hex string without 0x prefix")
+	"strconv"
 )
 
 // String represents a hex string with 0x prefix.
 type String string
 
-// FromBytes creates a hex string with 0x prefix.
+// StrFromBytes creates a hex string with 0x prefix.
 func StrFromBytes(b []byte) String {
 	enc := make([]byte, len(b)*2+2)
 	copy(enc, "0x")
 	hex.Encode(enc[2:], b)
 	return String(enc)
+}
+
+// StrFromUint64 encodes i as a hex string with 0x prefix.
+func StrFromUint64(i uint64) String {
+	enc := make([]byte, 2, 10)
+	copy(enc, "0x")
+	return String(strconv.AppendUint(enc, i, 16))
 }
 
 // Has0xPrefix returns true if s has a 0x prefix.
@@ -49,4 +51,28 @@ func (s String) MustToBytes() []byte {
 		panic(err)
 	}
 	return b
+}
+
+// ToUint64 decodes a hex string with 0x prefix.
+func (s String) ToUint64() (uint64, error) {
+	raw, err := validateNumber(string(s))
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseUint(raw, 16, 64)
+}
+
+// MustToUint64 decodes a hex string with 0x prefix.
+// It panics for invalid input.
+func (s String) MustToUint64() uint64 {
+	i, err := s.ToUint64()
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+// Unwrap returns the string value.
+func (s String) Unwrap() string {
+	return string(s)
 }

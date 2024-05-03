@@ -30,8 +30,8 @@ import (
 	"math/big"
 	"math/bits"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 const (
@@ -116,12 +116,12 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return (*hexutil.Uint64)(u).UnmarshalJSON(input)
+	return (*hex.Uint64)(u).UnmarshalJSON(input)
 }
 
 // MarshalText returns the hex representation of b.
 func (u U64) MarshalText() ([]byte, error) {
-	return hexutil.Uint64(u).MarshalText()
+	return hex.Uint64(u).MarshalText()
 }
 
 // ---------------------------- U64 Methods ----------------------------

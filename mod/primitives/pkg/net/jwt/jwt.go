@@ -30,8 +30,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.
@@ -72,19 +72,19 @@ func NewRandom() (*Secret, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewFromHex(hexutil.Encode(secret))
+	return NewFromHex(hex.StrFromBytes(secret).Unwrap())
 }
 
 // String returns the JWT secret as a string with the first 8 characters
 // visible and the rest masked out for security.
 func (s *Secret) String() string {
-	secret := hexutil.Encode(s[:])
+	secret := hex.StrFromBytes(s[:]).Unwrap()
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))
 }
 
 // Hex returns the JWT secret as a hexadecimal string.
 func (s *Secret) Hex() string {
-	return hexutil.Encode(s[:])
+	return hex.StrFromBytes(s[:]).Unwrap()
 }
 
 // Bytes returns the JWT secret as a byte array.

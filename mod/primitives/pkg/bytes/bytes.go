@@ -27,8 +27,10 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 )
+
+type Bytes []byte
 
 // MustFromHex returns the bytes represented by the given hex string.
 func MustFromHex(input string) []byte {
@@ -41,7 +43,7 @@ func MustFromHex(input string) []byte {
 
 // BytesFromHex returns the bytes represented by the given hex string.
 func FromHex(input string) ([]byte, error) {
-	return hexutil.Decode(input)
+	return hex.String(input).ToBytes()
 }
 
 // SafeCopy creates a copy of the provided byte slice. If the input slice is
@@ -116,7 +118,7 @@ func PrependExtendToSize(slice []byte, length int) []byte {
 
 // Helper function to unmarshal JSON for various byte types.
 func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := hexutil.Bytes{}
+	bz := hex.Bytes{}
 	if err := bz.UnmarshalJSON(input); err != nil {
 		return err
 	}
@@ -132,7 +134,7 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 
 // Helper function to unmarshal text for various byte types.
 func unmarshalTextHelper(target []byte, text []byte) error {
-	bz := hexutil.Bytes{}
+	bz := hex.Bytes{}
 	if err := bz.UnmarshalText(text); err != nil {
 		return err
 	}

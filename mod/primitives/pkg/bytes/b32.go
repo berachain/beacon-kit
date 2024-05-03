@@ -44,7 +44,7 @@ func (h *B32) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of B32.
 func (h B32) String() string {
-	return string(hex.StrFromBytes(h[:]))
+	return hex.StrFromBytes(h[:]).Unwrap()
 }
 
 // HashTreeRoot returns the hash tree root of the B32.
