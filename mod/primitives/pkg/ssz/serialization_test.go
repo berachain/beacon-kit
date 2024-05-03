@@ -191,12 +191,14 @@ func TestMarshalBitList(t *testing.T) {
 	if !reflect.DeepEqual(output, expectedOutput) {
 		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
 	}
+
+	// TODO: test multiple bytes
 }
 
 func TestUnmarshalBitList(t *testing.T) {
 	// Test case 1: Empty input
-	bv := []byte{}
-	expected := []bool{}
+	var bv []byte
+	var expected []bool
 	actual := ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(len(actual), len(expected)) {
 		t.Errorf(
@@ -256,4 +258,6 @@ func TestUnmarshalBitList(t *testing.T) {
 			output,
 		)
 	}
+
+	// TODO: test multiple bytes
 }
