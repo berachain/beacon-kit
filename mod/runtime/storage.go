@@ -78,7 +78,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cs: cs,
-		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlock](
+		Backend: *storage.NewBackend(cs, dastore.New[consensus.ReadOnlyBeaconBlockBody](
 			cs, filedb.NewRangeDB(fdb),
 		), beacondb.New[
 			*consensus.Fork,

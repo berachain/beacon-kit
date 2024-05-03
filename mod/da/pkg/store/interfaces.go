@@ -25,7 +25,18 @@
 
 package store
 
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+)
+
 // IndexDB is a database that allows prefixing by index.
 type IndexDB interface {
+	Has(index uint64, key []byte) (bool, error)
 	Set(index uint64, key []byte, value []byte) error
+}
+
+// ReadOnlyBeaconBlockBody is the body of a beacon block.
+type ReadOnlyBeaconBlockBody interface {
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
