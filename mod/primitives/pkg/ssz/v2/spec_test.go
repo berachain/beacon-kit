@@ -42,6 +42,14 @@ func debugPrint(debug bool, s ...any) {
 		fmt.Println(s...)
 	}
 }
+
+func runBench(b *testing.B, cb func()) {
+	b.ResetTimer()
+	for range b.N {
+		cb()
+	}
+}
+
 func TestParityUint64(t *testing.T) {
 	data, err := os.ReadFile(TestFileName)
 	require.NoError(t, err)
@@ -72,11 +80,10 @@ func BenchmarkNativeUint64(b *testing.B) {
 	require.NoError(b, err)
 
 	s := sszv2.NewSerializer()
-	for i := 0; i < b.N; i++ {
-		// Native impl
+	runBench(b, func() {
 		o2, err := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
 		debugPrint(false, "Local Serializer output:", o2, err)
-	}
+	})
 }
 
 func BenchmarkFastSSZUint64(b *testing.B) {
@@ -87,11 +94,11 @@ func BenchmarkFastSSZUint64(b *testing.B) {
 	err = sszState.UnmarshalSSZ(data)
 	require.NoError(b, err)
 
-	for i := 0; i < b.N; i++ {
+	runBench(b, func() {
 		res := make([]byte, 0)
 		res = ssz.MarshalUint64(res, sszState.LatestBlockHeader.Slot)
 		debugPrint(false, "FastSSZ Output:", res)
-	}
+	})
 }
 
 func TestParityByteArray(t *testing.T) {
@@ -123,11 +130,12 @@ func BenchmarkNativeByteArray(b *testing.B) {
 	require.NoError(b, err)
 
 	s := sszv2.NewSerializer()
-	for i := 0; i < b.N; i++ {
+
+	runBench(b, func() {
 		// Native impl
 		exp, err := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
 		debugPrint(debug, "Local Serializer output:", exp, err)
-	}
+	})
 }
 
 func BenchmarkFastSSZByteArray(b *testing.B) {
@@ -139,12 +147,12 @@ func BenchmarkFastSSZByteArray(b *testing.B) {
 	err = sszState.UnmarshalSSZ(data)
 	require.NoError(b, err)
 
-	for i := 0; i < b.N; i++ {
+	runBench(b, func() {
 		res := make([]byte, 0)
 		res, err = sszState.LatestBlockHeader.MarshalSSZ()
 		prInRes := res[16:48]
 		debugPrint(debug, "FastSSZ Output:", prInRes)
-	}
+	})
 }
 
 func TestParityByteArrayLarge2D(t *testing.T) {
@@ -180,11 +188,11 @@ func BenchmarkNativeByteArrayLarge(b *testing.B) {
 
 	s := sszv2.NewSerializer()
 
-	for i := 0; i < b.N; i++ {
+	runBench(b, func() {
 		// Native impl
 		exp, err := s.MarshalSSZ(sszState.StateRoots)
 		debugPrint(debug, "Local Serializer output:", exp, err)
-	}
+	})
 }
 
 func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
@@ -194,10 +202,10 @@ func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
 	sszState := sszv2.BeaconStateBellatrix{}
 	err = sszState.UnmarshalSSZ(data)
 
-	for i := 0; i < b.N; i++ {
+	runBench(b, func() {
 		res := make([]byte, 0)
 		res, _ = sszState.MarshalSSZ()
 		prInRes := res[262320:524464]
 		debugPrint(debug, "FastSSZ Output:", prInRes)
-	}
+	})
 }
