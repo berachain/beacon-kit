@@ -32,7 +32,7 @@ import (
 // TODO: eventually swap out via build flags if we believe there is value
 // to doing so.
 //
-//nolint:gochecknoglobals // aliasing a global variable
+//nolint:gochecknoglobals // used an alias.
 var (
 	New   = errors.New
 	Wrap  = errors.Wrap

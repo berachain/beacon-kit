@@ -30,7 +30,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"

@@ -31,9 +31,8 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-
 	corestore "cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/cockroachdb/pebble"
 )
 

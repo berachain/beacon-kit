@@ -27,7 +27,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-
 	"github.com/sourcegraph/conc/iter"
 )
 

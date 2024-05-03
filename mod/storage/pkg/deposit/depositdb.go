@@ -28,10 +28,9 @@ package deposit
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
 )

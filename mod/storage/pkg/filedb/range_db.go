@@ -32,7 +32,6 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
