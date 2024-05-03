@@ -9,6 +9,7 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240421190920-f31a6a3024ba
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240421190920-f31a6a3024ba
+	github.com/berachain/beacon-kit/mod/errors => ../errors
 
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
@@ -25,7 +26,6 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/cockroachdb/errors v1.11.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -34,6 +34,8 @@ require (
 	github.com/minio/sha256-simd v1.0.1
 	golang.org/x/sync v0.7.0
 )
+
+require github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 
 require (
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.32.0-20240130113600-88ef6483f90f.1 // indirect
@@ -55,6 +57,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect

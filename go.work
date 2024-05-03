@@ -6,6 +6,7 @@ use (
 	./mod/beacon
 	./mod/core
 	./mod/da
+	./mod/errors
 	./mod/execution
 	./mod/log
 	./mod/node-builder

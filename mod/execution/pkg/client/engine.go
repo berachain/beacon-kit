@@ -28,13 +28,13 @@ package client
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/cockroachdb/errors"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
