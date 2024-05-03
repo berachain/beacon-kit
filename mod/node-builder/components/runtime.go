@@ -66,7 +66,7 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
 	bsb runtime.BeaconStorageBackend[
-		consensus.ReadOnlyBeaconBlock, *datypes.BlobSidecars,
+		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime, error) {

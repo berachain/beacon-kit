@@ -55,7 +55,7 @@ func New[ReadOnlyBeaconBlockT ReadOnlyBeaconBlockBody](
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
 func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
-	ctx context.Context,
+	_ context.Context,
 	slot math.Slot,
 	body BeaconBlockBodyT,
 ) bool {

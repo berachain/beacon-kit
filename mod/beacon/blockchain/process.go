@@ -125,19 +125,14 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// TODO: Validate the data availability as well as check for the
-	// minimum DA required time.
-	// daStartTime := time.Now()
-	// if avs != nil {
-	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability
-	// (AvailabilityStore.IsDataAvailable)")
-	// 	}
-	// } else {
-	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability")
-	// 	}
-	// }
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	if !avs.IsDataAvailable(ctx, slot, body) {
+
+	}
 
 	// Prune deposits
 	if err = s.sks.PruneDepositEvents(st); err != nil {
