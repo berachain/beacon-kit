@@ -81,7 +81,7 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
             image = validators[n].cl_image,
             env_vars = node.get_genesis_env_vars(cl_service_name),
             store = [
-                StoreSpec(src = "/root/.beacond", name = node_beacond_config),
+                StoreSpec(src = "/root", name = node_beacond_config),
             ],
             description = "Initialize and store config for validator {}".format(n),
         )
@@ -115,7 +115,7 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         env_vars = node.get_genesis_env_vars(cl_service_name),
         files = final_config_folders,
         store = [
-            StoreSpec(src = "/tmp/{}/.beacond".format(final_config_folder), name = final_config_folder),
+            StoreSpec(src = "/tmp/{}".format(final_config_folder), name = final_config_folder),
             StoreSpec(src = "/root/.beacond/config/genesis.json", name = "cosmos-genesis-final"),
         ],
         description = "Initialize and store final node's config && final genesis file",
