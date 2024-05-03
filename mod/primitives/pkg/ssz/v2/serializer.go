@@ -206,8 +206,8 @@ func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type,
 		len = s.GetNDimensionalArrayLength(val)
 	}
 	buf := make([]byte, len)
-	cb(val, typ, buf, 0)
-	return buf, nil
+	_, err := cb(val, typ, buf, 0)
+	return buf, err
 }
 
 // Recursive function to calculate the length of an N-dimensional array
@@ -243,10 +243,13 @@ func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
 
 	if d == 2 {
 		for i := range val.Len() {
-			buf2, _ := s.MarshalToDefaultBuffer(
+			buf2, err := s.MarshalToDefaultBuffer(
 				val.Index(i),
 				reflect.TypeOf(val.Index(i).Interface()),
 				s.MarshalByteArray)
+			if err != nil {
+				return nil, err
+			}
 			buf = append(buf, buf2...)
 		}
 	}
@@ -268,8 +271,10 @@ func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf 
 func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
 	if val.Kind() == reflect.Array {
 		for i := 0; i < val.Len(); i++ {
+			//#nosec:G701 // int overflow should be caught earlier in the stack
 			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
 		}
+		//#nosec:G701 // int overflow should be caught earlier in the stack
 		return startOffset + uint64(val.Len()), nil
 	}
 	if val.IsNil() {
@@ -278,6 +283,8 @@ func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf [
 		return startOffset + uint64(typ.Len()), nil
 	}
 	copy(buf[startOffset:], val.Bytes())
+
+	//#nosec:G701 // int overflow should be caught earlier in the stack
 	return startOffset + uint64(val.Len()), nil
 }
 
@@ -305,6 +312,7 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 		return index, nil
 	}
 	fixedIndex := index
+	//#nosec:G701 // int overflow should be caught earlier in the stack
 	currentOffsetIndex := startOffset + uint64(val.Len())*BytesPerLengthOffset
 	nextOffsetIndex := currentOffsetIndex
 	// If the elements are variable size, we need to include offset indices
@@ -316,6 +324,7 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 		}
 		// Write the offset.
 		offsetBuf := make([]byte, BytesPerLengthOffset)
+		//#nosec:G701 // int overflow should be caught earlier in the stack
 		binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
 		copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
 
@@ -383,6 +392,7 @@ func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []by
 			}
 			// Write the offset.
 			offsetBuf := make([]byte, BytesPerLengthOffset)
+			//#nosec:G701 // int overflow should be caught earlier in the stack
 			binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
 			copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
 

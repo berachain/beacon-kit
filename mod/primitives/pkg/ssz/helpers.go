@@ -27,6 +27,7 @@ package ssz
 
 import (
 	"encoding/binary"
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -240,25 +241,6 @@ func safeReadOffset(buf []byte) (uint64, []byte, error) {
 	}
 	offset := ReadOffset(buf)
 	return offset, buf[4:], nil
-}
-
-// DecodeDynamicLength decodes the length from the dynamic input
-func DecodeDynamicLength(buf []byte, maxSize int) (int, error) {
-	if len(buf) == 0 {
-		return 0, nil
-	}
-	if len(buf) < 4 {
-		return 0, fmt.Errorf("not enough data")
-	}
-	offset := binary.LittleEndian.Uint32(buf[:4])
-	length, ok := DivideInt(int(offset), BytesPerLengthOffset)
-	if !ok {
-		return 0, fmt.Errorf("bad")
-	}
-	if length > maxSize {
-		return 0, fmt.Errorf("too big for the list")
-	}
-	return length, nil
 }
 
 // UnmarshalDynamic unmarshals the dynamic items from the input
