@@ -23,17 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build debug
-// +build debug
-
 package errors
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/cockroachdb/errors"
 )
 
-var New = errors.New     //nolint:gochecknoglobals // aliasing a global variable
-var Wrap = errors.Wrap   //nolint:gochecknoglobals // aliasing a global variable
-var Wrapf = errors.Wrapf //nolint:gochecknoglobals // aliasing a global variable
-var Is = errors.Is       //nolint:gochecknoglobals // aliasing a global variable
-var As = errors.As       //nolint:gochecknoglobals // aliasing a global variable
+// TODO: eventually swap out via build flags if we believe there is value
+// to doing so.
+//
+//nolint:gochecknoglobals // aliasing a global variable
+var (
+	New   = errors.New
+	Wrap  = errors.Wrap
+	Wrapf = errors.Wrapf
+	Is    = errors.Is
+	As    = errors.As
+)
