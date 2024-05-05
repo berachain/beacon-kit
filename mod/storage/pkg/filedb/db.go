@@ -26,8 +26,12 @@
 package filedb
 
 import (
+	"bytes"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -38,16 +42,21 @@ import (
 // It is useful for storing amounts of data that exceed what is
 // performant to store in a traditional key-value database.
 type DB struct {
-	fs        afero.Fs
-	logger    log.Logger[any]
-	rootDir   string
-	extension string
-	dirPerms  os.FileMode
+	fs          afero.Fs
+	logger      log.Logger[any]
+	rootDir     string
+	extension   string
+	dirPerms    os.FileMode
+	highestSlot uint64
+	lowestSlot  uint64
 }
 
 // NewDB creates a new instance of the DB.
 func NewDB(opts ...Option) *DB {
-	db := &DB{}
+	db := &DB{
+		highestSlot: 0,
+		lowestSlot:  math.MaxUint64,
+	}
 	for _, opt := range opts {
 		if err := opt(db); err != nil {
 			panic(errors.Wrap(err, "failed to apply option"))
@@ -60,6 +69,8 @@ func NewDB(opts ...Option) *DB {
 
 // Get retrieves the value for a key.
 func (db *DB) Get(key []byte) ([]byte, error) {
+	fmt.Println("db.GetHighestSlot", db.GetHighestSlot())
+	fmt.Println("db.GetLowestSlot", db.GetLowestSlot())
 	return afero.ReadFile(db.fs, db.pathForKey(key))
 }
 
@@ -70,6 +81,25 @@ func (db *DB) Has(key []byte) (bool, error) {
 		return false, err
 	}
 	return exists, nil
+}
+
+// extractIndexFromKey extracts the index from a key.
+func (db *DB) extractIndexFromKey(key []byte) (uint64, error) {
+	// Split the key into index and key parts.
+	parts := bytes.SplitN(key, []byte("/"), 2)
+	fmt.Println("parts", parts)
+	if len(parts) < 2 {
+		return 0, errors.New("invalid key format")
+	}
+
+	// Convert the index part to a slot number.
+	index, err := strconv.ParseUint(string(parts[0]), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	fmt.Println("index", index)
+	return index, nil
 }
 
 // Set stores the value for a key.
@@ -98,6 +128,7 @@ func (db *DB) Set(key []byte, value []byte) error {
 	}
 	db.logger.Debug("wrote %d bytes to %s", n, db.pathForKey(key))
 
+	db.processKey(key)
 	return nil
 }
 
@@ -110,4 +141,29 @@ func (db *DB) Delete(key []byte) error {
 // TODO: for efficient storage we should expand this path
 func (db *DB) pathForKey(key []byte) string {
 	return string(key) + "." + db.extension
+}
+
+// processKey processes the key by extracting the index and updating the slot.
+func (db *DB) processKey(key []byte) (uint64, error) {
+	// Extract the index from the key.
+	index, err := db.extractIndexFromKey(key)
+	fmt.Println("index", index)
+	fmt.Println("err", err)
+	if err != nil {
+		return 0, err
+	}
+	// Update the highest and lowest slot numbers.
+	db.UpdateSlot(index)
+
+	return index, nil
+}
+
+// GetHighestSlot retrieves the highest slot number that exists in the database.
+func (db *DB) GetHighestSlot() uint64 {
+	return db.highestSlot
+}
+
+// GetLowestSlot retrieves the lowest slot number that exists in the database.
+func (db *DB) GetLowestSlot() uint64 {
+	return db.lowestSlot
 }

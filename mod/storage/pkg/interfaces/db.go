@@ -31,6 +31,8 @@ type DB interface {
 	Has(key []byte) (bool, error)
 	Set(key []byte, value []byte) error
 	Delete(key []byte) error
+	GetHighestSlot() uint64
+	GetLowestSlot() uint64
 
 	// TODO: add Batch and full DB stuff.
 }
