@@ -106,6 +106,7 @@ build-docker: ## build a docker image containing `beacond`
 	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
 	--build-arg GOOS=linux \
 	--build-arg GOARCH=$(ARCH) \
+	--build-arg BUILD_TAGS="$(BUILD_TAGS)" \
 	-f ${DOCKERFILE} \
 	-t $(IMAGE_NAME):$(VERSION) \
 	.
