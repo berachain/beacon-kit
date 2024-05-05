@@ -128,6 +128,7 @@ github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0/go.mod h1:7SFka0XMvUgj3hfZtyd
 github.com/bufbuild/buf v1.30.1 h1:QFtanwsXodoGFAwzXFXGXpzBkb7N2u8ZDyA3jWB4Pbs=
 github.com/bufbuild/buf v1.30.1/go.mod h1:7W8DJnj76wQa55EA3z2CmDxS0/nsHh8FqtE00dyDAdA=
 github.com/bufbuild/protocompile v0.10.0 h1:+jW/wnLMLxaCEG8AX9lD0bQ5v9h1RUiMKOBOT5ll9dM=
+github.com/bufbuild/protocompile v0.10.0/go.mod h1:G9qQIQo0xZ6Uyj6CMNz0saGmx2so+KONo8/KrELABiY=
 github.com/bufbuild/protovalidate-go v0.6.0 h1:Jgs1kFuZ2LHvvdj8SpCLA1W/+pXS8QSM3F/E2l3InPY=
 github.com/bufbuild/protovalidate-go v0.6.0/go.mod h1:1LamgoYHZ2NdIQH0XGczGTc6Z8YrTHjcJVmiBaar4t4=
 github.com/bufbuild/protoyaml-go v0.1.8 h1:X9QDLfl9uEllh4gsXUGqPanZYCOKzd92uniRtW2OnAQ=
@@ -518,6 +519,7 @@ github.com/jdx/go-netrc v1.0.0/go.mod h1:Gh9eFQJnoTNIRHXl2j5bJXA1u84hQWJWgGh569z
 github.com/jgautheron/goconst v1.7.1 h1:VpdAG7Ca7yvvJk5n8dMwQhfEZJh95kl/Hl9S1OI5Jkk=
 github.com/jgautheron/goconst v1.7.1/go.mod h1:aAosetZ5zaeC/2EfMeRswtxUFBpe2Hr7HzkgX4fanO4=
 github.com/jhump/protoreflect v1.16.0 h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+TBDg=
+github.com/jhump/protoreflect v1.16.0/go.mod h1:oYPd7nPvcBw/5wlDfm/AVmU9zH9BgqGCI469pGxfj/8=
 github.com/jingyugao/rowserrcheck v1.1.1 h1:zibz55j/MJtLsjP1OF4bSdgXxwL1b+Vn7Tjzq7gFzUs=
 github.com/jingyugao/rowserrcheck v1.1.1/go.mod h1:4yvlZSDb3IyDTUZJUmpZfm2Hwok+Dtp+nu2qOq+er9c=
 github.com/jinzhu/copier v0.3.5 h1:GlvfUwHk62RokgqVNvYsku0TATCF7bAHVwEXoBh3iJg=
@@ -1336,6 +1338,7 @@ google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp0
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.33.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002 h1:V7Da7qt0MkY3noVANIMVBk28nOnijADeOR3i5Hcvpj4=
+google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6 h1:jMFz6MfLP0/4fUyZle81rXUoxOBFi19VUFKVDOQfozc=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6/go.mod h1:FMv+mEhP44yOT+4EoQTLFTRgOQ1FBLkstjWtayDeSgw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
