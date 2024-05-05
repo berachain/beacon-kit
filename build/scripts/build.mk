@@ -11,51 +11,51 @@ TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
-BUILD_TAGS = netgo
+build_tags = netgo
 
 ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_TAGS += app_v1
+  build_tags += app_v1
 endif
 
 # DB backend selection
 ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_TAGS += gcc
+  build_tags += gcc
 endif
 ifeq (badgerdb,$(findstring badgerdb,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_TAGS += badgerdb
+  build_tags += badgerdb
 endif
 # handle rocksdb
 ifeq (rocksdb,$(findstring rocksdb,$(COSMOS_BUILD_OPTIONS)))
   CGO_ENABLED=1
-  BUILD_TAGS += rocksdb grocksdb_clean_link
+  build_tags += rocksdb grocksdb_clean_link
 endif
 # handle boltdb
 ifeq (boltdb,$(findstring boltdb,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_TAGS += boltdb
+  build_tags += boltdb
 endif
 
 # always include pebble
-BUILD_TAGS += pebbledb
+build_tags += pebbledb
 
 # always include blst
-BUILD_TAGS += blst
-BUILD_TAGS += bls12381
+build_tags += blst
+build_tags += bls12381
 
 # always include ckzg
-BUILD_TAGS += ckzg
-BUILD_TAGS += cgo
+build_tags += ckzg
+build_tags += cgo
 
 whitespace :=
 whitespace += $(whitespace)
 comma := ,
-BUILD_TAGS_comma_sep := $(subst $(whitespace),$(comma),$(BUILD_TAGS))
+build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=sim \
 		-X github.com/cosmos/cosmos-sdk/version.AppName=simd \
 		-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS_comma_sep)"
+		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   ldflags += -w -s
@@ -63,7 +63,9 @@ endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
-BUILD_FLAGS := -tags "$(BUILD_TAGS)" -ldflags '$(ldflags)'
+build_tags += $(BUILD_TAGS)
+
+BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath 
@@ -106,7 +108,7 @@ build-docker: ## build a docker image containing `beacond`
 	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
 	--build-arg GOOS=linux \
 	--build-arg GOARCH=$(ARCH) \
-	--build-arg BUILD_TAGS="$(BUILD_TAGS)" \
+	--build-arg BUILD_TAGS=$(build_tags_comma_sep) \
 	-f ${DOCKERFILE} \
 	-t $(IMAGE_NAME):$(VERSION) \
 	.
