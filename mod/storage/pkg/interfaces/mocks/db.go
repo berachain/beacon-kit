@@ -121,6 +121,96 @@ func (_c *DB_Get_Call) RunAndReturn(run func([]byte) ([]byte, error)) *DB_Get_Ca
 	return _c
 }
 
+// GetHighestSlot provides a mock function with given fields:
+func (_m *DB) GetHighestSlot() uint64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetHighestSlot")
+	}
+
+	var r0 uint64
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	return r0
+}
+
+// DB_GetHighestSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetHighestSlot'
+type DB_GetHighestSlot_Call struct {
+	*mock.Call
+}
+
+// GetHighestSlot is a helper method to define mock.On call
+func (_e *DB_Expecter) GetHighestSlot() *DB_GetHighestSlot_Call {
+	return &DB_GetHighestSlot_Call{Call: _e.mock.On("GetHighestSlot")}
+}
+
+func (_c *DB_GetHighestSlot_Call) Run(run func()) *DB_GetHighestSlot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DB_GetHighestSlot_Call) Return(_a0 uint64) *DB_GetHighestSlot_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *DB_GetHighestSlot_Call) RunAndReturn(run func() uint64) *DB_GetHighestSlot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLowestSlot provides a mock function with given fields:
+func (_m *DB) GetLowestSlot() uint64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLowestSlot")
+	}
+
+	var r0 uint64
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	return r0
+}
+
+// DB_GetLowestSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLowestSlot'
+type DB_GetLowestSlot_Call struct {
+	*mock.Call
+}
+
+// GetLowestSlot is a helper method to define mock.On call
+func (_e *DB_Expecter) GetLowestSlot() *DB_GetLowestSlot_Call {
+	return &DB_GetLowestSlot_Call{Call: _e.mock.On("GetLowestSlot")}
+}
+
+func (_c *DB_GetLowestSlot_Call) Run(run func()) *DB_GetLowestSlot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DB_GetLowestSlot_Call) Return(_a0 uint64) *DB_GetLowestSlot_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *DB_GetLowestSlot_Call) RunAndReturn(run func() uint64) *DB_GetLowestSlot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Has provides a mock function with given fields: key
 func (_m *DB) Has(key []byte) (bool, error) {
 	ret := _m.Called(key)
