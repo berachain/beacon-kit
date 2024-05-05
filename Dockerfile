@@ -21,7 +21,7 @@
 
 ARG GO_VERSION=1.22.2
 ARG RUNNER_IMAGE=alpine:3.19
-ARG BUILD_TAGS="netgo,ledger,muslc,blst,pebbledb"
+ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb

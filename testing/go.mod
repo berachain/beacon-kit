@@ -18,12 +18,14 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
-	github.com/cometbft/cometbft v0.38.7-0.20240412124004-1f67e396cf45
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/kurtosis-tech/kurtosis/api/golang v0.89.3
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 )
+
+require github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
@@ -41,6 +43,7 @@ require (
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
+	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/gogoproto v1.4.12 // indirect
@@ -87,7 +90,6 @@ require (
 	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20240415200132-cd0c3c405d11 // indirect
 	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240415200132-cd0c3c405d11 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.14 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -138,7 +140,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect

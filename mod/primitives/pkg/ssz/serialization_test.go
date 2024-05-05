@@ -209,7 +209,12 @@ func FuzzMarshalUnmarshalU128(f *testing.F) {
 
 		marshaled := ssz.MarshalU128(original)
 		unmarshaled := ssz.UnmarshalU128L[[16]byte](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U128L failed")
+		require.Equal(
+			t,
+			original,
+			unmarshaled,
+			"Marshal/Unmarshal U128L failed",
+		)
 	})
 }
 

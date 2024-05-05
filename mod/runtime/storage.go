@@ -42,7 +42,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
 
 // BeaconStorageBackend is an interface that provides the
@@ -132,7 +131,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// feels big bad.
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
-			PubKeyType: (&bls12381.PubKey{}).Type(),
+			PubKeyType: "bls12_381",
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
@@ -157,7 +156,7 @@ func (k *Keeper) InitGenesis(
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	blsType := (&bls12381.PubKey{}).Type()
+	blsType := "bls12_381"
 	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
