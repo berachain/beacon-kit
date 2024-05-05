@@ -25,7 +25,7 @@
 
 package consensus
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrDepositMessage is an error for when the deposit signature doesn't

@@ -95,6 +95,7 @@ type StakingService interface {
 		blockHash common.ExecutionHash,
 	) error
 
+	// PruneDepositEvents prunes deposit events.
 	PruneDepositEvents(
 		st state.BeaconState,
 	) error

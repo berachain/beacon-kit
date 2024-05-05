@@ -27,6 +27,7 @@ package ssz
 
 import (
 	"encoding/binary"
+	"math/bits"
 )
 
 // bitsPerByte is the number of bits in a byte.
@@ -73,41 +74,13 @@ func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
 	return src[0] == 1
 }
 
-// MostSignificantBitIndex uses bitwise operations for a fast determination
-// of the most significant bit's index in a byte.
-//
-//nolint:mnd // lots of random numbers in bit math.
+// MostSignificantBitIndex uses a lookup table for fast determination of the
+// most significant bit's index in a byte.
 func MostSignificantBitIndex(x byte) int {
-	if x == 0 {
-		return -1
-	}
-
-	// Initialize the result index
-	r := 0
-	// Check if the upper half of the byte (higher 4 bits) is non-zero
-	if x >= 0x10 {
-		// Right shift by 4 bits to focus on the higher half
-		x >>= 4
-		// Increment result index by 4 because we've shifted half the byte
-		r += 4
-	}
-	// Check if the upper quarter of the byte (bits 4-5) is non-zero
-	if x >= 0x4 {
-		// Right shift by 2 bits to focus on the next significant bits
-		x >>= 2
-		// Increment result index by 2 because we've shifted two bits
-		r += 2
-	}
-	// Check if the second bit is set
-	if x >= 0x2 {
-		// Increment result index by 1 because the second bit is significant
-		r++
-	}
-	return r
+	return bits.Len8(x) - 1
 }
 
-// TODO: May be buggy, see test case 3 TestUnMarshalBitList
-// UnMarshalBitList converts a byte slice into a boolean slice where each bit
+// UnmarshalBitList converts a byte slice into a boolean slice where each bit
 // represents a boolean value. The function assumes the input byte slice
 // represents a bit list in a compact form, where the presence of a sentinel bit
 // (most significant bit of the last byte in the array) can be used to deduce
@@ -124,23 +97,27 @@ func UnmarshalBitList(bv []byte) []bool {
 		// empty []bool of len 0
 		return make([]bool, 0)
 	}
-	arrL := bitsPerByte*(len(bv)-1) + msbi
-	var newArray = make([]bool, arrL)
+
+	lastByteStartIdx := bitsPerByte * (len(bv) - 1)
+	arrLen := lastByteStartIdx + msbi
+	// we use the pre-calculated array size to edit in place
+	var newArray = make([]bool, arrLen)
 
 	// use a bitmask to get the bit value from the byte for all bytes in the
 	// slice
-	// note: this reverses the order of the bits as highest bit is last
-	// we use the pre-calculated array size using msbi to only read whats
-	// relevant
-	for j := range len(bv) {
-		limit := bitsPerByte
-		if j == len(bv)-1 {
-			limit = msbi
+	// note: this reverses the order of the bits in a byte, as higher bits come
+	// later in the array
+	for j := range len(bv) - 1 {
+		for i := range bitsPerByte {
+			val := bv[j] & (1 << i)
+			newArray[(bitsPerByte*j)+i] = val > 0
 		}
-		for i := range limit {
-			val := ((bv[j] & (1 << i)) >> i)
-			newArray[(bitsPerByte*j)+i] = (val == 1)
-		}
+	}
+
+	lastByte := bv[len(bv)-1]
+	for i := range msbi {
+		val := lastByte & (1 << i)
+		newArray[lastByteStartIdx+i] = val > 0
 	}
 
 	return newArray

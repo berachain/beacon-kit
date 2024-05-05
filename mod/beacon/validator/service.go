@@ -27,10 +27,10 @@ package validator
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -120,14 +120,14 @@ func (s *Service) RequestBestBlock(
 	// and safe block hashes to the execution client.
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
+		return nil, nil, errors.Newf("failed to build reveal: %w", err)
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -137,7 +137,7 @@ func (s *Service) RequestBestBlock(
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to get validator by pubkey: %w",
 			err,
 		)
@@ -147,7 +147,7 @@ func (s *Service) RequestBestBlock(
 	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to compute state root: %w",
 			err,
 		)
@@ -181,7 +181,7 @@ func (s *Service) RequestBestBlock(
 		parentExecutionPayload.GetBlockHash(),
 	)
 	if err != nil {
-		return blk, nil, fmt.Errorf(
+		return blk, nil, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -215,21 +215,11 @@ func (s *Service) RequestBestBlock(
 		return nil, nil, ErrNilPayload
 	}
 
-	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s.logger.Info("finished assembling beacon block 🛟",
-		"slot", slot, "deposits", len(deposits))
-
-	// Assemble the block body.
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(&consensus.Eth1Data{
@@ -241,6 +231,20 @@ func (s *Service) RequestBestBlock(
 	// Set the reveal on the block body.
 	body.SetRandaoReveal(reveal)
 
+	// Set the execution data.
+	if err = body.SetExecutionData(payload); err != nil {
+		return nil, nil, err
+	}
+
+	// Build the sidecars for the block.
+	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	s.logger.Info("finished assembling beacon block 🛟",
+		"slot", slot, "deposits", len(deposits))
+
 	// Set the execution payload on the block body.
-	return blk, blobSidecars, body.SetExecutionData(payload)
+	return blk, blobSidecars, nil
 }

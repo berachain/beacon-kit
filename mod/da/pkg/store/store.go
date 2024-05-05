@@ -27,22 +27,22 @@ package store
 
 import (
 	"context"
-	"errors"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store[ReadOnlyBeaconBlockT any] struct {
+type Store[ReadOnlyBeaconBlockBodyT ReadOnlyBeaconBlockBody] struct {
 	IndexDB
 	chainSpec primitives.ChainSpec
 }
 
 // New creates a new instance of the AvailabilityStore.
-func New[ReadOnlyBeaconBlockT any](
+func New[ReadOnlyBeaconBlockT ReadOnlyBeaconBlockBody](
 	chainSpec primitives.ChainSpec,
 	db IndexDB,
 ) *Store[ReadOnlyBeaconBlockT] {
@@ -54,14 +54,18 @@ func New[ReadOnlyBeaconBlockT any](
 
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
-func (s *Store[ReadOnlyBeaconBlockT]) IsDataAvailable(
-	ctx context.Context,
+func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
+	_ context.Context,
 	slot math.Slot,
-	blk ReadOnlyBeaconBlockT,
+	body BeaconBlockBodyT,
 ) bool {
-	_ = ctx
-	_ = slot
-	_ = blk
+	for _, commitment := range body.GetBlobKzgCommitments() {
+		// Check if the block data is available in the IndexDB
+		blockData, err := s.IndexDB.Has(uint64(slot), commitment[:])
+		if err != nil || !blockData {
+			return false
+		}
+	}
 	return true
 }
 

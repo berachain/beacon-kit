@@ -23,24 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package jwt
+package errors
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	gjwt "github.com/golang-jwt/jwt/v5"
+	"github.com/cockroachdb/errors"
 )
 
-// BuildSignedJWT builds a signed JWT from the provided JWT secret.
-func BuildSignedJWT(s *jwt.Secret) (string, error) {
-	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
-		"iat": &gjwt.NumericDate{Time: time.Now()},
-	})
-	str, err := token.SignedString(s[:])
-	if err != nil {
-		return "", fmt.Errorf("failed to create JWT token: %w", err)
-	}
-	return str, nil
-}
+// TODO: eventually swap out via build flags if we believe there is value
+// to doing so.
+//
+//nolint:gochecknoglobals // used an alias.
+var (
+	New   = errors.New
+	Newf  = errors.Newf
+	Wrap  = errors.Wrap
+	Wrapf = errors.Wrapf
+	Is    = errors.Is
+	As    = errors.As
+	Join  = errors.Join
+)

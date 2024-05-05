@@ -26,6 +26,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -133,6 +134,125 @@ func TestMarshalUnmarshalBool(t *testing.T) {
 	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
 }
 
+func FuzzMarshalUnmarshalU256(f *testing.F) {
+	f.Fuzz(func(t *testing.T, byte1 byte, byte2 byte, byte3 byte, byte4 byte,
+		byte5 byte, byte6 byte, byte7 byte, byte8 byte, byte9 byte, byte10 byte,
+		byte11 byte, byte12 byte, byte13 byte, byte14 byte, byte15 byte,
+		byte16 byte, byte17 byte, byte18 byte, byte19 byte, byte20 byte,
+		byte21 byte, byte22 byte, byte23 byte, byte24 byte, byte25 byte,
+		byte26 byte, byte27 byte, byte28 byte, byte29 byte, byte30 byte,
+		byte31 byte, byte32 byte) {
+		original := [32]byte{
+			byte1,
+			byte2,
+			byte3,
+			byte4,
+			byte5,
+			byte6,
+			byte7,
+			byte8,
+			byte9,
+			byte10,
+			byte11,
+			byte12,
+			byte13,
+			byte14,
+			byte15,
+			byte16,
+			byte17,
+			byte18,
+			byte19,
+			byte20,
+			byte21,
+			byte22,
+			byte23,
+			byte24,
+			byte25,
+			byte26,
+			byte27,
+			byte28,
+			byte29,
+			byte30,
+			byte31,
+			byte32,
+		}
+
+		marshaled := ssz.MarshalU256(original)
+		unmarshaled := ssz.UnmarshalU256L[[32]byte](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U256 failed")
+	})
+}
+
+func FuzzMarshalUnmarshalU128(f *testing.F) {
+	f.Fuzz(func(t *testing.T, byte1 byte, byte2 byte, byte3 byte, byte4 byte,
+		byte5 byte, byte6 byte, byte7 byte, byte8 byte, byte9 byte,
+		byte10 byte, byte11 byte, byte12 byte, byte13 byte, byte14 byte,
+		byte15 byte, byte16 byte) {
+		original := [16]byte{
+			byte1,
+			byte2,
+			byte3,
+			byte4,
+			byte5,
+			byte6,
+			byte7,
+			byte8,
+			byte9,
+			byte10,
+			byte11,
+			byte12,
+			byte13,
+			byte14,
+			byte15,
+			byte16,
+		}
+
+		marshaled := ssz.MarshalU128(original)
+		unmarshaled := ssz.UnmarshalU128L[[16]byte](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U128L failed")
+	})
+}
+
+func FuzzMarshalUnmarshalU64(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original uint64) {
+		marshaled := ssz.MarshalU64(original)
+		unmarshaled := ssz.UnmarshalU64[uint64](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U64 failed")
+	})
+}
+
+func FuzzMarshalUnmarshalU32(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original uint32) {
+		marshaled := ssz.MarshalU32[uint32](original)
+		unmarshaled := ssz.UnmarshalU32[uint32](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U32 failed")
+	})
+}
+
+func FuzzMarshalUnmarshalU16(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original uint16) {
+		marshaled := ssz.MarshalU16[uint16](original)
+		unmarshaled := ssz.UnmarshalU16[uint16](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U16 failed")
+	})
+}
+
+func FuzzMarshalUnmarshalU8(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original uint8) {
+		marshaled := ssz.MarshalU8(original)
+		unmarshaled := ssz.UnmarshalU8[uint8](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U8 failed")
+	})
+}
+
+func FuzzMarshalUnmarshalBool(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original bool) {
+		marshaled := ssz.MarshalBool(original)
+		unmarshaled := ssz.UnmarshalBool[bool](marshaled)
+		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
+	})
+}
+
 func TestMarshalBitVector(t *testing.T) {
 	var tests = []struct {
 		name   string
@@ -191,12 +311,96 @@ func TestMarshalBitList(t *testing.T) {
 	if !reflect.DeepEqual(output, expectedOutput) {
 		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
 	}
+
+	// TODO: test multiple bytes
+}
+
+func TestMostSignificantBitIndex(t *testing.T) {
+	var tests = []struct {
+		name     string
+		original byte
+		result   int
+	}{
+		{"0", byte('\x00'), -1},
+		{"1", byte('\x01'), 0},
+		{"2", byte('\x02'), 1},
+		{"4", byte('\x04'), 2},
+		{"8", byte('\x08'), 3},
+		{"16", byte('\x10'), 4},
+		{"32", byte('\x20'), 5},
+		{"64", byte('\x40'), 6},
+		{"128", byte('\x80'), 7},
+		{"255", byte('\xFF'), 7},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ssz.MostSignificantBitIndex(tt.original)
+			require.Equal(t, tt.result, result)
+		})
+	}
+}
+
+func FuzzMostSignificantBitIndex(f *testing.F) {
+	f.Fuzz(func(t *testing.T, original byte) {
+		result := ssz.MostSignificantBitIndex(original)
+
+		// Basic bounds checking
+		require.GreaterOrEqual(t, result, -1)
+		require.LessOrEqual(t, result, 7)
+
+		// Check each index edge for violations of spec
+		switch {
+		case int(original) == 0:
+			require.Equal(t, -1, result)
+		case int(original) < 2:
+			require.Equal(t, 0, result)
+		case int(original) < 4:
+			require.Equal(t, 1, result)
+		case int(original) < 8:
+			require.Equal(t, 2, result)
+		case int(original) < 16:
+			require.Equal(t, 3, result)
+		case int(original) < 32:
+			require.Equal(t, 4, result)
+		case int(original) < 64:
+			require.Equal(t, 5, result)
+		case int(original) < 128:
+			require.Equal(t, 6, result)
+		default:
+			require.Equal(t, 7, result)
+		}
+	})
+}
+
+func BenchmarkMostSignificantBitIndex(b *testing.B) {
+	var table = []struct {
+		input byte
+	}{
+		{input: 0},
+		{input: 1},
+		{input: 2},
+		{input: 4},
+		{input: 8},
+		{input: 16},
+		{input: 32},
+		{input: 64},
+		{input: 128},
+		{input: 255},
+	}
+
+	for _, v := range table {
+		b.Run(fmt.Sprintf("input_size_%d", v.input), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ssz.MostSignificantBitIndex(v.input)
+			}
+		})
+	}
 }
 
 func TestUnmarshalBitList(t *testing.T) {
 	// Test case 1: Empty input
-	bv := []byte{}
-	expected := []bool{}
+	var bv []byte
+	var expected []bool
 	actual := ssz.UnmarshalBitList(bv)
 	if !reflect.DeepEqual(len(actual), len(expected)) {
 		t.Errorf(
@@ -256,4 +460,6 @@ func TestUnmarshalBitList(t *testing.T) {
 			output,
 		)
 	}
+
+	// TODO: test multiple bytes
 }

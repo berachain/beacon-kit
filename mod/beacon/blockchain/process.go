@@ -79,28 +79,6 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// Then we notify the engine of the new payload.
-	body := blk.GetBody()
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = s.ee.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
-			body.GetExecutionPayload(),
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			false,
-			// Since this is called during FinalizeBlock, we want to assume
-			// the payload is valid, if it ends up not being valid later the
-			// node will simply AppHash which is completely fine, since this
-			// means we were syncing from a bad peer, and we would likely
-			// AppHash anyways.
-			true,
-		),
-	); err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
-		return err
-	}
-
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
 	g.Go(func() error {
@@ -111,12 +89,43 @@ func (s *Service) ProcessBeaconBlock(
 		)
 	})
 
+	body := blk.GetBody()
+
+	// We can also parallelize the call to the execution layer.
 	g.Go(func() error {
+		// Then we notify the engine of the new payload.
+		parentBeaconBlockRoot := blk.GetParentBlockRoot()
+		if err = s.ee.VerifyAndNotifyNewPayload(
+			ctx, engineprimitives.BuildNewPayloadRequest(
+				body.GetExecutionPayload(),
+				body.GetBlobKzgCommitments().ToVersionedHashes(),
+				&parentBeaconBlockRoot,
+				false,
+				// Since this is called during FinalizeBlock, we want to assume
+				// the payload is valid, if it ends up not being valid later the
+				// node will simply AppHash which is completely fine, since this
+				// means we were syncing from a bad peer, and we would likely
+				// AppHash anyways.
+				true,
+			),
+		); err != nil {
+			s.Logger().
+				Error("failed to notify engine of new payload", "error", err)
+			return err
+		}
+
+		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
 			st,
 			blk,
 		)
 	})
+
+	// We ask for the slot before waiting as a minor optimization.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
 
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	// of the goroutines returned an error.
@@ -125,21 +134,15 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// TODO: Validate the data availability as well as check for the
-	// minimum DA required time.
-	// daStartTime := time.Now()
-	// if avs != nil {
-	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability
-	// (AvailabilityStore.IsDataAvailable)")
-	// 	}
-	// } else {
-	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability")
-	// 	}
-	// }
+	// If the blobs needed to process the block are not available, we
+	// return an error.
+	if !avs.IsDataAvailable(ctx, slot, body) {
+		return ErrDataNotAvailable
+	}
 
-	// Prune deposits
+	// Prune deposits.
+	// TODO: This should be moved into a go-routine in the background.
+	// Watching for logs should be completely decoupled as well.
 	if err = s.sks.PruneDepositEvents(st); err != nil {
 		s.Logger().Error("failed to prune deposit events", "error", err)
 		return err

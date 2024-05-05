@@ -25,7 +25,7 @@
 
 package validator
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrForkVersionNotSupported is an error for when the fork

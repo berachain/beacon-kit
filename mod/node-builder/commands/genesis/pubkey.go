@@ -31,9 +31,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cockroachdb/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -106,7 +106,7 @@ func AddPubkeyCmd() *cobra.Command {
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "gentx")
 	if err := os.MkdirAll(writePath, 0o700); err != nil {
-		return "", fmt.Errorf(
+		return "", errors.Newf(
 			"could not create directory %q: %w",
 			writePath,
 			err,

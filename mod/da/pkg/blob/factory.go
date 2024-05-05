@@ -76,8 +76,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
 				return err
 			}
 			sidecars[i] = types.BuildBlobSidecar(
-				i,
-				blk.GetHeader(),
+				i, blk.GetHeader(),
 				blobs[i],
 				commitments[i],
 				proofs[i],
@@ -121,6 +120,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 	if err != nil {
 		return nil, err
 	}
+
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
 	](membersRoots, consensus.BodyLengthDeneb-1)

@@ -25,7 +25,7 @@
 
 package deposit
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidPubKeyLength is returned when the public key is invalid.
