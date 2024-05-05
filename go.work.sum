@@ -602,14 +602,12 @@ github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2/go.mod h1:8BT+cPK6xvFOcRlk
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd h1:qMd81Ts1T2OTKmB4acZcyKaMtRnY5Y44NuXGX2GFJ1w=
 github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 h1:sDMmm+q/3+BukdIpxwO365v/Rbspp2Nt5XntgQRXq8Q=
 github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0/go.mod h1:4Zcjuz89kmFXt9morQgcfYZAYZ5n8WHjt81YYWIwtTM=
-github.com/cometbft/cometbft v1.0.0-alpha.2/go.mod h1:ZzknWiXz6T2vLVByMmDun4J8MG3fdWNSNpQGVzbedTc=
 github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240417065730-32803329c3e5/go.mod h1:H8KRRTpWUy1LpOhnTmcu4HRg/y3kfUJ3N3JiMinOqKQ=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240429102542-490e9bc3de65 h1:vNrFdj8MmdHmZPovE1bZcOpY8VNK2fy3O3bjgkvGA8A=
 github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240429102542-490e9bc3de65/go.mod h1:FH1mC3P645pmV3TcHly2xc/2QnKOztRVS7QI77L8Pkk=
 github.com/cometbft/cometbft-load-test v0.1.0 h1:Axw5oVXlQqZLVUHVxmULSfEtpEuaUMmoeM560hvBAmw=
 github.com/cometbft/cometbft-load-test v0.1.0/go.mod h1:QEXKZ2L5SH1gEw6DRSKYpd3nDCWrzIejaHxwYdgKtkc=
 github.com/cometbft/cometbft/api v1.0.0-alpha.2/go.mod h1:H52lgJKkSPeVpTcKr9a4nrSpyr6s1B352SWa6ajNHv0=
-github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240429102542-490e9bc3de65 h1:Bj+DkG59qYZE54uWBKXsNtiug1u6M4x8Tk3l5tAb/3I=
+github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240417065730-32803329c3e5/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240429102542-490e9bc3de65/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/containerd/console v1.0.3 h1:lIr7SlA5PxZyMV30bDW0MGbiOPXwc63yRuCP0ARubLw=
 github.com/containerd/console v1.0.3/go.mod h1:7LqA/THxQ86k76b8c/EMSiaJ3h1eZkMkXar0TQ1gf3U=
