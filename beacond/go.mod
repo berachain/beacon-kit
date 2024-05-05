@@ -7,7 +7,6 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240430124302-da3344ee43ea
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240430124302-da3344ee43ea
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240430124302-da3344ee43ea
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240430124302-da3344ee43ea
 
 	// Required because private repo, TODO: fix.
@@ -43,7 +42,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/spf13/cast v1.6.0
-	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002
+	google.golang.org/protobuf v1.34.0
 )
 
 require (
@@ -57,7 +56,8 @@ require (
 	cosmossdk.io/tools/confix v0.1.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91 // indirect
-	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a // indirect
+	cosmossdk.io/x/gov v0.0.0-20240504202441-b795646c9b2a // indirect
+	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 // indirect
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -131,6 +131,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/glog v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/btree v1.1.2 // indirect
