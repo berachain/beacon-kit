@@ -10,9 +10,9 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240430124302-da3344ee43ea
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240430124302-da3344ee43ea
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240430124302-da3344ee43ea
-	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 
 	// Required because private repo, TODO: fix.
+	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 	github.com/berachain/beacon-kit/mod/core => ../mod/core
 	github.com/berachain/beacon-kit/mod/da => ../mod/da
 	github.com/berachain/beacon-kit/mod/errors => ../mod/errors
@@ -24,8 +24,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240430211607-c6703180ab17
-
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240505014408-26272451249f
 )
 
 require (
@@ -45,7 +44,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/spf13/cast v1.6.0
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002
 )
 
 require (
@@ -235,7 +234,7 @@ require (
 	golang.org/x/term v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
-	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
+	google.golang.org/genproto v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
