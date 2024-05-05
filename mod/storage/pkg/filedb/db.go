@@ -26,16 +26,12 @@
 package filedb
 
 import (
-	"bytes"
-	"fmt"
-	"math"
-	"os"
-	"path/filepath"
-	"strconv"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/spf13/afero"
+	"math"
+	"os"
+	"path/filepath"
 )
 
 // DB represents a filesystem backed key-value store.
@@ -69,8 +65,7 @@ func NewDB(opts ...Option) *DB {
 
 // Get retrieves the value for a key.
 func (db *DB) Get(key []byte) ([]byte, error) {
-	fmt.Println("db.GetHighestSlot", db.GetHighestSlot())
-	fmt.Println("db.GetLowestSlot", db.GetLowestSlot())
+	db.logger.Info("db.GetHighestSlot: ", db.GetHighestSlot(), "db.GetLowestSlot :", db.GetLowestSlot())
 	return afero.ReadFile(db.fs, db.pathForKey(key))
 }
 
@@ -81,25 +76,6 @@ func (db *DB) Has(key []byte) (bool, error) {
 		return false, err
 	}
 	return exists, nil
-}
-
-// extractIndexFromKey extracts the index from a key.
-func (db *DB) extractIndexFromKey(key []byte) (uint64, error) {
-	// Split the key into index and key parts.
-	parts := bytes.SplitN(key, []byte("/"), 2)
-	fmt.Println("parts", parts)
-	if len(parts) < 2 {
-		return 0, errors.New("invalid key format")
-	}
-
-	// Convert the index part to a slot number.
-	index, err := strconv.ParseUint(string(parts[0]), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	fmt.Println("index", index)
-	return index, nil
 }
 
 // Set stores the value for a key.
@@ -128,7 +104,10 @@ func (db *DB) Set(key []byte, value []byte) error {
 	}
 	db.logger.Debug("wrote %d bytes to %s", n, db.pathForKey(key))
 
-	db.processKey(key)
+	_, err = db.processKey(key)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -146,16 +125,14 @@ func (db *DB) pathForKey(key []byte) string {
 // processKey processes the key by extracting the index and updating the slot.
 func (db *DB) processKey(key []byte) (uint64, error) {
 	// Extract the index from the key.
-	index, err := db.extractIndexFromKey(key)
-	fmt.Println("index", index)
-	fmt.Println("err", err)
+	extractIndex, err := ExtractIndex(key)
 	if err != nil {
 		return 0, err
 	}
 	// Update the highest and lowest slot numbers.
-	db.UpdateSlot(index)
+	db.UpdateSlot(extractIndex)
 
-	return index, nil
+	return extractIndex, nil
 }
 
 // GetHighestSlot retrieves the highest slot number that exists in the database.

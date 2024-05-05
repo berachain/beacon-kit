@@ -95,6 +95,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	if !ok {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
+
 	fmt.Println("Deleting range from ", from, " to ", to)
 	for ; from < to; from++ {
 		if err := f.fs.RemoveAll(fmt.Sprintf("%d/", from)); err != nil {
