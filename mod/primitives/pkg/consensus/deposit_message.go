@@ -103,7 +103,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	if err := signatureVerificationFn(
+	if err = signatureVerificationFn(
 		d.Pubkey[:],
 		signingRoot[:],
 		signature[:],

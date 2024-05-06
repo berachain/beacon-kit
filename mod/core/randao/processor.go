@@ -90,7 +90,7 @@ func (p *Processor) ProcessRandao(
 	}
 
 	reveal := blk.GetBody().GetRandaoReveal()
-	if err := p.signer.VerifySignature(
+	if err = p.signer.VerifySignature(
 		proposer.Pubkey[:],
 		signingRoot[:],
 		reveal[:],

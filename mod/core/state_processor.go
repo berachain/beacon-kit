@@ -61,6 +61,7 @@ func NewStateProcessor[SidecarsT interface{ Len() int }](
 		cs:     cs,
 		bv:     bv,
 		rp:     rp,
+		signer: signer,
 		logger: logger,
 	}
 }
