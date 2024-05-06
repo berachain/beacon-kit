@@ -50,6 +50,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 	}
 }
 
+// Publish takes a BeaconBlock and returns the ssz marshalled data.
 func (n NoopBlockGossipHandler[ReqT]) Publish(
 	_ context.Context,
 	data consensus.BeaconBlock,
