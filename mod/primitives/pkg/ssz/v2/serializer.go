@@ -163,7 +163,6 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// bellatrix.ssz.go for these.
 		if isBasicType(typ.Elem().Kind()) {
 			return s.MarshalNDimensionalArray(val)
-
 		}
 		if IsNDimensionalSliceLike(typ) {
 			return s.MarshalNDimensionalArray(val)
