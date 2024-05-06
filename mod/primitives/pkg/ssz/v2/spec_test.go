@@ -51,111 +51,126 @@ func runBench(b *testing.B, cb func()) {
 	}
 }
 
-func TestParityUint64(t *testing.T) {
+func getCheckPt() (*sszv2.BeaconStateBellatrix, error) {
+	// A checkpt is the simplest field
 	data, err := os.ReadFile(TestFileName)
-	require.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	sszState := sszv2.BeaconStateBellatrix{}
 	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(t, err2)
+	if err2 != nil {
+		return nil, err2
+	}
+	return &sszState, nil
+}
 
-	object := sszState.LatestBlockHeader
-	slot := object.Slot
+func getU64(bb *sszv2.BeaconStateBellatrix) uint64 {
+	return bb.PreviousJustifiedCheckpoint.Epoch
+}
+
+func getByteArray32(bb *sszv2.BeaconStateBellatrix) []byte {
+	return bb.PreviousJustifiedCheckpoint.Root
+}
+
+func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
+	res, err := bb.PreviousJustifiedCheckpoint.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	// type Checkpoint struct {
+	// 	Epoch uint64 `json:"epoch"`
+	// 	Root  []byte `json:"root" ssz-size:"32"`
+	// }
+	// We grab the buf section from the serialized by fastSSZ buffer
+	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32
+
+	return res[8:], nil
+}
+
+func TestParityUint64(t *testing.T) {
+	sszState, err := getCheckPt()
+	require.NoError(t, err)
+
+	testU64 := getU64(sszState)
 
 	s := sszv2.NewSerializer()
-	o2, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
+	o2, err3 := s.MarshalSSZ(testU64)
 	require.NoError(t, err3)
 	debugPrint(debug, "Local Serializer output:", o2, err)
 
 	res := make([]byte, 0)
-	res = ssz.MarshalUint64(res, slot)
+	res = ssz.MarshalUint64(res, testU64)
 	debugPrint(debug, "FastSSZ Output:", res)
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
 }
 
 func BenchmarkNativeUint64(b *testing.B) {
-	data, err := os.ReadFile(TestFileName)
+	sszState, err := getCheckPt()
 	require.NoError(b, err)
 
-	sszState := sszv2.BeaconStateBellatrix{}
-	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(b, err2)
+	testU64 := getU64(sszState)
 
 	s := sszv2.NewSerializer()
 	runBench(b, func() {
-		o2, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.Slot)
+		o2, err3 := s.MarshalSSZ(testU64)
 		require.NoError(b, err3)
 		debugPrint(false, "Local Serializer output:", o2, err3)
 	})
 }
 
 func BenchmarkFastSSZUint64(b *testing.B) {
-	data, err := os.ReadFile(TestFileName)
+	sszState, err := getCheckPt()
 	require.NoError(b, err)
 
-	sszState := sszv2.BeaconStateBellatrix{}
-	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(b, err2)
+	testU64 := getU64(sszState)
 
 	runBench(b, func() {
 		res := make([]byte, 0)
-		res = ssz.MarshalUint64(res, sszState.LatestBlockHeader.Slot)
+		res = ssz.MarshalUint64(res, testU64)
 		debugPrint(false, "FastSSZ Output:", res)
 	})
 }
 
 func TestParityByteArray(t *testing.T) {
-	data, err := os.ReadFile(TestFileName)
+	sszState, err := getCheckPt()
 	require.NoError(t, err)
-
-	sszState := sszv2.BeaconStateBellatrix{}
-	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(t, err2)
-
+	testByteArr := getByteArray32(sszState)
 	s := sszv2.NewSerializer()
-	exp, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+
+	exp, err3 := s.MarshalSSZ(testByteArr)
 	require.NoError(t, err3)
 	debugPrint(debug, "Local Serializer output:", exp, err)
 
-	res, err4 := sszState.LatestBlockHeader.MarshalSSZ()
+	res, err4 := getByteArray32Serialized(sszState)
 	require.NoError(t, err4)
-	prInRes := res[16:48]
+	debugPrint(debug, "FastSSZ Output:", res)
 
-	debugPrint(debug, "FastSSZ Output:", prInRes)
-	require.Equal(t, exp, prInRes, "local output and fastssz output doesnt match")
+	require.Equal(t, exp, res, "local output and fastssz output doesnt match")
 }
 
 func BenchmarkNativeByteArray(b *testing.B) {
-	data, err := os.ReadFile(TestFileName)
+	sszState, err := getCheckPt()
 	require.NoError(b, err)
-
-	sszState := sszv2.BeaconStateBellatrix{}
-	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(b, err2)
-
+	testByteArr := getByteArray32(sszState)
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
 		// Native impl
-		exp, err3 := s.MarshalSSZ(sszState.LatestBlockHeader.ParentRoot)
+		exp, err3 := s.MarshalSSZ(testByteArr)
 		debugPrint(debug, "Local Serializer output:", exp, err3)
 	})
 }
 
 func BenchmarkFastSSZByteArray(b *testing.B) {
-	debug = false
-	data, err := os.ReadFile(TestFileName)
+	sszState, err := getCheckPt()
 	require.NoError(b, err)
 
-	sszState := sszv2.BeaconStateBellatrix{}
-	err2 := sszState.UnmarshalSSZ(data)
-	require.NoError(b, err2)
-
 	runBench(b, func() {
-		res, err3 := sszState.LatestBlockHeader.MarshalSSZ()
+		res, err3 := getByteArray32Serialized(sszState)
 		require.NoError(b, err3)
-		prInRes := res[16:48]
-		debugPrint(debug, "FastSSZ Output:", prInRes)
+		debugPrint(debug, "FastSSZ Output:", res)
 	})
 }
 
