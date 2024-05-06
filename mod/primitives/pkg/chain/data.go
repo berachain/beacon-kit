@@ -34,7 +34,9 @@ type SpecData[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] struct {
-	ChainID   uint64 `mapstructure:"chain-id"`
+	// ChainID is the chain ID.
+	ChainID uint64 `mapstructure:"chain-id"`
+	// NetworkID is the network ID.
 	NetworkID uint64 `mapstructure:"network-id"`
 	// Gwei value constants.
 	//

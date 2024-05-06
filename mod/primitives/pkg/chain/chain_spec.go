@@ -153,9 +153,7 @@ type chainSpec[
 	SlotT ~uint64,
 ] struct {
 	// Data contains the actual chain-specific parameter values.
-	Data          SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
-	Eth1ChainID   uint64
-	Eth1NetworkID uint64
+	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
@@ -166,15 +164,13 @@ func NewChainSpec[
 	SlotT ~uint64,
 ](data SpecData[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-], eth1ChainID uint64, networkID uint64) Spec[
+]) Spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ] {
 	return &chainSpec[
 		DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 	]{
-		Data:          data,
-		Eth1ChainID:   eth1ChainID,
-		Eth1NetworkID: networkID,
+		Data: data,
 	}
 }
 

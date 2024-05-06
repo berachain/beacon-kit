@@ -41,12 +41,14 @@ func LocalnetChainSpec() chain.Spec[
 ] {
 	//nolint:mnd // default config.
 
-	specData := chain.SpecData[
+	return chain.NewChainSpec(chain.SpecData[
 		primitives.Bytes4,
 		math.Epoch,
 		common.ExecutionAddress,
 		math.Slot,
 	]{
+		ChainID:   uint64(80087),
+		NetworkID: uint64(80087),
 		// // Gwei value constants.
 		MinDepositAmount:          uint64(1e9),
 		MaxEffectiveBalance:       uint64(32e9),
@@ -105,10 +107,6 @@ func LocalnetChainSpec() chain.Spec[
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
 		KZGCommitmentInclusionProofDepth: 17,
-	}
+	})
 
-	chainID := uint64(80087)
-	networkID := uint64(80087)
-
-	return chain.NewChainSpec(specData, chainID, networkID)
 }
