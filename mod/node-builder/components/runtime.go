@@ -171,6 +171,7 @@ func ProvideRuntime(
 				chainSpec,
 				dablob.NewVerifier(blobProofVerifier),
 				randaoProcessor,
+				signer,
 				logger.With("module", "state-processor"),
 			)),
 	)

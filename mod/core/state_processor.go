@@ -33,10 +33,10 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -45,6 +45,7 @@ type StateProcessor[SidecarsT interface{ Len() int }] struct {
 	cs     primitives.ChainSpec
 	bv     BlobVerifier[SidecarsT]
 	rp     RandaoProcessor
+	signer crypto.BLSSigner
 	logger log.Logger[any]
 }
 
@@ -53,6 +54,7 @@ func NewStateProcessor[SidecarsT interface{ Len() int }](
 	cs primitives.ChainSpec,
 	bv BlobVerifier[SidecarsT],
 	rp RandaoProcessor,
+	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[SidecarsT] {
 	return &StateProcessor[SidecarsT]{
@@ -407,7 +409,7 @@ func (sp *StateProcessor[SidecarsT]) createValidator(
 		Amount:      dep.Amount,
 	}
 	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.Signature, blst.VerifySignaturePubkeyBytes, sp.cs.DomainTypeDeposit(),
+		fd, dep.Signature, sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
 	); err != nil {
 		return err
 	}
