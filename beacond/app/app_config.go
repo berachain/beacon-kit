@@ -34,12 +34,12 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
+	_ "cosmossdk.io/x/consensus"      // import for side-effects
+	consensustypes "cosmossdk.io/x/consensus/types"
 	"github.com/berachain/beacon-kit/beacond/x/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	_ "github.com/cosmos/cosmos-sdk/x/consensus" // import for side-effects
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 )
 
 const AppName = "BeaconKitApp"
