@@ -43,4 +43,7 @@ var (
 	// ErrNilABCIRequest is an error for when the abci request
 	// is nil.
 	ErrNilABCIRequest = errors.New("nil abci request")
+
+	// ErrInvalidType is an error for when the type is invalid.
+	ErrInvalidType = errors.New("invalid type")
 )

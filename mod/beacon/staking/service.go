@@ -70,7 +70,7 @@ func NewService(
 
 // Name returns the name of the service.
 func (s *Service) Name() string {
-	return "blockchain"
+	return "staking"
 }
 
 func (s *Service) Start(context.Context) {}

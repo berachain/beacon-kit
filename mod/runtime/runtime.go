@@ -31,12 +31,14 @@ import (
 	"cosmossdk.io/log"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
+	BlobSidecarsT ssz.Serializable,
 	DepositStoreT DepositStore,
 ] struct {
 	logger   log.Logger

@@ -26,6 +26,7 @@
 package abci
 
 import (
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
@@ -52,7 +53,8 @@ func (h *Handler) FinalizeBlock(
 		return err
 	}
 
-	blobSideCars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(
+	blobSideCars, err := encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[*datypes.BlobSidecars](
 		req,
 		BlobSidecarsTxIndex,
 	)
