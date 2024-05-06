@@ -23,17 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:ineffassign // experimental
-//nolint:wastedassign // experimental
-//nolint:mnd // experimental
-//nolint:gocognit // experimental
-//nolint:godot // experimental
-//nolint:lll // experimental
+//nolint:ineffassign,wastedassign,mnd // experimental
 package ssz
 
 import (
 	"encoding/binary"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -107,8 +101,7 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 	}
 }
 
-func IsUintLike(typ reflect.Type) bool {
-	kind := typ.Kind()
+func IsUintLike(kind reflect.Kind) bool {
 	isUintLike := false
 
 	switch kind {
@@ -142,12 +135,10 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	typ := reflect.TypeOf(c)
 	val := reflect.ValueOf(c)
 	k := typ.Kind()
-	isUintLike := IsUintLike(typ)
 
-	if isUintLike {
-		return RouteUint(val, typ), nil
-	}
 	switch {
+	case IsUintLike(k):
+		return RouteUint(val, typ), nil
 	case k == reflect.Bool:
 		return ssz.MarshalBool(c.(bool)), nil
 	// 1 dimensional array of uint8s or bytearray []byte
@@ -157,7 +148,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
 	// N dimensional arrays/slices
 	case (k == reflect.Slice || k == reflect.Array) && (typ.Elem().Kind() == reflect.Slice || typ.Elem().Kind() == reflect.Array):
-		return s.MarshalNDimensionalArray(val, typ)
+		return s.MarshalNDimensionalArray(val)
 	case k == reflect.Slice && isVariableSizeType(typ.Elem()):
 		// Composite slice
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
@@ -183,7 +174,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		return make(
 				[]byte,
 				0,
-			), fmt.Errorf(
+			), errors.Newf(
 				"type %v is not serializable",
 				val.Type(),
 			)
@@ -209,8 +200,7 @@ func (s *Serializer) Marshal(
 		size = determineFixedSize(val, typ)
 	}
 	offset := startOffset + size
-	// nolint:wastedassign // the underlying passed in input buffer is read so
-	// its not a wasted assign at all
+	//nolint:wastedassign // the underlying passed in input buffer is read
 	input = append(input[startOffset:], marshalled...)
 	return offset, err
 }
@@ -231,15 +221,14 @@ func (s *Serializer) MarshalToDefaultBuffer(
 
 func (s *Serializer) MarshalNDimensionalArray(
 	val reflect.Value,
-	typ reflect.Type,
 ) ([]byte, error) {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("input is not an array or slice")
+		return nil, errors.New("input is not an array or slice")
 	}
 
 	dimensionality := s.GetArrayDimensionality(val)
 	if dimensionality == 0 {
-		return nil, fmt.Errorf("zero-dimensional array provided")
+		return nil, errors.New("zero-dimensional array provided")
 	}
 
 	// Calculate the total number of elements across all dimensions
@@ -259,7 +248,7 @@ func (s *Serializer) MarshalNDimensionalArray(
 	serializeRecursive = func(currentVal reflect.Value) error {
 		if currentVal.Kind() == reflect.Array ||
 			currentVal.Kind() == reflect.Slice {
-			for i := 0; i < currentVal.Len(); i++ {
+			for i := range currentVal.Len() {
 				if err := serializeRecursive(currentVal.Index(i)); err != nil {
 					return err
 				}
@@ -280,7 +269,11 @@ func (s *Serializer) MarshalNDimensionalArray(
 		return nil, err
 	}
 
-	return buffer, nil
+	if len(buffer) > 0 {
+		return buffer, nil
+	} else {
+		return nil, errors.Newf("got empty buffer in MarshalNDimensionalArray")
+	}
 }
 
 // Recursive function to calculate the length of an N-dimensional array
@@ -312,8 +305,8 @@ func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
 	var buf []byte
 	d := s.GetArrayDimensionality(val)
 	if d > 3 {
-		return nil, fmt.Errorf(
-			"Arrays with >3 dimensions not yet supported. Found %v dimensions",
+		return nil, errors.Newf(
+			"arrays with >3 dimensions not yet supported. Found %v dimensions",
 			d,
 		)
 	}
@@ -378,7 +371,7 @@ func (s *Serializer) MarshalByteArray(
 
 func (s *Serializer) UnmarshalByteArray(
 	val reflect.Value,
-	typ reflect.Type,
+	_ reflect.Type,
 	input []byte,
 	startOffset uint64,
 ) (uint64, error) {
@@ -394,8 +387,8 @@ func (s *Serializer) MarshalComposite(
 	startOffset uint64,
 ) (uint64, error) {
 	index := startOffset
-	//nolint:ineffassign // its fine. we reuse the err
-	err := fmt.Errorf("failed to MarshalComposite from %v of typ %v", val, typ)
+	//nolint:ineffassign,wastedassign // its fine. we reuse the err
+	err := errors.Newf("failed to MarshalComposite from %v of typ %v", val, typ)
 	if val.Len() == 0 {
 		return index, nil
 	}
@@ -414,6 +407,7 @@ func (s *Serializer) MarshalComposite(
 	fixedIndex := index
 	//#nosec:G701 // int overflow should be caught earlier in the stack
 	currentOffsetIndex := startOffset + uint64(val.Len())*BytesPerLengthOffset
+	//nolint:wastedassign // the underlying passed in input buffer is read
 	nextOffsetIndex := currentOffsetIndex
 	// If the elements are variable size, we need to include offset indices
 	// in the serialized output list.
@@ -482,7 +476,9 @@ func (s *Serializer) MarshalStruct(
 			}
 		}
 	}
+	//nolint:wastedassign // the underlying passed in input buffer is read
 	currentOffsetIndex := startOffset + fixedLength
+	//nolint:wastedassign // the underlying passed in input buffer is read
 	nextOffsetIndex := currentOffsetIndex
 	for i := range typ.NumField() {
 		// We skip protobuf related metadata fields.
