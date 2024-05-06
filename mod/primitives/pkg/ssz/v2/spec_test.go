@@ -217,9 +217,7 @@ func BenchmarkNativeByteArrayLarge(b *testing.B) {
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
-		exp, err3 := s.MarshalSSZ(sszState.StateRoots)
-		require.NoError(b, err3)
-		debugPrint(debug, b, "Local Serializer output:", exp, err)
+		s.MarshalSSZ(sszState.StateRoots)
 	})
 }
 
