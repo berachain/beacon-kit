@@ -172,9 +172,7 @@ func BenchmarkFastSSZByteArray(b *testing.B) {
 	require.NoError(b, err)
 
 	runBench(b, func() {
-		res, err3 := getByteArray32Serialized(sszState)
-		require.NoError(b, err3)
-		debugPrint(debug, b, "FastSSZ Output:", res)
+		sszState.PreviousJustifiedCheckpoint.MarshalSSZ()
 	})
 }
 
