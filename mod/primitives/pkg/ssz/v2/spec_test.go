@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 //
-//nolint:nilaway // do not check for nil returns in a test file.
+//nolint:errcheck // do not check for err returns
 package ssz_test
 
 import (
