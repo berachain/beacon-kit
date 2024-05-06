@@ -27,6 +27,7 @@ package p2p
 
 import (
 	"context"
+	"reflect"
 
 	ssz "github.com/ferranbt/fastssz"
 )
@@ -50,7 +51,12 @@ func (n NoopGossipHandler[DataT, BytesT]) Publish(
 func (n NoopGossipHandler[DataT, BytesT]) Request(
 	_ context.Context,
 	ref BytesT,
-	out DataT,
-) error {
-	return out.UnmarshalSSZ(ref)
+) (DataT, error) {
+	var out DataT
+	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
+		newInstance := reflect.New(reflect.TypeOf(out).Elem())
+		out = newInstance.Interface().(DataT)
+	}
+	err := out.UnmarshalSSZ(ref)
+	return out, err
 }

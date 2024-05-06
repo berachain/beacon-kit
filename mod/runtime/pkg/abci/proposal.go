@@ -48,7 +48,7 @@ type Handler struct {
 	builderService BuilderService
 	chainService   BlockchainService
 
-	// TODO: we will eventually gossipt the blobs separately from
+	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper        p2p.Publisher[*datypes.BlobSidecars, []byte]
 	beaconBlockGossiper p2p.PublisherReceiver[
