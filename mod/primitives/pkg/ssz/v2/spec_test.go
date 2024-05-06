@@ -25,7 +25,6 @@
 package ssz_test
 
 import (
-	// "fmt"
 	"os"
 	"testing"
 
@@ -34,7 +33,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const TestFileName = "fixtures/beacon_state_bellatrix.ssz" // https://goerli.beaconcha.in/slot/4744352
+// https://goerli.beaconcha.in/slot/4744352
+// Test fixture from fastssz
+const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
+
 //nolint:gochecknoglobals // test debug print toggle
 var debug = false
 
@@ -88,6 +90,7 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	// 	Root  []byte `json:"root" ssz-size:"32"`
 	// }
 	// We grab the buf section from the serialized by fastSSZ buffer
+	// See bellatrix.ssz.go for buffer read done by fastssz codegen
 	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32
 
 	return res[8:], nil
