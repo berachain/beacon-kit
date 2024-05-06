@@ -109,6 +109,6 @@ jobs:
           # TODO: Re-introduce linux/arm64 later.
           platforms: linux/amd64
           push: true
-          tags: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:latest
+          tags: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:${{ github.ref_name }}
           build-args: |
             TAG=${{ github.ref_name }}

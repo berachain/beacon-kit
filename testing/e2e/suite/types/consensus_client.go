@@ -49,7 +49,7 @@ func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 		panic("Couldn't find the public port for the JSON-RPC WebSocket")
 	}
 	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
-	client, err := httpclient.New(clientURL, "/websocket")
+	client, err := httpclient.New(clientURL)
 	if err != nil {
 		panic(err)
 	}

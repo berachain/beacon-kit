@@ -23,61 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package p2p
 
 import (
 	"context"
-	"math/big"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
 
-// HeaderByNumber retrieves the block header by its number.
-func (s *EngineClient) HeaderByNumber(
-	ctx context.Context,
-	number *big.Int,
-) (*engineprimitives.Header, error) {
-	// Infer the latest height if the number is nil.
-	if number == nil {
-		latest, err := s.BlockNumber(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		number = new(big.Int).SetUint64(latest)
-	}
-
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
-	if ok {
-		return header, nil
-	}
-
-	header, err := s.Client.HeaderByNumber(ctx, number)
-	if err != nil {
-		return nil, err
-	}
-
-	defer s.engineCache.AddHeader(header)
-
-	return header, nil
+// NoopGossipHandler is a gossip handler that simply returns the
+// ssz marshalled data as a "reference" to the object it receives.
+type NoopBlockGossipHandler[ReqT encoding.ABCIRequest] struct {
+	NoopGossipHandler[consensus.BeaconBlock, []byte]
+	chainSpec common.ChainSpec
 }
 
-// HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient) HeaderByHash(
-	ctx context.Context,
-	hash common.ExecutionHash,
-) (*engineprimitives.Header, error) {
-	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByHash(hash)
-	if ok {
-		return header, nil
+func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
+	chainSpec common.ChainSpec,
+) NoopBlockGossipHandler[ReqT] {
+	return NoopBlockGossipHandler[ReqT]{
+		NoopGossipHandler: NoopGossipHandler[consensus.BeaconBlock, []byte]{},
+		chainSpec:         chainSpec,
 	}
-	header, err := s.Client.HeaderByHash(ctx, hash)
-	if err != nil {
-		return nil, err
-	}
-	s.engineCache.AddHeader(header)
-	return header, nil
+}
+
+// Publish takes a BeaconBlock and returns the ssz marshalled data.
+func (n NoopBlockGossipHandler[ReqT]) Publish(
+	_ context.Context,
+	data consensus.BeaconBlock,
+) ([]byte, error) {
+	return data.MarshalSSZ()
+}
+
+// Request takes an ABCI Request and returns a BeaconBlock.
+func (n NoopBlockGossipHandler[ReqT]) Request(
+	_ context.Context,
+	req ReqT,
+) (consensus.BeaconBlock, error) {
+	return encoding.UnmarshalBeaconBlockFromABCIRequest(
+		req,
+		0,
+		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),
+	)
 }

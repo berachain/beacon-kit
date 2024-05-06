@@ -31,6 +31,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
@@ -40,7 +41,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 )
 
 var (

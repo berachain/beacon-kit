@@ -23,40 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package encoding
+package p2p
 
-import (
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-)
+import "context"
 
-func UnmarshalBlobSidecarsFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-) (*datypes.BlobSidecars, error) {
-	if req == nil {
-		return nil, ErrNilABCIRequest
-	}
+type PublisherReceiver[
+	InPubT, OutPubT, InReceiverT, OutReceiverT any,
+] interface {
+	Publisher[InPubT, OutPubT]
+	Receiver[InReceiverT, OutReceiverT]
+}
 
-	txs := req.GetTxs()
+type Publisher[InT, OutT any] interface {
+	Publish(ctx context.Context, data InT) (OutT, error)
+}
 
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
-	}
-
-	var sidecars datypes.BlobSidecars
-	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
-		return nil, err
-	}
-
-	return &sidecars, nil
+type Receiver[InT, OutT any] interface {
+	Request(ctx context.Context, ref InT) (OutT, error)
 }

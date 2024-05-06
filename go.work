@@ -10,6 +10,7 @@ use (
 	./mod/execution
 	./mod/log
 	./mod/node-builder
+	./mod/p2p
 	./mod/payload
 	./mod/primitives
 	./mod/primitives-engine

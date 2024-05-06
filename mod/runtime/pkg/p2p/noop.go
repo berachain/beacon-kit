@@ -23,40 +23,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package encoding
+package p2p
 
 import (
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"context"
+	"errors"
+	"reflect"
+
+	ssz "github.com/ferranbt/fastssz"
 )
 
-func UnmarshalBlobSidecarsFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-) (*datypes.BlobSidecars, error) {
-	if req == nil {
-		return nil, ErrNilABCIRequest
+// NoopGossipHandler is a gossip handler that simply returns the
+// ssz marshalled data as a "reference" to the object it receives.
+type NoopGossipHandler[DataT interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+}, BytesT ~[]byte] struct{}
+
+// Publish creates a new NoopGossipHandler.
+func (n NoopGossipHandler[DataT, BytesT]) Publish(
+	_ context.Context,
+	data DataT,
+) (BytesT, error) {
+	return data.MarshalSSZ()
+}
+
+// Request simply returns the reference it receives.
+func (n NoopGossipHandler[DataT, BytesT]) Request(
+	_ context.Context,
+	ref BytesT,
+) (DataT, error) {
+	var (
+		out DataT
+		ok  bool
+	)
+
+	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
+		newInstance := reflect.New(reflect.TypeOf(out).Elem())
+		out, ok = newInstance.Interface().(DataT)
+		if !ok {
+			return out, errors.New("failed to create new instance")
+		}
 	}
 
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
-	}
-
-	var sidecars datypes.BlobSidecars
-	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
-		return nil, err
-	}
-
-	return &sidecars, nil
+	err := out.UnmarshalSSZ(ref)
+	return out, err
 }
