@@ -29,7 +29,6 @@ package ssz
 import (
 	"encoding/binary"
 	"reflect"
-	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -120,17 +119,31 @@ func IsUintLike(kind reflect.Kind) bool {
 	return isUintLike
 }
 
-func IsCompositeType(k reflect.Type) bool {
+func IsCompositeType(t reflect.Type) bool {
 	// array is fixed length and analogous to vector
 	// slice is variable and analogous to list
 	// Vectors, containers, lists, unions are considered composite types
 	// Since we pre-handle Arrays and slices we return false for now
 	// We only trigger on containers
-	return k.Kind() == reflect.Struct
+	return t.Kind() == reflect.Struct
+}
+
+func IsNDimensionalArrayLike(typ reflect.Type) bool {
+	ct := reflect.Array
+	// A N dimensional array has a top level type of array and elem type also of
+	// arr
+	return typ.Kind() == ct && typ.Elem().Kind() == ct
+}
+
+func IsNDimensionalSliceLike(typ reflect.Type) bool {
+	ct := reflect.Slice
+	// A N dimensional array has a top level type of array and elem type also of
+	// arr
+	return typ.Kind() == ct && typ.Elem().Kind() == ct
 }
 
 // MarshalSSZ takes a SSZ value, reflects on the type, and returns a buffer. 0
-// indexed, of the encoded value
+// indexed, of the encoded value.
 func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	typ := reflect.TypeOf(c)
 	val := reflect.ValueOf(c)
@@ -147,7 +160,9 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	case k == reflect.Array && isBasicType(typ.Elem().Kind()):
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
 	// N dimensional arrays/slices
-	case (k == reflect.Slice || k == reflect.Array) && (typ.Elem().Kind() == reflect.Slice || typ.Elem().Kind() == reflect.Array):
+	case IsNDimensionalArrayLike(typ):
+		return s.MarshalNDimensionalArray(val)
+	case IsNDimensionalSliceLike(typ):
 		return s.MarshalNDimensionalArray(val)
 	case k == reflect.Slice && isVariableSizeType(typ.Elem()):
 		// Composite slice
@@ -175,14 +190,14 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 				[]byte,
 				0,
 			), errors.Newf(
-				"type %v is not serializable",
+				"type %v is not serializable.",
 				val.Type(),
 			)
 	}
 }
 
 // Marshal is the top level fn. it returns a properly encoded byte buffer. given
-// a pre-existing buf and typ
+// a pre-existing buf and typ.
 func (s *Serializer) Marshal(
 	val reflect.Value,
 	typ reflect.Type,
@@ -223,12 +238,12 @@ func (s *Serializer) MarshalNDimensionalArray(
 	val reflect.Value,
 ) ([]byte, error) {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
-		return nil, errors.New("input is not an array or slice")
+		return nil, errors.New("input is not an array or slice.")
 	}
 
 	dimensionality := s.GetArrayDimensionality(val)
 	if dimensionality == 0 {
-		return nil, errors.New("zero-dimensional array provided")
+		return nil, errors.New("zero-dimensional array provided.")
 	}
 
 	// Calculate the total number of elements across all dimensions
@@ -271,32 +286,31 @@ func (s *Serializer) MarshalNDimensionalArray(
 
 	if len(buffer) > 0 {
 		return buffer, nil
-	} else {
-		return nil, errors.Newf("got empty buffer in MarshalNDimensionalArray")
 	}
+	return nil, errors.Newf("got empty buffer in MarshalNDimensionalArray")
 }
 
-// Recursive function to calculate the length of an N-dimensional array
+// Recursive function to calculate the length of an N-dimensional array.
 func (s *Serializer) GetNDimensionalArrayLength(val reflect.Value) int {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
 		return 1 // Non-array/slice values are treated as having a length of 1
 	}
 	length := val.Len()
 	if length == 0 {
-		return 0 // Early return for empty arrays/slices
+		return 0 // Early return for empty arrays/slices.
 	}
 	// Recursively calculate the length of the first element if it is an
-	// array/slice
+	// array/slice.
 	elementLength := s.GetNDimensionalArrayLength(val.Index(0))
 	return length * elementLength
 }
 
-// Function to determine the dimensionality of an N-dimensional array
+// Function to determine the dimensionality of an N-dimensional array.
 func (s *Serializer) GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
 	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		dimensionality++
-		val = val.Index(0) // Move to the next nested array
+		val = val.Index(0) // Move to the next nested array.
 	}
 	return dimensionality
 }
@@ -351,21 +365,21 @@ func (s *Serializer) MarshalByteArray(
 ) (uint64, error) {
 	if val.Kind() == reflect.Array {
 		for i := range val.Len() {
-			//#nosec:G701 // int overflow should be caught earlier in the stack
+			//#nosec:G701 // int overflow should be caught earlier in the stack.
 			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
 		}
-		//#nosec:G701 // int overflow should be caught earlier in the stack
+		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(val.Len()), nil
 	}
 	if val.IsNil() {
 		item := make([]byte, typ.Len())
 		copy(buf[startOffset:], item)
-		//#nosec:G701 // int overflow should be caught earlier in the stack
+		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(typ.Len()), nil
 	}
 	copy(buf[startOffset:], val.Bytes())
 
-	//#nosec:G701 // int overflow should be caught earlier in the stack
+	//#nosec:G701 // int overflow should be caught earlier in the stack.
 	return startOffset + uint64(val.Len()), nil
 }
 
@@ -438,78 +452,81 @@ func (s *Serializer) MarshalComposite(
 	return index, nil
 }
 
-func (s *Serializer) MarshalStruct(
-	val reflect.Value,
-	typ reflect.Type,
-	buf []byte,
-	startOffset uint64,
-) (uint64, error) {
-	if typ.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			newVal := reflect.New(typ.Elem()).Elem()
-			return s.Marshal(newVal, newVal.Type(), buf, startOffset)
-		}
-		return s.Marshal(val.Elem(), typ.Elem(), buf, startOffset)
-	}
-	fixedIndex := startOffset
-	fixedLength := uint64(0)
-	// For every field, we add up the total length of the items depending if
-	// they
-	// are variable or fixed-size fields.
-	for i := range typ.NumField() {
-		// We skip protobuf related metadata fields.
-		if strings.Contains(typ.Field(i).Name, "XXX_") {
-			continue
-		}
-		fType, err := determineFieldType(typ.Field(i))
-		if err != nil {
-			return 0, err
-		}
-		if isVariableSizeType(fType) {
-			fixedLength += BytesPerLengthOffset
-		} else {
-			if val.Type().Kind() == reflect.Ptr && val.IsNil() {
-				elem := reflect.New(val.Type().Elem()).Elem()
-				fixedLength += determineFixedSize(elem, fType)
-			} else {
-				fixedLength += determineFixedSize(val.Field(i), fType)
-			}
-		}
-	}
-	//nolint:wastedassign // the underlying passed in input buffer is read
-	currentOffsetIndex := startOffset + fixedLength
-	//nolint:wastedassign // the underlying passed in input buffer is read
-	nextOffsetIndex := currentOffsetIndex
-	for i := range typ.NumField() {
-		// We skip protobuf related metadata fields.
-		if strings.Contains(typ.Field(i).Name, "XXX_") {
-			continue
-		}
-		fType, err := determineFieldType(typ.Field(i))
-		if err != nil {
-			return 0, err
-		}
+// TODO
+// func (s *Serializer) MarshalStruct(
+// 	val reflect.Value,
+// 	typ reflect.Type,
+// 	buf []byte,
+// 	startOffset uint64,
+// ) (uint64, error) {
+// 	if typ.Kind() == reflect.Ptr {
+// 		if val.IsNil() {
+// 			newVal := reflect.New(typ.Elem()).Elem()
+// 			return s.Marshal(newVal, newVal.Type(), buf, startOffset)
+// 		}
+// 		return s.Marshal(val.Elem(), typ.Elem(), buf, startOffset)
+// 	}
+// 	fixedIndex := startOffset
+// 	fixedLength := uint64(0)
+// 	// For every field, we add up the total length of the items depending if
+// 	// they
+// 	// are variable or fixed-size fields.
+// 	for i := range typ.NumField() {
+// 		// We skip protobuf related metadata fields.
+// 		if strings.Contains(typ.Field(i).Name, "XXX_") {
+// 			continue
+// 		}
+// 		fType, err := determineFieldType(typ.Field(i))
+// 		if err != nil {
+// 			return 0, err
+// 		}
+// 		if isVariableSizeType(fType) {
+// 			fixedLength += BytesPerLengthOffset
+// 		} else {
+// 			if val.Type().Kind() == reflect.Ptr && val.IsNil() {
+// 				elem := reflect.New(val.Type().Elem()).Elem()
+// 				fixedLength += determineFixedSize(elem, fType)
+// 			} else {
+// 				fixedLength += determineFixedSize(val.Field(i), fType)
+// 			}
+// 		}
+// 	}
+// 	//nolint:wastedassign // the underlying passed in input buffer is read
+// 	currentOffsetIndex := startOffset + fixedLength
+// 	//nolint:wastedassign // the underlying passed in input buffer is read
+// 	nextOffsetIndex := currentOffsetIndex
+// 	for i := range typ.NumField() {
+// 		// We skip protobuf related metadata fields.
+// 		if strings.Contains(typ.Field(i).Name, "XXX_") {
+// 			continue
+// 		}
+// 		fType, err := determineFieldType(typ.Field(i))
+// 		if err != nil {
+// 			return 0, err
+// 		}
 
-		if !isVariableSizeType(fType) {
-			fixedIndex, err = s.Marshal(val.Field(i), fType, buf, fixedIndex)
-			if err != nil {
-				return 0, err
-			}
-		} else {
-			nextOffsetIndex, err = s.Marshal(val.Field(i), fType, buf, currentOffsetIndex)
-			if err != nil {
-				return 0, err
-			}
-			// Write the offset.
-			offsetBuf := make([]byte, BytesPerLengthOffset)
-			//#nosec:G701 // int overflow should be caught earlier in the stack
-			binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
-			copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
+// 		if !isVariableSizeType(fType) {
+// 			fixedIndex, err = s.Marshal(val.Field(i), fType, buf, fixedIndex)
+// 			if err != nil {
+// 				return 0, err
+// 			}
+// 		} else {
+// 			nextOffsetIndex, err = s.Marshal(
+// 				val.Field(i), fType, buf, currentOffsetIndex)
+// 			if err != nil {
+// 				return 0, err
+// 			}
+// 			// Write the offset.
+// 			offsetBuf := make([]byte, BytesPerLengthOffset)
+// 			//#nosec:G701 // int overflow should be caught earlier in the stack
+// 			binary.LittleEndian.PutUint32(offsetBuf,
+// uint32(currentOffsetIndex-startOffset))
+// 			copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
 
-			// We increase the offset indices accordingly.
-			currentOffsetIndex = nextOffsetIndex
-			fixedIndex += BytesPerLengthOffset
-		}
-	}
-	return currentOffsetIndex, nil
-}
+// 			// We increase the offset indices accordingly.
+// 			currentOffsetIndex = nextOffsetIndex
+// 			fixedIndex += BytesPerLengthOffset
+// 		}
+// 	}
+// 	return currentOffsetIndex, nil
+// }

@@ -25,7 +25,7 @@
 package ssz_test
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"testing"
 
@@ -40,7 +40,7 @@ var debug = false
 
 func debugPrint(debug bool, s ...any) {
 	if debug {
-		fmt.Println(s...)
+		// fmt.Println(s...)
 	}
 }
 

@@ -1,5 +1,3 @@
-//nolint:,revive
-
 // SPDX-License-Identifier: MIT
 //
 // # Copyright (c) 2024 Berachain Foundation
@@ -25,8 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// nolint:godot,tagliatelle,mnd,wastedassign,ineffassign,lll // imported test
 // fixture from fast ssz
+//
+//nolint:godot,tagliatelle,mnd,wastedassign,ineffassign,lll // imported test
 package ssz
 
 type BeaconBlockHeader struct {
