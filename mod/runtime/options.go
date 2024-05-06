@@ -28,33 +28,24 @@ package runtime
 import (
 	"cosmossdk.io/log"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // Option is a function that modifies the BeaconKitRuntime.
-type Option func(*BeaconKitRuntime) error
-
-// WithConfig sets the configuration of the BeaconKitRuntime.
-func WithConfig(cfg *config.Config) Option {
-	return func(r *BeaconKitRuntime) error {
-		r.cfg = cfg
-		return nil
-	}
-}
+type Option[DepositStoreT DepositStore] func(*BeaconKitRuntime[DepositStoreT]) error
 
 // WithServiceRegistry sets the service registry of the BeaconKitRuntime.
-func WithServiceRegistry(reg *service.Registry) Option {
-	return func(r *BeaconKitRuntime) error {
+func WithServiceRegistry[DepositStoreT DepositStore](reg *service.Registry) Option[DepositStoreT] {
+	return func(r *BeaconKitRuntime[DepositStoreT]) error {
 		r.services = reg
 		return nil
 	}
 }
 
 // WithLogger sets the logger of the BeaconKitRuntime.
-func WithLogger(logger log.Logger) Option {
-	return func(r *BeaconKitRuntime) error {
+func WithLogger[DepositStoreT DepositStore](logger log.Logger) Option[DepositStoreT] {
+	return func(r *BeaconKitRuntime[DepositStoreT]) error {
 		r.logger = logger.With("module", "beacon-kit-runtime")
 		return nil
 	}
@@ -62,12 +53,13 @@ func WithLogger(logger log.Logger) Option {
 
 // WithBeaconStorageBackend sets the BeaconStorageBackend
 // of the BeaconKitRuntime.
-func WithBeaconStorageBackend(
+func WithBeaconStorageBackend[DepositStoreT DepositStore](
 	fscp BeaconStorageBackend[
+		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
-) Option {
-	return func(r *BeaconKitRuntime) error {
+) Option[DepositStoreT] {
+	return func(r *BeaconKitRuntime[DepositStoreT]) error {
 		r.fscp = fscp
 		return nil
 	}

@@ -28,7 +28,7 @@ package blockchain
 import (
 	"github.com/berachain/beacon-kit/mod/core"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // Service is the blockchain service.

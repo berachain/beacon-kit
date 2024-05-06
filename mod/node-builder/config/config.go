@@ -64,6 +64,18 @@ type Config struct {
 	Validator validator.Config `mapstructure:"validator"`
 }
 
+func (c Config) GetEngine() engineclient.Config {
+	return c.Engine
+}
+
+func (c Config) GetKZG() kzg.Config {
+	return c.KZG
+}
+
+func (c Config) GetPayloadBuilder() builder.Config {
+	return c.PayloadBuilder
+}
+
 // Template returns the configuration template.
 func (c Config) Template() string {
 	return Template

@@ -35,6 +35,7 @@ import (
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -55,7 +56,7 @@ var (
 type BeaconApp struct {
 	*runtime.App
 	BeaconKeeper          *beaconkitruntime.Keeper
-	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
+	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime[*deposit.KVStore]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 

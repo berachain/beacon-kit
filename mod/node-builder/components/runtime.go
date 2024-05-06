@@ -41,7 +41,6 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -51,6 +50,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -66,17 +67,18 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
 	bsb runtime.BeaconStorageBackend[
+		*depositdb.KVStore,
 		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime, error) {
+) (*runtime.BeaconKitRuntime[*depositdb.KVStore], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		cfg, bsb, chainSpec, logger,
+		bsb, chainSpec, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -187,8 +189,7 @@ func ProvideRuntime(
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime(
 		runtime.WithBeaconStorageBackend(bsb),
-		runtime.WithConfig(cfg),
-		runtime.WithLogger(logger),
-		runtime.WithServiceRegistry(svcRegistry),
+		runtime.WithLogger[*depositdb.KVStore](logger),
+		runtime.WithServiceRegistry[*depositdb.KVStore](svcRegistry),
 	)
 }

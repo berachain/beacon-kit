@@ -23,51 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package service
 
 import (
-	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
-}
-
-func WithExecutionEngine(
-	ee *engine.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
-	}
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
+type BeaconStorageBackend interface {
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[
+		consensus.ReadOnlyBeaconBlockBody,
+		*datypes.BlobSidecars,
+	]
+	BeaconState(ctx context.Context) state.BeaconState
+	DepositStore(ctx context.Context) *deposit.KVStore
 }

@@ -23,51 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package service
 
-import (
-	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-)
+// Option is a function type that takes a pointer to a Service and returns an
+// error.
+type Option[T any] func(*T) error
 
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
+// New helps us to create a new Service with the provided options.
+func New[S any](opts ...Option[S]) *S {
+	var s S
+	for _, opt := range opts {
+		if err := opt(&s); err != nil {
+			panic(err)
+		}
 	}
-}
-
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
-}
-
-func WithExecutionEngine(
-	ee *engine.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
-	}
+	return &s
 }

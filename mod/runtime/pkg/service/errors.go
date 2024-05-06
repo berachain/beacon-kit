@@ -23,51 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+//nolint:gochecknoglobals // this file contains functions for use as errors.
+package service
 
-import (
-	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/ethereum/go-ethereum/accounts/abi"
+import "github.com/berachain/beacon-kit/mod/errors"
+
+var (
+	// errServiceAlreadyExists defines an error for when a service already
+	// exists.
+	errServiceAlreadyExists = func(serviceName string) error {
+		return errors.Newf("service already exists: %v", serviceName)
+	}
+
+	// errInputIsNotPointer defines an error for when the input must
+	// be of pointer type.
+	errInputIsNotPointer = func(valueType interface{}) error {
+		return errors.Newf(
+			"input must be of pointer type, received value type instead: %T",
+			valueType,
+		)
+	}
+
+	// errUnknownService defines is returned when an unknown service is seen.
+	errUnknownService = func(serviceType interface{}) error {
+		return errors.Newf("unknown service: %T", serviceType)
+	}
 )
-
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.BaseService = base
-		return nil
-	}
-}
-
-// WithDepositABI returns an Option that sets the deposit
-// contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
-		return nil
-	}
-}
-
-func WithExecutionEngine(
-	ee *engine.Engine,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ee = ee
-		return nil
-	}
-}
-
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
-	return func(s *Service) error {
-		s.ds = ds
-		return nil
-	}
-}
