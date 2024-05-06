@@ -5,9 +5,9 @@ go 1.22.2
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240430124302-da3344ee43ea
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240430124302-da3344ee43ea
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240430124302-da3344ee43ea
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240506152226-0d32fa94e9eb
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240506152226-0d32fa94e9eb
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240506152226-0d32fa94e9eb
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
@@ -21,7 +21,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240505032046-539b27202a39
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240506152226-0d32fa94e9eb
 )
 
 require (
@@ -69,6 +69,7 @@ require (
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91 // indirect
+	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240504202441-b795646c9b2a // indirect
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
@@ -85,7 +86,6 @@ require (
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
-	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
@@ -166,6 +166,7 @@ require (
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

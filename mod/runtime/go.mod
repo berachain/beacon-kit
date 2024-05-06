@@ -5,9 +5,9 @@ go 1.22.2
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240430124302-da3344ee43ea
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240430124302-da3344ee43ea
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240430124302-da3344ee43ea
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240506152226-0d32fa94e9eb
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240506152226-0d32fa94e9eb
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240506152226-0d32fa94e9eb
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
@@ -21,7 +21,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240505032046-539b27202a39
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240506152226-0d32fa94e9eb
 )
 
 require (
