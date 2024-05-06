@@ -186,7 +186,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 ) ([]byte, error) {
 	aLen := val.Len()
 	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
-		aLen = GetNDimensionalArrayLength(val)
+		aLen = GetNestedArrayLength(val)
 	}
 	buf := make([]byte, aLen)
 	_, err := cb(val, typ, buf, 0)
@@ -206,7 +206,7 @@ func (s *Serializer) MarshalNDimensionalArray(
 	}
 
 	// Calculate the total number of elements across all dimensions.
-	totalElements := GetNDimensionalArrayLength(val)
+	totalElements := GetNestedArrayLength(val)
 	if totalElements == 0 {
 		return make(
 			[]byte,
