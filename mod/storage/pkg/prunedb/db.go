@@ -25,32 +25,81 @@
 
 package prunedb
 
-import "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+import (
+	"context"
+	"time"
+)
+
+type IndexDB interface {
+	Get(index uint64, key []byte) ([]byte, error)
+	Has(index uint64, key []byte) (bool, error)
+	Set(index uint64, key []byte, value []byte) error
+	Delete(index uint64, key []byte) error
+	DeleteRange(start, end uint64) error
+}
 
 // DB is a wrapper around filedb.RangeDB that keeps track of the latest index.
 type DB struct {
-	*filedb.RangeDB
-	latestIndex uint64
+	IndexDB
+	ticker          *time.Ticker
+	windowSize      uint64
+	highestSetIndex uint64
 }
 
 // New creates a new DB.
-func New(db *filedb.RangeDB) *DB {
+func New(
+	db IndexDB,
+	pruneInterval time.Duration,
+	windowSize uint64,
+) *DB {
 	return &DB{
-		RangeDB: db,
+		windowSize: windowSize,
+		IndexDB:    db,
+		ticker:     time.NewTicker(pruneInterval),
 	}
 }
 
-// GetLatestIndex returns the latest index.
-func (p *DB) GetLatestIndex() uint64 {
-	return p.latestIndex
+func (db *DB) Start(ctx context.Context) {
+	go func() {
+		defer db.ticker.Stop()
+
+		for {
+			select {
+			case <-db.ticker.C:
+				// Do the pruning
+				if err := db.prune(); err != nil {
+					// db.Logger().Error("Error pruning: ", err)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }
 
 // Set sets the key and value at the given index and updates the latest index.
 func (p *DB) Set(index uint64, key []byte, value []byte) error {
-	if err := p.RangeDB.Set(index, key, value); err != nil {
+	if err := p.IndexDB.Set(index, key, value); err != nil {
 		return err
 	}
 
-	p.latestIndex = index
+	// Update the highest seen index.
+	p.highestSetIndex = max(p.highestSetIndex, index)
+	return nil
+}
+
+func (db *DB) prune() error {
+	// If we haven't used windowSize number of indexes, we can skip
+	// the pruning.
+	if db.highestSetIndex < db.windowSize {
+		return nil
+	}
+
+	// TODO: Optimize the underlying DeleteRange to snap to lowest
+	// index in O(1).
+	if err := db.DeleteRange(0, db.highestSetIndex-db.windowSize); err != nil {
+		return err
+	}
+
 	return nil
 }
