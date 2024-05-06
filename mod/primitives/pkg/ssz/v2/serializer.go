@@ -154,22 +154,42 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		return RouteUint(val, typ), nil
 	case k == reflect.Bool:
 		return ssz.MarshalBool(c.(bool)), nil
-	// 1 dimensional array of uint8s or bytearray []byte
-	case k == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
-		return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
-	case k == reflect.Array && isBasicType(typ.Elem().Kind()):
-		return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
-	// N dimensional arrays/slices
-	case IsNDimensionalArrayLike(typ):
-		return s.MarshalNDimensionalArray(val)
-	case IsNDimensionalSliceLike(typ):
-		return s.MarshalNDimensionalArray(val)
-	case k == reflect.Slice && isVariableSizeType(typ.Elem()):
-		// Composite slice
-		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
-	case k == reflect.Array && isVariableSizeType(typ):
-		// Composite arr
-		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+	case k == reflect.Slice:
+		// 1 dimensional array of uint8s or bytearray []byte.
+		if typ.Elem().Kind() == reflect.Uint8 {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
+		}
+		// We follow fastssz generated code samples in
+		// bellatrix.ssz.go for these.
+		if isBasicType(typ.Elem().Kind()) {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+		}
+		if IsNDimensionalSliceLike(typ) {
+			return s.MarshalNDimensionalArray(val)
+		}
+		if isVariableSizeType(typ.Elem()) {
+			// composite arr.
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		}
+		fallthrough
+	case k == reflect.Array:
+		// 1 dimensional array of uint8s or bytearray []byte.
+		if typ.Elem().Kind() == reflect.Uint8 {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
+		}
+		// We follow fastssz generated code samples in
+		// bellatrix.ssz.go for these.
+		if isBasicType(typ.Elem().Kind()) {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+		}
+		if IsNDimensionalArrayLike(typ) {
+			return s.MarshalNDimensionalArray(val)
+		}
+		if isVariableSizeType(typ.Elem()) {
+			// composite arr.
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		}
+		fallthrough
 	// TODO(Chibera): fix me!
 	// Composite structs appear initially as pointers so we Look inside
 	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() ==
