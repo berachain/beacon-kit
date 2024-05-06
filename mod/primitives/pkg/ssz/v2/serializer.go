@@ -131,14 +131,14 @@ func IsCompositeType(t reflect.Type) bool {
 func IsNDimensionalArrayLike(typ reflect.Type) bool {
 	ct := reflect.Array
 	// A N dimensional array has a top level type of array and elem type also of
-	// arr
+	// arr.
 	return typ.Kind() == ct && typ.Elem().Kind() == ct
 }
 
 func IsNDimensionalSliceLike(typ reflect.Type) bool {
 	ct := reflect.Slice
-	// A N dimensional array has a top level type of array and elem type also of
-	// arr
+	// A N dimensional array has a top level type of Slice and elem type also of
+	// Slice.
 	return typ.Kind() == ct && typ.Elem().Kind() == ct
 }
 
