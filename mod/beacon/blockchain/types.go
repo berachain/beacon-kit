@@ -63,7 +63,7 @@ type ExecutionEngine interface {
 type LocalBuilder interface {
 	RequestPayload(
 		ctx context.Context,
-		st builder.BeaconState,
+		st builder.ReadOnlyBeaconState,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,

@@ -55,18 +55,22 @@ type DepositStore interface {
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
-type RandaoProcessor[BeaconStateT builder.BeaconState] interface {
+type RandaoProcessor[
+	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
+] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
+	BuildReveal(st ReadOnlyBeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT builder.BeaconState] interface {
+type PayloadBuilder[
+	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
+] interface {
 	RetrieveOrBuildPayload(
 		ctx context.Context,
-		st builder.BeaconState,
+		st builder.ReadOnlyBeaconState,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,

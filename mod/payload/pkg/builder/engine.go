@@ -38,7 +38,7 @@ import (
 // block hashes.
 func (pb *PayloadBuilder) submitForkchoiceUpdate(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
 	headEth1Hash common.ExecutionHash,

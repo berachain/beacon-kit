@@ -33,12 +33,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type BeaconState interface {
+type ReadOnlyBeaconState interface {
 	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyValidators
 	ReadOnlyWithdrawals
-
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 }
 
