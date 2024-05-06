@@ -136,7 +136,8 @@ func IsCompositeType(k reflect.Type) bool {
 	return k.Kind() == reflect.Struct
 }
 
-// MarshalSSZ takes a SSZ value, reflects on the type, and returns a buffer. 0 indexed, of the encoded value
+// MarshalSSZ takes a SSZ value, reflects on the type, and returns a buffer. 0
+// indexed, of the encoded value
 func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	typ := reflect.TypeOf(c)
 	val := reflect.ValueOf(c)
@@ -165,7 +166,8 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 	// TODO(Chibera): fix me!
 	// Composite structs appear initially as pointers so we Look inside
-	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() == reflect.Struct:
+	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() ==
+	// reflect.Struct:
 	// Composite struct
 	// buf := make([]byte, 0)
 	// _, err := s.MarshalStruct(val, typ, buf, 0)
@@ -178,12 +180,24 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	// Composite struct? Look inside?
 	// return s.MarshalSSZ(val.Elem())
 	default:
-		return make([]byte, 0), fmt.Errorf("type %v is not serializable", val.Type())
+		return make(
+				[]byte,
+				0,
+			), fmt.Errorf(
+				"type %v is not serializable",
+				val.Type(),
+			)
 	}
 }
 
-// Marshal is the top level fn. it returns a properly encoded byte buffer. given a pre-existing buf and typ
-func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, startOffset uint64) (uint64, error) {
+// Marshal is the top level fn. it returns a properly encoded byte buffer. given
+// a pre-existing buf and typ
+func (s *Serializer) Marshal(
+	val reflect.Value,
+	typ reflect.Type,
+	input []byte,
+	startOffset uint64,
+) (uint64, error) {
 	marshalled, err := s.MarshalSSZ(val.Interface())
 	if err != nil {
 		return startOffset, err
@@ -195,12 +209,17 @@ func (s *Serializer) Marshal(val reflect.Value, typ reflect.Type, input []byte, 
 		size = determineFixedSize(val, typ)
 	}
 	offset := startOffset + size
-	//nolint:wastedassign // the underlying passed in input buffer is read so its not a wasted assign at all
+	// nolint:wastedassign // the underlying passed in input buffer is read so
+	// its not a wasted assign at all
 	input = append(input[startOffset:], marshalled...)
 	return offset, err
 }
 
-func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type, cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error)) ([]byte, error) {
+func (s *Serializer) MarshalToDefaultBuffer(
+	val reflect.Value,
+	typ reflect.Type,
+	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
+) ([]byte, error) {
 	aLen := val.Len()
 	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		aLen = s.GetNDimensionalArrayLength(val)
@@ -210,7 +229,10 @@ func (s *Serializer) MarshalToDefaultBuffer(val reflect.Value, typ reflect.Type,
 	return buf, err
 }
 
-func (s *Serializer) MarshalNDimensionalArray(val reflect.Value, typ reflect.Type) ([]byte, error) {
+func (s *Serializer) MarshalNDimensionalArray(
+	val reflect.Value,
+	typ reflect.Type,
+) ([]byte, error) {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("input is not an array or slice")
 	}
@@ -223,7 +245,10 @@ func (s *Serializer) MarshalNDimensionalArray(val reflect.Value, typ reflect.Typ
 	// Calculate the total number of elements across all dimensions
 	totalElements := s.GetNDimensionalArrayLength(val)
 	if totalElements == 0 {
-		return make([]byte, 0), nil // Return an empty byte slice for an empty array
+		return make(
+			[]byte,
+			0,
+		), nil // Return an empty byte slice for an empty array
 	}
 
 	// Create a buffer to hold all byte values
@@ -232,7 +257,8 @@ func (s *Serializer) MarshalNDimensionalArray(val reflect.Value, typ reflect.Typ
 	// Recursive function to traverse and serialize elements
 	var serializeRecursive func(reflect.Value) error
 	serializeRecursive = func(currentVal reflect.Value) error {
-		if currentVal.Kind() == reflect.Array || currentVal.Kind() == reflect.Slice {
+		if currentVal.Kind() == reflect.Array ||
+			currentVal.Kind() == reflect.Slice {
 			for i := 0; i < currentVal.Len(); i++ {
 				if err := serializeRecursive(currentVal.Index(i)); err != nil {
 					return err
@@ -266,7 +292,8 @@ func (s *Serializer) GetNDimensionalArrayLength(val reflect.Value) int {
 	if length == 0 {
 		return 0 // Early return for empty arrays/slices
 	}
-	// Recursively calculate the length of the first element if it is an array/slice
+	// Recursively calculate the length of the first element if it is an
+	// array/slice
 	elementLength := s.GetNDimensionalArrayLength(val.Index(0))
 	return length * elementLength
 }
@@ -285,7 +312,10 @@ func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
 	var buf []byte
 	d := s.GetArrayDimensionality(val)
 	if d > 3 {
-		return nil, fmt.Errorf("Arrays with >3 dimensions not yet supported. Found %v dimensions", d)
+		return nil, fmt.Errorf(
+			"Arrays with >3 dimensions not yet supported. Found %v dimensions",
+			d,
+		)
 	}
 
 	if d == 2 {
@@ -303,7 +333,12 @@ func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
 	return buf, nil
 }
 
-func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+func (s *Serializer) MarshalBasicArray(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
 	index := startOffset
 	var err error
 	for i := range val.Len() {
@@ -315,7 +350,12 @@ func (s *Serializer) MarshalBasicArray(val reflect.Value, typ reflect.Type, buf 
 	return index, nil
 }
 
-func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+func (s *Serializer) MarshalByteArray(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
 	if val.Kind() == reflect.Array {
 		for i := range val.Len() {
 			//#nosec:G701 // int overflow should be caught earlier in the stack
@@ -336,13 +376,23 @@ func (s *Serializer) MarshalByteArray(val reflect.Value, typ reflect.Type, buf [
 	return startOffset + uint64(val.Len()), nil
 }
 
-func (s *Serializer) UnmarshalByteArray(val reflect.Value, typ reflect.Type, input []byte, startOffset uint64) (uint64, error) {
+func (s *Serializer) UnmarshalByteArray(
+	val reflect.Value,
+	typ reflect.Type,
+	input []byte,
+	startOffset uint64,
+) (uint64, error) {
 	offset := startOffset + uint64(len(input))
 	val.SetBytes(input[startOffset:offset])
 	return offset, nil
 }
 
-func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+func (s *Serializer) MarshalComposite(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
 	index := startOffset
 	//nolint:ineffassign // its fine. we reuse the err
 	err := fmt.Errorf("failed to MarshalComposite from %v of typ %v", val, typ)
@@ -351,7 +401,8 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 	}
 	if !isVariableSizeType(typ.Elem()) {
 		for i := range val.Len() {
-			// If each element is not variable size, we simply encode sequentially and write
+			// If each element is not variable size, we simply encode
+			// sequentially and write
 			// into the buffer at the last index we wrote at.
 			index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
 			if err != nil {
@@ -367,14 +418,22 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 	// If the elements are variable size, we need to include offset indices
 	// in the serialized output list.
 	for i := range val.Len() {
-		nextOffsetIndex, err = s.Marshal(val.Index(i), typ.Elem(), buf, currentOffsetIndex)
+		nextOffsetIndex, err = s.Marshal(
+			val.Index(i),
+			typ.Elem(),
+			buf,
+			currentOffsetIndex,
+		)
 		if err != nil {
 			return 0, err
 		}
 		// Write the offset.
 		offsetBuf := make([]byte, BytesPerLengthOffset)
 		//#nosec:G701 // int overflow should be caught earlier in the stack
-		binary.LittleEndian.PutUint32(offsetBuf, uint32(currentOffsetIndex-startOffset))
+		binary.LittleEndian.PutUint32(
+			offsetBuf,
+			uint32(currentOffsetIndex-startOffset),
+		)
 		copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
 
 		// We increase the offset indices accordingly.
@@ -385,7 +444,12 @@ func (s *Serializer) MarshalComposite(val reflect.Value, typ reflect.Type, buf [
 	return index, nil
 }
 
-func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []byte, startOffset uint64) (uint64, error) {
+func (s *Serializer) MarshalStruct(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
 	if typ.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			newVal := reflect.New(typ.Elem()).Elem()
@@ -395,7 +459,8 @@ func (s *Serializer) MarshalStruct(val reflect.Value, typ reflect.Type, buf []by
 	}
 	fixedIndex := startOffset
 	fixedLength := uint64(0)
-	// For every field, we add up the total length of the items depending if they
+	// For every field, we add up the total length of the items depending if
+	// they
 	// are variable or fixed-size fields.
 	for i := range typ.NumField() {
 		// We skip protobuf related metadata fields.

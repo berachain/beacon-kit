@@ -197,7 +197,12 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 
 	debugPrint(debug, "Local Serializer output length:", len(exp))
 	debugPrint(debug, "FastSSZ Serializer output length:", len(prInRes))
-	require.Equal(t, exp[1:64], prInRes[1:64], "local output and fastssz output doesnt match")
+	require.Equal(
+		t,
+		exp[1:64],
+		prInRes[1:64],
+		"local output and fastssz output doesnt match",
+	)
 }
 
 func BenchmarkNativeByteArrayLarge(b *testing.B) {
