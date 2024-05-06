@@ -23,32 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package crypto
+package signer
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+import "errors"
 
-//nolint:lll // links.
-type (
-	// BLSPubkey as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSPubkey = bytes.B48
-
-	// BLSSignature as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	BLSSignature = bytes.B96
-)
-
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() BLSPubkey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (BLSSignature, error)
-
-	// VerifySignature verifies a signature against a message and a public key.
-	VerifySignature(pubKey []byte, msg []byte, signature []byte) error
-}
+// ErrInvalidSignature is returned when a signature is invalid.
+var ErrInvalidSignature = errors.New("invalid signature")

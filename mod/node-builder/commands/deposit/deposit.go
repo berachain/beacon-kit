@@ -29,6 +29,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -36,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/spf13/cobra"
 )
 
@@ -79,7 +79,10 @@ func NewValidateDeposit() *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func validateDepositMessage(_ *cobra.Command, args []string) error {
+func validateDepositMessage(
+	_ *cobra.Command,
+	args []string,
+) error {
 	pubkey, err := convertPubkey(args[0])
 	if err != nil {
 		return err
@@ -119,7 +122,7 @@ func validateDepositMessage(_ *cobra.Command, args []string) error {
 	return depositMessage.VerifyCreateValidator(
 		consensus.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
-		blst.VerifySignaturePubkeyBytes,
+		signer.BLSSigner{}.VerifySignature,
 		// TODO: needs to be configurable.
 		spec.LocalnetChainSpec().DomainTypeDeposit(),
 	)

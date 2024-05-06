@@ -26,42 +26,98 @@
 package state
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 )
 
-type KVStore interface{}
+type RemoveThisDB = beacondb.KVStore[
+	*consensus.Fork,
+	*consensus.BeaconBlockHeader,
+	engineprimitives.ExecutionPayloadHeader,
+	*consensus.Eth1Data,
+	*consensus.Validator,
+]
+
+type KVStore interface {
+	Context() context.Context
+	WithContext(
+		ctx context.Context,
+	) *RemoveThisDB
+	Save()
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader, error,
+	)
+	SetLatestExecutionPayloadHeader(
+		payloadHeader engineprimitives.ExecutionPayloadHeader,
+	) error
+	GetEth1DepositIndex() (uint64, error)
+	SetEth1DepositIndex(
+		index uint64,
+	) error
+	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
+	SetBalance(idx math.ValidatorIndex, balance math.Gwei) error
+	Copy() *RemoveThisDB
+	GetSlot() (math.Slot, error)
+	SetSlot(slot math.Slot) error
+	GetFork() (*consensus.Fork, error)
+	SetFork(fork *consensus.Fork) error
+	GetGenesisValidatorsRoot() (common.Root, error)
+	SetGenesisValidatorsRoot(root common.Root) error
+	GetLatestBlockHeader() (*consensus.BeaconBlockHeader, error)
+	SetLatestBlockHeader(header *consensus.BeaconBlockHeader) error
+	GetBlockRootAtIndex(index uint64) (primitives.Root, error)
+	StateRootAtIndex(index uint64) (primitives.Root, error)
+	GetEth1Data() (*consensus.Eth1Data, error)
+	SetEth1Data(data *consensus.Eth1Data) error
+	GetValidators() ([]*consensus.Validator, error)
+	GetBalances() ([]uint64, error)
+	GetNextWithdrawalIndex() (uint64, error)
+	SetNextWithdrawalIndex(index uint64) error
+	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
+	SetNextWithdrawalValidatorIndex(index math.ValidatorIndex) error
+	GetTotalSlashing() (math.Gwei, error)
+	SetTotalSlashing(total math.Gwei) error
+	GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error)
+	GetSlashings() ([]uint64, error)
+	SetSlashingAtIndex(index uint64, amount math.Gwei) error
+	GetSlashingAtIndex(index uint64) (math.Gwei, error)
+	GetTotalValidators() (uint64, error)
+	GetTotalActiveBalances(uint64) (math.Gwei, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*consensus.Validator, error)
+	UpdateBlockRootAtIndex(index uint64, root primitives.Root) error
+	UpdateStateRootAtIndex(index uint64, root primitives.Root) error
+	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error
+	UpdateValidatorAtIndex(
+		index math.ValidatorIndex,
+		validator *consensus.Validator,
+	) error
+	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
+	AddValidator(
+		val *consensus.Validator,
+	) error
+}
 
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
 type StateDB struct {
-	*beacondb.KVStore[
-		*consensus.Fork,
-		*consensus.BeaconBlockHeader,
-		engineprimitives.ExecutionPayloadHeader,
-		*consensus.Eth1Data,
-		*consensus.Validator,
-	]
+	KVStore
 	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
-	bdb *beacondb.KVStore[
-		*consensus.Fork,
-		*consensus.BeaconBlockHeader,
-		engineprimitives.ExecutionPayloadHeader,
-		*consensus.Eth1Data,
-		*consensus.Validator,
-	],
+	bdb KVStore,
 	cs primitives.ChainSpec,
 ) *StateDB {
 	return &StateDB{
@@ -72,7 +128,8 @@ func NewBeaconStateFromDB(
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
+	x := s.KVStore.Copy()
+	return NewBeaconStateFromDB(x, s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.

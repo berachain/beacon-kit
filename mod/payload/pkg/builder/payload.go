@@ -40,7 +40,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -93,7 +93,7 @@ func (pb *PayloadBuilder) RequestPayload(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadAndWait(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -140,7 +140,7 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 // execution client to return the payload.
 func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
