@@ -29,7 +29,7 @@ import (
 	"context"
 	"reflect"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/sourcegraph/conc"
 )
 
@@ -50,7 +50,7 @@ type Basic interface {
 // dependent on others use the same references in memory.
 type Registry struct {
 	// logger is the logger for the Registry.
-	logger log.Logger
+	logger log.Logger[any]
 	// services is a map of service type -> service instance.
 	services map[string]Basic
 	// serviceTypes is an ordered slice of registered service types.

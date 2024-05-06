@@ -25,15 +25,15 @@
 
 package service
 
-import "cosmossdk.io/log"
+import "github.com/berachain/beacon-kit/mod/log"
 
 // RegistryOption is a functional option for the Registry.
 type RegistryOption func(*Registry) error
 
 // WithLogger is an option to set the logger for the Registry.
-func WithLogger(logger log.Logger) RegistryOption {
+func WithLogger(logger log.Logger[any]) RegistryOption {
 	return func(r *Registry) error {
-		r.logger = logger.With("module", "service-registry")
+		r.logger = logger
 		return nil
 	}
 }

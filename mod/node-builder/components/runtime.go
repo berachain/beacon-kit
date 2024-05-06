@@ -71,7 +71,9 @@ func ProvideRuntime(
 		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime[*depositdb.KVStore], error) {
+) (*runtime.BeaconKitRuntime[
+	*datypes.BlobSidecars, *depositdb.KVStore,
+], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
@@ -182,7 +184,7 @@ func ProvideRuntime(
 
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
-		service.WithLogger(logger),
+		service.WithLogger(logger.With("module", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(stakingService),
