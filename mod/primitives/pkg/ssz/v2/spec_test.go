@@ -27,6 +27,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -48,7 +49,8 @@ type TestLogger interface {
 
 func debugPrint(debug bool, t TestLogger, s1 string, s ...any) {
 	if debug {
-		t.Logf(s1, s...)
+		// t.Logf(s1, s...)
+		fmt.Println(s1, s)
 	}
 }
 
@@ -59,7 +61,7 @@ func runBench(b *testing.B, cb func()) {
 	}
 }
 
-func getCheckPt() (*sszv2.BeaconStateBellatrix, error) {
+func getSszState() (*sszv2.BeaconStateBellatrix, error) {
 	// A checkpt is the simplest field.
 	data, err := os.ReadFile(TestFileName)
 	if err != nil {
@@ -99,7 +101,7 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 }
 
 func TestParityUint64(t *testing.T) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(t, err)
 
 	testU64 := getU64(sszState)
@@ -116,7 +118,7 @@ func TestParityUint64(t *testing.T) {
 }
 
 func BenchmarkNativeUint64(b *testing.B) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(b, err)
 
 	testU64 := getU64(sszState)
@@ -130,7 +132,7 @@ func BenchmarkNativeUint64(b *testing.B) {
 }
 
 func BenchmarkFastSSZUint64(b *testing.B) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(b, err)
 
 	testU64 := getU64(sszState)
@@ -143,7 +145,7 @@ func BenchmarkFastSSZUint64(b *testing.B) {
 }
 
 func TestParityByteArray(t *testing.T) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(t, err)
 	testByteArr := getByteArray32(sszState)
 	s := sszv2.NewSerializer()
@@ -160,7 +162,7 @@ func TestParityByteArray(t *testing.T) {
 }
 
 func BenchmarkNativeByteArray(b *testing.B) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(b, err)
 	testByteArr := getByteArray32(sszState)
 	s := sszv2.NewSerializer()
@@ -172,7 +174,7 @@ func BenchmarkNativeByteArray(b *testing.B) {
 }
 
 func BenchmarkFastSSZByteArray(b *testing.B) {
-	sszState, err := getCheckPt()
+	sszState, err := getSszState()
 	require.NoError(b, err)
 
 	runBench(b, func() {
@@ -243,4 +245,40 @@ func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
 		prInRes := res[262320:524464]
 		debugPrint(debug, b, "FastSSZ Output:", prInRes)
 	})
+}
+
+func TestParityU64Array(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	u64Arr := sszState.Slashings
+
+	s := sszv2.NewSerializer()
+
+	debugPrint(debug, t, "Local Serializer input len:", len(u64Arr), err)
+	exp, err3 := s.MarshalSSZ(u64Arr)
+	require.NoError(t, err3)
+	debugPrint(debug, t, "Local Serializer output len:", len(exp), err)
+	// slashings := make([]byte, (8192 * 8))
+	res, err3 := sszState.MarshalSSZ()
+	// See bellatrix.ssz.go generated file in unmarshalSSZ
+	slashings := res[2621712:2687248]
+	require.NoError(t, err3)
+	debugPrint(debug, t, "FastSSZ Output len:", len(slashings))
+
+	debugPrint(debug, t, "Local Serializer output:", exp[3100:3200], err)
+	debugPrint(debug, t, "FastSSZ Output:", slashings[3100:3200])
+
+	require.Equal(
+		t,
+		len(exp),
+		len(slashings),
+		"local output and fastssz output length doesnt match",
+	)
+	require.Equal(
+		t,
+		exp[3100:3200],
+		slashings[3100:3200],
+		"local output and fastssz output doesnt match",
+	)
 }

@@ -162,7 +162,8 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// We follow fastssz generated code samples in
 		// bellatrix.ssz.go for these.
 		if isBasicType(typ.Elem().Kind()) {
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+			return s.MarshalNDimensionalArray(val)
+
 		}
 		if IsNDimensionalSliceLike(typ) {
 			return s.MarshalNDimensionalArray(val)
@@ -181,7 +182,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// We follow fastssz generated code samples in
 		// bellatrix.ssz.go for these.
 		if isBasicType(typ.Elem().Kind()) {
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalBasicArray)
+			return s.MarshalNDimensionalArray(val)
 		}
 		if IsNDimensionalArrayLike(typ) {
 			return s.MarshalNDimensionalArray(val)
@@ -249,7 +250,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 ) ([]byte, error) {
 	aLen := val.Len()
 	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
-		aLen = s.GetNDimensionalArrayLength(val)
+		aLen = GetNDimensionalArrayLength(val)
 	}
 	buf := make([]byte, aLen)
 	_, err := cb(val, typ, buf, 0)
@@ -263,13 +264,13 @@ func (s *Serializer) MarshalNDimensionalArray(
 		return nil, errors.New("input is not an array or slice")
 	}
 
-	dimensionality := s.GetArrayDimensionality(val)
+	dimensionality := GetArrayDimensionality(val)
 	if dimensionality == 0 {
 		return nil, errors.New("zero-dimensional array provided")
 	}
 
-	// Calculate the total number of elements across all dimensions
-	totalElements := s.GetNDimensionalArrayLength(val)
+	// Calculate the total number of elements across all dimensions.
+	totalElements := GetNDimensionalArrayLength(val)
 	if totalElements == 0 {
 		return make(
 			[]byte,
@@ -313,70 +314,35 @@ func (s *Serializer) MarshalNDimensionalArray(
 }
 
 // Recursive function to calculate the length of an N-dimensional array.
-func (s *Serializer) GetNDimensionalArrayLength(val reflect.Value) int {
+func GetNDimensionalArrayLength(val reflect.Value) int {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
+		// For uints, each val is 8 bits unless uint8, which is treated as a
+		// byte array
+		if IsUintLike(val.Kind()) && val.Kind() != reflect.Uint8 {
+			return 8
+		}
 		return 1 // Non-array/slice values are treated as having a length of 1
 	}
 	length := val.Len()
 	if length == 0 {
 		return 0 // Early return for empty arrays/slices.
 	}
+
 	// Recursively calculate the length of the first element if it is an
 	// array/slice.
-	elementLength := s.GetNDimensionalArrayLength(val.Index(0))
+	elementLength := GetNDimensionalArrayLength(val.Index(0))
 	return length * elementLength
 }
 
 // Function to determine the dimensionality of an N-dimensional array.
-func (s *Serializer) GetArrayDimensionality(val reflect.Value) int {
+func GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
 	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		dimensionality++
 		val = val.Index(0) // Move to the next nested array.
 	}
+	// for byte arrs
 	return dimensionality
-}
-
-func (s *Serializer) ParseArrayMembers2D(val reflect.Value) ([]byte, error) {
-	var buf []byte
-	d := s.GetArrayDimensionality(val)
-	if d > 3 {
-		return nil, errors.Newf(
-			"arrays with >3 dimensions not yet supported. Found %v dimensions",
-			d,
-		)
-	}
-
-	if d == 2 {
-		for i := range val.Len() {
-			buf2, err := s.MarshalToDefaultBuffer(
-				val.Index(i),
-				reflect.TypeOf(val.Index(i).Interface()),
-				s.MarshalByteArray)
-			if err != nil {
-				return nil, err
-			}
-			buf = append(buf, buf2...)
-		}
-	}
-	return buf, nil
-}
-
-func (s *Serializer) MarshalBasicArray(
-	val reflect.Value,
-	typ reflect.Type,
-	buf []byte,
-	startOffset uint64,
-) (uint64, error) {
-	index := startOffset
-	var err error
-	for i := range val.Len() {
-		index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
-		if err != nil {
-			return 0, err
-		}
-	}
-	return index, nil
 }
 
 func (s *Serializer) MarshalByteArray(
