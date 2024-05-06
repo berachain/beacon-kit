@@ -14,6 +14,7 @@ cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgG
 cosmossdk.io/core v0.12.1-0.20240421190920-f31a6a3024ba h1:OUspyF1W6EKwdi48i49mzHsSfzDxa0vCz6rX4CuBT4E=
 cosmossdk.io/core v0.12.1-0.20240421190920-f31a6a3024ba/go.mod h1:8mgmE18tDaLNGrg8G3j7+oatgjPZsYYb6lmelFo7pMw=
 cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 h1:nFds393EKoD4hpMoI0T+kfUuyshAXh307/Y2pXVyXfk=
+cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044/go.mod h1:9Aew5Zs1YmS68moYnpKiWdKGjSIsp6c7hI8XchbkumY=
 cosmossdk.io/errors v1.0.1 h1:bzu+Kcr0kS/1DuPBtUFdWjzLqyUuCiyHjyJB6srBV/0=
 cosmossdk.io/errors v1.0.1/go.mod h1:MeelVSZThMi4bEakzhhhE/CKqVv3nOJDA25bIqRDu/U=
 cosmossdk.io/log v1.3.1 h1:UZx8nWIkfbbNEWusZqzAx3ZGvu54TZacWib3EzUYmGI=

@@ -66,7 +66,7 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[
+	storageBackend runtime.BeaconStorageBackend[
 		*depositdb.KVStore,
 		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
@@ -78,7 +78,7 @@ func ProvideRuntime(
 	// Create the base service, we will the create shallow copies for each
 	// service.
 	baseService := service.NewBaseService(
-		bsb, chainSpec, logger,
+		storageBackend, chainSpec, logger,
 	)
 
 	// Build the client to interact with the Engine API.
@@ -106,7 +106,7 @@ func ProvideRuntime(
 	stakingService := service.New[staking.Service](
 		staking.WithBaseService(baseService.ShallowCopy("staking")),
 		staking.WithDepositABI(depositABI),
-		staking.WithDepositStore(bsb.DepositStore(nil)),
+		staking.WithDepositStore(storageBackend.DepositStore(nil)),
 		staking.WithExecutionEngine(executionEngine),
 	)
 
@@ -153,7 +153,7 @@ func ProvideRuntime(
 			)),
 		validator.WithChainSpec(chainSpec),
 		validator.WithConfig(&cfg.Validator),
-		validator.WithDepositStore(bsb.DepositStore(nil)),
+		validator.WithDepositStore(storageBackend.DepositStore(nil)),
 		validator.WithLocalBuilder(localBuilder),
 		validator.WithLogger(logger.With("service", "validator")),
 		validator.WithRandaoProcessor(randaoProcessor),
@@ -188,8 +188,6 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime(
-		runtime.WithBeaconStorageBackend(bsb),
-		runtime.WithLogger[*depositdb.KVStore](logger),
-		runtime.WithServiceRegistry[*depositdb.KVStore](svcRegistry),
+		logger, svcRegistry, storageBackend,
 	)
 }

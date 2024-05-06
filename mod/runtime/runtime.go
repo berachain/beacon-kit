@@ -51,15 +51,19 @@ type BeaconKitRuntime[
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[DepositStoreT DepositStore](
-	opts ...Option[DepositStoreT],
+	logger log.Logger,
+	services *service.Registry,
+	fscp BeaconStorageBackend[
+		DepositStoreT,
+		consensus.ReadOnlyBeaconBlockBody,
+		*datypes.BlobSidecars,
+	],
 ) (*BeaconKitRuntime[DepositStoreT], error) {
-	bkr := &BeaconKitRuntime[DepositStoreT]{}
-	for _, opt := range opts {
-		if err := opt(bkr); err != nil {
-			return nil, err
-		}
+	bkr := &BeaconKitRuntime[DepositStoreT]{
+		logger:   logger.With("module", "beacon-kit-runtime"),
+		services: services,
+		fscp:     fscp,
 	}
-
 	return bkr, nil
 }
 
