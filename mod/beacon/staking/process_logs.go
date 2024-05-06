@@ -40,7 +40,7 @@ func (s *Service) ProcessBlockEvents(
 	var deposits []*consensus.Deposit
 	for _, log := range logs {
 		// We only care about logs from the deposit contract.
-		if log.Address != s.ChainSpec().DepositContractAddress() {
+		if log.Address != s.cs.DepositContractAddress() {
 			continue
 		}
 
@@ -49,11 +49,11 @@ func (s *Service) ProcessBlockEvents(
 		case logSig == DepositEventSig:
 			deposit, err := s.unpackDepositLog(log)
 			if err != nil {
-				s.Logger().Error("failed to unpack deposit log", "err", err)
+				s.logger.Error("failed to unpack deposit log", "err", err)
 				return err
 			}
 			deposits = append(deposits, deposit)
-			s.Logger().Info(
+			s.logger.Info(
 				"he was a sk8r boi 🛹", "deposit", deposit.Index, "amount", deposit.Amount,
 			)
 		default:

@@ -28,18 +28,21 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
+
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // Service represents the staking service.
 type Service struct {
-	// BaseService is the base service.
-	service.BaseService
+	logger log.Logger[any]
+	bsb    BeaconStorageBackend
+	cs     primitives.ChainSpec
 
 	// ee represents the execution engine.
 	ee *engine.Engine
@@ -51,6 +54,31 @@ type Service struct {
 	// deposit represents the deposit store.
 	ds *deposit.KVStore
 }
+
+// NewService creates a new validator service.
+func NewService(
+	opts ...Option,
+) *Service {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+
+	return s
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return "blockchain"
+}
+
+func (s *Service) Start(context.Context) {}
+
+func (s *Service) Status() error { return nil }
+
+func (s *Service) WaitForHealthy(context.Context) {}
 
 // ProcessLogsInETH1Block gets logs in the Eth1 block
 // received from the execution client and processes them to
@@ -66,7 +94,7 @@ func (s *Service) ProcessLogsInETH1Block(
 		ctx,
 		blockHash,
 		[]common.ExecutionAddress{
-			s.ChainSpec().DepositContractAddress(),
+			s.cs.DepositContractAddress(),
 		},
 	)
 	if err != nil {

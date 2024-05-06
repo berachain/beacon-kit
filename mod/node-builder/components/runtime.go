@@ -75,12 +75,6 @@ func ProvideRuntime(
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
-	// Create the base service, we will the create shallow copies for each
-	// service.
-	baseService := service.NewBaseService(
-		storageBackend, chainSpec, logger,
-	)
-
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
 		engineclient.WithEngineConfig(&cfg.Engine),
@@ -103,15 +97,18 @@ func ProvideRuntime(
 	executionEngine := execution.New(engineClient, logger)
 
 	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
+	stakingService := staking.NewService(
+		staking.WithBeaconStorageBackend(storageBackend),
+		staking.WithChainSpec(chainSpec),
 		staking.WithDepositABI(depositABI),
 		staking.WithDepositStore(storageBackend.DepositStore(nil)),
 		staking.WithExecutionEngine(executionEngine),
+		staking.WithLogger(logger.With("service", "staking")),
 	)
 
 	// Build the local builder service.
-	localBuilder := service.New[payloadbuilder.PayloadBuilder](
+	var localBuilder *payloadbuilder.PayloadBuilder
+	localBuilder, err = payloadbuilder.New(
 		payloadbuilder.WithLogger(
 			logger.With("service", "payload-builder"),
 		),
@@ -122,6 +119,9 @@ func ProvideRuntime(
 			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 		),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the Blobs Verifier
 	blobProofVerifier, err := kzg.NewBlobProofVerifier(
@@ -161,11 +161,13 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
-	chainService := service.New[blockchain.Service](
-		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
+	chainService := blockchain.NewService(
+		blockchain.WithBeaconStorageBackend(storageBackend),
 		blockchain.WithBlockVerifier(core.NewBlockVerifier(chainSpec)),
+		blockchain.WithChainSpec(chainSpec),
 		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithLogger(logger.With("service", "blockchain")),
 		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
