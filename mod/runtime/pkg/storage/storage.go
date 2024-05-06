@@ -86,8 +86,7 @@ func (k *Backend) AvailabilityStore(
 func (k *Backend) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
-	x := k.beaconStore.WithContext(ctx)
-	return state.NewBeaconStateFromDB[*KVStore](x, k.cs)
+	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cs)
 }
 
 // BeaconStore returns the beacon store struct.
