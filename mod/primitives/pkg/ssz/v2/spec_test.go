@@ -34,7 +34,7 @@ import (
 )
 
 // https://goerli.beaconcha.in/slot/4744352
-// Test fixture from fastssz
+// Test fixture from fastssz.
 const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
 
 //nolint:gochecknoglobals // test debug print toggle
@@ -58,7 +58,7 @@ func runBench(b *testing.B, cb func()) {
 }
 
 func getCheckPt() (*sszv2.BeaconStateBellatrix, error) {
-	// A checkpt is the simplest field
+	// A checkpt is the simplest field.
 	data, err := os.ReadFile(TestFileName)
 	if err != nil {
 		return nil, err
@@ -89,9 +89,9 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	// 	Epoch uint64 `json:"epoch"`
 	// 	Root  []byte `json:"root" ssz-size:"32"`
 	// }
-	// We grab the buf section from the serialized by fastSSZ buffer
-	// See bellatrix.ssz.go for buffer read done by fastssz codegen
-	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32
+	// We grab the buf section from the serialized by fastSSZ buffer.
+	// See bellatrix.ssz.go for buffer read done by fastssz codegen.
+	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32.
 
 	return res[8:], nil
 }
@@ -164,7 +164,6 @@ func BenchmarkNativeByteArray(b *testing.B) {
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
-		// Native impl
 		exp, err3 := s.MarshalSSZ(testByteArr)
 		debugPrint(debug, b, "Local Serializer output:", exp, err3)
 	})
@@ -195,8 +194,8 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 	require.NoError(t, err2)
 	// We test serialized output. This may be lacking checks for offsets.
 	debugPrint(debug, t, "Local Serializer output:", exp, err2)
-	// fast ssz: len 262144 []uint8  | cap: 58065320
-	// local: len 262144 []uint8  |  cap:278528
+	// fast ssz: len 262144 []uint8  | cap: 58065320.
+	// local: len 262144 []uint8  |  cap:278528.
 
 	res, err3 := sszState.MarshalSSZ()
 	require.NoError(t, err3)
@@ -223,7 +222,6 @@ func BenchmarkNativeByteArrayLarge(b *testing.B) {
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
-		// Native impl
 		exp, err3 := s.MarshalSSZ(sszState.StateRoots)
 		require.NoError(b, err3)
 		debugPrint(debug, b, "Local Serializer output:", exp, err)
