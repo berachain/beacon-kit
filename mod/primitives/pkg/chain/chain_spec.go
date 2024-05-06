@@ -32,6 +32,8 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
+	ChainID() uint64
+	GetNetworkID() uint64
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -151,7 +153,9 @@ type chainSpec[
 	SlotT ~uint64,
 ] struct {
 	// Data contains the actual chain-specific parameter values.
-	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+	Data          SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+	Eth1ChainID   uint64
+	Eth1NetworkID uint64
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
@@ -162,14 +166,30 @@ func NewChainSpec[
 	SlotT ~uint64,
 ](data SpecData[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-]) Spec[
+], eth1ChainID uint64, networkID uint64) Spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ] {
 	return &chainSpec[
 		DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 	]{
-		Data: data,
+		Data:          data,
+		Eth1ChainID:   eth1ChainID,
+		Eth1NetworkID: networkID,
 	}
+}
+
+// ChainID returns the chain ID.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) ChainID() uint64 {
+	return c.Data.ChainID
+}
+
+// GetNetworkID returns the network ID.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) GetNetworkID() uint64 {
+	return c.Data.NetworkID
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
