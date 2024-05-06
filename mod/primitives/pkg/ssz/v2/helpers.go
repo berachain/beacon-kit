@@ -30,7 +30,7 @@ import (
 	"strconv"
 	"strings"
 
-	"cosmossdk.io/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
@@ -279,4 +279,95 @@ func inferFieldTypeFromSizeTags(
 		}
 	}
 	return currentType
+}
+
+// Recursive function to calculate the length of an N-dimensional array.
+func GetNDimensionalArrayLength(val reflect.Value) int {
+	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
+		//#nosec:G701 // int overflow should be caught earlier in the stack.
+		return int(DetermineSize(val))
+	}
+	length := val.Len()
+	if length == 0 {
+		return 0 // Early return for empty arrays/slices.
+	}
+
+	// Recursively calculate the length of the first element if it is an
+	// array/slice.
+	elementLength := GetNDimensionalArrayLength(val.Index(0))
+	return length * elementLength
+}
+
+// Function to determine the dimensionality of an N-dimensional array.
+func GetArrayDimensionality(val reflect.Value) int {
+	dimensionality := 0
+	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+		dimensionality++
+		val = val.Index(0) // Move to the next nested array.
+	}
+	// for byte arrs
+	return dimensionality
+}
+
+func IsCompositeType(t reflect.Type) bool {
+	// array is fixed length and analogous to vector
+	// slice is variable and analogous to list
+	// Vectors, containers, lists, unions are considered composite types
+	// Since we pre-handle Arrays and slices we return false for now
+	// We only trigger on containers
+	return t.Kind() == reflect.Struct
+}
+
+func IsNDimensionalArrayLike(typ reflect.Type) bool {
+	ct := reflect.Array
+	// A N dimensional array has a top level type of array and elem type also of
+	// arr.
+	return typ.Kind() == ct && typ.Elem().Kind() == ct
+}
+
+func IsNDimensionalSliceLike(typ reflect.Type) bool {
+	ct := reflect.Slice
+	// A N dimensional array has a top level type of Slice and elem type also of
+	// Slice.
+	return typ.Kind() == ct && typ.Elem().Kind() == ct
+}
+
+func RouteUint(val reflect.Value, typ reflect.Type) []byte {
+	kind := typ.Kind()
+	switch kind {
+	case reflect.Uint8:
+		return ssz.MarshalU8(val.Interface().(uint8))
+	case reflect.Uint16:
+		return ssz.MarshalU16(val.Interface().(uint16))
+	case reflect.Uint32:
+		return ssz.MarshalU32(val.Interface().(uint32))
+	case reflect.Uint64:
+		return ssz.MarshalU64(val.Interface().(uint64))
+	// TODO(Chibera): Handle numbers over 64bit?
+	// case reflect.Uint128:
+	// 	return MarshalU128(val.Interface().(uint128))
+	// case reflect.Uint256:
+	// 	return MarshalU256(val.Interface().(uint256))
+	default:
+		return make([]byte, 0)
+	}
+}
+
+func IsUintLike(kind reflect.Kind) bool {
+	isUintLike := false
+
+	switch kind {
+	case reflect.Uint8:
+		isUintLike = true
+	case reflect.Uint16:
+		isUintLike = true
+	case reflect.Uint32:
+		isUintLike = true
+	case reflect.Uint64:
+		isUintLike = true
+	default:
+		return isUintLike
+	}
+
+	return isUintLike
 }
