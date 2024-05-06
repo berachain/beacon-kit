@@ -65,7 +65,7 @@ func WithDepositABI(
 	}
 }
 
-// WithDepositStore returns an Option that sets the deposit
+// WithDepositStore returns an Option that sets the deposit.
 func WithDepositStore(
 	ds *deposit.KVStore,
 ) Option {
