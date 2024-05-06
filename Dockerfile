@@ -119,10 +119,10 @@ FROM ${RUNNER_IMAGE}
 # Build args
 ARG APP_NAME
 
-COPY --from=ghcr.io/foundry-rs/foundry:nightly /usr/local/bin/forge /usr/bin/forge 
-COPY --from=ghcr.io/foundry-rs/foundry:nightly /usr/local/bin/cast /usr/bin/cast
-COPY --from=ghcr.io/foundry-rs/foundry:nightly /usr/local/bin/anvil /usr/bin/anvil
-COPY --from=ghcr.io/foundry-rs/foundry:nightly /usr/local/bin/chisel /usr/bin/chisel
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/forge /usr/bin/forge 
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/cast /usr/bin/cast
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/anvil /usr/bin/anvil
+COPY --from=ghcr.io/foundry-rs/foundry /usr/local/bin/chisel /usr/bin/chisel
 
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
