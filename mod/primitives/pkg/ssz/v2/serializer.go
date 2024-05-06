@@ -167,10 +167,11 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		if IsNDimensionalSliceLike(typ) {
 			return s.MarshalNDimensionalArray(val)
 		}
-		if isVariableSizeType(typ.Elem()) {
-			// composite arr.
-			// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
-		}
+		// Todo: Variable size handling.
+		// if isVariableSizeType(typ.Elem()) {
+		// composite arr.
+		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		// }
 		fallthrough
 	case k == reflect.Array:
 		// 1 dimensional array of uint8s or bytearray []byte.
@@ -185,10 +186,11 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		if IsNDimensionalArrayLike(typ) {
 			return s.MarshalNDimensionalArray(val)
 		}
-		if isVariableSizeType(typ.Elem()) {
-			// composite arr.
-			// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
-		}
+		// Todo: Variable size handling.
+		// if isVariableSizeType(typ.Elem()) {
+		// composite arr.
+		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		// }
 		fallthrough
 	// TODO(Chibera): fix me!
 	// Composite structs appear initially as pointers so we Look inside
