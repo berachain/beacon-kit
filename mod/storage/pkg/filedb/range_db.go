@@ -72,14 +72,6 @@ func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 	return db.DB.Set(db.prefix(index, key), value)
 }
 
-func (db *RangeDB) GetHighestSlot() uint64 {
-	return db.DB.GetHighestSlot()
-}
-
-func (db *RangeDB) GetLowestSlot() uint64 {
-	return db.DB.GetLowestSlot()
-}
-
 // Delete removes the value associated with the given index and key from the
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
@@ -95,14 +87,11 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	if !ok {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
-
-	fmt.Println("Deleting range from ", from, " to ", to)
 	for ; from < to; from++ {
 		if err := f.fs.RemoveAll(fmt.Sprintf("%d/", from)); err != nil {
 			return err
 		}
 	}
-	f.lowestSlot = to + 1 // Shift the lowest index to the next index.
 	return nil
 }
 

@@ -87,6 +87,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	],
 ], error) {
+
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 

@@ -31,25 +31,38 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 type Pruner struct {
-	Interval  time.Duration // Interval at which the pruner runs
-	Ticker    *time.Ticker  // Ticker for the pruner
-	Quit      chan struct{}
-	chainSpec primitives.ChainSpec
-	db        interfaces.DB
-	logger    log.Logger
+	Interval time.Duration // Interval at which the pruner runs
+	Ticker   *time.Ticker  // Ticker for the pruner
+	Quit     chan struct{}
+	// chainSpec       primitives.ChainSpec
+	logger          log.Logger
+	DB              *filedb.PrunerDB
+	startWindow     uint64
+	endWindow       uint64
+	lastPrunedIndex uint64
 }
 
-func NewPruner(interval time.Duration, db interfaces.DB, logger log.Logger) *Pruner {
+// No other methods needs to be implemented
+
+func NewPruner(
+	interval time.Duration,
+	db *filedb.PrunerDB,
+	logger log.Logger,
+	chainSpec primitives.ChainSpec) *Pruner {
 	return &Pruner{
-		Interval: interval,
-		Ticker:   time.NewTicker(interval),
-		Quit:     make(chan struct{}),
-		db:       db,
-		logger:   logger,
+		Interval:    interval,
+		Ticker:      time.NewTicker(interval),
+		Quit:        make(chan struct{}),
+		DB:          db,
+		logger:      logger,
+		startWindow: 0,
+		// Setting endWindow to DA window (in slots)
+		endWindow: chainSpec.SlotsPerEpoch() *
+			chainSpec.MinEpochsForBlobsSidecarsRequest(),
+		lastPrunedIndex: 0,
 	}
 }
 
@@ -59,12 +72,7 @@ func (p *Pruner) Start() {
 			select {
 			case <-p.Ticker.C:
 				// Do the pruning
-				db, ok := p.db.(*filedb.DB)
-				if !ok {
-					p.logger.Error("DB is not a *filedb.DB instance")
-					continue
-				}
-				err := p.prune(db)
+				err := p.prune(p.DB)
 				if err != nil {
 					p.logger.Error("Error pruning: ", err)
 				}
@@ -80,34 +88,26 @@ func (p *Pruner) Stop() {
 	close(p.Quit)
 }
 
-func (p *Pruner) prune(db *filedb.DB) error {
+func (p *Pruner) prune(db *filedb.PrunerDB) error {
 	p.logger.Info("Pruning blobs")
-	highestIndex := db.GetHighestSlot()
-	lowestIndex := db.GetLowestSlot()
-	// Calculate the difference between the highest and lowest indices.
-	diff := highestIndex - lowestIndex
 
-	p.logger.Info("Highest index: ", highestIndex, " Lowest index: ", lowestIndex, " Difference: ", diff)
-	// Get the minimum epochs for blobs sidecars request from the chain spec.
-	minEpochs := p.chainSpec.MinEpochsForBlobsSidecarsRequest()
-
-	p.logger.Info("Min epochs: ", minEpochs)
-
-	rangeDB := &filedb.RangeDB{
-		DB: p.db,
+	// Increment the start window and end window
+	// if the latest index is greater than the end window.
+	if db.LatestIndex > p.endWindow {
+		difference := db.LatestIndex - p.endWindow
+		p.startWindow += difference
+		p.endWindow = db.LatestIndex
 	}
 
-	// Convert the minimum epochs to slots.
-	minEpochsInSots := minEpochs * p.chainSpec.SlotsPerEpoch()
-	p.logger.Info("minEpochsInSots: ", minEpochsInSots)
-
-	minEpochsInSots = 100
 	// If the difference is greater than the minimum epochs, prune the blobs.
-	if diff > minEpochsInSots {
-		err := rangeDB.DeleteRange(lowestIndex, highestIndex-minEpochs)
-		if err != nil {
-			return err
-		}
+	if p.startWindow <= p.lastPrunedIndex {
+		return nil
 	}
+	err := db.DeleteRange(p.lastPrunedIndex, p.startWindow)
+	if err != nil {
+		return err
+	}
+
+	p.lastPrunedIndex = p.startWindow - 1
 	return nil
 }

@@ -26,33 +26,28 @@
 package filedb
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/spf13/afero"
-	"math"
-	"os"
-	"path/filepath"
 )
 
 // DB represents a filesystem backed key-value store.
 // It is useful for storing amounts of data that exceed what is
 // performant to store in a traditional key-value database.
 type DB struct {
-	fs          afero.Fs
-	logger      log.Logger[any]
-	rootDir     string
-	extension   string
-	dirPerms    os.FileMode
-	highestSlot uint64
-	lowestSlot  uint64
+	fs        afero.Fs
+	logger    log.Logger[any]
+	rootDir   string
+	extension string
+	dirPerms  os.FileMode
 }
 
 // NewDB creates a new instance of the DB.
 func NewDB(opts ...Option) *DB {
-	db := &DB{
-		highestSlot: 0,
-		lowestSlot:  math.MaxUint64,
-	}
+	db := &DB{}
 	for _, opt := range opts {
 		if err := opt(db); err != nil {
 			panic(errors.Wrap(err, "failed to apply option"))
@@ -65,7 +60,6 @@ func NewDB(opts ...Option) *DB {
 
 // Get retrieves the value for a key.
 func (db *DB) Get(key []byte) ([]byte, error) {
-	db.logger.Info("db.GetHighestSlot: ", db.GetHighestSlot(), "db.GetLowestSlot :", db.GetLowestSlot())
 	return afero.ReadFile(db.fs, db.pathForKey(key))
 }
 
@@ -104,10 +98,6 @@ func (db *DB) Set(key []byte, value []byte) error {
 	}
 	db.logger.Debug("wrote %d bytes to %s", n, db.pathForKey(key))
 
-	_, err = db.processKey(key)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -120,27 +110,4 @@ func (db *DB) Delete(key []byte) error {
 // TODO: for efficient storage we should expand this path
 func (db *DB) pathForKey(key []byte) string {
 	return string(key) + "." + db.extension
-}
-
-// processKey processes the key by extracting the index and updating the slot.
-func (db *DB) processKey(key []byte) (uint64, error) {
-	// Extract the index from the key.
-	extractIndex, err := ExtractIndex(key)
-	if err != nil {
-		return 0, err
-	}
-	// Update the highest and lowest slot numbers.
-	db.UpdateSlot(extractIndex)
-
-	return extractIndex, nil
-}
-
-// GetHighestSlot retrieves the highest slot number that exists in the database.
-func (db *DB) GetHighestSlot() uint64 {
-	return db.highestSlot
-}
-
-// GetLowestSlot retrieves the lowest slot number that exists in the database.
-func (db *DB) GetLowestSlot() uint64 {
-	return db.lowestSlot
 }

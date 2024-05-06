@@ -72,14 +72,6 @@ func (db *PebbleDB) Close() error {
 	return err
 }
 
-func (db *PebbleDB) GetHighestSlot() uint64 {
-	return 0
-}
-
-func (db *PebbleDB) GetLowestSlot() uint64 {
-	return 0
-}
-
 func (db *PebbleDB) Get(key []byte) ([]byte, error) {
 	if len(key) == 0 {
 		return nil, errors.New("key cannot be empty")

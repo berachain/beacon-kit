@@ -23,37 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package filedb
 
-import (
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+type PrunerDB struct {
+	RangeDB
+	LatestIndex uint64
+}
 
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/pruner"
-)
+func (p *PrunerDB) Set(index uint64, key []byte, value []byte) error {
+	if err := p.RangeDB.Set(index, key, value); err != nil {
+		return err
+	}
 
-func main() {
-	log := log.NewLogger(os.Stdout)
-	// Initialize your database here. This could be a filedb.DB or pebble.DB instance.
-	var db interfaces.DB
-
-	// TODO: Time could be configured
-	interval := time.Minute * 1
-
-	// Create a new pruner instance.
-	p := pruner.NewPruner(interval, db, log)
-
-	go p.Start()
-
-	// Wait for an interrupt signal.
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
-
-	// When you're done, stop the pruner.
-	defer p.Stop()
+	p.LatestIndex = index
+	return nil
 }
