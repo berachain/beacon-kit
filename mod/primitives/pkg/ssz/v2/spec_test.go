@@ -260,12 +260,12 @@ func TestParityU64Array(t *testing.T) {
 	// slashings := make([]byte, (8192 * 8))
 	res, err3 := sszState.MarshalSSZ()
 	// See bellatrix.ssz.go generated file in unmarshalSSZ
-	slashings := res[2621712:2687248]
+	slashings := make([]byte, 0)
+	if len(res) >= 2687248 {
+		slashings = res[2621712:2687248]
+	}
 	require.NoError(t, err3)
 	debugPrint(debug, t, "FastSSZ Output len:", len(slashings))
-
-	debugPrint(debug, t, "Local Serializer output:", exp[3100:3200], err)
-	debugPrint(debug, t, "FastSSZ Output:", slashings[3100:3200])
 
 	require.Equal(
 		t,
@@ -275,8 +275,8 @@ func TestParityU64Array(t *testing.T) {
 	)
 	require.Equal(
 		t,
-		exp[3100:3200],
-		slashings[3100:3200],
+		exp,
+		slashings,
 		"local output and fastssz output doesnt match",
 	)
 }
