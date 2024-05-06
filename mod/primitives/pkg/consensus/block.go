@@ -62,6 +62,15 @@ func EmptyBeaconBlock[
 	return block, nil
 }
 
+func FreshBeaconBlock(forkVersion uint32) BeaconBlock {
+	var block BeaconBlockDeneb
+	switch forkVersion {
+	case version.Deneb:
+		block = BeaconBlockDeneb{}
+	}
+	return &block
+}
+
 // BeaconBlockFromSSZ assembles a new beacon block
 // from the given SSZ bytes and fork version.
 func BeaconBlockFromSSZ(
