@@ -282,7 +282,7 @@ func inferFieldTypeFromSizeTags(
 }
 
 // Recursive function to calculate the length of an N-dimensional array.
-func GetNDimensionalArrayLength(val reflect.Value) int {
+func GetNestedArrayLength(val reflect.Value) int {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
 		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return int(DetermineSize(val))
@@ -294,7 +294,7 @@ func GetNDimensionalArrayLength(val reflect.Value) int {
 
 	// Recursively calculate the length of the first element if it is an
 	// array/slice.
-	elementLength := GetNDimensionalArrayLength(val.Index(0))
+	elementLength := GetNestedArrayLength(val.Index(0))
 	return length * elementLength
 }
 
