@@ -132,11 +132,10 @@ func BenchmarkFastSSZUint64(b *testing.B) {
 	require.NoError(b, err)
 
 	testU64 := getU64(sszState)
+	res := make([]byte, 0)
 
 	runBench(b, func() {
-		res := make([]byte, 0)
 		res = ssz.MarshalUint64(res, testU64)
-		debugPrint(false, b, "FastSSZ Output:", res)
 	})
 }
 
