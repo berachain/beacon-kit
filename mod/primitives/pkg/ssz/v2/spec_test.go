@@ -123,9 +123,7 @@ func BenchmarkNativeUint64(b *testing.B) {
 
 	s := sszv2.NewSerializer()
 	runBench(b, func() {
-		o2, err3 := s.MarshalSSZ(testU64)
-		require.NoError(b, err3)
-		debugPrint(false, b, "Local Serializer output:", o2, err3)
+		s.MarshalSSZ(testU64)
 	})
 }
 
