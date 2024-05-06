@@ -315,12 +315,7 @@ func (s *Serializer) MarshalNDimensionalArray(
 // Recursive function to calculate the length of an N-dimensional array.
 func GetNDimensionalArrayLength(val reflect.Value) int {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
-		// For uints, each val is 8 bits unless uint8, which is treated as a
-		// byte array
-		if IsUintLike(val.Kind()) && val.Kind() != reflect.Uint8 {
-			return 8
-		}
-		return 1 // Non-array/slice values are treated as having a length of 1
+		return int(DetermineSize(val))
 	}
 	length := val.Len()
 	if length == 0 {
