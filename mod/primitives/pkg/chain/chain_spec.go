@@ -178,14 +178,14 @@ func NewChainSpec[
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) ChainID() uint64 {
-	return c.Data.ChainID
+	return c.Data.Eth1ChainID
 }
 
 // NetworkID returns the network ID.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) NetworkID() uint64 {
-	return c.Data.NetworkID
+	return c.Data.Eth1NetworkID
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
