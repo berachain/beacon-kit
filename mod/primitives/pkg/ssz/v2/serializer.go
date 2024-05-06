@@ -169,7 +169,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		}
 		if isVariableSizeType(typ.Elem()) {
 			// composite arr.
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+			// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		}
 		fallthrough
 	case k == reflect.Array:
@@ -187,7 +187,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		}
 		if isVariableSizeType(typ.Elem()) {
 			// composite arr.
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+			// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		}
 		fallthrough
 	// TODO(Chibera): fix me!
