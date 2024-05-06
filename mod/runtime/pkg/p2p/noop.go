@@ -27,6 +27,7 @@ package p2p
 
 import (
 	"context"
+	"errors"
 	"reflect"
 
 	ssz "github.com/ferranbt/fastssz"
@@ -52,11 +53,19 @@ func (n NoopGossipHandler[DataT, BytesT]) Request(
 	_ context.Context,
 	ref BytesT,
 ) (DataT, error) {
-	var out DataT
+	var (
+		out DataT
+		ok  bool
+	)
+
 	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
 		newInstance := reflect.New(reflect.TypeOf(out).Elem())
-		out = newInstance.Interface().(DataT)
+		out, ok = newInstance.Interface().(DataT)
+		if !ok {
+			return out, errors.New("failed to create new instance")
+		}
 	}
+
 	err := out.UnmarshalSSZ(ref)
 	return out, err
 }
