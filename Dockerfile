@@ -53,7 +53,7 @@ COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-builder/go.mod ./mod/core/go.sum ./mod/node-builder/
-COPY ./mod/p2p/go.mod ./mod/p2p/go.sum ./mod/p2p/
+COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
