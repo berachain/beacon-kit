@@ -44,6 +44,8 @@ type DB struct {
 	ticker          *time.Ticker
 	windowSize      uint64
 	highestSetIndex uint64
+
+	lastDeletedIndex uint64
 }
 
 // New creates a new DB.
@@ -53,9 +55,10 @@ func New(
 	windowSize uint64,
 ) *DB {
 	return &DB{
-		windowSize: windowSize,
-		IndexDB:    db,
-		ticker:     time.NewTicker(pruneInterval),
+		windowSize:       windowSize,
+		IndexDB:          db,
+		ticker:           time.NewTicker(pruneInterval),
+		lastDeletedIndex: 0,
 	}
 }
 
@@ -97,9 +100,11 @@ func (db *DB) prune() error {
 
 	// TODO: Optimize the underlying DeleteRange to snap to lowest
 	// index in O(1).
-	if err := db.DeleteRange(0, db.highestSetIndex-db.windowSize); err != nil {
+	if err := db.DeleteRange(db.lastDeletedIndex, db.highestSetIndex-db.windowSize); err != nil {
+		db.lastDeletedIndex = 0
 		return err
 	}
+	db.lastDeletedIndex = db.highestSetIndex - db.windowSize - 1
 
 	return nil
 }
