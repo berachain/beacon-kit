@@ -202,13 +202,12 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 	res, err3 := sszState.MarshalSSZ()
 	require.NoError(t, err3)
 	prInRes := res[262320:524464]
-
 	debugPrint(debug, t, "Local Serializer output length:", len(exp))
 	debugPrint(debug, t, "FastSSZ Serializer output length:", len(prInRes))
 	require.Equal(
 		t,
-		exp[1:64],
-		prInRes[1:64],
+		exp,
+		prInRes,
 		"local output and fastssz output doesnt match",
 	)
 }
