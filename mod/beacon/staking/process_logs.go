@@ -54,7 +54,11 @@ func (s *Service) ProcessBlockEvents(
 			}
 			deposits = append(deposits, deposit)
 			s.logger.Info(
-				"he was a sk8r boi 🛹", "deposit", deposit.Index, "amount", deposit.Amount,
+				"he was a sk8r boi 🛹",
+				"deposit",
+				deposit.Index,
+				"amount",
+				deposit.Amount,
 			)
 		default:
 			continue

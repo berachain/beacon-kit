@@ -97,14 +97,22 @@ func (s *Service) sendPostBlockFCU(
 		h, err := st.GetLatestBlockHeader()
 		if err != nil {
 			s.logger.
-				Error("failed to get latest block header in postBlockProcess", "error", err)
+				Error(
+					"failed to get latest block header in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
 		stateRoot, err := st.HashTreeRoot()
 		if err != nil {
 			s.logger.
-				Error("failed to get state root in postBlockProcess", "error", err)
+				Error(
+					"failed to get state root in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
@@ -112,7 +120,11 @@ func (s *Service) sendPostBlockFCU(
 		root, err := h.HashTreeRoot()
 		if err != nil {
 			s.logger.
-				Error("failed to get block header root in postBlockProcess", "error", err)
+				Error(
+					"failed to get block header root in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
@@ -146,12 +158,20 @@ func (s *Service) sendPostBlockFCU(
 		// block
 		// just incase this can help get our execution client back on track.
 		s.logger.
-			Error("failed to send forkchoice update with attributes", "error", err)
+			Error(
+				"failed to send forkchoice update with attributes",
+				"error",
+				err,
+			)
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
 	if err := s.sendFCU(ctx, st, headHash); err != nil {
 		s.logger.
-			Error("failed to send forkchoice update in postBlockProcess", "error", err)
+			Error(
+				"failed to send forkchoice update in postBlockProcess",
+				"error",
+				err,
+			)
 	}
 }
