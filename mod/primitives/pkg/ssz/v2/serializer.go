@@ -190,7 +190,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 				[]byte,
 				0,
 			), errors.Newf(
-				"type %v is not serializable.",
+				"type %v is not serializable",
 				val.Type(),
 			)
 	}
@@ -238,12 +238,12 @@ func (s *Serializer) MarshalNDimensionalArray(
 	val reflect.Value,
 ) ([]byte, error) {
 	if val.Kind() != reflect.Array && val.Kind() != reflect.Slice {
-		return nil, errors.New("input is not an array or slice.")
+		return nil, errors.New("input is not an array or slice")
 	}
 
 	dimensionality := s.GetArrayDimensionality(val)
 	if dimensionality == 0 {
-		return nil, errors.New("zero-dimensional array provided.")
+		return nil, errors.New("zero-dimensional array provided")
 	}
 
 	// Calculate the total number of elements across all dimensions
