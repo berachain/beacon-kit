@@ -49,6 +49,10 @@ func (r *BeaconKitRuntime) BuildABCIComponents() (
 		panic(err)
 	}
 
+	if chainService == nil || builderService == nil {
+		panic("missing services")
+	}
+
 	handler := abci.NewHandler(
 		builderService,
 		chainService,
