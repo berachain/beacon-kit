@@ -235,10 +235,7 @@ func BenchmarkFastSSZByteArrayLarge(b *testing.B) {
 	require.NoError(b, err2)
 
 	runBench(b, func() {
-		res, err3 := sszState.MarshalSSZ()
-		require.NoError(b, err3)
-		prInRes := res[262320:524464]
-		debugPrint(debug, b, "FastSSZ Output:", prInRes)
+		sszState.MarshalSSZ()
 	})
 }
 
