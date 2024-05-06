@@ -164,8 +164,7 @@ func BenchmarkNativeByteArray(b *testing.B) {
 	s := sszv2.NewSerializer()
 
 	runBench(b, func() {
-		exp, err3 := s.MarshalSSZ(testByteArr)
-		debugPrint(debug, b, "Local Serializer output:", exp, err3)
+		s.MarshalSSZ(testByteArr)
 	})
 }
 
