@@ -27,7 +27,6 @@ package merkle
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -118,7 +117,7 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 ) (RootT, error) {
 	if uint64(len(proof)) != g.Length() {
 		return RootT{},
-			fmt.Errorf("expected proof length %d, received %d", g.Length(),
+			errors.Newf("expected proof length %d, received %d", g.Length(),
 				len(proof))
 	}
 	for i, h := range proof {

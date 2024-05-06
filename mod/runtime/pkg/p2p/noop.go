@@ -23,22 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package errors
+package p2p
 
 import (
-	"github.com/cockroachdb/errors"
+	"context"
+
+	ssz "github.com/ferranbt/fastssz"
 )
 
-// TODO: eventually swap out via build flags if we believe there is value
-// to doing so.
-//
-//nolint:gochecknoglobals // used an alias.
-var (
-	New   = errors.New
-	Newf  = errors.Newf
-	Wrap  = errors.Wrap
-	Wrapf = errors.Wrapf
-	Is    = errors.Is
-	As    = errors.As
-	Join  = errors.Join
-)
+// NoopGossipHandler is a gossip handler that simply returns the
+// ssz marshalled data as a "reference" to the object it receives.
+type NoopGossipHandler[DataT interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+}, BytesT ~[]byte] struct{}
+
+// Publish creates a new NoopGossipHandler.
+func (n NoopGossipHandler[DataT, BytesT]) Publish(
+	_ context.Context,
+	data DataT,
+) (BytesT, error) {
+	return data.MarshalSSZ()
+}
+
+// Request simply returns the reference it receives.
+func (n NoopGossipHandler[DataT, BytesT]) Request(
+	_ context.Context,
+	ref BytesT,
+	out DataT,
+) error {
+	return out.UnmarshalSSZ(ref)
+}

@@ -25,10 +25,10 @@
 package ssz
 
 import (
-	"fmt"
 	"reflect"
 	"sync"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/dgraph-io/ristretto"
 )
 
@@ -98,7 +98,7 @@ func Factory(val reflect.Value, typ reflect.Type) (Serializable, error) {
 	case kind == reflect.Ptr:
 		return Factory(val.Elem(), typ.Elem())
 	default:
-		return nil, fmt.Errorf("unsupported kind: %v", kind)
+		return nil, errors.Newf("unsupported kind: %v", kind)
 	}
 }
 

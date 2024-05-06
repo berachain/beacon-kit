@@ -27,12 +27,12 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -204,7 +204,7 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 	}
 
 	if chainID.Uint64() != s.cfg.RequiredChainID {
-		return fmt.Errorf(
+		return errors.Newf(
 			"wanted chain ID %d, got %d",
 			s.cfg.RequiredChainID,
 			chainID.Uint64(),
@@ -245,7 +245,10 @@ func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error("failed to refresh JWT token", "err", err)
 				//#nosec:G703 wtf is even this problem here.
-				s.statusErr = fmt.Errorf("%w: failed to refresh JWT token", err)
+				s.statusErr = errors.Newf(
+					"%w: failed to refresh JWT token",
+					err,
+				)
 			} else {
 				s.statusErr = nil
 			}
@@ -298,7 +301,7 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 	case "", "ipc":
 		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
 	default:
-		return fmt.Errorf(
+		return errors.Newf(
 			"no known transport for URL scheme %q",
 			s.cfg.RPCDialURL.Scheme,
 		)

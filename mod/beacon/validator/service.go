@@ -27,10 +27,10 @@ package validator
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -120,14 +120,14 @@ func (s *Service) RequestBestBlock(
 	// and safe block hashes to the execution client.
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to build reveal: %w", err)
+		return nil, nil, errors.Newf("failed to build reveal: %w", err)
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -137,7 +137,7 @@ func (s *Service) RequestBestBlock(
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to get validator by pubkey: %w",
 			err,
 		)
@@ -147,7 +147,7 @@ func (s *Service) RequestBestBlock(
 	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Newf(
 			"failed to compute state root: %w",
 			err,
 		)
@@ -181,7 +181,7 @@ func (s *Service) RequestBestBlock(
 		parentExecutionPayload.GetBlockHash(),
 	)
 	if err != nil {
-		return blk, nil, fmt.Errorf(
+		return blk, nil, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)

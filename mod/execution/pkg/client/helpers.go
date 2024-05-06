@@ -26,9 +26,9 @@
 package client
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -61,7 +61,7 @@ func buildSignedJWT(s *jwt.Secret) (string, error) {
 	})
 	str, err := token.SignedString(s[:])
 	if err != nil {
-		return "", fmt.Errorf("failed to create JWT token: %w", err)
+		return "", errors.Newf("failed to create JWT token: %w", err)
 	}
 	return str, nil
 }

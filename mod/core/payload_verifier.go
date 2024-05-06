@@ -26,11 +26,10 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // PayloadVerifier is responsible for verifying incoming execution
@@ -49,17 +48,8 @@ func NewPayloadVerifier(cs primitives.ChainSpec) *PayloadVerifier {
 // VerifyPayload verifies the incoming payload.
 func (pv *PayloadVerifier) VerifyPayload(
 	st state.BeaconState,
-	body consensus.BeaconBlockBody,
+	payload engineprimitives.ExecutionPayload,
 ) error {
-	if body == nil || body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	payload := body.GetExecutionPayload()
-	if payload == nil || payload.IsNil() {
-		return ErrNilPayload
-	}
-
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
@@ -67,7 +57,7 @@ func (pv *PayloadVerifier) VerifyPayload(
 	safeHash := latestExecutionPayloadHeader.GetBlockHash()
 
 	if safeHash != payload.GetParentHash() {
-		return fmt.Errorf(
+		return errors.Newf(
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,
@@ -90,7 +80,7 @@ func (pv *PayloadVerifier) VerifyPayload(
 
 	// Ensure the prev randao matches the local state.
 	if payload.GetPrevRandao() != expectedMix {
-		return fmt.Errorf(
+		return errors.Newf(
 			"prev randao does not match, expected: %x, got: %x",
 			expectedMix, payload.GetPrevRandao(),
 		)
@@ -98,27 +88,20 @@ func (pv *PayloadVerifier) VerifyPayload(
 
 	// TODO: Verify timestamp data once Clock is done.
 	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-	// 	return fmt.Errorf("slot or genesis time in state is corrupt, cannot
+	// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
 	// compute time: %v", err)
 	// } else if payload.Timestamp != expectedTime {
-	// 	return fmt.Errorf("state at slot %d, genesis time %d, expected execution
+	// 	return errors.Newf("state at slot %d, genesis time %d, expected
+	// execution
 	// payload time %d, but got %d",
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
-
-	if uint64(len(body.GetBlobKzgCommitments())) > pv.cs.MaxBlobsPerBlock() {
-		return fmt.Errorf(
-			"too many blob kzg commitments, expected: %d, got: %d",
-			pv.cs.MaxBlobsPerBlock(),
-			len(body.GetBlobKzgCommitments()),
-		)
-	}
 
 	// Verify the number of withdrawals.
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
 	) > pv.cs.MaxWithdrawalsPerPayload() {
-		return fmt.Errorf(
+		return errors.Newf(
 			"too many withdrawals, expected: %d, got: %d",
 			pv.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)

@@ -64,7 +64,11 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.VerifyPayload(st, blk.GetBody())
+		body := blk.GetBody()
+		if body == nil || body.IsNil() {
+			return ErrNilBlkBody
+		}
+		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
 	})
 
 	// Validate block in Parallel.
@@ -178,7 +182,7 @@ func (s *Service) VerifyPayloadOnBlk(
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
 		s.BeaconState(ctx),
-		body,
+		body.GetExecutionPayload(),
 	); err != nil {
 		return err
 	}

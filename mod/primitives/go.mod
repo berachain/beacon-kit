@@ -10,6 +10,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/holiman/uint256 v1.2.4
 	github.com/minio/sha256-simd v1.0.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
@@ -40,7 +41,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.34.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

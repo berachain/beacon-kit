@@ -23,22 +23,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package errors
+package p2p
 
-import (
-	"github.com/cockroachdb/errors"
-)
+import "context"
 
-// TODO: eventually swap out via build flags if we believe there is value
-// to doing so.
-//
-//nolint:gochecknoglobals // used an alias.
-var (
-	New   = errors.New
-	Newf  = errors.Newf
-	Wrap  = errors.Wrap
-	Wrapf = errors.Wrapf
-	Is    = errors.Is
-	As    = errors.As
-	Join  = errors.Join
-)
+type PublisherReceiver[
+	InPubT, OutPubT, InReceiverT, OutReceiverT any,
+] interface {
+	Publisher[InPubT, OutPubT]
+	Receiver[InReceiverT, OutReceiverT]
+}
+
+type Publisher[InT, OutT any] interface {
+	Publish(ctx context.Context, data InT) (OutT, error)
+}
+
+type Receiver[InT, OutT any] interface {
+	Request(ctx context.Context, ref InT) (OutT, error)
+}
