@@ -60,6 +60,10 @@ func NewHandler(
 	builderService BuilderService,
 	chainService BlockchainService,
 ) *Handler {
+	// This is just for nilaway, TODO: remove later.
+	if chainService == nil {
+		panic("chain service is nil")
+	}
 	return &Handler{
 		builderService: builderService,
 		chainService:   chainService,
