@@ -23,21 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package deposit
+package genesis
 
-import "github.com/berachain/beacon-kit/mod/errors"
+const (
+	depositAmountFlag = "deposit-amount"
 
-var (
-	// ErrValidatorPrivateKeyRequired is returned when the validator private key
-	// is required but not provided.
-	ErrValidatorPrivateKeyRequired = errors.New(
-		"validator private key required",
-	)
+	defaultDepositAmount = "1000000000" // 1e9
 
-	// ErrInvalidValidatorPrivateKeyLength is returned when the validator
-	// private
-	// key has an invalid length.
-	ErrInvalidValidatorPrivateKeyLength = errors.New(
-		"invalid validator private key length",
-	)
+	depositAmountFlagMsg = "The amount of deposit to be made"
 )

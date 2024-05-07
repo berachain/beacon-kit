@@ -31,6 +31,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
@@ -91,22 +92,22 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		credentials, err := convertWithdrawalCredentials(args[0])
+		credentials, err := parser.ConvertWithdrawalCredentials(args[0])
 		if err != nil {
 			return err
 		}
 
-		amount, err := convertAmount(args[1])
+		amount, err := parser.ConvertAmount(args[1])
 		if err != nil {
 			return err
 		}
 
-		currentVersion, err := convertVersion(args[2])
+		currentVersion, err := parser.ConvertVersion(args[2])
 		if err != nil {
 			return err
 		}
 
-		genesisValidatorRoot, err := convertGenesisValidatorRoot(args[3])
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[3])
 		if err != nil {
 			return err
 		}
