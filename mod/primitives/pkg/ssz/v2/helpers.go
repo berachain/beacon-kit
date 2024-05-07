@@ -26,6 +26,7 @@
 package ssz
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -370,4 +371,62 @@ func IsUintLike(kind reflect.Kind) bool {
 	}
 
 	return isUintLike
+}
+
+// CalculateBufferSizeForStruct calculates the required buffer size for marshalling a struct using SSZ.
+func CalculateBufferSizeForStruct(val reflect.Value) (int, error) {
+	typ := reflect.TypeOf(val.Interface())
+	// k := typ.Kind()
+	vf := make([]reflect.StructField, 0)
+	// Deref the pointer
+	if typ.Kind() == reflect.Ptr {
+		// val = reflect.ValueOf(typ)
+		subtyp := reflect.TypeOf(val.Interface()).Elem()
+		vf = reflect.VisibleFields(subtyp)
+	}
+	if typ.Kind() == reflect.Struct {
+
+		// nf := reflect.TypeOf(GenDataValue(val.Interface()).data).Elem().NumField()
+		// return nf, nil
+		// vf := reflect.VisibleFields(reflect.TypeOf(val.Interface().data).Elem())
+
+	}
+	if typ.Kind() != reflect.Struct && typ.Kind() != reflect.Ptr {
+		return 0, errors.Newf("input value is not a struct, it is a %s", val.Kind())
+	}
+
+	for i := range len(vf) {
+		sf := vf[i]
+		name := sf.Name
+		ftype := sf.Type
+		
+		data, ok := val.Interface().(data); ok {
+			subfield := data[name]
+			// e.g. call val.Interface().(data).Epoch  in debugger will get the epoch uint val
+			// We want to get that data, field typ, and field name for encoding
+			// Todo: figure out how to call it with a dot as [] access doesnt work in go like it does in js
+		}
+		fmt.Println(name, ftype, subfield)
+	}
+
+	size := 0
+	n := typ.NumField()
+	if n > 0 {
+		fmt.Println("Afa")
+	}
+
+	// e := reflect.ValueOf(.Interface()
+	for i := 0; i < typ.NumField(); i++ {
+		field := val.Field(i)
+		// Skip unexported fields
+		if !field.CanInterface() {
+			continue
+		}
+		size += int(DetermineSize(field))
+	}
+	return size, nil
+}
+
+type DataValue struct {
+	data reflect.StructField
 }

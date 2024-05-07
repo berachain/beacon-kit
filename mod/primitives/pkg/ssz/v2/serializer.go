@@ -129,6 +129,14 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		// }
 		fallthrough
+	case k == reflect.Ptr:
+		// Composite structs appear initially as pointers so we Look inside
+		if typ.Elem().Kind() == reflect.Struct {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
+		}
+		fallthrough
+	case k == reflect.Struct:
+		return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
 	// TODO(Chibera): fix me!
 	// Composite structs appear initially as pointers so we Look inside
 	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() ==
@@ -184,12 +192,20 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	typ reflect.Type,
 	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
 ) ([]byte, error) {
-	aLen := val.Len()
-	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+	aLen := 0
+	err := errors.New("MarshalToDefaultBuffer Failure")
+	if val.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct {
+		aLen, err = CalculateBufferSizeForStruct(val)
+		if err != nil {
+			return nil, err
+		}
+	} else if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		aLen = GetNestedArrayLength(val)
+	} else {
+		aLen = val.Len()
 	}
 	buf := make([]byte, aLen)
-	_, err := cb(val, typ, buf, 0)
+	_, err = cb(val, typ, buf, 0)
 	return buf, err
 }
 
@@ -343,6 +359,65 @@ func (s *Serializer) MarshalComposite(
 	index = currentOffsetIndex
 	return index, nil
 }
+
+func (s *Serializer) MarshalStruct(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
+	// Deref the pointer
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if typ.Kind() != reflect.Struct {
+		return 0, NewSerializeErrorInvalidType(errors.Newf("expected a struct type, got %s", typ.Kind()))
+	}
+
+	index := startOffset
+	var err error
+
+	for i := 0; i < typ.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i).Type
+
+		// Skip unexported fields
+		if !field.CanInterface() {
+			continue
+		}
+
+		// Marshal each field
+		if isVariableSizeType(fieldType) {
+			index, err = s.Marshal(field, fieldType, buf, index)
+		} else {
+			fixedSize := determineFixedSize(field, fieldType)
+			tempBuf := make([]byte, fixedSize)
+			_, err = s.Marshal(field, fieldType, tempBuf, 0)
+			if err != nil {
+				return 0, err
+			}
+			copy(buf[index:], tempBuf)
+			index += uint64(fixedSize)
+		}
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return index, nil
+}
+
+// func (s *Serializer) MarshalStruct(
+// 	val reflect.Value,
+// 	typ reflect.Type,
+// 	buf []byte,
+// 	startOffset uint64,
+// ) (uint64, error) {
+// 	if typ.Kind() == reflect.Ptr {
+
+// 	}
+// )
 
 // TODO
 // func (s *Serializer) MarshalStruct(
