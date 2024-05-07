@@ -28,6 +28,8 @@ package prunedb
 import (
 	"context"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 type IndexDB interface {
@@ -42,10 +44,10 @@ type IndexDB interface {
 // of the window at the given ticker rate.
 type DB struct {
 	IndexDB
-	ticker          *time.Ticker
-	windowSize      uint64
-	highestSetIndex uint64
-
+	ticker           *time.Ticker
+	windowSize       uint64
+	highestSetIndex  uint64
+	logger           log.Logger[any]
 	lastDeletedIndex uint64
 }
 
@@ -76,7 +78,7 @@ func (db *DB) Start(ctx context.Context) {
 			case <-db.ticker.C:
 				// Do the pruning
 				if err := db.prune(); err != nil {
-					// db.Logger().Error("Error pruning: ", err)
+					db.logger.Error("Error pruning: ", err)
 				}
 			case <-ctx.Done():
 				return
@@ -86,13 +88,13 @@ func (db *DB) Start(ctx context.Context) {
 }
 
 // Set sets the key and value at the given index and updates the latest index.
-func (p *DB) Set(index uint64, key []byte, value []byte) error {
-	if err := p.IndexDB.Set(index, key, value); err != nil {
+func (db *DB) Set(index uint64, key []byte, value []byte) error {
+	if err := db.IndexDB.Set(index, key, value); err != nil {
 		return err
 	}
 
 	// Update the highest seen index.
-	p.highestSetIndex = max(p.highestSetIndex, index)
+	db.highestSetIndex = max(db.highestSetIndex, index)
 	return nil
 }
 
