@@ -28,7 +28,7 @@ package nodebuilder
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )

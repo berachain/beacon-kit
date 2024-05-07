@@ -23,49 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package p2p
+package types
 
 import (
-	"context"
-	"errors"
-	"reflect"
-
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
-// ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[DataT interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-}, BytesT ~[]byte] struct{}
-
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
-	_ context.Context,
-	data DataT,
-) (BytesT, error) {
-	return data.MarshalSSZ()
-}
-
-// Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
-	_ context.Context,
-	ref BytesT,
-) (DataT, error) {
-	var (
-		out DataT
-		ok  bool
-	)
-
-	// Alloc memory if DataT is a pointer.
-	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
-		newInstance := reflect.New(reflect.TypeOf(out).Elem())
-		out, ok = newInstance.Interface().(DataT)
-		if !ok {
-			return out, errors.New("failed to create new instance")
-		}
-	}
-
-	return out, out.UnmarshalSSZ(ref)
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../../primitives/pkg/crypto,../../../../../primitives/pkg/consensus,../../../../../primitives/pkg/bytes,../../../../../primitives,../../../../../primitives/pkg/math -output validators.ssz.go
+type ValidatorsMarshaling struct {
+	Validators []*consensus.Validator `json:"validators" ssz-max:"1099511627776"`
 }

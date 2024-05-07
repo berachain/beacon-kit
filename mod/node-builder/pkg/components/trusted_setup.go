@@ -23,49 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package p2p
+package components
 
 import (
-	"context"
-	"errors"
-	"reflect"
-
-	ssz "github.com/ferranbt/fastssz"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
-// ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[DataT interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-}, BytesT ~[]byte] struct{}
-
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
-	_ context.Context,
-	data DataT,
-) (BytesT, error) {
-	return data.MarshalSSZ()
+// TrustedSetupInput is the input for the dep inject framework.
+type TrustedSetupInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
-	_ context.Context,
-	ref BytesT,
-) (DataT, error) {
-	var (
-		out DataT
-		ok  bool
-	)
+// TrustedSetupOutput is the output for the dep inject framework.
+type TrustedSetupOutput struct {
+	depinject.Out
+	TrustedSetup *gokzg4844.JSONTrustedSetup
+}
 
-	// Alloc memory if DataT is a pointer.
-	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
-		newInstance := reflect.New(reflect.TypeOf(out).Elem())
-		out, ok = newInstance.Interface().(DataT)
-		if !ok {
-			return out, errors.New("failed to create new instance")
-		}
+// ProvideBlsSigner is a function that provides the module to the application.
+func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
+	trustedSetup, err := kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
+	if err != nil {
+		panic(err)
 	}
 
-	return out, out.UnmarshalSSZ(ref)
+	return TrustedSetupOutput{
+		TrustedSetup: trustedSetup,
+	}
 }

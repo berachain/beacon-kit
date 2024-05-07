@@ -26,43 +26,94 @@
 package runtime
 
 import (
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
-// BuildABCIComponents returns the ABCI components for the beacon runtime.
+// PrepareProposal is called by the consensus engine to prepare a proposal for
+// the next block.
 func (r *BeaconKitRuntime[
 	BlobSidecarsT,
 	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
 	StorageBackendT,
-]) BuildABCIComponents() (
-	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker,
-) {
-	var (
-		chainService   *blockchain.Service
-		builderService *validator.Service
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
+]) PrepareProposal(
+	req *abci.PrepareProposalRequest,
+	// TODO: This nextPrepareProposal function is temporary.
+	nextPrepareProposal func(
+		*abci.PrepareProposalRequest,
+	) (*abci.PrepareProposalResponse, error),
+) (*abci.PrepareProposalResponse, error) {
+	start := time.Now()
+	defer func() {
+		r.logger.
+			Info("prepare-proposal executed",
+				"duration", time.Since(start).String())
+	}()
+	return nextPrepareProposal(req)
+}
 
-	if err := r.services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
+// ProcessProposal is called by the consensus engine when a new proposal block
+// is received.
+func (r *BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+]) ProcessProposal(
+	req *abci.ProcessProposalRequest,
+	// TODO: This nextProcessProposal function is temporary.
+	nextProcessProposal func(
+		*abci.ProcessProposalRequest,
+	) (*abci.ProcessProposalResponse, error),
+) (*abci.ProcessProposalResponse, error) {
+	start := time.Now()
+	defer func() {
+		r.logger.
+			Info("process-proposal executed",
+				"duration", time.Since(start).String())
+	}()
+	return nextProcessProposal(req)
+}
 
-	if chainService == nil || builderService == nil {
-		panic("missing services")
-	}
+// but before committing it to the consensus state.
+func (r *BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+]) FinalizeBlock(
+	req *abci.FinalizeBlockRequest,
+	// TODO: This nextFinalizeBlock function is temporary.
+	nextFinalizeBlock func(
+		*abci.FinalizeBlockRequest,
+	) (*abci.FinalizeBlockResponse, error),
+) (*abci.FinalizeBlockResponse, error) {
+	start := time.Now()
+	defer func() {
+		r.logger.
+			Info("finalized-block executed",
+				"duration", time.Since(start).String())
+	}()
+	return nextFinalizeBlock(req)
+}
 
-	handler := abci.NewHandler(
-		builderService,
-		chainService,
-	)
-
-	return handler.PrepareProposalHandler,
-		handler.ProcessProposalHandler,
-		handler.FinalizeBlock
+// Commit is our custom implementation of the ABCI method Commit.
+func (r *BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+	// TODO: This nextCommit function is temporary.
+]) Commit(nextCommit func() (
+	*abci.CommitResponse, error,
+)) (*abci.CommitResponse, error) {
+	start := time.Now()
+	defer func() {
+		r.logger.
+			Info("commit executed",
+				"duration", time.Since(start).String())
+	}()
+	return nextCommit()
 }

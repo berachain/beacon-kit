@@ -23,49 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package p2p
+package components
 
 import (
-	"context"
-	"errors"
-	"reflect"
-
-	ssz "github.com/ferranbt/fastssz"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
-// ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[DataT interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-}, BytesT ~[]byte] struct{}
-
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
-	_ context.Context,
-	data DataT,
-) (BytesT, error) {
-	return data.MarshalSSZ()
+// ConfigInput is the input for the dependency injection framework.
+type ConfigInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
-	_ context.Context,
-	ref BytesT,
-) (DataT, error) {
-	var (
-		out DataT
-		ok  bool
-	)
+// ConfigOutput is the output for the dependency injection framework.
+type ConfigOutput struct {
+	depinject.Out
+	Config *config.Config
+}
 
-	// Alloc memory if DataT is a pointer.
-	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
-		newInstance := reflect.New(reflect.TypeOf(out).Elem())
-		out, ok = newInstance.Interface().(DataT)
-		if !ok {
-			return out, errors.New("failed to create new instance")
-		}
+// ProvideConfig is a function that provides the JWT secret to the application.
+func ProvideConfig(in ConfigInput) ConfigOutput {
+	return ConfigOutput{
+		Config: config.MustReadConfigFromAppOpts(in.AppOpts),
 	}
-
-	return out, out.UnmarshalSSZ(ref)
 }

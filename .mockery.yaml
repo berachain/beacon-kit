@@ -38,7 +38,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt:
+  github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt:
     config:
       recursive: True
       with-expecter: true
