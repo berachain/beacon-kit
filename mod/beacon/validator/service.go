@@ -40,7 +40,9 @@ import (
 )
 
 // Service is responsible for building beacon blocks.
-type Service struct {
+type Service[
+	BlobSidecarsT BlobSidecars,
+] struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
@@ -75,39 +77,50 @@ type Service struct {
 }
 
 // NewService creates a new validator service.
-func NewService(
-	opts ...Option,
-) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
+func NewService[BlobSidecarsT BlobSidecars](
+	cfg *Config,
+	logger log.Logger[any],
+	chainSpec primitives.ChainSpec,
+	signer crypto.BLSSigner,
+	blobFactory BlobFactory[consensus.BeaconBlockBody],
+	randaoProcessor RandaoProcessor[state.BeaconState],
+	ds DepositStore,
+	localBuilder PayloadBuilder[state.BeaconState],
+	remoteBuilders []PayloadBuilder[state.BeaconState],
+) *Service[BlobSidecarsT] {
+	return &Service[BlobSidecarsT]{
+		cfg:             cfg,
+		logger:          logger,
+		chainSpec:       chainSpec,
+		signer:          signer,
+		blobFactory:     blobFactory,
+		randaoProcessor: randaoProcessor,
+		ds:              ds,
+		localBuilder:    localBuilder,
+		remoteBuilders:  remoteBuilders,
 	}
-
-	return s
 }
 
 // Name returns the name of the service.
-func (s *Service) Name() string {
+func (s *Service[BlobSidecarsT]) Name() string {
 	return "validator"
 }
 
-func (s *Service) Start(context.Context) {}
+func (s *Service[BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service) Status() error { return nil }
+func (s *Service[BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service) WaitForHealthy(context.Context) {}
+func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
 
 // LocalBuilder returns the local builder.
-func (s *Service) LocalBuilder() PayloadBuilder[state.BeaconState] {
+func (s *Service[BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
 	return s.localBuilder
 }
 
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service) RequestBestBlock(
+func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,

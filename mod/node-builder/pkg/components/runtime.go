@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -155,19 +156,19 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	validatorService := validator.NewService(
-		validator.WithBlobFactory(
-			dablob.NewSidecarFactory[consensus.BeaconBlockBody](
-				chainSpec,
-				consensus.KZGPositionDeneb,
-			)),
-		validator.WithChainSpec(chainSpec),
-		validator.WithConfig(&cfg.Validator),
-		validator.WithDepositStore(storageBackend.DepositStore(nil)),
-		validator.WithLocalBuilder(localBuilder),
-		validator.WithLogger(logger.With("service", "validator")),
-		validator.WithRandaoProcessor(randaoProcessor),
-		validator.WithSigner(signer),
+	validatorService := validator.NewService[*datypes.BlobSidecars](
+		&cfg.Validator,
+		logger.With("service", "validator"),
+		chainSpec,
+		signer,
+		dablob.NewSidecarFactory[consensus.BeaconBlockBody](
+			chainSpec,
+			consensus.KZGPositionDeneb,
+		),
+		randaoProcessor,
+		storageBackend.DepositStore(nil),
+		localBuilder,
+		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
 	)
 
 	// Build the blockchain service.

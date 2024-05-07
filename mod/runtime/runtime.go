@@ -111,7 +111,7 @@ func (r *BeaconKitRuntime[
 ) {
 	var (
 		chainService   *blockchain.Service[BlobSidecarsT]
-		builderService *validator.Service
+		builderService *validator.Service[BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)
