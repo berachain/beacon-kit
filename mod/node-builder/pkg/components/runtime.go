@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/randao"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -155,39 +156,38 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	validatorService := validator.NewService(
-		validator.WithBlobFactory(
-			dablob.NewSidecarFactory[consensus.BeaconBlockBody](
-				chainSpec,
-				consensus.KZGPositionDeneb,
-			)),
-		validator.WithChainSpec(chainSpec),
-		validator.WithConfig(&cfg.Validator),
-		validator.WithDepositStore(storageBackend.DepositStore(nil)),
-		validator.WithLocalBuilder(localBuilder),
-		validator.WithLogger(logger.With("service", "validator")),
-		validator.WithRandaoProcessor(randaoProcessor),
-		validator.WithSigner(signer),
+	validatorService := validator.NewService[*datypes.BlobSidecars](
+		&cfg.Validator,
+		logger.With("service", "validator"),
+		chainSpec,
+		signer,
+		dablob.NewSidecarFactory[consensus.BeaconBlockBody](
+			chainSpec,
+			consensus.KZGPositionDeneb,
+		),
+		randaoProcessor,
+		storageBackend.DepositStore(nil),
+		localBuilder,
+		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
 	)
 
 	// Build the blockchain service.
-	chainService := blockchain.NewService(
-		blockchain.WithBeaconStorageBackend(storageBackend),
-		blockchain.WithBlockVerifier(core.NewBlockVerifier(chainSpec)),
-		blockchain.WithChainSpec(chainSpec),
-		blockchain.WithExecutionEngine(executionEngine),
-		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithLogger(logger.With("service", "blockchain")),
-		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
-		blockchain.WithStakingService(stakingService),
-		blockchain.WithStateProcessor(
-			core.NewStateProcessor[*datypes.BlobSidecars](
-				chainSpec,
-				dablob.NewVerifier(blobProofVerifier),
-				randaoProcessor,
-				signer,
-				logger.With("module", "state-processor"),
-			)),
+	chainService := blockchain.NewService[*datypes.BlobSidecars](
+		storageBackend,
+		logger.With("service", "blockchain"),
+		chainSpec,
+		executionEngine,
+		localBuilder,
+		stakingService,
+		core.NewBlockVerifier(chainSpec),
+		core.NewStateProcessor[*datypes.BlobSidecars](
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+			randaoProcessor,
+			signer,
+			logger.With("module", "state-processor"),
+		),
+		core.NewPayloadVerifier(chainSpec),
 	)
 
 	// Build the service registry.

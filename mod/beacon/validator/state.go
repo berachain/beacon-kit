@@ -33,7 +33,7 @@ import (
 
 // computeStateRoot computes the state root of the block to be included in the
 // proposal.
-func (s *Service) computeStateRoot(
+func (s *Service[BlobSidecarsT]) computeStateRoot(
 	_ context.Context,
 ) (primitives.Root, error) {
 	return primitives.Root{}, nil

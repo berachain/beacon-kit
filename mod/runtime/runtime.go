@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,7 +40,7 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
@@ -58,7 +57,7 @@ type BeaconKitRuntime[
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
@@ -111,8 +110,8 @@ func (r *BeaconKitRuntime[
 	sdk.PreBlocker,
 ) {
 	var (
-		chainService   *blockchain.Service
-		builderService *validator.Service
+		chainService   *blockchain.Service[BlobSidecarsT]
+		builderService *validator.Service[BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)

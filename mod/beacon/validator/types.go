@@ -28,7 +28,6 @@ package validator
 import (
 	"context"
 
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -36,14 +35,25 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BlobFactory is the interface for building blobs.
-type BlobFactory[BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody] interface {
+type BlobFactory[
+	BlobSidecarsT BlobSidecars,
+	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+] interface {
 	BuildSidecars(
 		blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
-	) (*datypes.BlobSidecars, error)
+	) (BlobSidecarsT, error)
+}
+
+// BlobSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
 }
 
 // DepositStore defines the interface for deposit storage.
