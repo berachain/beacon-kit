@@ -25,7 +25,7 @@
 
 package merkle
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrNegativeIndex indicates that a negative index was provided.

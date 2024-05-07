@@ -48,4 +48,7 @@ type BLSSigner interface {
 	// Sign takes a message as a slice of bytes and returns a signature as a
 	// slice of bytes and an error.
 	Sign([]byte) (BLSSignature, error)
+
+	// VerifySignature verifies a signature against a message and a public key.
+	VerifySignature(pubKey []byte, msg []byte, signature []byte) error
 }

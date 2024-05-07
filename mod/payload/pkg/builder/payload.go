@@ -27,9 +27,9 @@ package builder
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -40,7 +40,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayload(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -56,7 +56,7 @@ func (pb *PayloadBuilder) RequestPayload(
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, fmt.Errorf("%w error when getting payload attributes", err)
+		return nil, errors.Newf("%w error when getting payload attributes", err)
 	}
 
 	// Submit the forkchoice update to the execution client.
@@ -93,7 +93,7 @@ func (pb *PayloadBuilder) RequestPayload(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadAndWait(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -140,7 +140,7 @@ func (pb *PayloadBuilder) RequestPayloadAndWait(
 // execution client to return the payload.
 func (pb *PayloadBuilder) RetrieveOrBuildPayload(
 	ctx context.Context,
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,

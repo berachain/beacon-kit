@@ -26,10 +26,9 @@
 package client
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -108,7 +107,8 @@ var (
 
 	// ErrSyncingPayloadStatus indicates a payload status of SYNCING.
 	ErrSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING")
+		"payload status is SYNCING",
+	)
 
 	// ErrInvalidPayloadStatus indicates an invalid payload status.
 	ErrInvalidPayloadStatus = errors.New(
@@ -190,7 +190,7 @@ func (s *EngineClient) handleRPCError(err error) error {
 				"is set correctly, or use an IPC " +
 				"connection if on the same machine."
 			s.logger.Error(authErrMsg)
-			return fmt.Errorf("could not authenticate connection to "+
+			return errors.Newf("could not authenticate connection to "+
 				"execution client: %w", err)
 		}
 		return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")

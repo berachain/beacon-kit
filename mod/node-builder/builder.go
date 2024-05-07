@@ -32,10 +32,10 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
-	"github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -61,9 +61,7 @@ type AppInfo[T servertypes.Application] struct {
 }
 
 // NodeBuilder is a struct that holds the application information.
-type NodeBuilder[
-	T servertypes.Application,
-] struct {
+type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
 }

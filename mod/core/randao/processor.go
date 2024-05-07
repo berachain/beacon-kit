@@ -26,9 +26,8 @@
 package randao
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -38,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
-	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	sha256 "github.com/minio/sha256-simd"
 )
 
@@ -92,12 +90,12 @@ func (p *Processor) ProcessRandao(
 	}
 
 	reveal := blk.GetBody().GetRandaoReveal()
-	if !blst.VerifySignaturePubkeyBytes(
+	if err = p.signer.VerifySignature(
 		proposer.Pubkey[:],
 		signingRoot[:],
 		reveal[:],
-	) {
-		return ErrInvalidSignature
+	); err != nil {
+		return err
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
@@ -213,7 +211,7 @@ func (p *Processor) computeSigningRoot(
 
 	if err != nil {
 		return primitives.Root{},
-			fmt.Errorf("failed to compute signing root: %w", err)
+			errors.Newf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil
 }

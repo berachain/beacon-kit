@@ -29,8 +29,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/cockroachdb/errors"
 	"github.com/spf13/afero"
 )
 

@@ -28,10 +28,10 @@ package filedb
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
@@ -110,7 +110,7 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	indexStr := string(parts[0])
 	index, err := strconv.ParseUint(indexStr, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("invalid index: %w", err)
+		return 0, errors.Newf("invalid index: %w", err)
 	}
 
 	//#nosec:g

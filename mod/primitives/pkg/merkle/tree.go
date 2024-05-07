@@ -29,9 +29,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/cockroachdb/errors"
 	sha256 "github.com/minio/sha256-simd"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -171,7 +171,7 @@ func (m *Tree[LeafT, RootT]) HashTreeRoot() ([32]byte, error) {
 func (m *Tree[LeafT, RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
-		return nil, fmt.Errorf(
+		return nil, errors.Newf(
 			"merkle index out of range in tree, max range: %d, received: %d",
 			numLeaves,
 			leafIndex,

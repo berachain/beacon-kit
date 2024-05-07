@@ -26,9 +26,8 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
@@ -48,7 +47,7 @@ func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
 // ValidateBlock validates the incoming block.
 func (bv *BlockVerifier) ValidateBlock(
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	// Get the block body.
 	body := blk.GetBody()
@@ -64,7 +63,7 @@ func (bv *BlockVerifier) ValidateBlock(
 
 	// Ensure the block slot matches the state slot.
 	if blk.GetSlot() != slot {
-		return fmt.Errorf(
+		return errors.Newf(
 			"slot does not match, expected: %d, got: %d",
 			slot,
 			blk.GetSlot(),
@@ -79,7 +78,7 @@ func (bv *BlockVerifier) ValidateBlock(
 
 	// Ensure the block is within the acceptable range.
 	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
-		return fmt.Errorf(
+		return errors.Newf(
 			"block slot is too low, expected: > %d, got: %d",
 			latestBlockHeader.Slot,
 			blk.GetSlot(),
@@ -91,7 +90,7 @@ func (bv *BlockVerifier) ValidateBlock(
 	if deposits := body.GetDeposits(); uint64(
 		len(deposits),
 	) > bv.cs.MaxDepositsPerBlock() {
-		return fmt.Errorf(
+		return errors.Newf(
 			"too many deposits, expected: %d, got: %d",
 			bv.cs.MaxDepositsPerBlock(), len(deposits),
 		)
@@ -105,11 +104,20 @@ func (bv *BlockVerifier) ValidateBlock(
 
 	// Ensure the parent root matches the latest block header.
 	if parentBlockRoot != blk.GetParentBlockRoot() {
-		return fmt.Errorf(
+		return errors.Newf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
 			blk.GetParentBlockRoot(),
 		)
 	}
+
+	if uint64(len(body.GetBlobKzgCommitments())) > bv.cs.MaxBlobsPerBlock() {
+		return errors.Newf(
+			"too many blob kzg commitments, expected: %d, got: %d",
+			bv.cs.MaxBlobsPerBlock(),
+			len(body.GetBlobKzgCommitments()),
+		)
+	}
+
 	return nil
 }

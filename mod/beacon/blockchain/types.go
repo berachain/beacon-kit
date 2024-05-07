@@ -28,14 +28,33 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
+
+type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
+	AvailabilityStore(
+		context.Context,
+	) core.AvailabilityStore[
+		consensus.ReadOnlyBeaconBlockBody, BlobSidecarsT,
+	]
+	BeaconState(context.Context) state.BeaconState
+}
+
+// BlobsSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
+}
 
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
@@ -63,7 +82,7 @@ type ExecutionEngine interface {
 type LocalBuilder interface {
 	RequestPayload(
 		ctx context.Context,
-		st builder.BeaconState,
+		st builder.ReadOnlyBeaconState,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -95,6 +114,7 @@ type StakingService interface {
 		blockHash common.ExecutionHash,
 	) error
 
+	// PruneDepositEvents prunes deposit events.
 	PruneDepositEvents(
 		st state.BeaconState,
 	) error

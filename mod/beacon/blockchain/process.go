@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -37,7 +36,7 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service) ProcessSlot(
+func (s *Service[BlobSidecarsT]) ProcessSlot(
 	st state.BeaconState,
 ) error {
 	return s.sp.ProcessSlot(st)
@@ -45,14 +44,13 @@ func (s *Service) ProcessSlot(
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service) ProcessBeaconBlock(
+func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
-	blobs *datypes.BlobSidecars,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blobs BlobSidecarsT,
 ) error {
 	var (
-		avs  = s.AvailabilityStore(ctx)
 		g, _ = errgroup.WithContext(ctx)
 		err  error
 	)
@@ -64,7 +62,11 @@ func (s *Service) ProcessBeaconBlock(
 
 	// Validate payload in Parallel.
 	g.Go(func() error {
-		return s.pv.VerifyPayload(st, blk.GetBody())
+		body := blk.GetBody()
+		if body == nil || body.IsNil() {
+			return ErrNilBlkBody
+		}
+		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
 	})
 
 	// Validate block in Parallel.
@@ -79,44 +81,53 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// Then we notify the engine of the new payload.
-	body := blk.GetBody()
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = s.ee.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
-			body.GetExecutionPayload(),
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			false,
-			// Since this is called during FinalizeBlock, we want to assume
-			// the payload is valid, if it ends up not being valid later the
-			// node will simply AppHash which is completely fine, since this
-			// means we were syncing from a bad peer, and we would likely
-			// AppHash anyways.
-			true,
-		),
-	); err != nil {
-		s.Logger().
-			Error("failed to notify engine of new payload", "error", err)
-		return err
-	}
-
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
 	g.Go(func() error {
 		return s.sp.ProcessBlobs(
 			st,
-			avs,
+			s.bsb.AvailabilityStore(ctx),
 			blobs,
 		)
 	})
 
+	body := blk.GetBody()
+
+	// We can also parallelize the call to the execution layer.
 	g.Go(func() error {
+		// Then we notify the engine of the new payload.
+		parentBeaconBlockRoot := blk.GetParentBlockRoot()
+		if err = s.ee.VerifyAndNotifyNewPayload(
+			ctx, engineprimitives.BuildNewPayloadRequest(
+				body.GetExecutionPayload(),
+				body.GetBlobKzgCommitments().ToVersionedHashes(),
+				&parentBeaconBlockRoot,
+				false,
+				// Since this is called during FinalizeBlock, we want to assume
+				// the payload is valid, if it ends up not being valid later the
+				// node will simply AppHash which is completely fine, since this
+				// means we were syncing from a bad peer, and we would likely
+				// AppHash anyways.
+				true,
+			),
+		); err != nil {
+			s.logger.
+				Error("failed to notify engine of new payload", "error", err)
+			return err
+		}
+
+		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
 			st,
 			blk,
 		)
 	})
+
+	// We ask for the slot before waiting as a minor optimization.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
 
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	// of the goroutines returned an error.
@@ -125,23 +136,17 @@ func (s *Service) ProcessBeaconBlock(
 		return err
 	}
 
-	// TODO: Validate the data availability as well as check for the
-	// minimum DA required time.
-	// daStartTime := time.Now()
-	// if avs != nil {
-	// avs.IsDataAvailable(ctx, s.CurrentSlot(), rob); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability
-	// (AvailabilityStore.IsDataAvailable)")
-	// 	}
-	// } else {
-	// s.isDataAvailable(ctx, blockRoot, blockCopy); err != nil {
-	// 		return errors.Wrap(err, "could not validate blob data availability")
-	// 	}
-	// }
+	// If the blobs needed to process the block are not available, we
+	// return an error.
+	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(ctx, slot, body) {
+		return ErrDataNotAvailable
+	}
 
-	// Prune deposits
+	// Prune deposits.
+	// TODO: This should be moved into a go-routine in the background.
+	// Watching for logs should be completely decoupled as well.
 	if err = s.sks.PruneDepositEvents(st); err != nil {
-		s.Logger().Error("failed to prune deposit events", "error", err)
+		s.logger.Error("failed to prune deposit events", "error", err)
 		return err
 	}
 
@@ -149,19 +154,19 @@ func (s *Service) ProcessBeaconBlock(
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service) ValidateBlock(
+func (s *Service[BlobSidecarsT]) ValidateBlock(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
-		s.BeaconState(ctx), blk,
+		s.bsb.BeaconState(ctx), blk,
 	)
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service) VerifyPayloadOnBlk(
+func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -174,8 +179,8 @@ func (s *Service) VerifyPayloadOnBlk(
 
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
-		s.BeaconState(ctx),
-		body,
+		s.bsb.BeaconState(ctx),
+		body.GetExecutionPayload(),
 	); err != nil {
 		return err
 	}
@@ -197,10 +202,10 @@ func (s *Service) VerifyPayloadOnBlk(
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service) PostBlockProcess(
+func (s *Service[BlobSidecarsT]) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -235,7 +240,7 @@ func (s *Service) PostBlockProcess(
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
-		s.Logger().Error("failed to process logs", "error", err)
+		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 

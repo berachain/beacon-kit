@@ -203,7 +203,11 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.NextPowerOfTwo()
 			require.Equal(t, tt.expected, result)
-			require.Equal(t, tt.expected, math.U64(uint64(1)<<tt.value.ILog2Ceil()))
+			require.Equal(
+				t,
+				tt.expected,
+				math.U64(uint64(1)<<tt.value.ILog2Ceil()),
+			)
 		})
 	}
 }
@@ -359,7 +363,11 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.PrevPowerOfTwo()
 			require.Equal(t, tt.expected, result)
-			require.Equal(t, tt.expected, math.U64(uint64(1)<<tt.value.ILog2Floor()))
+			require.Equal(
+				t,
+				tt.expected,
+				math.U64(uint64(1)<<tt.value.ILog2Floor()),
+			)
 		})
 	}
 }

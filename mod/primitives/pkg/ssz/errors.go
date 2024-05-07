@@ -25,7 +25,7 @@
 
 package ssz
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
 	// ErrInvalidNilSlice is returned when the input slice is nil.
