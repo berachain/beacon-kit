@@ -39,30 +39,33 @@ import (
 type BeaconKitRuntime[
 	BlobSidecarsT ssz.Marshallable,
 	DepositStoreT DepositStore,
-] struct {
-	logger   log.Logger
-	services *service.Registry
-	fscp     BeaconStorageBackend[
+	StorageBackendT BeaconStorageBackend[
 		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody,
 		BlobSidecarsT,
-	]
+	],
+] struct {
+	logger   log.Logger
+	services *service.Registry
+	fscp     StorageBackendT
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
-	BlobSidecarsT ssz.Marshallable, DepositStoreT DepositStore,
-](
-	logger log.Logger,
-	services *service.Registry,
-	fscp BeaconStorageBackend[
+	BlobSidecarsT ssz.Marshallable,
+	DepositStoreT DepositStore,
+	StorageBackendT BeaconStorageBackend[
 		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody,
 		BlobSidecarsT,
 	],
-) (*BeaconKitRuntime[BlobSidecarsT, DepositStoreT], error) {
-	bkr := &BeaconKitRuntime[BlobSidecarsT, DepositStoreT]{
+](
+	logger log.Logger,
+	services *service.Registry,
+	fscp StorageBackendT,
+) (*BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT], error) {
+	bkr := &BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT]{
 		logger:   logger.With("module", "beacon-kit-runtime"),
 		services: services,
 		fscp:     fscp,
@@ -72,7 +75,7 @@ func NewBeaconKitRuntime[
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
-	BlobSidecarsT, DepositStoreT,
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
 ) {

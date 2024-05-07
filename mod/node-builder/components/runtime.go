@@ -72,7 +72,12 @@ func ProvideRuntime(
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime[
-	*datypes.BlobSidecars, *depositdb.KVStore,
+	*datypes.BlobSidecars,
+	*depositdb.KVStore,
+	runtime.BeaconStorageBackend[
+		*depositdb.KVStore,
+		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+	],
 ], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
