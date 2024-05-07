@@ -23,46 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package noop
 
-import (
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+// Logger is a logger that performs no operations. It can be used in
+// environments where logging should be disabled. It implements the Logger
+// interface with no-op methods.
+type Logger[KeyValT any] struct{}
 
-// BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime[
-	BlobSidecarsT,
-	DepositStoreT,
-	StorageBackendT,
-]) BuildABCIComponents() (
-	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker,
-) {
-	var (
-		chainService   *blockchain.Service
-		builderService *validator.Service
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
+// NewLogger creates a blank no-op logger.
+func NewLogger() *Logger[any] {
+	return &Logger[any]{}
+}
 
-	if err := r.services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
+// Info logs an informational message with associated key-value pairs. This
+// method does nothing.
+func (n *Logger[KeyValT]) Info(string, ...KeyValT) {
+	// No operation
+}
 
-	if chainService == nil || builderService == nil {
-		panic("missing services")
-	}
+// Warn logs a warning message with associated key-value pairs. This method does
+// nothing.
+func (n *Logger[KeyValT]) Warn(string, ...KeyValT) {
+	// No operation
+}
 
-	handler := abci.NewHandler(
-		builderService,
-		chainService,
-	)
+// Error logs an error message with associated key-value pairs. This method does
+// nothing.
+func (n *Logger[KeyValT]) Error(string, ...KeyValT) {
+	// No operation
+}
 
-	return handler.PrepareProposalHandler,
-		handler.ProcessProposalHandler,
-		handler.FinalizeBlock
+// Debug logs a debug message with associated key-value pairs. This method does
+// nothing.
+func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
+	// No operation
 }

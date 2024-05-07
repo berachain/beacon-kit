@@ -66,9 +66,9 @@ type DepositStore interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend[
-	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockT,
 	BlobSidecarsT any,
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockT any,
 ] interface {
 	AvailabilityStore(
 		ctx context.Context,
