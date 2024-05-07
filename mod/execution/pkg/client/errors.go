@@ -50,6 +50,7 @@ const (
 )
 
 var (
+	ErrInvalidNetworkID = errors.New("invalid network ID")
 	// ErrNotStarted indicates that the execution client is not started.
 	ErrNotStarted = errors.New("engine client is not started")
 )

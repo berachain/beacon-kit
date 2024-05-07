@@ -75,4 +75,7 @@ type Config struct {
 	// RequiredChainID is the chain id that the consensus client must be
 	// connected to.
 	RequiredChainID uint64 `mapstructure:"required-chain-id"`
+	// RequiredNetworkID is the network id that the consensus client must be
+	// connected to.
+	RequiredNetworkID uint64 `mapstructure:"required-network-id"`
 }
