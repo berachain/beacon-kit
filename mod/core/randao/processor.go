@@ -26,26 +26,25 @@
 package randao
 
 import (
-	"fmt"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	beacontypes "github.com/berachain/beacon-kit/mod/core/types"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/primitives/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
-	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	sha256 "github.com/minio/sha256-simd"
 )
 
 // Processor is the randao processor.
 type Processor struct {
 	cs     primitives.ChainSpec
-	signer core.BLSSigner
-	logger log.Logger
+	signer crypto.BLSSigner
+	logger log.Logger[any]
 }
 
 // NewProcessor creates a new randao processor.
@@ -65,7 +64,7 @@ func NewProcessor(
 // process_randao in the Ethereum 2.0 specification.
 func (p *Processor) ProcessRandao(
 	st state.BeaconState,
-	blk beacontypes.BeaconBlock,
+	blk consensus.BeaconBlock,
 ) error {
 	// proposer := blk.
 	slot, err := st.GetSlot()
@@ -91,12 +90,12 @@ func (p *Processor) ProcessRandao(
 	}
 
 	reveal := blk.GetBody().GetRandaoReveal()
-	if !blst.VerifySignaturePubkeyBytes(
+	if err = p.signer.VerifySignature(
 		proposer.Pubkey[:],
 		signingRoot[:],
 		reveal[:],
-	) {
-		return ErrInvalidSignature
+	); err != nil {
+		return err
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
@@ -126,16 +125,16 @@ func (p *Processor) ProcessRandao(
 //	return bls.Sign(privkey, signing_root)
 func (p *Processor) BuildReveal(
 	st state.BeaconState,
-) (primitives.BLSSignature, error) {
+) (crypto.BLSSignature, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 
 	// Get the current epoch.
 	slot, err := st.GetSlot()
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 
 	return p.buildReveal(
@@ -169,10 +168,10 @@ func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
 func (p *Processor) buildReveal(
 	genesisValidatorsRoot primitives.Root,
 	epoch math.Epoch,
-) (primitives.BLSSignature, error) {
+) (crypto.BLSSignature, error) {
 	signingRoot, err := p.computeSigningRoot(epoch, genesisValidatorsRoot)
 	if err != nil {
-		return primitives.BLSSignature{}, err
+		return crypto.BLSSignature{}, err
 	}
 	return p.signer.Sign(signingRoot[:])
 }
@@ -180,7 +179,7 @@ func (p *Processor) buildReveal(
 // buildMix builds a new mix from a given mix and reveal.
 func (p *Processor) buildMix(
 	mix primitives.Bytes32,
-	reveal primitives.BLSSignature,
+	reveal crypto.BLSSignature,
 ) primitives.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Sum256(reveal[:])
@@ -194,7 +193,7 @@ func (p *Processor) computeSigningRoot(
 	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
-	fd := primitives.NewForkData(
+	fd := consensus.NewForkData(
 		version.FromUint32[primitives.Version](
 			p.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -205,14 +204,14 @@ func (p *Processor) computeSigningRoot(
 		return primitives.Root{}, err
 	}
 
-	signingRoot, err := primitives.ComputeSigningRootUInt64(
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)
 
 	if err != nil {
 		return primitives.Root{},
-			fmt.Errorf("failed to compute signing root: %w", err)
+			errors.Newf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil
 }

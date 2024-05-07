@@ -31,17 +31,20 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	beaconkeeper "github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
-	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	consensuskeeper "cosmossdk.io/x/consensus/keeper"
+	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 )
 
 var (
@@ -55,8 +58,16 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	BeaconKeeper          *beaconkeeper.Keeper
-	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper     *keeper.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
+		*datypes.BlobSidecars,
+		*deposit.KVStore,
+		consensus.ReadOnlyBeaconBlockBody,
+		beaconkitruntime.BeaconStorageBackend[
+			*datypes.BlobSidecars,
+			*deposit.KVStore,
+			consensus.ReadOnlyBeaconBlockBody,
+		]]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
@@ -117,15 +128,7 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Build all the ABCI Components.
-	defaultProposalHandler := baseapp.NewDefaultProposalHandler(
-		app.Mempool(),
-		app,
-	)
-	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents(
-		defaultProposalHandler.
-			PrepareProposalHandler(),
-		defaultProposalHandler.ProcessProposalHandler(),
-	)
+	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents()
 
 	// Set all the newly built ABCI Components on the App.
 	app.SetPrepareProposal(prepare)

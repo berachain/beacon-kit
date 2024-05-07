@@ -28,38 +28,109 @@ package runtime
 import (
 	"context"
 
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
-type BeaconKitRuntime struct {
-	cfg      *config.Config
-	logger   log.Logger
+type BeaconKitRuntime[
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+	StorageBackendT BeaconStorageBackend[
+		BlobSidecarsT,
+		DepositStoreT,
+		ReadOnlyBeaconBlockBodyT,
+	],
+] struct {
+	logger   log.Logger[any]
 	services *service.Registry
-	fscp     BeaconStorageBackend
+	fscp     StorageBackendT
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
-func NewBeaconKitRuntime(
-	opts ...Option,
-) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{}
-	for _, opt := range opts {
-		if err := opt(bkr); err != nil {
-			return nil, err
-		}
-	}
-
-	return bkr, nil
+func NewBeaconKitRuntime[
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+	StorageBackendT BeaconStorageBackend[
+		BlobSidecarsT,
+		DepositStoreT,
+		ReadOnlyBeaconBlockBodyT,
+	],
+](
+	logger log.Logger[any],
+	services *service.Registry,
+	fscp StorageBackendT,
+) (*BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+], error) {
+	return &BeaconKitRuntime[
+		BlobSidecarsT,
+		DepositStoreT,
+		ReadOnlyBeaconBlockBodyT,
+		StorageBackendT,
+	]{
+		logger:   logger,
+		services: services,
+		fscp:     fscp,
+	}, nil
 }
 
 // StartServices starts the services.
-func (r *BeaconKitRuntime) StartServices(
+func (r *BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+]) StartServices(
 	ctx context.Context,
 ) {
 	r.services.StartAll(ctx)
+}
+
+// BuildABCIComponents returns the ABCI components for the beacon runtime.
+func (r *BeaconKitRuntime[
+	BlobSidecarsT,
+	DepositStoreT,
+	ReadOnlyBeaconBlockBodyT,
+	StorageBackendT,
+]) BuildABCIComponents() (
+	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
+	sdk.PreBlocker,
+) {
+	var (
+		chainService   *blockchain.Service[BlobSidecarsT]
+		builderService *validator.Service[BlobSidecarsT]
+	)
+	if err := r.services.FetchService(&chainService); err != nil {
+		panic(err)
+	}
+
+	if err := r.services.FetchService(&builderService); err != nil {
+		panic(err)
+	}
+
+	if chainService == nil || builderService == nil {
+		panic("missing services")
+	}
+
+	handler := abci.NewHandler(
+		builderService,
+		chainService,
+	)
+
+	return handler.PrepareProposalHandler,
+		handler.ProcessProposalHandler,
+		handler.FinalizeBlock
 }

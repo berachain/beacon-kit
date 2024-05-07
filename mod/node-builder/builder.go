@@ -32,11 +32,11 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
-	"github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/deposit"
+	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -61,9 +61,7 @@ type AppInfo[T servertypes.Application] struct {
 }
 
 // NodeBuilder is a struct that holds the application information.
-type NodeBuilder[
-	T servertypes.Application,
-] struct {
+type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
 }
@@ -74,20 +72,25 @@ func NewNodeBuilder[T servertypes.Application]() *NodeBuilder[T] {
 }
 
 // Run runs the application.
-func (nb *NodeBuilder[T]) RunNode() {
-	rootCmd := nb.BuildRootCmd()
+func (nb *NodeBuilder[T]) RunNode() error {
+	rootCmd, err := nb.BuildRootCmd()
+	if err != nil {
+		return err
+	}
+
 	// Run the root command.
-	if err := svrcmd.Execute(
+	if err = svrcmd.Execute(
 		rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 // BuildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
+func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -106,13 +109,14 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
+				components.ProvideBlsSigner,
 			),
 		),
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
 	); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	rootCmd := &cobra.Command{
@@ -182,8 +186,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return rootCmd
+	return rootCmd, nil
 }

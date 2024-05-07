@@ -25,7 +25,14 @@
 
 package runtime
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	ssz "github.com/ferranbt/fastssz"
+)
 
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
@@ -33,14 +40,49 @@ type AppOptions interface {
 	Get(string) interface{}
 }
 
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() primitives.BLSPubkey
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
+type BeaconStorageBackend[
+	BlobSidecarsT any,
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockT any,
+] interface {
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
+	BeaconState(ctx context.Context) state.BeaconState
+	DepositStore(ctx context.Context) DepositStoreT
+}
 
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (primitives.BLSSignature, error)
+// BlobSidecars is an interface that represents the sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
+}
+
+type Config interface{}
+
+// DepositStore is an interface that provides the
+// expected deposits to the runtime.
+type DepositStore interface {
+	ExpectedDeposits(
+		numView uint64,
+	) ([]*consensus.Deposit, error)
+	EnqueueDeposits(deposits []*consensus.Deposit) error
+	DequeueDeposits(
+		numDequeue uint64,
+	) ([]*consensus.Deposit, error)
+	PruneToIndex(
+		index uint64,
+	) error
+}
+
+// Service is a struct that can be registered into a ServiceRegistry for
+// easy dependency management.
+type Service interface {
+	// Start spawns any goroutines required by the service.
+	Start(ctx context.Context)
+	// Status returns error if the service is not considered healthy.
+	Status() error
 }

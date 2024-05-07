@@ -26,54 +26,42 @@
 package state
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
-	"github.com/berachain/beacon-kit/mod/primitives/version"
-	"github.com/berachain/beacon-kit/mod/storage/beacondb"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
-type StateDB struct {
-	*beacondb.KVStore[
-		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
-		*primitives.Eth1Data,
-		*primitives.Validator,
-	]
+type StateDB[KVStoreT KVStore[KVStoreT]] struct {
+	KVStore[KVStoreT]
 	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(
-	bdb *beacondb.KVStore[
-		*primitives.Fork,
-		*primitives.BeaconBlockHeader,
-		engineprimitives.ExecutionPayload,
-		*primitives.Eth1Data,
-		*primitives.Validator,
-	],
+func NewBeaconStateFromDB[KVStoreT KVStore[KVStoreT]](
+	bdb KVStore[KVStoreT],
 	cs primitives.ChainSpec,
-) *StateDB {
-	return &StateDB{
+) *StateDB[KVStoreT] {
+	return &StateDB[KVStoreT]{
 		KVStore: bdb,
 		cs:      cs,
 	}
 }
 
 // Copy returns a copy of the beacon state.
-func (s *StateDB) Copy() BeaconState {
+func (s *StateDB[KVStoreT]) Copy() BeaconState {
 	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB) IncreaseBalance(
+func (s *StateDB[KVStoreT]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -85,7 +73,7 @@ func (s *StateDB) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB) DecreaseBalance(
+func (s *StateDB[KVStoreT]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -97,7 +85,7 @@ func (s *StateDB) DecreaseBalance(
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(
+func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
 ) error {
@@ -128,12 +116,12 @@ func (s *StateDB) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*consensus.Withdrawal, error) {
 	var (
-		validator         *primitives.Validator
+		validator         *consensus.Validator
 		balance           math.Gwei
-		withdrawalAddress primitives.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
+		withdrawalAddress common.ExecutionAddress
+		withdrawals       = make([]*consensus.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -179,7 +167,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &engineprimitives.Withdrawal{
+		withdrawal := &consensus.Withdrawal{
 			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,
@@ -215,7 +203,7 @@ func (s *StateDB) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) 
 // Store is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
-func (s *StateDB) HashTreeRoot() ([32]byte, error) {
+func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
@@ -252,7 +240,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 		}
 	}
 
-	latestExecutionPayload, err := s.GetLatestExecutionPayload()
+	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -308,8 +296,8 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 	activeFork := s.cs.ActiveForkVersionForSlot(slot)
 	switch activeFork {
 	case version.Deneb:
-		executionPayload, ok :=
-			latestExecutionPayload.(*engineprimitives.ExecutableDataDeneb)
+		executionPayloadHeader, ok :=
+			latestExecutionPayloadHeader.(*engineprimitives.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
@@ -321,7 +309,7 @@ func (s *StateDB) HashTreeRoot() ([32]byte, error) {
 			LatestBlockHeader:            latestBlockHeader,
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
-			LatestExecutionPayload:       executionPayload,
+			LatestExecutionPayloadHeader: executionPayloadHeader,
 			Eth1Data:                     eth1Data,
 			Eth1DepositIndex:             eth1DepositIndex,
 			Validators:                   validators,

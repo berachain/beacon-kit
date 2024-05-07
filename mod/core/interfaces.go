@@ -29,42 +29,28 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore interface {
+type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, types.ReadOnlyBeaconBlock,
+		context.Context, math.Slot, ReadOnlyBeaconBlockBodyT,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, *datypes.BlobSidecars) error
-}
-
-// BLSSigner defines an interface for cryptographic signing operations.
-// It uses generic type parameters Signature and Pubkey, both of which are
-// slices of bytes.
-type BLSSigner interface {
-	// PublicKey returns the public key of the signer.
-	PublicKey() primitives.BLSPubkey
-
-	// Sign takes a message as a slice of bytes and returns a signature as a
-	// slice of bytes and an error.
-	Sign([]byte) (primitives.BLSSignature, error)
+	Persist(math.Slot, SidecarsT) error
 }
 
 // BlobVerifier is the interface for the blobs processor.
-type BlobVerifier interface {
+type BlobVerifier[SidecarsT any] interface {
 	VerifyBlobs(
-		sidecars *datypes.BlobSidecars, kzgOffset uint64,
+		sidecars SidecarsT, kzgOffset uint64,
 	) error
 }
 
@@ -72,7 +58,7 @@ type BlobVerifier interface {
 type RandaoProcessor interface {
 	ProcessRandao(
 		state.BeaconState,
-		types.BeaconBlock,
+		consensus.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
 		state.BeaconState,

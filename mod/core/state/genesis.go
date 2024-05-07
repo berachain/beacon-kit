@@ -27,7 +27,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // WriteGenesisStateDeneb writes the genesis state to the state db.
@@ -35,7 +35,9 @@ import (
 // to a custom type, not the full state.
 //
 //nolint:gocognit // splitting into more functions would be confusing.
-func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
+func (s *StateDB[KVStoreT]) WriteGenesisStateDeneb(
+	st *deneb.BeaconState,
+) error {
 	if err := s.SetGenesisValidatorsRoot(st.GenesisValidatorsRoot); err != nil {
 		return err
 	}
@@ -66,8 +68,8 @@ func (s *StateDB) WriteGenesisStateDeneb(st *deneb.BeaconState) error {
 		}
 	}
 
-	if err := s.UpdateLatestExecutionPayload(
-		st.LatestExecutionPayload,
+	if err := s.SetLatestExecutionPayloadHeader(
+		st.LatestExecutionPayloadHeader,
 	); err != nil {
 		return err
 	}

@@ -29,6 +29,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	gengine "github.com/ethereum/go-ethereum/beacon/engine"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -41,26 +42,31 @@ type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayload
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []primitives.ExecutionHash
+	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
 	// SkipIfExists is a flag that indicates if the payload should be skipped
 	// if it already exists in the database of the execution client.
 	SkipIfExists bool
+	// Optimistic is a flag that indicates if the payload should be
+	// optimistically deemed valid. This is useful during syncing.
+	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest(
 	executionPayload ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
+	optimistic bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 		SkipIfExists:          skipIfExists,
+		Optimistic:            optimistic,
 	}
 }
 
@@ -77,27 +83,27 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	data := gengine.ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
-		StateRoot:     payload.GetStateRoot(),
-		ReceiptsRoot:  payload.GetReceiptsRoot(),
+		StateRoot:     common.ExecutionHash(payload.GetStateRoot()),
+		ReceiptsRoot:  common.ExecutionHash(payload.GetReceiptsRoot()),
 		LogsBloom:     payload.GetLogsBloom(),
-		Random:        payload.GetPrevRandao(),
-		Number:        payload.GetNumber(),
-		GasLimit:      payload.GetGasLimit(),
-		GasUsed:       payload.GetGasUsed(),
-		Timestamp:     payload.GetTimestamp(),
+		Random:        common.ExecutionHash(payload.GetPrevRandao()),
+		Number:        payload.GetNumber().Unwrap(),
+		GasLimit:      payload.GetGasLimit().Unwrap(),
+		GasUsed:       payload.GetGasUsed().Unwrap(),
+		Timestamp:     payload.GetTimestamp().Unwrap(),
 		ExtraData:     payload.GetExtraData(),
 		BaseFeePerGas: payload.GetBaseFeePerGas().UnwrapBig(),
 		BlockHash:     payload.GetBlockHash(),
 		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.
 		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
-		BlobGasUsed:   payload.GetBlobGasUsed(),
-		ExcessBlobGas: payload.GetExcessBlobGas(),
+		BlobGasUsed:   payload.GetBlobGasUsed().UnwrapPtr(),
+		ExcessBlobGas: payload.GetExcessBlobGas().UnwrapPtr(),
 	}
 	_, err := gengine.ExecutableDataToBlock(
 		data,
 		n.VersionedHashes,
-		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
+		(*common.ExecutionHash)(n.ParentBeaconBlockRoot),
 	)
 	return err
 }
