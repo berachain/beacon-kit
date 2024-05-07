@@ -28,7 +28,9 @@ package runtime
 import (
 	"context"
 
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -38,6 +40,20 @@ type AppOptions interface {
 	Get(string) interface{}
 }
 
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
+type BeaconStorageBackend[
+	BlobSidecarsT any,
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockT any,
+] interface {
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
+	BeaconState(ctx context.Context) state.BeaconState
+	DepositStore(ctx context.Context) DepositStoreT
+}
+
 // BlobSidecars is an interface that represents the sidecars.
 type BlobSidecars interface {
 	ssz.Marshaler
@@ -45,8 +61,21 @@ type BlobSidecars interface {
 	Len() int
 }
 
-type Config interface {
-	GetEngine() engineclient.Config
+type Config interface{}
+
+// DepositStore is an interface that provides the
+// expected deposits to the runtime.
+type DepositStore interface {
+	ExpectedDeposits(
+		numView uint64,
+	) ([]*consensus.Deposit, error)
+	EnqueueDeposits(deposits []*consensus.Deposit) error
+	DequeueDeposits(
+		numDequeue uint64,
+	) ([]*consensus.Deposit, error)
+	PruneToIndex(
+		index uint64,
+	) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for
