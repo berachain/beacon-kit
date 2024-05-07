@@ -70,4 +70,10 @@ var (
 	ErrPrivateKeyRequired = errors.New(
 		"private key required",
 	)
+
+	// ErrInvalid0xPrefixedHexString is returned when the input string is not
+	// a valid 0x prefixed hex string.
+	ErrInvalid0xPrefixedHexString = errors.New(
+		"invalid 0x prefixed hex string",
+	)
 )
