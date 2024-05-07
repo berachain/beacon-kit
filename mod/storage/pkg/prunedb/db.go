@@ -38,7 +38,8 @@ type IndexDB interface {
 	DeleteRange(start, end uint64) error
 }
 
-// DB is a wrapper around filedb.RangeDB that keeps track of the latest index.
+// DB is a wrapper around an IndexDB that prunes kv pairs outside
+// of the window at the given ticker rate.
 type DB struct {
 	IndexDB
 	ticker          *time.Ticker
@@ -54,12 +55,16 @@ func New(
 	pruneInterval time.Duration,
 	windowSize uint64,
 ) *DB {
-	return &DB{
+	prunerDB := &DB{
 		windowSize:       windowSize,
 		IndexDB:          db,
 		ticker:           time.NewTicker(pruneInterval),
 		lastDeletedIndex: 0,
 	}
+
+	// TODO: pull this out into a Start DB call to utilize a real context.
+	prunerDB.Start(context.Background())
+	return prunerDB
 }
 
 func (db *DB) Start(ctx context.Context) {
@@ -100,7 +105,9 @@ func (db *DB) prune() error {
 
 	// TODO: Optimize the underlying DeleteRange to snap to lowest
 	// index in O(1).
-	if err := db.DeleteRange(db.lastDeletedIndex, db.highestSetIndex-db.windowSize); err != nil {
+	if err := db.DeleteRange(
+		db.lastDeletedIndex, db.highestSetIndex-db.windowSize,
+	); err != nil {
 		db.lastDeletedIndex = 0
 		return err
 	}
