@@ -48,7 +48,7 @@ func (r *BeaconKitRuntime[
 	start := time.Now()
 	defer func() {
 		r.logger.
-			Info("prepareProposal executed",
+			Info("prepare-proposal executed",
 				"duration", time.Since(start).String())
 	}()
 	return nextPrepareProposal(req)
@@ -71,7 +71,7 @@ func (r *BeaconKitRuntime[
 	start := time.Now()
 	defer func() {
 		r.logger.
-			Info("processProposal executed",
+			Info("process-proposal executed",
 				"duration", time.Since(start).String())
 	}()
 	return nextProcessProposal(req)
@@ -93,7 +93,7 @@ func (r *BeaconKitRuntime[
 	start := time.Now()
 	defer func() {
 		r.logger.
-			Info("finalizedBlock executed",
+			Info("finalized-block executed",
 				"duration", time.Since(start).String())
 	}()
 	return nextFinalizeBlock(req)
