@@ -57,8 +57,7 @@ func NewBeaconStateFromDB[KVStoreT KVStore[KVStoreT]](
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB[KVStoreT]) Copy() BeaconState {
-	x := s.KVStore.Copy()
-	return NewBeaconStateFromDB[KVStoreT](x, s.cs)
+	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
