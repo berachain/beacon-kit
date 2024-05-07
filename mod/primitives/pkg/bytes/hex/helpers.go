@@ -1,7 +1,33 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package hex
 
 import (
 	"encoding/json"
+	"math/big"
 	"reflect"
 )
 
@@ -32,7 +58,7 @@ func validateText(input []byte, wantPrefix bool) ([]byte, error) {
 }
 
 // validateNumber checks the input text for a hex number.
-func validateNumber[T []byte | string](input T) (raw T, err error) {
+func validateNumber[T []byte | string](input T) (T, error) {
 	if len(input) == 0 {
 		return *new(T), nil // empty strings are allowed
 	}
@@ -49,7 +75,7 @@ func validateNumber[T []byte | string](input T) (raw T, err error) {
 	return input, nil
 }
 
-// wrapUnmarshalError wraps an error occuring during JSON unmarshaling.
+// wrapUnmarshalError wraps an error occurring during JSON unmarshaling.
 func wrapUnmarshalError(err error, t reflect.Type) error {
 	if err != nil {
 		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
@@ -58,17 +84,35 @@ func wrapUnmarshalError(err error, t reflect.Type) error {
 	return err
 }
 
-const badNibble = ^uint64(0)
-
 func decodeNibble(in byte) uint64 {
+	offset := 10
 	switch {
 	case in >= '0' && in <= '9':
 		return uint64(in - '0')
 	case in >= 'A' && in <= 'F':
-		return uint64(in - 'A' + 10)
+		return uint64(in - 'A' + byte(offset))
 	case in >= 'a' && in <= 'f':
-		return uint64(in - 'a' + 10)
+		return uint64(in - 'a' + byte(offset))
 	default:
 		return badNibble
 	}
+}
+
+//nolint:mnd // this is fine xD
+func getBigWordNibbles() int {
+	// This is a weird way to compute the number of nibbles required for
+	// big.Word. The usual way would be to use constant arithmetic but go vet
+	// can't handle that
+
+	var bigWordNibbles int
+	b, _ := new(big.Int).SetString("FFFFFFFFFF", 16)
+	switch len(b.Bits()) {
+	case 1:
+		bigWordNibbles = 16
+	case 2:
+		bigWordNibbles = 8
+	default:
+		panic("weird big.Word size")
+	}
+	return bigWordNibbles
 }

@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package hex
 
 import (
@@ -13,7 +38,7 @@ var u256T = reflect.TypeOf((*uint256.Int)(nil))
 // The zero value marshals as "0x0".
 type U256 uint256.Int
 
-// MarshalText implements encoding.TextMarshaler
+// MarshalText implements encoding.TextMarshaler.
 func (b U256) MarshalText() ([]byte, error) {
 	u256 := (*uint256.Int)(&b)
 	return []byte(u256.Hex()), nil
@@ -28,7 +53,7 @@ func (b *U256) UnmarshalJSON(input []byte) error {
 	}
 	// The hex decoder needs to accept empty string ("") as '0', which uint256.Int
 	// would reject.
-	if len(input) == 2 {
+	if len(input) == prefixLen {
 		(*uint256.Int)(b).Clear()
 		return nil
 	}
@@ -39,7 +64,7 @@ func (b *U256) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (b *U256) UnmarshalText(input []byte) error {
 	// The uint256.Int.UnmarshalText method accepts "dec", "0xhex"; we must be
 	// more strict, hence we check string and invoke SetFromHex directly.
