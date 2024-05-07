@@ -49,14 +49,16 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock,
+		consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 		BlobsSidecarsT,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock,
+		consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 	) error
 	ChainSpec() primitives.ChainSpec
-	VerifyPayloadOnBlk(context.Context, consensus.ReadOnlyBeaconBlock) error
+	VerifyPayloadOnBlk(
+		context.Context, consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	) error
 }

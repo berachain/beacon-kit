@@ -34,14 +34,18 @@ import (
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[BeaconBlockBodyT BeaconBlockBody] struct {
-	cs          ChainSpec
+type SidecarFactory[
+	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+] struct {
+	cs          chainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[BeaconBlockBodyT BeaconBlockBody](
-	cs ChainSpec,
+func NewSidecarFactory[
+	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+](
+	cs chainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BeaconBlockBodyT] {
@@ -54,7 +58,7 @@ func NewSidecarFactory[BeaconBlockBodyT BeaconBlockBody](
 
 // BuildSidecar builds a sidecar.
 func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
-	blk BeaconBlock[BeaconBlockBodyT],
+	blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 	bundle engineprimitives.BlobsBundle,
 ) (*types.BlobSidecars, error) {
 	var (
@@ -91,7 +95,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
 func (f *SidecarFactory[BeaconBlockBodyT]) BuildKZGInclusionProof(
-	body BeaconBlockBody,
+	body BeaconBlockBodyT,
 	index uint64,
 ) ([][32]byte, error) {
 	// Build the merkle proof to the commitment within the
@@ -114,7 +118,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildKZGInclusionProof(
 
 // BuildBlockBodyProof builds a block body proof.
 func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
-	body BeaconBlockBody,
+	body BeaconBlockBodyT,
 ) ([][32]byte, error) {
 	membersRoots, err := body.GetTopLevelRoots()
 	if err != nil {
@@ -133,7 +137,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 
 // BuildCommitmentProof builds a commitment proof.
 func (f *SidecarFactory[BeaconBlockBodyT]) BuildCommitmentProof(
-	body BeaconBlockBody,
+	body BeaconBlockBodyT,
 	index uint64,
 ) ([][32]byte, error) {
 	bodyTree, err := merkle.NewTreeWithMaxLeaves[

@@ -48,7 +48,7 @@ func (s *Service) ProcessSlot(
 func (s *Service) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
@@ -157,7 +157,7 @@ func (s *Service) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service) ValidateBlock(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
 		s.bsb.BeaconState(ctx), blk,
@@ -167,7 +167,7 @@ func (s *Service) ValidateBlock(
 // VerifyPayload validates the execution payload on the block.
 func (s *Service) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -206,7 +206,7 @@ func (s *Service) VerifyPayloadOnBlk(
 func (s *Service) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload

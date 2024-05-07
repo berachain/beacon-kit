@@ -103,11 +103,11 @@ type ReadOnlyBeaconBlockBody interface {
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock interface {
-	ReadOnlyBeaconBlock
+	ReadOnlyBeaconBlock[BeaconBlockBody]
 }
 
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock interface {
+type ReadOnlyBeaconBlock[BodyT any] interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
@@ -117,6 +117,6 @@ type ReadOnlyBeaconBlock interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
-	GetBody() BeaconBlockBody
+	GetBody() BodyT
 	GetHeader() *BeaconBlockHeader
 }
