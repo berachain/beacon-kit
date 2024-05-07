@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -38,15 +37,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
 
-type BeaconStorageBackend interface {
+type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
-		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+		consensus.ReadOnlyBeaconBlockBody, BlobSidecarsT,
 	]
 	BeaconState(context.Context) state.BeaconState
+}
+
+// BlobsSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
 }
 
 type ExecutionEngine interface {

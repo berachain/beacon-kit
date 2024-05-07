@@ -29,12 +29,20 @@ import (
 	"context"
 
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
 type AppOptions interface {
 	Get(string) interface{}
+}
+
+// BlobSidecars is an interface that represents the sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
 }
 
 type Config interface {

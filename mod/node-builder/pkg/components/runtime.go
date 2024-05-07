@@ -171,23 +171,22 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
-	chainService := blockchain.NewService(
-		blockchain.WithBeaconStorageBackend(storageBackend),
-		blockchain.WithBlockVerifier(core.NewBlockVerifier(chainSpec)),
-		blockchain.WithChainSpec(chainSpec),
-		blockchain.WithExecutionEngine(executionEngine),
-		blockchain.WithLocalBuilder(localBuilder),
-		blockchain.WithLogger(logger.With("service", "blockchain")),
-		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
-		blockchain.WithStakingService(stakingService),
-		blockchain.WithStateProcessor(
-			core.NewStateProcessor[*datypes.BlobSidecars](
-				chainSpec,
-				dablob.NewVerifier(blobProofVerifier),
-				randaoProcessor,
-				signer,
-				logger.With("module", "state-processor"),
-			)),
+	chainService := blockchain.NewService[*datypes.BlobSidecars](
+		storageBackend,
+		logger.With("service", "blockchain"),
+		chainSpec,
+		executionEngine,
+		localBuilder,
+		stakingService,
+		core.NewBlockVerifier(chainSpec),
+		core.NewStateProcessor[*datypes.BlobSidecars](
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+			randaoProcessor,
+			signer,
+			logger.With("module", "state-processor"),
+		),
+		core.NewPayloadVerifier(chainSpec),
 	)
 
 	// Build the service registry.

@@ -39,7 +39,8 @@ import (
 )
 
 // BlobFactory is the interface for building blobs.
-type BlobFactory[BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody] interface {
+type BlobFactory[
+	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody] interface {
 	BuildSidecars(
 		blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,

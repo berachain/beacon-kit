@@ -37,7 +37,7 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service) ProcessSlot(
+func (s *Service[BlobSidecarsT]) ProcessSlot(
 	st state.BeaconState,
 ) error {
 	return s.sp.ProcessSlot(st)
@@ -45,7 +45,7 @@ func (s *Service) ProcessSlot(
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service) ProcessBeaconBlock(
+func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
@@ -155,7 +155,7 @@ func (s *Service) ProcessBeaconBlock(
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service) ValidateBlock(
+func (s *Service[BlobSidecarsT]) ValidateBlock(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
@@ -165,7 +165,7 @@ func (s *Service) ValidateBlock(
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service) VerifyPayloadOnBlk(
+func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
@@ -203,7 +203,7 @@ func (s *Service) VerifyPayloadOnBlk(
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service) PostBlockProcess(
+func (s *Service[BlobSidecarsT]) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
 	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
