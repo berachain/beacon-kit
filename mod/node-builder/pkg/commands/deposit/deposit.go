@@ -26,16 +26,10 @@
 package deposit
 
 import (
-	"encoding/hex"
-	"math/big"
-
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -83,32 +77,32 @@ func validateDepositMessage(
 	_ *cobra.Command,
 	args []string,
 ) error {
-	pubkey, err := convertPubkey(args[0])
+	pubkey, err := parser.ConvertPubkey(args[0])
 	if err != nil {
 		return err
 	}
 
-	credentials, err := convertWithdrawalCredentials(args[1])
+	credentials, err := parser.ConvertWithdrawalCredentials(args[1])
 	if err != nil {
 		return err
 	}
 
-	amount, err := convertAmount(args[2])
+	amount, err := parser.ConvertAmount(args[2])
 	if err != nil {
 		return err
 	}
 
-	signature, err := convertSignature(args[3])
+	signature, err := parser.ConvertSignature(args[3])
 	if err != nil {
 		return err
 	}
 
-	currentVersion, err := convertVersion(args[4])
+	currentVersion, err := parser.ConvertVersion(args[4])
 	if err != nil {
 		return err
 	}
 
-	genesisValidatorRoot, err := convertGenesisValidatorRoot(args[5])
+	genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[5])
 	if err != nil {
 		return err
 	}
@@ -126,88 +120,4 @@ func validateDepositMessage(
 		// TODO: needs to be configurable.
 		spec.LocalnetChainSpec().DomainTypeDeposit(),
 	)
-}
-
-// convertPubkey converts a string to a public key.
-func convertPubkey(pubkey string) (crypto.BLSPubkey, error) {
-	// convert the public key to a BLSPubkey.
-	pubkeyBytes, err := hex.DecodeString(pubkey)
-	if err != nil {
-		return crypto.BLSPubkey{}, err
-	}
-	if len(pubkeyBytes) != constants.BLSPubkeyLength {
-		return crypto.BLSPubkey{}, ErrInvalidPubKeyLength
-	}
-
-	return crypto.BLSPubkey(pubkeyBytes), nil
-}
-
-// convertWithdrawalCredentials converts a string to a withdrawal credentials.
-func convertWithdrawalCredentials(credentials string) (
-	consensus.WithdrawalCredentials,
-	error,
-) {
-	// convert the credentials to a WithdrawalCredentials.
-	credentialsBytes, err := hex.DecodeString(credentials)
-	if err != nil {
-		return consensus.WithdrawalCredentials{}, err
-	}
-	if len(credentialsBytes) != constants.RootLength {
-		return consensus.WithdrawalCredentials{},
-			ErrInvalidWithdrawalCredentialsLength
-	}
-	return consensus.WithdrawalCredentials(credentialsBytes), nil
-}
-
-// convertAmount converts a string to a deposit amount.
-//
-//nolint:mnd // lots of magic numbers
-func convertAmount(amount string) (math.Gwei, error) {
-	// Convert the amount to a Gwei.
-	amountBigInt, ok := new(big.Int).SetString(amount, 10)
-	if !ok {
-		return 0, ErrInvalidAmount
-	}
-	return math.Gwei(amountBigInt.Uint64()), nil
-}
-
-// convertSignature converts a string to a signature.
-func convertSignature(signature string) (crypto.BLSSignature, error) {
-	// convert the signature to a BLSSignature.
-	signatureBytes, err := hex.DecodeString(signature)
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
-	if len(signatureBytes) != constants.BLSSignatureLength {
-		return crypto.BLSSignature{}, ErrInvalidSignatureLength
-	}
-	return crypto.BLSSignature(signatureBytes), nil
-}
-
-// convertVersion converts a string to a version.
-//
-
-func convertVersion(version string) (primitives.Version, error) {
-	versionBytes, err := hex.DecodeString(version)
-	if err != nil {
-		return primitives.Version{}, err
-	}
-	if len(versionBytes) != constants.DomainTypeLength {
-		return primitives.Version{}, ErrInvalidVersionLength
-	}
-	return primitives.Version(versionBytes), nil
-}
-
-// convertGenesisValidatorRoot converts a string to a genesis validator root.
-//
-
-func convertGenesisValidatorRoot(root string) (primitives.Root, error) {
-	rootBytes, err := hex.DecodeString(root)
-	if err != nil {
-		return primitives.Root{}, err
-	}
-	if len(rootBytes) != constants.RootLength {
-		return primitives.Root{}, ErrInvalidRootLength
-	}
-	return primitives.Root(rootBytes), nil
 }

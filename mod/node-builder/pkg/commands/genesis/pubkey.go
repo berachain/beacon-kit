@@ -32,13 +32,16 @@ import (
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -72,14 +75,28 @@ func AddPubkeyCmd() *cobra.Command {
 				return err
 			}
 
+			var (
+				depositAmountString string
+				depositAmount       math.Gwei
+			)
+			// Get the deposit amount.
+			depositAmountString, err = cmd.Flags().GetString(depositAmountFlag)
+			if err != nil {
+				return err
+			}
+			depositAmount, err = parser.ConvertAmount(depositAmountString)
+			if err != nil {
+				return err
+			}
+
 			// TODO: Should we do deposits here?
 			validator := consensus.NewValidatorFromDeposit(
 				crypto.BLSPubkey(valPubKey.Bytes()),
 				consensus.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
-				1e9,  //nolint:mnd // temp.
-				1e9,  //nolint:mnd // temp.
+				depositAmount,
+				depositAmount,
 				32e9, //nolint:mnd // temp.
 			)
 
@@ -100,12 +117,15 @@ func AddPubkeyCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().
+		String(depositAmountFlag, defaultDepositAmount, depositAmountFlagMsg)
+
 	return cmd
 }
 
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "gentx")
-	if err := os.MkdirAll(writePath, 0o700); err != nil {
+	if err := afero.NewOsFs().MkdirAll(writePath, os.ModePerm); err != nil {
 		return "", errors.Newf(
 			"could not create directory %q: %w",
 			writePath,
@@ -121,10 +141,10 @@ func writeValidatorStruct(
 	validator *consensus.Validator,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
-	outputFile, err := os.OpenFile(
+	outputFile, err := afero.NewOsFs().OpenFile(
 		outputDocument,
 		os.O_CREATE|os.O_EXCL|os.O_WRONLY,
-		0o644,
+		0o644, //nolint:mnd // file permissions.
 	)
 	if err != nil {
 		return err
