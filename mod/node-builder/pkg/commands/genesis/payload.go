@@ -36,6 +36,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eth1"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -59,7 +60,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Unmarshal the genesis file.
-			ethGenesis := &primitives.Genesis{}
+			ethGenesis := &eth1.Genesis{}
 			if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 				return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 			}

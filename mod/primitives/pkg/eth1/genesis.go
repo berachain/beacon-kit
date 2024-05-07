@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package primitives
+package eth1
 
 import (
 	"errors"
@@ -44,7 +44,7 @@ import (
 	"github.com/holiman/uint256"
 )
 
-//go:generate go run github.com/fjl/gencodec -type Genesis -field-override genesisSpecMarshaling -out eth1_genesis.json.go
+//go:generate go run github.com/fjl/gencodec -type Genesis -field-override genesisSpecMarshaling -out genesis.json.go
 
 // var errGenesisNoConfig = errors.New("genesis has no chain configuration"
 
