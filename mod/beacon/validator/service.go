@@ -113,6 +113,8 @@ func (s *Service[BlobSidecarsT]) Status() error { return nil }
 func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
 
 // LocalBuilder returns the local builder.
+//
+//nolint:lll // weird.
 func (s *Service[BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
 	return s.localBuilder
 }
