@@ -52,4 +52,8 @@ const (
 	kzgRoot             = beaconKitRoot + "kzg."
 	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
 	KZGImplementation   = kzgRoot + "implementation"
+
+	// Pruner Config.
+	prunerRoot    = beaconKitRoot + "pruner."
+	PruneInterval = prunerRoot + "prune-interval"
 )

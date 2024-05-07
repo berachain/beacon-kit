@@ -27,6 +27,9 @@ package keeper
 
 import (
 	"context"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
+	"time"
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -60,6 +63,8 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
+	logger log.Logger[any],
+	prunerInterval time.Duration,
 	env appmodule.Environment,
 	cs primitives.ChainSpec,
 	ddb *deposit.KVStore,
@@ -69,7 +74,12 @@ func NewKeeper(
 		Backend: *storage.NewBackend(
 			cs,
 			dastore.New[types.BeaconBlockBody](
-				cs, filedb.NewRangeDB(fdb),
+				cs, prunedb.New(
+					filedb.NewRangeDB(fdb),
+					logger,
+					prunerInterval,
+					cs.MinEpochsForBlobsSidecarsRequest()*cs.SlotsPerEpoch(),
+				),
 			),
 			beacondb.New[
 				*types.Fork,

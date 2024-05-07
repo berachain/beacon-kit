@@ -44,16 +44,18 @@ type IndexDB interface {
 // of the window at the given ticker rate.
 type DB struct {
 	IndexDB
+
+	logger           log.Logger[any]
 	ticker           *time.Ticker
 	windowSize       uint64
 	highestSetIndex  uint64
-	logger           log.Logger[any]
 	lastDeletedIndex uint64
 }
 
 // New creates a new DB.
 func New(
 	db IndexDB,
+	logger log.Logger[any],
 	pruneInterval time.Duration,
 	windowSize uint64,
 ) *DB {
@@ -61,6 +63,7 @@ func New(
 		windowSize:       windowSize,
 		IndexDB:          db,
 		ticker:           time.NewTicker(pruneInterval),
+		logger:           logger,
 		lastDeletedIndex: 0,
 	}
 
