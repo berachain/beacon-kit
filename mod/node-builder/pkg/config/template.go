@@ -77,8 +77,4 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{.BeaconKit.Validator.Graffiti}}"
-
-[beacon-kit.pruner]
-# Interval for pruning the database.
-prune-interval = "{{ .BeaconKit.Pruner.PruneInterval }}"
 `

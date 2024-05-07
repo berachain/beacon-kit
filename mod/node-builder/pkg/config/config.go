@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/config/viper"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	prunedb "github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -47,7 +46,6 @@ func DefaultConfig() *Config {
 		KZG:            kzg.DefaultConfig(),
 		PayloadBuilder: builder.DefaultConfig(),
 		Validator:      validator.DefaultConfig(),
-		Pruner:         prunedb.DefaultConfig(),
 	}
 }
 
@@ -64,9 +62,6 @@ type Config struct {
 
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
-
-	// Pruner is the configuration for the pruner.
-	Pruner prunedb.Config `mapstructure:"pruner"`
 }
 
 // GetEngine returns the execution client configuration.
@@ -147,8 +142,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		defaultCfg.KZG.TrustedSetupPath,
 		"kzg trusted setup path",
 	)
-	startCmd.Flags().Duration(flags.PruneInterval,
-		defaultCfg.Pruner.PruneInterval, "prune interval")
 }
 
 // AddToSFlag adds the terms of service flag to the given command.

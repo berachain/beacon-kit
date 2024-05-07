@@ -79,6 +79,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		),
 		in.Environment.Logger,
 		// TODO: Make this configurable.
+		//nolint:mnd // will fix with config.
 		10*time.Minute,
 		in.Environment,
 		in.ChainSpec,
