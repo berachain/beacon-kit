@@ -28,7 +28,7 @@ package runtime
 import (
 	"context"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -45,7 +45,7 @@ type BeaconKitRuntime[
 		consensus.ReadOnlyBeaconBlockBody,
 	],
 ] struct {
-	logger   log.Logger
+	logger   log.Logger[any]
 	services *service.Registry
 	fscp     StorageBackendT
 }
@@ -61,12 +61,12 @@ func NewBeaconKitRuntime[
 		consensus.ReadOnlyBeaconBlockBody,
 	],
 ](
-	logger log.Logger,
+	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
 ) (*BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT], error) {
 	bkr := &BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT]{
-		logger:   logger.With("module", "beacon-kit-runtime"),
+		logger:   logger,
 		services: services,
 		fscp:     fscp,
 	}

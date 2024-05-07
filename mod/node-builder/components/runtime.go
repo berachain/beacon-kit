@@ -199,6 +199,11 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime(
-		logger, svcRegistry, storageBackend,
+		logger.With(
+			"module",
+			"beacon-kit.runtime",
+		),
+		svcRegistry,
+		storageBackend,
 	)
 }

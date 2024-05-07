@@ -27,19 +27,18 @@ package service_test
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"testing"
 	"time"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestRegistry_StartAll(t *testing.T) {
-	logger := log.NewLogger(os.Stdout)
+	logger := noop.NewLogger()
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := &mocks.Basic{}
@@ -68,7 +67,7 @@ func TestRegistry_StartAll(t *testing.T) {
 }
 
 func TestRegistry_Statuses(t *testing.T) {
-	logger := log.NewNopLogger()
+	logger := noop.NewLogger()
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := &mocks.Basic{}
@@ -115,7 +114,7 @@ func TestRegistry_Statuses(t *testing.T) {
 }
 
 func TestRegistry_FetchService(t *testing.T) {
-	logger := log.NewNopLogger()
+	logger := noop.NewLogger()
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := new(mocks.Basic)
