@@ -138,11 +138,11 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		// signature and return early.
 		logger.Info(
 			"Deposit Message CallData",
-			"pubkey", hex.EncodeToString(depositMsg.Pubkey[:]),
+			"pubkey", parser.EncodeTo0xPrefixedString(depositMsg.Pubkey[:]),
 			"withdrawal credentials",
-			hex.EncodeToString(depositMsg.Credentials[:]),
+			parser.EncodeTo0xPrefixedString(depositMsg.Credentials[:]),
 			"amount", depositMsg.Amount,
-			"signature", hex.EncodeToString(signature[:]),
+			"signature", parser.EncodeTo0xPrefixedString(signature[:]),
 		)
 
 		// TODO: once broadcast is fixed, remove this.
