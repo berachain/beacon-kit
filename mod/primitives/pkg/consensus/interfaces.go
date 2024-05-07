@@ -106,6 +106,10 @@ type BeaconBlock interface {
 	ReadOnlyBeaconBlock[BeaconBlockBody]
 }
 
+type BeaconBlockG[BodyT any] struct {
+	ReadOnlyBeaconBlock[BodyT]
+}
+
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconBlock[BodyT any] interface {
 	ssz.Marshaler

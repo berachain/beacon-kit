@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
@@ -40,27 +39,27 @@ type Service[
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// service.BaseService
-	bsb    BeaconStorageBackend[*datypes.BlobSidecars]
+	bsb    BeaconStorageBackend[BlobSidecarsT]
 	logger log.Logger[any]
 	cs     primitives.ChainSpec
 	ee     ExecutionEngine
 	lb     LocalBuilder
 	sks    StakingService
 	bv     *core.BlockVerifier
-	sp     *core.StateProcessor[*datypes.BlobSidecars]
+	sp     *core.StateProcessor[BlobSidecarsT]
 	pv     *core.PayloadVerifier
 }
 
 // NewService creates a new validator service.
 func NewService[BlobSidecarsT BlobSidecars](
-	bsb BeaconStorageBackend[*datypes.BlobSidecars],
+	bsb BeaconStorageBackend[BlobSidecarsT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder,
 	sks StakingService,
 	bv *core.BlockVerifier,
-	sp *core.StateProcessor[*datypes.BlobSidecars],
+	sp *core.StateProcessor[BlobSidecarsT],
 	pv *core.PayloadVerifier,
 ) *Service[BlobSidecarsT] {
 	return &Service[BlobSidecarsT]{

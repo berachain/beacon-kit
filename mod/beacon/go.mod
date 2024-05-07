@@ -32,6 +32,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	golang.org/x/sync v0.7.0
 )
 
@@ -59,7 +60,6 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.1 // indirect
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gballet/go-verkle v0.1.1-0.20231031103413-a67434b50f46 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect

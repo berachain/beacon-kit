@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -55,7 +54,7 @@ type Service[
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[consensus.BeaconBlockBody]
+	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
@@ -82,7 +81,7 @@ func NewService[BlobSidecarsT BlobSidecars](
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[consensus.BeaconBlockBody],
+	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[state.BeaconState],
 	ds DepositStore,
 	localBuilder PayloadBuilder[state.BeaconState],
@@ -126,7 +125,8 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
-) (consensus.BeaconBlock, *datypes.BlobSidecars, error) {
+) (consensus.BeaconBlock, BlobSidecarsT, error) {
+	var sidecars BlobSidecarsT
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -135,14 +135,14 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	// and safe block hashes to the execution client.
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
-		return nil, nil, errors.Newf("failed to build reveal: %w", err)
+		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
 	}
 
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
-		return nil, nil, errors.Newf(
+		return nil, sidecars, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -152,7 +152,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return nil, nil, errors.Newf(
+		return nil, sidecars, errors.Newf(
 			"failed to get validator by pubkey: %w",
 			err,
 		)
@@ -162,7 +162,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(ctx)
 	if err != nil {
-		return nil, nil, errors.Newf(
+		return nil, sidecars, errors.Newf(
 			"failed to compute state root: %w",
 			err,
 		)
@@ -177,14 +177,14 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, sidecars, err
 	}
 
 	// The latest execution payload header, will be from the previous block
 	// during the block building phase.
 	parentExecutionPayload, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return nil, nil, err
+		return nil, sidecars, err
 	}
 
 	// Get the payload for the block.
@@ -196,25 +196,25 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 		parentExecutionPayload.GetBlockHash(),
 	)
 	if err != nil {
-		return blk, nil, errors.Newf(
+		return blk, sidecars, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
 	} else if envelope == nil {
-		return nil, nil, ErrNilPayload
+		return nil, sidecars, ErrNilPayload
 	}
 
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
-		return nil, nil, ErrNilBlkBody
+		return nil, sidecars, ErrNilBlkBody
 	}
 
 	// If we get returned a nil blobs bundle, we should return an error.
 	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
-		return nil, nil, ErrNilBlobsBundle
+		return nil, sidecars, ErrNilBlobsBundle
 	}
 
 	// Dequeue deposits from the state.
@@ -222,12 +222,12 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, sidecars, err
 	}
 
 	payload := envelope.GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
-		return nil, nil, ErrNilPayload
+		return nil, sidecars, ErrNilPayload
 	}
 
 	// Set the KZG commitments on the block body.
@@ -248,13 +248,13 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 
 	// Set the execution data.
 	if err = body.SetExecutionData(payload); err != nil {
-		return nil, nil, err
+		return nil, sidecars, err
 	}
 
 	// Build the sidecars for the block.
 	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
 	if err != nil {
-		return nil, nil, err
+		return nil, sidecars, err
 	}
 
 	s.logger.Info("finished assembling beacon block 🛟",

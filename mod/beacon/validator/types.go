@@ -28,7 +28,6 @@ package validator
 import (
 	"context"
 
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -41,11 +40,13 @@ import (
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
-	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody] interface {
+	BlobSidecarsT BlobSidecars,
+	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+] interface {
 	BuildSidecars(
 		blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
-	) (*datypes.BlobSidecars, error)
+	) (BlobSidecarsT, error)
 }
 
 // BlobSidecars is the interface for blobs sidecars.

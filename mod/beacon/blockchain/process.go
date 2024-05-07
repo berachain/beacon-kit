@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
@@ -49,7 +48,7 @@ func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
-	blobs *datypes.BlobSidecars,
+	blobs BlobSidecarsT,
 ) error {
 	var (
 		g, _ = errgroup.WithContext(ctx)
