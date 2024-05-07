@@ -64,13 +64,16 @@ func NewBeaconKitRuntime[
 	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
-) (*BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT], error) {
-	bkr := &BeaconKitRuntime[BlobSidecarsT, DepositStoreT, StorageBackendT]{
+) (*BeaconKitRuntime[
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
+], error) {
+	return &BeaconKitRuntime[
+		BlobSidecarsT, DepositStoreT, StorageBackendT,
+	]{
 		logger:   logger,
 		services: services,
 		fscp:     fscp,
-	}
-	return bkr, nil
+	}, nil
 }
 
 // StartServices starts the services.
