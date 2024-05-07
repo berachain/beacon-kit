@@ -45,7 +45,7 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (consensus.ReadOnlyBeaconBlock, error) {
+) (consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody], error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest
 	}
