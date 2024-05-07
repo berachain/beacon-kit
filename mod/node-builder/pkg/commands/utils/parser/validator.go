@@ -26,7 +26,6 @@
 package parser
 
 import (
-	"encoding/hex"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -39,7 +38,7 @@ import (
 // ConvertPubkey converts a string to a public key.
 func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	// convert the public key to a BLSPubkey.
-	pubkeyBytes, err := hex.DecodeString(pubkey)
+	pubkeyBytes, err := DecodeFrom0xPrefixedString(pubkey)
 	if err != nil {
 		return crypto.BLSPubkey{}, err
 	}
@@ -56,7 +55,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
-	credentialsBytes, err := hex.DecodeString(credentials)
+	credentialsBytes, err := DecodeFrom0xPrefixedString(credentials)
 	if err != nil {
 		return consensus.WithdrawalCredentials{}, err
 	}
@@ -82,7 +81,7 @@ func ConvertAmount(amount string) (math.Gwei, error) {
 // ConvertSignature converts a string to a signature.
 func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	// convert the signature to a BLSSignature.
-	signatureBytes, err := hex.DecodeString(signature)
+	signatureBytes, err := DecodeFrom0xPrefixedString(signature)
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
@@ -94,7 +93,7 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 
 // ConvertVersion converts a string to a version.
 func ConvertVersion(version string) (primitives.Version, error) {
-	versionBytes, err := hex.DecodeString(version)
+	versionBytes, err := DecodeFrom0xPrefixedString(version)
 	if err != nil {
 		return primitives.Version{}, err
 	}
@@ -106,7 +105,7 @@ func ConvertVersion(version string) (primitives.Version, error) {
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
 func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
-	rootBytes, err := hex.DecodeString(root)
+	rootBytes, err := DecodeFrom0xPrefixedString(root)
 	if err != nil {
 		return primitives.Root{}, err
 	}
