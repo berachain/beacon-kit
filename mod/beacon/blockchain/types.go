@@ -28,14 +28,26 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+type BeaconStorageBackend interface {
+	AvailabilityStore(
+		context.Context,
+	) core.AvailabilityStore[
+		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+	]
+	BeaconState(context.Context) state.BeaconState
+}
 
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.

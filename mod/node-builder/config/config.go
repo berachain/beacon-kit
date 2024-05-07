@@ -64,6 +64,11 @@ type Config struct {
 	Validator validator.Config `mapstructure:"validator"`
 }
 
+// GetEngine returns the execution client configuration.
+func (c Config) GetEngine() engineclient.Config {
+	return c.Engine
+}
+
 // Template returns the configuration template.
 func (c Config) Template() string {
 	return Template

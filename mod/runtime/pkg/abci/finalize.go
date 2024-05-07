@@ -35,7 +35,7 @@ import (
 // FinalizeBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *Handler) FinalizeBlock(
+func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	logger := ctx.Logger().With("module", "pre-block")
@@ -52,7 +52,8 @@ func (h *Handler) FinalizeBlock(
 		return err
 	}
 
-	blobSideCars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(
+	blobSideCars, err := encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](
 		req,
 		BlobSidecarsTxIndex,
 	)

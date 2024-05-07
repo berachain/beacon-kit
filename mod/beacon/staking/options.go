@@ -28,17 +28,28 @@ package staking
 import (
 	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// WithBaseService sets the BaseService for the Service.
-func WithBaseService(
-	base service.BaseService,
-) service.Option[Service] {
+// Option is a function that sets a field on the Service.
+type Option func(*Service) error
+
+// WithBeaconStorageBackend is a function that returns an Option.
+func WithBeaconStorageBackend(bsb BeaconStorageBackend) Option {
 	return func(s *Service) error {
-		s.BaseService = base
+		s.bsb = bsb
+		return nil
+	}
+}
+
+// WithChainSpec is a function that returns an Option.
+// It sets the ChainSpec of the Service to the provided ChainSpec.
+func WithChainSpec(cs primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.cs = cs
 		return nil
 	}
 }
@@ -47,27 +58,37 @@ func WithBaseService(
 // contract's ABI for the Service.
 func WithDepositABI(
 	depositABI *abi.ABI,
-) service.Option[Service] {
+) Option {
 	return func(s *Service) error {
 		s.abi = stakingabi.NewWrappedABI(depositABI)
 		return nil
 	}
 }
 
+// WithDepositStore returns an Option that sets the deposit.
+func WithDepositStore(
+	ds *deposit.KVStore,
+) Option {
+	return func(s *Service) error {
+		s.ds = ds
+		return nil
+	}
+}
+
 func WithExecutionEngine(
 	ee *engine.Engine,
-) service.Option[Service] {
+) Option {
 	return func(s *Service) error {
 		s.ee = ee
 		return nil
 	}
 }
 
-func WithDepositStore(
-	ds *deposit.KVStore,
-) service.Option[Service] {
+// WithLogger is a function that returns an Option.
+// It sets the Logger of the Service to the provided Logger.
+func WithLogger(logger log.Logger[any]) Option {
 	return func(s *Service) error {
-		s.ds = ds
+		s.logger = logger
 		return nil
 	}
 }

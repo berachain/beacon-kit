@@ -29,41 +29,51 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
-type BeaconKitRuntime struct {
-	cfg      *config.Config
+type BeaconKitRuntime[
+	BlobSidecarsT ssz.Marshallable,
+	DepositStoreT DepositStore,
+] struct {
 	logger   log.Logger
 	services *service.Registry
 	fscp     BeaconStorageBackend[
+		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody,
-		*datypes.BlobSidecars,
+		BlobSidecarsT,
 	]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
-func NewBeaconKitRuntime(
-	opts ...Option,
-) (*BeaconKitRuntime, error) {
-	bkr := &BeaconKitRuntime{}
-	for _, opt := range opts {
-		if err := opt(bkr); err != nil {
-			return nil, err
-		}
+func NewBeaconKitRuntime[
+	BlobSidecarsT ssz.Marshallable, DepositStoreT DepositStore,
+](
+	logger log.Logger,
+	services *service.Registry,
+	fscp BeaconStorageBackend[
+		DepositStoreT,
+		consensus.ReadOnlyBeaconBlockBody,
+		BlobSidecarsT,
+	],
+) (*BeaconKitRuntime[BlobSidecarsT, DepositStoreT], error) {
+	bkr := &BeaconKitRuntime[BlobSidecarsT, DepositStoreT]{
+		logger:   logger.With("module", "beacon-kit-runtime"),
+		services: services,
+		fscp:     fscp,
 	}
-
 	return bkr, nil
 }
 
 // StartServices starts the services.
-func (r *BeaconKitRuntime) StartServices(
+func (r *BeaconKitRuntime[
+	BlobSidecarsT, DepositStoreT,
+]) StartServices(
 	ctx context.Context,
 ) {
 	r.services.StartAll(ctx)

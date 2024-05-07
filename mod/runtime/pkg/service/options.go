@@ -25,12 +25,22 @@
 
 package service
 
-import "sync"
+import "github.com/berachain/beacon-kit/mod/log"
 
-// ShallowCopy copies the base service and replaces it's name.
-func (s BaseService) ShallowCopy(name string) BaseService {
-	s.logger = s.logger.With("service", name)
-	s.statusErrMu = new(sync.RWMutex)
-	s.name = name
-	return s
+// RegistryOption is a functional option for the Registry.
+type RegistryOption func(*Registry) error
+
+// WithLogger is an option to set the logger for the Registry.
+func WithLogger(logger log.Logger[any]) RegistryOption {
+	return func(r *Registry) error {
+		r.logger = logger
+		return nil
+	}
+}
+
+// WithService is an Option that registers a service with the Registry.
+func WithService(svc Basic) RegistryOption {
+	return func(r *Registry) error {
+		return r.RegisterService(svc)
+	}
 }

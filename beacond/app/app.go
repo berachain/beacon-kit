@@ -32,9 +32,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -54,8 +56,9 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	BeaconKeeper          *beaconkitruntime.Keeper
-	BeaconKitRuntime      *beaconkitruntime.BeaconKitRuntime
+	BeaconKeeper     *beaconkitruntime.Keeper
+	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
+		*datypes.BlobSidecars, *deposit.KVStore]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 

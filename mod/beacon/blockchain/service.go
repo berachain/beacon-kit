@@ -26,18 +26,60 @@
 package blockchain
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/core"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Service is the blockchain service.
 type Service struct {
-	service.BaseService
-	ee  ExecutionEngine
-	lb  LocalBuilder
-	sks StakingService
-	bv  *core.BlockVerifier
-	sp  *core.StateProcessor[*datypes.BlobSidecars]
-	pv  *core.PayloadVerifier
+	// service.BaseService
+	bsb    BeaconStorageBackend
+	logger log.Logger[any]
+	cs     primitives.ChainSpec
+	ee     ExecutionEngine
+	lb     LocalBuilder
+	sks    StakingService
+	bv     *core.BlockVerifier
+	sp     *core.StateProcessor[*datypes.BlobSidecars]
+	pv     *core.PayloadVerifier
+}
+
+// NewService creates a new validator service.
+func NewService(
+	opts ...Option,
+) *Service {
+	s := &Service{}
+	for _, opt := range opts {
+		if err := opt(s); err != nil {
+			panic(err)
+		}
+	}
+
+	return s
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return "blockchain"
+}
+
+func (s *Service) Start(context.Context) {}
+
+func (s *Service) Status() error { return nil }
+
+func (s *Service) WaitForHealthy(context.Context) {}
+
+// TODO: Remove
+func (s Service) BeaconState(ctx context.Context) state.BeaconState {
+	return s.bsb.BeaconState(ctx)
+}
+
+// TODO: Remove
+func (s Service) ChainSpec() primitives.ChainSpec {
+	return s.cs
 }

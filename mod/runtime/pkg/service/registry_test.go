@@ -33,8 +33,8 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
-	"github.com/berachain/beacon-kit/mod/node-builder/service/mocks"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service/mocks"
 	"github.com/stretchr/testify/mock"
 )
 

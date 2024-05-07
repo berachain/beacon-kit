@@ -77,7 +77,7 @@ func (s *Service) sendPostBlockFCU(
 	} else {
 		latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 		if err != nil {
-			s.Logger().Error(
+			s.logger.Error(
 				"failed to get latest execution payload in postBlockProcess",
 				"error", err,
 			)
@@ -96,29 +96,41 @@ func (s *Service) sendPostBlockFCU(
 		// nuance of our implementation. We should refactor this.
 		h, err := st.GetLatestBlockHeader()
 		if err != nil {
-			s.Logger().
-				Error("failed to get latest block header in postBlockProcess", "error", err)
+			s.logger.
+				Error(
+					"failed to get latest block header in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
 		stateRoot, err := st.HashTreeRoot()
 		if err != nil {
-			s.Logger().
-				Error("failed to get state root in postBlockProcess", "error", err)
+			s.logger.
+				Error(
+					"failed to get state root in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
 		h.StateRoot = stateRoot
 		root, err := h.HashTreeRoot()
 		if err != nil {
-			s.Logger().
-				Error("failed to get block header root in postBlockProcess", "error", err)
+			s.logger.
+				Error(
+					"failed to get block header root in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
 		slot, err := st.GetSlot()
 		if err != nil {
-			s.Logger().
+			s.logger.
 				Error("failed to get slot in postBlockProcess", "error", err)
 		}
 
@@ -145,13 +157,21 @@ func (s *Service) sendPostBlockFCU(
 		// If we error we log and continue, we try again without building a
 		// block
 		// just incase this can help get our execution client back on track.
-		s.Logger().
-			Error("failed to send forkchoice update with attributes", "error", err)
+		s.logger.
+			Error(
+				"failed to send forkchoice update with attributes",
+				"error",
+				err,
+			)
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
 	if err := s.sendFCU(ctx, st, headHash); err != nil {
-		s.Logger().
-			Error("failed to send forkchoice update in postBlockProcess", "error", err)
+		s.logger.
+			Error(
+				"failed to send forkchoice update in postBlockProcess",
+				"error",
+				err,
+			)
 	}
 }

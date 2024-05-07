@@ -28,12 +28,12 @@ package abci
 import (
 	"time"
 
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -44,32 +44,32 @@ import (
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
-type Handler struct {
-	builderService BuilderService
-	chainService   BlockchainService
+type Handler[BlobsSidecarsT ssz.Marshallable] struct {
+	builderService BuilderService[BlobsSidecarsT]
+	chainService   BlockchainService[BlobsSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
-	blobGossiper        p2p.Publisher[*datypes.BlobSidecars, []byte]
+	blobGossiper        p2p.Publisher[BlobsSidecarsT, []byte]
 	beaconBlockGossiper p2p.PublisherReceiver[
 		consensus.BeaconBlock, []byte, encoding.ABCIRequest, consensus.BeaconBlock]
 }
 
 // NewHandler creates a new instance of the Handler struct.
-func NewHandler(
-	builderService BuilderService,
-	chainService BlockchainService,
-) *Handler {
+func NewHandler[BlobsSidecarsT ssz.Marshallable](
+	builderService BuilderService[BlobsSidecarsT],
+	chainService BlockchainService[BlobsSidecarsT],
+) *Handler[BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
 		panic("chain service is nil")
 	}
-	return &Handler{
+	return &Handler[BlobsSidecarsT]{
 		builderService: builderService,
 		chainService:   chainService,
 		// TODO: we will eventually gossipt the blobs separately from
 		// CometBFT.
-		blobGossiper: rp2p.NoopGossipHandler[*datypes.BlobSidecars, []byte]{},
+		blobGossiper: rp2p.NoopGossipHandler[BlobsSidecarsT, []byte]{},
 		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainService.ChainSpec(),
 		),
@@ -78,7 +78,7 @@ func NewHandler(
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
-func (h *Handler) PrepareProposalHandler(
+func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
@@ -126,7 +126,7 @@ func (h *Handler) PrepareProposalHandler(
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
-func (h *Handler) ProcessProposalHandler(
+func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")

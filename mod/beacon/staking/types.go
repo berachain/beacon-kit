@@ -23,27 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package service
+package staking
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
-// BeaconStorageBackend is an interface that provides the
-// beacon state to the runtime.
 type BeaconStorageBackend interface {
-	AvailabilityStore(
-		ctx context.Context,
-	) core.AvailabilityStore[
-		consensus.ReadOnlyBeaconBlockBody,
-		*datypes.BlobSidecars,
-	]
-	BeaconState(ctx context.Context) state.BeaconState
-	DepositStore(ctx context.Context) *deposit.KVStore
+	BeaconState(context.Context) state.BeaconState
 }

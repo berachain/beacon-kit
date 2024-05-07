@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	service "github.com/berachain/beacon-kit/mod/node-builder/service"
+	service "github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	mock "github.com/stretchr/testify/mock"
 )
 

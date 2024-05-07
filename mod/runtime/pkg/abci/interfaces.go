@@ -29,28 +29,28 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-type BuilderService interface {
+type BuilderService[BlobsSidecarsT ssz.Marshallable] interface {
 	RequestBestBlock(
 		context.Context,
 		state.BeaconState,
 		math.Slot,
-	) (consensus.BeaconBlock, *datypes.BlobSidecars, error)
+	) (consensus.BeaconBlock, BlobsSidecarsT, error)
 }
 
-type BlockchainService interface {
+type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessSlot(state.BeaconState) error
 	BeaconState(context.Context) state.BeaconState
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
 		consensus.ReadOnlyBeaconBlock,
-		*datypes.BlobSidecars,
+		BlobsSidecarsT,
 	) error
 	PostBlockProcess(
 		context.Context,

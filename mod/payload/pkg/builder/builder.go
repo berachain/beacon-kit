@@ -52,7 +52,7 @@ type PayloadBuilder struct {
 }
 
 // NewService creates a new service.
-func NewService(opts ...Option) (*PayloadBuilder, error) {
+func New(opts ...Option) (*PayloadBuilder, error) {
 	pb := &PayloadBuilder{}
 	for _, opt := range opts {
 		if err := opt(pb); err != nil {

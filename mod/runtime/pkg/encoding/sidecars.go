@@ -25,16 +25,26 @@
 
 package encoding
 
-import (
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-)
+import "reflect"
 
-func UnmarshalBlobSidecarsFromABCIRequest(
+func UnmarshalBlobSidecarsFromABCIRequest[
+	T interface{ UnmarshalSSZ([]byte) error },
+](
 	req ABCIRequest,
 	bzIndex uint,
-) (*datypes.BlobSidecars, error) {
+) (T, error) {
+	var (
+		sidecars T
+		ok       bool
+	)
+
+	sidecars, ok = reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
+	if !ok {
+		return sidecars, ErrInvalidType
+	}
+
 	if req == nil {
-		return nil, ErrNilABCIRequest
+		return sidecars, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
@@ -42,21 +52,17 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	// Ensure there are transactions in the request and
 	// that the request is valid.
 	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
+		return sidecars, ErrNoBeaconBlockInRequest
 	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
+		return sidecars, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
+		return sidecars, ErrNilBeaconBlockInRequest
 	}
 
-	var sidecars datypes.BlobSidecars
-	if err := sidecars.UnmarshalSSZ(sidecarBz); err != nil {
-		return nil, err
-	}
-
-	return &sidecars, nil
+	err := sidecars.UnmarshalSSZ(sidecarBz)
+	return sidecars, err
 }

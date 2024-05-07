@@ -52,7 +52,6 @@ func (s *Service) ProcessBeaconBlock(
 	blobs *datypes.BlobSidecars,
 ) error {
 	var (
-		avs  = s.AvailabilityStore(ctx)
 		g, _ = errgroup.WithContext(ctx)
 		err  error
 	)
@@ -88,7 +87,7 @@ func (s *Service) ProcessBeaconBlock(
 	g.Go(func() error {
 		return s.sp.ProcessBlobs(
 			st,
-			avs,
+			s.bsb.AvailabilityStore(ctx),
 			blobs,
 		)
 	})
@@ -113,7 +112,7 @@ func (s *Service) ProcessBeaconBlock(
 				true,
 			),
 		); err != nil {
-			s.Logger().
+			s.logger.
 				Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
@@ -140,7 +139,7 @@ func (s *Service) ProcessBeaconBlock(
 
 	// If the blobs needed to process the block are not available, we
 	// return an error.
-	if !avs.IsDataAvailable(ctx, slot, body) {
+	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(ctx, slot, body) {
 		return ErrDataNotAvailable
 	}
 
@@ -148,7 +147,7 @@ func (s *Service) ProcessBeaconBlock(
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
 	if err = s.sks.PruneDepositEvents(st); err != nil {
-		s.Logger().Error("failed to prune deposit events", "error", err)
+		s.logger.Error("failed to prune deposit events", "error", err)
 		return err
 	}
 
@@ -161,7 +160,7 @@ func (s *Service) ValidateBlock(
 	blk consensus.ReadOnlyBeaconBlock,
 ) error {
 	return s.bv.ValidateBlock(
-		s.BeaconState(ctx), blk,
+		s.bsb.BeaconState(ctx), blk,
 	)
 }
 
@@ -181,7 +180,7 @@ func (s *Service) VerifyPayloadOnBlk(
 
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
-		s.BeaconState(ctx),
+		s.bsb.BeaconState(ctx),
 		body.GetExecutionPayload(),
 	); err != nil {
 		return err
@@ -242,7 +241,7 @@ func (s *Service) PostBlockProcess(
 
 	// Process the logs in the block.
 	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
-		s.Logger().Error("failed to process logs", "error", err)
+		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 

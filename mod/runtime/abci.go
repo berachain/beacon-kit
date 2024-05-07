@@ -33,7 +33,7 @@ import (
 )
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents() (
+func (r *BeaconKitRuntime[BlobSidecarsT, DepositStoreT]) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
 ) {

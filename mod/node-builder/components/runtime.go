@@ -41,7 +41,6 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -51,6 +50,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -65,19 +66,16 @@ func ProvideRuntime(
 	jwtSecret *jwt.Secret,
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
-	bsb runtime.BeaconStorageBackend[
+	storageBackend runtime.BeaconStorageBackend[
+		*depositdb.KVStore,
 		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime, error) {
+) (*runtime.BeaconKitRuntime[
+	*datypes.BlobSidecars, *depositdb.KVStore,
+], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
-
-	// Create the base service, we will the create shallow copies for each
-	// service.
-	baseService := service.NewBaseService(
-		cfg, bsb, chainSpec, logger,
-	)
 
 	// Build the client to interact with the Engine API.
 	engineClient := engineclient.New(
@@ -101,15 +99,18 @@ func ProvideRuntime(
 	executionEngine := execution.New(engineClient, logger)
 
 	// Build the staking service.
-	stakingService := service.New[staking.Service](
-		staking.WithBaseService(baseService.ShallowCopy("staking")),
+	stakingService := staking.NewService(
+		staking.WithBeaconStorageBackend(storageBackend),
+		staking.WithChainSpec(chainSpec),
 		staking.WithDepositABI(depositABI),
-		staking.WithDepositStore(bsb.DepositStore(nil)),
+		staking.WithDepositStore(storageBackend.DepositStore(nil)),
 		staking.WithExecutionEngine(executionEngine),
+		staking.WithLogger(logger.With("service", "staking")),
 	)
 
 	// Build the local builder service.
-	localBuilder := service.New[payloadbuilder.PayloadBuilder](
+	var localBuilder *payloadbuilder.PayloadBuilder
+	localBuilder, err = payloadbuilder.New(
 		payloadbuilder.WithLogger(
 			logger.With("service", "payload-builder"),
 		),
@@ -120,6 +121,9 @@ func ProvideRuntime(
 			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 		),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the Blobs Verifier
 	blobProofVerifier, err := kzg.NewBlobProofVerifier(
@@ -151,7 +155,7 @@ func ProvideRuntime(
 			)),
 		validator.WithChainSpec(chainSpec),
 		validator.WithConfig(&cfg.Validator),
-		validator.WithDepositStore(bsb.DepositStore(nil)),
+		validator.WithDepositStore(storageBackend.DepositStore(nil)),
 		validator.WithLocalBuilder(localBuilder),
 		validator.WithLogger(logger.With("service", "validator")),
 		validator.WithRandaoProcessor(randaoProcessor),
@@ -159,11 +163,13 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
-	chainService := service.New[blockchain.Service](
-		blockchain.WithBaseService(baseService.ShallowCopy("blockchain")),
+	chainService := blockchain.NewService(
+		blockchain.WithBeaconStorageBackend(storageBackend),
 		blockchain.WithBlockVerifier(core.NewBlockVerifier(chainSpec)),
+		blockchain.WithChainSpec(chainSpec),
 		blockchain.WithExecutionEngine(executionEngine),
 		blockchain.WithLocalBuilder(localBuilder),
+		blockchain.WithLogger(logger.With("service", "blockchain")),
 		blockchain.WithPayloadVerifier(core.NewPayloadVerifier(chainSpec)),
 		blockchain.WithStakingService(stakingService),
 		blockchain.WithStateProcessor(
@@ -178,7 +184,7 @@ func ProvideRuntime(
 
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
-		service.WithLogger(logger),
+		service.WithLogger(logger.With("module", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(stakingService),
@@ -186,9 +192,6 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime(
-		runtime.WithBeaconStorageBackend(bsb),
-		runtime.WithConfig(cfg),
-		runtime.WithLogger(logger),
-		runtime.WithServiceRegistry(svcRegistry),
+		logger, svcRegistry, storageBackend,
 	)
 }
