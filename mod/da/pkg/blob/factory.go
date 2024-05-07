@@ -34,14 +34,18 @@ import (
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[BeaconBlockBodyT consensus.BeaconBlockBody] struct {
-	cs          ChainSpec
+type SidecarFactory[
+	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+] struct {
+	cs          chainSpec
 	kzgPosition uint64
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[BeaconBlockBodyT consensus.BeaconBlockBody](
-	cs ChainSpec,
+func NewSidecarFactory[
+	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+](
+	cs chainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BeaconBlockBodyT] {

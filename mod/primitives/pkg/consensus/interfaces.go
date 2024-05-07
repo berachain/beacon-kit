@@ -107,7 +107,7 @@ type BeaconBlock interface {
 }
 
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock[BodyT ReadOnlyBeaconBlockBody] interface {
+type ReadOnlyBeaconBlock[BodyT any] interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot

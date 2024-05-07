@@ -25,7 +25,17 @@
 
 package blob
 
-// ChainSpec represents a chain spec.
-type ChainSpec interface {
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+)
+
+// chainSpec represents a chain spec.
+type chainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+}
+
+type ReadOnlyBeaconBlockBody interface {
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetTopLevelRoots() ([][32]byte, error)
 }
