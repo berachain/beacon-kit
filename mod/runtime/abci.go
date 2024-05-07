@@ -34,7 +34,9 @@ import (
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime[
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT,
+	DepositStoreT,
+	StorageBackendT,
 ]) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,

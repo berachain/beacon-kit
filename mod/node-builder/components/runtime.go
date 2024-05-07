@@ -67,16 +67,18 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
 	storageBackend runtime.BeaconStorageBackend[
+		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+		consensus.ReadOnlyBeaconBlockBody,
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime[
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
 	runtime.BeaconStorageBackend[
+		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+		consensus.ReadOnlyBeaconBlockBody,
 	],
 ], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.

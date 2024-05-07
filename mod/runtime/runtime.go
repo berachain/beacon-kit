@@ -40,9 +40,9 @@ type BeaconKitRuntime[
 	BlobSidecarsT ssz.Marshallable,
 	DepositStoreT DepositStore,
 	StorageBackendT BeaconStorageBackend[
+		BlobSidecarsT,
 		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody,
-		BlobSidecarsT,
 	],
 ] struct {
 	logger   log.Logger
@@ -56,9 +56,9 @@ func NewBeaconKitRuntime[
 	BlobSidecarsT ssz.Marshallable,
 	DepositStoreT DepositStore,
 	StorageBackendT BeaconStorageBackend[
+		BlobSidecarsT,
 		DepositStoreT,
 		consensus.ReadOnlyBeaconBlockBody,
-		BlobSidecarsT,
 	],
 ](
 	logger log.Logger,
