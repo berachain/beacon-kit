@@ -75,6 +75,7 @@ func ProvideRuntime(
 ) (*runtime.BeaconKitRuntime[
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
+	consensus.ReadOnlyBeaconBlockBody,
 	runtime.BeaconStorageBackend[
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,

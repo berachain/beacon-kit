@@ -33,20 +33,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 )
 
+// DepositStore is an interface that provides the
+// expected deposits to the runtime.
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
 	) ([]*consensus.Deposit, error)
-	EnqueueDeposit(deposit *consensus.Deposit) error
-	// EnqueueDeposits pushes multiple deposits to the queue.
 	EnqueueDeposits(deposits []*consensus.Deposit) error
-
-	// DequeueDeposits returns the first numDequeue deposits in the queue.
 	DequeueDeposits(
 		numDequeue uint64,
 	) ([]*consensus.Deposit, error)
-
-	// PruneToIndex removes all deposits up to the given index.
 	PruneToIndex(
 		index uint64,
 	) error
