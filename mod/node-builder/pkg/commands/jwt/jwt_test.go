@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	jwt "github.com/berachain/beacon-kit/mod/node-builder/commands/jwt"
+	jwt "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/jwt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"

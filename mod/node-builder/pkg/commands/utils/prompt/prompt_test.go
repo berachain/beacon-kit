@@ -31,8 +31,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt/mocks"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

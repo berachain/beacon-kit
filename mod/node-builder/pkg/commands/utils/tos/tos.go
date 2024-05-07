@@ -31,8 +31,8 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	beaconprompt "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/afero"

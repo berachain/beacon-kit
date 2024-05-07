@@ -23,29 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/client/cosmos"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands[T servertypes.Application]() *cobra.Command {
-	clientCmd := &cobra.Command{
-		Use:   "client",
-		Short: "client subcommands",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return nil
-		},
+// TrustedSetupInput is the input for the dep inject framework.
+type TrustedSetupInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
+}
+
+// TrustedSetupOutput is the output for the dep inject framework.
+type TrustedSetupOutput struct {
+	depinject.Out
+	TrustedSetup *gokzg4844.JSONTrustedSetup
+}
+
+// ProvideBlsSigner is a function that provides the module to the application.
+func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
+	trustedSetup, err := kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
+	if err != nil {
+		panic(err)
 	}
 
-	clientCmd.AddCommand(
-		cosmos.TxCommands(),
-		cosmos.QueryCommands(),
-	)
-
-	return clientCmd
+	return TrustedSetupOutput{
+		TrustedSetup: trustedSetup,
+	}
 }

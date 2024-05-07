@@ -40,7 +40,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"

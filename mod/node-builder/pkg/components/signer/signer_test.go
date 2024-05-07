@@ -28,7 +28,7 @@ package signer_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	blst "github.com/itsdevbear/comet-bls12-381/bls/blst"
 	"github.com/stretchr/testify/require"

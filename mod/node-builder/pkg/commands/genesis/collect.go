@@ -33,7 +33,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core/state/deneb"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gentypes "github.com/berachain/beacon-kit/mod/node-builder/commands/genesis/types"
+	gentypes "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"

@@ -31,9 +31,9 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"

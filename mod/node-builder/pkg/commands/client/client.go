@@ -23,40 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package client
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/client/cosmos"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 )
 
-// BlsSignerInput is the input for the dep inject framework.
-type BlsSignerInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
+// Commands creates a new command for managing CometBFT
+// related commands.
+func Commands[T servertypes.Application]() *cobra.Command {
+	clientCmd := &cobra.Command{
+		Use:   "client",
+		Short: "client subcommands",
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			return nil
+		},
+	}
 
-// BlsSignerOutput is the output for the dep inject framework.
-type BlsSignerOutput struct {
-	depinject.Out
-	BlsSigner crypto.BLSSigner
-}
-
-// ProvideBlsSigner is a function that provides the module to the application.
-func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
-	key, err := signer.NewFromCometBFTNodeKey(
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
-			"/config/priv_validator_key.json",
+	clientCmd.AddCommand(
+		cosmos.TxCommands(),
+		cosmos.QueryCommands(),
 	)
-	if err != nil {
-		panic(err)
-	}
 
-	return BlsSignerOutput{
-		BlsSigner: key,
-	}
+	return clientCmd
 }

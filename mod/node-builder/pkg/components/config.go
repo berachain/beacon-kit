@@ -27,7 +27,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 

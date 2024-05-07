@@ -27,34 +27,36 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/components/kzg"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/flags"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
-type TrustedSetupInput struct {
+// BlsSignerInput is the input for the dep inject framework.
+type BlsSignerInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
 }
 
-// TrustedSetupOutput is the output for the dep inject framework.
-type TrustedSetupOutput struct {
+// BlsSignerOutput is the output for the dep inject framework.
+type BlsSignerOutput struct {
 	depinject.Out
-	TrustedSetup *gokzg4844.JSONTrustedSetup
+	BlsSigner crypto.BLSSigner
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
-	trustedSetup, err := kzg.ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
+func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
+	key, err := signer.NewFromCometBFTNodeKey(
+		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
+			"/config/priv_validator_key.json",
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	return TrustedSetupOutput{
-		TrustedSetup: trustedSetup,
+	return BlsSignerOutput{
+		BlsSigner: key,
 	}
 }

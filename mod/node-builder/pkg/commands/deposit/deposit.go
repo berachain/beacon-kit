@@ -29,8 +29,8 @@ import (
 	"encoding/hex"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"

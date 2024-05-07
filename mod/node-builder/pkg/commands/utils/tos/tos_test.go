@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt/mocks"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
