@@ -259,8 +259,11 @@ func hasUndefinedSizeTag(field reflect.StructField) bool {
 			return true
 		}
 	}
-	sizes, found, _ := parseSSZFieldTags(field)
-	if !found {
+	//#nosec:G703 // idc about the strconv err.
+	// its impossible if the previous step didnt detect a string and return
+	// already.
+	sizes, found, err := parseSSZFieldTags(field)
+	if !found || err != nil {
 		return true
 	}
 	sumUintArr := sumArr[[]uint64]
@@ -451,6 +454,8 @@ func CalculateBufferSizeForStruct(val reflect.Value) (int, error) {
 			_ reflect.StructField,
 			err error,
 		) {
+			// #nosec:G701 // if we cant fit the size in an int. we cant fit the
+			// value anywhere
 			size += int(DetermineSize(val))
 			if err != nil {
 				// Track errors respective to what size was calculated when it
@@ -492,6 +497,9 @@ func InterleaveOffsets(
 	variableOffsets := make([][]byte, len(variableParts))
 	for i := range len(variableParts) {
 		offsetSum += variableLengths[i]
+		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
+		// of 2147483647.
+		// Wont realisticially overflow.
 		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 	}
 
