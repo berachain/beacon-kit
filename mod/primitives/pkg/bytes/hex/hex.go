@@ -49,8 +49,8 @@ func FromUint64(i uint64) String {
 	return String(strconv.AppendUint(enc, i, hexBase))
 }
 
-// FromBig encodes bigint as a hex string with 0x prefix.
-func FromBig(bigint *big.Int) String {
+// FromBigInt encodes bigint as a hex string with 0x prefix.
+func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
 		return String("0x0")
 	} else if sign > 0 {
