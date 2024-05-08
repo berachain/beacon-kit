@@ -31,7 +31,7 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.

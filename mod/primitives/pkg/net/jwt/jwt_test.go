@@ -31,8 +31,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestNewFromHex(t *testing.T) {
