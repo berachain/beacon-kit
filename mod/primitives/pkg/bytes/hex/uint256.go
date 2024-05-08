@@ -32,8 +32,6 @@ import (
 	"github.com/holiman/uint256"
 )
 
-var u256T = reflect.TypeOf((*uint256.Int)(nil))
-
 // U256 marshals/unmarshals as a JSON string with 0x prefix.
 // The zero value marshals as "0x0".
 type U256 uint256.Int
@@ -59,6 +57,7 @@ func (b *U256) UnmarshalJSON(input []byte) error {
 	}
 	err := (*uint256.Int)(b).SetFromHex(string(input[1 : len(input)-1]))
 	if err != nil {
+		u256T := reflect.TypeOf((*uint256.Int)(nil))
 		return &json.UnmarshalTypeError{Value: err.Error(), Type: u256T}
 	}
 	return nil

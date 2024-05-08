@@ -32,8 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-var bytesT = reflect.TypeOf(Bytes(nil))
-
 // Bytes marshals/unmarshals as a JSON string with 0x prefix.
 // The empty slice marshals as "0x".
 type Bytes []byte
@@ -48,6 +46,7 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
+	bytesT := reflect.TypeOf(Bytes(nil))
 	if !isQuotedString(input) {
 		return wrapUnmarshalError(ErrNonQuotedString, bytesT)
 	}
@@ -80,6 +79,7 @@ func (b Bytes) String() String {
 // to implement the UnmarshalJSON method for fixed-size types.
 func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
 	if !isQuotedString(input) {
+		bytesT := reflect.TypeOf(Bytes(nil))
 		return wrapUnmarshalError(ErrNonQuotedString, bytesT)
 	}
 	return wrapUnmarshalError(

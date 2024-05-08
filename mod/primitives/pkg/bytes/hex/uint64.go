@@ -30,8 +30,6 @@ import (
 	"strconv"
 )
 
-var uint64T = reflect.TypeOf(Uint64(0))
-
 // Uint64 marshals/unmarshals as a JSON string with 0x prefix.
 // The zero value marshals as "0x0".
 type Uint64 uint64
@@ -46,6 +44,7 @@ func (b Uint64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Uint64) UnmarshalJSON(input []byte) error {
+	uint64T := reflect.TypeOf(Uint64(0))
 	if !isQuotedString(input) {
 		return wrapUnmarshalError(ErrNonQuotedString, uint64T)
 	}
