@@ -26,8 +26,6 @@
 package app
 
 import (
-	"time"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -36,13 +34,10 @@ import (
 func (app BeaconApp) PrepareProposal(
 	req *abci.PrepareProposalRequest,
 ) (*abci.PrepareProposalResponse, error) {
-	start := time.Now()
-	defer func() {
-		app.Logger().
-			Info("prepareProposal executed",
-				"duration", time.Since(start).String())
-	}()
-	return app.BaseApp.PrepareProposal(req)
+	return app.BeaconKitRuntime.PrepareProposal(
+		req,
+		app.BaseApp.PrepareProposal,
+	)
 }
 
 // ProcessProposal is called by the consensus engine when a new proposal block
@@ -50,35 +45,20 @@ func (app BeaconApp) PrepareProposal(
 func (app BeaconApp) ProcessProposal(
 	req *abci.ProcessProposalRequest,
 ) (*abci.ProcessProposalResponse, error) {
-	start := time.Now()
-	defer func() {
-		app.Logger().
-			Info("processProposal executed",
-				"duration", time.Since(start).String())
-	}()
-	return app.BaseApp.ProcessProposal(req)
+	return app.BeaconKitRuntime.ProcessProposal(
+		req,
+		app.BaseApp.ProcessProposal,
+	)
 }
 
 // but before committing it to the consensus state.
 func (app BeaconApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
-	start := time.Now()
-	defer func() {
-		app.Logger().
-			Info("finalizedBlock executed",
-				"duration", time.Since(start).String())
-	}()
-	return app.BaseApp.FinalizeBlock(req)
+	return app.BeaconKitRuntime.FinalizeBlock(req, app.BaseApp.FinalizeBlock)
 }
 
 // Commit is our custom implementation of the ABCI method Commit.
 func (app BeaconApp) Commit() (*abci.CommitResponse, error) {
-	start := time.Now()
-	defer func() {
-		app.Logger().
-			Info("commit executed",
-				"duration", time.Since(start).String())
-	}()
-	return app.BaseApp.Commit()
+	return app.BeaconKitRuntime.Commit(app.BaseApp.Commit)
 }

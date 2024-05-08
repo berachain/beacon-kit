@@ -58,6 +58,7 @@ func (n NoopGossipHandler[DataT, BytesT]) Request(
 		ok  bool
 	)
 
+	// Alloc memory if DataT is a pointer.
 	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
 		newInstance := reflect.New(reflect.TypeOf(out).Elem())
 		out, ok = newInstance.Interface().(DataT)
@@ -66,6 +67,5 @@ func (n NoopGossipHandler[DataT, BytesT]) Request(
 		}
 	}
 
-	err := out.UnmarshalSSZ(ref)
-	return out, err
+	return out, out.UnmarshalSSZ(ref)
 }

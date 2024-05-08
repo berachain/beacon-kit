@@ -107,7 +107,8 @@ var (
 
 	// ErrSyncingPayloadStatus indicates a payload status of SYNCING.
 	ErrSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING")
+		"payload status is SYNCING",
+	)
 
 	// ErrInvalidPayloadStatus indicates an invalid payload status.
 	ErrInvalidPayloadStatus = errors.New(

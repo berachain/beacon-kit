@@ -33,8 +33,8 @@ import (
 // getPayloadAttributes returns the payload attributes for the given state and
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
-func (pb *PayloadBuilder) getPayloadAttribute(
-	st ReadOnlyBeaconState,
+func (pb *PayloadBuilder[BeaconStateT]) getPayloadAttribute(
+	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,

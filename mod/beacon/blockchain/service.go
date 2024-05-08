@@ -30,56 +30,70 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/core"
 	"github.com/berachain/beacon-kit/mod/core/state"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Service is the blockchain service.
-type Service struct {
+type Service[
+	BlobSidecarsT BlobSidecars,
+] struct {
 	// service.BaseService
-	bsb    BeaconStorageBackend
+	bsb    BeaconStorageBackend[BlobSidecarsT]
 	logger log.Logger[any]
 	cs     primitives.ChainSpec
 	ee     ExecutionEngine
 	lb     LocalBuilder
 	sks    StakingService
 	bv     *core.BlockVerifier
-	sp     *core.StateProcessor[*datypes.BlobSidecars]
+	sp     *core.StateProcessor[BlobSidecarsT]
 	pv     *core.PayloadVerifier
 }
 
 // NewService creates a new validator service.
-func NewService(
-	opts ...Option,
-) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			panic(err)
-		}
+func NewService[BlobSidecarsT BlobSidecars](
+	bsb BeaconStorageBackend[BlobSidecarsT],
+	logger log.Logger[any],
+	cs primitives.ChainSpec,
+	ee ExecutionEngine,
+	lb LocalBuilder,
+	sks StakingService,
+	bv *core.BlockVerifier,
+	sp *core.StateProcessor[BlobSidecarsT],
+	pv *core.PayloadVerifier,
+) *Service[BlobSidecarsT] {
+	return &Service[BlobSidecarsT]{
+		bsb:    bsb,
+		logger: logger,
+		cs:     cs,
+		ee:     ee,
+		lb:     lb,
+		sks:    sks,
+		bv:     bv,
+		sp:     sp,
+		pv:     pv,
 	}
-
-	return s
 }
 
 // Name returns the name of the service.
-func (s *Service) Name() string {
+func (s *Service[BlobSidecarsT]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service) Start(context.Context) {}
+func (s *Service[BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service) Status() error { return nil }
+func (s *Service[BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service) WaitForHealthy(context.Context) {}
+func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
 
 // TODO: Remove
-func (s Service) BeaconState(ctx context.Context) state.BeaconState {
+func (s Service[BlobSidecarsT]) BeaconState(
+	ctx context.Context,
+) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
 }
 
 // TODO: Remove
-func (s Service) ChainSpec() primitives.ChainSpec {
+func (s Service[BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
 	return s.cs
 }
