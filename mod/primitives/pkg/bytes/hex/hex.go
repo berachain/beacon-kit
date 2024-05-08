@@ -91,8 +91,7 @@ func (s String) MustToBytes() []byte {
 
 // ToUint64 decodes a hex string with 0x prefix.
 func (s String) ToUint64() (uint64, error) {
-	raw := string(s)
-	err := validateNumber(raw)
+	raw, err := validateNumber(s.Unwrap())
 	if err != nil {
 		return 0, err
 	}
@@ -111,8 +110,8 @@ func (s String) MustToUint64() uint64 {
 
 // ToBigInt decodes a hex string with 0x prefix.
 func (s String) ToBigInt() (*big.Int, error) {
-	raw := string(s)
-	err := validateNumber(raw)
+
+	raw, err := validateNumber(s.Unwrap())
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +132,7 @@ func (s String) ToBigInt() (*big.Int, error) {
 		for ri := start; ri < end; ri++ {
 			nib := decodeNibble(raw[ri])
 			if nib == badNibble {
-				return nil, ErrSyntax
+				return nil, ErrInvalidString
 			}
 			words[i] *= 16
 			words[i] += big.Word(nib)

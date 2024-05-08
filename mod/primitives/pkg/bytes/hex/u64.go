@@ -53,15 +53,15 @@ func (b *U64) UnmarshalJSON(input []byte) error {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *U64) UnmarshalText(input []byte) error {
-	err := validateNumber(input)
+	raw, err := validateNumber(input)
 	if err != nil {
 		return err
 	}
-	if len(input) > bytesIn64Bits {
+	if len(raw) > bytesIn64Bits {
 		return ErrUint64Range
 	}
 	var dec uint64
-	for _, byte := range input {
+	for _, byte := range raw {
 		nib := decodeNibble(byte)
 		if nib == badNibble {
 			return ErrInvalidString

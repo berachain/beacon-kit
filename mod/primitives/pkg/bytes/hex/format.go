@@ -51,19 +51,19 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 }
 
 // validateNumber checks the input text for a hex number.
-func validateNumber[T []byte | string](input T) error {
+func validateNumber[T []byte | string](input T) (T, error) {
 	if len(input) == 0 {
-		return ErrEmptyString
+		return *new(T), ErrEmptyString
 	}
 	if !has0xPrefix(input) {
-		return ErrMissingPrefix
+		return *new(T), ErrMissingPrefix
 	}
 	input = input[2:]
 	if len(input) == 0 {
-		return ErrEmptyNumber
+		return *new(T), ErrEmptyNumber
 	}
 	if len(input) > 1 && input[0] == '0' {
-		return ErrLeadingZero
+		return *new(T), ErrLeadingZero
 	}
-	return nil
+	return input, nil
 }

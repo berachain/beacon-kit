@@ -33,7 +33,6 @@ import (
 
 var (
 	ErrEmptyString     = errors.New("empty hex string")
-	ErrSyntax          = errors.New("invalid hex string")
 	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
 	ErrOddLength       = errors.New("hex string of odd length")
 	ErrNonQuotedString = errors.New("non-quoted hex string")
