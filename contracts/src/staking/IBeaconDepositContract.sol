@@ -62,6 +62,9 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the deposit amount is too high, since it is a uint64.
     error DepositValueTooHigh();
 
+    /// @dev Error thrown when the deposit amount is too low
+    error DepositValueTooLow();
+
     /// @dev Error thrown when the public key length is not 48 bytes.
     error InvalidPubKeyLength();
 
@@ -70,6 +73,12 @@ interface IBeaconDepositContract {
 
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
+
+    /// @dev Error thrown when the deposit data root is invalid.
+    error InvalidDepositDataRoot();
+
+    /// @dev Error thrown when the deposit contract is full.
+    error MerkleTreeFull();
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
@@ -82,14 +91,24 @@ interface IBeaconDepositContract {
      * @param withdrawal_credentials is the withdrawal credentials of the validator. If this is the first deposit it is
      * validator operator public key, if subsequent deposit it is the depositors public key.
      * @param signature is the signature used only on the first deposit.
+     * @param deposit_data_root is the root of the node which will be inserted as a new leaf in the deposit Merkle tree.
      */
     function deposit(
         bytes calldata pubkey,
         bytes calldata withdrawal_credentials,
-        bytes calldata signature
+        bytes calldata signature,
+        bytes32 deposit_data_root
     ) external payable;
 
-    function get_deposit_root() external view returns (bytes32);
+    /**
+     * @notice Gets the root of the deposit Merkle tree.
+     * @return The root of the deposit Merkle tree.
+     */
+    function getDepositRoot() external view returns (bytes32);
 
-    function get_deposit_count() external view returns (bytes memory);
+    /**
+     * @notice Gets the number of deposits that have been made to the contract.
+     * @return The number of deposits that have been made to the contract.
+     */
+    function getDepositCount() external view returns (bytes memory);
 }
