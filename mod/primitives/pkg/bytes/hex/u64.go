@@ -73,7 +73,7 @@ func (b *U64) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// XString returns the hex encoding of b.
-func (b U64) String() XString {
+// String returns the hex encoding of b.
+func (b U64) String() String {
 	return FromUint64(uint64(b))
 }

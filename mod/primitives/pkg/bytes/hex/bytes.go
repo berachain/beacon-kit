@@ -58,7 +58,7 @@ func (b *Bytes) UnmarshalJSON(input []byte) error {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
-	raw, err := validateText(input, true)
+	raw, err := formatAndValidateText(input)
 	if err != nil {
 		return err
 	}
@@ -71,8 +71,8 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// XString returns the hex encoding of b.
-func (b Bytes) String() XString {
+// String returns the hex encoding of b.
+func (b Bytes) String() String {
 	return FromBytes(b)
 }
 
@@ -92,7 +92,7 @@ func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalText method for fixed-size types.
 func UnmarshalFixedText(typname string, input, out []byte) error {
-	raw, err := validateText(input, true)
+	raw, err := formatAndValidateText(input)
 	if err != nil {
 		return err
 	}

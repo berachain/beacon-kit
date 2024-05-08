@@ -41,16 +41,15 @@ func isQuotedString[T []byte | string](input T) bool {
 	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
 }
 
-// validateText validates the input text for a hex string.
-func validateText(input []byte, wantPrefix bool) ([]byte, error) {
+// formatAndValidateText validates the input text for a hex string.
+func formatAndValidateText(input []byte) ([]byte, error) {
 	if len(input) == 0 {
 		return nil, nil // empty strings are allowed
 	}
-	if has0xPrefix(input) {
-		input = input[2:]
-	} else if wantPrefix {
+	if !has0xPrefix(input) {
 		return nil, ErrMissingPrefix
 	}
+	input = input[2:]
 	if len(input)%2 != 0 {
 		return nil, ErrOddLength
 	}

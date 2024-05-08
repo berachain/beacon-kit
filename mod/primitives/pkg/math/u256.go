@@ -137,7 +137,7 @@ func (s U256L) MarshalJSON() ([]byte, error) {
 // string and flipping the endianness, such that it is unmarshalled as
 // big-endian.
 func (s *U256L) UnmarshalJSON(input []byte) error {
-	baseFee, err := hex.XString(bytes.Trim(input, "\"")).ToBigInt()
+	baseFee, err := hex.String(bytes.Trim(input, "\"")).ToBigInt()
 	if err != nil {
 		return err
 	}
