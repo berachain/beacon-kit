@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
+//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
 var bytesT = reflect.TypeOf(Bytes(nil))
 
 // Bytes marshals/unmarshals as a JSON string with 0x prefix.
