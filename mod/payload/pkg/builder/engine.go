@@ -28,6 +28,7 @@ package builder
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,9 +37,9 @@ import (
 // submitForkchoiceUpdate updates the fork choice with the latest head and
 // parent
 // block hashes.
-func (pb *PayloadBuilder) submitForkchoiceUpdate(
+func (pb *PayloadBuilder[BeaconStateT]) submitForkchoiceUpdate(
 	ctx context.Context,
-	st ReadOnlyBeaconState,
+	st state.BeaconState,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
 	headEth1Hash common.ExecutionHash,
@@ -66,7 +67,7 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 
 // getPayload retrieves the payload and blobs bundle for the
 // given slot.
-func (pb *PayloadBuilder) getPayload(
+func (pb *PayloadBuilder[BeaconStateT]) getPayload(
 	ctx context.Context,
 	slot math.Slot,
 	payloadID engineprimitives.PayloadID,
