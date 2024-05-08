@@ -33,7 +33,7 @@ import (
 )
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
-func (r *BeaconKitRuntime) BuildABCIComponents() (
+func (r *BeaconKitRuntime[BlobSidecarsT, DepositStoreT]) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
 ) {
@@ -47,6 +47,10 @@ func (r *BeaconKitRuntime) BuildABCIComponents() (
 
 	if err := r.services.FetchService(&builderService); err != nil {
 		panic(err)
+	}
+
+	if chainService == nil || builderService == nil {
+		panic("missing services")
 	}
 
 	handler := abci.NewHandler(

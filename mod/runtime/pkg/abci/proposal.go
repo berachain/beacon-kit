@@ -30,89 +30,122 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/p2p"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
+	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ssz "github.com/ferranbt/fastssz"
-	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
-type Handler struct {
-	builderService BuilderService
-	chainService   BlockchainService
+type Handler[BlobsSidecarsT ssz.Marshallable] struct {
+	builderService BuilderService[BlobsSidecarsT]
+	chainService   BlockchainService[BlobsSidecarsT]
+
+	// TODO: we will eventually gossip the blobs separately from
+	// CometBFT, but for now, these are no-op gossipers.
+	blobGossiper        p2p.Publisher[BlobsSidecarsT, []byte]
+	beaconBlockGossiper p2p.PublisherReceiver[
+		consensus.BeaconBlock, []byte, encoding.ABCIRequest, consensus.BeaconBlock]
 }
 
 // NewHandler creates a new instance of the Handler struct.
-func NewHandler(
-	builderService BuilderService,
-	chainService BlockchainService,
-) *Handler {
-	return &Handler{
+func NewHandler[BlobsSidecarsT ssz.Marshallable](
+	builderService BuilderService[BlobsSidecarsT],
+	chainService BlockchainService[BlobsSidecarsT],
+) *Handler[BlobsSidecarsT] {
+	// This is just for nilaway, TODO: remove later.
+	if chainService == nil {
+		panic("chain service is nil")
+	}
+	return &Handler[BlobsSidecarsT]{
 		builderService: builderService,
 		chainService:   chainService,
+		// TODO: we will eventually gossipt the blobs separately from
+		// CometBFT.
+		blobGossiper: rp2p.NoopGossipHandler[BlobsSidecarsT, []byte]{},
+		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[encoding.ABCIRequest](
+			chainService.ChainSpec(),
+		),
 	}
 }
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
-func (h *Handler) PrepareProposalHandler(
-	ctx sdk.Context, req *cmtabci.RequestPrepareProposal,
-) (*cmtabci.ResponsePrepareProposal, error) {
+func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
+	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
+) (*cmtabci.PrepareProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 	st := h.chainService.BeaconState(ctx)
 
 	// Process the Slot to set the state root for the block.
 	if err := h.chainService.ProcessSlot(st); err != nil {
-		return &cmtabci.ResponsePrepareProposal{}, err
+		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
+	// Get the best block and blobs.
 	blk, blobs, err := h.builderService.RequestBestBlock(
 		ctx, st, math.Slot(req.Height))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
-		return &cmtabci.ResponsePrepareProposal{}, err
+		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
-	// Serialize the block and blobs.
-	txs, err := iter.MapErr[ssz.Marshaler, []byte](
-		[]ssz.Marshaler{blk, blobs},
-		func(m *ssz.Marshaler) ([]byte, error) {
-			return (*m).MarshalSSZ()
-		})
+	// "Publish" the blobs and the beacon block.
+	var sidecarsBz, beaconBlockBz []byte
+	g, gCtx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		var localErr error
+		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
+		if localErr != nil {
+			logger.Error("failed to publish blobs", "error", err)
+		}
+		return err
+	})
 
-	return &cmtabci.ResponsePrepareProposal{
-		Txs: txs,
-	}, err
+	g.Go(func() error {
+		var localErr error
+		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
+		if localErr != nil {
+			logger.Error("failed to publish beacon block", "error", err)
+		}
+		return err
+	})
+
+	return &cmtabci.PrepareProposalResponse{
+		Txs: [][]byte{beaconBlockBz, sidecarsBz},
+	}, g.Wait()
 }
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
-func (h *Handler) ProcessProposalHandler(
-	ctx sdk.Context, req *cmtabci.RequestProcessProposal,
-) (*cmtabci.ResponseProcessProposal, error) {
+func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
+	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
 	logger := ctx.Logger().With("module", "process-proposal")
 
-	// Unmarshal the beacon block from the abci request.
-	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		req, BeaconBlockTxIndex,
-		h.chainService.ChainSpec().
-			ActiveForkVersionForSlot(math.Slot(req.Height)))
-	if err != nil {
+	var (
+		blk consensus.BeaconBlock
+		err error
+	)
+
+	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
 		logger.Error(
 			"failed to retrieve beacon block from request",
 			"error",
 			err,
 		)
-
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
-		}, nil
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, err
 	}
 
 	// If the block is syncing, we reject the proposal. This is guard against a
@@ -120,20 +153,16 @@ func (h *Handler) ProcessProposalHandler(
 	// validators have their EL's syncing. If nodes were to accept this proposal
 	// optmistically when they are syncing, it could potentially allow for a
 	// malicious validator to push a bad block through.
-	//
-	// TODO: figure out a way to prevent newPayload from being called twiced as
-	// it will be called again
-	// in PreBlocker.
 	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.Is(
 		err,
 		engineclient.ErrSyncingPayloadStatus,
 	) {
-		return &cmtabci.ResponseProcessProposal{
-			Status: cmtabci.ResponseProcessProposal_REJECT,
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
 
-	return &cmtabci.ResponseProcessProposal{
-		Status: cmtabci.ResponseProcessProposal_ACCEPT,
+	return &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 	}, nil
 }

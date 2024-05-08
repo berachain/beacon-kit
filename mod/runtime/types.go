@@ -25,12 +25,20 @@
 
 package runtime
 
-import "context"
+import (
+	"context"
+
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+)
 
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
 type AppOptions interface {
 	Get(string) interface{}
+}
+
+type Config interface {
+	GetEngine() engineclient.Config
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

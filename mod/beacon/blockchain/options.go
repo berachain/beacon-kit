@@ -28,29 +28,40 @@ package blockchain
 import (
 	"github.com/berachain/beacon-kit/mod/core"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-builder/service"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// WithBaseService returns an Option that sets the BaseService for the Service.
-func WithBaseService(base service.BaseService) service.Option[Service] {
+// Option is a function that sets a field on the Service.
+type Option func(*Service) error
+
+func WithBeaconStorageBackend(bsb BeaconStorageBackend) Option {
 	return func(s *Service) error {
-		s.BaseService = base
+		s.bsb = bsb
 		return nil
 	}
 }
 
-// WithBlockVerifier is a function that returns an Option.
 // It sets the BlockVerifier of the Service to the provided Service.
-func WithBlockVerifier(bv *core.BlockVerifier) service.Option[Service] {
+func WithBlockVerifier(bv *core.BlockVerifier) Option {
 	return func(s *Service) error {
 		s.bv = bv
 		return nil
 	}
 }
 
+// WithChainSpec is a function that returns an Option.
+// It sets the ChainSpec of the Service to the provided ChainSpec.
+func WithChainSpec(cs primitives.ChainSpec) Option {
+	return func(s *Service) error {
+		s.cs = cs
+		return nil
+	}
+}
+
 // WithExecutionService is a function that returns an Option.
 // It sets the ExecutionService of the Service to the provided Service.
-func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
+func WithExecutionEngine(ee ExecutionEngine) Option {
 	return func(s *Service) error {
 		s.ee = ee
 		return nil
@@ -59,15 +70,24 @@ func WithExecutionEngine(ee ExecutionEngine) service.Option[Service] {
 
 // WithLocalBuilder is a function that returns an Option.
 // It sets the BuilderService of the Service to the provided Service.
-func WithLocalBuilder(lb LocalBuilder) service.Option[Service] {
+func WithLocalBuilder(lb LocalBuilder) Option {
 	return func(s *Service) error {
 		s.lb = lb
 		return nil
 	}
 }
 
+// WithLogger is a function that returns an Option.
+// It sets the Logger of the Service to the provided Logger.
+func WithLogger(logger log.Logger[any]) Option {
+	return func(s *Service) error {
+		s.logger = logger
+		return nil
+	}
+}
+
 // WithPayloadVerifier is a function that returns an Option.
-func WithPayloadVerifier(pv *core.PayloadVerifier) service.Option[Service] {
+func WithPayloadVerifier(pv *core.PayloadVerifier) Option {
 	return func(s *Service) error {
 		s.pv = pv
 		return nil
@@ -76,7 +96,7 @@ func WithPayloadVerifier(pv *core.PayloadVerifier) service.Option[Service] {
 
 // WithExecutionService is a function that returns an Option.
 // It sets the ExecutionService of the Service to the provided Service.
-func WithStakingService(sks StakingService) service.Option[Service] {
+func WithStakingService(sks StakingService) Option {
 	return func(s *Service) error {
 		s.sks = sks
 		return nil
@@ -86,7 +106,7 @@ func WithStakingService(sks StakingService) service.Option[Service] {
 // WithStateProcessor is a function that returns an Option.
 func WithStateProcessor(
 	sp *core.StateProcessor[*datypes.BlobSidecars],
-) service.Option[Service] {
+) Option {
 	return func(s *Service) error {
 		s.sp = sp
 		return nil

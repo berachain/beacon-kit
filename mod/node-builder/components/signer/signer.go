@@ -78,3 +78,26 @@ func (b *BLSSigner) PublicKey() crypto.BLSPubkey {
 func (b *BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }
+
+// VerifySignature verifies a signature for a given message using the signer's
+// public key.
+func (BLSSigner) VerifySignature(
+	pubKey []byte,
+	msg []byte,
+	signature []byte,
+) error {
+	pubkey, err := blst.PublicKeyFromBytes(pubKey)
+	if err != nil {
+		return err
+	}
+
+	sig, err := blst.SignatureFromBytes(signature)
+	if err != nil {
+		return err
+	}
+
+	if !sig.Verify(pubkey, msg) {
+		return ErrInvalidSignature
+	}
+	return nil
+}

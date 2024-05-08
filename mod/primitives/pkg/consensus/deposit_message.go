@@ -26,6 +26,7 @@
 package consensus
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,7 +34,7 @@ import (
 )
 
 // SigVerificationFn is a function that verifies a signature.
-type SigVerificationFn func(pubkey, message, signature []byte) bool
+type SigVerificationFn func(pubkey, message, signature []byte) error
 
 // DepositMessage as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
@@ -89,7 +90,7 @@ func CreateAndSignDepositMessage(
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature crypto.BLSSignature,
-	isSignatureValid SigVerificationFn,
+	signatureVerificationFn SigVerificationFn,
 	domainType common.DomainType,
 ) error {
 	domain, err := forkData.ComputeDomain(domainType)
@@ -102,12 +103,12 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	if !isSignatureValid(
+	if err = signatureVerificationFn(
 		d.Pubkey[:],
 		signingRoot[:],
 		signature[:],
-	) {
-		return ErrDepositMessage
+	); err != nil {
+		return errors.Join(err, ErrDepositMessage)
 	}
 
 	return nil

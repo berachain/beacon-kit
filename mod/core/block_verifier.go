@@ -110,5 +110,14 @@ func (bv *BlockVerifier) ValidateBlock(
 			blk.GetParentBlockRoot(),
 		)
 	}
+
+	if uint64(len(body.GetBlobKzgCommitments())) > bv.cs.MaxBlobsPerBlock() {
+		return errors.Newf(
+			"too many blob kzg commitments, expected: %d, got: %d",
+			bv.cs.MaxBlobsPerBlock(),
+			len(body.GetBlobKzgCommitments()),
+		)
+	}
+
 	return nil
 }

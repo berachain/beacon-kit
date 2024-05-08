@@ -34,7 +34,7 @@ import (
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (pb *PayloadBuilder) getPayloadAttribute(
-	st BeaconState,
+	st ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,

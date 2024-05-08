@@ -42,17 +42,39 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	bls12381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
 )
+
+type DepositStore interface {
+	ExpectedDeposits(
+		numView uint64,
+	) ([]*consensus.Deposit, error)
+	EnqueueDeposit(deposit *consensus.Deposit) error
+	// EnqueueDeposits pushes multiple deposits to the queue.
+	EnqueueDeposits(deposits []*consensus.Deposit) error
+
+	// DequeueDeposits returns the first numDequeue deposits in the queue.
+	DequeueDeposits(
+		numDequeue uint64,
+	) ([]*consensus.Deposit, error)
+
+	// PruneToIndex removes all deposits up to the given index.
+	PruneToIndex(
+		index uint64,
+	) error
+}
 
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
-type BeaconStorageBackend[ReadOnlyBeaconBlockT, BlobSidecarsT any] interface {
+type BeaconStorageBackend[
+	DepositStoreT DepositStore,
+	ReadOnlyBeaconBlockT,
+	BlobSidecarsT any,
+] interface {
 	AvailabilityStore(
 		ctx context.Context,
 	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
 	BeaconState(ctx context.Context) state.BeaconState
-	DepositStore(ctx context.Context) *deposit.KVStore
+	DepositStore(ctx context.Context) DepositStoreT
 }
 
 // Keeper maintains the link to data storage and exposes access to the
@@ -132,7 +154,7 @@ func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
 		// feels big bad.
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
-			PubKeyType: (&bls12381.PubKey{}).Type(),
+			PubKeyType: "bls12_381",
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		})
@@ -157,7 +179,7 @@ func (k *Keeper) InitGenesis(
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	blsType := (&bls12381.PubKey{}).Type()
+	blsType := "bls12_381"
 	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],

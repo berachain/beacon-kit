@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 )
 
 // PayloadVerifier is responsible for verifying incoming execution
@@ -48,17 +48,8 @@ func NewPayloadVerifier(cs primitives.ChainSpec) *PayloadVerifier {
 // VerifyPayload verifies the incoming payload.
 func (pv *PayloadVerifier) VerifyPayload(
 	st state.BeaconState,
-	body consensus.BeaconBlockBody,
+	payload engineprimitives.ExecutionPayload,
 ) error {
-	if body == nil || body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	payload := body.GetExecutionPayload()
-	if payload == nil || payload.IsNil() {
-		return ErrNilPayload
-	}
-
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
@@ -105,14 +96,6 @@ func (pv *PayloadVerifier) VerifyPayload(
 	// payload time %d, but got %d",
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
-
-	if uint64(len(body.GetBlobKzgCommitments())) > pv.cs.MaxBlobsPerBlock() {
-		return errors.Newf(
-			"too many blob kzg commitments, expected: %d, got: %d",
-			pv.cs.MaxBlobsPerBlock(),
-			len(body.GetBlobKzgCommitments()),
-		)
-	}
 
 	// Verify the number of withdrawals.
 	if withdrawals := payload.GetWithdrawals(); uint64(

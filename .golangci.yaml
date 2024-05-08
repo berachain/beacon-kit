@@ -121,8 +121,6 @@ linters-settings:
       - prometheus.ExponentialBuckets.*
       - prometheus.LinearBuckets
       - ssz.*
-    ignored-files:
-      - ssz/*.go
 
   gomodguard:
     blocked:
@@ -187,6 +185,8 @@ linters-settings:
     # Enable to require nolint directives to mention the specific linter being suppressed.
     # Default: false
     require-specific: true
+    # Enable to ensure that nolint directives are all used. Default is true.
+    allow-unused: true
 
   perfsprint:
     # Optimizes into strings concatenation.

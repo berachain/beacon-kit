@@ -53,6 +53,7 @@ func (s *EngineClient) HeaderByNumber(
 	if ok {
 		return header, nil
 	}
+
 	header, err := s.Client.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, err
