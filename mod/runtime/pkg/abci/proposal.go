@@ -52,7 +52,8 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper        p2p.Publisher[BlobsSidecarsT, []byte]
 	beaconBlockGossiper p2p.PublisherReceiver[
-		consensus.BeaconBlock, []byte, encoding.ABCIRequest, consensus.BeaconBlock]
+		consensus.BeaconBlock, []byte, encoding.ABCIRequest, consensus.BeaconBlock,
+	]
 }
 
 // NewHandler creates a new instance of the Handler struct.
@@ -82,8 +83,11 @@ func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
-	logger := ctx.Logger().With("module", "prepare-proposal")
-	st := h.chainService.BeaconState(ctx)
+
+	var (
+		logger = ctx.Logger().With("module", "prepare-proposal")
+		st     = h.chainService.BeaconState(ctx)
+	)
 
 	// Process the Slot to set the state root for the block.
 	if err := h.chainService.ProcessSlot(st); err != nil {
@@ -130,11 +134,11 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
-	logger := ctx.Logger().With("module", "process-proposal")
 
 	var (
-		blk consensus.BeaconBlock
-		err error
+		logger = ctx.Logger().With("module", "process-proposal")
+		blk    consensus.BeaconBlock
+		err    error
 	)
 
 	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {

@@ -47,7 +47,7 @@ func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
 // ValidateBlock validates the incoming block.
 func (bv *BlockVerifier) ValidateBlock(
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock,
+	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
 ) error {
 	// Get the block body.
 	body := blk.GetBody()

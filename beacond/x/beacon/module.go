@@ -30,7 +30,7 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -49,12 +49,12 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	keeper *runtime.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	keeper *runtime.Keeper,
+	keeper *keeper.Keeper,
 ) AppModule {
 	return AppModule{
 		keeper: keeper,

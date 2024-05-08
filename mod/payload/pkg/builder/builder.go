@@ -35,7 +35,9 @@ import (
 
 // TODO: Decouple from ABCI and have this validator run on a separate thread
 // have it configured itself and not be a service persay.
-type PayloadBuilder struct {
+type PayloadBuilder[
+	ReadOnlyBeaconStateT ReadOnlyBeaconState,
+] struct {
 	cfg       *Config
 	chainSpec primitives.ChainSpec
 	logger    log.Logger[any]
@@ -52,12 +54,20 @@ type PayloadBuilder struct {
 }
 
 // NewService creates a new service.
-func New(opts ...Option) (*PayloadBuilder, error) {
-	pb := &PayloadBuilder{}
-	for _, opt := range opts {
-		if err := opt(pb); err != nil {
-			return nil, err
-		}
+func New[BeaconStateT ReadOnlyBeaconState](
+	cfg *Config,
+	chainSpec primitives.ChainSpec,
+	logger log.Logger[any],
+	ee ExecutionEngine,
+	pc *cache.PayloadIDCache[
+		engineprimitves.PayloadID, [32]byte, math.Slot,
+	],
+) *PayloadBuilder[BeaconStateT] {
+	return &PayloadBuilder[BeaconStateT]{
+		cfg:       cfg,
+		chainSpec: chainSpec,
+		logger:    logger,
+		ee:        ee,
+		pc:        pc,
 	}
-	return pb, nil
 }

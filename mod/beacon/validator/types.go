@@ -28,23 +28,32 @@ package validator
 import (
 	"context"
 
-	da "github.com/berachain/beacon-kit/mod/da/pkg/blob"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BlobFactory is the interface for building blobs.
-type BlobFactory[BeaconBlockBodyT da.BeaconBlockBody] interface {
+type BlobFactory[
+	BlobSidecarsT BlobSidecars,
+	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+] interface {
 	BuildSidecars(
-		blk da.BeaconBlock[BeaconBlockBodyT],
+		blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
-	) (*datypes.BlobSidecars, error)
+	) (BlobSidecarsT, error)
+}
+
+// BlobSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -56,7 +65,7 @@ type DepositStore interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
+	ReadOnlyBeaconStateT state.ReadOnlyBeaconState,
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
@@ -65,12 +74,10 @@ type RandaoProcessor[
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[
-	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
-] interface {
+type PayloadBuilder[ReadOnlyBeaconStateT state.ReadOnlyBeaconState] interface {
 	RetrieveOrBuildPayload(
 		ctx context.Context,
-		st builder.ReadOnlyBeaconState,
+		st ReadOnlyBeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
