@@ -33,7 +33,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/core v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/core v0.0.0-20240507213502-e78adb621435
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000

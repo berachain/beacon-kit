@@ -44,6 +44,7 @@ type Service[
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
+
 	// logger is a logger.
 	logger log.Logger[any]
 
