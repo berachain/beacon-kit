@@ -34,4 +34,9 @@ const (
 	encDecRatio     = 2
 	bytesIn64Bits   = 16
 	bytesIn256Bits  = 64
+
+	// hexadecimal conversion constants.
+	hexBaseOffset       = '0'
+	hexAlphaOffsetUpper = 'A' - 10
+	hexAlphaOffsetLower = 'a' - 10
 )

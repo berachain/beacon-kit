@@ -84,35 +84,34 @@ func wrapUnmarshalError(err error, t reflect.Type) error {
 	return err
 }
 
+// decodeNibble decodes a single hexadecimal nibble (half-byte) into uint64.
 func decodeNibble(in byte) uint64 {
-	offset := 10
 	switch {
 	case in >= '0' && in <= '9':
-		return uint64(in - '0')
+		return uint64(in - hexBaseOffset)
 	case in >= 'A' && in <= 'F':
-		return uint64(in - 'A' + byte(offset))
+		return uint64(in - hexAlphaOffsetUpper)
 	case in >= 'a' && in <= 'f':
-		return uint64(in - 'a' + byte(offset))
+		return uint64(in - hexAlphaOffsetLower)
 	default:
 		return badNibble
 	}
 }
 
+// getBigWordNibbles returns the number of nibbles required for big.Word.
+//
 //nolint:mnd // this is fine xD
 func getBigWordNibbles() int {
 	// This is a weird way to compute the number of nibbles required for
 	// big.Word. The usual way would be to use constant arithmetic but go vet
 	// can't handle that
-
-	var bigWordNibbles int
 	b, _ := new(big.Int).SetString("FFFFFFFFFF", 16)
 	switch len(b.Bits()) {
 	case 1:
-		bigWordNibbles = 16
+		return 16
 	case 2:
-		bigWordNibbles = 8
+		return 8
 	default:
 		panic("weird big.Word size")
 	}
-	return bigWordNibbles
 }
