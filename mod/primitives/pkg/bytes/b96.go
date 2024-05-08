@@ -44,7 +44,7 @@ func (h *B96) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of Bytes96.
 func (h B96) String() string {
-	return hex.StrFromBytes(h[:]).Unwrap()
+	return hex.FromBytes(h[:]).Unwrap()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes96.

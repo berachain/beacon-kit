@@ -44,7 +44,7 @@ func ToBytes4(input []byte) B4 {
 
 // String returns the hex string representation of B4.
 func (h B4) String() string {
-	return hex.StrFromBytes(h[:]).Unwrap()
+	return hex.FromBytes(h[:]).Unwrap()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B4.

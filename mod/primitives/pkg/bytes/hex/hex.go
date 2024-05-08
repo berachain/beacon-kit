@@ -31,46 +31,46 @@ import (
 	"strconv"
 )
 
-// String represents a hex string with 0x prefix.
-type String string
+// XString represents a hex string with 0x prefix.
+type XString string
 
-// StrFromBytes creates a hex string with 0x prefix.
-func StrFromBytes(b []byte) String {
+// FromBytes creates a hex string with 0x prefix.
+func FromBytes(b []byte) XString {
 	enc := make([]byte, len(b)*2+prefixLen)
 	copy(enc, prefix)
 	hex.Encode(enc[2:], b)
-	return String(enc)
+	return XString(enc)
 }
 
-// StrFromUint64 encodes i as a hex string with 0x prefix.
-func StrFromUint64(i uint64) String {
+// FromUint64 encodes i as a hex string with 0x prefix.
+func FromUint64(i uint64) XString {
 	enc := make([]byte, prefixLen, initialCapacity)
 	copy(enc, prefix)
-	return String(strconv.AppendUint(enc, i, hexBase))
+	return XString(strconv.AppendUint(enc, i, hexBase))
 }
 
-// StrFromBig encodes bigint as a hex string with 0x prefix.
-func StrFromBig(bigint *big.Int) String {
+// FromBig encodes bigint as a hex string with 0x prefix.
+func FromBig(bigint *big.Int) XString {
 	if sign := bigint.Sign(); sign == 0 {
-		return String("0x0")
+		return XString("0x0")
 	} else if sign > 0 {
-		return String("0x" + bigint.Text(hexBase))
+		return XString("0x" + bigint.Text(hexBase))
 	}
-	return String("-0x" + bigint.Text(hexBase)[1:])
+	return XString("-0x" + bigint.Text(hexBase)[1:])
 }
 
 // Has0xPrefix returns true if s has a 0x prefix.
-func (s String) Has0xPrefix() bool {
+func (s XString) Has0xPrefix() bool {
 	return has0xPrefix[string](string(s))
 }
 
 // IsEmpty returns true if s is empty.
-func (s String) IsEmpty() bool {
+func (s XString) IsEmpty() bool {
 	return len(s) == 0
 }
 
 // ToBytes decodes a hex string with 0x prefix.
-func (s String) ToBytes() ([]byte, error) {
+func (s XString) ToBytes() ([]byte, error) {
 	if s.IsEmpty() {
 		return nil, ErrEmptyString
 	} else if s.Has0xPrefix() {
@@ -81,7 +81,7 @@ func (s String) ToBytes() ([]byte, error) {
 
 // MustToBytes decodes a hex string with 0x prefix.
 // It panics for invalid input.
-func (s String) MustToBytes() []byte {
+func (s XString) MustToBytes() []byte {
 	b, err := s.ToBytes()
 	if err != nil {
 		panic(err)
@@ -90,7 +90,7 @@ func (s String) MustToBytes() []byte {
 }
 
 // ToUint64 decodes a hex string with 0x prefix.
-func (s String) ToUint64() (uint64, error) {
+func (s XString) ToUint64() (uint64, error) {
 	raw, err := validateNumber(string(s))
 	if err != nil {
 		return 0, err
@@ -100,7 +100,7 @@ func (s String) ToUint64() (uint64, error) {
 
 // MustToUint64 decodes a hex string with 0x prefix.
 // It panics for invalid input.
-func (s String) MustToUint64() uint64 {
+func (s XString) MustToUint64() uint64 {
 	i, err := s.ToUint64()
 	if err != nil {
 		panic(err)
@@ -109,7 +109,7 @@ func (s String) MustToUint64() uint64 {
 }
 
 // ToBigInt decodes a hex string with 0x prefix.
-func (s String) ToBigInt() (*big.Int, error) {
+func (s XString) ToBigInt() (*big.Int, error) {
 	raw, err := validateNumber(string(s))
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (s String) ToBigInt() (*big.Int, error) {
 
 // MustToBigInt decodes a hex string with 0x prefix.
 // It panics for invalid input.
-func (s String) MustToBigInt() *big.Int {
+func (s XString) MustToBigInt() *big.Int {
 	bi, err := s.ToBigInt()
 	if err != nil {
 		panic(err)
@@ -150,6 +150,6 @@ func (s String) MustToBigInt() *big.Int {
 }
 
 // Unwrap returns the string value.
-func (s String) Unwrap() string {
+func (s XString) Unwrap() string {
 	return string(s)
 }

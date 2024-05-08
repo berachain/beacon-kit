@@ -71,9 +71,9 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// String returns the hex encoding of b.
-func (b Bytes) String() String {
-	return StrFromBytes(b)
+// XString returns the hex encoding of b.
+func (b Bytes) String() XString {
+	return FromBytes(b)
 }
 
 // UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length

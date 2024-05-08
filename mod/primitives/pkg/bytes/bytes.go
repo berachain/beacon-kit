@@ -43,7 +43,7 @@ func MustFromHex(input string) []byte {
 
 // BytesFromHex returns the bytes represented by the given hex string.
 func FromHex(input string) ([]byte, error) {
-	return hex.String(input).ToBytes()
+	return hex.XString(input).ToBytes()
 }
 
 // SafeCopy creates a copy of the provided byte slice. If the input slice is

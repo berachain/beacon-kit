@@ -130,14 +130,14 @@ func (s U256L) UnwrapBig() *big.Int {
 // MarshalJSON marshals a U256L to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
 func (s U256L) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + hex.StrFromBig(s.UnwrapBig()).Unwrap() + "\""), nil
+	return []byte("\"" + hex.FromBig(s.UnwrapBig()).Unwrap() + "\""), nil
 }
 
 // UnmarshalJSON unmarshals a U256L from JSON by decoding the hex
 // string and flipping the endianness, such that it is unmarshalled as
 // big-endian.
 func (s *U256L) UnmarshalJSON(input []byte) error {
-	baseFee, err := hex.String(bytes.Trim(input, "\"")).ToBigInt()
+	baseFee, err := hex.XString(bytes.Trim(input, "\"")).ToBigInt()
 	if err != nil {
 		return err
 	}

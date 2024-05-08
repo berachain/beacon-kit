@@ -70,7 +70,7 @@ func (b *U256) UnmarshalText(input []byte) error {
 	return (*uint256.Int)(b).SetFromHex(string(input))
 }
 
-// String returns the hex encoding of b.
+// XString returns the hex encoding of b.
 func (b *U256) String() string {
 	return (*uint256.Int)(b).Hex()
 }

@@ -46,7 +46,7 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of B48.
 func (h B48) String() string {
-	return hex.StrFromBytes(h[:]).Unwrap()
+	return hex.FromBytes(h[:]).Unwrap()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B48.
