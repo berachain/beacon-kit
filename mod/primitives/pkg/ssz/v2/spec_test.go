@@ -87,7 +87,7 @@ func getByteArray32(bb *sszv2.BeaconStateBellatrix) []byte {
 }
 
 func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
-	res, err := bb.PreviousJustifiedCheckpoint.MarshalSSZ()
+	res, err := getStruct(bb).MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
@@ -111,13 +111,34 @@ func TestParityStruct(t *testing.T) {
 	s := sszv2.NewSerializer()
 	o2, err3 := s.MarshalSSZ(testStruct)
 	require.NoError(t, err3)
-	debugPrint(true, t, "Local Serializer output:", o2, err)
+	debugPrint(true, t, "Local Serializer output: ", o2, err)
 
-	res := make([]byte, 0)
-	res, _ = sszState.PreviousJustifiedCheckpoint.MarshalSSZ()
-	// ssz.MarshalUint64(res, o2)
-	debugPrint(true, t, "FastSSZ Output:", res)
+	res, _ := testStruct.MarshalSSZ()
+	debugPrint(true, t, "FastSSZ Output: ", res)
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+}
+
+func BenchmarkNativeStruct(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	testStruct := getStruct(sszState)
+
+	s := sszv2.NewSerializer()
+	runBench(b, func() {
+		s.MarshalSSZ(testStruct)
+	})
+}
+
+func BenchmarkFastSSZStruct(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	testStruct := getStruct(sszState)
+
+	runBench(b, func() {
+		testStruct.MarshalSSZ()
+	})
 }
 
 func TestParityUint64(t *testing.T) {
