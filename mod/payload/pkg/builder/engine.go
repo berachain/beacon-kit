@@ -37,7 +37,7 @@ import (
 // submitForkchoiceUpdate updates the fork choice with the latest head and
 // parent
 // block hashes.
-func (pb *PayloadBuilder) submitForkchoiceUpdate(
+func (pb *PayloadBuilder[BeaconStateT]) submitForkchoiceUpdate(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
@@ -67,7 +67,7 @@ func (pb *PayloadBuilder) submitForkchoiceUpdate(
 
 // getPayload retrieves the payload and blobs bundle for the
 // given slot.
-func (pb *PayloadBuilder) getPayload(
+func (pb *PayloadBuilder[BeaconStateT]) getPayload(
 	ctx context.Context,
 	slot math.Slot,
 	payloadID engineprimitives.PayloadID,
