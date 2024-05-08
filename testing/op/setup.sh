@@ -56,10 +56,8 @@ pnpm build
 cd packages/contracts-bedrock/
 forge install
 
-cd ..
-
 # Stage 4: Install op-geth
-cd op-geth
+cd ../../../op-geth/
 make geth
 cd ..
 
