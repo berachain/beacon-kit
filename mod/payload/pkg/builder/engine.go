@@ -28,7 +28,6 @@ package builder
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -39,7 +38,7 @@ import (
 // block hashes.
 func (pb *PayloadBuilder[BeaconStateT]) submitForkchoiceUpdate(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
 	headEth1Hash common.ExecutionHash,

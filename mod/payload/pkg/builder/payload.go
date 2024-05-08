@@ -29,7 +29,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -41,7 +40,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -94,7 +93,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAndWait(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
@@ -141,7 +140,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAndWait(
 // execution client to return the payload.
 func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
