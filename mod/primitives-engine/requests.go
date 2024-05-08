@@ -30,8 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	gengine "github.com/ethereum/go-ethereum/beacon/engine"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -80,7 +78,7 @@ func BuildNewPayloadRequest(
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
-	data := gengine.ExecutableData{
+	data := ExecutableData{
 		ParentHash:    payload.GetParentHash(),
 		FeeRecipient:  payload.GetFeeRecipient(),
 		StateRoot:     common.ExecutionHash(payload.GetStateRoot()),
@@ -96,11 +94,11 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		BlockHash:     payload.GetBlockHash(),
 		Transactions:  payload.GetTransactions(),
 		//#nosec:G103 // henlo I am the captain now.
-		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
+		Withdrawals:   *(*[]*Withdrawal)(unsafe.Pointer(&withdrawals)),
 		BlobGasUsed:   payload.GetBlobGasUsed().UnwrapPtr(),
 		ExcessBlobGas: payload.GetExcessBlobGas().UnwrapPtr(),
 	}
-	_, err := gengine.ExecutableDataToBlock(
+	_, err := ExecutableDataToBlock(
 		data,
 		n.VersionedHashes,
 		(*common.ExecutionHash)(n.ParentBeaconBlockRoot),

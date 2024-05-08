@@ -38,4 +38,7 @@ type (
 
 	// Log represents a log on the execution layer.
 	Log = coretypes.Log
+
+	// Withdrawal represents a validator withdrawal fron the consensus layer.
+	Withdrawal = coretypes.Withdrawal
 )

@@ -27,10 +27,10 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var _ ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
@@ -62,8 +62,8 @@ type ExecutionPayloadHeaderDeneb struct {
 
 // JSON type overrides for ExecutionPayloadHeaderDeneb.
 type executionPayloadHeaderDenebMarshaling struct {
-	ExtraData hexutil.Bytes
-	LogsBloom hexutil.Bytes
+	ExtraData hex.Bytes
+	LogsBloom hex.Bytes
 }
 
 // Version returns the version of the ExecutionPayloadHeaderDeneb.
