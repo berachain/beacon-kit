@@ -30,12 +30,12 @@ import (
 	"strconv"
 )
 
-// Uint64 marshals/unmarshals as a JSON string with 0x prefix.
+// U64 marshals/unmarshals as a JSON string with 0x prefix.
 // The zero value marshals as "0x0".
-type Uint64 uint64
+type U64 uint64
 
 // MarshalText implements encoding.TextMarshaler.
-func (b Uint64) MarshalText() ([]byte, error) {
+func (b U64) MarshalText() ([]byte, error) {
 	buf := make([]byte, prefixLen, initialCapacity)
 	copy(buf, prefix)
 	buf = strconv.AppendUint(buf, uint64(b), hexBase)
@@ -43,8 +43,8 @@ func (b Uint64) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (b *Uint64) UnmarshalJSON(input []byte) error {
-	uint64T := reflect.TypeOf(Uint64(0))
+func (b *U64) UnmarshalJSON(input []byte) error {
+	uint64T := reflect.TypeOf(U64(0))
 	if !isQuotedString(input) {
 		return wrapUnmarshalError(ErrNonQuotedString, uint64T)
 	}
@@ -52,7 +52,7 @@ func (b *Uint64) UnmarshalJSON(input []byte) error {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Uint64) UnmarshalText(input []byte) error {
+func (b *U64) UnmarshalText(input []byte) error {
 	raw, err := validateNumber(input)
 	if err != nil {
 		return err
@@ -69,11 +69,11 @@ func (b *Uint64) UnmarshalText(input []byte) error {
 		dec *= hexBase // hex shift left :D
 		dec += nib
 	}
-	*b = Uint64(dec)
+	*b = U64(dec)
 	return nil
 }
 
 // String returns the hex encoding of b.
-func (b Uint64) String() String {
+func (b U64) String() String {
 	return StrFromUint64(uint64(b))
 }
