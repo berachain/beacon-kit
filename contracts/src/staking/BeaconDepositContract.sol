@@ -49,8 +49,8 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev The length of the signature, SIGNATURE_LENGTH bytes.
     uint8 private constant SIGNATURE_LENGTH = 96;
 
-    /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-    uint8 private constant CREDENTIALS_LENGTH = 32;
+    /// @dev The length of the withdrawal credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
+    uint8 private constant WITHDRAWAL_CREDENTIALS_LENGTH = 32;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
@@ -67,8 +67,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @inheritdoc IBeaconDepositContract
     function deposit(
         bytes calldata pubkey,
-        bytes calldata credentials,
-        uint64 amount,
+        bytes calldata withdrawal_credentials,
         bytes calldata signature
     )
         external
@@ -78,7 +77,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InvalidPubKeyLength();
         }
 
-        if (credentials.length != CREDENTIALS_LENGTH) {
+        if (withdrawal_credentials.length != WITHDRAWAL_CREDENTIALS_LENGTH) {
             revert InvalidCredentialsLength();
         }
 
@@ -86,7 +85,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InvalidSignatureLength();
         }
 
-        uint64 amountInGwei = _deposit(amount);
+        uint64 amountInGwei = _deposit();
 
         if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
             revert InsufficientDeposit();
@@ -95,13 +94,13 @@ contract BeaconDepositContract is IBeaconDepositContract {
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
-                pubkey, credentials, amountInGwei, signature, depositCount++
+                pubkey, withdrawal_credentials, amountInGwei, signature, depositCount++
             );
         }
     }
 
     /// @dev Validates the deposit amount and sends the native asset to the zero address.
-    function _deposit(uint64) internal virtual returns (uint64) {
+    function _deposit() internal virtual returns (uint64) {
         if (msg.value % 1 gwei != 0) {
             revert DepositNotMultipleOfGwei();
         }
