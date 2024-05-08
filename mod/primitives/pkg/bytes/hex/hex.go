@@ -91,7 +91,8 @@ func (s String) MustToBytes() []byte {
 
 // ToUint64 decodes a hex string with 0x prefix.
 func (s String) ToUint64() (uint64, error) {
-	raw, err := validateNumber(string(s))
+	raw := string(s)
+	err := validateNumber(raw)
 	if err != nil {
 		return 0, err
 	}
@@ -110,14 +111,18 @@ func (s String) MustToUint64() uint64 {
 
 // ToBigInt decodes a hex string with 0x prefix.
 func (s String) ToBigInt() (*big.Int, error) {
-	raw, err := validateNumber(string(s))
+	raw := string(s)
+	err := validateNumber(raw)
 	if err != nil {
 		return nil, err
 	}
 	if len(raw) > bytesIn256Bits {
 		return nil, ErrBig256Range
 	}
-	bigWordNibbles := getBigWordNibbles()
+	bigWordNibbles, err := getBigWordNibbles()
+	if err != nil {
+		return nil, err
+	}
 	words := make([]big.Word, len(raw)/bigWordNibbles+1)
 	end := len(raw)
 	for i := range words {

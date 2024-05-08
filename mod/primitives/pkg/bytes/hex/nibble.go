@@ -26,32 +26,38 @@
 package hex
 
 import (
-	"encoding/json"
-	"errors"
-	"reflect"
+	"math/big"
 )
 
-var (
-	ErrEmptyString     = errors.New("empty hex string")
-	ErrSyntax          = errors.New("invalid hex string")
-	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
-	ErrOddLength       = errors.New("hex string of odd length")
-	ErrNonQuotedString = errors.New("non-quoted hex string")
-	ErrInvalidString   = errors.New("invalid hex string")
-
-	ErrLeadingZero = errors.New("hex number with leading zero digits")
-	ErrEmptyNumber = errors.New("hex string \"0x\"")
-	ErrUint64Range = errors.New("hex number > 64 bits")
-	ErrBig256Range = errors.New("hex number > 256 bits")
-
-	ErrInvalidBigWordSize = errors.New("weird big.Word size")
-)
-
-// wrapUnmarshalError wraps an error occurring during JSON unmarshaling.
-func wrapUnmarshalError(err error, t reflect.Type) error {
-	if err != nil {
-		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
+// decodeNibble decodes a single hexadecimal nibble (half-byte) into uint64.
+func decodeNibble(in byte) uint64 {
+	// uint64 conversion here is safe
+	switch {
+	case in >= '0' && in <= '9' && in >= hexBaseOffset:
+		return uint64(in - hexBaseOffset) //#nosec G701
+	case in >= 'A' && in <= 'F' && in >= hexAlphaOffsetUpper:
+		return uint64(in - hexAlphaOffsetUpper) //#nosec G701
+	case in >= 'a' && in <= 'f' && in >= hexAlphaOffsetLower:
+		return uint64(in - hexAlphaOffsetLower) //#nosec G701
+	default:
+		return badNibble
 	}
+}
 
-	return err
+// getBigWordNibbles returns the number of nibbles required for big.Word.
+//
+//nolint:mnd // this is fine xD
+func getBigWordNibbles() (int, error) {
+	// This is a weird way to compute the number of nibbles required for
+	// big.Word. The usual way would be to use constant arithmetic but go vet
+	// can't handle that
+	b, _ := new(big.Int).SetString("FFFFFFFFFF", 16)
+	switch len(b.Bits()) {
+	case 1:
+		return 16, nil
+	case 2:
+		return 8, nil
+	default:
+		return 0, ErrInvalidBigWordSize
+	}
 }
