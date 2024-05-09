@@ -24,15 +24,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Set your L1 values here.
+# Set your L1 values here
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
-RPC_URL=""  # Replace with your L1 node URL.
+RPC_URL=""  # Replace with your L1 node RPC. NOTE: must begin with "http://"
 RPC_KIND="any"
 
 # Fill out environment variables in .envrc file
 cd ~/op-stack-deployment/optimism
+cp .envrc.example .envrc # overwrites any existing .envrc variables
 direnv allow
-cp .envrc.example .envrc
 
 # Update the PRIVATE_KEY, L1_RPC_URL, and L1_RPC_KIND in the .envrc
 if sed --version 2>&1 | grep -q GNU; then
@@ -48,6 +48,8 @@ direnv allow
 
 # Generate wallets for the L2 accounts
 wallets=$(sh ./packages/contracts-bedrock/scripts/getting-started/wallets.sh)
+printf "\nGenerated wallets for the L2 accounts..."
+echo "$wallets"
 
 # Helper function to update the envrc file with wallet addresses
 update_envrc() {
@@ -71,8 +73,11 @@ echo "$wallets" | while IFS= read -r line; do
 done
 direnv allow 
 
+# Source the updated env variables
+source .envrc
+
 # Fund those wallets
-echo "Sending 10 ether to admin, proposer, batcher addresses..."
+printf "\nSending 10 ether to admin, proposer, batcher addresses..."
 cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
@@ -80,13 +85,13 @@ cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-
 # Update deploy-config/getting-started.json with new addresses and display
 cd packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
-echo "Updated getting-started.json:"
+printf "\nUpdated getting-started.json:"
 cat deploy-config/getting-started.json
 
 # Deploy the Create2 factory if necessary
 codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
 if [[ "$codesize_output" == "0" ]]; then
-    echo "Sending 1 ether to the factory deployer address..."
+    printf "\nSending 1 ether to the factory deployer address..."
     cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
 
     cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
@@ -94,40 +99,43 @@ if [[ "$codesize_output" == "0" ]]; then
 
     codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
     if [[ "$codesize_output" == "0" ]]; then
-      echo "Create2 Factory was unable to be deployed."
+      printf "\nCreate2 Factory was unable to be deployed."
       exit 1
     fi
 elif [[ "$codesize_output" == "69" ]]; then
-    echo "Create2 Factory is already deployed!"
+    printf "\nCreate2 Factory is already deployed!"
 else
-    echo "Unexpected output when checking the create2 factory: $codesize_output"
+    printf "\nUnexpected output when checking the create2 factory: $codesize_output"
     exit 1
 fi
 
 # Deploy L1 smart contracts
+printf "\nDeploying L1 smart contracts..."
 forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --slow --legacy
-forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $L1_RPC_URL --legacy
+cp packages/contracts-bedrock/deployments/getting-started/.deploy packages/contracts-bedrock/deployments/getting-started/l1.json
 
-# TODO: 
-# - Update the L1 contract addresses in the deployments/getting-started/l1.json
-# - OR figure out why the forge script didn't automatically save to a json
+# Run the OP node genesis
+cd op-node
+printf "\nRunning the OP node genesis..."
+go run cmd/main.go genesis l2 \
+  --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
+  --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/l1.json \
+  --outfile.l2 genesis.json \
+  --outfile.rollup rollup.json \
+  --l1-rpc $L1_RPC_URL
 
-# # Run the OP node genesis
-# cd ~/op-stack-deployment/optimism/op-node
+# Generate an authentication key
+openssl rand -hex 32 > jwt.txt
 
-# go run cmd/main.go genesis l2 \
-#   --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
-#   --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/ \
-#   --outfile.l2 genesis.json \
-#   --outfile.rollup rollup.json \
-#   --l1-rpc $L1_RPC_URL
+# Copy genesis files into op-geth
+cp genesis.json ~/op-stack-deployment/op-geth
+cp jwt.txt ~/op-stack-deployment/op-geth
 
-# openssl rand -hex 32 > jwt.txt
-
-# cp genesis.json ~/op-stack-deployment/op-geth
-# cp jwt.txt ~/op-stack-deployment/op-geth
-
-# # Build OP Geth
-# cd ~/op-stack-deployment/op-geth
-# mkdir datadir
-# build/bin/geth init --datadir=datadir genesis.json
+# Build OP Geth
+printf "\nBuilding OP Geth..."
+cd ~/op-stack-deployment/op-geth
+if [ -d datadir ]; then
+  rm -rf datadir
+fi
+mkdir datadir
+build/bin/geth init --datadir=datadir genesis.json
