@@ -16,7 +16,6 @@ replace (
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/p2p => ../p2p
-	github.com/berachain/beacon-kit/mod/payload => ../payload
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240506152226-0d32fa94e9eb
@@ -24,7 +23,7 @@ replace (
 
 require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/core v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/core v0.0.0-20240507213502-e78adb621435
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8
@@ -53,7 +52,6 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240506203005-b920effebbe8 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect

@@ -118,21 +118,13 @@ func ProvideRuntime(
 	)
 
 	// Build the local builder service.
-	var localBuilder *payloadbuilder.PayloadBuilder
-	localBuilder, err = payloadbuilder.New(
-		payloadbuilder.WithLogger(
-			logger.With("service", "payload-builder"),
-		),
-		payloadbuilder.WithChainSpec(chainSpec),
-		payloadbuilder.WithConfig(&cfg.PayloadBuilder),
-		payloadbuilder.WithExecutionEngine(executionEngine),
-		payloadbuilder.WithPayloadCache(
-			cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
-		),
+	localBuilder := payloadbuilder.New[state.BeaconState](
+		&cfg.PayloadBuilder,
+		chainSpec,
+		logger.With("service", "payload-builder"),
+		executionEngine,
+		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	// Build the Blobs Verifier
 	blobProofVerifier, err := kzg.NewBlobProofVerifier(

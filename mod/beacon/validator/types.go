@@ -28,7 +28,7 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -65,7 +65,7 @@ type DepositStore interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
+	ReadOnlyBeaconStateT state.ReadOnlyBeaconState,
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
@@ -74,12 +74,10 @@ type RandaoProcessor[
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[
-	ReadOnlyBeaconStateT builder.ReadOnlyBeaconState,
-] interface {
+type PayloadBuilder[ReadOnlyBeaconStateT state.ReadOnlyBeaconState] interface {
 	RetrieveOrBuildPayload(
 		ctx context.Context,
-		st builder.ReadOnlyBeaconState,
+		st ReadOnlyBeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
