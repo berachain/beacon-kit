@@ -44,9 +44,12 @@ func getTestStruct() (*sszv2.Checkpoint, error) {
 	const tfn = "fixtures/beacon_state_bellatrix.ssz"
 	// A checkpt is the simplest field.
 	data, err := os.ReadFile(tfn)
+	if err != nil {
+		return nil, err
+	}
 	sszState := sszv2.BeaconStateBellatrix{}
 	sszState.UnmarshalSSZ(data)
-	if err != nil || sszState.CurrentJustifiedCheckpoint == nil {
+	if sszState.CurrentJustifiedCheckpoint == nil {
 		return nil, err
 	}
 	return sszState.CurrentJustifiedCheckpoint, nil
