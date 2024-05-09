@@ -81,7 +81,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest,
+		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
 	) error
 }
 

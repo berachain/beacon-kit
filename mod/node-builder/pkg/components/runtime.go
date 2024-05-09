@@ -107,7 +107,10 @@ func ProvideRuntime(
 	}
 
 	// Build the execution engine.
-	executionEngine := execution.New(engineClient, logger)
+	executionEngine := execution.New[types.ExecutionPayload](
+		engineClient,
+		logger,
+	)
 
 	// Build the staking service.
 	stakingService := staking.NewService(

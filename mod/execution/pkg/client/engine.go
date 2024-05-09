@@ -40,7 +40,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload engineprimitives.ExecutionPayload,
+	payload any,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
@@ -76,7 +76,7 @@ func (s *EngineClient) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context,
-	payload engineprimitives.ExecutionPayload,
+	payload any,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
