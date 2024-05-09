@@ -23,38 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package randao
+package da
 
-import (
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-)
-
-type Option func(*Processor) error
-
-// WithSigner sets the signer.
-func WithSigner(
-	signer crypto.BLSSigner,
-) Option {
-	return func(p *Processor) error {
-		p.signer = signer
-		return nil
-	}
-}
-
-// WithLogger sets the logger.
-func WithLogger(logger log.Logger[any]) Option {
-	return func(p *Processor) error {
-		p.logger = logger
-		return nil
-	}
-}
-
-// WithConfig sets the config.
-func WithConfig(cs primitives.ChainSpec) Option {
-	return func(p *Processor) error {
-		p.cs = cs
-		return nil
-	}
+// BlobVerifier is the interface for the blobs processor.
+type BlobVerifier[SidecarsT interface{ Len() int }] interface {
+	VerifyBlobs(
+		sidecars SidecarsT, kzgOffset uint64,
+	) error
 }

@@ -26,7 +26,7 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 

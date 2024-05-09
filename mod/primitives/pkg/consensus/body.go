@@ -19,7 +19,7 @@
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 const (
@@ -48,11 +49,19 @@ const (
 	KZGMerkleIndexDeneb = 26
 )
 
-// TODO: deprecate / improve this.
+// BlockBodyKZGOffset returns the offset of the KZG commitments in the block
+// body.
+// TODO: I still feel like we need to clean this up somehow.
 func BlockBodyKZGOffset(
+	slot math.Slot,
 	cs common.ChainSpec,
 ) uint64 {
-	return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+	switch cs.ActiveForkVersionForSlot(slot) {
+	case version.Deneb:
+		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+	default:
+		panic("unsupported fork version")
+	}
 }
 
 // BeaconBlockBodyBase represents the base body of a beacon block that is

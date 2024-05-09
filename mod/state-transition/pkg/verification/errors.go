@@ -23,14 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package verification
 
-import (
-	"context"
+import "github.com/berachain/beacon-kit/mod/errors"
 
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+var (
+	// ErrStateRootMismatch is returned when the state root in a block header
+	// does.
+	ErrStateRootMismatch = errors.New("state root mismatch")
+	// ErrInvalidExecutionValue is an error for when the
+	// execution value is invalid.
+	ErrInvalidExecutionValue = errors.New("invalid execution value")
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
+
+	// ErrNilBlk is an error for when the beacon block is nil.
+	ErrNilBlk = errors.New("nil beacon block")
+
+	// ErrNilPayload is an error for when there is no payload
+	// in a beacon block.
+	ErrNilPayload = errors.New("nil payload in beacon block")
+
+	// ErrNilBlkBody is an error for when the block body is nil.
+	ErrNilBlkBody = errors.New("nil block body")
+
+	// ErrNilBlockHeader is returned when a block header from a block is nil.
+	ErrNilBlockHeader = errors.New("nil block header")
 )
-
-type BeaconStorageBackend interface {
-	BeaconState(context.Context) state.BeaconState
-}

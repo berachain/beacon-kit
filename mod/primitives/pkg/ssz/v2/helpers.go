@@ -238,15 +238,40 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 	return field.Type, nil
 }
 
-func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
+func getSSZFieldTags(field reflect.StructField) []string {
 	tag, exists := field.Tag.Lookup("ssz-size")
 	if !exists {
-		return make([]uint64, 0), false, nil
+		return make([]string, 0)
 	}
 	items := strings.Split(tag, ",")
 	if items == nil {
-		return make([]uint64, 0), false, nil
+		return make([]string, 0)
 	}
+	return items
+}
+
+func hasUndefinedSizeTag(field reflect.StructField) bool {
+	items := getSSZFieldTags(field)
+	for i := range items {
+		// If a field is unbounded, we mark it as dynamic length otherwise we
+		// treat it as fixed length
+		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
+			return true
+		}
+	}
+	//#nosec:G703 // idc about the strconv err.
+	// its impossible if the previous step didnt detect a string and return
+	// already.
+	sizes, found, err := parseSSZFieldTags(field)
+	if !found || err != nil {
+		return true
+	}
+	sumUintArr := sumArr[[]uint64]
+	return sumUintArr(sizes) <= 0
+}
+
+func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
+	items := getSSZFieldTags(field)
 	sizes := make([]uint64, len(items))
 	var err error
 	for i := range len(items) {
@@ -370,4 +395,135 @@ func IsUintLike(kind reflect.Kind) bool {
 	}
 
 	return isUintLike
+}
+
+// Helper to iterate over fields in a struct.
+func IterStructFields(
+	val reflect.Value,
+	cb func(
+		typ reflect.Type,
+		val reflect.Value,
+		field reflect.StructField,
+		err error,
+	),
+) {
+	typ := reflect.TypeOf(val.Interface())
+	vf := make([]reflect.StructField, 0)
+	if !IsStruct(typ, val) {
+		// Kick back incoming types in case of err for debugging upstream in the
+		// caller fn.
+		cb(
+			typ,
+			val,
+			vf[0],
+			errors.Newf("wrong data type provided to IterStructFields"),
+		)
+		return
+	}
+
+	// Deref the pointer
+	if typ.Kind() == reflect.Ptr {
+		subtyp := reflect.TypeOf(val.Interface()).Elem()
+		vf = reflect.VisibleFields(subtyp)
+	}
+
+	for i := range len(vf) {
+		sf := vf[i]
+		// Note: You can get the name this way for deserialization
+		// name := sf.Name
+		sft := sf.Type
+		sfv := val.Elem().Field(i)
+		cb(sft, sfv, sf, nil)
+	}
+}
+
+// CalculateBufferSizeForStruct calculates the required buffer size for
+// marshalling a struct using SSZ.
+func CalculateBufferSizeForStruct(val reflect.Value) (int, error) {
+	size := 0
+	var errCheck []error
+	IterStructFields(
+		val,
+		func(_ reflect.Type,
+			val reflect.Value,
+			_ reflect.StructField,
+			err error,
+		) {
+			// #nosec:G701 // if we cant fit the size in an int. we cant fit the
+			// value anywhere
+			size += int(DetermineSize(val))
+			if err != nil {
+				// Track errors respective to what size was calculated when it
+				// occurred.
+				errCheck[size] = err
+			}
+		},
+	)
+	if len(errCheck) != 0 {
+		return 0, errCheck[0]
+	}
+	return size, nil
+}
+
+func InterleaveOffsets(
+	fixedParts [][]byte,
+	fixedLengths []int,
+	variableParts [][]byte,
+	variableLengths []int,
+) ([]byte, error) {
+	sumIntArr := sumArr[[]int]
+	// Check lengths
+	totalLength := sumIntArr(fixedLengths) + sumIntArr(variableLengths)
+	if totalLength >= 1<<(BytesPerLengthOffset*BitsPerByte) {
+		return nil, errors.New("total length exceeds allowable limit")
+	}
+
+	if len(variableLengths) != len(variableParts) ||
+		len(variableParts) < len(fixedParts) {
+		return nil, errors.New(
+			"variableParts & variableLengths must be same length",
+		)
+	}
+
+	// Interleave offsets of variable-size parts with fixed-size parts.
+	// variable_offsets = [serialize(uint32(sum(fixed_lengths +
+	// variable_lengths[:i]))) for i in range(len(value))].
+	offsetSum := sumIntArr(fixedLengths)
+	variableOffsets := make([][]byte, len(variableParts))
+	for i := range len(variableParts) {
+		offsetSum += variableLengths[i]
+		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
+		// of 2147483647.
+		// Wont realisticially overflow.
+		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
+	}
+
+	for i, part := range fixedParts {
+		if part == nil {
+			fixedParts[i] = variableOffsets[i]
+		}
+	}
+
+	// Flatten the nested arr to a 1d []byte
+	allParts := make([][]byte, 0)
+	allParts = append(allParts, variableParts...)
+	allParts = append(allParts, fixedParts...)
+	res := make([]byte, 0)
+	for i := range allParts {
+		res = append(res, allParts[i]...)
+	}
+
+	return res, nil
+}
+
+func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
+	var total E
+	for _, v := range s {
+		total += v
+	}
+	return total
+}
+
+func IsStruct(typ reflect.Type, val reflect.Value) bool {
+	return typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct
 }
