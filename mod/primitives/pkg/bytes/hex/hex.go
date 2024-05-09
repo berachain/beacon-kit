@@ -110,7 +110,6 @@ func (s String) MustToUint64() uint64 {
 
 // ToBigInt decodes a hex string with 0x prefix.
 func (s String) ToBigInt() (*big.Int, error) {
-
 	raw, err := validateNumber(s.Unwrap())
 	if err != nil {
 		return nil, err
