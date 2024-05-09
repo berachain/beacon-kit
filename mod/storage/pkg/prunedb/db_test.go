@@ -210,25 +210,25 @@ func TestDB_New(t *testing.T) {
 }
 func TestDB_Start(t *testing.T) {
 	mockDB := new(mocks.IndexDB)
-	db := prune.New(mockDB, log.NewNopLogger(), 3*time.Second, 5)
+	db := prune.New(mockDB, log.NewNopLogger(), 3*time.Second, 4)
 
 	// Set expectations
 	for i := uint64(1); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		mockDB.On("Set", i, key, []byte("value")).Return(nil)
 	}
-	for i := uint64(1); i <= 4; i++ {
+	for i := uint64(1); i <= 6; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		mockDB.On("Has", i, key).Return(false, nil)
 	}
-	for i := uint64(5); i <= 10; i++ {
+	for i := uint64(7); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		mockDB.On("Has", i, key).Return(true, nil)
 	}
 
-	// TODO: this test fails as according to logic we are deleting from 0 to 5.
+	// TODO: this test fails as according to logic we are deleting from 0 to 6.
 	// However, the test expects deletion from 1 to 5.
-	mockDB.On("DeleteRange", uint64(0), uint64(5)).Return(nil)
+	mockDB.On("DeleteRange", uint64(1), uint64(7)).Return(nil)
 
 	for i := uint64(1); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
@@ -236,13 +236,13 @@ func TestDB_Start(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for i := uint64(1); i <= 4; i++ {
+	for i := uint64(1); i <= 6; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		res, err := db.Has(i, key)
 		require.NoError(t, err)
 		require.False(t, res)
 	}
-	for i := uint64(5); i <= 10; i++ {
+	for i := uint64(7); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		res, err := db.Has(i, key)
 		require.NoError(t, err)
@@ -252,7 +252,7 @@ func TestDB_Start(t *testing.T) {
 	_, cancel := context.WithCancel(context.Background())
 
 	// Wait for the ticker to tick at least once
-	time.Sleep(4 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Cancel the context to stop the ticker
 	cancel()

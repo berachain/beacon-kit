@@ -88,7 +88,7 @@ func New(
 		IndexDB:          db,
 		ticker:           time.NewTicker(pruneInterval),
 		logger:           logger,
-		lastDeletedIndex: 0,
+		lastDeletedIndex: 1,
 	}
 
 	// TODO: pull this out into a Start DB call to utilize a real context.
@@ -139,12 +139,12 @@ func (db *DB) prune() error {
 	db.logger.Info("Pruning DB ", "to",
 		db.highestSetIndex-db.windowSize)
 	if err := db.DeleteRange(
-		db.lastDeletedIndex, db.highestSetIndex-db.windowSize,
+		db.lastDeletedIndex, (db.highestSetIndex-db.windowSize)+1,
 	); err != nil {
-		db.lastDeletedIndex = 0
+		db.lastDeletedIndex = 1
 		return err
 	}
-	db.lastDeletedIndex = db.highestSetIndex - db.windowSize - 1
+	db.lastDeletedIndex = db.highestSetIndex - db.windowSize
 
 	return nil
 }
