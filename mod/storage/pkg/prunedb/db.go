@@ -52,6 +52,30 @@ type DB struct {
 	lastDeletedIndex uint64
 }
 
+func (db *DB) GetIndexDB() IndexDB {
+	return db.IndexDB
+}
+
+func (db *DB) GetLogger() log.Logger[any] {
+	return db.logger
+}
+
+func (db *DB) GetTicker() *time.Ticker {
+	return db.ticker
+}
+
+func (db *DB) GetWindowSize() uint64 {
+	return db.windowSize
+}
+
+func (db *DB) GetHighestSetIndex() uint64 {
+	return db.highestSetIndex
+}
+
+func (db *DB) GetLastDeletedIndex() uint64 {
+	return db.lastDeletedIndex
+}
+
 // New creates a new DB.
 func New(
 	db IndexDB,
@@ -110,7 +134,10 @@ func (db *DB) prune() error {
 
 	// TODO: Optimize the underlying DeleteRange to snap to lowest
 	// index in O(1).
-	db.logger.Info("Pruning DB ", "from,to", db.lastDeletedIndex, db.highestSetIndex-db.windowSize)
+	db.logger.Info("Pruning DB ", "from",
+		db.lastDeletedIndex)
+	db.logger.Info("Pruning DB ", "to",
+		db.highestSetIndex-db.windowSize)
 	if err := db.DeleteRange(
 		db.lastDeletedIndex, db.highestSetIndex-db.windowSize,
 	); err != nil {
