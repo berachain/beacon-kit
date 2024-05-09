@@ -26,7 +26,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -36,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -48,7 +48,6 @@ type StateProcessor[SidecarsT interface{ Len() int }] struct {
 	signer crypto.BLSSigner
 	logger log.Logger[any]
 
-	// BlobProcessor
 	// DepositProcessor
 	// WithdrawalProcessor
 }

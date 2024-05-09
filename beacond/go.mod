@@ -41,6 +41,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b
 	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b
@@ -80,7 +81,6 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
