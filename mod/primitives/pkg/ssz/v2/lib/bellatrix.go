@@ -83,7 +83,6 @@ type ExecutionPayloadHeader struct {
 }
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path bellatrix.go -objs BeaconStateBellatrix -include ../../../../pkg/crypto,../../../../pkg/common,../../../../pkg/bytes,../../../constants,../../../../pkg,../../../../pkg/math -output bellatrix.ssz.go
-
 type BeaconStateBellatrix struct {
 	GenesisTime                  uint64                  `json:"genesis_time"`
 	GenesisValidatorsRoot        []byte                  `json:"genesis_validators_root"         ssz-size:"32"`
