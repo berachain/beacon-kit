@@ -40,21 +40,11 @@ type TrustedSetupInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// TrustedSetupOutput is the output for the dep inject framework.
-type TrustedSetupOutput struct {
-	depinject.Out
-	TrustedSetup *gokzg4844.JSONTrustedSetup
-}
-
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(in TrustedSetupInput) TrustedSetupOutput {
-	trustedSetup, err := kzg.ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
-	if err != nil {
-		panic(err)
-	}
-
-	return TrustedSetupOutput{
-		TrustedSetup: trustedSetup,
-	}
+func ProvideTrustedSetup(
+	in TrustedSetupInput,
+) (*gokzg4844.JSONTrustedSetup, error) {
+	return kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
+	)
 }
