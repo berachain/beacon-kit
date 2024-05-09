@@ -95,14 +95,6 @@ func ProvideRuntime(
 		jwtSecret,
 	)
 
-	// engineclient.WithEngineConfig(&cfg.Engine),
-	// engineclient.WithJWTSecret(jwtSecret),
-	// engineclient.WithLogger(
-	// 	logger.With("module", "beacon-kit.engine.client"),
-	// ),
-	// engineclient.WithPayloadFactory(types.EmptyExecutableData),
-	// )
-
 	// TODO: move.
 	engineClient.Start(context.Background())
 
