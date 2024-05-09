@@ -41,6 +41,10 @@ type TrustedSetupInput struct {
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
-	return kzg.ReadTrustedSetup(cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)))
+func ProvideTrustedSetup(
+	in TrustedSetupInput,
+) (*gokzg4844.JSONTrustedSetup, error) {
+	return kzg.ReadTrustedSetup(
+		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
+	)
 }

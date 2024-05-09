@@ -37,15 +37,7 @@ type ConfigInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ConfigOutput is the output for the dependency injection framework.
-type ConfigOutput struct {
-	depinject.Out
-	Config *config.Config
-}
-
 // ProvideConfig is a function that provides the JWT secret to the application.
-func ProvideConfig(in ConfigInput) ConfigOutput {
-	return ConfigOutput{
-		Config: config.MustReadConfigFromAppOpts(in.AppOpts),
-	}
+func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	return config.ReadConfigFromAppOpts(in.AppOpts)
 }
