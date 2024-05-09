@@ -184,11 +184,15 @@ func (s *Serializer) GetSize(
 	aLen := 0
 	err := errors.New("GetSize Failure")
 	switch {
-	case val.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct:
-		aLen, err = CalculateBufferSizeForStruct(val)
-		if err != nil {
-			return 0, err
+	case val.Kind() == reflect.Ptr:
+		if typ.Elem().Kind() == reflect.Struct {
+			aLen, err = CalculateBufferSizeForStruct(val)
+			if err != nil {
+				return 0, err
+			}
 		}
+	case val.Kind() == reflect.Struct:
+		return int(DetermineSize(val)), nil
 	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
 		aLen = GetNestedArrayLength(val)
 	default:
