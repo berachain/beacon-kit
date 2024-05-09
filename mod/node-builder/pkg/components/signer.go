@@ -40,23 +40,10 @@ type BlsSignerInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// BlsSignerOutput is the output for the dep inject framework.
-type BlsSignerOutput struct {
-	depinject.Out
-	BlsSigner crypto.BLSSigner
-}
-
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideBlsSigner(in BlsSignerInput) BlsSignerOutput {
-	key, err := signer.NewFromCometBFTNodeKey(
+func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
+	return signer.NewFromCometBFTNodeKey(
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
 			"/config/priv_validator_key.json",
 	)
-	if err != nil {
-		panic(err)
-	}
-
-	return BlsSignerOutput{
-		BlsSigner: key,
-	}
 }

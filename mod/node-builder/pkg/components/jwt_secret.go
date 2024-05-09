@@ -42,23 +42,9 @@ type JWTSecretInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// TrustedSetupOutput is the output for the dep inject framework.
-type JWTSecretOutput struct {
-	depinject.Out
-	JWTSecret *jwt.Secret
-}
-
 // ProvideJWTSecret is a function that provides the module to the application.
-func ProvideJWTSecret(in JWTSecretInput) JWTSecretOutput {
-	jwtSecret, err := LoadJWTFromFile(
-		cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
-	if err != nil {
-		panic(err)
-	}
-
-	return JWTSecretOutput{
-		JWTSecret: jwtSecret,
-	}
+func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
+	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
 }
 
 // LoadJWTFromFile reads the JWT secret from a file and returns it.
