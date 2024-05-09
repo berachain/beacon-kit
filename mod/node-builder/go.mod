@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/node-builder
 
-go 1.22.2
+go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
@@ -47,7 +47,7 @@ require (
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/logrusorgru/aurora v2.0.3+incompatible

@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/runtime
 
-go 1.22.2
+go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
@@ -82,7 +82,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.1 // indirect
-	github.com/ethereum/go-ethereum v1.14.0 // indirect
+	github.com/ethereum/go-ethereum v1.14.3 // indirect
 	github.com/gballet/go-verkle v0.1.1-0.20231031103413-a67434b50f46 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect

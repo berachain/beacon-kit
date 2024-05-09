@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/beacon
 
-go 1.22.2
+go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
@@ -28,7 +28,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	golang.org/x/sync v0.7.0
 )
