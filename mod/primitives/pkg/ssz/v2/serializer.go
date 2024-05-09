@@ -192,6 +192,7 @@ func (s *Serializer) GetSize(
 			}
 		}
 	case val.Kind() == reflect.Struct:
+		//#nosec:G701 // will not realistically overflow
 		return int(DetermineSize(val)), nil
 	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
 		aLen = GetNestedArrayLength(val)
