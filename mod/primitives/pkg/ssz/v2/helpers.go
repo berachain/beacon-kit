@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"golang.org/x/exp/constraints"
 )
 
 // DetermineSize returns the required byte size of a buffer for
@@ -516,7 +517,7 @@ func InterleaveOffsets(
 	return res, nil
 }
 
-func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
+func sumArr[S ~[]E, E constraints.Ordered](s S) E {
 	var total E
 	for _, v := range s {
 		total += v
