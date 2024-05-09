@@ -403,7 +403,6 @@ func IterStructFields(
 	cb func(
 		typ reflect.Type,
 		val reflect.Value,
-		c interface{},
 		field reflect.StructField,
 		err error,
 	),
@@ -416,7 +415,6 @@ func IterStructFields(
 		cb(
 			typ,
 			val,
-			nil,
 			vf[0],
 			errors.Newf("wrong data type provided to IterStructFields"),
 		)
@@ -428,16 +426,13 @@ func IterStructFields(
 		subtyp := reflect.TypeOf(val.Interface()).Elem()
 		vf = reflect.VisibleFields(subtyp)
 	}
-	encoded := make(map[string]any)
 
 	for i := range len(vf) {
 		sf := vf[i]
 		name := sf.Name
 		sft := sf.Type
 		sfv := val.Elem().Field(i)
-		sfvi := sfv.Interface()
-		encoded[name] = sfvi
-		cb(sft, sfv, sfvi, sf, nil)
+		cb(sft, sfv, sf, nil)
 	}
 }
 
@@ -450,7 +445,6 @@ func CalculateBufferSizeForStruct(val reflect.Value) (int, error) {
 		val,
 		func(_ reflect.Type,
 			val reflect.Value,
-			_ interface{},
 			_ reflect.StructField,
 			err error,
 		) {
