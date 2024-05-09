@@ -26,10 +26,17 @@
 //nolint:ineffassign,wastedassign,mnd // experimental
 package ssz
 
-import ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
+import "reflect"
 
-// All top level fns we offer / recommend go here.
-func MarshalSSZ(c interface{}) ([]byte, error) {
-	s := ssz.NewSerializer()
-	return s.MarshalSSZ(c)
+// Future home of our deserializer
+
+func (s *Serializer) UnmarshalByteArray(
+	val reflect.Value,
+	_ reflect.Type,
+	input []byte,
+	startOffset uint64,
+) (uint64, error) {
+	offset := startOffset + uint64(len(input))
+	val.SetBytes(input[startOffset:offset])
+	return offset, nil
 }
