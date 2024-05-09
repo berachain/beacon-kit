@@ -359,7 +359,6 @@ func (s *Serializer) MarshalStruct(
 	var processStructField = func(
 		typ reflect.Type,
 		val reflect.Value,
-		_ interface{},
 		field reflect.StructField,
 		err error,
 	) {
