@@ -77,7 +77,7 @@ func (sp *BlobProcessor[BeaconBlockBodyT, SidecarsT]) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err := sp.bv.VerifyBlobs(
 		sidecars,
-		consensus.BlockBodyKZGOffset(sp.chainSpec),
+		consensus.BlockBodyKZGOffset(slot, sp.chainSpec),
 	); err != nil {
 		return err
 	}
