@@ -89,14 +89,19 @@ func ProvideRuntime(
 	logger = logger.With("module", "beacon-kit")
 
 	// Build the client to interact with the Engine API.
-	engineClient := engineclient.New(
-		engineclient.WithEngineConfig(&cfg.Engine),
-		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(
-			logger.With("module", "beacon-kit.engine.client"),
-		),
-		engineclient.WithPayloadFactory(types.EmptyExecutableData),
+	engineClient := engineclient.New[*types.ExecutableDataDeneb](
+		&cfg.Engine,
+		logger.With("module", "beacon-kit.engine.client"),
+		jwtSecret,
 	)
+
+	// engineclient.WithEngineConfig(&cfg.Engine),
+	// engineclient.WithJWTSecret(jwtSecret),
+	// engineclient.WithLogger(
+	// 	logger.With("module", "beacon-kit.engine.client"),
+	// ),
+	// engineclient.WithPayloadFactory(types.EmptyExecutableData),
+	// )
 
 	// TODO: move.
 	engineClient.Start(context.Background())

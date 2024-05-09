@@ -45,7 +45,7 @@ type Service struct {
 	cs     primitives.ChainSpec
 
 	// ee represents the execution engine.
-	ee *engine.Engine[types.ExecutionPayload]
+	ee *engine.Engine[types.ExecutionPayload, *types.ExecutableDataDeneb]
 
 	// abi represents the configured deposit contract's
 	// abi.

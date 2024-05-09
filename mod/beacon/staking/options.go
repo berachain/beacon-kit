@@ -76,8 +76,11 @@ func WithDepositStore(
 	}
 }
 
+// WithExecutionEngine is a function that returns an Option.
 func WithExecutionEngine(
-	ee *engine.Engine[types.ExecutionPayload],
+	ee *engine.Engine[
+		types.ExecutionPayload, *types.ExecutableDataDeneb,
+	],
 ) Option {
 	return func(s *Service) error {
 		s.ee = ee

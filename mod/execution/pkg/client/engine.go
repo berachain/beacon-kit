@@ -37,7 +37,7 @@ import (
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient) NewPayload(
+func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	ctx context.Context,
 	payload interface{ Version() uint32 },
 	versionedHashes []common.ExecutionHash,
@@ -73,7 +73,7 @@ func (s *EngineClient) NewPayload(
 }
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient) callNewPayloadRPC(
+func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	ctx context.Context,
 	payload interface{ Version() uint32 },
 	versionedHashes []common.ExecutionHash,
@@ -88,7 +88,7 @@ func (s *EngineClient) callNewPayloadRPC(
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient) ForkchoiceUpdated(
+func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceState,
 	attrs engineprimitives.PayloadAttributer,
@@ -113,7 +113,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
-func (s *EngineClient) callUpdatedForkchoiceRPC(
+func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceState,
 	attrs engineprimitives.PayloadAttributer,
@@ -129,7 +129,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient) GetPayload(
+func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -165,7 +165,7 @@ func (s *EngineClient) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient) ExchangeCapabilities(
+func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
