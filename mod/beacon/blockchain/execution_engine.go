@@ -147,7 +147,7 @@ func (s *Service[BlobSidecarsT]) sendPostBlockFCU(
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(time.Now().Unix()),
+			uint64(time.Now().Unix()+1),
 			root,
 			headHash,
 		); err == nil {
