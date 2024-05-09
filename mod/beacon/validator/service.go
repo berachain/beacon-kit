@@ -77,7 +77,8 @@ type Service[
 }
 
 // NewService creates a new validator service.
-func NewService[BlobSidecarsT BlobSidecars](
+func NewService[
+	BlobSidecarsT BlobSidecars](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,

@@ -200,6 +200,11 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	return layer, nil
 }
 
+// Length returns the number of fields in the BeaconBlockBodyDeneb struct.
+func (b *BeaconBlockBodyDeneb) Length() uint64 {
+	return BodyLengthDeneb
+}
+
 func (b *BeaconBlockBodyDeneb) AttachExecution(
 	executionData ExecutionPayload,
 ) error {

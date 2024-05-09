@@ -26,6 +26,7 @@
 package blob
 
 import (
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
@@ -35,7 +36,12 @@ type chainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
 }
 
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	GetBody() BeaconBlockBodyT
+	GetHeader() *types.BeaconBlockHeader
+}
 type ReadOnlyBeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
+	Length() uint64
 }

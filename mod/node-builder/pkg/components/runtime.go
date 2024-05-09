@@ -162,7 +162,10 @@ func ProvideRuntime(
 		logger.With("service", "validator"),
 		chainSpec,
 		signer,
-		dablob.NewSidecarFactory[types.BeaconBlockBody](
+		dablob.NewSidecarFactory[
+			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+			types.BeaconBlockBody,
+		](
 			chainSpec,
 			types.KZGPositionDeneb,
 		),

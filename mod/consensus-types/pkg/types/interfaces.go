@@ -73,6 +73,7 @@ type ExecutionPayload interface {
 type BeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
 	ReadOnlyBeaconBlockBody
+	Length() uint64
 }
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.

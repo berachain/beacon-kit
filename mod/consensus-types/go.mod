@@ -4,7 +4,6 @@ go 1.22.3
 
 replace (
 	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 )
