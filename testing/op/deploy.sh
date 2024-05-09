@@ -36,7 +36,7 @@ cd ~/op-stack-deployment/optimism
 cp .envrc.example .envrc # overwrites any existing .envrc variables
 direnv allow
 
-# Update the PRIVATE_KEY, L1_RPC_URL, and L1_RPC_KIND in the .envrc
+# Update the PRIVATE_KEY, L1_RPC_URL, and L1_RPC_KIND in the .envrc file
 if sed --version 2>&1 | grep -q GNU; then
   sed -i 's/^export PRIVATE_KEY=.*/export PRIVATE_KEY='"$PRIV_KEY"'/' .envrc
   sed -i 's/^export L1_RPC_URL=.*/export L1_RPC_URL='"$RPC_URL"'/' .envrc
@@ -53,7 +53,7 @@ wallets=$(sh ./packages/contracts-bedrock/scripts/getting-started/wallets.sh)
 printf "\nGenerated wallets for the L2 accounts..."
 echo "$wallets"
 
-# Helper function to update the envrc file with wallet addresses
+# Helper function to update the .envrc file with wallet addresses
 update_envrc() {
   local key="$1"
   local value="$2"
@@ -74,6 +74,17 @@ echo "$wallets" | while IFS= read -r line; do
   fi
 done
 direnv allow 
+
+# Update the .envrc file with the L1 block time
+awk -v blockTime="$BLOCK_TIME" '
+$0 ~ /^export L1_RPC_KIND=/ {
+  print $0 "\n"  # Print the line
+  # Print the new setting, add a newline after
+  print "\n# The block time on the L1 chain.\nexport L1_BLOCK_TIME=" blockTime "\n"
+  next  # Skip to the next record to avoid reprinting this line
+}
+1' .envrc > .envrc.new && mv .envrc.new .envrc
+direnv allow
 
 # Source the updated env variables
 source .envrc

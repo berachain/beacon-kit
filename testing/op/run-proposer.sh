@@ -33,7 +33,7 @@ cd op-node
 printf "\nRunning OP Proposer..."
 
 ./bin/op-proposer \
-  --poll-interval=12s \
+  --poll-interval="$L1_BLOCK_TIME"s \
   --rpc.port=8560 \
   --rollup-rpc=http://localhost:8547 \
   --l2oo-address=$(jq -r '.L2OutputOracleProxy' ../packages/contracts-bedrock/deployments/getting-started/l1.json) \
