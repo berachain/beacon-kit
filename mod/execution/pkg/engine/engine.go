@@ -38,34 +38,48 @@ import (
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
-type Engine struct {
-	ec     *client.EngineClient
+type Engine[
+	ExecutionPayloadT ExecutionPayload,
+	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+] struct {
+	ec     *client.EngineClient[ExecutionPayloadDenebT]
 	logger log.Logger[any]
 }
 
 // New creates a new Engine.
-func New(
-	ec *client.EngineClient,
+func New[
+	ExecutionPayloadT ExecutionPayload,
+	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+](
+	ec *client.EngineClient[ExecutionPayloadDenebT],
 	logger log.Logger[any],
-) *Engine {
-	return &Engine{
+) *Engine[ExecutionPayloadT, ExecutionPayloadDenebT] {
+	return &Engine[ExecutionPayloadT, ExecutionPayloadDenebT]{
 		ec:     ec,
 		logger: logger,
 	}
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine) Start(ctx context.Context) {
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) Start(
+	ctx context.Context,
+) {
 	go ee.ec.Start(ctx)
 }
 
 // Status returns error if the service is not considered healthy.
-func (ee *Engine) Status() error {
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) Status() error {
 	return ee.ec.Status()
 }
 
 // TODO move.
-func (ee *Engine) GetLogs(
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) GetLogs(
 	ctx context.Context,
 	blockHash common.ExecutionHash,
 	addrs []common.ExecutionAddress,
@@ -74,7 +88,9 @@ func (ee *Engine) GetLogs(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine) GetPayload(
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
@@ -85,7 +101,9 @@ func (ee *Engine) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine) NotifyForkchoiceUpdate(
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
@@ -134,9 +152,11 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine) VerifyAndNotifyNewPayload(
+func (ee *Engine[
+	ExecutionPayloadT, ExecutionPayloadDenebT,
+]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest,
+	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 ) error {
 	// First we verify the block hash and versioned hashes are valid.
 	//

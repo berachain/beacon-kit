@@ -28,14 +28,14 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -43,7 +43,7 @@ type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
-		consensus.ReadOnlyBeaconBlockBody, BlobSidecarsT,
+		types.ReadOnlyBeaconBlockBody, BlobSidecarsT,
 	]
 	BeaconState(context.Context) state.BeaconState
 }
@@ -53,6 +53,14 @@ type BlobSidecars interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	Len() int
+}
+
+// BlockVerifier is the interface for the block verifier.
+type BlockVerifier interface {
+	ValidateBlock(
+		st state.BeaconState,
+		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
 }
 
 type ExecutionEngine interface {
@@ -73,7 +81,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest,
+		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
 	) error
 }
 
@@ -87,6 +95,14 @@ type LocalBuilder interface {
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
+}
+
+// PayloadVerifier is the interface for the payload verifier.
+type PayloadVerifier interface {
+	VerifyPayload(
+		st state.BeaconState,
+		payload engineprimitives.ExecutionPayload,
+	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.

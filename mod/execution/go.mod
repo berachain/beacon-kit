@@ -1,8 +1,9 @@
 module github.com/berachain/beacon-kit/mod/execution
 
-go 1.22.2
+go 1.22.3
 
 replace (
+	// TODO: this should be decoupled.
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
@@ -14,7 +15,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240506203005-b920effebbe8
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/stretchr/testify v1.9.0

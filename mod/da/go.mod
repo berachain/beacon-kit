@@ -1,17 +1,19 @@
 module github.com/berachain/beacon-kit/mod/da
 
-go 1.22.2
+go 1.22.3
 
 replace (
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 )
 
 require (
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.1
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -38,7 +40,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.0 // indirect
+	github.com/ethereum/go-ethereum v1.14.3 // indirect
 	github.com/gballet/go-verkle v0.1.1-0.20231031103413-a67434b50f46 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect

@@ -1,8 +1,10 @@
 module github.com/berachain/beacon-kit/mod/storage
 
-go 1.22.2
+go 1.22.3
 
 replace (
+// TODO consensus-types should be decoupleable.
+github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
@@ -65,7 +67,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
-	github.com/ethereum/go-ethereum v1.14.0 // indirect
+	github.com/ethereum/go-ethereum v1.14.3 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

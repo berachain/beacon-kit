@@ -28,10 +28,10 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is the blockchain service.
@@ -45,9 +45,9 @@ type Service[
 	ee     ExecutionEngine
 	lb     LocalBuilder
 	sks    StakingService
-	bv     *core.BlockVerifier
+	bv     BlockVerifier
 	sp     *core.StateProcessor[BlobSidecarsT]
-	pv     *core.PayloadVerifier
+	pv     PayloadVerifier
 }
 
 // NewService creates a new validator service.
@@ -58,9 +58,9 @@ func NewService[BlobSidecarsT BlobSidecars](
 	ee ExecutionEngine,
 	lb LocalBuilder,
 	sks StakingService,
-	bv *core.BlockVerifier,
+	bv BlockVerifier,
 	sp *core.StateProcessor[BlobSidecarsT],
-	pv *core.PayloadVerifier,
+	pv PayloadVerifier,
 ) *Service[BlobSidecarsT] {
 	return &Service[BlobSidecarsT]{
 		bsb:    bsb,

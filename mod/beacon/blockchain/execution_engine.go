@@ -29,9 +29,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
@@ -147,7 +147,7 @@ func (s *Service[BlobSidecarsT]) sendPostBlockFCU(
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(time.Now().Unix()),
+			uint64(time.Now().Unix()+1),
 			root,
 			headHash,
 		); err == nil {

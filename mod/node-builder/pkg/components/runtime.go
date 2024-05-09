@@ -33,9 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/staking"
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -46,12 +44,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/verification"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -70,29 +72,27 @@ func ProvideRuntime(
 	storageBackend runtime.BeaconStorageBackend[
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		consensus.ReadOnlyBeaconBlockBody,
+		types.ReadOnlyBeaconBlockBody,
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime[
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
-	consensus.ReadOnlyBeaconBlockBody,
+	types.ReadOnlyBeaconBlockBody,
 	runtime.BeaconStorageBackend[
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		consensus.ReadOnlyBeaconBlockBody,
+		types.ReadOnlyBeaconBlockBody,
 	],
 ], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
 	// Build the client to interact with the Engine API.
-	engineClient := engineclient.New(
-		engineclient.WithEngineConfig(&cfg.Engine),
-		engineclient.WithJWTSecret(jwtSecret),
-		engineclient.WithLogger(
-			logger.With("module", "beacon-kit.engine.client"),
-		),
+	engineClient := engineclient.New[*types.ExecutableDataDeneb](
+		&cfg.Engine,
+		logger.With("module", "beacon-kit.engine.client"),
+		jwtSecret,
 	)
 
 	// TODO: move.
@@ -105,7 +105,10 @@ func ProvideRuntime(
 	}
 
 	// Build the execution engine.
-	executionEngine := execution.New(engineClient, logger)
+	executionEngine := execution.New[types.ExecutionPayload](
+		engineClient,
+		logger,
+	)
 
 	// Build the staking service.
 	stakingService := staking.NewService(
@@ -141,10 +144,14 @@ func ProvideRuntime(
 	)
 
 	// Build the Randao Processor.
-	randaoProcessor := randao.NewProcessor(
-		randao.WithSigner(signer),
-		randao.WithLogger(logger.With("service", "randao")),
-		randao.WithConfig(chainSpec),
+	randaoProcessor := randao.NewProcessor[
+		types.BeaconBlockBody,
+		types.BeaconBlock,
+		state.BeaconState,
+	](
+		chainSpec,
+		signer,
+		logger.With("service", "randao"),
 	)
 
 	// Build the builder service.
@@ -153,9 +160,12 @@ func ProvideRuntime(
 		logger.With("service", "validator"),
 		chainSpec,
 		signer,
-		dablob.NewSidecarFactory[consensus.BeaconBlockBody](
+		dablob.NewSidecarFactory[
+			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+			types.BeaconBlockBody,
+		](
 			chainSpec,
-			consensus.KZGPositionDeneb,
+			types.KZGPositionDeneb,
 		),
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
@@ -171,15 +181,21 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		stakingService,
-		core.NewBlockVerifier(chainSpec),
+		verification.NewBlockVerifier(chainSpec),
 		core.NewStateProcessor[*datypes.BlobSidecars](
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
+			stda.NewBlobProcessor[
+				types.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+			](
+				logger.With("module", "blob-processor"),
+				chainSpec,
+				dablob.NewVerifier(blobProofVerifier),
+			),
 			randaoProcessor,
 			signer,
 			logger.With("module", "state-processor"),
 		),
-		core.NewPayloadVerifier(chainSpec),
+		verification.NewPayloadVerifier(chainSpec),
 	)
 
 	// Build the service registry.
@@ -191,7 +207,11 @@ func ProvideRuntime(
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
-	return runtime.NewBeaconKitRuntime(
+	return runtime.NewBeaconKitRuntime[
+		*datypes.BlobSidecars,
+		*depositdb.KVStore,
+		types.ReadOnlyBeaconBlockBody,
+	](
 		logger.With(
 			"module",
 			"beacon-kit.runtime",

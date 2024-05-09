@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/beacon
 
-go 1.22.2
+go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
@@ -9,25 +9,27 @@ replace (
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240506152226-0d32fa94e9eb
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240506152226-0d32fa94e9eb
 
-	github.com/berachain/beacon-kit/mod/core => ../core
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
+	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240506152226-0d32fa94e9eb
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/core v0.0.0-20240507213502-e78adb621435
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240506203005-b920effebbe8
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240506203005-b920effebbe8
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240506203005-b920effebbe8
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	golang.org/x/sync v0.7.0
 )
