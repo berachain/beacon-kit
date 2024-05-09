@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
@@ -64,6 +65,17 @@ func WithJWTSecret(secret *jwt.Secret) Option {
 func WithLogger(logger log.Logger[any]) Option {
 	return func(s *EngineClient) error {
 		s.logger = logger
+		return nil
+	}
+}
+
+// WithPayloadFactory is an option to set the payload factory
+// for the EngineClient.
+func WithPayloadFactory(
+	factory func(uint32) engineprimitives.ExecutionPayload,
+) Option {
+	return func(s *EngineClient) error {
+		s.payloadFactory = factory
 		return nil
 	}
 }

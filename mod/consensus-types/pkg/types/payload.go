@@ -34,6 +34,16 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// EmptyExecutableData returns an empty ExecutableDataDeneb.
+func EmptyExecutableData(forkVersion uint32) engineprimitives.ExecutionPayload {
+	switch forkVersion {
+	case version.Deneb:
+		return &ExecutableDataDeneb{}
+	default:
+		panic("unsupported fork version")
+	}
+}
+
 var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 
 // ExecutableDataDeneb is the execution payload for Deneb.

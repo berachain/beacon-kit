@@ -57,6 +57,12 @@ type EngineClient struct {
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
 
+	// payloadFactory is used to allocate memory for payloads being
+	// retrieved from the EL. We define a facotry function here
+	// to prevent coupling the EngineClient to specific types as well
+	// as to handle hard forks.
+	payloadFactory func(uint32) engineprimitives.ExecutionPayload
+
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
 	statusErr     error

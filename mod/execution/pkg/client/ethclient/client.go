@@ -28,7 +28,6 @@ package ethclient
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -41,6 +40,8 @@ import (
 // its configuration.
 type Eth1Client struct {
 	*ethclient.Client
+	
+	payloadFactory *engineprimitives.PayloadFactory
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided
@@ -106,11 +107,12 @@ func (s *Eth1Client) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	result := &engineprimitives.ExecutionPayloadEnvelope[
-		*types.ExecutableDataDeneb,
+		engineprimitives.ExecutionPayload,
 		*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 		],
 	]{}
+	result.ExecutionPayload = s.
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {

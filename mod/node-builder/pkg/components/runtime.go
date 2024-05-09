@@ -95,6 +95,7 @@ func ProvideRuntime(
 		engineclient.WithLogger(
 			logger.With("module", "beacon-kit.engine.client"),
 		),
+		engineclient.WithPayloadFactory(types.EmptyExecutableData),
 	)
 
 	// TODO: move.
