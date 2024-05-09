@@ -27,6 +27,7 @@ package deneb
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -35,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -133,13 +133,13 @@ func DefaultGenesisExecutionPayloadHeader() (
 		LogsBloom: make([]byte, constants.LogsBloomLength),
 		Random:    primitives.Bytes32{},
 		Number:    0,
-		GasLimit:  math.U64(hexutil.MustDecodeUint64("0x1c9c380")),
+		//nolint:mnd // default value.
+		GasLimit:  math.U64(30000000),
 		GasUsed:   0,
 		Timestamp: 0,
 		ExtraData: make([]byte, constants.ExtraDataLength),
-		BaseFeePerGas: math.MustNewU256LFromBigEndian(
-			hexutil.MustDecode("0x3b9aca"),
-		),
+		//nolint:mnd // default value.
+		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(3906250)),
 		BlockHash: common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),

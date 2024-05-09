@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/primitives-engine
 
-go 1.22.2
+go 1.22.3
 
 replace (
 	github.com/berachain/beacon-kit/mod/errors => ../errors
@@ -10,7 +10,7 @@ replace (
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 )
 

@@ -29,9 +29,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
