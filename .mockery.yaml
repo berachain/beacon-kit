@@ -48,3 +48,8 @@ packages:
       recursive: False
       with-expecter: true
       all: True
+  github.com/berachain/beacon-kit/mod/storage/pkg/prunedb:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True

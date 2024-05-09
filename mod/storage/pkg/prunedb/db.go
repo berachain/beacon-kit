@@ -81,7 +81,7 @@ func (db *DB) Start(ctx context.Context) {
 			case <-db.ticker.C:
 				// Do the pruning
 				if err := db.prune(); err != nil {
-					db.logger.Error("Error pruning: ", err)
+					db.logger.Error("error while pruning: ", err)
 				}
 			case <-ctx.Done():
 				return
@@ -110,6 +110,7 @@ func (db *DB) prune() error {
 
 	// TODO: Optimize the underlying DeleteRange to snap to lowest
 	// index in O(1).
+	db.logger.Info("Pruning DB ", "from,to", db.lastDeletedIndex, db.highestSetIndex-db.windowSize)
 	if err := db.DeleteRange(
 		db.lastDeletedIndex, db.highestSetIndex-db.windowSize,
 	); err != nil {
