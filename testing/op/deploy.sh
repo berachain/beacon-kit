@@ -26,12 +26,9 @@
 
 
 # Set your L1 values here.
-PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"  # Replace with a funded wallet key on the L1.
-RPC_URL="127.0.0.1:54787"  # Replace with your L1 node URL.
-RPC_KIND="any" 
-CHAINID=80088 # Replace with your L1 chain id.
-BLOCK_TIME=6 # Replace with your L1 block time.
-FINALIZATION_PERIOD=6 # Replace with your L1 block time.
+PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
+RPC_URL=""  # Replace with your L1 node URL.
+RPC_KIND="any"
 
 # Fill out environment variables in .env file
 cd ~/op-stack-deployment/optimism
@@ -78,41 +75,36 @@ cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 
-# # Update deploy-config/getting-started.json with new addresses
-# cd packages/contracts-bedrock
-# sh ./scripts/getting-started/config.sh
+# Update deploy-config/getting-started.json with new addresses
+cd packages/contracts-bedrock
+sh ./scripts/getting-started/config.sh
+echo "Updated getting-started.json:"
+cat deploy-config/getting-started.json
 
-# # Get L1 Info
-# output=$(cast block finalized | grep -E "(timestamp|hash|number)")
-# # Parse the output using awk and store the values in variables
-# hash=$(echo "$output" | awk '/hash/ { print $2 }')
-# number=$(echo "$output" | awk '/number/ { print $2 }')
-# timestamp=$(echo "$output" | awk '/timestamp/ { print $2 }')
+# Deploy the Create2 factory if necessary
+codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
+if [[ "$codesize_output" == "0" ]]; then
+    echo "Sending 1 ether to the factory deployer address..."
+    cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
 
-# # Print the variables
-# echo "Hash: $hash"
-# echo "Number: $number"
-# echo "Timestamp: $timestamp"
+    cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
+    cast publish --rpc-url $L1_RPC_URL 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222
 
-# # Update deploy-config/getting-started.json file with the values
-# L2_CHAINID=42069
+    codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
+    if [[ "$codesize_output" == "0" ]]; then
+      echo "Create2 Factory was unable to be deployed."
+      exit 1
+    fi
+elif [[ "$codesize_output" == "69" ]]; then
+    echo "Create2 Factory is already deployed!"
+else
+    echo "Unexpected output when checking the create2 factory: $codesize_output"
+    exit 1
+fi
 
-# # TODO: make sure this works.
-# awk -v hash="$hash" '/"l1StrtingBlockTag": "BLOCKHASH"/{$0="    \"l1StartingBlockTag\": \"" hash "\", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
-# awk -v timestamp="$timestamp" '/"l2OutputOracleStartingTimestamp": TIMESTAMP/{$0="    \"l2OutputOracleStartingTimestamp\": " timestamp ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
-# # TODO: set $number to "l2OutputOracleStartingBlockNumber"
-# awk -v L1_CHAINID="$L1_CHAINID" '/"l1ChainID": L1_CHAINID/{$0="    \"l1ChainID\": " L1_CHAINID ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
-# awk -v L2_CHAINID="$L2_CHAINID" '/"l2ChainID": L2_CHAINID/{$0="    \"l2ChainID\": " L2_CHAINID ", "}1' deploy-config/getting-started.json > temp && mv temp deploy-config/getting-started.json
-# # TODO: set L1_BLOCK_TIME to "l1BlockTime" 
-# # TODO: set L1_FINALIZATION_PERIOD to "finalizationPeriodSeconds"
-
-# # Print the updated JSON file
-# echo "deploy-config/getting-started.json"
-# cat deploy-config/getting-started.json
-
-# # Step 4: Deploy L1 smart contracts
-# forge script -vvv scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --legacy --rpc-url $L1_RPC_URL
-# forge script -vvv scripts/Deploy.s.sol:Deploy --sig 'sync()' --private-key $admin_private_key --broadcast --legacy --rpc-url $L1_RPC_URL
+# Step 4: Deploy L1 smart contracts
+forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --slow --legacy
+forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $L1_RPC_URL --legacy
 
 # # TODO: 
 # # - Update the L1 contract addresses in the deployments/getting-started/l1.json
@@ -123,7 +115,7 @@ cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-
 
 # go run cmd/main.go genesis l2 \
 #   --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
-#   --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/l1.json \
+#   --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/ \
 #   --outfile.l2 genesis.json \
 #   --outfile.rollup rollup.json \
 #   --l1-rpc $L1_RPC_URL
