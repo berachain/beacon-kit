@@ -26,6 +26,7 @@
 package types
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -38,27 +39,27 @@ var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,./withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives-engine/withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    common.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  common.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     bytes.B32               `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  bytes.B32               `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                  `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        bytes.B32               `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        math.U64                `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      math.U64                `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       math.U64                `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     math.U64                `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                  `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas math.Wei                `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*Withdrawal           `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   math.U64                `json:"blobGasUsed"`
-	ExcessBlobGas math.U64                `json:"excessBlobGas"`
+	ParentHash    common.ExecutionHash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte                         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        bytes.B32                      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        math.U64                       `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      math.U64                       `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       math.U64                       `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     math.U64                       `json:"timestamp"                    gencodec:"required"`
+	ExtraData     []byte                         `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas math.Wei                       `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BlockHash     common.ExecutionHash           `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte                       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   math.U64                       `json:"blobGasUsed"`
+	ExcessBlobGas math.U64                       `json:"excessBlobGas"`
 }
 
 // JSON type overrides for ExecutableDataDeneb.
@@ -154,7 +155,7 @@ func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*Withdrawal {
+func (d *ExecutableDataDeneb) GetWithdrawals() []*engineprimitives.Withdrawal {
 	return d.Withdrawals
 }
 

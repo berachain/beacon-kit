@@ -261,7 +261,7 @@ func (s *Service[BlobSidecarsT]) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = types.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

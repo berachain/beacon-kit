@@ -26,7 +26,6 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -82,7 +81,7 @@ type ExecutionPayload interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
 	// TODO: decouple from consensus-types
-	GetWithdrawals() []*types.Withdrawal
+	GetWithdrawals() []*Withdrawal
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.
