@@ -429,7 +429,8 @@ func IterStructFields(
 
 	for i := range len(vf) {
 		sf := vf[i]
-		name := sf.Name
+		// Note: You can get the name this way for deserialization
+		// name := sf.Name
 		sft := sf.Type
 		sfv := val.Elem().Field(i)
 		cb(sft, sfv, sf, nil)
