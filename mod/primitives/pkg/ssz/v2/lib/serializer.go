@@ -70,8 +70,13 @@ type Serializer struct {
 }
 
 type ISerializer interface {
-	Elements(s GenericSSZType) []GenericSSZType
-	MarshalSSZ(s GenericSSZType) ([]byte, error)
+	Marshal(
+		val reflect.Value,
+		typ reflect.Type,
+		input []byte,
+		startOffset uint64,
+	) (uint64, error)
+	MarshalSSZ(c interface{}) ([]byte, error)
 }
 
 func NewSerializer() Serializer {
@@ -280,17 +285,6 @@ func (s *Serializer) MarshalByteArray(
 
 	//#nosec:G701 // int overflow should be caught earlier in the stack.
 	return startOffset + uint64(val.Len()), nil
-}
-
-func (s *Serializer) UnmarshalByteArray(
-	val reflect.Value,
-	_ reflect.Type,
-	input []byte,
-	startOffset uint64,
-) (uint64, error) {
-	offset := startOffset + uint64(len(input))
-	val.SetBytes(input[startOffset:offset])
-	return offset, nil
 }
 
 func (s *Serializer) MarshalFixedSizeParts(

@@ -65,7 +65,7 @@ func ProvideClientContext(
 	addressCodec address.Codec,
 	validatorAddressCodec address.ValidatorAddressCodec,
 	consensusAddressCodec address.ConsensusAddressCodec,
-) client.Context {
+) (client.Context, error) {
 	var err error
 
 	clientCtx := client.Context{}.
@@ -89,7 +89,7 @@ func ProvideClientContext(
 		customClientConfig,
 	)
 	if err != nil {
-		panic(err)
+		return clientCtx, err
 	}
 
 	// textual is enabled by default, we need to re-create the tx config grpc
@@ -100,11 +100,11 @@ func ProvideClientContext(
 		)
 	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
 	if err != nil {
-		panic(err)
+		return clientCtx, err
 	}
 	clientCtx = clientCtx.WithTxConfig(txConfig)
 
-	return clientCtx
+	return clientCtx, nil
 }
 
 // InitClientConfig sets up the default client configuration, allowing for

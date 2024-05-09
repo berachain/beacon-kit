@@ -39,25 +39,15 @@ type DepositStoreInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// TrustedSetupOutput is the output for the dep inject framework.
-type DepositStoreOutput struct {
-	depinject.Out
-
-	DepositStore *deposit.KVStore
-}
-
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore(in DepositStoreInput) DepositStoreOutput {
+func ProvideDepositStore(in DepositStoreInput) (*deposit.KVStore, error) {
 	name := "deposits"
 	storeType := "pebble"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := deposit.NewKVStoreProvider(name, storeType, dir)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	return DepositStoreOutput{
-		DepositStore: deposit.NewStore(kvp),
-	}
+	return deposit.NewStore(kvp), nil
 }

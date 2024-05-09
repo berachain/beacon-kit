@@ -23,28 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+//nolint:ineffassign,wastedassign,mnd // experimental
+package ssz
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/kzg"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/cast"
-)
+import "reflect"
 
-// TrustedSetupInput is the input for the dep inject framework.
-type TrustedSetupInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
+// Future home of our deserializer
 
-// ProvideBlsSigner is a function that provides the module to the application.
-func ProvideTrustedSetup(
-	in TrustedSetupInput,
-) (*gokzg4844.JSONTrustedSetup, error) {
-	return kzg.ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
-	)
+func (s *Serializer) UnmarshalByteArray(
+	val reflect.Value,
+	_ reflect.Type,
+	input []byte,
+	startOffset uint64,
+) (uint64, error) {
+	offset := startOffset + uint64(len(input))
+	val.SetBytes(input[startOffset:offset])
+	return offset, nil
 }
