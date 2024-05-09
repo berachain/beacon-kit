@@ -38,20 +38,24 @@ type Test struct {
 	A uint64
 }
 
-func getTestStruct() *sszv2.Checkpoint {
+func getTestStruct() (*sszv2.Checkpoint, error) {
 	// https://goerli.beaconcha.in/slot/4744352
 	// Test fixture from fastssz.
 	const tfn = "fixtures/beacon_state_bellatrix.ssz"
 	// A checkpt is the simplest field.
-	data, _ := os.ReadFile(tfn)
+	data, err := os.ReadFile(tfn)
 	sszState := sszv2.BeaconStateBellatrix{}
 	sszState.UnmarshalSSZ(data)
-	return sszState.CurrentJustifiedCheckpoint
+	if err != nil || sszState.CurrentJustifiedCheckpoint == nil {
+		return nil, err
+	}
+	return sszState.CurrentJustifiedCheckpoint, nil
 }
 
 // Test cases for SSZWrapper.
 func TestSSZWrapper_SizeSSZ(t *testing.T) {
-	testStruct := getTestStruct()
+	testStruct, err := getTestStruct()
+	require.NoError(t, err)
 
 	wrapper := sszv2.Wrap(testStruct)
 	size := wrapper.SizeSSZ()
@@ -59,7 +63,8 @@ func TestSSZWrapper_SizeSSZ(t *testing.T) {
 }
 
 func TestSSZWrapper_MarshalSSZ(t *testing.T) {
-	testStruct := getTestStruct()
+	testStruct, err := getTestStruct()
+	require.NoError(t, err)
 
 	wrapper := sszv2.Wrap(testStruct)
 	data, err := wrapper.MarshalSSZ()
@@ -72,11 +77,12 @@ func TestSSZWrapper_MarshalSSZ(t *testing.T) {
 }
 
 func TestSSZWrapper_HashTreeRoot(t *testing.T) {
-	testStruct := getTestStruct()
+	testStruct, err := getTestStruct()
+	require.NoError(t, err)
 
 	wrapper := sszv2.Wrap(testStruct)
-	_, err := wrapper.HashTreeRoot()
-	if err != nil {
-		t.Errorf("Failed to compute hash tree root: %v", err)
+	_, err2 := wrapper.HashTreeRoot()
+	if err2 != nil {
+		t.Errorf("Failed to compute hash tree root: %v", err2)
 	}
 }
