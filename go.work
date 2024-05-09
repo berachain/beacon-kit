@@ -1,10 +1,10 @@
-go 1.22.2
+go 1.22.3
 
 use (
 	./beacond
 	./build/tools
 	./mod/beacon
-	./mod/core
+	./mod/consensus-types
 	./mod/da
 	./mod/errors
 	./mod/execution
@@ -15,6 +15,7 @@ use (
 	./mod/primitives
 	./mod/primitives-engine
 	./mod/runtime
+	./mod/state-transition
 	./mod/storage
 	./testing
 )

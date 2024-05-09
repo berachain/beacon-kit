@@ -33,9 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/staking"
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/randao"
-	"github.com/berachain/beacon-kit/mod/core/state"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -52,6 +49,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/verification"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -141,10 +143,14 @@ func ProvideRuntime(
 	)
 
 	// Build the Randao Processor.
-	randaoProcessor := randao.NewProcessor(
-		randao.WithSigner(signer),
-		randao.WithLogger(logger.With("service", "randao")),
-		randao.WithConfig(chainSpec),
+	randaoProcessor := randao.NewProcessor[
+		consensus.BeaconBlockBody,
+		consensus.BeaconBlock,
+		state.BeaconState,
+	](
+		chainSpec,
+		signer,
+		logger.With("service", "randao"),
 	)
 
 	// Build the builder service.
@@ -171,15 +177,21 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		stakingService,
-		core.NewBlockVerifier(chainSpec),
+		verification.NewBlockVerifier(chainSpec),
 		core.NewStateProcessor[*datypes.BlobSidecars](
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
+			stda.NewBlobProcessor[
+				consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+			](
+				logger.With("module", "blob-processor"),
+				chainSpec,
+				dablob.NewVerifier(blobProofVerifier),
+			),
 			randaoProcessor,
 			signer,
 			logger.With("module", "state-processor"),
 		),
-		core.NewPayloadVerifier(chainSpec),
+		verification.NewPayloadVerifier(chainSpec),
 	)
 
 	// Build the service registry.
@@ -191,7 +203,11 @@ func ProvideRuntime(
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
-	return runtime.NewBeaconKitRuntime(
+	return runtime.NewBeaconKitRuntime[
+		*datypes.BlobSidecars,
+		*depositdb.KVStore,
+		consensus.ReadOnlyBeaconBlockBody,
+	](
 		logger.With(
 			"module",
 			"beacon-kit.runtime",
