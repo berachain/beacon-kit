@@ -28,7 +28,6 @@ package client
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -40,7 +39,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload any,
+	payload interface{ Version() uint32 },
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
@@ -76,13 +75,13 @@ func (s *EngineClient) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) callNewPayloadRPC(
 	ctx context.Context,
-	payload any,
+	payload interface{ Version() uint32 },
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
-	switch payloadPb := payload.(type) {
-	case *types.ExecutableDataDeneb:
-		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
+	switch payload.Version() {
+	case version.Deneb:
+		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
 	default:
 		return nil, ErrInvalidPayloadType
 	}

@@ -38,7 +38,10 @@ import (
 //
 //nolint:lll
 type NewPayloadRequest[
-	ExecutionPayloadT interface{ GetTransactions() [][]byte },
+	ExecutionPayloadT interface {
+		GetTransactions() [][]byte
+		Version() uint32
+	},
 ] struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayloadT
@@ -58,6 +61,7 @@ type NewPayloadRequest[
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		GetTransactions() [][]byte
+		Version() uint32
 	},
 ](
 	executionPayload ExecutionPayloadT,

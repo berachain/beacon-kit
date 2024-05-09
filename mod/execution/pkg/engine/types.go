@@ -31,4 +31,5 @@ type ExecutionPayload interface {
 	GetTransactions() [][]byte
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
+	Version() uint32
 }
