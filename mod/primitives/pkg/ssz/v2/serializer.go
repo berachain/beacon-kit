@@ -27,7 +27,6 @@
 package ssz
 
 import (
-	"encoding/binary"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -129,21 +128,20 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		// }
 		fallthrough
-	// TODO(Chibera): fix me!
-	// Composite structs appear initially as pointers so we Look inside
-	// case k == reflect.Struct || reflect.TypeOf(val.Elem()).Kind() ==
-	// reflect.Struct:
-	// Composite struct
-	// buf := make([]byte, 0)
-	// _, err := s.MarshalStruct(val, typ, buf, 0)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return buf, nil
-	// case k == reflect.Ptr:
-	// 	return make([]byte, 0), nil
-	// Composite struct? Look inside?
-	// return s.MarshalSSZ(val.Elem())
+	case k == reflect.Ptr:
+		// Composite structs appear initially as pointers so we Look inside
+		if typ.Elem().Kind() == reflect.Struct {
+			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
+		}
+		fallthrough
+	case k == reflect.Struct:
+		return make(
+				[]byte,
+				0,
+			), errors.Newf(
+				"kind %v is not serializable. Pass Structs as a Ptr",
+				k,
+			)
 	default:
 		return make(
 				[]byte,
@@ -184,12 +182,21 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	typ reflect.Type,
 	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
 ) ([]byte, error) {
-	aLen := val.Len()
-	if val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+	aLen := 0
+	err := errors.New("MarshalToDefaultBuffer Failure")
+	switch {
+	case val.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct:
+		aLen, err = CalculateBufferSizeForStruct(val)
+		if err != nil {
+			return nil, err
+		}
+	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
 		aLen = GetNestedArrayLength(val)
+	default:
+		aLen = val.Len()
 	}
 	buf := make([]byte, aLen)
-	_, err := cb(val, typ, buf, 0)
+	_, err = cb(val, typ, buf, 0)
 	return buf, err
 }
 
@@ -286,139 +293,170 @@ func (s *Serializer) UnmarshalByteArray(
 	return offset, nil
 }
 
+func (s *Serializer) MarshalFixedSizeParts(
+	val reflect.Value,
+	fixedParts [][]byte,
+	fixedLengths []int,
+) ([][]byte, []int, error) {
+	serialized, err := s.MarshalSSZ(val.Interface())
+	if err != nil {
+		return fixedParts, fixedLengths, err
+	}
+	fixedParts = append(fixedParts, serialized)
+	partSize := BytesPerLengthOffset
+	if len(serialized) > 0 {
+		partSize = len(serialized)
+	}
+	fixedLengths = append(fixedLengths, partSize)
+	return fixedParts, fixedLengths, nil
+}
+
+func (s *Serializer) MarshalVariableSizeParts(
+	val reflect.Value,
+	variableParts [][]byte,
+	variableLengths []int,
+) ([][]byte, []int, error) {
+	serialized, err := s.MarshalSSZ(val.Interface())
+	if err != nil {
+		return variableParts, variableLengths, err
+	}
+	variableParts = append(variableParts, serialized)
+	variableLengths = append(variableLengths, len(serialized))
+	return variableParts, variableLengths, nil
+}
+
+func (s *Serializer) MarshalStruct(
+	val reflect.Value,
+	typ reflect.Type,
+	buf []byte,
+	startOffset uint64,
+) (uint64, error) {
+	if !IsStruct(typ, val) {
+		return 0, errors.New("input is not a struct")
+	}
+
+	var fixedParts [][]byte
+	var variableParts [][]byte
+	var fixedLengths []int
+	var variableLengths []int
+	var errCheck []error
+
+	var processStructField = func(
+		typ reflect.Type,
+		val reflect.Value,
+		field reflect.StructField,
+		err error,
+	) {
+		if err != nil {
+			errCheck = append(errCheck, err)
+			return
+		}
+
+		var serializationErr error
+		// If the field has a ssz-size tag set, we treat it as a fixed size
+		// field
+		if hasUndefinedSizeTag(field) && isVariableSizeType(typ) {
+			variableParts,
+				variableLengths,
+				serializationErr = s.MarshalVariableSizeParts(
+				val,
+				variableParts,
+				variableLengths,
+			)
+		} else {
+			fixedParts,
+				fixedLengths,
+				serializationErr = s.MarshalFixedSizeParts(
+				val,
+				fixedParts,
+				fixedLengths,
+			)
+			// We populate variable parts with an empty item based on the
+			// spec
+			variableParts = append(variableParts, make([]byte, 0))
+			variableLengths = append(variableLengths, 0)
+		}
+		if serializationErr != nil {
+			errCheck = append(errCheck, serializationErr)
+			return
+		}
+	}
+
+	IterStructFields(
+		val,
+		processStructField,
+	)
+	if len(errCheck) > 0 {
+		return 0, errCheck[0]
+	}
+
+	// Check lengths and
+	// Interleave offsets of variable-size parts with fixed-size parts.
+	res, err := InterleaveOffsets(
+		fixedParts,
+		fixedLengths,
+		variableParts,
+		variableLengths,
+	)
+	if err != nil {
+		return 0, err
+	}
+	copy(buf[startOffset:], res)
+	return uint64(len(res)), nil
+}
+
 func (s *Serializer) MarshalComposite(
 	val reflect.Value,
 	typ reflect.Type,
 	buf []byte,
 	startOffset uint64,
 ) (uint64, error) {
-	index := startOffset
-	//nolint:ineffassign,wastedassign // its fine. we reuse the err
-	err := errors.Newf("failed to MarshalComposite from %v of typ %v", val, typ)
-	if val.Len() == 0 {
-		return index, nil
-	}
-	if !isVariableSizeType(typ.Elem()) {
-		for i := range val.Len() {
-			// If each element is not variable size, we simply encode
-			// sequentially and write
-			// into the buffer at the last index we wrote at.
-			index, err = s.Marshal(val.Index(i), typ.Elem(), buf, index)
-			if err != nil {
-				return 0, err
-			}
-		}
-		return index, nil
-	}
-	fixedIndex := index
-	//#nosec:G701 // int overflow should be caught earlier in the stack
-	currentOffsetIndex := startOffset + uint64(val.Len())*BytesPerLengthOffset
-	//nolint:wastedassign // the underlying passed in input buffer is read
-	nextOffsetIndex := currentOffsetIndex
-	// If the elements are variable size, we need to include offset indices
-	// in the serialized output list.
-	for i := range val.Len() {
-		nextOffsetIndex, err = s.Marshal(
-			val.Index(i),
-			typ.Elem(),
-			buf,
-			currentOffsetIndex,
-		)
-		if err != nil {
-			return 0, err
-		}
-		// Write the offset.
-		offsetBuf := make([]byte, BytesPerLengthOffset)
-		//#nosec:G701 // int overflow should be caught earlier in the stack
-		binary.LittleEndian.PutUint32(
-			offsetBuf,
-			uint32(currentOffsetIndex-startOffset),
-		)
-		copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
+	var fixedParts [][]byte
+	var variableParts [][]byte
+	var fixedLengths []int
+	var variableLengths []int
+	var vf []reflect.StructField
 
-		// We increase the offset indices accordingly.
-		currentOffsetIndex = nextOffsetIndex
-		fixedIndex += BytesPerLengthOffset
+	if typ.Kind() == reflect.Ptr {
+		subtyp := reflect.TypeOf(val.Interface()).Elem()
+		vf = reflect.VisibleFields(subtyp)
+	} else {
+		vf = reflect.VisibleFields(typ)
 	}
-	index = currentOffsetIndex
-	return index, nil
+	field := vf[len(vf)-1]
+	var serializationErr error
+	// If the field has a ssz-size tag set, we treat it as a fixed size field
+	if hasUndefinedSizeTag(field) && isVariableSizeType(typ) {
+		variableParts, variableLengths, serializationErr = s.MarshalVariableSizeParts(
+			val,
+			variableParts,
+			variableLengths,
+		)
+	} else {
+		fixedParts, fixedLengths, serializationErr = s.MarshalFixedSizeParts(
+			val,
+			fixedParts,
+			fixedLengths,
+		)
+		// We populate variable parts with an empty item based on the spec
+		variableParts = append(variableParts, make([]byte, 0))
+		variableLengths = append(variableLengths, 0)
+	}
+	if serializationErr != nil {
+		return 0, serializationErr
+	}
+
+	// Check lengths and
+	// Interleave offsets of variable-size parts with fixed-size parts.
+	res, err := InterleaveOffsets(
+		fixedParts,
+		fixedLengths,
+		variableParts,
+		variableLengths,
+	)
+	if err != nil {
+		return 0, err
+	}
+	copy(buf[startOffset:], res)
+	return uint64(len(res)), nil
 }
-
-// TODO
-// func (s *Serializer) MarshalStruct(
-// 	val reflect.Value,
-// 	typ reflect.Type,
-// 	buf []byte,
-// 	startOffset uint64,
-// ) (uint64, error) {
-// 	if typ.Kind() == reflect.Ptr {
-// 		if val.IsNil() {
-// 			newVal := reflect.New(typ.Elem()).Elem()
-// 			return s.Marshal(newVal, newVal.Type(), buf, startOffset)
-// 		}
-// 		return s.Marshal(val.Elem(), typ.Elem(), buf, startOffset)
-// 	}
-// 	fixedIndex := startOffset
-// 	fixedLength := uint64(0)
-// 	// For every field, we add up the total length of the items depending if
-// 	// they
-// 	// are variable or fixed-size fields.
-// 	for i := range typ.NumField() {
-// 		// We skip protobuf related metadata fields.
-// 		if strings.Contains(typ.Field(i).Name, "XXX_") {
-// 			continue
-// 		}
-// 		fType, err := determineFieldType(typ.Field(i))
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		if isVariableSizeType(fType) {
-// 			fixedLength += BytesPerLengthOffset
-// 		} else {
-// 			if val.Type().Kind() == reflect.Ptr && val.IsNil() {
-// 				elem := reflect.New(val.Type().Elem()).Elem()
-// 				fixedLength += determineFixedSize(elem, fType)
-// 			} else {
-// 				fixedLength += determineFixedSize(val.Field(i), fType)
-// 			}
-// 		}
-// 	}
-// 	//nolint:wastedassign // the underlying passed in input buffer is read
-// 	currentOffsetIndex := startOffset + fixedLength
-// 	//nolint:wastedassign // the underlying passed in input buffer is read
-// 	nextOffsetIndex := currentOffsetIndex
-// 	for i := range typ.NumField() {
-// 		// We skip protobuf related metadata fields.
-// 		if strings.Contains(typ.Field(i).Name, "XXX_") {
-// 			continue
-// 		}
-// 		fType, err := determineFieldType(typ.Field(i))
-// 		if err != nil {
-// 			return 0, err
-// 		}
-
-// 		if !isVariableSizeType(fType) {
-// 			fixedIndex, err = s.Marshal(val.Field(i), fType, buf, fixedIndex)
-// 			if err != nil {
-// 				return 0, err
-// 			}
-// 		} else {
-// 			nextOffsetIndex, err = s.Marshal(
-// 				val.Field(i), fType, buf, currentOffsetIndex)
-// 			if err != nil {
-// 				return 0, err
-// 			}
-// 			// Write the offset.
-// 			offsetBuf := make([]byte, BytesPerLengthOffset)
-// 			//#nosec:G701 // int overflow should be caught earlier in the stack
-// 			binary.LittleEndian.PutUint32(offsetBuf,
-// uint32(currentOffsetIndex-startOffset))
-// 			copy(buf[fixedIndex:fixedIndex+BytesPerLengthOffset], offsetBuf)
-
-// 			// We increase the offset indices accordingly.
-// 			currentOffsetIndex = nextOffsetIndex
-// 			fixedIndex += BytesPerLengthOffset
-// 		}
-// 	}
-// 	return currentOffsetIndex, nil
-// }
