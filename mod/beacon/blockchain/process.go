@@ -28,9 +28,9 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -47,7 +47,7 @@ func (s *Service[BlobSidecarsT]) ProcessSlot(
 func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	blobs BlobSidecarsT,
 ) error {
 	var (
@@ -156,7 +156,7 @@ func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 // ValidateBlock validates the incoming beacon block.
 func (s *Service[BlobSidecarsT]) ValidateBlock(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
 		s.bsb.BeaconState(ctx), blk,
@@ -166,7 +166,7 @@ func (s *Service[BlobSidecarsT]) ValidateBlock(
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -205,7 +205,7 @@ func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
 func (s *Service[BlobSidecarsT]) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -261,7 +261,7 @@ func (s *Service[BlobSidecarsT]) PostBlockProcess(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
 			payload.GetWithdrawals(),
 		).HashTreeRoot()
 		return withdrawalsRootErr

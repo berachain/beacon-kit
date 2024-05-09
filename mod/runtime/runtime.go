@@ -30,8 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,7 +42,7 @@ import (
 type BeaconKitRuntime[
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
 		BlobSidecarsT,
 		DepositStoreT,
@@ -59,7 +59,7 @@ type BeaconKitRuntime[
 func NewBeaconKitRuntime[
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
 		BlobSidecarsT,
 		DepositStoreT,

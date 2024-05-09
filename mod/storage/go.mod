@@ -3,6 +3,8 @@ module github.com/berachain/beacon-kit/mod/storage
 go 1.22.3
 
 replace (
+// TODO consensus-types should be decoupleable.
+github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives

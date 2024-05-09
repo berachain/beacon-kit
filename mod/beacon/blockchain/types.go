@@ -28,10 +28,10 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -43,7 +43,7 @@ type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
-		consensus.ReadOnlyBeaconBlockBody, BlobSidecarsT,
+		types.ReadOnlyBeaconBlockBody, BlobSidecarsT,
 	]
 	BeaconState(context.Context) state.BeaconState
 }
@@ -59,7 +59,7 @@ type BlobSidecars interface {
 type BlockVerifier interface {
 	ValidateBlock(
 		st state.BeaconState,
-		blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 }
 
@@ -81,7 +81,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest,
+		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
 	) error
 }
 

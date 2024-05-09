@@ -31,11 +31,11 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
@@ -113,8 +113,8 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		}
 
 		// Create and sign the deposit message.
-		depositMsg, signature, err := consensus.CreateAndSignDepositMessage(
-			consensus.NewForkData(currentVersion, genesisValidatorRoot),
+		depositMsg, signature, err := types.CreateAndSignDepositMessage(
+			types.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,
 			credentials,
@@ -126,7 +126,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 
 		// Verify the deposit message.
 		if err = depositMsg.VerifyCreateValidator(
-			consensus.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			signer.BLSSigner{}.VerifySignature,
 			spec.LocalnetChainSpec().DomainTypeDeposit(),

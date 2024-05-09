@@ -28,8 +28,8 @@ package abci
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -40,7 +40,7 @@ type BuilderService[BlobsSidecarsT ssz.Marshallable] interface {
 		context.Context,
 		state.BeaconState,
 		math.Slot,
-	) (consensus.BeaconBlock, BlobsSidecarsT, error)
+	) (types.BeaconBlock, BlobsSidecarsT, error)
 }
 
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
@@ -49,16 +49,16 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 		BlobsSidecarsT,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 	ChainSpec() primitives.ChainSpec
 	VerifyPayloadOnBlk(
-		context.Context, consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 }

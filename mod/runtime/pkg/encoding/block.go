@@ -28,7 +28,7 @@ package encoding
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
 // ABCIRequest is the interface for an ABCI request.
@@ -45,7 +45,7 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody], error) {
+) (types.ReadOnlyBeaconBlock[types.BeaconBlockBody], error) {
 	if req == nil {
 		return nil, ErrNilABCIRequest
 	}
@@ -65,5 +65,5 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	if blkBz == nil {
 		return nil, ErrNilBeaconBlockInRequest
 	}
-	return consensus.BeaconBlockFromSSZ(blkBz, forkVersion)
+	return types.BeaconBlockFromSSZ(blkBz, forkVersion)
 }

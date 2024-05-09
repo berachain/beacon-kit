@@ -28,10 +28,10 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -41,10 +41,10 @@ import (
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BlobSidecarsT BlobSidecars,
-	BeaconBlockBodyT consensus.ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 ] interface {
 	BuildSidecars(
-		blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
+		blk types.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
 }
@@ -60,7 +60,7 @@ type BlobSidecars interface {
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*consensus.Deposit, error)
+	) ([]*types.Deposit, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.

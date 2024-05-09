@@ -31,15 +31,15 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -64,13 +64,15 @@ func AddPubkeyCmd() *cobra.Command {
 				)
 			}
 
-			genesis, err := types.AppGenesisFromFile(config.GenesisFile())
+			genesis, err := genutiltypes.AppGenesisFromFile(
+				config.GenesisFile(),
+			)
 			if err != nil {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
 			// create the app state
-			_, err = types.GenesisStateFromAppGenesis(genesis)
+			_, err = genutiltypes.GenesisStateFromAppGenesis(genesis)
 			if err != nil {
 				return err
 			}
@@ -90,9 +92,9 @@ func AddPubkeyCmd() *cobra.Command {
 			}
 
 			// TODO: Should we do deposits here?
-			validator := consensus.NewValidatorFromDeposit(
+			validator := types.NewValidatorFromDeposit(
 				crypto.BLSPubkey(valPubKey.Bytes()),
-				consensus.NewCredentialsFromExecutionAddress(
+				types.NewCredentialsFromExecutionAddress(
 					common.Address{},
 				),
 				depositAmount,
@@ -138,7 +140,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeValidatorStruct(
 	outputDocument string,
-	validator *consensus.Validator,
+	validator *types.Validator,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := afero.NewOsFs().OpenFile(

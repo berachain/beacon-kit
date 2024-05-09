@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -44,7 +45,7 @@ type Service struct {
 	cs     primitives.ChainSpec
 
 	// ee represents the execution engine.
-	ee *engine.Engine
+	ee *engine.Engine[types.ExecutionPayload, *types.ExecutableDataDeneb]
 
 	// abi represents the configured deposit contract's
 	// abi.

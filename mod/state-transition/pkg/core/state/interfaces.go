@@ -28,16 +28,16 @@ package state
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state consensus.
+// is a combination of the read-only and write-only beacon state types.
 type BeaconState interface {
 	Copy() BeaconState
 	Save()
@@ -59,9 +59,9 @@ type ReadOnlyBeaconState interface {
 	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*consensus.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() ([]*consensus.Validator, error)
+	GetValidators() ([]*types.Validator, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
@@ -76,10 +76,10 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyValidators
 
 	SetGenesisValidatorsRoot(root primitives.Root) error
-	SetFork(*consensus.Fork) error
+	SetFork(*types.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*consensus.BeaconBlockHeader) error
+	SetLatestBlockHeader(*types.BeaconBlockHeader) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -115,10 +115,10 @@ type ReadOnlyRandaoMixes interface {
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		math.ValidatorIndex,
-		*consensus.Validator,
+		*types.Validator,
 	) error
 
-	AddValidator(*consensus.Validator) error
+	AddValidator(*types.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
@@ -129,12 +129,12 @@ type ReadOnlyValidators interface {
 
 	ValidatorByIndex(
 		math.ValidatorIndex,
-	) (*consensus.Validator, error)
+	) (*types.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	SetEth1Data(*consensus.Eth1Data) error
+	SetEth1Data(*types.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
 		engineprimitives.ExecutionPayloadHeader,
@@ -143,7 +143,7 @@ type WriteOnlyEth1Data interface {
 
 // ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetEth1Data() (*consensus.Eth1Data, error)
+	GetEth1Data() (*types.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
@@ -152,7 +152,7 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*consensus.Withdrawal, error)
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 }
 
 type KVStore[KVStoreT any] interface {
@@ -176,17 +176,17 @@ type KVStore[KVStoreT any] interface {
 	Copy() KVStoreT
 	GetSlot() (math.Slot, error)
 	SetSlot(slot math.Slot) error
-	GetFork() (*consensus.Fork, error)
-	SetFork(fork *consensus.Fork) error
+	GetFork() (*types.Fork, error)
+	SetFork(fork *types.Fork) error
 	GetGenesisValidatorsRoot() (common.Root, error)
 	SetGenesisValidatorsRoot(root common.Root) error
-	GetLatestBlockHeader() (*consensus.BeaconBlockHeader, error)
-	SetLatestBlockHeader(header *consensus.BeaconBlockHeader) error
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	SetLatestBlockHeader(header *types.BeaconBlockHeader) error
 	GetBlockRootAtIndex(index uint64) (primitives.Root, error)
 	StateRootAtIndex(index uint64) (primitives.Root, error)
-	GetEth1Data() (*consensus.Eth1Data, error)
-	SetEth1Data(data *consensus.Eth1Data) error
-	GetValidators() ([]*consensus.Validator, error)
+	GetEth1Data() (*types.Eth1Data, error)
+	SetEth1Data(data *types.Eth1Data) error
+	GetValidators() ([]*types.Validator, error)
 	GetBalances() ([]uint64, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	SetNextWithdrawalIndex(index uint64) error
@@ -200,18 +200,18 @@ type KVStore[KVStoreT any] interface {
 	GetSlashingAtIndex(index uint64) (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	ValidatorByIndex(index math.ValidatorIndex) (*consensus.Validator, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*types.Validator, error)
 	UpdateBlockRootAtIndex(index uint64, root primitives.Root) error
 	UpdateStateRootAtIndex(index uint64, root primitives.Root) error
 	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,
-		validator *consensus.Validator,
+		validator *types.Validator,
 	) error
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	AddValidator(
-		val *consensus.Validator,
+		val *types.Validator,
 	) error
-	GetValidatorsByEffectiveBalance() ([]*consensus.Validator, error)
+	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }

@@ -30,16 +30,15 @@ import (
 	"encoding/json"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	ethengineprimitives "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
@@ -76,13 +75,17 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			genesis, err := types.AppGenesisFromFile(config.GenesisFile())
+			genesis, err := genutiltypes.AppGenesisFromFile(
+				config.GenesisFile(),
+			)
 			if err != nil {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
 			// create the app state
-			appGenesisState, err := types.GenesisStateFromAppGenesis(genesis)
+			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
+				genesis,
+			)
 			if err != nil {
 				return err
 			}
@@ -128,11 +131,11 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
 ) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
-	withdrawals := make([]*consensus.Withdrawal, len(data.Withdrawals))
+	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
 		// types.
-		withdrawals[i] = (*consensus.Withdrawal)(
+		withdrawals[i] = (*engineprimitives.Withdrawal)(
 			unsafe.Pointer(withdrawal),
 		)
 	}
@@ -168,7 +171,7 @@ func executableDataToExecutionPayloadHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = consensus.Withdrawals(
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
 			withdrawals,
 		).HashTreeRoot()
 		return withdrawalsRootErr
