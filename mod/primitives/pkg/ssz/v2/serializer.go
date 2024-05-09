@@ -70,8 +70,8 @@ type Serializer struct {
 }
 
 type ISerializer interface {
-	Elements(s GenericSSZType) []GenericSSZType
-	MarshalSSZ(s GenericSSZType) ([]byte, error)
+	// Elements(s GenericSSZType) []GenericSSZType
+	// MarshalSSZ(s GenericSSZType) ([]byte, error)
 }
 
 func NewSerializer() Serializer {
@@ -177,23 +177,38 @@ func (s *Serializer) Marshal(
 	return offset, err
 }
 
+func (s *Serializer) GetSize(
+	val reflect.Value,
+	typ reflect.Type,
+) (int, error) {
+	aLen := 0
+	err := errors.New("GetSize Failure")
+	switch {
+	case val.Kind() == reflect.Ptr:
+		if typ.Elem().Kind() == reflect.Struct {
+			aLen, err = CalculateBufferSizeForStruct(val)
+			if err != nil {
+				return 0, err
+			}
+		}
+	case val.Kind() == reflect.Struct:
+		return int(DetermineSize(val)), nil
+	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
+		aLen = GetNestedArrayLength(val)
+	default:
+		aLen = val.Len()
+	}
+	return aLen, nil
+}
+
 func (s *Serializer) MarshalToDefaultBuffer(
 	val reflect.Value,
 	typ reflect.Type,
 	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
 ) ([]byte, error) {
-	aLen := 0
-	err := errors.New("MarshalToDefaultBuffer Failure")
-	switch {
-	case val.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct:
-		aLen, err = CalculateBufferSizeForStruct(val)
-		if err != nil {
-			return nil, err
-		}
-	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
-		aLen = GetNestedArrayLength(val)
-	default:
-		aLen = val.Len()
+	aLen, err := s.GetSize(val, typ)
+	if err != nil {
+		return nil, err
 	}
 	buf := make([]byte, aLen)
 	_, err = cb(val, typ, buf, 0)
@@ -344,6 +359,7 @@ func (s *Serializer) MarshalStruct(
 	var processStructField = func(
 		typ reflect.Type,
 		val reflect.Value,
+		_ interface{},
 		field reflect.StructField,
 		err error,
 	) {

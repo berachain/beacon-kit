@@ -34,6 +34,3 @@ type (
 		Kind() Kind
 	}
 )
-type GenericSSZType interface {
-	Type
-}
