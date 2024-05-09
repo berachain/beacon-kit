@@ -51,6 +51,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/verification"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -179,7 +180,13 @@ func ProvideRuntime(
 		verification.NewBlockVerifier(chainSpec),
 		core.NewStateProcessor[*datypes.BlobSidecars](
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
+			stda.NewBlobProcessor[
+				consensus.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+			](
+				logger.With("module", "blob-processor"),
+				chainSpec,
+				dablob.NewVerifier(blobProofVerifier),
+			),
 			randaoProcessor,
 			signer,
 			logger.With("module", "state-processor"),

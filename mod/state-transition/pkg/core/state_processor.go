@@ -43,7 +43,7 @@ import (
 // main state transition for the beacon chain.
 type StateProcessor[SidecarsT interface{ Len() int }] struct {
 	cs     primitives.ChainSpec
-	bv     BlobVerifier[SidecarsT]
+	bp     BlobProcessor[SidecarsT]
 	rp     RandaoProcessor
 	signer crypto.BLSSigner
 	logger log.Logger[any]
@@ -56,14 +56,14 @@ type StateProcessor[SidecarsT interface{ Len() int }] struct {
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[SidecarsT interface{ Len() int }](
 	cs primitives.ChainSpec,
-	bv BlobVerifier[SidecarsT],
+	bp BlobProcessor[SidecarsT],
 	rp RandaoProcessor,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[SidecarsT] {
 	return &StateProcessor[SidecarsT]{
 		cs:     cs,
-		bv:     bv,
+		bp:     bp,
 		rp:     rp,
 		signer: signer,
 		logger: logger,
@@ -178,36 +178,7 @@ func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
 	if err != nil {
 		return err
 	}
-
-	// If there are no blobs to verify, return early.
-	numBlobs := sidecars.Len()
-	if numBlobs == 0 {
-		sp.logger.Info(
-			"no blobs to verify, skipping verifier 🧢",
-			"slot",
-			slot,
-		)
-		return nil
-	}
-
-	// Otherwise, we run the verification checks on the blobs.
-	if err = sp.bv.VerifyBlobs(
-		sidecars,
-		consensus.BlockBodyKZGOffset(sp.cs),
-	); err != nil {
-		return err
-	}
-
-	sp.logger.Info(
-		"successfully verified all blob sidecars 💦",
-		"num_blobs",
-		numBlobs,
-		"slot",
-		slot,
-	)
-
-	// Lastly, we store the blobs in the availability store.
-	return avs.Persist(slot, sidecars)
+	return sp.bp.ProcessBlobs(slot, avs, sidecars)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.

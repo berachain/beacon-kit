@@ -48,9 +48,11 @@ type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
 }
 
 // BlobVerifier is the interface for the blobs processor.
-type BlobVerifier[SidecarsT any] interface {
-	VerifyBlobs(
-		sidecars SidecarsT, kzgOffset uint64,
+type BlobProcessor[SidecarsT any] interface {
+	ProcessBlobs(
+		slot math.Slot,
+		avs AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, SidecarsT],
+		sidecars SidecarsT,
 	) error
 }
 
