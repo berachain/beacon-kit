@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-# Stage 1: Clone repos
+# Clone repos
 cd ~/
 mkdir op-stack-deployment
 cd op-stack-deployment
@@ -42,26 +42,29 @@ fi
 . $(brew --prefix nvm)/nvm.sh  # if installed via Brew
 nvm install v20.11.0
 
-# Stage 3: Install op-node op-batcher op-proposer
+# Install op-node op-batcher op-proposer
 cd optimism
 
+# Display the versions of the required packages
 # TODO: handle any deps not installed
 sh ./packages/contracts-bedrock/scripts/getting-started/versions.sh
 
+# Build op-node op-batcher op-proposer
 npm i -g pnpm
 pnpm install
 make op-node op-batcher op-proposer
 pnpm build
 
+# Install dependencies for the contracts
 cd packages/contracts-bedrock/
 forge install
 
-# Stage 4: Install op-geth
+# Install and build op-geth
 cd ../../../op-geth/
 make geth
 cd ..
 
-# Stage 5: Install direnv
+# Install direnv
 brew install direnv
 direnv_hook='eval "$(direnv hook zsh)"'
 zsh_config="$HOME/.zshrc"

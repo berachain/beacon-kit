@@ -24,13 +24,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
 # Set your L1 values here.
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
 RPC_URL=""  # Replace with your L1 node URL.
 RPC_KIND="any"
 
-# Fill out environment variables in .env file
+# Fill out environment variables in .envrc file
 cd ~/op-stack-deployment/optimism
 direnv allow
 cp .envrc.example .envrc
@@ -47,9 +46,10 @@ else
 fi
 direnv allow
 
-# Update the Getting Started wallets in the .envrc file.
+# Generate wallets for the L2 accounts
 wallets=$(sh ./packages/contracts-bedrock/scripts/getting-started/wallets.sh)
 
+# Helper function to update the envrc file with wallet addresses
 update_envrc() {
   local key="$1"
   local value="$2"
@@ -61,6 +61,7 @@ update_envrc() {
   fi
 }
 
+# Update the .envrc file with the wallet addresses
 echo "$wallets" | while IFS= read -r line; do
   if [[ "$line" =~ ^export\ (.*)=(.*)$ ]]; then
     key="${BASH_REMATCH[1]}"
@@ -70,12 +71,13 @@ echo "$wallets" | while IFS= read -r line; do
 done
 direnv allow 
 
+# Fund those wallets
 echo "Sending 10 ether to admin, proposer, batcher addresses..."
 cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 
-# Update deploy-config/getting-started.json with new addresses
+# Update deploy-config/getting-started.json with new addresses and display
 cd packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
 echo "Updated getting-started.json:"
@@ -102,15 +104,15 @@ else
     exit 1
 fi
 
-# Step 4: Deploy L1 smart contracts
+# Deploy L1 smart contracts
 forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --slow --legacy
 forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $L1_RPC_URL --legacy
 
-# # TODO: 
-# # - Update the L1 contract addresses in the deployments/getting-started/l1.json
-# # - OR figure out why the forge script didn't automatically save to a json
+# TODO: 
+# - Update the L1 contract addresses in the deployments/getting-started/l1.json
+# - OR figure out why the forge script didn't automatically save to a json
 
-# # Step 5: Run the OP node genesis
+# # Run the OP node genesis
 # cd ~/op-stack-deployment/optimism/op-node
 
 # go run cmd/main.go genesis l2 \
@@ -125,7 +127,7 @@ forge script scripts/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $L1_RPC_URL --
 # cp genesis.json ~/op-stack-deployment/op-geth
 # cp jwt.txt ~/op-stack-deployment/op-geth
 
-# # Step 6: Build OP Geth
+# # Build OP Geth
 # cd ~/op-stack-deployment/op-geth
 # mkdir datadir
 # build/bin/geth init --datadir=datadir genesis.json
