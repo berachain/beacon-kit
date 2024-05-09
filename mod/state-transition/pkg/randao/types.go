@@ -26,8 +26,8 @@
 package randao
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -46,7 +46,7 @@ type BeaconBlockBody interface {
 
 type BeaconState interface {
 	GetSlot() (math.Slot, error)
-	ValidatorByIndex(index math.U64) (*consensus.Validator, error)
+	ValidatorByIndex(index math.U64) (*types.Validator, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error)
 	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error

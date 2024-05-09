@@ -26,10 +26,10 @@
 package deposit
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -107,14 +107,14 @@ func validateDepositMessage(
 		return err
 	}
 
-	depositMessage := consensus.DepositMessage{
+	depositMessage := types.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 	}
 
 	return depositMessage.VerifyCreateValidator(
-		consensus.NewForkData(currentVersion, genesisValidatorRoot),
+		types.NewForkData(currentVersion, genesisValidatorRoot),
 		signature,
 		signer.BLSSigner{}.VerifySignature,
 		// TODO: needs to be configurable.

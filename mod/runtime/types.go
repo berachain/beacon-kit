@@ -28,7 +28,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
@@ -68,11 +68,11 @@ type Config interface{}
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*consensus.Deposit, error)
-	EnqueueDeposits(deposits []*consensus.Deposit) error
+	) ([]*types.Deposit, error)
+	EnqueueDeposits(deposits []*types.Deposit) error
 	DequeueDeposits(
 		numDequeue uint64,
-	) ([]*consensus.Deposit, error)
+	) ([]*types.Deposit, error)
 	PruneToIndex(
 		index uint64,
 	) error

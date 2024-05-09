@@ -28,8 +28,8 @@ package p2p
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
@@ -37,7 +37,7 @@ import (
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlockGossipHandler[ReqT encoding.ABCIRequest] struct {
-	NoopGossipHandler[consensus.BeaconBlock, []byte]
+	NoopGossipHandler[types.BeaconBlock, []byte]
 	chainSpec common.ChainSpec
 }
 
@@ -45,7 +45,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[ReqT] {
 	return NoopBlockGossipHandler[ReqT]{
-		NoopGossipHandler: NoopGossipHandler[consensus.BeaconBlock, []byte]{},
+		NoopGossipHandler: NoopGossipHandler[types.BeaconBlock, []byte]{},
 		chainSpec:         chainSpec,
 	}
 }
@@ -53,7 +53,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 // Publish takes a BeaconBlock and returns the ssz marshalled data.
 func (n NoopBlockGossipHandler[ReqT]) Publish(
 	_ context.Context,
-	data consensus.BeaconBlock,
+	data types.BeaconBlock,
 ) ([]byte, error) {
 	return data.MarshalSSZ()
 }
@@ -62,7 +62,7 @@ func (n NoopBlockGossipHandler[ReqT]) Publish(
 func (n NoopBlockGossipHandler[ReqT]) Request(
 	_ context.Context,
 	req ReqT,
-) (consensus.BeaconBlock, error) {
+) (types.BeaconBlock, error) {
 	return encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
 		0,

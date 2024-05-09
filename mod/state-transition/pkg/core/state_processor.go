@@ -26,11 +26,11 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -72,7 +72,7 @@ func NewStateProcessor[SidecarsT interface{ Len() int }](
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[SidecarsT]) Transition(
 	st state.BeaconState,
-	blk consensus.BeaconBlock,
+	blk types.BeaconBlock,
 	/*validateSignature bool, */
 	validateResult bool,
 ) error {
@@ -170,7 +170,7 @@ func (sp *StateProcessor[SidecarsT]) ProcessSlot(
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
 	st state.BeaconState,
-	avs AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, SidecarsT],
+	avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
 	sidecars SidecarsT,
 ) error {
 	slot, err := st.GetSlot()
@@ -183,7 +183,7 @@ func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor[SidecarsT]) ProcessBlock(
 	st state.BeaconState,
-	blk consensus.BeaconBlock,
+	blk types.BeaconBlock,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -238,7 +238,7 @@ func (sp *StateProcessor[SidecarsT]) processEpoch(st state.BeaconState) error {
 // processHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor[SidecarsT]) processHeader(
 	st state.BeaconState,
-	blk consensus.BeaconBlock,
+	blk types.BeaconBlock,
 ) error {
 	// TODO: this function is really confusing, can probably just
 	// be removed and the logic put in the ProcessBlock function.
@@ -248,8 +248,8 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 	}
 
 	// Store as the new latest block
-	headerRaw := &consensus.BeaconBlockHeader{
-		BeaconBlockHeaderBase: consensus.BeaconBlockHeaderBase{
+	headerRaw := &types.BeaconBlockHeader{
+		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
 			Slot:            header.Slot,
 			ProposerIndex:   header.ProposerIndex,
 			ParentBlockRoot: header.ParentBlockRoot,
@@ -268,7 +268,7 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 // local state.
 func (sp *StateProcessor[SidecarsT]) processOperations(
 	st state.BeaconState,
-	body consensus.BeaconBlockBody,
+	body types.BeaconBlockBody,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
 	// of deposits.
@@ -297,7 +297,7 @@ func (sp *StateProcessor[SidecarsT]) processOperations(
 // local state.
 func (sp *StateProcessor[SidecarsT]) processDeposits(
 	st state.BeaconState,
-	deposits []*consensus.Deposit,
+	deposits []*types.Deposit,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
@@ -315,7 +315,7 @@ func (sp *StateProcessor[SidecarsT]) processDeposits(
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[SidecarsT]) processDeposit(
 	st state.BeaconState,
-	dep *consensus.Deposit,
+	dep *types.Deposit,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -330,7 +330,7 @@ func (sp *StateProcessor[SidecarsT]) processDeposit(
 	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *consensus.Validator
+		var val *types.Validator
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return err
@@ -349,7 +349,7 @@ func (sp *StateProcessor[SidecarsT]) processDeposit(
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[SidecarsT]) createValidator(
 	st state.BeaconState,
-	dep *consensus.Deposit,
+	dep *types.Deposit,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -372,13 +372,13 @@ func (sp *StateProcessor[SidecarsT]) createValidator(
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Get the fork data for the current epoch.
-	fd := consensus.NewForkData(
+	fd := types.NewForkData(
 		version.FromUint32[primitives.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	depositMessage := consensus.DepositMessage{
+	depositMessage := types.DepositMessage{
 		Pubkey:      dep.Pubkey,
 		Credentials: dep.Credentials,
 		Amount:      dep.Amount,
@@ -396,9 +396,9 @@ func (sp *StateProcessor[SidecarsT]) createValidator(
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[SidecarsT]) addValidatorToRegistry(
 	st state.BeaconState,
-	dep *consensus.Deposit,
+	dep *types.Deposit,
 ) error {
-	val := consensus.NewValidatorFromDeposit(
+	val := types.NewValidatorFromDeposit(
 		dep.Pubkey,
 		dep.Credentials,
 		dep.Amount,
@@ -498,7 +498,7 @@ func (sp *StateProcessor[SidecarsT]) processWithdrawals(
 // ensures it matches the local state.
 func (sp *StateProcessor[SidecarsT]) processRandaoReveal(
 	st state.BeaconState,
-	blk consensus.BeaconBlock,
+	blk types.BeaconBlock,
 ) error {
 	return sp.rp.ProcessRandao(st, blk)
 }
@@ -678,7 +678,7 @@ func (sp *StateProcessor[SidecarsT]) processSlashings(
 //nolint:unused // will be used later
 func (sp *StateProcessor[SidecarsT]) processSlash(
 	st state.BeaconState,
-	val *consensus.Validator,
+	val *types.Validator,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {

@@ -26,9 +26,9 @@
 package blob
 
 import (
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
 )
@@ -58,7 +58,7 @@ func NewSidecarFactory[
 
 // BuildSidecar builds a sidecar.
 func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
-	blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
+	blk ctypes.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 	bundle engineprimitives.BlobsBundle,
 ) (*types.BlobSidecars, error) {
 	var (
@@ -127,7 +127,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
-	](membersRoots, consensus.BodyLengthDeneb-1)
+	](membersRoots, ctypes.BodyLengthDeneb-1)
 	if err != nil {
 		return nil, err
 	}
