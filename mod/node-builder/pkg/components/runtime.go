@@ -142,10 +142,14 @@ func ProvideRuntime(
 	)
 
 	// Build the Randao Processor.
-	randaoProcessor := randao.NewProcessor(
-		randao.WithSigner(signer),
-		randao.WithLogger(logger.With("service", "randao")),
-		randao.WithConfig(chainSpec),
+	randaoProcessor := randao.NewProcessor[
+		consensus.BeaconBlockBody,
+		consensus.BeaconBlock,
+		state.BeaconState,
+	](
+		chainSpec,
+		signer,
+		logger.With("service", "randao"),
 	)
 
 	// Build the builder service.

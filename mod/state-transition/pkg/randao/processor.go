@@ -26,7 +26,6 @@
 package randao
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -41,32 +40,41 @@ import (
 )
 
 // Processor is the randao processor.
-type Processor struct {
-	cs     primitives.ChainSpec
-	signer crypto.BLSSigner
-	logger log.Logger[any]
+type Processor[
+	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconStateT BeaconState,
+] struct {
+	chainSpec primitives.ChainSpec
+	signer    crypto.BLSSigner
+	logger    log.Logger[any]
 }
 
 // NewProcessor creates a new randao processor.
-func NewProcessor(
-	opts ...Option,
-) *Processor {
-	p := &Processor{}
-	for _, opt := range opts {
-		if err := opt(p); err != nil {
-			panic(err)
-		}
+func NewProcessor[
+	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconStateT BeaconState,
+](
+	chainSpec primitives.ChainSpec,
+	signer crypto.BLSSigner,
+	logger log.Logger[any],
+) *Processor[BeaconBlockBodyT, BeaconBlockT, BeaconStateT] {
+	return &Processor[BeaconBlockBodyT, BeaconBlockT, BeaconStateT]{
+		chainSpec: chainSpec,
+		signer:    signer,
+		logger:    logger,
 	}
-	return p
 }
 
 // ProcessRandao processes the randao reveal.
 // process_randao in the Ethereum 2.0 specification.
-func (p *Processor) ProcessRandao(
-	st state.BeaconState,
-	blk consensus.BeaconBlock,
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) ProcessRandao(
+	st BeaconStateT,
+	blk BeaconBlockT,
 ) error {
-	// proposer := blk.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -83,13 +91,14 @@ func (p *Processor) ProcessRandao(
 		return err
 	}
 
-	epoch := p.cs.SlotToEpoch(slot)
+	epoch := p.chainSpec.SlotToEpoch(slot)
 	signingRoot, err := p.computeSigningRoot(epoch, root)
 	if err != nil {
 		return err
 	}
 
-	reveal := blk.GetBody().GetRandaoReveal()
+	body := blk.GetBody()
+	reveal := body.GetRandaoReveal()
 	if err = p.signer.VerifySignature(
 		proposer.Pubkey[:],
 		signingRoot[:],
@@ -99,16 +108,16 @@ func (p *Processor) ProcessRandao(
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cs.EpochsPerHistoricalVector(),
+		uint64(epoch) % p.chainSpec.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
-	mix := p.buildMix(prevMix, blk.GetBody().GetRandaoReveal())
+	mix := p.buildMix(prevMix, body.GetRandaoReveal())
 	p.logger.Info("randao mix updated 🎲", "new_mix", mix)
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%p.cs.EpochsPerHistoricalVector(),
+		uint64(epoch)%p.chainSpec.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
@@ -123,8 +132,10 @@ func (p *Processor) ProcessRandao(
 //						domain)
 //
 //	return bls.Sign(privkey, signing_root)
-func (p *Processor) BuildReveal(
-	st state.BeaconState,
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) BuildReveal(
+	st BeaconStateT,
 ) (crypto.BLSSignature, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
@@ -139,33 +150,39 @@ func (p *Processor) BuildReveal(
 
 	return p.buildReveal(
 		genesisValidatorsRoot,
-		p.cs.SlotToEpoch(slot),
+		p.chainSpec.SlotToEpoch(slot),
 	)
 }
 
 // ProcessRandaoMixesReset resets the randao mixes.
 // process_randao_mixes_reset in the Ethereum 2.0 specification.
-func (p *Processor) ProcessRandaoMixesReset(st state.BeaconState) error {
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) ProcessRandaoMixesReset(
+	st BeaconStateT,
+) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
 
-	epoch := p.cs.SlotToEpoch(slot)
+	epoch := p.chainSpec.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % p.cs.EpochsPerHistoricalVector(),
+		uint64(epoch) % p.chainSpec.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%p.cs.EpochsPerHistoricalVector(),
+		uint64(epoch+1)%p.chainSpec.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
 
 // buildReveal creates a reveal for the proposer.
-func (p *Processor) buildReveal(
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) buildReveal(
 	genesisValidatorsRoot primitives.Root,
 	epoch math.Epoch,
 ) (crypto.BLSSignature, error) {
@@ -177,7 +194,9 @@ func (p *Processor) buildReveal(
 }
 
 // buildMix builds a new mix from a given mix and reveal.
-func (p *Processor) buildMix(
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) buildMix(
 	mix primitives.Bytes32,
 	reveal crypto.BLSSignature,
 ) primitives.Bytes32 {
@@ -189,17 +208,19 @@ func (p *Processor) buildMix(
 }
 
 // computeSigningRoot computes the signing root for the epoch.
-func (p *Processor) computeSigningRoot(
+func (p *Processor[
+	BeaconBlockBodyT, BeaconBlockT, BeaconStateT,
+]) computeSigningRoot(
 	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
 	fd := consensus.NewForkData(
 		version.FromUint32[primitives.Version](
-			p.cs.ActiveForkVersionForEpoch(epoch),
+			p.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
-	signingDomain, err := fd.ComputeDomain(p.cs.DomainTypeRandao())
+	signingDomain, err := fd.ComputeDomain(p.chainSpec.DomainTypeRandao())
 	if err != nil {
 		return primitives.Root{}, err
 	}

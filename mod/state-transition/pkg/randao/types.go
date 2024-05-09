@@ -26,35 +26,28 @@
 package randao
 
 import (
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type Option func(*Processor) error
-
-// WithSigner sets the signer.
-func WithSigner(
-	signer crypto.BLSSigner,
-) Option {
-	return func(p *Processor) error {
-		p.signer = signer
-		return nil
-	}
+// BeaconBlock is the interface for beacon block.
+type BeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
+	GetProposerIndex() math.ValidatorIndex
+	GetSlot() math.Slot
+	GetBody() BeaconBlockBodyT
 }
 
-// WithLogger sets the logger.
-func WithLogger(logger log.Logger[any]) Option {
-	return func(p *Processor) error {
-		p.logger = logger
-		return nil
-	}
+// BeaconBlockBody is the interface for beacon block body.
+type BeaconBlockBody interface {
+	GetRandaoReveal() crypto.BLSSignature
 }
 
-// WithConfig sets the config.
-func WithConfig(cs primitives.ChainSpec) Option {
-	return func(p *Processor) error {
-		p.cs = cs
-		return nil
-	}
+type BeaconState interface {
+	GetSlot() (math.Slot, error)
+	ValidatorByIndex(index math.U64) (*consensus.Validator, error)
+	GetGenesisValidatorsRoot() (primitives.Root, error)
+	GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error)
+	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error
 }
