@@ -26,12 +26,12 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -116,12 +116,12 @@ func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*consensus.Withdrawal, error) {
+func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
-		validator         *consensus.Validator
+		validator         *types.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		withdrawals       = make([]*consensus.Withdrawal, 0)
+		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
 	)
 
 	slot, err := s.GetSlot()
@@ -167,7 +167,7 @@ func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*consensus.Withdrawal, erro
 		}
 
 		// These fields are the same for both partial and full withdrawals.
-		withdrawal := &consensus.Withdrawal{
+		withdrawal := &engineprimitives.Withdrawal{
 			Index:     math.U64(withdrawalIndex),
 			Validator: validatorIndex,
 			Address:   withdrawalAddress,

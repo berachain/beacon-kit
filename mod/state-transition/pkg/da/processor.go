@@ -26,9 +26,9 @@
 package da
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
@@ -77,7 +77,7 @@ func (sp *BlobProcessor[BeaconBlockBodyT, SidecarsT]) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err := sp.bv.VerifyBlobs(
 		sidecars,
-		consensus.BlockBodyKZGOffset(slot, sp.chainSpec),
+		types.BlockBodyKZGOffset(slot, sp.chainSpec),
 	); err != nil {
 		return err
 	}

@@ -28,13 +28,13 @@ package blob
 import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
 ] struct {
 	cs          chainSpec
@@ -43,13 +43,14 @@ type SidecarFactory[
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
 ](
 	cs chainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
-) *SidecarFactory[BeaconBlockBodyT] {
-	return &SidecarFactory[BeaconBlockBodyT]{
+) *SidecarFactory[BeaconBlockT, BeaconBlockBodyT] {
+	return &SidecarFactory[BeaconBlockT, BeaconBlockBodyT]{
 		cs: cs,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
@@ -57,8 +58,8 @@ func NewSidecarFactory[
 }
 
 // BuildSidecar builds a sidecar.
-func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
-	blk consensus.ReadOnlyBeaconBlock[BeaconBlockBodyT],
+func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
+	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,
 ) (*types.BlobSidecars, error) {
 	var (
@@ -94,7 +95,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildSidecars(
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[BeaconBlockBodyT]) BuildKZGInclusionProof(
+func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
 	body BeaconBlockBodyT,
 	index uint64,
 ) ([][32]byte, error) {
@@ -117,7 +118,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
+func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 	body BeaconBlockBodyT,
 ) ([][32]byte, error) {
 	membersRoots, err := body.GetTopLevelRoots()
@@ -127,7 +128,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 
 	tree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
-	](membersRoots, consensus.BodyLengthDeneb-1)
+	](membersRoots, body.Length()-1)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (f *SidecarFactory[BeaconBlockBodyT]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[BeaconBlockBodyT]) BuildCommitmentProof(
+func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
 	body BeaconBlockBodyT,
 	index uint64,
 ) ([][32]byte, error) {

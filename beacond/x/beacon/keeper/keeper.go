@@ -30,12 +30,12 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -68,15 +68,15 @@ func NewKeeper(
 		cs: cs,
 		Backend: *storage.NewBackend(
 			cs,
-			dastore.New[consensus.ReadOnlyBeaconBlockBody](
+			dastore.New[types.ReadOnlyBeaconBlockBody](
 				cs, filedb.NewRangeDB(fdb),
 			),
 			beacondb.New[
-				*consensus.Fork,
-				*consensus.BeaconBlockHeader,
+				*types.Fork,
+				*types.BeaconBlockHeader,
 				engineprimitives.ExecutionPayloadHeader,
-				*consensus.Eth1Data,
-				*consensus.Validator,
+				*types.Eth1Data,
+				*types.Validator,
 			](env.KVStoreService, DenebPayloadFactory), ddb),
 	}
 }

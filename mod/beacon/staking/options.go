@@ -27,6 +27,7 @@ package staking
 
 import (
 	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -75,8 +76,11 @@ func WithDepositStore(
 	}
 }
 
+// WithExecutionEngine is a function that returns an Option.
 func WithExecutionEngine(
-	ee *engine.Engine,
+	ee *engine.Engine[
+		types.ExecutionPayload, *types.ExecutableDataDeneb,
+	],
 ) Option {
 	return func(s *Service) error {
 		s.ee = ee

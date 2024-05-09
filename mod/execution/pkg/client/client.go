@@ -45,8 +45,10 @@ import (
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
-type EngineClient struct {
-	*eth.Eth1Client
+type EngineClient[
+	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+] struct {
+	*eth.Eth1Client[ExecutionPayloadDenebT]
 
 	cfg          *Config
 	capabilities map[string]struct{}
@@ -65,20 +67,20 @@ type EngineClient struct {
 // New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
-func New(opts ...Option) *EngineClient {
-	ec := &EngineClient{
-		Eth1Client:   new(eth.Eth1Client),
+func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
+	cfg *Config,
+	logger log.Logger[any],
+	jwtSecret *jwt.Secret,
+) *EngineClient[ExecutionPayloadDenebT] {
+	ec := &EngineClient[ExecutionPayloadDenebT]{
+		cfg:          cfg,
+		logger:       logger,
+		jwtSecret:    jwtSecret,
+		Eth1Client:   new(eth.Eth1Client[ExecutionPayloadDenebT]),
 		capabilities: make(map[string]struct{}),
 		statusErrMu:  new(sync.RWMutex),
 	}
 	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
-
-	// Apply the options to the engine client.
-	for _, opt := range opts {
-		if err := opt(ec); err != nil {
-			panic(err)
-		}
-	}
 
 	// If the engine cache is not set, we create a new one.
 	if ec.engineCache == nil {
@@ -89,7 +91,7 @@ func New(opts ...Option) *EngineClient {
 }
 
 // Start starts the engine client.
-func (s *EngineClient) Start(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	for {
 		s.logger.Info("waiting for execution client to start 🍺🕔",
 			"dial-url", s.cfg.RPCDialURL)
@@ -133,14 +135,16 @@ func (s *EngineClient) Start(ctx context.Context) {
 
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
-func (s *EngineClient) Status() error {
+func (s *EngineClient[ExecutionPayloadDenebT]) Status() error {
 	s.statusErrMu.RLock()
 	defer s.statusErrMu.RUnlock()
 	return s.status(context.Background())
 }
 
 // status returns the status of the engine client.
-func (s *EngineClient) status(ctx context.Context) error {
+func (s *EngineClient[ExecutionPayloadDenebT]) status(
+	ctx context.Context,
+) error {
 	// If the client is not started, we return an error.
 	if s.Eth1Client.Client == nil {
 		return ErrNotStarted
@@ -161,7 +165,9 @@ func (s *EngineClient) status(ctx context.Context) error {
 }
 
 // WaitForHealthy waits for the engine client to be healthy.
-func (s *EngineClient) WaitForHealthy(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) WaitForHealthy(
+	ctx context.Context,
+) {
 	s.statusErrMu.Lock()
 	defer s.statusErrMu.Unlock()
 
@@ -179,7 +185,9 @@ func (s *EngineClient) WaitForHealthy(ctx context.Context) {
 
 // refreshUntilHealthy refreshes the engine client until it is healthy.
 // TODO: remove after hack testing done.
-func (s *EngineClient) refreshUntilHealthy(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
+	ctx context.Context,
+) {
 	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
 	defer ticker.Stop()
 
@@ -197,7 +205,9 @@ func (s *EngineClient) refreshUntilHealthy(ctx context.Context) {
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *EngineClient) VerifyChainID(ctx context.Context) error {
+func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
+	ctx context.Context,
+) error {
 	chainID, err := s.Client.ChainID(ctx)
 	if err != nil {
 		return err
@@ -216,7 +226,7 @@ func (s *EngineClient) VerifyChainID(ctx context.Context) error {
 
 // GetLogs retrieves the logs from the Ethereum execution client.
 // It calls the eth_getLogs method via JSON-RPC.
-func (s *EngineClient) GetLogs(
+func (s *EngineClient[ExecutionPayloadDenebT]) GetLogs(
 	ctx context.Context,
 	blockHash common.ExecutionHash,
 	addresses []common.ExecutionAddress,
@@ -233,7 +243,9 @@ func (s *EngineClient) GetLogs(
 }
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
+	ctx context.Context,
+) {
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
 	defer ticker.Stop()
 	for {
@@ -259,7 +271,7 @@ func (s *EngineClient) jwtRefreshLoop(ctx context.Context) {
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient) setupExecutionClientConnection(
+func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
 	ctx context.Context,
 ) error {
 	// Dial the execution client.
@@ -280,7 +292,9 @@ func (s *EngineClient) setupExecutionClientConnection(
 }
 
 // DialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
+func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
+	ctx context.Context,
+) error {
 	var (
 		client *rpc.Client
 		err    error
@@ -318,7 +332,9 @@ func (s *EngineClient) dialExecutionRPCClient(ctx context.Context) error {
 
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
-func (s *EngineClient) buildJWTHeader() (http.Header, error) {
+//
+//nolint:lll
+func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.

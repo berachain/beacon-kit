@@ -26,10 +26,10 @@
 package randao
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -214,7 +214,7 @@ func (p *Processor[
 	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
 ) (primitives.Root, error) {
-	fd := consensus.NewForkData(
+	fd := types.NewForkData(
 		version.FromUint32[primitives.Version](
 			p.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,

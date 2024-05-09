@@ -26,9 +26,9 @@
 package verification
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
@@ -47,7 +47,7 @@ func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
 // ValidateBlock validates the incoming block.
 func (bv *BlockVerifier) ValidateBlock(
 	st state.BeaconState,
-	blk consensus.ReadOnlyBeaconBlock[consensus.BeaconBlockBody],
+	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	// Get the block body.
 	body := blk.GetBody()

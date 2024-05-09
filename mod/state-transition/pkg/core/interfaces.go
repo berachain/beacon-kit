@@ -28,7 +28,7 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
@@ -51,7 +51,7 @@ type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
 type BlobProcessor[SidecarsT any] interface {
 	ProcessBlobs(
 		slot math.Slot,
-		avs AvailabilityStore[consensus.ReadOnlyBeaconBlockBody, SidecarsT],
+		avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
 		sidecars SidecarsT,
 	) error
 }
@@ -60,7 +60,7 @@ type BlobProcessor[SidecarsT any] interface {
 type RandaoProcessor interface {
 	ProcessRandao(
 		state.BeaconState,
-		consensus.BeaconBlock,
+		types.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
 		state.BeaconState,

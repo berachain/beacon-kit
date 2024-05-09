@@ -28,8 +28,8 @@ package parser
 import (
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -51,19 +51,19 @@ func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
 func ConvertWithdrawalCredentials(credentials string) (
-	consensus.WithdrawalCredentials,
+	types.WithdrawalCredentials,
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := DecodeFrom0xPrefixedString(credentials)
 	if err != nil {
-		return consensus.WithdrawalCredentials{}, err
+		return types.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return consensus.WithdrawalCredentials{},
+		return types.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return consensus.WithdrawalCredentials(credentialsBytes), nil
+	return types.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.

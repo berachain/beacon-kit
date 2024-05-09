@@ -28,10 +28,10 @@ package abci
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/p2p"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -52,7 +52,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper        p2p.Publisher[BlobsSidecarsT, []byte]
 	beaconBlockGossiper p2p.PublisherReceiver[
-		consensus.BeaconBlock, []byte, encoding.ABCIRequest, consensus.BeaconBlock,
+		types.BeaconBlock, []byte, encoding.ABCIRequest, types.BeaconBlock,
 	]
 }
 
@@ -137,7 +137,7 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 
 	var (
 		logger = ctx.Logger().With("module", "process-proposal")
-		blk    consensus.BeaconBlock
+		blk    types.BeaconBlock
 		err    error
 	)
 

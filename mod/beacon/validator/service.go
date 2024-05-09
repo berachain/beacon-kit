@@ -28,11 +28,11 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -55,7 +55,7 @@ type Service[
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody]
+	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
@@ -77,12 +77,13 @@ type Service[
 }
 
 // NewService creates a new validator service.
-func NewService[BlobSidecarsT BlobSidecars](
+func NewService[
+	BlobSidecarsT BlobSidecars](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody],
+	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[state.BeaconState],
 	ds DepositStore,
 	localBuilder PayloadBuilder[state.BeaconState],
@@ -126,7 +127,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,
-) (consensus.BeaconBlock, BlobSidecarsT, error) {
+) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -170,7 +171,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := consensus.EmptyBeaconBlock(
+	blk, err := types.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -238,7 +239,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	body.SetDeposits(deposits)
 
 	// TODO: assemble real eth1data.
-	body.SetEth1Data(&consensus.Eth1Data{
+	body.SetEth1Data(&types.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
 		BlockHash:    common.ExecutionHash{},

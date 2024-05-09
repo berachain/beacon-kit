@@ -31,13 +31,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -51,18 +51,22 @@ func CollectValidatorsCmd() *cobra.Command {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			genesis, err := types.AppGenesisFromFile(config.GenesisFile())
+			genesis, err := genutiltypes.AppGenesisFromFile(
+				config.GenesisFile(),
+			)
 			if err != nil {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
 			// create the app state
-			appGenesisState, err := types.GenesisStateFromAppGenesis(genesis)
+			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
+				genesis,
+			)
 			if err != nil {
 				return err
 			}
 
-			var validators []*consensus.Validator
+			var validators []*types.Validator
 			if validators, err = CollectValidatorJSONFiles(
 				filepath.Join(config.RootDir, "config", "gentx"),
 				genesis,
@@ -121,8 +125,8 @@ func CollectValidatorsCmd() *cobra.Command {
 // CollectValidatorJSONFiles.
 func CollectValidatorJSONFiles(
 	genTxsDir string,
-	genesis *types.AppGenesis,
-) ([]*consensus.Validator, error) {
+	genesis *genutiltypes.AppGenesis,
+) ([]*types.Validator, error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
@@ -137,7 +141,7 @@ func CollectValidatorJSONFiles(
 	}
 
 	// prepare the list of validators
-	validators := make([]*consensus.Validator, 0)
+	validators := make([]*types.Validator, 0)
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -155,7 +159,7 @@ func CollectValidatorJSONFiles(
 			return nil, err
 		}
 
-		val := &consensus.Validator{}
+		val := &types.Validator{}
 		if err = json.Unmarshal(bz, val); err != nil {
 			return nil, err
 		}

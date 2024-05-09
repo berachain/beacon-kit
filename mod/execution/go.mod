@@ -3,6 +3,7 @@ module github.com/berachain/beacon-kit/mod/execution
 go 1.22.3
 
 replace (
+	// TODO: this should be decoupled.
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
