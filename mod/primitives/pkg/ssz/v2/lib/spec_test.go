@@ -30,7 +30,7 @@ import (
 	"os"
 	"testing"
 
-	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2"
+	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
