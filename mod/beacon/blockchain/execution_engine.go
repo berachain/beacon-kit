@@ -29,7 +29,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )

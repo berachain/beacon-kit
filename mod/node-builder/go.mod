@@ -11,7 +11,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/core => ../core
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/da => ../da
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
@@ -34,7 +34,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/core v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000

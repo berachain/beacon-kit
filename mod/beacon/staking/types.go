@@ -28,7 +28,7 @@ package staking
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 )
 
 type BeaconStorageBackend interface {

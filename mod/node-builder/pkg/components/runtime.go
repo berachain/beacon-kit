@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/staking"
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"

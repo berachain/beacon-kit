@@ -30,8 +30,8 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"

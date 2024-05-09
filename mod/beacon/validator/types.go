@@ -28,7 +28,7 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"

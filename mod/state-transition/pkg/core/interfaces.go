@@ -28,7 +28,7 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )

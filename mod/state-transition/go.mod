@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/mod/state-transition
 go 1.22.2
 
 require (
-	github.com/berachain/beacon-kit/mod/core v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
@@ -11,6 +11,14 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/minio/sha256-simd v1.0.1
+)
+
+replace (
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
+	github.com/berachain/beacon-kit/mod/errors => ../errors
+	github.com/berachain/beacon-kit/mod/log => ../log
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
+	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 )
 
 require (

@@ -28,7 +28,7 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"

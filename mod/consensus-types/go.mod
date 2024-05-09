@@ -1,4 +1,4 @@
-module github.com/berachain/beacon-kit/mod/core
+module github.com/berachain/beacon-kit/mod/consensus-types
 
 go 1.22.2
 

@@ -26,7 +26,7 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"

@@ -4,7 +4,7 @@ use (
 	./beacond
 	./build/tools
 	./mod/beacon
-	./mod/core
+	./mod/consensus-types
 	./mod/da
 	./mod/errors
 	./mod/execution

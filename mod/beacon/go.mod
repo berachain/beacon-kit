@@ -9,7 +9,7 @@ replace (
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240506152226-0d32fa94e9eb
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240506152226-0d32fa94e9eb
 
-	github.com/berachain/beacon-kit/mod/core => ../core
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/log => ../log
@@ -21,7 +21,7 @@ replace (
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/core v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a

@@ -5,7 +5,7 @@ go 1.22.2
 replace (
 	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/core => ../mod/core
+	github.com/berachain/beacon-kit/mod/consensus-types => ../mod/consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../mod/errors
 	github.com/berachain/beacon-kit/mod/payload => ../mod/payload
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives

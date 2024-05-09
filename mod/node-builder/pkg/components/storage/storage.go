@@ -28,7 +28,7 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"

@@ -30,7 +30,7 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes

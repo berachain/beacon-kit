@@ -48,11 +48,11 @@ WORKDIR /workdir
 # Copy the go.mod and go.sum files for each module
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
-COPY ./mod/core/go.mod ./mod/core/go.sum ./mod/core/
+COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/
-COPY ./mod/node-builder/go.mod ./mod/core/go.sum ./mod/node-builder/
+COPY ./mod/node-builder/go.mod ./mod/node-builder/go.sum ./mod/node-builder/
 COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
@@ -64,7 +64,7 @@ COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
-RUN go work use ./mod/core
+RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution
 RUN go work use ./mod/log
