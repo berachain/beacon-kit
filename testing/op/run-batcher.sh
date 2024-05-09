@@ -24,11 +24,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
+# Run OP Batcher
 cd ~/op-stack-deployment/optimism
 direnv allow 
 
+source .envrc
 cd op-batcher
+printf "\nRunning OP Batcher..."
 
 ./bin/op-batcher \
   --l2-eth-rpc=http://localhost:8545 \

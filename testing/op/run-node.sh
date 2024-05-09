@@ -24,11 +24,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
+# Run OP Node
 cd ~/op-stack-deployment/optimism
 direnv allow 
 
+source .envrc
 cd op-node
+printf "\nRunning OP Node..."
 
 ./bin/op-node \
   --l2=http://localhost:8551 \

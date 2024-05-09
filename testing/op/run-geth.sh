@@ -24,11 +24,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
-cd ~/op-stack-deployment/optimism
-direnv allow 
-
+# Run OP Geth
 cd ~/op-stack-deployment/op-geth
+
+printf "\nRunning OP Geth..."
 
 ./build/bin/geth \
   --datadir ./datadir \

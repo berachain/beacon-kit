@@ -25,9 +25,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # Set your L1 values here
-PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
-RPC_URL=""  # Replace with your L1 node RPC. NOTE: must begin with "http://"
+PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # Default wallet with EVM balance
 RPC_KIND="any"
+RPC_URL="" # Replace with your L1 node RPC. NOTE: must begin with "http://"
+CHAIN_ID=80087 # Default Chain ID of a Kurtosis environment. Replace if necessary.
+BLOCK_TIME=6 # Default block time. NOTE: in unit of seconds. Replace if necessary.
 
 # Fill out environment variables in .envrc file
 cd ~/op-stack-deployment/optimism
@@ -82,9 +84,13 @@ cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 
-# Update deploy-config/getting-started.json with new addresses and display
+# Update deploy-config/getting-started.json with new addresses and L1 values
 cd packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
+jq --argjson chainId $CHAIN_ID \
+  --argjson blockTime $BLOCK_TIME \
+  '.l1ChainID = $chainId | .l1BlockTime = $blockTime | .finalizationPeriodSeconds = $blockTime' \
+  deploy-config/getting-started.json > tmp.json && mv tmp.json deploy-config/getting-started.json
 printf "\nUpdated getting-started.json:"
 cat deploy-config/getting-started.json
 
