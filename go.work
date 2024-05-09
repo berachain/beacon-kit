@@ -15,6 +15,7 @@ use (
 	./mod/primitives
 	./mod/primitives-engine
 	./mod/runtime
+	./mod/state-transition
 	./mod/storage
 	./testing
 )

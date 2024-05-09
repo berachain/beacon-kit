@@ -58,6 +58,7 @@ COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/primitives-engine/go.mod ./mod/primitives-engine/go.sum ./mod/primitives-engine/
 COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
+COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
@@ -73,6 +74,7 @@ RUN go work use ./mod/payload
 RUN go work use ./mod/primitives
 RUN go work use ./mod/primitives-engine
 RUN go work use ./mod/runtime
+RUN go work use ./mod/state-transition
 RUN go work use ./mod/storage
 RUN go work use ./mod/errors
 

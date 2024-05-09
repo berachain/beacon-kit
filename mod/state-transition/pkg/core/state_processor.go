@@ -47,6 +47,10 @@ type StateProcessor[SidecarsT interface{ Len() int }] struct {
 	rp     RandaoProcessor
 	signer crypto.BLSSigner
 	logger log.Logger[any]
+
+	// BlobProcessor
+	// DepositProcessor
+	// WithdrawalProcessor
 }
 
 // NewStateProcessor creates a new state processor.
