@@ -31,7 +31,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/core/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/state/deneb"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
