@@ -29,7 +29,7 @@ cd ~/op-stack-deployment/optimism
 direnv allow 
 
 source .envrc
-cd op-batcher
+cd ~/op-stack-deployment/optimism/op-batcher
 printf "\nRunning OP Batcher..."
 
 ./bin/op-batcher \

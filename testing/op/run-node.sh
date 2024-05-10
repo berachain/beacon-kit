@@ -29,7 +29,7 @@ cd ~/op-stack-deployment/optimism
 direnv allow 
 
 source .envrc
-cd op-node
+cd ~/op-stack-deployment/optimism/op-node
 printf "\nRunning OP Node..."
 
 ./bin/op-node \
