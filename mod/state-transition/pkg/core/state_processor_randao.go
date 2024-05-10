@@ -23,30 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package core
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(context.Context) state.BeaconState
+// processRandaoReveal processes the randao reveal and
+// ensures it matches the local state.
+func (sp *StateProcessor[SidecarsT]) processRandaoReveal(
+	st state.BeaconState,
+	blk types.BeaconBlock,
+) error {
+	return sp.rp.ProcessRandao(st, blk)
 }
 
-type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
-}
-
-type ExecutionEngine interface {
-	GetLogs(
-		context.Context,
-		common.ExecutionHash,
-		[]common.ExecutionAddress,
-	) ([]engineprimitives.Log, error)
+// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
+//
+//nolint:lll
+func (sp *StateProcessor[SidecarsT]) processRandaoMixesReset(
+	st state.BeaconState,
+) error {
+	return sp.rp.ProcessRandaoMixesReset(st)
 }
