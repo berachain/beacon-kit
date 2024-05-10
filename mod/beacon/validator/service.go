@@ -40,6 +40,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -59,7 +60,7 @@ type Service[
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
-	randaoProcessor RandaoProcessor[state.BeaconState]
+	randaoProcessor RandaoProcessor[BeaconStateT]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -69,27 +70,29 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder[state.BeaconState]
+	localBuilder PayloadBuilder[BeaconStateT]
 
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder[state.BeaconState]
+	remoteBuilders []PayloadBuilder[BeaconStateT]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BlobSidecarsT BlobSidecars](
+	BeaconStateT state.BeaconState,
+	BlobSidecarsT BlobSidecars,
+](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
-	randaoProcessor RandaoProcessor[state.BeaconState],
+	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
-	localBuilder PayloadBuilder[state.BeaconState],
-	remoteBuilders []PayloadBuilder[state.BeaconState],
-) *Service[BlobSidecarsT] {
-	return &Service[BlobSidecarsT]{
+	localBuilder PayloadBuilder[BeaconStateT],
+	remoteBuilders []PayloadBuilder[BeaconStateT],
+) *Service[BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
 		logger:          logger,
 		chainSpec:       chainSpec,
@@ -103,29 +106,35 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[BlobSidecarsT]) Name() string {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "validator"
 }
 
-func (s *Service[BlobSidecarsT]) Start(context.Context) {}
+// Start starts the service.
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service[BlobSidecarsT]) Status() error { return nil }
+// Status returns the status of the service.
+func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
+// WaitForHealthy waits for the service to become healthy.
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+	context.Context,
+) {
+}
 
 // LocalBuilder returns the local builder.
 //
 //nolint:lll // weird.
-func (s *Service[BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
+func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[BeaconStateT] {
 	return s.localBuilder
 }
 
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service[BlobSidecarsT]) RequestBestBlock(
+func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 ) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT

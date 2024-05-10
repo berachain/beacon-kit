@@ -23,27 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package core
 
-import (
-	"context"
+// processRandaoReveal processes the randao reveal and
+// ensures it matches the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processRandaoReveal(
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	return sp.rp.ProcessRandao(st, blk)
+}
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-)
-
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
+//
+//nolint:lll
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processRandaoMixesReset(
+	st BeaconStateT,
+) error {
+	return sp.rp.ProcessRandaoMixesReset(st)
 }

@@ -23,20 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-}
-
-// ReadOnlyBeaconBlockBody is the body of a beacon block.
-type ReadOnlyBeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProcessBlobs processes the blobs and ensures they match the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessBlobs(
+	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	sidecars BlobSidecarsT,
+) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	return sp.bp.ProcessBlobs(slot, avs, sidecars)
 }

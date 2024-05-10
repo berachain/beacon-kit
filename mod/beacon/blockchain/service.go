@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -36,33 +37,59 @@ import (
 
 // Service is the blockchain service.
 type Service[
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
-	// service.BaseService
-	bsb    BeaconStorageBackend[BlobSidecarsT]
+	// bsb represents the backend storage for beacon states and associated
+	// sidecars.
+	bsb BeaconStorageBackend[
+		BeaconStateT, BlobSidecarsT,
+	]
+
+	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-	cs     primitives.ChainSpec
-	ee     ExecutionEngine
-	lb     LocalBuilder
-	sks    StakingService
-	bv     BlockVerifier
-	sp     *core.StateProcessor[BlobSidecarsT]
-	pv     PayloadVerifier
+
+	// cs holds the chain specifications.
+	cs primitives.ChainSpec
+
+	// ee is the execution engine responsible for processing execution payloads.
+	ee ExecutionEngine
+
+	// lb is a local builder for constructing new beacon states.
+	lb LocalBuilder[BeaconStateT]
+
+	// sks is the staking service managing staking logic.
+	sks StakingService
+
+	// bv is responsible for verifying beacon blocks.
+	bv BlockVerifier[BeaconStateT]
+
+	// sp is the state processor for beacon blocks and states.
+	sp *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
+
+	// pv verifies the payload of beacon blocks.
+	pv PayloadVerifier[BeaconStateT]
 }
 
 // NewService creates a new validator service.
-func NewService[BlobSidecarsT BlobSidecars](
-	bsb BeaconStorageBackend[BlobSidecarsT],
+func NewService[
+	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars,
+](
+	bsb BeaconStorageBackend[BeaconStateT, BlobSidecarsT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
-	lb LocalBuilder,
+	lb LocalBuilder[BeaconStateT],
 	sks StakingService,
-	bv BlockVerifier,
-	sp *core.StateProcessor[BlobSidecarsT],
-	pv PayloadVerifier,
-) *Service[BlobSidecarsT] {
-	return &Service[BlobSidecarsT]{
+	bv BlockVerifier[BeaconStateT],
+	sp *core.StateProcessor[
+		types.BeaconBlock,
+		BeaconStateT,
+		BlobSidecarsT,
+	],
+	pv PayloadVerifier[BeaconStateT],
+) *Service[BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconStateT, BlobSidecarsT]{
 		bsb:    bsb,
 		logger: logger,
 		cs:     cs,
@@ -76,24 +103,27 @@ func NewService[BlobSidecarsT BlobSidecars](
 }
 
 // Name returns the name of the service.
-func (s *Service[BlobSidecarsT]) Name() string {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service[BlobSidecarsT]) Status() error { return nil }
+func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+	context.Context,
+) {
+}
 
 // TODO: Remove
-func (s Service[BlobSidecarsT]) BeaconState(
+func (s Service[BeaconStateT, BlobSidecarsT]) BeaconState(
 	ctx context.Context,
-) state.BeaconState {
+) BeaconStateT {
 	return s.bsb.BeaconState(ctx)
 }
 
 // TODO: Remove
-func (s Service[BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
+func (s Service[BeaconStateT, BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
 	return s.cs
 }

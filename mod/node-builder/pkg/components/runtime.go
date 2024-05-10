@@ -70,19 +70,20 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	// TODO: this is really poor coupling, we should fix.
 	storageBackend runtime.BeaconStorageBackend[
+		types.BeaconBlockBody,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		types.ReadOnlyBeaconBlockBody,
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime[
+	types.BeaconBlockBody,
+	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
-	types.ReadOnlyBeaconBlockBody,
 	runtime.BeaconStorageBackend[
+		types.BeaconBlockBody,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		types.ReadOnlyBeaconBlockBody,
 	],
 ], error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
@@ -155,7 +156,9 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	validatorService := validator.NewService[*datypes.BlobSidecars](
+	validatorService := validator.NewService[
+		state.BeaconState, *datypes.BlobSidecars,
+	](
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
@@ -174,18 +177,24 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
-	chainService := blockchain.NewService[*datypes.BlobSidecars](
+	chainService := blockchain.NewService[
+		state.BeaconState, *datypes.BlobSidecars,
+	](
 		storageBackend,
 		logger.With("service", "blockchain"),
 		chainSpec,
 		executionEngine,
 		localBuilder,
 		stakingService,
-		verification.NewBlockVerifier(chainSpec),
-		core.NewStateProcessor[*datypes.BlobSidecars](
+		verification.NewBlockVerifier[state.BeaconState](chainSpec),
+		core.NewStateProcessor[
+			types.BeaconBlock,
+			state.BeaconState,
+			*datypes.BlobSidecars,
+		](
 			chainSpec,
 			stda.NewBlobProcessor[
-				types.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+				types.BeaconBlockBody, *datypes.BlobSidecars,
 			](
 				logger.With("module", "blob-processor"),
 				chainSpec,
@@ -208,9 +217,10 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
+		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
-		types.ReadOnlyBeaconBlockBody,
 	](
 		logger.With(
 			"module",
