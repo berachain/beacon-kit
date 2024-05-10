@@ -37,7 +37,7 @@ type SidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
 ] struct {
-	cs          chainSpec
+	cs          ChainSpec
 	kzgPosition uint64
 }
 
@@ -46,7 +46,7 @@ func NewSidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
 ](
-	cs chainSpec,
+	cs ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 ) *SidecarFactory[BeaconBlockT, BeaconBlockBodyT] {

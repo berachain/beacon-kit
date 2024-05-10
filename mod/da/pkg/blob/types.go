@@ -31,17 +31,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// chainSpec represents a chain spec.
-type chainSpec interface {
-	MaxBlobCommitmentsPerBlock() uint64
-}
-
 type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetBody() BeaconBlockBodyT
 	GetHeader() *types.BeaconBlockHeader
 }
+
 type ReadOnlyBeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 	Length() uint64
+}
+
+// ChainSpec represents a chain spec.
+type ChainSpec interface {
+	MaxBlobCommitmentsPerBlock() uint64
 }
