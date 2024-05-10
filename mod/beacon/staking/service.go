@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // Service represents the staking service.
@@ -50,7 +49,7 @@ type Service struct {
 	abi *abi.WrappedABI
 
 	// deposit represents the deposit store.
-	ds *deposit.KVStore
+	ds DepositStore
 }
 
 // NewService creates a new validator service.

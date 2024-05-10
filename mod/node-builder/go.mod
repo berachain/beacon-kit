@@ -43,7 +43,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240510171419-8088d5e4f810
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240509094503-43f6859e2926
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
