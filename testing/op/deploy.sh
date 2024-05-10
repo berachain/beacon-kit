@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # Set your L1 values here
-RPC_URL="" # Replace with your L1 node RPC. NOTE: must begin with "http://"
+RPC_URL=http://0.0.0.0:51336  # Replace with your L1 node RPC. NOTE: must begin with "http://"
 CHAIN_ID=80087 # Default Chain ID of a Kurtosis environment. Replace if necessary
 BLOCK_TIME=6 # Default block time. NOTE: in unit of seconds. Replace if necessary
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # Default wallet with EVM balance
@@ -132,7 +132,7 @@ forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --b
 cp packages/contracts-bedrock/deployments/getting-started/.deploy packages/contracts-bedrock/deployments/getting-started/l1.json
 
 # Run the OP node genesis
-cd op-node
+cd ~/op-stack-deployment/optimism/op-node
 printf "\nRunning the OP node genesis..."
 go run cmd/main.go genesis l2 \
   --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
