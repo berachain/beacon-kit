@@ -126,14 +126,14 @@ else
   exit 1
 fi
 
-# # Create the getting-started files
-# cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments
-# if [ -d getting-started ]; then
-#   rm -rf getting-started
-# fi
-# mkdir getting-started
-# echo "$CHAIN_ID" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.chainId
-# echo "{}" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy
+# Create the getting-started files
+cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments
+if [ -d getting-started ]; then
+  rm -rf getting-started
+fi
+mkdir getting-started
+echo -n "$CHAIN_ID" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.chainId
+echo -n "{}" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy
 
 # Deploy L1 smart contracts
 printf "\nDeploying L1 smart contracts...\n"
