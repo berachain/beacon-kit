@@ -27,7 +27,10 @@ package prunedb
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/log"
@@ -93,8 +96,26 @@ func New(
 		lastDeletedIndex: 1,
 	}
 
-	// TODO: pull this out into a Start DB call to utilize a real context.
-	prunerDB.Start(context.Background())
+	// Create a cancellable context from the background context
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Start a goroutine that cancels the context on receiving a signal
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		// interrupt signal sent from terminal
+		signal.Notify(sigint, os.Interrupt)
+		// sigterm signal sent from kubernetes/docker
+		signal.Notify(sigint, syscall.SIGTERM)
+
+		<-sigint
+
+		// Cancel the context when a signal is received
+		cancel()
+	}()
+
+	// Start the prunerDB with the cancellable context
+	prunerDB.Start(ctx)
+
 	return prunerDB
 }
 
