@@ -119,7 +119,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 // TODO: Remove
 func (s Service[BeaconStateT, BlobSidecarsT]) BeaconState(
 	ctx context.Context,
-) state.BeaconState {
+) BeaconStateT {
 	return s.bsb.BeaconState(ctx)
 }
 
