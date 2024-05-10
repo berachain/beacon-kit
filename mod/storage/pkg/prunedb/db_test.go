@@ -27,15 +27,15 @@ package prunedb_test
 
 import (
 	"context"
-	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/spf13/afero"
 	"strconv"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
+	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	prune "github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/prunedb/mocks"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +47,6 @@ type test struct {
 }
 
 func TestDB_Prune(t *testing.T) {
-
 	fs := afero.NewMemMapFs()
 	db := file.NewDB(
 		file.WithRootDirectory("/tmp/testdb"),
