@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # Set your L1 values here
-RPC_URL="" # Replace with your L1 node RPC. NOTE: must begin with "http://"
+RPC_URL="http://127.0.0.1:54473" # Replace with your L1 node RPC. NOTE: must begin with "http://"
 CHAIN_ID=80087 # Default Chain ID of a Kurtosis environment. Replace if necessary
 BLOCK_TIME=6 # Default block time. NOTE: in unit of seconds. Replace if necessary
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # Default wallet with EVM balance
@@ -108,27 +108,27 @@ cat deploy-config/getting-started.json
 # Deploy the Create2 factory if necessary
 codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
 if [[ "$codesize_output" == "0" ]]; then
-    printf "\nSending 1 ether to the factory deployer address..."
-    cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
+  printf "\nSending 1 ether to the factory deployer address..."
+  cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
 
-    cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
-    cast publish --rpc-url $L1_RPC_URL 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222
+  cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
+  cast publish --rpc-url $L1_RPC_URL 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222
 
-    codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
-    if [[ "$codesize_output" == "0" ]]; then
-      printf "\nCreate2 Factory was unable to be deployed."
-      exit 1
-    fi
-elif [[ "$codesize_output" == "69" ]]; then
-    printf "\nCreate2 Factory is already deployed!"
-else
-    printf "\nUnexpected output when checking the create2 factory: $codesize_output"
+  codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
+  if [[ "$codesize_output" == "0" ]]; then
+    printf "\nCreate2 Factory was unable to be deployed."
     exit 1
+  fi
+elif [[ "$codesize_output" == "69" ]]; then
+  printf "\nCreate2 Factory is already deployed!"
+else
+  printf "\nUnexpected output when checking the create2 factory: $codesize_output"
+  exit 1
 fi
 
 # Deploy L1 smart contracts
 printf "\nDeploying L1 smart contracts..."
-forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --slow --legacy
+forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --legacy
 cp packages/contracts-bedrock/deployments/getting-started/.deploy packages/contracts-bedrock/deployments/getting-started/l1.json
 
 # Run the OP node genesis
