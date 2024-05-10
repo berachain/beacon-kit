@@ -35,12 +35,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
 
 type BeaconStorageBackend[
-	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars,
+	BeaconStateT any, BlobSidecarsT BlobSidecars,
 ] interface {
 	AvailabilityStore(
 		context.Context,
@@ -58,7 +57,7 @@ type BlobSidecars interface {
 }
 
 // BlockVerifier is the interface for the block verifier.
-type BlockVerifier[BeaconStateT state.BeaconState] interface {
+type BlockVerifier[BeaconStateT any] interface {
 	ValidateBlock(
 		st BeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -88,7 +87,7 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[BeaconStateT state.BeaconState] interface {
+type LocalBuilder[BeaconStateT any] interface {
 	RequestPayload(
 		ctx context.Context,
 		st BeaconStateT,
@@ -100,7 +99,7 @@ type LocalBuilder[BeaconStateT state.BeaconState] interface {
 }
 
 // PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier[BeaconStateT state.BeaconState] interface {
+type PayloadVerifier[BeaconStateT any] interface {
 	VerifyPayload(
 		st BeaconStateT,
 		payload engineprimitives.ExecutionPayload,
@@ -108,7 +107,7 @@ type PayloadVerifier[BeaconStateT state.BeaconState] interface {
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconStateT state.BeaconState] interface {
+type RandaoProcessor[BeaconStateT any] interface {
 	BuildReveal(
 		st BeaconStateT,
 	) (crypto.BLSSignature, error)
