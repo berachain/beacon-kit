@@ -41,14 +41,12 @@ fi
 . $(brew --prefix nvm)/nvm.sh  # if installed via Brew
 nvm install v20.11.0
 
-# Install op-node op-batcher op-proposer
-cd ~/op-stack-deployment/optimism
-
 # Display the versions of the required packages
-# TODO: handle any deps not installed
+printf "\nMinimum versions of the required packages:\n"
 sh ./packages/contracts-bedrock/scripts/getting-started/versions.sh
 
 # Build op-node op-batcher op-proposer
+cd ~/op-stack-deployment/optimism
 npm i -g pnpm
 pnpm install
 make op-node op-batcher op-proposer
@@ -57,7 +55,7 @@ pnpm build
 # Install and build op-geth
 cd ~/op-stack-deployment/op-geth/
 make geth
-cd ..
 
 # Install direnv
+cd ~/op-stack-deployment
 brew install direnv

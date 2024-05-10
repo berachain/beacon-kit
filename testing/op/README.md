@@ -11,5 +11,9 @@ Note: this guide assumes you have `nvm`, `forge`, and `brew` already installed o
 0. Start the L1 chain. If using local, run a kurtosis test environment with `make start-devnet` from the root of the beacon-kit repo.
 1. If it's your first time, run `setup.sh` to install Optimism dependencies.
 2. Set your L1 (local or remote) values in `deploy.sh`, specifically an `RPC_URL` for the L1.
-3. Run `deploy.sh` to intialize wallets and deploy L1 contracts.
-4. Run the run- files in this order to start the OP L2: `geth`, `node`, `batcher`, and `proposer`.
+3. Run `deploy.sh` to intialize wallets and deploy the L1 contracts.
+4. Run the run- files in separate processes to start the OP L2: `geth`, `node`, `batcher`, and `proposer` (in this order).
+
+### The L2 is up and running
+
+The L2 has an RPC exposed at `http://localhost:8545`. You can bridge over to the L2 by running `bridge.sh`. From there you can begin interacting with the L2!

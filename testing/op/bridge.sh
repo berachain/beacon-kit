@@ -24,26 +24,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Run OP Node
+# Get the bridge contract from the deployment files
+BRIDGE_CONTRACT=$(jq -r '.L1StandardBridgeProxy' ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/l1.json)
+printf "\nBridge contract address: $BRIDGE_CONTRACT\n"
+
 cd ~/op-stack-deployment/optimism
 direnv allow 
-
 source .envrc
-cd ~/op-stack-deployment/optimism/op-node
-printf "\nRunning OP Node...\n"
 
-./bin/op-node \
-  --l2=http://localhost:8551 \
-  --l2.jwt-secret=./jwt.txt \
-  --sequencer.enabled \
-  --sequencer.l1-confs=5 \
-  --verifier.l1-confs=4 \
-  --rollup.config=./rollup.json \
-  --rpc.addr=0.0.0.0 \
-  --rpc.port=8547 \
-  --p2p.disable \
-  --rpc.enable-admin \
-  --p2p.sequencer.key=$GS_SEQUENCER_PRIVATE_KEY \
-  --l1=$L1_RPC_URL \
-  --l1.rpckind=$L1_RPC_KIND \
-  --l1.trustrpc=true
+# Send 10 ETH to the bridge contract to receive on the L2
+printf "\nSending 10 ETH to the bridge contract...\n"
+cast send $BRIDGE_CONTRACT --value 10ether --private-key $PRIVATE_KEY --legacy --rpc-url $L1_RPC_URL
