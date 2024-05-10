@@ -28,9 +28,19 @@ package staking
 import (
 	"context"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 type BeaconStorageBackend interface {
 	BeaconState(context.Context) state.BeaconState
+}
+
+type ExecutionEngine interface {
+	GetLogs(
+		context.Context,
+		common.ExecutionHash,
+		[]common.ExecutionAddress,
+	) ([]engineprimitives.Log, error)
 }
