@@ -29,13 +29,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // Service represents the staking service.
@@ -45,14 +42,14 @@ type Service struct {
 	cs     primitives.ChainSpec
 
 	// ee represents the execution engine.
-	ee *engine.Engine[types.ExecutionPayload, *types.ExecutableDataDeneb]
+	ee ExecutionEngine
 
 	// abi represents the configured deposit contract's
 	// abi.
 	abi *abi.WrappedABI
 
 	// deposit represents the deposit store.
-	ds *deposit.KVStore
+	ds DepositStore
 }
 
 // NewService creates a new validator service.

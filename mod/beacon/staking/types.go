@@ -28,9 +28,25 @@ package staking
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 type BeaconStorageBackend interface {
 	BeaconState(context.Context) state.BeaconState
+}
+
+type DepositStore interface {
+	PruneToIndex(uint64) error
+	EnqueueDeposits([]*types.Deposit) error
+}
+
+type ExecutionEngine interface {
+	GetLogs(
+		context.Context,
+		common.ExecutionHash,
+		[]common.ExecutionAddress,
+	) ([]engineprimitives.Log, error)
 }
