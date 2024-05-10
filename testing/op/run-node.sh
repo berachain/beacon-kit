@@ -46,4 +46,5 @@ printf "\nRunning OP Node...\n"
   --p2p.sequencer.key=$GS_SEQUENCER_PRIVATE_KEY \
   --l1=$L1_RPC_URL \
   --l1.rpckind=$L1_RPC_KIND \
-  --l1.beacon.ignore=true
+  --l1.trustrpc=true \
+  # --l1.beacon.ignore=true

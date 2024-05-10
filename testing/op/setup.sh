@@ -28,7 +28,7 @@
 cd ~/
 mkdir op-stack-deployment
 cd ~/op-stack-deployment
-git clone --branch v1.7.4 --single-branch https://github.com/ethereum-optimism/optimism.git
+git clone --branch tutorials/chain --single-branch https://github.com/ethereum-optimism/optimism.git
 git clone https://github.com/ethereum-optimism/op-geth.git --depth 1
  
 # Check if ~/.nvm directory doesn't exist
@@ -54,10 +54,6 @@ pnpm install
 make op-node op-batcher op-proposer
 pnpm build
 
-# Install dependencies for the contracts
-cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/
-forge install
-
 # Install and build op-geth
 cd ~/op-stack-deployment/op-geth/
 make geth
@@ -65,15 +61,3 @@ cd ..
 
 # Install direnv
 brew install direnv
-direnv_hook='eval "$(direnv hook zsh)"'
-zsh_config="$HOME/.zshrc"
-
-# Check if the direnv hook already exists in the file
-if ! grep -qF "$direnv_hook" "$zsh_config"; then
-    # Append the direnv hook to the file
-    echo "$direnv_hook" >> "$zsh_config"
-    echo "direnv hook added to $zsh_config"
-else
-    echo "direnv hook already exists in $zsh_config"
-fi
-source $zsh_config

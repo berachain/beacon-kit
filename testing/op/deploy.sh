@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # Set your L1 values here
-RPC_URL="http://127.0.0.1:54473" # Replace with your L1 node RPC. NOTE: must begin with "http://"
+RPC_URL="http://127.0.0.1:58597" # Replace with your L1 node RPC. NOTE: must begin with "http://" or "https://"
 CHAIN_ID=80087 # Default Chain ID of a Kurtosis environment. Replace if necessary
 BLOCK_TIME=6 # Default block time. NOTE: in unit of seconds. Replace if necessary
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # Default wallet with EVM balance
@@ -98,13 +98,6 @@ cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-
 # Update deploy-config/getting-started.json with L1 values, L2 addresses and settings
 cd ~/op-stack-deployment/optimism/packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
-jq '. + {
-  "faultGameWithdrawalDelay": 604800,
-  "proofMaturityDelaySeconds": 604800,
-  "disputeGameFinalityDelaySeconds": 302400,
-  "respectedGameType": 0,
-  "useFaultProofs": true
-}' deploy-config/getting-started.json > tmp.json && mv tmp.json deploy-config/getting-started.json
 jq --argjson chainId $CHAIN_ID \
   --argjson blockTime $BLOCK_TIME \
   '.l1ChainID = $chainId | .l1BlockTime = $blockTime | .finalizationPeriodSeconds = $blockTime' \
@@ -127,36 +120,33 @@ if [[ "$codesize_output" == "0" ]]; then
     exit 1
   fi
 elif [[ "$codesize_output" == "69" ]]; then
-  printf "\nCreate2 Factory is already deployed!"
+  printf "\nCreate2 Factory is already deployed!\n"
 else
   printf "\nUnexpected output when checking the create2 factory: $codesize_output"
   exit 1
 fi
 
-# Create the getting-started files
-cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments
-if [ -d getting-started ]; then
-  rm -rf getting-started
-fi
-mkdir getting-started
-echo "$CHAIN_ID" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.chainId
-echo "{}" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy
+# # Create the getting-started files
+# cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments
+# if [ -d getting-started ]; then
+#   rm -rf getting-started
+# fi
+# mkdir getting-started
+# echo "$CHAIN_ID" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.chainId
+# echo "{}" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy
 
 # Deploy L1 smart contracts
 printf "\nDeploying L1 smart contracts...\n"
 cd ~/op-stack-deployment/optimism/packages/contracts-bedrock
-env DEPLOY_CONFIG_PATH=~/op-stack-deployment/optimism/packages/contracts-bedrock/deploy-config/getting-started.json forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --legacy
-# TODO: DEPLOY_OUTFILE=~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/l1.json \ 
-# TODO: potentially remove the created .chainId, .deploy files from deployments/ dir ?
+forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --legacy
+cp ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/l1.json
 
 # Run the OP node genesis
 cd ~/op-stack-deployment/optimism/op-node
 printf "\nRunning the OP node genesis...\n"
-# TODO: configure the DEPLOY_OUTFILE to run 
-# TODO: generate allocs (flag --l2-allocs)
 go run cmd/main.go genesis l2 \
   --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
-  --l1-deployments ../packages/contracts-bedrock/deployments/80087-deploy.json \
+  --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/l1.json \
   --outfile.l2 genesis.json \
   --outfile.rollup rollup.json \
   --l1-rpc $L1_RPC_URL
