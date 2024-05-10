@@ -24,64 +24,58 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 validators:
-  # - el_type: besu
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  # - el_type: nethermind
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
   - el_type: reth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
   - el_type: geth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
-  # - el_type: erigon
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  # - el_type: ethereumjs
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local  
+  - el_type: erigon
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+  - el_type: ethereumjs
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local  
 full_nodes:
-  # - el_type: besu
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  # - el_type: nethermind
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
   - el_type: reth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
+    replicas: 2
+  - el_type: geth
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
     replicas: 1
-  # - el_type: geth
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  #   replicas: 1
-  # - el_type: erigon
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  # - el_type: ethereumjs
-  #   cl_type: beaconkit
-  #   cl_image: beacond:kurtosis-local
-  #   replicas: 1 
-op_stack:
-  - geth: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:latest
-  - node: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest
-  - batcher: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher:latest
-  - proposer: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer:latest
-
+  - el_type: erigon
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+  - el_type: ethereumjs
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+    replicas: 1 
 rpc_endpoints:
   - type: nginx
     services:
-      # - el-full-besu-0:8545
-      # - el-full-nethermind-1:8545
-      # - el-full-reth-2:8545
-      - el-full-reth-0:8545
-      # - el-full-geth-4:8545
-      # - el-full-erigon-5:8545
-      # - el-full-ethereumjs-6:8545
-# additional_services: 
-#   - "goomy_blob"
-#   - "prometheus"
-#   - "grafana"
-#   - "pyroscope"
+      - el-full-besu-0:8545
+      - el-full-nethermind-1:8545
+      - el-full-reth-2:8545
+      - el-full-reth-3:8545
+      - el-full-geth-4:8545
+      - el-full-erigon-5:8545
+      - el-full-ethereumjs-6:8545
+additional_services: 
+  - "goomy_blob"
+  - "prometheus"
+  - "grafana"
+  - "pyroscope"
