@@ -40,22 +40,41 @@ type Service[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
-	// service.BaseService
+	// bsb represents the backend storage for beacon states and associated
+	// sidecars.
 	bsb BeaconStorageBackend[
 		BeaconStateT, BlobSidecarsT,
 	]
+
+	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-	cs     primitives.ChainSpec
-	ee     ExecutionEngine
-	lb     LocalBuilder[BeaconStateT]
-	sks    StakingService
-	bv     BlockVerifier[BeaconStateT]
-	sp     *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
-	pv     PayloadVerifier[BeaconStateT]
+
+	// cs holds the chain specifications.
+	cs primitives.ChainSpec
+
+	// ee is the execution engine responsible for processing execution payloads.
+	ee ExecutionEngine
+
+	// lb is a local builder for constructing new beacon states.
+	lb LocalBuilder[BeaconStateT]
+
+	// sks is the staking service managing staking logic.
+	sks StakingService
+
+	// bv is responsible for verifying beacon blocks.
+	bv BlockVerifier[BeaconStateT]
+
+	// sp is the state processor for beacon blocks and states.
+	sp *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
+
+	// pv verifies the payload of beacon blocks.
+	pv PayloadVerifier[BeaconStateT]
 }
 
 // NewService creates a new validator service.
-func NewService[BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars](
+func NewService[
+	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars,
+](
 	bsb BeaconStorageBackend[BeaconStateT, BlobSidecarsT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
@@ -64,7 +83,10 @@ func NewService[BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars](
 	sks StakingService,
 	bv BlockVerifier[BeaconStateT],
 	sp *core.StateProcessor[
-		types.BeaconBlock, BeaconStateT, BlobSidecarsT],
+		types.BeaconBlock,
+		BeaconStateT,
+		BlobSidecarsT,
+	],
 	pv PayloadVerifier[BeaconStateT],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{
