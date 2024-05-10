@@ -284,16 +284,19 @@ func (sp *StateProcessor[SidecarsT]) processRewardsAndPenalties(
 	if err != nil {
 		return err
 	}
+
 	validators, err := st.GetValidators()
 	if err != nil {
 		return err
 	}
+
 	if len(validators) != len(rewards) || len(validators) != len(penalties) {
 		return errors.Newf(
 			"mismatched rewards and penalties lengths: %d, %d, %d",
 			len(validators), len(rewards), len(penalties),
 		)
 	}
+
 	for i := range validators {
 		// Increase the balance of the validator.
 		if err = st.IncreaseBalance(
@@ -311,5 +314,6 @@ func (sp *StateProcessor[SidecarsT]) processRewardsAndPenalties(
 			return err
 		}
 	}
+
 	return nil
 }
