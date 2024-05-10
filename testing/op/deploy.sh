@@ -95,7 +95,7 @@ cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 
-# Update deploy-config/getting-started.json with new addresses and L1 values
+# Update deploy-config/getting-started.json with L1 values, L2 addresses and settings
 cd ~/op-stack-deployment/optimism/packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
 jq '. + {
@@ -109,7 +109,7 @@ jq --argjson chainId $CHAIN_ID \
   --argjson blockTime $BLOCK_TIME \
   '.l1ChainID = $chainId | .l1BlockTime = $blockTime | .finalizationPeriodSeconds = $blockTime' \
   deploy-config/getting-started.json > tmp.json && mv tmp.json deploy-config/getting-started.json
-printf "\nUpdated getting-started.json:"
+printf "\nUpdated getting-started.json:\n"
 cat deploy-config/getting-started.json
 
 # Deploy the Create2 factory if necessary
