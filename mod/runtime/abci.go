@@ -37,7 +37,7 @@ func (r *BeaconKitRuntime[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 ]) PrepareProposal(
 	req *abci.PrepareProposalRequest,
@@ -61,7 +61,7 @@ func (r *BeaconKitRuntime[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 ]) ProcessProposal(
 	req *abci.ProcessProposalRequest,
@@ -84,7 +84,7 @@ func (r *BeaconKitRuntime[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 ]) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
@@ -107,7 +107,7 @@ func (r *BeaconKitRuntime[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 	// TODO: This nextCommit function is temporary.
 ]) Commit(nextCommit func() (

@@ -61,14 +61,14 @@ type BeaconApp struct {
 	*runtime.App
 	BeaconKeeper     *keeper.Keeper
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
+		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
 		*deposit.KVStore,
-		types.ReadOnlyBeaconBlockBody,
 		beaconkitruntime.BeaconStorageBackend[
+			types.BeaconBlockBody,
 			*datypes.BlobSidecars,
 			*deposit.KVStore,
-			types.ReadOnlyBeaconBlockBody,
 		]]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }

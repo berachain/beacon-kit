@@ -36,7 +36,7 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetHeader() *types.BeaconBlockHeader
 }
 
-type ReadOnlyBeaconBlockBody interface {
+type BeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 	Length() uint64

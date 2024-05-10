@@ -61,7 +61,7 @@ type BeaconState interface {
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BlobSidecarsT BlobSidecars,
-	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT types.BeaconBlockBody,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(

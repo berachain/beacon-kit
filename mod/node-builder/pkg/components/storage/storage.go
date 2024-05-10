@@ -54,14 +54,14 @@ type KVStore = beacondb.KVStore[
 // required by the runtime.
 type Backend struct {
 	cs                primitives.ChainSpec
-	availabilityStore *dastore.Store[types.ReadOnlyBeaconBlockBody]
+	availabilityStore *dastore.Store[types.BeaconBlockBody]
 	beaconStore       *KVStore
 	depositStore      *deposit.KVStore
 }
 
 func NewBackend(
 	cs primitives.ChainSpec,
-	availabilityStore *dastore.Store[types.ReadOnlyBeaconBlockBody],
+	availabilityStore *dastore.Store[types.BeaconBlockBody],
 	beaconStore *KVStore,
 	depositStore *deposit.KVStore,
 ) *Backend {
@@ -77,7 +77,7 @@ func NewBackend(
 func (k *Backend) AvailabilityStore(
 	_ context.Context,
 ) core.AvailabilityStore[
-	types.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,
+	types.BeaconBlockBody, *datypes.BlobSidecars,
 ] {
 	return k.availabilityStore
 }

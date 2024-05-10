@@ -36,7 +36,7 @@ type IndexDB interface {
 	Set(index uint64, key []byte, value []byte) error
 }
 
-// ReadOnlyBeaconBlockBody is the body of a beacon block.
-type ReadOnlyBeaconBlockBody interface {
+// BeaconBlockBody is the body of a beacon block.
+type BeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }

@@ -34,7 +34,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlobs(
 	st BeaconStateT,
-	avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, BlobSidecarsT],
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	sidecars BlobSidecarsT,
 ) error {
 	slot, err := st.GetSlot()

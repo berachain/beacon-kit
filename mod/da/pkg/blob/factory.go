@@ -35,7 +35,7 @@ import (
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT BeaconBlockBody,
 ] struct {
 	cs          ChainSpec
 	kzgPosition uint64
@@ -44,7 +44,7 @@ type SidecarFactory[
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT BeaconBlockBody,
 ](
 	cs ChainSpec,
 	// todo: calculate from config.

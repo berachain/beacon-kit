@@ -44,7 +44,7 @@ type BeaconStorageBackend[
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
-		types.ReadOnlyBeaconBlockBody, BlobSidecarsT,
+		types.BeaconBlockBody, BlobSidecarsT,
 	]
 	BeaconState(context.Context) BeaconStateT
 }

@@ -51,7 +51,7 @@ type AvailabilityStore[BeaconStateT any, BlobSidecarsT any] interface {
 type BlobProcessor[BlobSidecarsT any] interface {
 	ProcessBlobs(
 		slot math.Slot,
-		avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, BlobSidecarsT],
+		avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 		sidecars BlobSidecarsT,
 	) error
 }

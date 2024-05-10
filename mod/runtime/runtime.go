@@ -41,14 +41,14 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
+		BeaconBlockBodyT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 	],
 ] struct {
 	logger   log.Logger[any]
@@ -59,31 +59,31 @@ type BeaconKitRuntime[
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
+		BeaconBlockBodyT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 	],
 ](
 	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
 ) (*BeaconKitRuntime[
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
 	StorageBackendT,
 ], error) {
 	return &BeaconKitRuntime[
+		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 		StorageBackendT,
 	]{
 		logger:   logger,
@@ -97,7 +97,7 @@ func (r *BeaconKitRuntime[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
@@ -107,10 +107,10 @@ func (r *BeaconKitRuntime[
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime[
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
 	StorageBackendT,
 ]) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
