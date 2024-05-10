@@ -35,7 +35,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-type BuilderService[BlobsSidecarsT ssz.Marshallable] interface {
+type BuilderService[
+	BlobsSidecarsT ssz.Marshallable,
+] interface {
 	RequestBestBlock(
 		context.Context,
 		state.BeaconState,

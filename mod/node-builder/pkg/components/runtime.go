@@ -156,7 +156,9 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	validatorService := validator.NewService[state.BeaconState, *datypes.BlobSidecars](
+	validatorService := validator.NewService[
+		state.BeaconState, *datypes.BlobSidecars,
+	](
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
@@ -182,8 +184,8 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		stakingService,
-		verification.NewBlockVerifier(chainSpec),
-		core.NewStateProcessor[*datypes.BlobSidecars](
+		verification.NewBlockVerifier[state.BeaconState](chainSpec),
+		core.NewStateProcessor[state.BeaconState, *datypes.BlobSidecars](
 			chainSpec,
 			stda.NewBlobProcessor[
 				types.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,

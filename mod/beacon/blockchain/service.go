@@ -46,7 +46,7 @@ type Service[
 	lb     LocalBuilder
 	sks    StakingService
 	bv     BlockVerifier
-	sp     *core.StateProcessor[BlobSidecarsT]
+	sp     *core.StateProcessor[state.BeaconState, BlobSidecarsT]
 	pv     PayloadVerifier
 }
 
@@ -59,7 +59,7 @@ func NewService[BlobSidecarsT BlobSidecars](
 	lb LocalBuilder,
 	sks StakingService,
 	bv BlockVerifier,
-	sp *core.StateProcessor[BlobSidecarsT],
+	sp *core.StateProcessor[state.BeaconState, BlobSidecarsT],
 	pv PayloadVerifier,
 ) *Service[BlobSidecarsT] {
 	return &Service[BlobSidecarsT]{

@@ -38,10 +38,13 @@ import (
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
-type StateProcessor[SidecarsT interface{ Len() int }] struct {
+type StateProcessor[
+	BeaconStateT state.BeaconState,
+	BlobSidecarsT interface{ Len() int },
+] struct {
 	cs     primitives.ChainSpec
-	bp     BlobProcessor[SidecarsT]
-	rp     RandaoProcessor
+	bp     BlobProcessor[BlobSidecarsT]
+	rp     RandaoProcessor[BeaconStateT]
 	signer crypto.BLSSigner
 	logger log.Logger[any]
 
@@ -50,14 +53,17 @@ type StateProcessor[SidecarsT interface{ Len() int }] struct {
 }
 
 // NewStateProcessor creates a new state processor.
-func NewStateProcessor[SidecarsT interface{ Len() int }](
+func NewStateProcessor[
+	BeaconStateT state.BeaconState,
+	BlobSidecarsT interface{ Len() int },
+](
 	cs primitives.ChainSpec,
-	bp BlobProcessor[SidecarsT],
-	rp RandaoProcessor,
+	bp BlobProcessor[BlobSidecarsT],
+	rp RandaoProcessor[BeaconStateT],
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
-) *StateProcessor[SidecarsT] {
-	return &StateProcessor[SidecarsT]{
+) *StateProcessor[BeaconStateT, BlobSidecarsT] {
+	return &StateProcessor[BeaconStateT, BlobSidecarsT]{
 		cs:     cs,
 		bp:     bp,
 		rp:     rp,
@@ -67,8 +73,8 @@ func NewStateProcessor[SidecarsT interface{ Len() int }](
 }
 
 // Transition is the main function for processing a state transition.
-func (sp *StateProcessor[SidecarsT]) Transition(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) Transition(
+	st BeaconStateT,
 	blk types.BeaconBlock,
 	/*validateSignature bool, */
 	validateResult bool,
@@ -98,8 +104,8 @@ func (sp *StateProcessor[SidecarsT]) Transition(
 }
 
 // ProcessSlot is run when a slot is missed.
-func (sp *StateProcessor[SidecarsT]) ProcessSlot(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessSlot(
+	st BeaconStateT,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -165,8 +171,8 @@ func (sp *StateProcessor[SidecarsT]) ProcessSlot(
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) ProcessBlock(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessBlock(
+	st BeaconStateT,
 	blk types.BeaconBlock,
 ) error {
 	// process the freshly created header.
@@ -205,7 +211,9 @@ func (sp *StateProcessor[SidecarsT]) ProcessBlock(
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) processEpoch(st state.BeaconState) error {
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processEpoch(
+	st BeaconStateT,
+) error {
 	var err error
 	if err = sp.processRewardsAndPenalties(st); err != nil {
 		return err
@@ -220,8 +228,8 @@ func (sp *StateProcessor[SidecarsT]) processEpoch(st state.BeaconState) error {
 }
 
 // processHeader processes the header and ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) processHeader(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processHeader(
+	st BeaconStateT,
 	blk types.BeaconBlock,
 ) error {
 	// TODO: this function is really confusing, can probably just
@@ -252,8 +260,8 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
 //
 //nolint:lll
-func (sp *StateProcessor[SidecarsT]) getAttestationDeltas(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) getAttestationDeltas(
+	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
 	// TODO: implement this function forreal
 	validators, err := st.GetValidators()
@@ -268,8 +276,8 @@ func (sp *StateProcessor[SidecarsT]) getAttestationDeltas(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
 //
 //nolint:lll
-func (sp *StateProcessor[SidecarsT]) processRewardsAndPenalties(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processRewardsAndPenalties(
+	st BeaconStateT,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {

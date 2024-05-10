@@ -28,15 +28,14 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
 //
 //nolint:lll
-func (sp *StateProcessor[SidecarsT]) processSlashingsReset(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashingsReset(
+	st BeaconStateT,
 ) error {
 	// Get the current epoch.
 	slot, err := st.GetSlot()
@@ -52,8 +51,8 @@ func (sp *StateProcessor[SidecarsT]) processSlashingsReset(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#proposer-slashings
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[SidecarsT]) processProposerSlashing(
-	_ state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processProposerSlashing(
+	_ BeaconStateT,
 	// ps ProposerSlashing,
 ) error {
 	return nil
@@ -63,8 +62,8 @@ func (sp *StateProcessor[SidecarsT]) processProposerSlashing(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#attester-slashings
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[SidecarsT]) processAttesterSlashing(
-	_ state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processAttesterSlashing(
+	_ BeaconStateT,
 	// as AttesterSlashing,
 ) error {
 	return nil
@@ -77,8 +76,8 @@ func (sp *StateProcessor[SidecarsT]) processAttesterSlashing(
 // state.
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[SidecarsT]) processSlashings(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashings(
+	st BeaconStateT,
 ) error {
 	totalBalance, err := st.GetTotalActiveBalances(sp.cs.SlotsPerEpoch())
 	if err != nil {
@@ -128,8 +127,8 @@ func (sp *StateProcessor[SidecarsT]) processSlashings(
 // processSlash handles the logic for slashing a validator.
 //
 //nolint:unused // will be used later
-func (sp *StateProcessor[SidecarsT]) processSlash(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlash(
+	st BeaconStateT,
 	val *types.Validator,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,

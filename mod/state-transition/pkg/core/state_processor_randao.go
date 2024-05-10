@@ -27,13 +27,12 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) processRandaoReveal(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processRandaoReveal(
+	st BeaconStateT,
 	blk types.BeaconBlock,
 ) error {
 	return sp.rp.ProcessRandao(st, blk)
@@ -43,8 +42,8 @@ func (sp *StateProcessor[SidecarsT]) processRandaoReveal(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
 //
 //nolint:lll
-func (sp *StateProcessor[SidecarsT]) processRandaoMixesReset(
-	st state.BeaconState,
+func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processRandaoMixesReset(
+	st BeaconStateT,
 ) error {
 	return sp.rp.ProcessRandaoMixesReset(st)
 }

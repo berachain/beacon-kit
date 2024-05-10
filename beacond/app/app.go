@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"

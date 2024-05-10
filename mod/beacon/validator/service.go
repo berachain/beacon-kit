@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -60,7 +61,7 @@ type Service[
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
-	randaoProcessor RandaoProcessor[state.BeaconState]
+	randaoProcessor RandaoProcessor[BeaconStateT]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -87,7 +88,7 @@ func NewService[
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
-	randaoProcessor RandaoProcessor[state.BeaconState],
+	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
 	localBuilder PayloadBuilder[state.BeaconState],
 	remoteBuilders []PayloadBuilder[state.BeaconState],
@@ -110,11 +111,17 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "validator"
 }
 
+// Start starts the service.
 func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
+// Status returns the status of the service.
 func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(context.Context) {}
+// WaitForHealthy waits for the service to become healthy.
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+	context.Context,
+) {
+}
 
 // LocalBuilder returns the local builder.
 //
@@ -128,7 +135,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[sta
 //nolint:funlen // todo:fix.
 func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
 ) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
@@ -195,7 +202,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Get the payload for the block.
 	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
-		st,
+		// TODO: fix.
+		*(*state.BeaconState)(unsafe.Pointer(&st)),
 		slot,
 		parentBlockRoot,
 		parentExecutionPayload.GetBlockHash(),

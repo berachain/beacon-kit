@@ -39,6 +39,9 @@ import (
 
 type BeaconState interface {
 	GetSlot() (math.Slot, error)
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+	GetLatestExecutionPayloadHeader() (engineprimitives.ExecutionPayloadHeader, error)
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
 // BlobFactory is the interface for building blobs.

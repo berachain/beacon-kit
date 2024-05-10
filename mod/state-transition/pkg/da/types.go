@@ -26,8 +26,8 @@
 package da
 
 // BlobVerifier is the interface for the blobs processor.
-type BlobVerifier[SidecarsT interface{ Len() int }] interface {
+type BlobVerifier[BlobSidecarsT interface{ Len() int }] interface {
 	VerifyBlobs(
-		sidecars SidecarsT, kzgOffset uint64,
+		sidecars BlobSidecarsT, kzgOffset uint64,
 	) error
 }

@@ -33,20 +33,22 @@ import (
 )
 
 // BlockVerifier is responsible for verifying incoming BeaconBlocks.
-type BlockVerifier struct {
+type BlockVerifier[BeaconStateT state.BeaconState] struct {
 	cs primitives.ChainSpec
 }
 
 // NewBlockVerifier creates a new block validator.
-func NewBlockVerifier(cs primitives.ChainSpec) *BlockVerifier {
-	return &BlockVerifier{
+func NewBlockVerifier[
+	BeaconStateT state.BeaconState,
+](cs primitives.ChainSpec) *BlockVerifier[BeaconStateT] {
+	return &BlockVerifier[BeaconStateT]{
 		cs: cs,
 	}
 }
 
 // ValidateBlock validates the incoming block.
-func (bv *BlockVerifier) ValidateBlock(
-	st state.BeaconState,
+func (bv *BlockVerifier[BeaconStateT]) ValidateBlock(
+	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	// Get the block body.
