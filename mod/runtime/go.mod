@@ -4,7 +4,7 @@ go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240510154417-946c62410f30
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240510154417-946c62410f30
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240510154417-946c62410f30
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240510154417-946c62410f30
@@ -40,8 +40,8 @@ require (
 )
 
 require (
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.0-20240312114316-c0d3497e35d6.1 // indirect
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.0-20240130113600-88ef6483f90f.1 // indirect
-	buf.build/gen/go/tendermint/tendermint/protocolbuffers/go v1.32.0-20231117195010-33ed361a9051.1 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.12.1-0.20240510154417-946c62410f30 // indirect
