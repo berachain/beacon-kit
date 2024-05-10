@@ -34,9 +34,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
+
+type BeaconState interface {
+	GetSlot() (math.Slot, error)
+}
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
@@ -65,19 +68,19 @@ type DepositStore interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	ReadOnlyBeaconStateT state.ReadOnlyBeaconState,
+	BeaconStateT BeaconState,
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st ReadOnlyBeaconStateT) (crypto.BLSSignature, error)
+	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[ReadOnlyBeaconStateT state.ReadOnlyBeaconState] interface {
+type PayloadBuilder[BeaconStateT BeaconState] interface {
 	RetrieveOrBuildPayload(
 		ctx context.Context,
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,

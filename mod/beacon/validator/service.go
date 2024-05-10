@@ -40,6 +40,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -78,7 +79,9 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BlobSidecarsT BlobSidecars](
+	BeaconStateT BeaconState,
+	BlobSidecarsT BlobSidecars,
+](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
@@ -88,8 +91,8 @@ func NewService[
 	ds DepositStore,
 	localBuilder PayloadBuilder[state.BeaconState],
 	remoteBuilders []PayloadBuilder[state.BeaconState],
-) *Service[BlobSidecarsT] {
-	return &Service[BlobSidecarsT]{
+) *Service[BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
 		logger:          logger,
 		chainSpec:       chainSpec,
@@ -103,27 +106,27 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[BlobSidecarsT]) Name() string {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "validator"
 }
 
-func (s *Service[BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service[BlobSidecarsT]) Status() error { return nil }
+func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(context.Context) {}
 
 // LocalBuilder returns the local builder.
 //
 //nolint:lll // weird.
-func (s *Service[BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
+func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
 	return s.localBuilder
 }
 
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service[BlobSidecarsT]) RequestBestBlock(
+func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
 	st state.BeaconState,
 	slot math.Slot,

@@ -76,6 +76,7 @@ func ProvideRuntime(
 	],
 	logger log.Logger,
 ) (*runtime.BeaconKitRuntime[
+	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
 	types.ReadOnlyBeaconBlockBody,
@@ -155,7 +156,7 @@ func ProvideRuntime(
 	)
 
 	// Build the builder service.
-	validatorService := validator.NewService[*datypes.BlobSidecars](
+	validatorService := validator.NewService[state.BeaconState, *datypes.BlobSidecars](
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
@@ -208,6 +209,7 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 		types.ReadOnlyBeaconBlockBody,
