@@ -36,33 +36,33 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
+type AvailabilityStore[BeaconStateT any, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, ReadOnlyBeaconBlockBodyT,
+		context.Context, math.Slot, BeaconStateT,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, SidecarsT) error
+	Persist(math.Slot, BlobSidecarsT) error
 }
 
 // BlobVerifier is the interface for the blobs processor.
-type BlobProcessor[SidecarsT any] interface {
+type BlobProcessor[BlobSidecarsT any] interface {
 	ProcessBlobs(
 		slot math.Slot,
-		avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
-		sidecars SidecarsT,
+		avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+		sidecars BlobSidecarsT,
 	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
+type RandaoProcessor[BeaconStateT state.BeaconState] interface {
 	ProcessRandao(
-		state.BeaconState,
+		BeaconStateT,
 		types.BeaconBlock,
 	) error
 	ProcessRandaoMixesReset(
-		state.BeaconState,
+		BeaconStateT,
 	) error
 }

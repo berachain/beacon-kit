@@ -43,13 +43,13 @@ type AppOptions interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend[
+	BeaconBlockT any,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockT any,
 ] interface {
 	AvailabilityStore(
 		ctx context.Context,
-	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
+	) core.AvailabilityStore[BeaconBlockT, BlobSidecarsT]
 	BeaconState(ctx context.Context) state.BeaconState
 	DepositStore(ctx context.Context) DepositStoreT
 }

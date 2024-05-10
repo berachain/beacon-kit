@@ -36,20 +36,22 @@ import (
 // BlobProcessor is the blob processor.
 type BlobProcessor[
 	BeaconBlockBodyT any,
-	SidecarsT interface{ Len() int },
+	BlobSidecarsT interface{ Len() int },
 ] struct {
 	logger    log.Logger[any]
 	chainSpec primitives.ChainSpec
-	bv        BlobVerifier[SidecarsT]
+	bv        BlobVerifier[BlobSidecarsT]
 }
 
 // NewBlobProcessor creates a new blob processor.
-func NewBlobProcessor[BeaconBlockBodyT any, SidecarsT interface{ Len() int }](
+func NewBlobProcessor[
+	BeaconBlockBodyT any, BlobSidecarsT interface{ Len() int },
+](
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bv BlobVerifier[SidecarsT],
-) *BlobProcessor[BeaconBlockBodyT, SidecarsT] {
-	return &BlobProcessor[BeaconBlockBodyT, SidecarsT]{
+	bv BlobVerifier[BlobSidecarsT],
+) *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT] {
+	return &BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]{
 		logger:    logger,
 		chainSpec: chainSpec,
 		bv:        bv,
@@ -57,11 +59,11 @@ func NewBlobProcessor[BeaconBlockBodyT any, SidecarsT interface{ Len() int }](
 }
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *BlobProcessor[BeaconBlockBodyT, SidecarsT]) ProcessBlobs(
+func (sp *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]) ProcessBlobs(
 	slot math.Slot,
 	// TODO: decouple from core.
-	avs core.AvailabilityStore[BeaconBlockBodyT, SidecarsT],
-	sidecars SidecarsT,
+	avs core.AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.
 	numBlobs := sidecars.Len()

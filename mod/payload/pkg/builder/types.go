@@ -26,41 +26,50 @@
 package builder
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type ReadOnlyBeaconState interface {
-	ReadOnlyEth1Data
-	ReadOnlyRandaoMixes
-	ReadOnlyValidators
-	ReadOnlyWithdrawals
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-}
+// BeaconState defines the interface for accessing various state-related data
+// required for block processing.
+type BeaconState interface {
+	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
+	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 
-// ReadOnlyValidators has read access to validator methods.
-type ReadOnlyValidators interface {
-	ValidatorIndexByPubkey(
-		crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-}
+	// ExpectedWithdrawals lists the expected withdrawals in the current state.
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 
-// ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data interface {
+	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
+	// header.
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
 	)
+
+	// ValidatorIndexByPubkey finds the validator index associated with a given
+	// BLS public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+
+	// GetBlockRootAtIndex retrieves the block root at a specified index.
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 }
 
-// ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
-}
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *engineprimitives.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 
-// ReadOnlyRandaoMixes defines a struct which only has read access to randao
-// mixes methods.
-type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engineprimitives.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }

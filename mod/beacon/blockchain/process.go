@@ -36,17 +36,17 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service[BlobSidecarsT]) ProcessSlot(
-	st state.BeaconState,
+func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessSlot(
+	st BeaconStateT,
 ) error {
 	return s.sp.ProcessSlot(st)
 }
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
+func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	blobs BlobSidecarsT,
 ) error {
@@ -145,7 +145,13 @@ func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
-	if err = s.sks.PruneDepositEvents(st); err != nil {
+
+	idx, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	if err = s.sks.PruneDepositEvents(idx); err != nil {
 		s.logger.Error("failed to prune deposit events", "error", err)
 		return err
 	}
@@ -154,7 +160,7 @@ func (s *Service[BlobSidecarsT]) ProcessBeaconBlock(
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service[BlobSidecarsT]) ValidateBlock(
+func (s *Service[BeaconStateT, BlobSidecarsT]) ValidateBlock(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -164,7 +170,7 @@ func (s *Service[BlobSidecarsT]) ValidateBlock(
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
+func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -202,7 +208,7 @@ func (s *Service[BlobSidecarsT]) VerifyPayloadOnBlk(
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service[BlobSidecarsT]) PostBlockProcess(
+func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	ctx context.Context,
 	st state.BeaconState,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],

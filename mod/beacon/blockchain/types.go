@@ -35,17 +35,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
 
-type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
+type BeaconStorageBackend[
+	BeaconStateT any, BlobSidecarsT BlobSidecars,
+] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
-		types.ReadOnlyBeaconBlockBody, BlobSidecarsT,
+		types.BeaconBlockBody, BlobSidecarsT,
 	]
-	BeaconState(context.Context) state.BeaconState
+	BeaconState(context.Context) BeaconStateT
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
@@ -56,9 +57,9 @@ type BlobSidecars interface {
 }
 
 // BlockVerifier is the interface for the block verifier.
-type BlockVerifier interface {
+type BlockVerifier[BeaconStateT any] interface {
 	ValidateBlock(
-		st state.BeaconState,
+		st BeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 }
@@ -86,10 +87,10 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
+type LocalBuilder[BeaconStateT any] interface {
 	RequestPayload(
 		ctx context.Context,
-		st state.BeaconState,
+		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -98,24 +99,24 @@ type LocalBuilder interface {
 }
 
 // PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier interface {
+type PayloadVerifier[BeaconStateT any] interface {
 	VerifyPayload(
-		st state.BeaconState,
+		st BeaconStateT,
 		payload engineprimitives.ExecutionPayload,
 	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
+type RandaoProcessor[BeaconStateT any] interface {
 	BuildReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 	) (crypto.BLSSignature, error)
 	MixinNewReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 		reveal crypto.BLSSignature,
 	) error
 	VerifyReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 		proposerPubkey crypto.BLSPubkey,
 		reveal crypto.BLSSignature,
 	) error
@@ -130,7 +131,6 @@ type StakingService interface {
 	) error
 
 	// PruneDepositEvents prunes deposit events.
-	PruneDepositEvents(
-		st state.BeaconState,
-	) error
+	// TODO: decouple.
+	PruneDepositEvents(idx uint64) error
 }

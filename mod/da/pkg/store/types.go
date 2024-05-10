@@ -23,25 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blob
+package store
 
 import (
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// chainSpec represents a chain spec.
-type chainSpec interface {
-	MaxBlobCommitmentsPerBlock() uint64
+// IndexDB is a database that allows prefixing by index.
+type IndexDB interface {
+	Has(index uint64, key []byte) (bool, error)
+	Set(index uint64, key []byte, value []byte) error
 }
 
-type BeaconBlock[BeaconBlockBodyT any] interface {
-	GetBody() BeaconBlockBodyT
-	GetHeader() *types.BeaconBlockHeader
-}
-type ReadOnlyBeaconBlockBody interface {
+// BeaconBlockBody is the body of a beacon block.
+type BeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	GetTopLevelRoots() ([][32]byte, error)
-	Length() uint64
 }

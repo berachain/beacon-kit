@@ -23,27 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package blob
 
 import (
-	"context"
-
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	GetBody() BeaconBlockBodyT
+	GetHeader() *types.BeaconBlockHeader
+}
 
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+type BeaconBlockBody interface {
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetTopLevelRoots() ([][32]byte, error)
+	Length() uint64
+}
+
+// ChainSpec represents a chain spec.
+type ChainSpec interface {
+	MaxBlobCommitmentsPerBlock() uint64
 }
