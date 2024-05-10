@@ -30,7 +30,7 @@ direnv allow
 
 source .envrc
 cd ~/op-stack-deployment/optimism/op-node
-printf "\nRunning OP Proposer..."
+printf "\nRunning OP Proposer...\n"
 
 ./bin/op-proposer \
   --poll-interval="$L1_BLOCK_TIME"s \

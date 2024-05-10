@@ -27,7 +27,7 @@
 # Run OP Geth
 cd ~/op-stack-deployment/op-geth
 
-printf "\nRunning OP Geth..."
+printf "\nRunning OP Geth...\n"
 
 ./build/bin/geth \
   --datadir ./datadir \

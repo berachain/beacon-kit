@@ -61,8 +61,8 @@ direnv allow
 
 # Generate wallets for the L2 accounts
 wallets=$(sh ./packages/contracts-bedrock/scripts/getting-started/wallets.sh)
-printf "\nGenerated wallets for the L2 accounts..."
-echo "$wallets"
+printf "\nGenerated wallets for the L2 accounts...\n"
+echo "$wallets" | tail -n +3
 
 # Helper function to update the .envrc file with wallet addresses
 update_envrc() {
@@ -90,14 +90,21 @@ direnv allow
 source .envrc
 
 # Fund those wallets
-printf "\nSending 10 ether to admin, proposer, batcher addresses..."
+printf "\nSending 10 ether to admin, proposer, batcher addresses...\n"
 cast send --private-key $PRIVATE_KEY $GS_ADMIN_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_BATCHER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 cast send --private-key $PRIVATE_KEY $GS_PROPOSER_ADDRESS --value 10ether --rpc-url $L1_RPC_URL --legacy
 
 # Update deploy-config/getting-started.json with new addresses and L1 values
-cd packages/contracts-bedrock
+cd ~/op-stack-deployment/optimism/packages/contracts-bedrock
 sh ./scripts/getting-started/config.sh
+jq '. + {
+  "faultGameWithdrawalDelay": 604800,
+  "proofMaturityDelaySeconds": 604800,
+  "disputeGameFinalityDelaySeconds": 302400,
+  "respectedGameType": 0,
+  "useFaultProofs": true
+}' deploy-config/getting-started.json > tmp.json && mv tmp.json deploy-config/getting-started.json
 jq --argjson chainId $CHAIN_ID \
   --argjson blockTime $BLOCK_TIME \
   '.l1ChainID = $chainId | .l1BlockTime = $blockTime | .finalizationPeriodSeconds = $blockTime' \
@@ -108,7 +115,7 @@ cat deploy-config/getting-started.json
 # Deploy the Create2 factory if necessary
 codesize_output=$(cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url $L1_RPC_URL)
 if [[ "$codesize_output" == "0" ]]; then
-  printf "\nSending 1 ether to the factory deployer address..."
+  printf "\nSending 1 ether to the factory deployer address...\n"
   cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
 
   cast send --private-key $PRIVATE_KEY 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url $L1_RPC_URL --legacy
@@ -126,17 +133,30 @@ else
   exit 1
 fi
 
+# Create the getting-started files
+cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments
+if [ -d getting-started ]; then
+  rm -rf getting-started
+fi
+mkdir getting-started
+echo "$CHAIN_ID" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.chainId
+echo "{}" > ~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/.deploy
+
 # Deploy L1 smart contracts
-printf "\nDeploying L1 smart contracts..."
-forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --legacy
-cp packages/contracts-bedrock/deployments/getting-started/.deploy packages/contracts-bedrock/deployments/getting-started/l1.json
+printf "\nDeploying L1 smart contracts...\n"
+cd ~/op-stack-deployment/optimism/packages/contracts-bedrock
+env DEPLOY_CONFIG_PATH=~/op-stack-deployment/optimism/packages/contracts-bedrock/deploy-config/getting-started.json forge script scripts/Deploy.s.sol:Deploy --private-key $GS_ADMIN_PRIVATE_KEY --broadcast --rpc-url $L1_RPC_URL --legacy
+# TODO: DEPLOY_OUTFILE=~/op-stack-deployment/optimism/packages/contracts-bedrock/deployments/getting-started/l1.json \ 
+# TODO: potentially remove the created .chainId, .deploy files from deployments/ dir ?
 
 # Run the OP node genesis
 cd ~/op-stack-deployment/optimism/op-node
-printf "\nRunning the OP node genesis..."
+printf "\nRunning the OP node genesis...\n"
+# TODO: configure the DEPLOY_OUTFILE to run 
+# TODO: generate allocs (flag --l2-allocs)
 go run cmd/main.go genesis l2 \
   --deploy-config ../packages/contracts-bedrock/deploy-config/getting-started.json \
-  --l1-deployments ../packages/contracts-bedrock/deployments/getting-started/l1.json \
+  --l1-deployments ../packages/contracts-bedrock/deployments/80087-deploy.json \
   --outfile.l2 genesis.json \
   --outfile.rollup rollup.json \
   --l1-rpc $L1_RPC_URL
@@ -149,7 +169,7 @@ cp genesis.json ~/op-stack-deployment/op-geth
 cp jwt.txt ~/op-stack-deployment/op-geth
 
 # Build OP Geth
-printf "\nBuilding OP Geth..."
+printf "\nBuilding OP Geth...\n"
 cd ~/op-stack-deployment/op-geth
 if [ -d datadir ]; then
   rm -rf datadir

@@ -30,7 +30,7 @@ direnv allow
 
 source .envrc
 cd ~/op-stack-deployment/optimism/op-node
-printf "\nRunning OP Node..."
+printf "\nRunning OP Node...\n"
 
 ./bin/op-node \
   --l2=http://localhost:8551 \
@@ -45,4 +45,5 @@ printf "\nRunning OP Node..."
   --rpc.enable-admin \
   --p2p.sequencer.key=$GS_SEQUENCER_PRIVATE_KEY \
   --l1=$L1_RPC_URL \
-  --l1.rpckind=$L1_RPC_KIND
+  --l1.rpckind=$L1_RPC_KIND \
+  --l1.beacon.ignore=true

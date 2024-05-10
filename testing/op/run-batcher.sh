@@ -30,7 +30,7 @@ direnv allow
 
 source .envrc
 cd ~/op-stack-deployment/optimism/op-batcher
-printf "\nRunning OP Batcher..."
+printf "\nRunning OP Batcher...\n"
 
 ./bin/op-batcher \
   --l2-eth-rpc=http://localhost:8545 \

@@ -27,8 +27,8 @@
 # Clone Optimism repos
 cd ~/
 mkdir op-stack-deployment
-cd op-stack-deployment
-git clone -b tutorials/chain https://github.com/ethereum-optimism/optimism.git
+cd ~/op-stack-deployment
+git clone --branch v1.7.4 --single-branch https://github.com/ethereum-optimism/optimism.git
 git clone https://github.com/ethereum-optimism/op-geth.git --depth 1
  
 # Check if ~/.nvm directory doesn't exist
@@ -42,7 +42,7 @@ fi
 nvm install v20.11.0
 
 # Install op-node op-batcher op-proposer
-cd optimism
+cd ~/op-stack-deployment/optimism
 
 # Display the versions of the required packages
 # TODO: handle any deps not installed
@@ -55,11 +55,11 @@ make op-node op-batcher op-proposer
 pnpm build
 
 # Install dependencies for the contracts
-cd packages/contracts-bedrock/
+cd ~/op-stack-deployment/optimism/packages/contracts-bedrock/
 forge install
 
 # Install and build op-geth
-cd ../../../op-geth/
+cd ~/op-stack-deployment/op-geth/
 make geth
 cd ..
 
