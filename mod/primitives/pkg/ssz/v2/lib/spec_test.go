@@ -27,6 +27,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -48,6 +49,8 @@ type TestLogger interface {
 
 func debugPrint(debug bool, t TestLogger, s1 string, s ...any) {
 	if debug {
+		fmt.Println(s1)
+		fmt.Println(s...)
 		t.Logf(s1, s...)
 	}
 }
@@ -72,6 +75,23 @@ func getSszState() (*sszv2.BeaconStateBellatrix, error) {
 		return nil, err2
 	}
 	return &sszState, nil
+}
+
+func getVariableLengthItemSerialized() []byte {
+	// magic nums from the generated ssz.go file for historicalRoots
+	startPos := 2736633
+	endPos := startPos + 18528
+
+	return sliceBlockData(startPos, endPos)
+}
+
+func sliceBlockData(start int, end int) []byte {
+	s, err := getSszState()
+	if err != nil {
+		return nil
+	}
+	data, err := s.MarshalSSZ()
+	return data[start:end]
 }
 
 func getStruct(bb *sszv2.BeaconStateBellatrix) *sszv2.Checkpoint {
@@ -102,6 +122,33 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	return res[8:], nil
 }
 
+func TestParityVariableLengthItem2(t *testing.T) {
+	state, err := getSszState()
+	require.NoError(t, err)
+	bals := state.Balances
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(bals)
+	require.NoError(t, err3)
+
+	// get balances via direct slice
+	res := sliceBlockData(51139110, 54333774)
+	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+}
+
+func TestParityVariableLengthItem1(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+	historicalRoots := sszState.HistoricalRoots
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(historicalRoots)
+	require.NoError(t, err3)
+
+	res := getVariableLengthItemSerialized()
+	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+}
+
 func TestParityStruct(t *testing.T) {
 	sszState, err := getSszState()
 	require.NoError(t, err)
@@ -111,10 +158,10 @@ func TestParityStruct(t *testing.T) {
 	s := sszv2.NewSerializer()
 	o2, err3 := s.MarshalSSZ(testStruct)
 	require.NoError(t, err3)
-	debugPrint(true, t, "Local Serializer output: ", o2, err)
+	debugPrint(debug, t, "Local Serializer output: ", o2, err)
 
 	res, _ := testStruct.MarshalSSZ()
-	debugPrint(true, t, "FastSSZ Output: ", res)
+	debugPrint(debug, t, "FastSSZ Output: ", res)
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
 }
 
