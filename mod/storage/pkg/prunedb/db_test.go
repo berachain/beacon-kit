@@ -27,6 +27,8 @@ package prunedb_test
 
 import (
 	"context"
+	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/spf13/afero"
 	"strconv"
 	"testing"
 	"time"
@@ -42,6 +44,48 @@ type test struct {
 	setupFunc     func(db *mocks.IndexDB) error
 	testFunc      func(t *testing.T, db *prune.DB)
 	expectedError bool
+}
+
+func TestDB_Prune(t *testing.T) {
+
+	fs := afero.NewMemMapFs()
+	db := file.NewDB(
+		file.WithRootDirectory("/tmp/testdb"),
+		file.WithFileExtension("txt"),
+		file.WithDirectoryPermissions(0700),
+		file.WithLogger(log.NewNopLogger()),
+		file.WithAferoFS(fs),
+	)
+	rdb := file.NewRangeDB(db)
+
+	pruneDB := prune.New(rdb, log.NewNopLogger(), 3*time.Second, 4)
+
+	for i := uint64(1); i <= 10; i++ {
+		key := []byte("testKey" + strconv.FormatUint(i, 10))
+		err := pruneDB.Set(i, key, []byte("value"))
+		require.NoError(t, err)
+	}
+
+	_, cancel := context.WithCancel(context.Background())
+
+	// Wait for the ticker to tick at least once
+	time.Sleep(5 * time.Second)
+
+	for i := uint64(1); i <= 6; i++ {
+		key := []byte("testKey" + strconv.FormatUint(i, 10))
+		exists, err := pruneDB.Has(i, key)
+		require.NoError(t, err)
+		require.False(t, exists)
+	}
+
+	for i := uint64(7); i <= 10; i++ {
+		key := []byte("testKey" + strconv.FormatUint(i, 10))
+		res, err := pruneDB.Has(i, key)
+		require.NoError(t, err)
+		require.True(t, res)
+	}
+	// Cancel the context to stop the ticker
+	cancel()
 }
 
 func TestDB_CRUD(t *testing.T) {
@@ -207,53 +251,4 @@ func TestDB_New(t *testing.T) {
 	require.Equal(t, mockDB, createdDB.IndexDB)
 	require.Equal(t, logger, createdDB.GetLogger())
 	require.Equal(t, windowSize, createdDB.GetWindowSize())
-}
-func TestDB_Start(t *testing.T) {
-	mockDB := new(mocks.IndexDB)
-	db := prune.New(mockDB, log.NewNopLogger(), 3*time.Second, 4)
-
-	// Set expectations
-	for i := uint64(1); i <= 10; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		mockDB.On("Set", i, key, []byte("value")).Return(nil)
-	}
-	for i := uint64(1); i <= 6; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		mockDB.On("Has", i, key).Return(false, nil)
-	}
-	for i := uint64(7); i <= 10; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		mockDB.On("Has", i, key).Return(true, nil)
-	}
-
-	// TODO: this test fails as according to logic we are deleting from 0 to 6.
-	// However, the test expects deletion from 1 to 5.
-	mockDB.On("DeleteRange", uint64(1), uint64(7)).Return(nil)
-
-	for i := uint64(1); i <= 10; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		err := db.Set(i, key, []byte("value"))
-		require.NoError(t, err)
-	}
-
-	for i := uint64(1); i <= 6; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		res, err := db.Has(i, key)
-		require.NoError(t, err)
-		require.False(t, res)
-	}
-	for i := uint64(7); i <= 10; i++ {
-		key := []byte("testKey" + strconv.FormatUint(i, 10))
-		res, err := db.Has(i, key)
-		require.NoError(t, err)
-		require.True(t, res)
-	}
-
-	_, cancel := context.WithCancel(context.Background())
-
-	// Wait for the ticker to tick at least once
-	time.Sleep(3 * time.Second)
-
-	// Cancel the context to stop the ticker
-	cancel()
 }
