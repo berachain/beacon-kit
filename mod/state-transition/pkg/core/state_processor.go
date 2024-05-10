@@ -164,19 +164,6 @@ func (sp *StateProcessor[SidecarsT]) ProcessSlot(
 	return st.SetSlot(slot + 1)
 }
 
-// ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
-	st state.BeaconState,
-	avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
-	sidecars SidecarsT,
-) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-	return sp.bp.ProcessBlobs(slot, avs, sidecars)
-}
-
 // ProcessBlock processes the block and ensures it matches the local state.
 func (sp *StateProcessor[SidecarsT]) ProcessBlock(
 	st state.BeaconState,
@@ -259,25 +246,6 @@ func (sp *StateProcessor[SidecarsT]) processHeader(
 		BodyRoot: header.BodyRoot,
 	}
 	return st.SetLatestBlockHeader(headerRaw)
-}
-
-// processRandaoReveal processes the randao reveal and
-// ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) processRandaoReveal(
-	st state.BeaconState,
-	blk types.BeaconBlock,
-) error {
-	return sp.rp.ProcessRandao(st, blk)
-}
-
-// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-//
-//nolint:lll
-func (sp *StateProcessor[SidecarsT]) processRandaoMixesReset(
-	st state.BeaconState,
-) error {
-	return sp.rp.ProcessRandaoMixesReset(st)
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.
