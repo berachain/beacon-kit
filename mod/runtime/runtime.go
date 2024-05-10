@@ -117,7 +117,7 @@ func (r *BeaconKitRuntime[
 	sdk.PreBlocker,
 ) {
 	var (
-		chainService   *blockchain.Service[BlobSidecarsT]
+		chainService   *blockchain.Service[state.BeaconState, BlobSidecarsT]
 		builderService *validator.Service[state.BeaconState, BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {

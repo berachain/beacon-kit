@@ -37,10 +37,24 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
+// BeaconState defines the interface for accessing various components of the
+// beacon state.
 type BeaconState interface {
+	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
+
+	// GetBlockRootAtIndex fetches the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestExecutionPayloadHeader() (engineprimitives.ExecutionPayloadHeader, error)
+
+	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader,
+		error,
+	)
+
+	// ValidatorIndexByPubkey finds the index of a validator based on their
+	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
@@ -49,6 +63,7 @@ type BlobFactory[
 	BlobSidecarsT BlobSidecars,
 	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 ] interface {
+	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk types.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
@@ -64,6 +79,7 @@ type BlobSidecars interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
+	// ExpectedDeposits returns `numView` expected deposits.
 	ExpectedDeposits(
 		numView uint64,
 	) ([]*types.Deposit, error)
@@ -81,6 +97,8 @@ type RandaoProcessor[
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT BeaconState] interface {
+	// RetrieveOrBuildPayload retrieves or builds the payload for the given
+	// slot.
 	RetrieveOrBuildPayload(
 		ctx context.Context,
 		st BeaconStateT,

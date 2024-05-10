@@ -36,33 +36,36 @@ import (
 
 // Service is the blockchain service.
 type Service[
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// service.BaseService
-	bsb    BeaconStorageBackend[BlobSidecarsT]
+	bsb BeaconStorageBackend[
+		BeaconStateT, BlobSidecarsT,
+	]
 	logger log.Logger[any]
 	cs     primitives.ChainSpec
 	ee     ExecutionEngine
-	lb     LocalBuilder
-	sks    StakingService
-	bv     BlockVerifier
-	sp     *core.StateProcessor[state.BeaconState, BlobSidecarsT]
-	pv     PayloadVerifier
+	lb     LocalBuilder[BeaconStateT]
+	sks    StakingService[BeaconStateT]
+	bv     BlockVerifier[BeaconStateT]
+	sp     *core.StateProcessor[BeaconStateT, BlobSidecarsT]
+	pv     PayloadVerifier[BeaconStateT]
 }
 
 // NewService creates a new validator service.
-func NewService[BlobSidecarsT BlobSidecars](
-	bsb BeaconStorageBackend[BlobSidecarsT],
+func NewService[BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars](
+	bsb BeaconStorageBackend[BeaconStateT, BlobSidecarsT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
-	lb LocalBuilder,
-	sks StakingService,
-	bv BlockVerifier,
-	sp *core.StateProcessor[state.BeaconState, BlobSidecarsT],
-	pv PayloadVerifier,
-) *Service[BlobSidecarsT] {
-	return &Service[BlobSidecarsT]{
+	lb LocalBuilder[BeaconStateT],
+	sks StakingService[BeaconStateT],
+	bv BlockVerifier[BeaconStateT],
+	sp *core.StateProcessor[BeaconStateT, BlobSidecarsT],
+	pv PayloadVerifier[BeaconStateT],
+) *Service[BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconStateT, BlobSidecarsT]{
 		bsb:    bsb,
 		logger: logger,
 		cs:     cs,
@@ -76,24 +79,27 @@ func NewService[BlobSidecarsT BlobSidecars](
 }
 
 // Name returns the name of the service.
-func (s *Service[BlobSidecarsT]) Name() string {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service[BlobSidecarsT]) Status() error { return nil }
+func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+	context.Context,
+) {
+}
 
 // TODO: Remove
-func (s Service[BlobSidecarsT]) BeaconState(
+func (s Service[BeaconStateT, BlobSidecarsT]) BeaconState(
 	ctx context.Context,
 ) state.BeaconState {
 	return s.bsb.BeaconState(ctx)
 }
 
 // TODO: Remove
-func (s Service[BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
+func (s Service[BeaconStateT, BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
 	return s.cs
 }

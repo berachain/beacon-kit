@@ -27,7 +27,6 @@ package validator
 
 import (
 	"context"
-	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -41,7 +40,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconStateT BeaconState,
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -71,16 +70,16 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder[state.BeaconState]
+	localBuilder PayloadBuilder[BeaconStateT]
 
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder[state.BeaconState]
+	remoteBuilders []PayloadBuilder[BeaconStateT]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT BeaconState,
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
@@ -90,8 +89,8 @@ func NewService[
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
-	localBuilder PayloadBuilder[state.BeaconState],
-	remoteBuilders []PayloadBuilder[state.BeaconState],
+	localBuilder PayloadBuilder[BeaconStateT],
+	remoteBuilders []PayloadBuilder[BeaconStateT],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
@@ -126,7 +125,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 // LocalBuilder returns the local builder.
 //
 //nolint:lll // weird.
-func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
+func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[BeaconStateT] {
 	return s.localBuilder
 }
 
@@ -202,8 +201,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Get the payload for the block.
 	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
 		ctx,
-		// TODO: fix.
-		*(*state.BeaconState)(unsafe.Pointer(&st)),
+		st,
 		slot,
 		parentBlockRoot,
 		parentExecutionPayload.GetBlockHash(),

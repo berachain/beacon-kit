@@ -39,13 +39,15 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-type BeaconStorageBackend[BlobSidecarsT BlobSidecars] interface {
+type BeaconStorageBackend[
+	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars,
+] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
 		types.ReadOnlyBeaconBlockBody, BlobSidecarsT,
 	]
-	BeaconState(context.Context) state.BeaconState
+	BeaconState(context.Context) BeaconStateT
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
@@ -56,9 +58,9 @@ type BlobSidecars interface {
 }
 
 // BlockVerifier is the interface for the block verifier.
-type BlockVerifier interface {
+type BlockVerifier[BeaconStateT state.BeaconState] interface {
 	ValidateBlock(
-		st state.BeaconState,
+		st BeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 }
@@ -86,10 +88,10 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder interface {
+type LocalBuilder[BeaconStateT state.BeaconState] interface {
 	RequestPayload(
 		ctx context.Context,
-		st state.BeaconState,
+		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -98,31 +100,31 @@ type LocalBuilder interface {
 }
 
 // PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier interface {
+type PayloadVerifier[BeaconStateT state.BeaconState] interface {
 	VerifyPayload(
-		st state.BeaconState,
+		st BeaconStateT,
 		payload engineprimitives.ExecutionPayload,
 	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
+type RandaoProcessor[BeaconStateT state.BeaconState] interface {
 	BuildReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 	) (crypto.BLSSignature, error)
 	MixinNewReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 		reveal crypto.BLSSignature,
 	) error
 	VerifyReveal(
-		st state.BeaconState,
+		st BeaconStateT,
 		proposerPubkey crypto.BLSPubkey,
 		reveal crypto.BLSSignature,
 	) error
 }
 
 // StakingService is the interface for the staking service.
-type StakingService interface {
+type StakingService[BeaconStateT state.BeaconState] interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
@@ -131,6 +133,6 @@ type StakingService interface {
 
 	// PruneDepositEvents prunes deposit events.
 	PruneDepositEvents(
-		st state.BeaconState,
+		st BeaconStateT,
 	) error
 }

@@ -177,7 +177,9 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
-	chainService := blockchain.NewService[*datypes.BlobSidecars](
+	chainService := blockchain.NewService[
+		state.BeaconState, *datypes.BlobSidecars,
+	](
 		storageBackend,
 		logger.With("service", "blockchain"),
 		chainSpec,
