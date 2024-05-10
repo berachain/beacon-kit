@@ -136,8 +136,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
 		}
 
 		stCopy := st.Copy()
-		//nosec:G103 // TODO:FIX
 		if err = s.sp.ProcessSlot(
+			//#nosec:G103 // TODO:FIX
 			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
 		); err != nil {
 			return
@@ -147,7 +147,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
 			ctx,
-			//nosec:G103 // TODO:FIX
+			//#nosec:G103 // TODO:FIX
 			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.

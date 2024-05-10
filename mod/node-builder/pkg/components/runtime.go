@@ -187,7 +187,11 @@ func ProvideRuntime(
 		localBuilder,
 		stakingService,
 		verification.NewBlockVerifier[state.BeaconState](chainSpec),
-		core.NewStateProcessor[state.BeaconState, *datypes.BlobSidecars](
+		core.NewStateProcessor[
+			types.BeaconBlock,
+			state.BeaconState,
+			*datypes.BlobSidecars,
+		](
 			chainSpec,
 			stda.NewBlobProcessor[
 				types.ReadOnlyBeaconBlockBody, *datypes.BlobSidecars,

@@ -34,7 +34,9 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
 //
 //nolint:lll
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashingsReset(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
 	// Get the current epoch.
@@ -51,7 +53,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashingsReset(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#proposer-slashings
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processProposerSlashing(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
 ) error {
@@ -62,7 +66,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processProposerSlashing(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#attester-slashings
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processAttesterSlashing(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
 ) error {
@@ -76,7 +82,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processAttesterSlashing(
 // state.
 //
 //nolint:lll,unused // will be used later
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashings(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processSlashings(
 	st BeaconStateT,
 ) error {
 	totalBalance, err := st.GetTotalActiveBalances(sp.cs.SlotsPerEpoch())
@@ -127,7 +135,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlashings(
 // processSlash handles the logic for slashing a validator.
 //
 //nolint:unused // will be used later
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processSlash(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processSlash(
 	st BeaconStateT,
 	val *types.Validator,
 	adjustedTotalSlashingBalance uint64,

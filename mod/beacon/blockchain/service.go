@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -49,7 +50,7 @@ type Service[
 	lb     LocalBuilder[BeaconStateT]
 	sks    StakingService
 	bv     BlockVerifier[BeaconStateT]
-	sp     *core.StateProcessor[BeaconStateT, BlobSidecarsT]
+	sp     *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
 	pv     PayloadVerifier[BeaconStateT]
 }
 
@@ -62,7 +63,8 @@ func NewService[BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars](
 	lb LocalBuilder[BeaconStateT],
 	sks StakingService,
 	bv BlockVerifier[BeaconStateT],
-	sp *core.StateProcessor[BeaconStateT, BlobSidecarsT],
+	sp *core.StateProcessor[
+		types.BeaconBlock, BeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[BeaconStateT],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{

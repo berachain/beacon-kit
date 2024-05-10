@@ -37,7 +37,9 @@ import (
 
 // processOperations processes the operations and ensures they match the
 // local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processOperations(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processOperations(
 	st BeaconStateT,
 	body types.BeaconBlockBody,
 ) error {
@@ -66,7 +68,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processOperations(
 
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processDeposits(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processDeposits(
 	st BeaconStateT,
 	deposits []*types.Deposit,
 ) error {
@@ -84,7 +88,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processDeposits(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processDeposit(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processDeposit(
 	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
@@ -118,7 +124,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processDeposit(
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) createValidator(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) createValidator(
 	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
@@ -165,7 +173,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) createValidator(
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) addValidatorToRegistry(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
@@ -191,7 +201,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) addValidatorToRegistry(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
 //
 //nolint:lll
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processWithdrawals(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processWithdrawals(
 	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
 ) error {

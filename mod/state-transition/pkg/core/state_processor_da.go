@@ -30,7 +30,9 @@ import (
 )
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessBlobs(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessBlobs(
 	st BeaconStateT,
 	avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, BlobSidecarsT],
 	sidecars BlobSidecarsT,

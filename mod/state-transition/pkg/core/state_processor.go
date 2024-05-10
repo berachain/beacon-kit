@@ -39,6 +39,7 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
+	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
 ] struct {
@@ -54,6 +55,7 @@ type StateProcessor[
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
+	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
 ](
@@ -62,8 +64,8 @@ func NewStateProcessor[
 	rp RandaoProcessor[BeaconStateT],
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
-) *StateProcessor[BeaconStateT, BlobSidecarsT] {
-	return &StateProcessor[BeaconStateT, BlobSidecarsT]{
+) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
+	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
 		cs:     cs,
 		bp:     bp,
 		rp:     rp,
@@ -73,9 +75,11 @@ func NewStateProcessor[
 }
 
 // Transition is the main function for processing a state transition.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) Transition(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) Transition(
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 	/*validateSignature bool, */
 	validateResult bool,
 ) error {
@@ -104,7 +108,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) Transition(
 }
 
 // ProcessSlot is run when a slot is missed.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessSlot(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessSlot(
 	st BeaconStateT,
 ) error {
 	slot, err := st.GetSlot()
@@ -171,9 +177,11 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessSlot(
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessBlock(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessBlock(
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -211,7 +219,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) ProcessBlock(
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processEpoch(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processEpoch(
 	st BeaconStateT,
 ) error {
 	var err error
@@ -228,9 +238,11 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processEpoch(
 }
 
 // processHeader processes the header and ensures it matches the local state.
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processHeader(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processHeader(
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 ) error {
 	// TODO: this function is really confusing, can probably just
 	// be removed and the logic put in the ProcessBlock function.
@@ -260,7 +272,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processHeader(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
 //
 //nolint:lll
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) getAttestationDeltas(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
 	// TODO: implement this function forreal
@@ -276,7 +290,9 @@ func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) getAttestationDeltas(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
 //
 //nolint:lll
-func (sp *StateProcessor[BeaconStateT, BlobSidecarsT]) processRewardsAndPenalties(
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {
 	slot, err := st.GetSlot()
