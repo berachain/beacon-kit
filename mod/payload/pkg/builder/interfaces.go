@@ -28,9 +28,30 @@ package builder
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// BeaconState defines the interface for accessing various state-related data required for block processing.
+type BeaconState interface {
+	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
+	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+
+	// ExpectedWithdrawals lists the expected withdrawals in the current state.
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+
+	// GetLatestExecutionPayloadHeader fetches the most recent execution payload header.
+	GetLatestExecutionPayloadHeader() (engineprimitives.ExecutionPayloadHeader, error)
+
+	// ValidatorIndexByPubkey finds the validator index associated with a given BLS public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+
+	// GetBlockRootAtIndex retrieves the block root at a specified index.
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+}
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
