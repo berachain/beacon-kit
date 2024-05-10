@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service represents the staking service.
@@ -102,10 +101,7 @@ func (s *Service) ProcessLogsInETH1Block(
 	return s.ProcessBlockEvents(logsInBlock)
 }
 
-func (s *Service) PruneDepositEvents(st state.BeaconState) error {
-	idx, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
+// PruneDepositEvents prunes deposit events.
+func (s *Service) PruneDepositEvents(idx uint64) error {
 	return s.ds.PruneToIndex(idx)
 }

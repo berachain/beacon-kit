@@ -124,7 +124,7 @@ type RandaoProcessor[BeaconStateT state.BeaconState] interface {
 }
 
 // StakingService is the interface for the staking service.
-type StakingService[BeaconStateT state.BeaconState] interface {
+type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
@@ -132,7 +132,6 @@ type StakingService[BeaconStateT state.BeaconState] interface {
 	) error
 
 	// PruneDepositEvents prunes deposit events.
-	PruneDepositEvents(
-		st BeaconStateT,
-	) error
+	// TODO: decouple.
+	PruneDepositEvents(idx uint64) error
 }

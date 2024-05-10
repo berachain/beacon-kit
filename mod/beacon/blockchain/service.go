@@ -47,7 +47,7 @@ type Service[
 	cs     primitives.ChainSpec
 	ee     ExecutionEngine
 	lb     LocalBuilder[BeaconStateT]
-	sks    StakingService[BeaconStateT]
+	sks    StakingService
 	bv     BlockVerifier[BeaconStateT]
 	sp     *core.StateProcessor[BeaconStateT, BlobSidecarsT]
 	pv     PayloadVerifier[BeaconStateT]
@@ -60,7 +60,7 @@ func NewService[BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars](
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
-	sks StakingService[BeaconStateT],
+	sks StakingService,
 	bv BlockVerifier[BeaconStateT],
 	sp *core.StateProcessor[BeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[BeaconStateT],

@@ -145,7 +145,13 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
-	if err = s.sks.PruneDepositEvents(st); err != nil {
+
+	idx, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	if err = s.sks.PruneDepositEvents(idx); err != nil {
 		s.logger.Error("failed to prune deposit events", "error", err)
 		return err
 	}
