@@ -46,8 +46,8 @@ var (
 	ErrInvalidBigWordSize = errors.New("weird big.Word size")
 )
 
-// wrapUnmarshalError wraps an error occurring during JSON unmarshaling.
-func wrapUnmarshalError(err error, t reflect.Type) error {
+// WrapUnmarshalError wraps an error occurring during JSON unmarshaling.
+func WrapUnmarshalError(err error, t reflect.Type) error {
 	if err != nil {
 		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
 	}

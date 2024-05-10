@@ -41,10 +41,6 @@ const (
 	U64NumBits = U64NumBytes * 8
 )
 
-// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
-// marshallable. We marshal U64 as hex strings in JSON in order to keep the
-// execution client apis happy, and we marshal U64 as little-endian in SSZ to be
-// compatible with the spec.
 type U64 uint64
 
 //nolint:lll // links.
@@ -114,17 +110,38 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 
 // -------------------------- JSONMarshallable -------------------------
 
-// UnmarshalJSON parses a blob in hex syntax.
-func (u *U64) UnmarshalJSON(input []byte) error {
-	return (*hex.U64)(u).UnmarshalJSON(input)
+// MarshalText implements encoding.TextMarshaler.
+func (b U64) MarshalText() ([]byte, error) {
+	return hex.MarshalText(b.Unwrap())
 }
 
-// MarshalText returns the hex representation of b.
-func (u U64) MarshalText() ([]byte, error) {
-	return hex.U64(u).MarshalText()
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *U64) UnmarshalJSON(input []byte) error {
+	uint64T := hex.GetReflectType(U64(0))
+	if err := hex.ValidateUnmarshalInput(input); err != nil {
+		return hex.WrapUnmarshalError(err, uint64T)
+	}
+	return hex.WrapUnmarshalError(b.UnmarshalText(input[1:len(input)-1]), uint64T)
 }
 
-// ---------------------------- U64 Methods ----------------------------
+// ---------------------------------- Hex ----------------------------------
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *U64) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalText(b.Unwrap(), input)
+	if err != nil {
+		return err
+	}
+	*b = U64(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (b U64) String() hex.String {
+	return hex.FromUint64(b.Unwrap())
+}
+
+// ----------------------- U64 Mathematical Methods -----------------------
 
 // Unwrap returns a copy of the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {

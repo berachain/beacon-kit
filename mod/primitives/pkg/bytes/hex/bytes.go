@@ -50,10 +50,10 @@ func (b Bytes) MarshalText() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
 	if !isQuotedString(input) {
-		return wrapUnmarshalError(ErrNonQuotedString, bytesT)
+		return WrapUnmarshalError(ErrNonQuotedString, bytesT)
 	}
 
-	return wrapUnmarshalError(b.UnmarshalText(input[1:len(input)-1]), bytesT)
+	return WrapUnmarshalError(b.UnmarshalText(input[1:len(input)-1]), bytesT)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
@@ -81,9 +81,9 @@ func (b Bytes) String() String {
 // to implement the UnmarshalJSON method for fixed-size types.
 func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
 	if !isQuotedString(input) {
-		return wrapUnmarshalError(ErrNonQuotedString, bytesT)
+		return WrapUnmarshalError(ErrNonQuotedString, bytesT)
 	}
-	return wrapUnmarshalError(
+	return WrapUnmarshalError(
 		UnmarshalFixedText(typ.String(), input[1:len(input)-1], out), typ,
 	)
 }

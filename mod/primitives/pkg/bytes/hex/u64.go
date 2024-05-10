@@ -30,50 +30,51 @@ import (
 	"strconv"
 )
 
-// U64 marshals/unmarshals as a JSON string with 0x prefix.
-// The zero value marshals as "0x0".
-type U64 uint64
+type HexMarshaler interface {
+	MarshalHex() ([]byte, error)
+	UnmarshalHex(data []byte) error
+}
 
-// MarshalText implements encoding.TextMarshaler.
-func (b U64) MarshalText() ([]byte, error) {
+// MarshalText returns a byte slice containing the hexadecimal representation
+// of input
+func MarshalText(b uint64) ([]byte, error) {
 	buf := make([]byte, prefixLen, initialCapacity)
 	copy(buf, prefix)
-	buf = strconv.AppendUint(buf, uint64(b), hexBase)
+	buf = strconv.AppendUint(buf, b, hexBase)
 	return buf, nil
 }
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *U64) UnmarshalJSON(input []byte) error {
-	uint64T := reflect.TypeOf(U64(0))
-	if !isQuotedString(input) {
-		return wrapUnmarshalError(ErrNonQuotedString, uint64T)
+// ValidateUnmarshalInput returns true if input is a valid JSON string.
+func ValidateUnmarshalInput(input []byte) error {
+	if isQuotedString(string(input)) {
+		return ErrNonQuotedString
+	} else {
+		return nil
 	}
-	return wrapUnmarshalError(b.UnmarshalText(input[1:len(input)-1]), uint64T)
+}
+
+// GetReflectType returns the reflect.Type of i.
+func GetReflectType(i any) reflect.Type {
+	return reflect.TypeOf(i)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (b *U64) UnmarshalText(input []byte) error {
+func UnmarshalText(b uint64, input []byte) (uint64, error) {
 	raw, err := validateNumber(input)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if len(raw) > bytesIn64Bits {
-		return ErrUint64Range
+		return 0, ErrUint64Range
 	}
 	var dec uint64
 	for _, byte := range raw {
 		nib := decodeNibble(byte)
 		if nib == badNibble {
-			return ErrInvalidString
+			return dec, ErrInvalidString
 		}
 		dec *= hexBase // hex shift left :D
 		dec += nib
 	}
-	*b = U64(dec)
-	return nil
-}
-
-// String returns the hex encoding of b.
-func (b U64) String() String {
-	return FromUint64(uint64(b))
+	return dec, nil
 }
