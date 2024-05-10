@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # Set your L1 values here
-RPC_URL="http://127.0.0.1:58597" # Replace with your L1 node RPC. NOTE: must begin with "http://" or "https://"
+RPC_URL="http://127.0.0.1:57874" # Replace with your L1 node RPC. NOTE: must begin with "http://" or "https://"
 CHAIN_ID=80087 # Default Chain ID of a Kurtosis environment. Replace if necessary
 BLOCK_TIME=6 # Default block time. NOTE: in unit of seconds. Replace if necessary
 PRIV_KEY="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # Default wallet with EVM balance
