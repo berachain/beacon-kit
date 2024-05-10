@@ -27,6 +27,7 @@ package prunedb
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/log"
@@ -50,6 +51,7 @@ type DB struct {
 	windowSize       uint64
 	highestSetIndex  uint64
 	lastDeletedIndex uint64
+	mutex            sync.Mutex
 }
 
 func (db *DB) GetIndexDB() IndexDB {
@@ -119,16 +121,20 @@ func (db *DB) Set(index uint64, key []byte, value []byte) error {
 	if err := db.IndexDB.Set(index, key, value); err != nil {
 		return err
 	}
-
 	// Update the highest seen index.
+	db.mutex.Lock()
 	db.highestSetIndex = max(db.highestSetIndex, index)
+	db.mutex.Unlock()
 	return nil
 }
 
 func (db *DB) prune() error {
+	db.mutex.Lock()
+	highestSetIndex := db.highestSetIndex
+	db.mutex.Unlock()
 	// If we haven't used windowSize number of indexes, we can skip
 	// the pruning.
-	if db.highestSetIndex < db.windowSize {
+	if highestSetIndex < db.windowSize {
 		return nil
 	}
 
@@ -137,14 +143,14 @@ func (db *DB) prune() error {
 	db.logger.Info("Pruning DB ", "from",
 		db.lastDeletedIndex)
 	db.logger.Info("Pruning DB ", "to",
-		db.highestSetIndex-db.windowSize)
+		highestSetIndex-db.windowSize)
 	if err := db.DeleteRange(
-		db.lastDeletedIndex, (db.highestSetIndex-db.windowSize)+1,
+		db.lastDeletedIndex, (highestSetIndex-db.windowSize)+1,
 	); err != nil {
 		db.lastDeletedIndex = 1
 		return err
 	}
-	db.lastDeletedIndex = db.highestSetIndex - db.windowSize
+	db.lastDeletedIndex = highestSetIndex - db.windowSize
 
 	return nil
 }
