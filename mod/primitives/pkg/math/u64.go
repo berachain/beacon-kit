@@ -41,6 +41,10 @@ const (
 	U64NumBits = U64NumBytes * 8
 )
 
+// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
+// marshallable. We marshal U64 as hex strings in JSON in order to keep the
+// execution client apis happy, and we marshal U64 as little-endian in SSZ to be
+// compatible with the spec.
 type U64 uint64
 
 //nolint:lll // links.
