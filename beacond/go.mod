@@ -39,7 +39,7 @@ require (
 	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240510171419-8088d5e4f810
