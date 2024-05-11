@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -210,7 +209,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
 // It is responsible for processing logs and other post block tasks.
 func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	var (
