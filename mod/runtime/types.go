@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -43,14 +42,15 @@ type AppOptions interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend[
-	BeaconBlockT any,
+	BeaconBlockT,
+	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
 	AvailabilityStore(
 		ctx context.Context,
 	) core.AvailabilityStore[BeaconBlockT, BlobSidecarsT]
-	BeaconState(ctx context.Context) state.BeaconState
+	BeaconState(ctx context.Context) BeaconStateT
 	DepositStore(ctx context.Context) DepositStoreT
 }
 

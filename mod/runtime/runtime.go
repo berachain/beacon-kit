@@ -47,6 +47,7 @@ type BeaconKitRuntime[
 	DepositStoreT DepositStore,
 	StorageBackendT BeaconStorageBackend[
 		BeaconBlockBodyT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
 	],
@@ -65,6 +66,7 @@ func NewBeaconKitRuntime[
 	DepositStoreT DepositStore,
 	StorageBackendT BeaconStorageBackend[
 		BeaconBlockBodyT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
 	],
