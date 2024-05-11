@@ -30,6 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -63,5 +65,27 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ChainSpec() primitives.ChainSpec
 	VerifyPayloadOnBlk(
 		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
+}
+
+type ExecutionEngine[ExecutionPayloadT types.ExecutionPayload] interface {
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *engineprimitives.GetPayloadRequest,
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engineprimitives.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+
+	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+	// execution client.
+	VerifyAndNotifyNewPayload(
+		ctx context.Context,
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 	) error
 }

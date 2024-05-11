@@ -48,6 +48,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -101,16 +102,20 @@ func ProvideRuntime(
 	// TODO: move.
 	engineClient.Start(context.Background())
 
-	// Extrac the staking ABI.
+	// Extract the staking ABI.
 	depositABI, err := abi.BeaconDepositContractMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
 
-	// Build the execution engine.
-	executionEngine := execution.New[types.ExecutionPayload](
-		engineClient,
-		logger,
+	// Build the execution engine. We wrap the base execution
+	// engine with a middleware that handles some ABCI specify
+	// logic.
+	executionEngine := abci.NewExecutionEngineMiddleware(
+		execution.New[types.ExecutionPayload](
+			engineClient,
+			logger,
+		),
 	)
 
 	// Build the staking service.
@@ -119,7 +124,7 @@ func ProvideRuntime(
 		staking.WithChainSpec(chainSpec),
 		staking.WithDepositABI(depositABI),
 		staking.WithDepositStore(storageBackend.DepositStore(nil)),
-		staking.WithExecutionEngine(executionEngine),
+		staking.WithEngineClient(engineClient),
 		staking.WithLogger(logger.With("service", "staking")),
 	)
 
