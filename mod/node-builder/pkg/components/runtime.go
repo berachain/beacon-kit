@@ -71,6 +71,7 @@ func ProvideRuntime(
 	// TODO: this is really poor coupling, we should fix.
 	storageBackend runtime.BeaconStorageBackend[
 		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
@@ -82,6 +83,7 @@ func ProvideRuntime(
 	*depositdb.KVStore,
 	runtime.BeaconStorageBackend[
 		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],

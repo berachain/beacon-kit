@@ -45,7 +45,7 @@ type StateProcessor[
 ] struct {
 	cs     primitives.ChainSpec
 	bp     BlobProcessor[BlobSidecarsT]
-	rp     RandaoProcessor[BeaconStateT]
+	rp     RandaoProcessor[BeaconBlockT, BeaconStateT]
 	signer crypto.BLSSigner
 	logger log.Logger[any]
 
@@ -61,7 +61,7 @@ func NewStateProcessor[
 ](
 	cs primitives.ChainSpec,
 	bp BlobProcessor[BlobSidecarsT],
-	rp RandaoProcessor[BeaconStateT],
+	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
