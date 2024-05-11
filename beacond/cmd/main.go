@@ -40,16 +40,11 @@ func main() {
 	}
 
 	// Build the node using the node-builder.
-	nb := nodebuilder.
-		NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:            "beacond",
-				Description:     "beacond is a beacon node for any beacon-kit chain",
-				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				DepInjectConfig: app.Config(),
-			},
-		)
+	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
+		WithAppName("beacond").
+		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
+		WithAppCreator(app.NewBeaconKitAppWithDefaultBaseAppOptions).
+		WithDepInjectConfig(app.Config())
 
 	// Run the node.
 	if err := nb.RunNode(); err != nil {
