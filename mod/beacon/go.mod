@@ -3,19 +3,12 @@ module github.com/berachain/beacon-kit/mod/beacon
 go 1.22.3
 
 replace (
-	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240510154417-946c62410f30
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240510154417-946c62410f30
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240510154417-946c62410f30
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240510154417-946c62410f30
-
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240510164054-6b2d6bd75642
 )
 
 require (

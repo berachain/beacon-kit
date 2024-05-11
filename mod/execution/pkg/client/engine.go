@@ -29,7 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -39,9 +39,9 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	ctx context.Context,
-	payload interface{ Version() uint32 },
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -51,7 +51,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 		dctx,
 		payload,
 		versionedHashes,
-		parentBlockRoot,
+		parentBeaconBlockRoot,
 	)
 	if err != nil {
 		return nil, err
@@ -75,13 +75,20 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	ctx context.Context,
-	payload interface{ Version() uint32 },
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
 	switch payload.Version() {
 	case version.Deneb:
-		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+		return s.NewPayloadV3(
+			ctx,
+			payload,
+			versionedHashes,
+			parentBeaconBlockRoot,
+		)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra payload")
 	default:
 		return nil, ErrInvalidPayloadType
 	}
@@ -122,6 +129,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
 		return nil, ErrInvalidPayloadAttributes
 	}
@@ -137,12 +146,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// Determine what version we want to call.
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
 		return nil, ErrInvalidGetPayloadVersion
 	}
@@ -169,7 +181,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
-		ctx, eth.BeaconKitSupportedCapabilities(),
+		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {
 		s.statusErrMu.Lock()
@@ -186,7 +198,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
 	}
 
 	// Log the capabilities that the execution client does not have.
-	for _, capability := range eth.BeaconKitSupportedCapabilities() {
+	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
 		if _, exists := s.capabilities[capability]; !exists {
 			s.logger.Warn(
 				"your execution client may require an update 🚸",

@@ -100,12 +100,16 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     cl_service_name = "cl-validator-beaconkit-{}".format(num_validators - 1)
 
     last_cmd = "{} && {}".format(mv_all_gentx_cmd, node.get_collect_validator_sh()) if num_validators > 1 else node.get_collect_validator_sh()
-    final_sh_cmd = "{} && {} && {} && {}".format(
+    final_sh_cmd = "{} && {} && {} && {} && {}".format(
         node.get_init_sh(),
         node.get_add_validator_sh(),
         "cp -R /root /tmp/{}".format(final_config_folder),  # Store final gentx to the side for easy file artifact storage later
+        node.get_execution_payload_sh(),
         last_cmd,
     )
+
+    # Add eth genesis file to final config
+    final_config_folders["/root/eth_genesis"] = "genesis_file"
 
     # Run final gentx generation
     sh_cmd = final_sh_cmd

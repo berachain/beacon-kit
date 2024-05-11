@@ -40,8 +40,8 @@ type Service struct {
 	bsb    BeaconStorageBackend
 	cs     primitives.ChainSpec
 
-	// ee represents the execution engine.
-	ee ExecutionEngine
+	// ee represents the engine client.
+	ee EngineClient
 
 	// abi represents the configured deposit contract's
 	// abi.
