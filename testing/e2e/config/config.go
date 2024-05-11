@@ -71,7 +71,9 @@ type Node struct {
 
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []any{},
+		AdditionalServices: []any{
+			"tx-fuzz",
+		},
 		Validators: []Node{
 			{
 				ElType:   "nethermind",
