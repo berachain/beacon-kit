@@ -33,7 +33,9 @@ import (
 )
 
 // BlockVerifier is responsible for verifying incoming BeaconBlocks.
-type BlockVerifier[BeaconStateT state.BeaconState] struct {
+type BlockVerifier[
+	BeaconStateT BeaconState,
+] struct {
 	cs primitives.ChainSpec
 }
 
