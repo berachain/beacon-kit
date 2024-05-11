@@ -47,7 +47,7 @@ func MarshalText(b uint64) ([]byte, error) {
 // It returns an error iff input is not a quoted string.
 // This is used to prevent exposing validation logic to the caller.
 func ValidateUnmarshalInput(input []byte) error {
-	if isQuotedString(string(input)) {
+	if !isQuotedString(string(input)) {
 		return ErrNonQuotedString
 	}
 	return nil
