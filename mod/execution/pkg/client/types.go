@@ -23,30 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package client
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-)
-
-type BeaconStorageBackend interface {
-	BeaconState(context.Context) state.BeaconState
-}
-
-type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
-}
-
-type EngineClient interface {
-	GetLogs(
-		context.Context,
-		common.ExecutionHash,
-		[]common.ExecutionAddress,
-	) ([]engineprimitives.Log, error)
+// ExecutionPayload is an interface that defines the Version method.
+type ExecutionPayload interface {
+	Version() uint32
 }
