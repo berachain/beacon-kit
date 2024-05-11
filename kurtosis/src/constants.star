@@ -21,4 +21,8 @@ PRE_FUNDED_ACCOUNTS = [
         "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
         "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
     ),
+    new_prefunded_account(
+        "0x56898d1aFb10cad584961eb96AcD476C6826e41E",
+        "9b9bc88a144fff869ae2f4ea8e252f2494d9b52ea1008d0b3537dad27ab489d5",
+    ),
 ]
