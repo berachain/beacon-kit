@@ -30,13 +30,12 @@ import (
 	"strconv"
 )
 
-type HexMarshaler interface {
-	MarshalHex() ([]byte, error)
-	UnmarshalHex(data []byte) error
-}
+// This file contains functions for encoding and decoding uint64 values to and
+// from hexadecimal strings, and marshaling and unmarshaling uint64 values to
+// and from byte slices representing hexadecimal strings.
 
 // MarshalText returns a byte slice containing the hexadecimal representation
-// of input
+// of uint64 input.
 func MarshalText(b uint64) ([]byte, error) {
 	buf := make([]byte, prefixLen, initialCapacity)
 	copy(buf, prefix)
@@ -44,7 +43,9 @@ func MarshalText(b uint64) ([]byte, error) {
 	return buf, nil
 }
 
-// ValidateUnmarshalInput returns true if input is a valid JSON string.
+// ValidateUnmarshalInput validates the input byte slice for unmarshaling.
+// It returns an error iff input is not a quoted string.
+// This is used to prevent exposing validation logic to the caller.
 func ValidateUnmarshalInput(input []byte) error {
 	if isQuotedString(string(input)) {
 		return ErrNonQuotedString
@@ -58,8 +59,9 @@ func GetReflectType(i any) reflect.Type {
 	return reflect.TypeOf(i)
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler.
-func UnmarshalText(b uint64, input []byte) (uint64, error) {
+// UnmarshalText parses a byte slice containing a hexadecimal string and
+// returns the uint64 value it represents.
+func UnmarshalText(input []byte) (uint64, error) {
 	raw, err := validateNumber(input)
 	if err != nil {
 		return 0, err

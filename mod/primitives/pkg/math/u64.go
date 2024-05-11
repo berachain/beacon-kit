@@ -128,7 +128,7 @@ func (b *U64) UnmarshalJSON(input []byte) error {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *U64) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalText(b.Unwrap(), input)
+	dec, err := hex.UnmarshalText(input)
 	if err != nil {
 		return err
 	}
