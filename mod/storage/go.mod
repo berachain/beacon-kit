@@ -3,11 +3,12 @@ module github.com/berachain/beacon-kit/mod/storage
 go 1.22.3
 
 replace (
-// TODO consensus-types should be decoupleable.
-github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
+	// TODO consensus-types should be decoupleable.
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240510164054-6b2d6bd75642
 )
 
 require (
