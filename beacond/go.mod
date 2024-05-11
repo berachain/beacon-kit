@@ -49,6 +49,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/spf13/cast v1.6.0
+	go.uber.org/automaxprocs v1.5.3
 	google.golang.org/protobuf v1.34.1
 )
 

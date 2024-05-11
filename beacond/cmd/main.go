@@ -30,9 +30,18 @@ import (
 
 	app "github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 func main() {
+	// Set the uber max procs
+	undo, err := maxprocs.Set()
+	defer undo()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	// Build the node using the node-builder.
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
 		WithAppInfo(
 			&nodebuilder.AppInfo[app.BeaconApp]{
@@ -42,6 +51,8 @@ func main() {
 				DepInjectConfig: app.Config(),
 			},
 		)
+
+	// Run the node.
 	if err := nb.RunNode(); err != nil {
 		os.Exit(1)
 	}
