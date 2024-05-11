@@ -40,7 +40,9 @@ func (nb *NodeBuilder[T]) WithAppName(name string) *NodeBuilder[T] {
 }
 
 // WithAppDescription sets the application description.
-func (nb *NodeBuilder[T]) WithAppDescription(description string) *NodeBuilder[T] {
+func (nb *NodeBuilder[T]) WithAppDescription(
+	description string,
+) *NodeBuilder[T] {
 	if nb.appInfo == nil {
 		nb.appInfo = &AppInfo[T]{}
 	}
@@ -49,7 +51,9 @@ func (nb *NodeBuilder[T]) WithAppDescription(description string) *NodeBuilder[T]
 }
 
 // WithAppCreator sets the application creator function.
-func (nb *NodeBuilder[T]) WithAppCreator(creator servertypes.AppCreator[T]) *NodeBuilder[T] {
+func (nb *NodeBuilder[T]) WithAppCreator(
+	creator servertypes.AppCreator[T],
+) *NodeBuilder[T] {
 	if nb.appInfo == nil {
 		nb.appInfo = &AppInfo[T]{}
 	}
@@ -58,7 +62,9 @@ func (nb *NodeBuilder[T]) WithAppCreator(creator servertypes.AppCreator[T]) *Nod
 }
 
 // WithDepInjectConfig sets the dependency injection configuration.
-func (nb *NodeBuilder[T]) WithDepInjectConfig(config depinject.Config) *NodeBuilder[T] {
+func (nb *NodeBuilder[T]) WithDepInjectConfig(
+	config depinject.Config,
+) *NodeBuilder[T] {
 	if nb.appInfo == nil {
 		nb.appInfo = &AppInfo[T]{}
 	}

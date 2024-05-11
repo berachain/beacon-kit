@@ -28,7 +28,7 @@ package main
 import (
 	"os"
 
-	app "github.com/berachain/beacon-kit/beacond/app"
+	"github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
 	"go.uber.org/automaxprocs/maxprocs"
 )
