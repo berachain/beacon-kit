@@ -49,9 +49,8 @@ func MarshalText(b uint64) ([]byte, error) {
 func ValidateUnmarshalInput(input []byte) error {
 	if isQuotedString(string(input)) {
 		return ErrNonQuotedString
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // GetReflectType returns the reflect.Type of i.

@@ -111,34 +111,34 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 // -------------------------- JSONMarshallable -------------------------
 
 // MarshalText implements encoding.TextMarshaler.
-func (b U64) MarshalText() ([]byte, error) {
-	return hex.MarshalText(b.Unwrap())
+func (u U64) MarshalText() ([]byte, error) {
+	return hex.MarshalText(u.Unwrap())
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (b *U64) UnmarshalJSON(input []byte) error {
+func (u *U64) UnmarshalJSON(input []byte) error {
 	uint64T := hex.GetReflectType(U64(0))
 	if err := hex.ValidateUnmarshalInput(input); err != nil {
 		return hex.WrapUnmarshalError(err, uint64T)
 	}
-	return hex.WrapUnmarshalError(b.UnmarshalText(input[1:len(input)-1]), uint64T)
+	return hex.WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), uint64T)
 }
 
 // ---------------------------------- Hex ----------------------------------
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (b *U64) UnmarshalText(input []byte) error {
+func (u *U64) UnmarshalText(input []byte) error {
 	dec, err := hex.UnmarshalText(input)
 	if err != nil {
 		return err
 	}
-	*b = U64(dec)
+	*u = U64(dec)
 	return nil
 }
 
 // String returns the hex encoding of b.
-func (b U64) String() hex.String {
-	return hex.FromUint64(b.Unwrap())
+func (u U64) String() hex.String {
+	return hex.FromUint64(u.Unwrap())
 }
 
 // ----------------------- U64 Mathematical Methods -----------------------
