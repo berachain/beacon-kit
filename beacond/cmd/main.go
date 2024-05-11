@@ -35,14 +35,13 @@ import (
 
 func main() {
 	// Set the uber max procs
-	undo, err := maxprocs.Set()
-	defer undo()
-	if err != nil {
+	if _, err := maxprocs.Set(); err != nil {
 		os.Exit(1)
 	}
 
 	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
+	nb := nodebuilder.
+		NewNodeBuilder[app.BeaconApp]().
 		WithAppInfo(
 			&nodebuilder.AppInfo[app.BeaconApp]{
 				Name:            "beacond",
