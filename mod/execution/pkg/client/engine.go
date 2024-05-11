@@ -39,7 +39,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	ctx context.Context,
-	payload interface{ Version() uint32 },
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
@@ -75,7 +75,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	ctx context.Context,
-	payload interface{ Version() uint32 },
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
@@ -87,6 +87,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 			versionedHashes,
 			parentBeaconBlockRoot,
 		)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra payload")
 	default:
 		return nil, ErrInvalidPayloadType
 	}
@@ -127,6 +129,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
 		return nil, ErrInvalidPayloadAttributes
 	}
@@ -142,12 +146,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// Determine what version we want to call.
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
 		return nil, ErrInvalidGetPayloadVersion
 	}
