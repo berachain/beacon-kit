@@ -34,15 +34,36 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
+
+// BeaconState defines the interface for accessing various components of the
+// beacon state.
+type BeaconState interface {
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+
+	// GetBlockRootAtIndex fetches the block root at a specified index.
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+
+	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader,
+		error,
+	)
+
+	// ValidatorIndexByPubkey finds the index of a validator based on their
+	// public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+}
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BlobSidecarsT BlobSidecars,
-	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT types.BeaconBlockBody,
 ] interface {
+	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk types.ReadOnlyBeaconBlock[BeaconBlockBodyT],
 		blobs engineprimitives.BlobsBundle,
@@ -58,6 +79,7 @@ type BlobSidecars interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
+	// ExpectedDeposits returns `numView` expected deposits.
 	ExpectedDeposits(
 		numView uint64,
 	) ([]*types.Deposit, error)
@@ -65,19 +87,21 @@ type DepositStore interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	ReadOnlyBeaconStateT state.ReadOnlyBeaconState,
+	BeaconStateT BeaconState,
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st ReadOnlyBeaconStateT) (crypto.BLSSignature, error)
+	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[ReadOnlyBeaconStateT state.ReadOnlyBeaconState] interface {
+type PayloadBuilder[BeaconStateT BeaconState] interface {
+	// RetrieveOrBuildPayload retrieves or builds the payload for the given
+	// slot.
 	RetrieveOrBuildPayload(
 		ctx context.Context,
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,

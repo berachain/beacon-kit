@@ -32,14 +32,15 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/davecgh/go-spew/spew"
 )
 
 // processOperations processes the operations and ensures they match the
 // local state.
-func (sp *StateProcessor[SidecarsT]) processOperations(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processOperations(
+	st BeaconStateT,
 	body types.BeaconBlockBody,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
@@ -67,8 +68,10 @@ func (sp *StateProcessor[SidecarsT]) processOperations(
 
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
-func (sp *StateProcessor[SidecarsT]) processDeposits(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processDeposits(
+	st BeaconStateT,
 	deposits []*types.Deposit,
 ) error {
 	// Ensure the deposits match the local state.
@@ -85,8 +88,10 @@ func (sp *StateProcessor[SidecarsT]) processDeposits(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[SidecarsT]) processDeposit(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processDeposit(
+	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
 	// TODO: fill this in properly
@@ -119,8 +124,10 @@ func (sp *StateProcessor[SidecarsT]) processDeposit(
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[SidecarsT]) createValidator(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) createValidator(
+	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
 	var (
@@ -166,8 +173,10 @@ func (sp *StateProcessor[SidecarsT]) createValidator(
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[SidecarsT]) addValidatorToRegistry(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) addValidatorToRegistry(
+	st BeaconStateT,
 	dep *types.Deposit,
 ) error {
 	val := types.NewValidatorFromDeposit(
@@ -192,8 +201,10 @@ func (sp *StateProcessor[SidecarsT]) addValidatorToRegistry(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
 //
 //nolint:lll
-func (sp *StateProcessor[SidecarsT]) processWithdrawals(
-	st state.BeaconState,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processWithdrawals(
+	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Dequeue and verify the logs.

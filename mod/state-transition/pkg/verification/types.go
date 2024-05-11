@@ -23,20 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package store
+package verification
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-}
-
-// ReadOnlyBeaconBlockBody is the body of a beacon block.
-type ReadOnlyBeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// BeaconState represents the state of the beacon chain.
+type BeaconState interface {
+	GetSlot() (math.Slot, error)
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }

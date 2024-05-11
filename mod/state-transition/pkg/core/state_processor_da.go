@@ -27,14 +27,15 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *StateProcessor[SidecarsT]) ProcessBlobs(
-	st state.BeaconState,
-	avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
-	sidecars SidecarsT,
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessBlobs(
+	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	sidecars BlobSidecarsT,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {

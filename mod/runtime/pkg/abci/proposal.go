@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,7 +46,7 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler[BlobsSidecarsT ssz.Marshallable] struct {
-	builderService BuilderService[BlobsSidecarsT]
+	builderService BuilderService[state.BeaconState, BlobsSidecarsT]
 	chainService   BlockchainService[BlobsSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from
@@ -58,7 +59,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler[BlobsSidecarsT ssz.Marshallable](
-	builderService BuilderService[BlobsSidecarsT],
+	builderService BuilderService[state.BeaconState, BlobsSidecarsT],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.

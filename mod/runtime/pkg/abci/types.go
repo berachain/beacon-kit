@@ -23,25 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blob
+package abci
 
 import (
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-// chainSpec represents a chain spec.
-type chainSpec interface {
-	MaxBlobCommitmentsPerBlock() uint64
+type BuilderService[
+	BeaconStateT state.BeaconState,
+	BlobsSidecarsT ssz.Marshallable,
+] interface {
+	RequestBestBlock(
+		context.Context,
+		BeaconStateT,
+		math.Slot,
+	) (types.BeaconBlock, BlobsSidecarsT, error)
 }
 
-type BeaconBlock[BeaconBlockBodyT any] interface {
-	GetBody() BeaconBlockBodyT
-	GetHeader() *types.BeaconBlockHeader
-}
-type ReadOnlyBeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	GetTopLevelRoots() ([][32]byte, error)
-	Length() uint64
+type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
+	ProcessSlot(state.BeaconState) error
+	BeaconState(context.Context) state.BeaconState
+	ProcessBeaconBlock(
+		context.Context,
+		state.BeaconState,
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		BlobsSidecarsT,
+	) error
+	PostBlockProcess(
+		context.Context,
+		state.BeaconState,
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
+	ChainSpec() primitives.ChainSpec
+	VerifyPayloadOnBlk(
+		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
 }
