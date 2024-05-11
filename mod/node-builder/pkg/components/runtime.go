@@ -179,6 +179,7 @@ func ProvideRuntime(
 	)
 
 	// Build the blockchain service.
+	// ooga-booga-goober.
 	chainService := blockchain.NewService[
 		state.BeaconState, *datypes.BlobSidecars,
 	](
