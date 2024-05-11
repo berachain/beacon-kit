@@ -119,7 +119,7 @@ func ProvideRuntime(
 		staking.WithChainSpec(chainSpec),
 		staking.WithDepositABI(depositABI),
 		staking.WithDepositStore(storageBackend.DepositStore(nil)),
-		staking.WithExecutionEngine(executionEngine),
+		staking.WithEngineClient(executionEngine),
 		staking.WithLogger(logger.With("service", "staking")),
 	)
 
