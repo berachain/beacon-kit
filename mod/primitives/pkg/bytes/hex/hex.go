@@ -32,31 +32,52 @@ import (
 )
 
 // String represents a hex string with 0x prefix.
+// Invariants: IsEmpty(s) > 0, has0xPrefix(s) == true.
 type String string
+
+// NewString creates a hex string with 0x prefix. It modifies the input to
+// ensure that the string invariants are satisfied.
+func NewString[T []byte | string](s T) String {
+	str := string(s)
+	str = ensureStringInvariants(str)
+	return String(str)
+}
+
+// NewStringStrict creates a hex string with 0x prefix. It errors if any of the
+// string invariants are violated.
+func NewStringStrict[T []byte | string](s T) (String, error) {
+	str := string(s)
+	if len(str) == 0 {
+		return "", ErrEmptyString
+	} else if !has0xPrefix(str) {
+		return "", ErrMissingPrefix
+	}
+	return String(str), nil
+}
 
 // FromBytes creates a hex string with 0x prefix.
 func FromBytes[B ~[]byte](b B) String {
 	enc := make([]byte, len(b)*2+prefixLen)
 	copy(enc, prefix)
 	hex.Encode(enc[2:], b)
-	return String(enc)
+	return NewString(enc)
 }
 
 // FromUint64 encodes i as a hex string with 0x prefix.
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
 	copy(enc, prefix)
-	return String(strconv.AppendUint(enc, uint64(i), hexBase))
+	return NewString(strconv.AppendUint(enc, uint64(i), hexBase))
 }
 
 // FromBigInt encodes bigint as a hex string with 0x prefix.
 func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
-		return String("0x0")
+		return NewString("0x0")
 	} else if sign > 0 {
-		return String("0x" + bigint.Text(hexBase))
+		return NewString("0x" + bigint.Text(hexBase))
 	}
-	return String("-0x" + bigint.Text(hexBase)[1:])
+	return NewString("-0x" + bigint.Text(hexBase)[1:])
 }
 
 // Has0xPrefix returns true if s has a 0x prefix.
@@ -71,11 +92,6 @@ func (s String) IsEmpty() bool {
 
 // ToBytes decodes a hex string with 0x prefix.
 func (s String) ToBytes() ([]byte, error) {
-	if s.IsEmpty() {
-		return nil, ErrEmptyString
-	} else if s.Has0xPrefix() {
-		return nil, ErrMissingPrefix
-	}
 	return hex.DecodeString(string(s[2:]))
 }
 

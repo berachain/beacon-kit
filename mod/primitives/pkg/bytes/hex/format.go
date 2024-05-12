@@ -30,6 +30,30 @@ func has0xPrefix[T []byte | string](s T) bool {
 	return len(s) >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
 }
 
+// ensure0xPrefix ensures that s has a 0x prefix. If it doesn't, it adds it.
+func ensure0xPrefix[T []byte | string](s T) T {
+	if has0xPrefix(s) {
+		return s
+	}
+	switch v := any(s).(type) {
+	case string:
+		return T("0x" + v)
+	case []byte:
+		return T(append([]byte("0x"), v...))
+	default:
+		return s
+	}
+}
+
+// ensureStringInvariants ensures that String invariants are met by appending
+// 0x prefix if missing, and converting empty string to "0x0".
+func ensureStringInvariants(s string) string {
+	if len(s) == 0 {
+		s = "0"
+	}
+	return ensure0xPrefix(s)
+}
+
 // isQuotedString returns true if input has quotes.
 func isQuotedString[T []byte | string](input T) bool {
 	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
