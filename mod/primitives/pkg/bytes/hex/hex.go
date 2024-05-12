@@ -35,7 +35,7 @@ import (
 type String string
 
 // FromBytes creates a hex string with 0x prefix.
-func FromBytes(b []byte) String {
+func FromBytes[B ~[]byte](b B) String {
 	enc := make([]byte, len(b)*2+prefixLen)
 	copy(enc, prefix)
 	hex.Encode(enc[2:], b)
@@ -43,10 +43,10 @@ func FromBytes(b []byte) String {
 }
 
 // FromUint64 encodes i as a hex string with 0x prefix.
-func FromUint64(i uint64) String {
+func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
 	copy(enc, prefix)
-	return String(strconv.AppendUint(enc, i, hexBase))
+	return String(strconv.AppendUint(enc, uint64(i), hexBase))
 }
 
 // FromBigInt encodes bigint as a hex string with 0x prefix.
