@@ -32,8 +32,8 @@ const (
 	hexBase         = 16
 	initialCapacity = 10
 	encDecRatio     = 2
-	bytesIn64Bits   = 16
-	bytesIn256Bits  = 64
+	bytesPer64Bits  = 16 // 64/8
+	bytesPer256Bits = 64 // 256/8
 
 	// hexadecimal conversion constants.
 	hexBaseOffset       = '0'

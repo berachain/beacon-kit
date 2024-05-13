@@ -65,7 +65,7 @@ func UnmarshalText(input []byte) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if len(raw) > bytesIn64Bits {
+	if len(raw) > bytesPer64Bits {
 		return 0, ErrUint64Range
 	}
 	var dec uint64
