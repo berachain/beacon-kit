@@ -30,7 +30,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/staking"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -115,14 +114,9 @@ func ProvideRuntime(
 		engineClient,
 		types.NewDeposit,
 	)
-
-	// Build the staking service.
-	stakingService := staking.NewService(
-		staking.WithBeaconStorageBackend(storageBackend),
-		staking.WithDepositContract(beaconDepositContract),
-		staking.WithDepositStore(storageBackend.DepositStore(nil)),
-		staking.WithLogger(logger.With("service", "staking")),
-	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the local builder service.
 	localBuilder := payloadbuilder.New[state.BeaconState](
@@ -188,7 +182,6 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		stakingService,
 		verification.NewBlockVerifier[state.BeaconState](chainSpec),
 		core.NewStateProcessor[
 			types.BeaconBlock,
@@ -208,6 +201,7 @@ func ProvideRuntime(
 			logger.With("module", "state-processor"),
 		),
 		verification.NewPayloadVerifier(chainSpec),
+		beaconDepositContract,
 	)
 
 	// Build the service registry.
@@ -215,7 +209,7 @@ func ProvideRuntime(
 		service.WithLogger(logger.With("module", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
-		service.WithService(stakingService),
+		// service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
