@@ -23,21 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package maxprocs automatically set GOMAXPROCS to match the Linux container
-// CPU quota (if any), returning any error encountered and an undo function.
-// Set is a no-op on non-Linux systems and in Linux environments without a
-// configured CPU quota.
-package maxprocs
+package verification
 
 import (
-	"go.uber.org/automaxprocs/maxprocs"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Initialize Uber maxprocs.
-//
-//nolint:init // Initialize Uber maxprocs.
-func init() {
-	if _, err := maxprocs.Set(); err != nil {
-		panic(err)
-	}
+// BeaconState represents the state of the beacon chain.
+type BeaconState interface {
+	GetSlot() (math.Slot, error)
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }

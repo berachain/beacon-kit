@@ -32,14 +32,13 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
 func (s *Service[BeaconStateT, BlobSidecarsT]) sendFCU(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
@@ -64,7 +63,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendFCU(
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
 ) {
 	var (

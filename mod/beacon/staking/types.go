@@ -43,7 +43,7 @@ type DepositStore interface {
 	EnqueueDeposits([]*types.Deposit) error
 }
 
-type ExecutionEngine interface {
+type EngineClient interface {
 	GetLogs(
 		context.Context,
 		common.ExecutionHash,

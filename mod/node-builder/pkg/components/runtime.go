@@ -71,6 +71,7 @@ func ProvideRuntime(
 	// TODO: this is really poor coupling, we should fix.
 	storageBackend runtime.BeaconStorageBackend[
 		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
@@ -82,6 +83,7 @@ func ProvideRuntime(
 	*depositdb.KVStore,
 	runtime.BeaconStorageBackend[
 		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
@@ -117,7 +119,7 @@ func ProvideRuntime(
 		staking.WithChainSpec(chainSpec),
 		staking.WithDepositABI(depositABI),
 		staking.WithDepositStore(storageBackend.DepositStore(nil)),
-		staking.WithExecutionEngine(executionEngine),
+		staking.WithEngineClient(executionEngine),
 		staking.WithLogger(logger.With("service", "staking")),
 	)
 

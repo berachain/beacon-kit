@@ -30,7 +30,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -57,10 +56,10 @@ type BlobProcessor[BlobSidecarsT any] interface {
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconStateT state.BeaconState] interface {
+type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	ProcessRandao(
 		BeaconStateT,
-		types.BeaconBlock,
+		BeaconBlockT,
 	) error
 	ProcessRandaoMixesReset(
 		BeaconStateT,

@@ -36,11 +36,12 @@ import (
 )
 
 type BuilderService[
+	BeaconStateT state.BeaconState,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
 	RequestBestBlock(
 		context.Context,
-		state.BeaconState,
+		BeaconStateT,
 		math.Slot,
 	) (types.BeaconBlock, BlobsSidecarsT, error)
 }
