@@ -122,13 +122,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 ) {
 }
 
-// LocalBuilder returns the local builder.
-//
-//nolint:lll // weird.
-func (s *Service[BeaconStateT, BlobSidecarsT]) LocalBuilder() PayloadBuilder[BeaconStateT] {
-	return s.localBuilder
-}
-
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
