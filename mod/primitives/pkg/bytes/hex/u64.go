@@ -61,7 +61,7 @@ func GetReflectType(i any) reflect.Type {
 // UnmarshalText parses a byte slice containing a hexadecimal string and
 // returns the uint64 value it represents.
 func UnmarshalText(input []byte) (uint64, error) {
-	raw, err := validateNumber(input)
+	raw, err := formatAndValidateNumber(input)
 	if err != nil {
 		return 0, err
 	}

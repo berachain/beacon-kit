@@ -74,8 +74,8 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 	return input, nil
 }
 
-// validateNumber checks the input text for a hex number.
-func validateNumber[T []byte | string](input T) (T, error) {
+// formatAndValidateNumber checks the input text for a hex number.
+func formatAndValidateNumber[T []byte | string](input T) (T, error) {
 	// realistically, this shouldn't rarely error if called on
 	// unwrapped hex.String
 	if len(input) == 0 {
