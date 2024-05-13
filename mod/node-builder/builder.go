@@ -98,6 +98,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		mm          *module.Manager
 		clientCtx   client.Context
 	)
+
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.appInfo.DepInjectConfig,
@@ -159,6 +160,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 			); err != nil {
 				return err
 			}
+
+			serverCtx := server.GetServerContextFromCmd(cmd)
 
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
