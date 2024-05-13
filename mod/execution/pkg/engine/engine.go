@@ -76,7 +76,6 @@ func (ee *Engine[
 	return ee.ec.Status()
 }
 
-
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
 	ExecutionPayloadT, ExecutionPayloadDenebT,
