@@ -76,16 +76,6 @@ func (ee *Engine[
 	return ee.ec.Status()
 }
 
-// TODO move.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) GetLogs(
-	ctx context.Context,
-	blockHash common.ExecutionHash,
-	addrs []common.ExecutionAddress,
-) ([]engineprimitives.Log, error) {
-	return ee.ec.GetLogs(ctx, blockHash, addrs)
-}
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
