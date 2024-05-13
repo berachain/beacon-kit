@@ -253,8 +253,8 @@ func (s *Service[
 	}
 
 	// Process the logs from the previous blocks execution payload.
-	// TODO: This should be handled a bit better.
-	if err = s.ProcessLogsInETH1Block(
+	// TODO: This should be moved out of the main block processing flow.
+	if err = s.RetrieveDepositsFromBlock(
 		ctx, latestExecutionPayloadHeader.GetNumber(),
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
@@ -274,26 +274,28 @@ func (s *Service[
 	payload engineprimitives.ExecutionPayload,
 ) error {
 	// Get the merkle roots of transactions and withdrawals in parallel.
+	g, ctx := errgroup.WithContext(ctx)
 	var (
-		g, _            = errgroup.WithContext(ctx)
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)
 
 	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
+		root, err := engineprimitives.Transactions(payload.GetTransactions()).HashTreeRoot()
+		if err != nil {
+			return err
+		}
+		txsRoot = root
+		return nil
 	})
 
 	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
-		return withdrawalsRootErr
+		root, err := engineprimitives.Withdrawals(payload.GetWithdrawals()).HashTreeRoot()
+		if err != nil {
+			return err
+		}
+		withdrawalsRoot = root
+		return nil
 	})
 
 	// If deriving either of the roots fails, return the error.
@@ -302,25 +304,25 @@ func (s *Service[
 	}
 
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&engineprimitives.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	header := &engineprimitives.ExecutionPayloadHeaderDeneb{
+		ParentHash:       payload.GetParentHash(),
+		FeeRecipient:     payload.GetFeeRecipient(),
+		StateRoot:        payload.GetStateRoot(),
+		ReceiptsRoot:     payload.GetReceiptsRoot(),
+		LogsBloom:        payload.GetLogsBloom(),
+		Random:           payload.GetPrevRandao(),
+		Number:           payload.GetNumber(),
+		GasLimit:         payload.GetGasLimit(),
+		GasUsed:          payload.GetGasUsed(),
+		Timestamp:        payload.GetTimestamp(),
+		ExtraData:        payload.GetExtraData(),
+		BaseFeePerGas:    payload.GetBaseFeePerGas(),
+		BlockHash:        payload.GetBlockHash(),
+		TransactionsRoot: txsRoot,
+		WithdrawalsRoot:  withdrawalsRoot,
+		BlobGasUsed:      payload.GetBlobGasUsed(),
+		ExcessBlobGas:    payload.GetExcessBlobGas(),
+	}
+
+	return st.SetLatestExecutionPayloadHeader(header)
 }
