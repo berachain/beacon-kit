@@ -241,10 +241,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	if err != nil {
 		return err
 	}
-	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
 	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
+	if err = s.sks.ProcessLogsInETH1Block(ctx, latestExecutionPayloadHeader.GetNumber()); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}

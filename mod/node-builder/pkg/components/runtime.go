@@ -31,13 +31,13 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/staking"
-	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -101,25 +101,26 @@ func ProvideRuntime(
 	// TODO: move.
 	engineClient.Start(context.Background())
 
-	// Extrac the staking ABI.
-	depositABI, err := abi.BeaconDepositContractMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
 		engineClient,
 		logger,
 	)
 
+	// Build the deposit contract.
+	beaconDepositContract, err := deposit.NewBeaconDepositContract[
+		types.Deposit, types.WithdrawalCredentials,
+	](
+		chainSpec.DepositContractAddress(),
+		engineClient,
+		types.NewDeposit,
+	)
+
 	// Build the staking service.
 	stakingService := staking.NewService(
 		staking.WithBeaconStorageBackend(storageBackend),
-		staking.WithChainSpec(chainSpec),
-		staking.WithDepositABI(depositABI),
+		staking.WithDepositContract(beaconDepositContract),
 		staking.WithDepositStore(storageBackend.DepositStore(nil)),
-		staking.WithEngineClient(executionEngine),
 		staking.WithLogger(logger.With("service", "staking")),
 	)
 

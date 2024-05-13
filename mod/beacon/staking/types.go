@@ -38,6 +38,14 @@ type BeaconStorageBackend interface {
 	BeaconState(context.Context) state.BeaconState
 }
 
+// DepositContract is the ABI for the deposit contract.
+type DepositContract interface {
+	GetDeposits(
+		ctx context.Context,
+		blockNumber uint64,
+	) ([]*types.Deposit, error)
+}
+
 type DepositStore interface {
 	PruneToIndex(uint64) error
 	EnqueueDeposits([]*types.Deposit) error

@@ -26,10 +26,7 @@
 package staking
 
 import (
-	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // Option is a function that sets a field on the Service.
@@ -43,22 +40,13 @@ func WithBeaconStorageBackend(bsb BeaconStorageBackend) Option {
 	}
 }
 
-// WithChainSpec is a function that returns an Option.
-// It sets the ChainSpec of the Service to the provided ChainSpec.
-func WithChainSpec(cs primitives.ChainSpec) Option {
-	return func(s *Service) error {
-		s.cs = cs
-		return nil
-	}
-}
-
-// WithDepositABI returns an Option that sets the deposit
+// WithDepositContract returns an Option that sets the deposit
 // contract's ABI for the Service.
-func WithDepositABI(
-	depositABI *abi.ABI,
+func WithDepositContract(
+	depositContract DepositContract,
 ) Option {
 	return func(s *Service) error {
-		s.abi = stakingabi.NewWrappedABI(depositABI)
+		s.depositContract = depositContract
 		return nil
 	}
 }
@@ -69,16 +57,6 @@ func WithDepositStore(
 ) Option {
 	return func(s *Service) error {
 		s.ds = ds
-		return nil
-	}
-}
-
-// WithEngineClient is a function that returns an Option.
-func WithEngineClient(
-	ee EngineClient,
-) Option {
-	return func(s *Service) error {
-		s.ee = ee
 		return nil
 	}
 }

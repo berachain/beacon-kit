@@ -127,7 +127,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		blockHash common.ExecutionHash,
+		eth1BlockNumber math.U64,
 	) error
 
 	// PruneDepositEvents prunes deposit events.

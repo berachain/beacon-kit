@@ -28,24 +28,17 @@ package staking
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/beacon/staking/abi"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service represents the staking service.
 type Service struct {
 	logger log.Logger[any]
 	bsb    BeaconStorageBackend
-	cs     primitives.ChainSpec
 
-	// ee represents the engine client.
-	ee EngineClient
-
-	// abi represents the configured deposit contract's
-	// abi.
-	abi *abi.WrappedABI
+	// depositContract represents the deposit contract.
+	depositContract DepositContract
 
 	// deposit represents the deposit store.
 	ds DepositStore
@@ -82,23 +75,15 @@ func (s *Service) WaitForHealthy(context.Context) {}
 // by other services.
 func (s *Service) ProcessLogsInETH1Block(
 	ctx context.Context,
-	blockHash common.ExecutionHash,
+	blockNumber math.U64,
 ) error {
-	// Gather all the logs corresponding to
-	// the addresses of interest from this block.
-	logsInBlock, err := s.ee.GetLogs(
-		ctx,
-		blockHash,
-		[]common.ExecutionAddress{
-			s.cs.DepositContractAddress(),
-		},
-	)
+	deposits, err := s.depositContract.
+		GetDeposits(ctx, blockNumber.Unwrap())
 	if err != nil {
 		return err
 	}
 
-	//nolint: contextcheck // We are not using the context here.
-	return s.ProcessBlockEvents(logsInBlock)
+	return s.ds.EnqueueDeposits(deposits)
 }
 
 // PruneDepositEvents prunes deposit events.
