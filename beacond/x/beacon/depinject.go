@@ -26,6 +26,7 @@
 package beacon
 
 import (
+	"context"
 	"os"
 	"time"
 
@@ -69,7 +70,9 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
+
 	k := keeper.NewKeeper(
+		context.Background(),
 		filedb.NewDB(
 			filedb.WithRootDirectory(
 				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),

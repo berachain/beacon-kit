@@ -57,15 +57,15 @@ func TestDB_Prune(t *testing.T) {
 	)
 	rdb := file.NewRangeDB(db)
 
-	pruneDB := prune.New(rdb, log.NewNopLogger(), 3*time.Second, 4)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	pruneDB := prune.New(ctx, rdb, log.NewNopLogger(), 3*time.Second, 4)
 
 	for i := uint64(1); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		err := pruneDB.Set(i, key, []byte("value"))
 		require.NoError(t, err)
 	}
-
-	_, cancel := context.WithCancel(context.Background())
 
 	// Wait for the ticker to tick at least once
 	time.Sleep(5 * time.Second)
@@ -151,7 +151,8 @@ func TestDB_CRUD(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockDB := new(mocks.IndexDB)
-			db := prune.New(mockDB, log.NewNopLogger(), 50*time.Millisecond, 5)
+			ctx := context.Background()
+			db := prune.New(ctx, mockDB, log.NewNopLogger(), 50*time.Millisecond, 5)
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(mockDB); (err != nil) != tt.expectedError {
 					t.Fatalf(
@@ -174,8 +175,9 @@ func TestDB_New(t *testing.T) {
 	logger := log.NewNopLogger()
 	pruneInterval := 50 * time.Millisecond
 	windowSize := uint64(5)
+	ctx := context.Background()
 
-	createdDB := prune.New(mockDB, logger, pruneInterval, windowSize)
+	createdDB := prune.New(ctx, mockDB, logger, pruneInterval, windowSize)
 
 	require.NotNil(t, createdDB)
 	require.Equal(t, mockDB, createdDB.IndexDB)

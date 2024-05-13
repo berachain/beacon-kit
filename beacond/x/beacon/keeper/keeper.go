@@ -62,6 +62,7 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
+	ctx context.Context,
 	fdb *filedb.DB,
 	logger log.Logger[any],
 	prunerInterval time.Duration,
@@ -75,6 +76,7 @@ func NewKeeper(
 			cs,
 			dastore.New[types.BeaconBlockBody](
 				cs, prunedb.New(
+					ctx,
 					filedb.NewRangeDB(fdb),
 					logger,
 					prunerInterval,

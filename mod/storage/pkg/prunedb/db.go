@@ -27,10 +27,7 @@ package prunedb
 
 import (
 	"context"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/log"
@@ -54,7 +51,7 @@ type DB struct {
 	windowSize       uint64
 	highestSetIndex  uint64
 	lastDeletedIndex uint64
-	mutex            sync.Mutex
+	mu               sync.Mutex
 }
 
 func (db *DB) GetIndexDB() IndexDB {
@@ -83,6 +80,7 @@ func (db *DB) GetLastDeletedIndex() uint64 {
 
 // New creates a new DB.
 func New(
+	ctx context.Context,
 	db IndexDB,
 	logger log.Logger[any],
 	pruneInterval time.Duration,
@@ -96,24 +94,7 @@ func New(
 		lastDeletedIndex: 1,
 	}
 
-	// Create a cancellable context from the background context
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// Start a goroutine that cancels the context on receiving a signal
-	go func() {
-		sigint := make(chan os.Signal, 1)
-		// interrupt signal sent from terminal
-		signal.Notify(sigint, os.Interrupt)
-		// sigterm signal sent from kubernetes/docker
-		signal.Notify(sigint, syscall.SIGTERM)
-
-		<-sigint
-
-		// Cancel the context when a signal is received
-		cancel()
-	}()
-
-	// Start the prunerDB with the cancellable context
+	// Start the prunerDB with the passed context
 	prunerDB.Start(ctx)
 
 	return prunerDB
@@ -143,16 +124,16 @@ func (db *DB) Set(index uint64, key []byte, value []byte) error {
 		return err
 	}
 	// Update the highest seen index.
-	db.mutex.Lock()
+	db.mu.Lock()
 	db.highestSetIndex = max(db.highestSetIndex, index)
-	db.mutex.Unlock()
+	db.mu.Unlock()
 	return nil
 }
 
 func (db *DB) prune() error {
-	db.mutex.Lock()
+	db.mu.Lock()
 	highestSetIndex := db.highestSetIndex
-	db.mutex.Unlock()
+	db.mu.Unlock()
 	// If we haven't used windowSize number of indexes, we can skip
 	// the pruning.
 	if highestSetIndex < db.windowSize {
