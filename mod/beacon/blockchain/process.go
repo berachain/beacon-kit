@@ -35,7 +35,9 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessSlot(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessSlot(
 	st BeaconStateT,
 ) error {
 	return s.sp.ProcessSlot(st)
@@ -43,7 +45,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessSlot(
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessBeaconBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -159,7 +163,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessBeaconBlock
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ValidateBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ValidateBlock(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -169,7 +175,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ValidateBlock(
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) VerifyPayloadOnBlk(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -207,7 +215,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) VerifyPayloadOnBlk
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) PostBlockProcess(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) PostBlockProcess(
 	ctx context.Context,
 	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -243,7 +253,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) PostBlockProcess(
 	}
 
 	// Process the logs in the block.
-	if err = s.ProcessLogsInETH1Block(ctx, latestExecutionPayloadHeader.GetNumber()); err != nil {
+	if err = s.ProcessLogsInETH1Block(
+		ctx, latestExecutionPayloadHeader.GetNumber(),
+	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}

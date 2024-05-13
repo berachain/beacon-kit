@@ -113,22 +113,20 @@ func (bdc *WrappedBeaconDepositContract[
 	)
 	if err != nil {
 		return nil, err
-	} else if logs == nil {
-		return nil, nil
 	}
 
 	deposits := make([]DepositT, 0)
-	// for logs.Next() {
-	// 	deposit := bdc.newDepositFn(
-	// 		crypto.BLSPubkey(logs.Event.Pubkey),
-	// 		WithdrawalCredentialsT(logs.Event.Credentials),
-	// 		math.U64(logs.Event.Amount),
-	// 		crypto.BLSSignature(logs.Event.Signature),
-	// 		logs.Event.Index,
-	// 	)
+	for logs.Next() {
+		// 	deposit := bdc.newDepositFn(
+		// 		crypto.BLSPubkey(logs.Event.Pubkey),
+		// 		WithdrawalCredentialsT(logs.Event.Credentials),
+		// 		math.U64(logs.Event.Amount),
+		// 		crypto.BLSSignature(logs.Event.Signature),
+		// 		logs.Event.Index,
+		// 	)
 
-	// 	deposits = append(deposits, deposit)
-	// }
+		// 	deposits = append(deposits, deposit)
+	}
 
 	return deposits, nil
 }

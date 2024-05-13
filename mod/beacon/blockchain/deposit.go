@@ -35,7 +35,9 @@ import (
 // received from the execution client and processes them to
 // convert them into appropriate objects that can be consumed
 // by other services.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessLogsInETH1Block(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessLogsInETH1Block(
 	ctx context.Context,
 	blockNumber math.U64,
 ) error {
@@ -48,7 +50,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ProcessLogsInETH1B
 }
 
 // PruneDepositEvents prunes deposit events.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) PruneDepositEvents(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) PruneDepositEvents(
 	idx uint64,
 ) error {
 	return s.bsb.DepositStore(context.Background()).PruneToIndex(idx)

@@ -36,7 +36,9 @@ import (
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) sendFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendFCU(
 	ctx context.Context,
 	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
@@ -61,7 +63,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) sendFCU(
 }
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) sendPostBlockFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
