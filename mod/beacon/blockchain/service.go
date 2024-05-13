@@ -30,12 +30,11 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is the blockchain service.
 type Service[
-	BeaconStateT BeaconState[state.BeaconState],
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
@@ -72,7 +71,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT BeaconState[state.BeaconState],
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
