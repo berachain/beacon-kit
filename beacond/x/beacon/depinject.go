@@ -41,7 +41,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-//nolint:init // okay.
+//nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),

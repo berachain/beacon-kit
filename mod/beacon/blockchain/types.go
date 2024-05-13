@@ -39,7 +39,7 @@ import (
 )
 
 type BeaconStorageBackend[
-	BeaconStateT any, BlobSidecarsT BlobSidecars,
+	BeaconStateT any, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
 ] interface {
 	AvailabilityStore(
 		context.Context,
@@ -47,6 +47,7 @@ type BeaconStorageBackend[
 		types.BeaconBlockBody, BlobSidecarsT,
 	]
 	BeaconState(context.Context) BeaconStateT
+	DepositStore(context.Context) DepositStoreT
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
@@ -62,6 +63,19 @@ type BlockVerifier[BeaconStateT any] interface {
 		st BeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
+}
+
+// DepositContract is the ABI for the deposit contract.
+type DepositContract interface {
+	GetDeposits(
+		ctx context.Context,
+		blockNumber uint64,
+	) ([]*types.Deposit, error)
+}
+
+type DepositStore interface {
+	PruneToIndex(uint64) error
+	EnqueueDeposits([]*types.Deposit) error
 }
 
 type ExecutionEngine interface {
@@ -127,7 +141,7 @@ type StakingService interface {
 	// ProcessLogsInETH1Block processes logs in an eth1 block.
 	ProcessLogsInETH1Block(
 		ctx context.Context,
-		blockHash common.ExecutionHash,
+		eth1BlockNumber math.U64,
 	) error
 
 	// PruneDepositEvents prunes deposit events.
