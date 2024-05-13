@@ -1,6 +1,7 @@
 env = import_module("env.star")
 deployer = import_module("deployer.star")
 types = import_module("types.star")
+contracts = import_module("packages/contracts.star")
 
 geth = import_module("components/geth.star")
 batcher = import_module("components/batcher.star")
