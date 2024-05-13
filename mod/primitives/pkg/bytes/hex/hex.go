@@ -26,6 +26,7 @@
 package hex
 
 import (
+	"bytes"
 	"encoding/hex"
 	"math/big"
 	"strconv"
@@ -79,6 +80,10 @@ func FromBigInt(bigint *big.Int) String {
 		return NewString("0x" + bigint.Text(hexBase))
 	}
 	return NewString("-0x" + bigint.Text(hexBase)[1:])
+}
+
+func FromJSONString[B ~[]byte](b B) String {
+	return NewString(bytes.Trim(b, "\""))
 }
 
 // Has0xPrefix returns true if s has a 0x prefix.
