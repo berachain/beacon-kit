@@ -35,11 +35,11 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconStateT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, BeaconStateT,
+		context.Context, math.Slot, BeaconBlockBodyT,
 	) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.

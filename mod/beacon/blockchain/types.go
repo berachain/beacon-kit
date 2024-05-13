@@ -38,6 +38,48 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
+// BeaconState defines the interface for accessing various components of the
+// beacon state.
+type BeaconState[T any] interface {
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+
+	// GetBlockRootAtIndex fetches the block root at a specified index.
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+
+	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader,
+		error,
+	)
+
+	// SetLatestExecutionPayloadHeader sets the most recent execution payload
+	// header.
+	SetLatestExecutionPayloadHeader(
+		engineprimitives.ExecutionPayloadHeader,
+	) error
+
+	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
+	GetEth1DepositIndex() (uint64, error)
+
+	// GetLatestBlockHeader returns the most recent block header.
+	GetLatestBlockHeader() (
+		*types.BeaconBlockHeader,
+		error,
+	)
+
+	// HashTreeRoot returns the hash tree root of the beacon state.
+	HashTreeRoot() ([32]byte, error)
+
+	// Copy creates a copy of the beacon state.
+	Copy() T
+
+	// ValidatorIndexByPubkey finds the index of a validator based on their
+	// public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+}
+
 type BeaconStorageBackend[
 	BeaconStateT any, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
 ] interface {
@@ -137,14 +179,21 @@ type RandaoProcessor[BeaconStateT any] interface {
 }
 
 // StakingService is the interface for the staking service.
-type StakingService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		eth1BlockNumber math.U64,
+type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
+	ProcessBlock(
+		st BeaconStateT,
+		blk types.BeaconBlock,
 	) error
 
-	// PruneDepositEvents prunes deposit events.
-	// TODO: decouple.
-	PruneDepositEvents(idx uint64) error
+	ProcessSlot(
+		st BeaconStateT,
+	) error
+
+	ProcessBlobs(
+		st BeaconStateT,
+		avs core.AvailabilityStore[
+			types.BeaconBlockBody, BlobSidecarsT,
+		],
+		blobs BlobSidecarsT,
+	) error
 }
