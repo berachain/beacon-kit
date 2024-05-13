@@ -51,7 +51,7 @@ type DB struct {
 	windowSize       uint64
 	highestSetIndex  uint64
 	lastDeletedIndex uint64
-	mu               sync.Mutex
+	mu               sync.RWMutex
 }
 
 // New creates a new DB.
@@ -72,6 +72,7 @@ func New(
 	return prunerDB
 }
 
+// Start starts the pruning process.
 func (db *DB) Start(ctx context.Context) {
 	go func() {
 		defer db.ticker.Stop()
@@ -79,7 +80,6 @@ func (db *DB) Start(ctx context.Context) {
 		for {
 			select {
 			case <-db.ticker.C:
-				// Do the pruning
 				if err := db.prune(); err != nil {
 					db.logger.Error("error while pruning: ", err)
 				}
@@ -97,15 +97,17 @@ func (db *DB) Set(index uint64, key []byte, value []byte) error {
 	}
 	// Update the highest seen index.
 	db.mu.Lock()
+	defer db.mu.Unlock()
 	db.highestSetIndex = max(db.highestSetIndex, index)
-	db.mu.Unlock()
+
 	return nil
 }
 
+// prune deletes all indexes outside of the window.
 func (db *DB) prune() error {
-	db.mu.Lock()
+	db.mu.RLock()
 	highestSetIndex := db.highestSetIndex
-	db.mu.Unlock()
+	db.mu.RUnlock()
 	// If we haven't used windowSize number of indexes, we can skip
 	// the pruning.
 	if highestSetIndex < db.windowSize {
@@ -114,10 +116,12 @@ func (db *DB) prune() error {
 
 	// TODO: Optimize the underlying DeleteRange to snap to lowest
 	// index in O(1).
-	db.logger.Info("Pruning DB ", "from",
-		db.lastDeletedIndex)
-	db.logger.Info("Pruning DB ", "to",
-		highestSetIndex-db.windowSize)
+	db.logger.Debug(
+		"Pruning DB",
+		"from-index", db.lastDeletedIndex,
+		"to-index", highestSetIndex-db.windowSize,
+	)
+
 	if err := db.DeleteRange(
 		db.lastDeletedIndex, (highestSetIndex-db.windowSize)+1,
 	); err != nil {
