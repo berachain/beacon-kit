@@ -27,15 +27,15 @@ package keeper
 
 import (
 	"context"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
 	"time"
+
 
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -44,6 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
 )
 
 // Keeper maintains the link to data storage and exposes access to the

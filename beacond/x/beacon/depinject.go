@@ -70,7 +70,6 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
-
 	k := keeper.NewKeeper(
 		context.Background(),
 		filedb.NewDB(
