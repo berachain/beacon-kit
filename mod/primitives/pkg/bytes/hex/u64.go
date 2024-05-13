@@ -26,7 +26,6 @@
 package hex
 
 import (
-	"reflect"
 	"strconv"
 )
 
@@ -51,11 +50,6 @@ func ValidateUnmarshalInput(input []byte) error {
 		return ErrNonQuotedString
 	}
 	return nil
-}
-
-// GetReflectType returns the reflect.Type of i.
-func GetReflectType(i any) reflect.Type {
-	return reflect.TypeOf(i)
 }
 
 // UnmarshalText parses a byte slice containing a hexadecimal string and

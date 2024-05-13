@@ -29,6 +29,7 @@ import (
 	"encoding/binary"
 	"math/big"
 	"math/bits"
+	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -40,6 +41,8 @@ const (
 	// U64NumBits is the number of bits in a U64.
 	U64NumBits = U64NumBytes * 8
 )
+
+var uint64T = reflect.TypeOf(U64(0))
 
 // U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 // marshallable. We marshal U64 as hex strings in JSON in order to keep the
@@ -121,7 +124,6 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	uint64T := hex.GetReflectType(U64(0))
 	if err := hex.ValidateUnmarshalInput(input); err != nil {
 		return hex.WrapUnmarshalError(err, uint64T)
 	}
