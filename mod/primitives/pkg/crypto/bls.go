@@ -50,5 +50,5 @@ type BLSSigner interface {
 	Sign([]byte) (BLSSignature, error)
 
 	// VerifySignature verifies a signature against a message and a public key.
-	VerifySignature(pubKey []byte, msg []byte, signature []byte) error
+	VerifySignature(pubKey BLSPubkey, msg []byte, signature BLSSignature) error
 }

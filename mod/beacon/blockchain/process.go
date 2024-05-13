@@ -35,7 +35,9 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessSlot(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessSlot(
 	st BeaconStateT,
 ) error {
 	return s.sp.ProcessSlot(st)
@@ -43,7 +45,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessSlot(
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -150,7 +154,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
 		return err
 	}
 
-	if err = s.sks.PruneDepositEvents(idx); err != nil {
+	if err = s.bsb.DepositStore(ctx).PruneToIndex(idx); err != nil {
 		s.logger.Error("failed to prune deposit events", "error", err)
 		return err
 	}
@@ -159,7 +163,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ValidateBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ValidateBlock(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -169,7 +175,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ValidateBlock(
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
@@ -207,7 +215,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) PostBlockProcess(
 	ctx context.Context,
 	st BeaconStateT,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -241,17 +251,31 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	if err != nil {
 		return err
 	}
-	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
-	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
+	// Process the logs from the previous blocks execution payload.
+	// TODO: This should be moved out of the main block processing flow.
+	if err = s.RetrieveDepositsFromBlock(
+		ctx, latestExecutionPayloadHeader.GetNumber(),
+	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 
+	// Update the latest execution payload header.
+	return s.updateLatestExecutionPayload(ctx, st, payload)
+}
+
+// updateLatestExecutionPayload.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) updateLatestExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	payload engineprimitives.ExecutionPayload,
+) error {
 	// Get the merkle roots of transactions and withdrawals in parallel.
+	g, _ := errgroup.WithContext(ctx)
 	var (
-		g, _            = errgroup.WithContext(ctx)
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)
@@ -273,12 +297,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	})
 
 	// If deriving either of the roots fails, return the error.
-	if err = g.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
 	// Set the latest execution payload header.
-	if err = st.SetLatestExecutionPayloadHeader(
+	return st.SetLatestExecutionPayloadHeader(
 		&engineprimitives.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
@@ -298,9 +322,5 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 			BlobGasUsed:      payload.GetBlobGasUsed(),
 			ExcessBlobGas:    payload.GetExcessBlobGas(),
 		},
-	); err != nil {
-		return err
-	}
-
-	return nil
+	)
 }
