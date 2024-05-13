@@ -67,7 +67,8 @@ func FromBytes[B ~[]byte](b B) String {
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
 	copy(enc, prefix)
-	return NewString(strconv.AppendUint(enc, uint64(i), hexBase))
+	//#nosec:G701 // i is a uint64, so it can't overflow.
+	return String(strconv.AppendUint(enc, uint64(i), hexBase))
 }
 
 // FromBigInt encodes bigint as a hex string with 0x prefix.
@@ -166,6 +167,10 @@ func (s String) MustToBigInt() *big.Int {
 		panic(err)
 	}
 	return bi
+}
+
+func (s String) AddQuotes() String {
+	return "\"" + s + "\""
 }
 
 // Unwrap returns the string value.
