@@ -52,9 +52,9 @@ func ValidateUnmarshalInput(input []byte) error {
 	return nil
 }
 
-// UnmarshalText parses a byte slice containing a hexadecimal string and
+// UnmarshalUint64Text parses a byte slice containing a hexadecimal string and
 // returns the uint64 value it represents.
-func UnmarshalText(input []byte) (uint64, error) {
+func UnmarshalUint64Text(input []byte) (uint64, error) {
 	raw, err := formatAndValidateNumber(input)
 	if err != nil {
 		return 0, err

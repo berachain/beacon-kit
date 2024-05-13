@@ -23,23 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eip4844
+package hex
 
 import (
+	"encoding"
 	"reflect"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-// Blob represents an EIP-4844 data blob.
-type Blob [131072]byte
-
-// UnmarshalJSON parses a blob in hex syntax.
-func (b *Blob) UnmarshalJSON(input []byte) error {
-	return bytes.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
-}
-
-// MarshalText returns the hex representation of b.
-func (b Blob) MarshalText() ([]byte, error) {
-	return bytes.Bytes(b[:]).MarshalText()
+// UnmarshalJSONText unmarshals a JSON string with 0x prefix into a
+// TextUnmarshaler.
+func UnmarshalJSONText(input []byte,
+	u encoding.TextUnmarshaler,
+	t reflect.Type) error {
+	if err := ValidateUnmarshalInput(input); err != nil {
+		return WrapUnmarshalError(err, t)
+	}
+	return WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), t)
 }

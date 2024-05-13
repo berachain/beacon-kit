@@ -28,7 +28,6 @@ package types
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -64,9 +63,9 @@ type ExecutableDataDeneb struct {
 
 // JSON type overrides for ExecutableDataDeneb.
 type executableDataDenebMarshaling struct {
-	ExtraData    hex.Bytes
-	LogsBloom    hex.Bytes
-	Transactions []hex.Bytes
+	ExtraData    bytes.Bytes
+	LogsBloom    bytes.Bytes
+	Transactions []bytes.Bytes
 }
 
 // Version returns the version of the ExecutableDataDeneb.

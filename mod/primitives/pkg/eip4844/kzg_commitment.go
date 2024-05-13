@@ -29,7 +29,7 @@ import (
 	"crypto/sha256"
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -67,7 +67,7 @@ func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalFixedJSON(
+	return bytes.UnmarshalFixedJSON(
 		reflect.TypeOf(KZGCommitment{}),
 		input,
 		c[:],
@@ -76,7 +76,7 @@ func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
 
 // MarshalText returns the hex representation of c.
 func (c KZGCommitment) MarshalText() ([]byte, error) {
-	return hex.Bytes(c[:]).MarshalText()
+	return bytes.Bytes(c[:]).MarshalText()
 }
 
 // KZGCommitments represents a slice of KZG commitments.

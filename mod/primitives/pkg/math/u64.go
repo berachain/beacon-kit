@@ -42,6 +42,7 @@ const (
 	U64NumBits = U64NumBytes * 8
 )
 
+//nolint:gochecknoglobals // stores the reflect type of U64.
 var uint64T = reflect.TypeOf(U64(0))
 
 // U64 represents a 64-bit unsigned integer that is both SSZ and JSON
@@ -124,17 +125,14 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	if err := hex.ValidateUnmarshalInput(input); err != nil {
-		return hex.WrapUnmarshalError(err, uint64T)
-	}
-	return hex.WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), uint64T)
+	return hex.UnmarshalJSONText(input, u, uint64T)
 }
 
 // ---------------------------------- Hex ----------------------------------
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (u *U64) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalText(input)
+	dec, err := hex.UnmarshalUint64Text(input)
 	if err != nil {
 		return err
 	}
