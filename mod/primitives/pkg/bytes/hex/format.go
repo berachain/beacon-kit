@@ -76,16 +76,9 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 
 // validateNumber checks the input text for a hex number.
 func validateNumber[T []byte | string](input T) (T, error) {
-	if len(input) == 0 {
-		return *new(T), ErrEmptyString
-	}
-	if !has0xPrefix(input) {
-		return *new(T), ErrMissingPrefix
-	}
+	// never need to validate empty string or missing prefix since
+	// validateNumber only ever called on unwrapped hex.Strings
 	input = input[2:]
-	if len(input) == 0 {
-		return *new(T), ErrEmptyNumber
-	}
 	if len(input) > 1 && input[0] == '0' {
 		return *new(T), ErrLeadingZero
 	}
