@@ -35,12 +35,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -79,7 +78,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
