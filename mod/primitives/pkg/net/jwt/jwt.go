@@ -27,11 +27,11 @@ package jwt
 
 import (
 	"crypto/rand"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"regexp"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.

@@ -27,12 +27,12 @@ package math
 
 import (
 	"encoding/binary"
-	hex2 "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"math/big"
 	"math/bits"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	hex2 "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
 const (

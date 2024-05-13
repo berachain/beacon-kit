@@ -26,12 +26,12 @@
 package jwt_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 

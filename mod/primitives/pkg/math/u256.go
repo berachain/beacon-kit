@@ -26,10 +26,10 @@
 package math
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"math/big"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/holiman/uint256"
 )
 
