@@ -34,7 +34,9 @@ import (
 )
 
 // SigVerificationFn is a function that verifies a signature.
-type SigVerificationFn func(pubkey, message, signature []byte) error
+type SigVerificationFn func(
+	pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+) error
 
 // DepositMessage as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
@@ -104,9 +106,9 @@ func (d *DepositMessage) VerifyCreateValidator(
 	}
 
 	if err = signatureVerificationFn(
-		d.Pubkey[:],
+		d.Pubkey,
 		signingRoot[:],
-		signature[:],
+		signature,
 	); err != nil {
 		return errors.Join(err, ErrDepositMessage)
 	}

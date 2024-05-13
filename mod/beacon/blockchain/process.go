@@ -252,7 +252,8 @@ func (s *Service[
 		return err
 	}
 
-	// Process the logs in the block.
+	// Process the logs from the previous blocks execution payload.
+	// TODO: This should be handled a bit better.
 	if err = s.ProcessLogsInETH1Block(
 		ctx, latestExecutionPayloadHeader.GetNumber(),
 	); err != nil {
@@ -260,6 +261,18 @@ func (s *Service[
 		return err
 	}
 
+	// Update the latest execution payload header.
+	return s.updateLatestExecutionPayload(ctx, st, payload)
+}
+
+// updateLatestExecutionPayload.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) updateLatestExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	payload engineprimitives.ExecutionPayload,
+) error {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(ctx)
@@ -284,12 +297,12 @@ func (s *Service[
 	})
 
 	// If deriving either of the roots fails, return the error.
-	if err = g.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
 	// Set the latest execution payload header.
-	if err = st.SetLatestExecutionPayloadHeader(
+	return st.SetLatestExecutionPayloadHeader(
 		&engineprimitives.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
@@ -309,9 +322,5 @@ func (s *Service[
 			BlobGasUsed:      payload.GetBlobGasUsed(),
 			ExcessBlobGas:    payload.GetExcessBlobGas(),
 		},
-	); err != nil {
-		return err
-	}
-
-	return nil
+	)
 }

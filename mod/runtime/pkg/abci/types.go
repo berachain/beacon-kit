@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
+// BuilderService is responsible for building beacon blocks.
 type BuilderService[
 	BeaconStateT state.BeaconState,
 	BlobsSidecarsT ssz.Marshallable,
