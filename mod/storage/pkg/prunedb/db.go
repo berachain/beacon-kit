@@ -80,7 +80,6 @@ func (db *DB) GetLastDeletedIndex() uint64 {
 
 // New creates a new DB.
 func New(
-	ctx context.Context,
 	db IndexDB,
 	logger log.Logger[any],
 	pruneInterval time.Duration,
@@ -93,9 +92,6 @@ func New(
 		logger:           logger,
 		lastDeletedIndex: 1,
 	}
-
-	// Start the prunerDB with the passed context
-	prunerDB.Start(ctx)
 
 	return prunerDB
 }

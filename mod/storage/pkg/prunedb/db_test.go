@@ -59,8 +59,9 @@ func TestDB_Prune(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	pruneDB := prune.New(ctx, rdb, log.NewNopLogger(), 3*time.Second, 4)
+	pruneDB := prune.New(rdb, log.NewNopLogger(), 3*time.Second, 4)
 
+	pruneDB.Start(ctx)
 	for i := uint64(1); i <= 10; i++ {
 		key := []byte("testKey" + strconv.FormatUint(i, 10))
 		err := pruneDB.Set(i, key, []byte("value"))
@@ -151,8 +152,7 @@ func TestDB_CRUD(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockDB := new(mocks.IndexDB)
-			ctx := context.Background()
-			db := prune.New(ctx, mockDB, log.NewNopLogger(), 50*time.Millisecond, 5)
+			db := prune.New(mockDB, log.NewNopLogger(), 50*time.Millisecond, 5)
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(mockDB); (err != nil) != tt.expectedError {
 					t.Fatalf(
@@ -175,9 +175,8 @@ func TestDB_New(t *testing.T) {
 	logger := log.NewNopLogger()
 	pruneInterval := 50 * time.Millisecond
 	windowSize := uint64(5)
-	ctx := context.Background()
 
-	createdDB := prune.New(ctx, mockDB, logger, pruneInterval, windowSize)
+	createdDB := prune.New(mockDB, logger, pruneInterval, windowSize)
 
 	require.NotNil(t, createdDB)
 	require.Equal(t, mockDB, createdDB.IndexDB)

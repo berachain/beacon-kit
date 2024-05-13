@@ -34,12 +34,14 @@ import (
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	prune "github.com/berachain/beacon-kit/mod/storage/pkg/prunedb"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -162,5 +164,11 @@ func (app BeaconApp) PostStartup(
 	app.BeaconKitRuntime.StartServices(
 		ctx,
 	)
+
+	// Start the pruner
+	db := app.BeaconKeeper.Backend.AvailabilityStore(
+		ctx).(*dastore.Store[types.BeaconBlockBody]).IndexDB
+	db.(*prune.DB).Start(ctx)
+
 	return nil
 }

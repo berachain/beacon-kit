@@ -29,7 +29,6 @@ import (
 	"context"
 	"time"
 
-
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
@@ -63,7 +62,6 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
 
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
-	ctx context.Context,
 	fdb *filedb.DB,
 	logger log.Logger[any],
 	prunerInterval time.Duration,
@@ -77,7 +75,6 @@ func NewKeeper(
 			cs,
 			dastore.New[types.BeaconBlockBody](
 				cs, prunedb.New(
-					ctx,
 					filedb.NewRangeDB(fdb),
 					logger,
 					prunerInterval,
