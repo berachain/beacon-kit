@@ -148,18 +148,13 @@ func (s *Service[
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
-
 	idx, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
 
-	if err = s.bsb.DepositStore(ctx).PruneToIndex(idx); err != nil {
-		s.logger.Error("failed to prune deposit events", "error", err)
-		return err
-	}
-
-	return nil
+	// TODO: pruner shouldn't be in main block processing thread.
+	return s.PruneDepositEvents(ctx, idx)
 }
 
 // ValidateBlock validates the incoming beacon block.
@@ -254,7 +249,7 @@ func (s *Service[
 
 	// Process the logs from the previous blocks execution payload.
 	// TODO: This should be moved out of the main block processing flow.
-	if err = s.RetrieveDepositsFromBlock(
+	if err = s.retrieveDepositsFromBlock(
 		ctx, latestExecutionPayloadHeader.GetNumber(),
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
