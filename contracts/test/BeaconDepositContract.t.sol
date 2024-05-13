@@ -73,7 +73,7 @@ contract DepositContractTest is SoladyTest {
     function test_DepositNativeWrongMinAmount() public {
         uint256 amount = 31 gwei;
         vm.deal(depositor, amount);
-        vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
+        vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
         depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), bytes32("")
         );
@@ -133,15 +133,24 @@ contract DepositContractTest is SoladyTest {
         uint64 depositCount;
         for (uint256 i; i < count; ++i) {
             vm.expectEmit(true, true, true, true);
+            bytes32 pubkey_root = sha256(abi.encodePacked(VALIDATOR_PUBKEY, bytes16(0)));
+            bytes32 signature_root = sha256(abi.encodePacked(
+                sha256(abi.encodePacked(bytes32("")[:64])),
+                sha256(abi.encodePacked(bytes32("")[64:], bytes32(0)))
+            ));
+            bytes32 node = sha256(abi.encodePacked(
+                sha256(abi.encodePacked(pubkey_root, STAKING_CREDENTIALS)),
+                sha256(abi.encodePacked(32 gwei, bytes24(0), signature_root))
+            ));
             emit IBeaconDepositContract.Deposit(
                 VALIDATOR_PUBKEY,
                 STAKING_CREDENTIALS,
                 32 gwei,
-                _create96Byte(),
+                node,
                 depositCount
             );
             depositContract.deposit{ value: 32 ether }(
-                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), bytes32("")
+                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, node, bytes32("")
             );
             ++depositCount;
         }
