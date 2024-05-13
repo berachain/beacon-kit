@@ -25,7 +25,9 @@
 
 package bytes
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+)
 
 // B96 represents a 96-byte array.
 type B96 [96]byte

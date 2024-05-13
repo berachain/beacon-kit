@@ -27,10 +27,10 @@ package jwt
 
 import (
 	"crypto/rand"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"regexp"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 

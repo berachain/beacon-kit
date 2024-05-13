@@ -25,7 +25,9 @@
 
 package bytes
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+)
 
 // ------------------------------ B48 ------------------------------
 

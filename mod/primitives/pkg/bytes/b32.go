@@ -25,7 +25,9 @@
 
 package bytes
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+)
 
 // B32 represents a 32-byte array.
 type B32 [32]byte

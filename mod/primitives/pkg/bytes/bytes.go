@@ -26,10 +26,10 @@
 package bytes
 
 import (
+	hex2 "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/hex"
 )
 
 //nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
@@ -50,7 +50,7 @@ func MustFromHex(input string) []byte {
 
 // BytesFromHex returns the bytes represented by the given hex string.
 func FromHex(input string) ([]byte, error) {
-	return hex.NewString(input).ToBytes()
+	return hex2.NewString(input).ToBytes()
 }
 
 // SafeCopy creates a copy of the provided byte slice. If the input slice is
@@ -157,17 +157,17 @@ func unmarshalTextHelper(target []byte, text []byte) error {
 
 // MarshalText implements encoding.TextMarshaler.
 func (b Bytes) MarshalText() ([]byte, error) {
-	return hex.EncodeBytes(b)
+	return hex2.EncodeBytes(b)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
+	return hex2.UnmarshalJSONText(input, b, bytesT)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
+	dec, err := hex2.UnmarshalByteText(input)
 	if err != nil {
 		return err
 	}
@@ -176,20 +176,20 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 }
 
 // String returns the hex encoding of b.
-func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
+func (b Bytes) String() hex2.String {
+	return hex2.FromBytes(b)
 }
 
 // UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
 func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
-	return hex.DecodeFixedJSON(typ, bytesT, input, out)
+	return hex2.DecodeFixedJSON(typ, bytesT, input, out)
 }
 
 // UnmarshalFixedText decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalText method for fixed-size types.
 func UnmarshalFixedText(typname string, input, out []byte) error {
-	return hex.DecodeFixedText(typname, input, out)
+	return hex2.DecodeFixedText(typname, input, out)
 }
