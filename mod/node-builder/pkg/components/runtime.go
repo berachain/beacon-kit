@@ -107,8 +107,9 @@ func ProvideRuntime(
 	)
 
 	// Build the deposit contract.
-	beaconDepositContract, err := deposit.NewBeaconDepositContract[
-		types.Deposit, types.WithdrawalCredentials,
+	beaconDepositContract, err := deposit.
+		NewWrappedBeaconDepositContract[
+		*types.Deposit, types.WithdrawalCredentials,
 	](
 		chainSpec.DepositContractAddress(),
 		engineClient,

@@ -332,6 +332,8 @@ issues:
       linters: [godot]
     - source: "//noinspection"
       linters: [gocritic]
+    - path: "deposit/deposit\\.go"
+      linters: [goanalysis_metalinter]
     - path: "_test\\.go"
       linters:
         - bodyclose

@@ -66,7 +66,8 @@ type Service[
 	bv BlockVerifier[BeaconStateT]
 
 	// sp is the state processor for beacon blocks and states.
-	sp *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
+	sp *core.StateProcessor[
+		types.BeaconBlock, BeaconStateT, BlobSidecarsT]
 
 	// pv verifies the payload of beacon blocks.
 	pv PayloadVerifier[BeaconStateT]
@@ -74,9 +75,12 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
+	BeaconStateT state.BeaconState,
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
 ](
-	bsb BeaconStorageBackend[BeaconStateT, BlobSidecarsT, DepositStoreT],
+	bsb BeaconStorageBackend[
+		BeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
@@ -99,34 +103,49 @@ func NewService[
 		bv:     bv,
 		sp:     sp,
 		pv:     pv,
+		bdc:    bdc,
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) Name() string {
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) Start(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Start(
 	context.Context,
 ) {
 }
 
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) Status() error { return nil }
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Status() error {
+	return nil
+}
 
-func (s *Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) WaitForHealthy(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) WaitForHealthy(
 	context.Context,
 ) {
 }
 
 // TODO: Remove
-func (s Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) BeaconState(
+func (s Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) BeaconState(
 	ctx context.Context,
 ) BeaconStateT {
 	return s.bsb.BeaconState(ctx)
 }
 
 // TODO: Remove
-func (s Service[BeaconStateT, BlobSidecarsT, DepositStoreT]) ChainSpec() primitives.ChainSpec {
+func (s Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ChainSpec() primitives.ChainSpec {
 	return s.cs
 }

@@ -27,94 +27,108 @@ package deposit
 
 import (
 	"context"
+	"errors"
 
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit/abi"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
-// BeaconDepositContract is a struct that holds a pointer to an ABI.
-type BeaconDepositContract[
+// NewDepositFn is a function that creates a new deposit from
+// the given parameters.
+type NewDepositFn[
+	DepositT any, WithdrawalCredentialsT ~[32]byte,
+] func(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentialsT,
+	amount math.Gwei,
+	signature crypto.BLSSignature,
+	index uint64,
+) DepositT
+
+// WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
+//
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=bdc.go
+type WrappedBeaconDepositContract[
 	DepositT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	*abi.BeaconDepositContract
+	BeaconDepositContract
 
 	// newDepositFn is a function that creates a new deposit.
-	newDepositFn func(
-		pubkey crypto.BLSPubkey,
-		credentials WithdrawalCredentialsT,
-		amount math.Gwei,
-		signature crypto.BLSSignature,
-		index uint64,
-	) *DepositT
+	newDepositFn NewDepositFn[DepositT, WithdrawalCredentialsT]
 }
 
-// NewBeaconDepositContract creates a new BeaconDepositContract.
-func NewBeaconDepositContract[
+// NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
+func NewWrappedBeaconDepositContract[
 	DepositT any,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
 	client bind.ContractBackend,
-	newDepositFn func(
-		pubkey crypto.BLSPubkey,
-		credentials WithdrawalCredentialsT,
-		amount math.Gwei,
-		signature crypto.BLSSignature,
-		index uint64,
-	) *DepositT,
-) (*BeaconDepositContract[
+	newDepositFn NewDepositFn[DepositT, WithdrawalCredentialsT],
+) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := abi.NewBeaconDepositContract(
+	contract, err := NewBeaconDepositContract(
 		address, client,
 	)
+
 	if err != nil {
 		return nil, err
+	} else if contract == nil {
+		return nil, errors.New("contract must not be nil")
 	}
 
-	return &BeaconDepositContract[
+	if newDepositFn == nil {
+		return nil, errors.New("newDepositFn must not be nil")
+	}
+
+	return &WrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContract: contract,
+		BeaconDepositContract: *contract,
+		newDepositFn:          newDepositFn,
 	}, nil
 }
 
 // GetDeposits gets deposits from the deposit contract.
-func (bdc *BeaconDepositContract[
+func (bdc *WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ]) GetDeposits(
 	ctx context.Context,
-	blockNumber uint64,
-) ([]*DepositT, error) {
+	blkNum uint64,
+) ([]DepositT, error) {
 	logs, err := bdc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   blockNumber,
-			End:     &blockNumber,
+			Start:   blkNum,
+			End:     &blkNum,
 		},
 	)
 	if err != nil {
 		return nil, err
+	} else if logs == nil {
+		return nil, nil
 	}
 
-	deposits := make([]*DepositT, 0)
-	for logs.Next() {
-		deposits = append(deposits, bdc.newDepositFn(
-			crypto.BLSPubkey(logs.Event.Pubkey),
-			WithdrawalCredentialsT(logs.Event.Credentials),
-			math.U64(logs.Event.Amount),
-			crypto.BLSSignature(logs.Event.Signature),
-			logs.Event.Index,
-		))
-	}
+	deposits := make([]DepositT, 0)
+	// for logs.Next() {
+	// 	deposit := bdc.newDepositFn(
+	// 		crypto.BLSPubkey(logs.Event.Pubkey),
+	// 		WithdrawalCredentialsT(logs.Event.Credentials),
+	// 		math.U64(logs.Event.Amount),
+	// 		crypto.BLSSignature(logs.Event.Signature),
+	// 		logs.Event.Index,
+	// 	)
+
+	// 	deposits = append(deposits, deposit)
+	// }
 
 	return deposits, nil
 }
