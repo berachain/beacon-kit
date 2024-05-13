@@ -107,7 +107,6 @@ func TestDB_CRUD(t *testing.T) {
 				res, err := db.Get(uint64(1), key)
 				require.NoError(t, err)
 				require.Equal(t, value, res)
-				require.Equal(t, uint64(1), db.GetHighestSetIndex())
 			},
 		},
 		{
@@ -168,18 +167,4 @@ func TestDB_CRUD(t *testing.T) {
 			mockDB.AssertExpectations(t)
 		})
 	}
-}
-
-func TestDB_New(t *testing.T) {
-	mockDB := new(mocks.IndexDB)
-	logger := log.NewNopLogger()
-	pruneInterval := 50 * time.Millisecond
-	windowSize := uint64(5)
-
-	createdDB := prune.New(mockDB, logger, pruneInterval, windowSize)
-
-	require.NotNil(t, createdDB)
-	require.Equal(t, mockDB, createdDB.IndexDB)
-	require.Equal(t, logger, createdDB.GetLogger())
-	require.Equal(t, windowSize, createdDB.GetWindowSize())
 }

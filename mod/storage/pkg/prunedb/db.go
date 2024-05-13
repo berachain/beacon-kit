@@ -54,30 +54,6 @@ type DB struct {
 	mu               sync.Mutex
 }
 
-func (db *DB) GetIndexDB() IndexDB {
-	return db.IndexDB
-}
-
-func (db *DB) GetLogger() log.Logger[any] {
-	return db.logger
-}
-
-func (db *DB) GetTicker() *time.Ticker {
-	return db.ticker
-}
-
-func (db *DB) GetWindowSize() uint64 {
-	return db.windowSize
-}
-
-func (db *DB) GetHighestSetIndex() uint64 {
-	return db.highestSetIndex
-}
-
-func (db *DB) GetLastDeletedIndex() uint64 {
-	return db.lastDeletedIndex
-}
-
 // New creates a new DB.
 func New(
 	db IndexDB,
