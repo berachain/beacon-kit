@@ -29,6 +29,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -117,15 +118,14 @@ func (bdc *WrappedBeaconDepositContract[
 
 	deposits := make([]DepositT, 0)
 	for logs.Next() {
-		// 	deposit := bdc.newDepositFn(
-		// 		crypto.BLSPubkey(logs.Event.Pubkey),
-		// 		WithdrawalCredentialsT(logs.Event.Credentials),
-		// 		math.U64(logs.Event.Amount),
-		// 		crypto.BLSSignature(logs.Event.Signature),
-		// 		logs.Event.Index,
-		// 	)
-
-		// 	deposits = append(deposits, deposit)
+		deposits = append(deposits, bdc.newDepositFn(
+			bytes.ToBytes48(logs.Event.Pubkey),
+			WithdrawalCredentialsT(
+				bytes.ToBytes32(logs.Event.Credentials)),
+			math.U64(logs.Event.Amount),
+			bytes.ToBytes96(logs.Event.Signature),
+			logs.Event.Index,
+		))
 	}
 
 	return deposits, nil
