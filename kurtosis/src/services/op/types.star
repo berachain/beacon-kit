@@ -1,4 +1,18 @@
-def get_l1(rpc_url, rpc_kind="any", ws_url="http://localhost:8546", auth_rpc_url="http://localhost:8551", block_time=6, chain_id=80087):
+contracts = import_module("packages/contracts.star")
+
+def get_files(plan):
+    return struct(
+        contracts=contracts.clone_dir(plan)
+    )
+
+def get_l1(
+    rpc_url,
+    rpc_kind="any",
+    ws_url="http://localhost:8546",
+    auth_rpc_url="http://localhost:8551",
+    block_time=6,
+    chain_id=80087,
+):
     return struct(
         rpc_url=rpc_url,
         rpc_kind=rpc_kind,

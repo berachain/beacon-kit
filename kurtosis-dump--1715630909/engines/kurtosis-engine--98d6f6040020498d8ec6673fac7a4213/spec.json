@@ -1,0 +1,298 @@
+{
+  "Id": "f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0",
+  "Created": "2024-05-08T18:55:41.021349542Z",
+  "Path": "/bin/sh",
+  "Args": [
+    "-c",
+    "./kurtosis-engine"
+  ],
+  "State": {
+    "Status": "running",
+    "Running": true,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 12941,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2024-05-08T18:55:41.279646875Z",
+    "FinishedAt": "0001-01-01T00:00:00Z"
+  },
+  "Image": "sha256:fa0b62f68552a565e43b10726569000e0671f2d284f13f3e89c7ed660a174c7b",
+  "ResolvConfPath": "/var/lib/docker/containers/f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0/resolv.conf",
+  "HostnamePath": "/var/lib/docker/containers/f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0/hostname",
+  "HostsPath": "/var/lib/docker/containers/f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0/hosts",
+  "LogPath": "/var/lib/docker/containers/f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0/f2c155042692e9d474e9be2e83e5f8cacffd1685436edf6d4b2e7acbd5eaa0a0-json.log",
+  "Name": "/kurtosis-engine--98d6f6040020498d8ec6673fac7a4213",
+  "RestartCount": 0,
+  "Driver": "overlay2",
+  "Platform": "linux",
+  "MountLabel": "",
+  "ProcessLabel": "",
+  "AppArmorProfile": "",
+  "ExecIDs": null,
+  "HostConfig": {
+    "Binds": [
+      "/var/run/docker.sock:/var/run/docker.sock",
+      "kurtosis-logs-storage:/var/log/kurtosis/",
+      "kurtosis-github-auth-storage:/kurtosis-data/github-auth/"
+    ],
+    "ContainerIDFile": "",
+    "LogConfig": {
+      "Type": "json-file",
+      "Config": {}
+    },
+    "NetworkMode": "default",
+    "PortBindings": {
+      "8081/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "8081"
+        }
+      ],
+      "9710/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9710"
+        }
+      ],
+      "9711/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9711"
+        }
+      ],
+      "9779/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9779"
+        }
+      ]
+    },
+    "RestartPolicy": {
+      "Name": "",
+      "MaximumRetryCount": 0
+    },
+    "AutoRemove": false,
+    "VolumeDriver": "",
+    "VolumesFrom": null,
+    "ConsoleSize": [
+      0,
+      0
+    ],
+    "CapAdd": [],
+    "CapDrop": null,
+    "CgroupnsMode": "private",
+    "Dns": null,
+    "DnsOptions": null,
+    "DnsSearch": null,
+    "ExtraHosts": [],
+    "GroupAdd": null,
+    "IpcMode": "private",
+    "Cgroup": "",
+    "Links": null,
+    "OomScoreAdj": 0,
+    "PidMode": "",
+    "Privileged": false,
+    "PublishAllPorts": false,
+    "ReadonlyRootfs": false,
+    "SecurityOpt": [],
+    "UTSMode": "",
+    "UsernsMode": "",
+    "ShmSize": 67108864,
+    "Runtime": "runc",
+    "Isolation": "",
+    "CpuShares": 0,
+    "Memory": 0,
+    "NanoCpus": 0,
+    "CgroupParent": "",
+    "BlkioWeight": 0,
+    "BlkioWeightDevice": null,
+    "BlkioDeviceReadBps": null,
+    "BlkioDeviceWriteBps": null,
+    "BlkioDeviceReadIOps": null,
+    "BlkioDeviceWriteIOps": null,
+    "CpuPeriod": 0,
+    "CpuQuota": 0,
+    "CpuRealtimePeriod": 0,
+    "CpuRealtimeRuntime": 0,
+    "CpusetCpus": "",
+    "CpusetMems": "",
+    "Devices": null,
+    "DeviceCgroupRules": null,
+    "DeviceRequests": null,
+    "MemoryReservation": 0,
+    "MemorySwap": 0,
+    "MemorySwappiness": null,
+    "OomKillDisable": null,
+    "PidsLimit": null,
+    "Ulimits": null,
+    "CpuCount": 0,
+    "CpuPercent": 0,
+    "IOMaximumIOps": 0,
+    "IOMaximumBandwidth": 0,
+    "MaskedPaths": [
+      "/proc/asound",
+      "/proc/acpi",
+      "/proc/kcore",
+      "/proc/keys",
+      "/proc/latency_stats",
+      "/proc/timer_list",
+      "/proc/timer_stats",
+      "/proc/sched_debug",
+      "/proc/scsi",
+      "/sys/firmware"
+    ],
+    "ReadonlyPaths": [
+      "/proc/bus",
+      "/proc/fs",
+      "/proc/irq",
+      "/proc/sys",
+      "/proc/sysrq-trigger"
+    ],
+    "Init": false
+  },
+  "GraphDriver": {
+    "Data": {
+      "LowerDir": "/var/lib/docker/overlay2/9dfcaba6a4e489ae1ad10abbbc28746a1b7df6d4653bd0e8916bed21fa1d74cd-init/diff:/var/lib/docker/overlay2/f1e99eb565de2a9bdff8d6b864cf8f2d5790e8e0c237c3a8300ecc03cf62d6b1/diff:/var/lib/docker/overlay2/bceb9d0c1240c9fafb16da9a233692639f56797f783e9be45243a03aec802ea7/diff:/var/lib/docker/overlay2/4245f4ba7a35395b2008a64e8f29446023b3ed1a20e99478ae25cd5efc9393fd/diff:/var/lib/docker/overlay2/6b918ff38d502e8c07d73d085e4fae9318e70887e1d10bf97be73ea36b346824/diff:/var/lib/docker/overlay2/577bf8ce12f2f7ba5ddc9e81690e6788f96e2e4a60d4319fa0fbfc44b952194b/diff",
+      "MergedDir": "/var/lib/docker/overlay2/9dfcaba6a4e489ae1ad10abbbc28746a1b7df6d4653bd0e8916bed21fa1d74cd/merged",
+      "UpperDir": "/var/lib/docker/overlay2/9dfcaba6a4e489ae1ad10abbbc28746a1b7df6d4653bd0e8916bed21fa1d74cd/diff",
+      "WorkDir": "/var/lib/docker/overlay2/9dfcaba6a4e489ae1ad10abbbc28746a1b7df6d4653bd0e8916bed21fa1d74cd/work"
+    },
+    "Name": "overlay2"
+  },
+  "Mounts": [
+    {
+      "Type": "bind",
+      "Source": "/var/run/docker.sock",
+      "Destination": "/var/run/docker.sock",
+      "Mode": "",
+      "RW": true,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "volume",
+      "Name": "kurtosis-logs-storage",
+      "Source": "/var/lib/docker/volumes/kurtosis-logs-storage/_data",
+      "Destination": "/var/log/kurtosis",
+      "Driver": "local",
+      "Mode": "z",
+      "RW": true,
+      "Propagation": ""
+    },
+    {
+      "Type": "volume",
+      "Name": "kurtosis-github-auth-storage",
+      "Source": "/var/lib/docker/volumes/kurtosis-github-auth-storage/_data",
+      "Destination": "/kurtosis-data/github-auth",
+      "Driver": "local",
+      "Mode": "z",
+      "RW": true,
+      "Propagation": ""
+    }
+  ],
+  "Config": {
+    "Hostname": "f2c155042692",
+    "Domainname": "",
+    "User": "",
+    "AttachStdin": false,
+    "AttachStdout": false,
+    "AttachStderr": false,
+    "ExposedPorts": {
+      "8081/tcp": {},
+      "9710/tcp": {},
+      "9711/tcp": {},
+      "9779/tcp": {}
+    },
+    "Tty": false,
+    "OpenStdin": true,
+    "StdinOnce": false,
+    "Env": [
+      "SERIALIZED_ARGS={\"grpcListenPortNum\":9710,\"logLevelStr\":\"debug\",\"imageVersionTag\":\"0.89.7\",\"metricsUserId\":\"f34540f3fdfe05944350ef589d8a03c4c618272fd441418023b6977f314b5a0d\",\"didUserAcceptSendingMetrics\":true,\"kurtosisBackendType\":\"docker\",\"kurtosisBackendConfig\":{},\"onBastionHost\":false,\"poolSize\":0,\"enclaveEnvVars\":\"{}\",\"is_ci\":false,\"cloud_user_id\":\"\",\"cloud_instance_id\":\"\",\"restart_api_containers\":false}",
+      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ],
+    "Cmd": [
+      "/bin/sh",
+      "-c",
+      "./kurtosis-engine"
+    ],
+    "Image": "kurtosistech/engine:0.89.7",
+    "Volumes": null,
+    "WorkingDir": "/run",
+    "Entrypoint": null,
+    "OnBuild": null,
+    "Labels": {
+      "com.kurtosistech.app-id": "kurtosis",
+      "com.kurtosistech.container-type": "kurtosis-engine",
+      "com.kurtosistech.guid": "98d6f6040020498d8ec6673fac7a4213",
+      "com.kurtosistech.id": "98d6f6040020498d8ec6673fac7a4213",
+      "com.kurtosistech.ports": "grpc:9710/TCP/http",
+      "traefik.enable": "true",
+      "traefik.http.routers.engine-rest-api.rule": "Host(`engine`)",
+      "traefik.http.routers.engine-rest-api.service": "engine-rest-api",
+      "traefik.http.services.engine-rest-api.loadbalancer.server.port": "9779"
+    }
+  },
+  "NetworkSettings": {
+    "Bridge": "",
+    "SandboxID": "80f93124d9d616a4b960b4dae6cdbe925b041e218016ed6306500d05d2cc3828",
+    "HairpinMode": false,
+    "LinkLocalIPv6Address": "",
+    "LinkLocalIPv6PrefixLen": 0,
+    "Ports": {
+      "8081/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "8081"
+        }
+      ],
+      "9710/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9710"
+        }
+      ],
+      "9711/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9711"
+        }
+      ],
+      "9779/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "9779"
+        }
+      ]
+    },
+    "SandboxKey": "/var/run/docker/netns/80f93124d9d6",
+    "SecondaryIPAddresses": null,
+    "SecondaryIPv6Addresses": null,
+    "EndpointID": "f6aaecd730b853d30234cd9ff5b54e5a00230b5e26a2add4195d46246eb53ff6",
+    "Gateway": "172.17.0.1",
+    "GlobalIPv6Address": "",
+    "GlobalIPv6PrefixLen": 0,
+    "IPAddress": "172.17.0.4",
+    "IPPrefixLen": 16,
+    "IPv6Gateway": "",
+    "MacAddress": "02:42:ac:11:00:04",
+    "Networks": {
+      "bridge": {
+        "IPAMConfig": null,
+        "Links": null,
+        "Aliases": null,
+        "NetworkID": "a32253fbd58c42f050b0b6a7cad88d5090556cb797f08fdc2601ce7934dacee5",
+        "EndpointID": "f6aaecd730b853d30234cd9ff5b54e5a00230b5e26a2add4195d46246eb53ff6",
+        "Gateway": "172.17.0.1",
+        "IPAddress": "172.17.0.4",
+        "IPPrefixLen": 16,
+        "IPv6Gateway": "",
+        "GlobalIPv6Address": "",
+        "GlobalIPv6PrefixLen": 0,
+        "MacAddress": "02:42:ac:11:00:04",
+        "DriverOpts": null
+      }
+    }
+  }
+}

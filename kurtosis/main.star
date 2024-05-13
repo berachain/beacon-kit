@@ -15,8 +15,9 @@ prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
+op = import_module("./src/services/op/launcher.star")
 
-def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, validators, full_nodes = [], rpc_endpoints = [], op_images = [], additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -121,17 +122,16 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
         nginx.get_config(plan, rpc["services"])
 
     # 7. Start additional services
-    for s in additional_services:
-        if s == "goomy_blob":
-            plan.print("Launching Goomy the Blob Spammer")
-            goomy_blob_args = {"goomy_blob_args": []}
-            goomy_blob.launch_goomy_blob(
-                plan,
-                constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx").ports["http"].url,
-                goomy_blob_args,
-            )
-            plan.print("Successfully launched goomy the blob spammer")
+    if "goomy_blob" in additional_services:
+        plan.print("Launching Goomy the Blob Spammer")
+        goomy_blob_args = {"goomy_blob_args": []}
+        goomy_blob.launch_goomy_blob(
+            plan,
+            constants.PRE_FUNDED_ACCOUNTS[0],
+            plan.get_service("nginx").ports["http"].url,
+            goomy_blob_args,
+        )
+        plan.print("Successfully launched goomy the blob spammer")
 
     if "tx-fuzz" in additional_services:
         plan.print("Launching tx-fuzz")
@@ -143,6 +143,14 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
             constants.PRE_FUNDED_ACCOUNTS[1].private_key,
             "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
             [],
+        )
+
+    if "op" in additional_services:
+        plan.print("Launching OP stack L2")
+        op.launch(
+            plan,
+            op_images,
+            rpc_endpoints[0], # TODO: Make this always use a full node
         )
 
     if "prometheus" in additional_services:

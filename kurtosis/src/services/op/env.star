@@ -30,14 +30,16 @@ def get(
 #   GS_ADMIN, GS_BATCHER, GS_PROPOSER, GS_SEQUENCER
 def get_wallets(plan, files):
     wallets=plan.run_sh(
-        run="./contracts-bedrock/scripts/getting-started/wallets.sh | grep '_ADDRESS\|_PRIVATE_KEY' | cut -d '=' -f 2"
-        files={"/contracts-bedrock/": files.contracts}
+        run='ls contracts-bedrock && ./contracts-bedrock/scripts/getting-started/wallets.sh | grep "_ADDRESS\\|_PRIVATE_KEY" | cut -d "=" -f 2',
+        files={"/contracts-bedrock": files.contracts},
     )
-
-    return wallets.output.split("\n")
+    plan.print(wallets.output)
+    # return wallets.output.split("\n")
+    return ["" for i in range(8)]
 
 
 def get_salt(plan):
     return plan.run_sh(
-        run="openssl rand -hex 32"
+        image="alpine:latest",
+        run="apk add openssl && openssl rand -hex 32"
     ).output
