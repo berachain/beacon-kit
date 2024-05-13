@@ -100,9 +100,9 @@ func (p *Processor[
 	body := blk.GetBody()
 	reveal := body.GetRandaoReveal()
 	if err = p.signer.VerifySignature(
-		proposer.Pubkey[:],
+		proposer.Pubkey,
 		signingRoot[:],
-		reveal[:],
+		reveal,
 	); err != nil {
 		return err
 	}
