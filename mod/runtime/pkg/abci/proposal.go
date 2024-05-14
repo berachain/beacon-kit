@@ -103,7 +103,7 @@ func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.builderService.RequestBestBlock(
-		ctx, st, math.Slot(req.Height))
+		ctx, st, math.Slot(req.GetHeight()))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
