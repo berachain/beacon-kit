@@ -27,10 +27,10 @@ package engineprimitives
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -38,6 +38,10 @@ import (
 //
 //nolint:lll
 type NewPayloadRequest[
+	Eth1TransactionT interface {
+		UnmarshalBinary([]byte) error
+		BlobHashes() []common.ExecutionHash
+	},
 	ExecutionPayloadT interface {
 		GetTransactions() [][]byte
 		Version() uint32
@@ -59,6 +63,10 @@ type NewPayloadRequest[
 
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest[
+	Eth1TransactionT interface {
+		UnmarshalBinary([]byte) error
+		BlobHashes() []common.ExecutionHash
+	},
 	ExecutionPayloadT interface {
 		GetTransactions() [][]byte
 		Version() uint32
@@ -69,8 +77,8 @@ func BuildNewPayloadRequest[
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
 	optimistic bool,
-) *NewPayloadRequest[ExecutionPayloadT] {
-	return &NewPayloadRequest[ExecutionPayloadT]{
+) *NewPayloadRequest[Eth1TransactionT, ExecutionPayloadT] {
+	return &NewPayloadRequest[Eth1TransactionT, ExecutionPayloadT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
@@ -86,15 +94,20 @@ func BuildNewPayloadRequest[
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 //
 //nolint:lll
-func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest[Eth1TransactionT, ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
 
 	txs := payload.GetTransactions()
 	versionedHashes := n.VersionedHashes
 
 	var blobHashes []common.ExecutionHash
+
+	var tx Eth1TransactionT
+	if reflect.TypeOf(tx).Kind() == reflect.Ptr {
+		tx = reflect.New(reflect.TypeOf(tx).Elem()).Interface().(Eth1TransactionT)
+	}
+
 	for _, txBz := range txs {
-		tx := new(coretypes.Transaction)
 		if err := tx.UnmarshalBinary(txBz); err != nil {
 			return err
 		}

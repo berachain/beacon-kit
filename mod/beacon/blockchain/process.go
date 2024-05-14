@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -101,7 +102,7 @@ func (s *Service[
 		// Then we notify the engine of the new payload.
 		parentBeaconBlockRoot := blk.GetParentBlockRoot()
 		if err = s.ee.VerifyAndNotifyNewPayload(
-			ctx, engineprimitives.BuildNewPayloadRequest(
+			ctx, engineprimitives.BuildNewPayloadRequest[*coretypes.Transaction](
 				body.GetExecutionPayload(),
 				body.GetBlobKzgCommitments().ToVersionedHashes(),
 				&parentBeaconBlockRoot,
@@ -197,7 +198,7 @@ func (s *Service[
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	return s.ee.VerifyAndNotifyNewPayload(
 		ctx,
-		engineprimitives.BuildNewPayloadRequest(
+		engineprimitives.BuildNewPayloadRequest[*coretypes.Transaction](
 			body.GetExecutionPayload(),
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,

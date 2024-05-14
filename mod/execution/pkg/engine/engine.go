@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -145,7 +146,7 @@ func (ee *Engine[
 	ExecutionPayloadT, ExecutionPayloadDenebT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+	req *engineprimitives.NewPayloadRequest[*coretypes.Transaction, ExecutionPayloadT],
 ) error {
 	// First we verify the block hash and versioned hashes are valid.
 	//

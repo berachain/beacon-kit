@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -138,7 +139,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[*coretypes.Transaction, types.ExecutionPayload],
 	) error
 }
 
