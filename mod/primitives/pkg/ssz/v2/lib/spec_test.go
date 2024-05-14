@@ -74,14 +74,6 @@ func getSszState() (*sszv2.BeaconStateBellatrix, error) {
 	return &sszState, nil
 }
 
-func getVariableLengthItemSerialized() []byte {
-	// magic nums from the generated ssz.go file for historicalRoots
-	startPos := 2736633
-	endPos := startPos + 18528
-
-	return sliceBlockData(startPos, endPos)
-}
-
 func sliceBlockData(start int, end int) []byte {
 	s, err := getSszState()
 	if err != nil {
@@ -181,7 +173,8 @@ func TestParityVariableLengthItem1(t *testing.T) {
 	o2, err3 := s.MarshalSSZ(historicalRoots)
 	require.NoError(t, err3)
 
-	res := getVariableLengthItemSerialized()
+	// magic nums from the generated ssz.go file for historicalRoots
+	res := sliceBlockData(2736633, 2755161)
 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
 }
 
