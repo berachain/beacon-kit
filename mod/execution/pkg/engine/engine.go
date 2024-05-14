@@ -148,7 +148,7 @@ func (ee *Engine[
 	ExecutionPayloadT, ExecutionPayloadDenebT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[*coretypes.Transaction, ExecutionPayloadT],
+	req *engineprimitives.NewPayloadRequest[common.GethHash, *coretypes.Transaction, ExecutionPayloadT],
 ) error {
 	// First we verify the block hash and versioned hashes are valid.
 	//

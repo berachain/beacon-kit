@@ -27,13 +27,13 @@
 package engineprimitives
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
 // There are some types we can borrow from geth.
 type (
 	ForkchoiceResponse = engine.ForkChoiceResponse
-	ForkchoiceState    = engine.ForkchoiceStateV1
 	PayloadID          = engine.PayloadID
 	PayloadStatus      = engine.PayloadStatusV1
 	ClientVersionV1    = engine.ClientVersionV1
@@ -53,3 +53,9 @@ var (
 	// ExecutableDataToBlock constructs a block from executable data.
 	ExecutableDataToBlock = engine.ExecutableDataToBlock
 )
+
+type ForkchoiceState struct {
+	HeadBlockHash      common.ExecutionHash `json:"headBlockHash"`
+	SafeBlockHash      common.ExecutionHash `json:"safeBlockHash"`
+	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
+}

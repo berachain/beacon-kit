@@ -8,6 +8,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -17,7 +18,7 @@ var _ = (*executableDataDenebMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutableDataDeneb struct {
-		ParentHash    common.Hash                    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+		ParentHash    types.Hash                     `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  common.Address                 `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
@@ -29,7 +30,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 		Timestamp     math.U64                       `json:"timestamp"                    gencodec:"required"`
 		ExtraData     bytes.Bytes                    `json:"extraData"                    gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas math.U256L                     `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     common.Hash                    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+		BlockHash     types.Hash                     `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
 		BlobGasUsed   math.U64                       `json:"blobGasUsed"`
@@ -64,7 +65,7 @@ func (e ExecutableDataDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutableDataDeneb struct {
-		ParentHash    *common.Hash                   `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+		ParentHash    *types.Hash                    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 		FeeRecipient  *common.Address                `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     *bytes.B32                     `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
@@ -76,7 +77,7 @@ func (e *ExecutableDataDeneb) UnmarshalJSON(input []byte) error {
 		Timestamp     *math.U64                      `json:"timestamp"                    gencodec:"required"`
 		ExtraData     *bytes.Bytes                   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas *math.U256L                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     *common.Hash                   `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+		BlockHash     *types.Hash                    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
 		BlobGasUsed   *math.U64                      `json:"blobGasUsed"`

@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -55,7 +56,7 @@ func TestEth1HeaderCache(t *testing.T) {
 		h := &engineprimitives.Header{
 			Number: new(big.Int).SetUint64(number),
 		}
-		hash := h.Hash()
+		hash := common.ExecutionHash(h.Hash())
 		cacheUnderTest.AddHeader(h)
 
 		h2, ok := cacheUnderTest.HeaderByNumber(number)
@@ -74,14 +75,14 @@ func TestEth1HeaderCache(t *testing.T) {
 		require.NotNil(t, h1)
 		require.Equal(t, ethcommon.HexToHash("0x0"), h1.ParentHash)
 
-		oldHash := h1.Hash()
+		oldHash := common.ExecutionHash(h1.Hash())
 
 		parentHash := ethcommon.HexToHash("0x1234")
 		newHeader := &engineprimitives.Header{
 			Number:     new(big.Int).SetUint64(number),
 			ParentHash: parentHash,
 		}
-		newHash := newHeader.Hash()
+		newHash := common.ExecutionHash(newHeader.Hash())
 		cacheUnderTest.AddHeader(newHeader)
 
 		h2, ok := cacheUnderTest.HeaderByNumber(number)

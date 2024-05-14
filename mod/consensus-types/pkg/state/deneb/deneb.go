@@ -140,9 +140,9 @@ func DefaultGenesisExecutionPayloadHeader() (
 		ExtraData: make([]byte, constants.ExtraDataLength),
 		//nolint:mnd // default value.
 		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(3906250)),
-		BlockHash: common.HexToHash(
+		BlockHash: common.ExecutionHash(common.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
-		),
+		)),
 		TransactionsRoot: emptyTxsRoot,
 		WithdrawalsRoot:  emptyWithdrawalsRoot,
 		BlobGasUsed:      0,

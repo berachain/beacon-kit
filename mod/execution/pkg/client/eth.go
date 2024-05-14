@@ -74,7 +74,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByHash(
 	if ok {
 		return header, nil
 	}
-	header, err := s.Client.HeaderByHash(ctx, hash)
+	header, err := s.Client.HeaderByHash(ctx, (common.GethHash(hash)))
 	if err != nil {
 		return nil, err
 	}

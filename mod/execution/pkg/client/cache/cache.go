@@ -92,8 +92,8 @@ func (c *EngineCache) AddHeader(
 ) {
 	number := header.Number.Uint64()
 	if oldHeader, ok := c.headerByNumberCache.Get(number); ok {
-		c.headerByHashCache.Remove(oldHeader.Hash())
+		c.headerByHashCache.Remove(common.ExecutionHash(oldHeader.Hash()))
 	}
 	c.headerByNumberCache.Add(number, header)
-	c.headerByHashCache.Add(header.Hash(), header)
+	c.headerByHashCache.Add(common.ExecutionHash(header.Hash()), header)
 }

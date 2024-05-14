@@ -40,7 +40,7 @@ import (
 type NewPayloadRequest[
 	Eth1TransactionT interface {
 		UnmarshalBinary([]byte) error
-		BlobHashes() []common.ExecutionHash
+		BlobHashes() []common.GethHash
 	},
 	ExecutionPayloadT interface {
 		GetTransactions() [][]byte
@@ -50,7 +50,7 @@ type NewPayloadRequest[
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayloadT
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []common.ExecutionHash
+	VersionedHashes []common.GethHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
 	// SkipIfExists is a flag that indicates if the payload should be skipped
@@ -65,7 +65,7 @@ type NewPayloadRequest[
 func BuildNewPayloadRequest[
 	Eth1TransactionT interface {
 		UnmarshalBinary([]byte) error
-		BlobHashes() []common.ExecutionHash
+		BlobHashes() []common.GethHash
 	},
 	ExecutionPayloadT interface {
 		GetTransactions() [][]byte
@@ -73,7 +73,7 @@ func BuildNewPayloadRequest[
 	},
 ](
 	executionPayload ExecutionPayloadT,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []common.GethHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
 	optimistic bool,
@@ -100,7 +100,7 @@ func (n *NewPayloadRequest[Eth1TransactionT, ExecutionPayloadT]) HasValidVersion
 	txs := payload.GetTransactions()
 	versionedHashes := n.VersionedHashes
 
-	var blobHashes []common.ExecutionHash
+	var blobHashes []common.GethHash
 
 	var tx Eth1TransactionT
 	if reflect.TypeOf(tx).Kind() == reflect.Ptr {

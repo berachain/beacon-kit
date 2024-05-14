@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -14,7 +15,7 @@ import (
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadHeaderDeneb struct {
-		ParentHash       common.Hash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
+		ParentHash       types.Hash     `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 		FeeRecipient     common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
 		StateRoot        bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot     bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
@@ -26,7 +27,7 @@ func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 		Timestamp        math.U64       `json:"timestamp"                       gencodec:"required"`
 		ExtraData        []byte         `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas    math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-		BlockHash        common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
+		BlockHash        types.Hash     `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
 		TransactionsRoot bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
 		WithdrawalsRoot  bytes.B32      `json:"withdrawalsRoot"  ssz-size:"32"`
 		BlobGasUsed      math.U64       `json:"blobGasUsed"`
@@ -56,7 +57,7 @@ func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 	type ExecutionPayloadHeaderDeneb struct {
-		ParentHash       *common.Hash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
+		ParentHash       *types.Hash     `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 		FeeRecipient     *common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
 		StateRoot        *bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot     *bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
@@ -68,7 +69,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 		Timestamp        *math.U64       `json:"timestamp"                       gencodec:"required"`
 		ExtraData        []byte          `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas    *math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-		BlockHash        *common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
+		BlockHash        *types.Hash     `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
 		TransactionsRoot *bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
 		WithdrawalsRoot  *bytes.B32      `json:"withdrawalsRoot"  ssz-size:"32"`
 		BlobGasUsed      *math.U64       `json:"blobGasUsed"`

@@ -26,6 +26,7 @@
 package common
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -38,13 +39,24 @@ type (
 
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
-	ExecutionHash = common.Hash
+	ExecutionHash = types.Hash
+
+	GethHash = common.Hash
 )
 
 //nolint:gochecknoglobals // alias.
-var (
-	HexToAddress   = common.HexToAddress
-	HexToHash      = common.HexToHash
-	Hex2BytesFixed = common.Hex2BytesFixed
-	FromHex        = common.FromHex
-)
+func HexToAddress(s string) ExecutionAddress {
+	return ExecutionAddress(common.HexToAddress(s))
+}
+
+func Hex2BytesFixed(s string, l int) []byte {
+	return common.Hex2BytesFixed(s, l)
+}
+
+func FromHex(s string) []byte {
+	return common.FromHex(s)
+}
+
+func HexToHash(s string) ExecutionHash {
+	return ExecutionHash(common.HexToHash(s))
+}
