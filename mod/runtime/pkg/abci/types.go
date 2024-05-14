@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -61,7 +60,6 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		state.BeaconState,
 		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
-	ChainSpec() primitives.ChainSpec
 	VerifyPayloadOnBlk(
 		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error

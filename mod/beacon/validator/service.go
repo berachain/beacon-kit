@@ -136,6 +136,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
+
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)

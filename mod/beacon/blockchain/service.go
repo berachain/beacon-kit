@@ -134,10 +134,3 @@ func (s Service[
 ) BeaconStateT {
 	return s.bsb.BeaconState(ctx)
 }
-
-// TODO: Remove
-func (s Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ChainSpec() primitives.ChainSpec {
-	return s.cs
-}
