@@ -77,7 +77,6 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 			filedb.WithDirectoryPermissions(os.ModePerm),
 			filedb.WithLogger(in.Environment.Logger),
 		),
-		in.Environment.Logger,
 		// TODO: Make this configurable.
 		//nolint:mnd // will fix with config.
 		10*time.Second,

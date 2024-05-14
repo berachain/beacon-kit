@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
@@ -165,10 +166,25 @@ func (app BeaconApp) PostStartup(
 		ctx,
 	)
 
-	// Start the pruner
-	db := app.BeaconKeeper.Backend.AvailabilityStore(
-		ctx).(*dastore.Store[types.BeaconBlockBody]).IndexDB
-	db.(*prune.DB).Start(ctx)
+	backend := app.BeaconKeeper.Backend
 
+	availabilityStore := backend.AvailabilityStore(ctx)
+	daStore, ok := availabilityStore.(*dastore.Store[types.BeaconBlockBody])
+	if !ok {
+		app.Logger().Error(
+			"failed to assert type of availabilityStore to *dastore.Store")
+		return errors.New("failed to assert type of availabilityStore")
+	}
+
+	// Get the IndexDB from the daStore
+	indexDB := daStore.IndexDB
+
+	pruneDB, ok := indexDB.(*prune.DB)
+	if !ok {
+		app.Logger().Error("failed to assert type of indexDB to *prune.DB")
+		return errors.New("failed to assert type of indexDB to *prune.DB")
+	}
+	// Start the pruner
+	pruneDB.Start(ctx)
 	return nil
 }

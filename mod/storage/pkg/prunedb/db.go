@@ -103,7 +103,7 @@ func (db *DB) Set(index uint64, key []byte, value []byte) error {
 	return nil
 }
 
-// prune deletes all indexes outside of the window.
+// prune deletes all indexes outside the window.
 func (db *DB) prune() error {
 	db.mu.RLock()
 	highestSetIndex := db.highestSetIndex
@@ -122,12 +122,16 @@ func (db *DB) prune() error {
 		"to-index", highestSetIndex-db.windowSize,
 	)
 
+	// Delete all indexes from lastDeletedIndex to (highestSetIndex - windowSize)
+	// This is the range of indexes that are outside the window.
 	if err := db.DeleteRange(
 		db.lastDeletedIndex, (highestSetIndex-db.windowSize)+1,
 	); err != nil {
 		db.lastDeletedIndex = 1
 		return err
 	}
+	// If pruning has been done,
+	// update lastDeletedIndex to the end of the current window.
 	db.lastDeletedIndex = highestSetIndex - db.windowSize
 
 	return nil

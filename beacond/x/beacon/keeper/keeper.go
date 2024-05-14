@@ -63,12 +63,13 @@ func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
 // NewKeeper creates new instances of the Beacon Keeper.
 func NewKeeper(
 	fdb *filedb.DB,
-	logger log.Logger[any],
 	prunerInterval time.Duration,
 	env appmodule.Environment,
 	cs primitives.ChainSpec,
 	ddb *deposit.KVStore,
 ) *Keeper {
+	var logger log.Logger[any]
+
 	return &Keeper{
 		cs: cs,
 		Backend: *storage.NewBackend(
