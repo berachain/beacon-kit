@@ -25,6 +25,7 @@
 
 pragma solidity 0.8.25;
 
+import { SSZ } from "../eip4788/SSZ.sol";
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
 
 /**
@@ -120,19 +121,19 @@ contract BeaconDepositContract is IBeaconDepositContract {
             depositCount
         );
 
-        bytes memory amount = _toLittleEndian64(amountInGwei);
+        bytes32 amount = SSZ.toLittleEndian(amountInGwei);
         // Compute deposit data root (`DepositData` hash tree root)
         bytes32 pubkey_root = sha256(abi.encodePacked(pubkey, bytes16(0)));
         bytes32 signature_root = sha256(
             abi.encodePacked(
-                sha256(abi.encodePacked(signature[:64])),
+                sha256(signature[:64]),
                 sha256(abi.encodePacked(signature[64:], bytes32(0)))
             )
         );
         bytes32 node = sha256(
             abi.encodePacked(
                 sha256(abi.encodePacked(pubkey_root, withdrawal_credentials)),
-                sha256(abi.encodePacked(amount, bytes24(0), signature_root))
+                sha256(abi.encodePacked(amount, signature_root))
             )
         );
 
@@ -145,7 +146,9 @@ contract BeaconDepositContract is IBeaconDepositContract {
         }
 
         // Add deposit data root to Merkle tree (update a single `branch` node)
-        depositCount += 1;
+        unchecked {
+            ++depositCount;
+        }
         uint256 size = depositCount;
         for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
         {
@@ -180,15 +183,13 @@ contract BeaconDepositContract is IBeaconDepositContract {
             size /= 2;
         }
         return sha256(
-            abi.encodePacked(
-                node, _toLittleEndian64(uint64(depositCount)), bytes24(0)
-            )
+            abi.encodePacked(node, SSZ.toLittleEndian(uint64(depositCount)))
         );
     }
 
     /// @inheritdoc IBeaconDepositContract
-    function getDepositCount() external view override returns (bytes memory) {
-        return _toLittleEndian64(uint64(depositCount));
+    function getDepositCount() external view override returns (bytes32) {
+        return SSZ.toLittleEndian(uint64(depositCount));
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -231,28 +232,5 @@ contract BeaconDepositContract is IBeaconDepositContract {
                 revert(0x1c, 0x04)
             }
         }
-    }
-
-    /**
-     * @notice Converts a uint64 to a little-endian bytes array.
-     * @dev From the ETH2 Deposit Contract.
-     * @param value The uint64 value to convert.
-     */
-    function _toLittleEndian64(uint64 value)
-        internal
-        pure
-        returns (bytes memory ret)
-    {
-        ret = new bytes(8);
-        bytes8 bytesValue = bytes8(value);
-        // Byteswapping during copying to bytes.
-        ret[0] = bytesValue[7];
-        ret[1] = bytesValue[6];
-        ret[2] = bytesValue[5];
-        ret[3] = bytesValue[4];
-        ret[4] = bytesValue[3];
-        ret[5] = bytesValue[2];
-        ret[6] = bytesValue[1];
-        ret[7] = bytesValue[0];
     }
 }

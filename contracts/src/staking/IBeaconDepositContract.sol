@@ -113,5 +113,5 @@ interface IBeaconDepositContract {
      * @notice Gets the number of deposits that have been made to the contract.
      * @return The number of deposits that have been made to the contract.
      */
-    function getDepositCount() external view returns (bytes memory);
+    function getDepositCount() external view returns (bytes32);
 }

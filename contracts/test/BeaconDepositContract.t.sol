@@ -5,6 +5,7 @@ import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { IBeaconDepositContract } from
     "../src/staking/IBeaconDepositContract.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
+import { SSZ } from "@src/eip4788/SSZ.sol";
 import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
 
 contract DepositContractTest is SoladyTest {
@@ -241,40 +242,22 @@ contract DepositContractTest is SoladyTest {
         view
         returns (bytes32)
     {
-        bytes memory amount = _toLittleEndian64(amountInGwei);
+        bytes32 amount = SSZ.toLittleEndian(amountInGwei);
         // Compute deposit data root (`DepositData` hash tree root)
         bytes32 pubkey_root =
             sha256(abi.encodePacked(VALIDATOR_PUBKEY, bytes16(0)));
         bytes32 signature_root = sha256(
             abi.encodePacked(
-                sha256(abi.encodePacked(signature[:64])),
+                sha256(signature[:64]),
                 sha256(abi.encodePacked(signature[64:], bytes32(0)))
             )
         );
         bytes32 node = sha256(
             abi.encodePacked(
                 sha256(abi.encodePacked(pubkey_root, WITHDRAWAL_CREDENTIALS)),
-                sha256(abi.encodePacked(amount, bytes24(0), signature_root))
+                sha256(abi.encodePacked(amount, signature_root))
             )
         );
         return node;
-    }
-
-    function _toLittleEndian64(uint64 value)
-        internal
-        pure
-        returns (bytes memory ret)
-    {
-        ret = new bytes(8);
-        bytes8 bytesValue = bytes8(value);
-        // Byteswapping during copying to bytes.
-        ret[0] = bytesValue[7];
-        ret[1] = bytesValue[6];
-        ret[2] = bytesValue[5];
-        ret[3] = bytesValue[4];
-        ret[4] = bytesValue[3];
-        ret[5] = bytesValue[2];
-        ret[6] = bytesValue[1];
-        ret[7] = bytesValue[0];
     }
 }
