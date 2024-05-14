@@ -8,7 +8,6 @@ replace (
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 )
 
 require (
@@ -17,7 +16,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	golang.org/x/sync v0.7.0
 )

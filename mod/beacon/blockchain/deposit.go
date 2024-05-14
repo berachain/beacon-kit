@@ -37,7 +37,7 @@ import (
 // by other services.
 func (s *Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) RetrieveDepositsFromBlock(
+]) retrieveDepositsFromBlock(
 	ctx context.Context,
 	blockNumber math.U64,
 ) error {
@@ -53,7 +53,8 @@ func (s *Service[
 func (s *Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) PruneDepositEvents(
+	ctx context.Context,
 	idx uint64,
 ) error {
-	return s.bsb.DepositStore(context.Background()).PruneToIndex(idx)
+	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
 }

@@ -28,16 +28,13 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is the blockchain service.
 type Service[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
@@ -66,8 +63,7 @@ type Service[
 	bv BlockVerifier[BeaconStateT]
 
 	// sp is the state processor for beacon blocks and states.
-	sp *core.StateProcessor[
-		types.BeaconBlock, BeaconStateT, BlobSidecarsT]
+	sp StateProcessor[BeaconStateT, BlobSidecarsT]
 
 	// pv verifies the payload of beacon blocks.
 	pv PayloadVerifier[BeaconStateT]
@@ -75,7 +71,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
@@ -86,11 +82,7 @@ func NewService[
 	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
 	bv BlockVerifier[BeaconStateT],
-	sp *core.StateProcessor[
-		types.BeaconBlock,
-		BeaconStateT,
-		BlobSidecarsT,
-	],
+	sp StateProcessor[BeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[BeaconStateT],
 	bdc DepositContract,
 ) *Service[BeaconStateT, BlobSidecarsT, DepositStoreT] {

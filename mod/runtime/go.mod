@@ -30,7 +30,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240509094503-43f6859e2926
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
