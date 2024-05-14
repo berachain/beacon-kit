@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -52,9 +53,10 @@ type BeaconKitRuntime[
 		DepositStoreT,
 	],
 ] struct {
-	logger   log.Logger[any]
-	services *service.Registry
-	fscp     StorageBackendT
+	logger    log.Logger[any]
+	services  *service.Registry
+	fscp      StorageBackendT
+	chainSpec primitives.ChainSpec
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -139,6 +141,7 @@ func (r *BeaconKitRuntime[
 	}
 
 	handler := abci.NewHandler(
+		r.chainSpec,
 		builderService,
 		chainService,
 	)
