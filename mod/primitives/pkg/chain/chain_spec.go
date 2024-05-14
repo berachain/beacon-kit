@@ -386,7 +386,8 @@ func (c chainSpec[
 	return c.Data.BytesPerBlob
 }
 
-// GetCometBFTConfigForSlot returns the CometBFT configuration for the given slot.
+// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
+// slot.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
