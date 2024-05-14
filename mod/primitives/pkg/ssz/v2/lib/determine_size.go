@@ -26,6 +26,7 @@
 package ssz
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -86,9 +87,15 @@ func isVariableSizeType(typ reflect.Type) bool {
 			if err != nil {
 				return false
 			}
+			if f.Name == "ExtraData" {
+				fmt.Println("ExtraData is type at pos", isVariableSizeType(fType), i)
+			}
 			if isVariableSizeType(fType) {
 				return true
 			}
+			// if hasUndefinedSizeTag(f) {
+			// 	return true
+			// }
 		}
 		return false
 	case kind == reflect.Ptr:
@@ -239,7 +246,7 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 			err,
 			"could not parse ssz struct field tags")
 	}
-	if exists {
+	if exists && len(fieldSizeTags) > 0 {
 		// If the field does indeed specify ssz struct tags
 		// we infer the field's type.
 		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil
@@ -284,17 +291,18 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	sizes := make([]uint64, len(items))
 	var err error
 	for i := range len(items) {
-		// If a field is unbounded, we mark it with a size of 0.
+		// If a field is unbounded, we skip it
 		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
-			sizes[i] = 0
+			// sizes[i] = 0
 			continue
-		}
-		sizes[i], err = strconv.ParseUint(items[i], 10, 64)
-		if err != nil {
-			return make([]uint64, 0), false, err
+		} else {
+			sizes[i], err = strconv.ParseUint(items[i], 10, 64)
+			if err != nil {
+				return make([]uint64, 0), false, err
+			}
 		}
 	}
-	return sizes, true, nil
+	return sizes, len(sizes) > 0, nil
 }
 
 func inferFieldTypeFromSizeTags(

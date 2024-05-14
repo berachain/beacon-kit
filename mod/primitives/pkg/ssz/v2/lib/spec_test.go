@@ -126,6 +126,34 @@ func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 }
 
 // Tests
+// Offsets in fast ssz
+
+// Offset (7) 'HistoricalRoots'
+// Offset (9) 'Eth1DataVotes'
+// Offset (10) 'ExtraData' buf[436:440]
+// Offset (11) 'Validators'
+// Offset (12) 'Balances'
+// Offset (15) 'PreviousEpochParticipation'
+// Offset (16) 'CurrentEpochParticipation'
+// Offset (21) 'InactivityScores'
+// Offset (24) 'LatestExecutionPayloadHeader'
+
+// matches
+
+// Offset (7) 'HistoricalRoots'
+// Offset (9) 'Eth1DataVotes'
+// Offset (11) 'Validators'
+// Offset (12) 'Balances'
+// Offset (15) 'PreviousEpochParticipation'
+// Offset (16) 'CurrentEpochParticipation'
+// Offset (21) 'InactivityScores'
+// Offset (24) 'LatestExecutionPayloadHeader'
+
+// mismatch
+//
+// Offset (24) 'LatestExecutionPayloadHeader'
+// Offset (10) 'ExtraData' buf[436:440] from Got isVariable = false for LatestExecutionPayloadHeader /n
+// Should be aligned now but still no match
 func TestParityBellatrix(t *testing.T) {
 	sszState, err := getSszState()
 	require.NoError(t, err)
@@ -138,8 +166,13 @@ func TestParityBellatrix(t *testing.T) {
 	// 58327640 len []
 	res, err4 := sszState.MarshalSSZ()
 	require.NoError(t, err4)
+	// fails on
+	// Got isVariable = false for LatestExecutionPayloadHeader /n
+	// Got isVariable = false for Eth1Data /n
 
-	require.Equal(t, o2[:64], res[:64], "local & fastssz output doesn't match")
+	// offset is set in ssz.go for these
+
+	require.Equal(t, o2[0:64], res[0:64], "local & fastssz output doesn't match")
 }
 
 func BenchmarkNativeFull(b *testing.B) {
