@@ -36,11 +36,10 @@ import (
 // returns an error if the fork version is not supported.
 func EmptyBeaconBlock[
 	SlotT, ProposerIndexT ~uint64,
-	ParentBlockRootT, StateRootT ~[32]byte](
+	ParentBlockRootT ~[32]byte](
 	slot SlotT,
 	proposerIndex ProposerIndexT,
 	parentBlockRoot ParentBlockRootT,
-	stateRoot StateRootT,
 	forkVersion uint32,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
@@ -53,7 +52,7 @@ func EmptyBeaconBlock[
 				//#nosec:G701 // this is safe.
 				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: bytes.B32(parentBlockRoot),
-				StateRoot:       bytes.B32(stateRoot),
+				StateRoot:       bytes.B32{},
 			},
 			Body: &BeaconBlockBodyDeneb{},
 		}

@@ -152,11 +152,15 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, err
 	}
 
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel.
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
 	}
 
+	// Get the parent block root for the slot.
+	// TODO: We can optimize to pre-compute this in parallel.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
@@ -166,6 +170,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 			err,
 		)
 	}
+
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey(),
@@ -182,7 +187,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
-		common.Root{},
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
@@ -266,11 +270,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, err
 	}
 
-	s.logger.Info("finished assembling beacon block 🛟",
-		"slot", slot, "deposits", len(deposits))
-
 	// Compute the state root for the block.
-	// TODO: IMPLEMENT RN THIS DOES NOTHING.
 	stateRoot, err := s.computeStateRoot(st, blk)
 	if err != nil {
 		return nil, sidecars, errors.Newf(
@@ -279,6 +279,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		)
 	}
 	blk.SetStateRoot(stateRoot)
+
+	s.logger.Info("finished assembling beacon block 🛟",
+		"slot", slot, "deposits", len(deposits))
 
 	// Set the execution payload on the block body.
 	return blk, blobSidecars, nil
