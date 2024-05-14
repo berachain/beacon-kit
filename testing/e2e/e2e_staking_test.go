@@ -26,6 +26,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -40,6 +41,7 @@ const (
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress = "0x00000000219ab540356cbb839cbe05303d7705fa"
 	DefaultClient          = "cl-validator-beaconkit-0"
+	NumDepositsLoad        = 500
 )
 
 // TestDepositContract tests the deposit contract to attempt staking and
@@ -113,6 +115,90 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	newPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Equal(newPower, 32*suite.OneGwei)
+}
+
+func (s *BeaconKitE2ESuite) TestDepositRobustness() {
+	// Get the consensus client.
+	client := s.ConsensusClients()[DefaultClient]
+	s.Require().NotNil(client)
+
+	// Get the public key.
+	pubkey, err := client.GetPubKey(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Len(pubkey, 48)
+
+	// Get the block num
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get original evm balance
+	balance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(blkNum)),
+	)
+	s.Require().NoError(err)
+
+	nonce, err := s.JSONRPCBalancer().NonceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(blkNum)),
+	)
+	s.Require().NoError(err)
+
+	// TODO: kill a node
+
+	for i := 0; i < NumDepositsLoad; i++ {
+		// Create a deposit transaction.
+		_, err := s.generateNewDepositTx(
+			s.GenesisAccount().Address(),
+			s.GenesisAccount().SignerFunc(chainID),
+			big.NewInt(int64(nonce+uint64(i))),
+		)
+		s.Require().NoError(err)
+	}
+
+	// wait blocks
+	targetBlkNum := blkNum + 10
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// Check to see if evm balance decreased.
+	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		s.GenesisAccount().Address(),
+		big.NewInt(int64(targetBlkNum)),
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
+
+	fmt.Println("Balance before deposit: ", balance)
+	fmt.Println("Balance after deposit: ", postDepositBalance)
+
+	// Chekc that the balance is somewhere between og - 32e * 500 > 0 < 32e
+	// TODO: revive node
+
+	// // Wait for some txs to be processed.
+
+	// // Check to make sure the balance has decreased by the correct amount.
+	// newBalance, err := s.JSONRPCBalancer().BalanceAt(
+	// 	s.Ctx()
+	// 	s.GenesisAccount().Address(),
+	// 	big.NewInt(int64(blkNum)),
+	// )
+	// s.Require().NoError(err)
+
+	// totalAmountDeposited := new(big.Int).Mul(big.NewInt(32*suite.OneGwei), big.NewInt(NumDepositsLoad))
+
+	// expectedBalance := new(big.Int).Sub(balance, totalAmountDeposited)
+
+	// // Wait for the log to be processed.
+	// // Check that the total power is less than total amount by X time.
+	// // Check that the total power adds up to the total amount by X time.
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
