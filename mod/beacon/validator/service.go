@@ -147,6 +147,11 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 
 	st := s.bsb.BeaconState(ctx)
 
+	// We have to process the slot before building the new reveal.
+	if err := s.stateProcessor.ProcessSlot(st); err != nil {
+		return nil, sidecars, err
+	}
+
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)

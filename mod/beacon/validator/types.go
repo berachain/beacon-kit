@@ -125,6 +125,7 @@ type StateProcessor[
 		blk types.BeaconBlock,
 	) error
 
+	// ProcessSlot processes the slot.
 	ProcessSlot(
 		st BeaconStateT,
 	) error

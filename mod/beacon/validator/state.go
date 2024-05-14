@@ -30,15 +30,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// computeStateRoot computes the state root of the previous block.
+// computeStateRoot computes the state root of an outgoing block.
 func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
-	if err := s.stateProcessor.ProcessSlot(st); err != nil {
-		return primitives.Root{}, err
-	}
-
 	if err := s.stateProcessor.ProcessBlock(st, blk); err != nil {
 		return primitives.Root{}, err
 	}
