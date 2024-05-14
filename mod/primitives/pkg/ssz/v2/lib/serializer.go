@@ -226,30 +226,18 @@ func (s *Serializer) MarshalNDimensionalArray(
 
 	// Create a buffer to hold all byte values
 	var buffer []byte
-
-	// Recursive function to traverse and serialize elements
-	var serializeRecursive func(reflect.Value) error
-	serializeRecursive = func(currentVal reflect.Value) error {
-		if currentVal.Kind() == reflect.Array ||
-			currentVal.Kind() == reflect.Slice {
-			for i := range currentVal.Len() {
-				if err := serializeRecursive(currentVal.Index(i)); err != nil {
-					return err
-				}
-			}
-		} else {
-			// Serialize single element
-			bytes, err := s.MarshalSSZ(currentVal.Interface())
-			if err != nil {
-				return err
-			}
-			buffer = append(buffer, bytes...)
+	var errCheck []error
+	var processMember = func(c interface{}) {
+		// Serialize single element
+		bytes, err := s.MarshalSSZ(c)
+		if err != nil {
+			errCheck = append(errCheck, err)
 		}
-		return nil
+		buffer = append(buffer, bytes...)
 	}
 
 	// Start the recursive serialization
-	if err := serializeRecursive(val); err != nil {
+	if err := SerializeRecursive(val, processMember); err != nil {
 		return nil, err
 	}
 
@@ -393,13 +381,13 @@ func (s *Serializer) MarshalStruct(
 	if err != nil {
 		return 0, err
 	}
-	copy(buf[startOffset:], res)
+	buf = SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(res)), nil
 }
 
 func (s *Serializer) MarshalComposite(
 	val reflect.Value,
-	typ reflect.Type,
+	_ reflect.Type,
 	buf []byte,
 	startOffset uint64,
 ) (uint64, error) {
@@ -412,16 +400,16 @@ func (s *Serializer) MarshalComposite(
 	var processMember = func(
 		c interface{},
 	) {
-		typ := reflect.TypeOf(c)
-		val := reflect.ValueOf(c)
+		memberTyp := reflect.TypeOf(c)
+		memberVal := reflect.ValueOf(c)
 		var serializationErr error
 		// If the field has a ssz-size tag set, we treat it as a fixed size
 		// field
-		if isVariableSizeType(typ) {
+		if isVariableSizeType(memberTyp) {
 			variableParts,
 				variableLengths,
 				serializationErr = s.MarshalVariableSizeParts(
-				val,
+				memberVal,
 				variableParts,
 				variableLengths,
 			)
@@ -429,7 +417,7 @@ func (s *Serializer) MarshalComposite(
 			fixedParts,
 				fixedLengths,
 				serializationErr = s.MarshalFixedSizeParts(
-				val,
+				memberVal,
 				fixedParts,
 				fixedLengths,
 			)
@@ -444,25 +432,8 @@ func (s *Serializer) MarshalComposite(
 		}
 	}
 
-	// Recursive function to traverse and serialize elements
-	var serializeRecursive func(reflect.Value) error
-	serializeRecursive = func(currentVal reflect.Value) error {
-		if currentVal.Kind() == reflect.Array ||
-			currentVal.Kind() == reflect.Slice {
-			for i := range currentVal.Len() {
-				if err := serializeRecursive(currentVal.Index(i)); err != nil {
-					return err
-				}
-			}
-		} else {
-			// Serialize single element
-			processMember(currentVal.Interface())
-		}
-		return nil
-	}
-
 	// Start the recursive serialization
-	if err := serializeRecursive(val); err != nil {
+	if err := SerializeRecursive(val, processMember); err != nil {
 		return 0, err
 	}
 	if len(errCheck) > 0 {
@@ -480,13 +451,6 @@ func (s *Serializer) MarshalComposite(
 	if err != nil {
 		return 0, err
 	}
-	if len(res) > len(buf) {
-		//#nosec:G701 // will not realistically cause a problem.
-		buf2 := make([]byte, len(res)+int(startOffset))
-		copy(buf2, buf[:startOffset])
-		copy(buf2[startOffset:], res)
-	} else {
-		copy(buf[startOffset:], res)
-	}
+	buf = SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(res)), nil
 }

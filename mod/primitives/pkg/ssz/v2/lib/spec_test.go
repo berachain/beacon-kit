@@ -87,7 +87,7 @@ func sliceBlockData(start int, end int) []byte {
 	if err != nil {
 		return nil
 	}
-	data, err := s.MarshalSSZ()
+	data, _ := s.MarshalSSZ()
 	return data[start:end]
 }
 
@@ -121,7 +121,7 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 
 func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 	dst := make([]byte, 0)
-	for ii := 0; ii < len(bb.Eth1DataVotes); ii++ {
+	for ii := range len(bb.Eth1DataVotes) {
 		dst, _ = bb.Eth1DataVotes[ii].MarshalSSZTo(dst)
 	}
 	return dst
@@ -152,7 +152,7 @@ func TestParitySliceOfStructs(t *testing.T) {
 
 	res := getEth1DataVotesSerialized(sszState)
 
-	require.Equal(t, o2[:64], res[:64], "local output and fastssz output doesn't match")
+	require.Equal(t, o2, res, "local & fastssz output doesn't match")
 }
 
 func TestParityVariableLengthItem2(t *testing.T) {
