@@ -58,3 +58,10 @@ func TestLogger_Error(*testing.T) {
 	// Since it's a no-op logger, there's nothing to assert. This test just
 	// ensures no panic occurs.
 }
+
+func TestLogger_Debug(*testing.T) {
+	logger := noop.NewLogger()
+	logger.Debug("test debug", "key1", "value1", "key2", "value2")
+	// Since it's a no-op logger, there's nothing to assert. This test just
+	// ensures no panic occurs.
+}
