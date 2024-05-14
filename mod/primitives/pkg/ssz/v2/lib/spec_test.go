@@ -88,7 +88,10 @@ func sliceBlockData(start int, end int) []byte {
 		return nil
 	}
 	data, _ := s.MarshalSSZ()
-	return data[start:end]
+	if len(data) > end {
+		return data[start:end]
+	}
+	return data[start:]
 }
 
 func getStruct(bb *sszv2.BeaconStateBellatrix) *sszv2.Checkpoint {
