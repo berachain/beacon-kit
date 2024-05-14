@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
@@ -63,9 +62,9 @@ type ExecutableDataDeneb struct {
 
 // JSON type overrides for ExecutableDataDeneb.
 type executableDataDenebMarshaling struct {
-	ExtraData    hexutil.Bytes
-	LogsBloom    hexutil.Bytes
-	Transactions []hexutil.Bytes
+	ExtraData    bytes.Bytes
+	LogsBloom    bytes.Bytes
+	Transactions []bytes.Bytes
 }
 
 // Version returns the version of the ExecutableDataDeneb.

@@ -23,38 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bytes
+package hex
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"math/big"
 )
 
-// B4 represents a 4-byte array.
-type B4 [4]byte
-
-// UnmarshalJSON implements the json.Unmarshaler interface for B4.
-func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+// decodeNibble decodes a single hexadecimal nibble (half-byte) into uint64.
+func decodeNibble(in byte) uint64 {
+	// uint64 conversion here is safe
+	switch {
+	case in >= '0' && in <= '9' && in >= hexBaseOffset:
+		return uint64(in - hexBaseOffset) //#nosec G701
+	case in >= 'A' && in <= 'F' && in >= hexAlphaOffsetUpper:
+		return uint64(in - hexAlphaOffsetUpper) //#nosec G701
+	case in >= 'a' && in <= 'f' && in >= hexAlphaOffsetLower:
+		return uint64(in - hexAlphaOffsetLower) //#nosec G701
+	default:
+		return badNibble
+	}
 }
 
-// ToBytes4 is a utility function that transforms a byte slice into a fixed
-// 4-byte array. If the input exceeds 4 bytes, it gets truncated.
-func ToBytes4(input []byte) B4 {
-	//nolint:mnd // 32 bytes.
-	return [4]byte(ExtendToSize(input, 4))
-}
-
-// String returns the hex string representation of B4.
-func (h B4) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for B4.
-func (h B4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
-func (h *B4) UnmarshalText(text []byte) error {
-	return unmarshalTextHelper(h[:], text)
+// getBigWordNibbles returns the number of nibbles required for big.Word.
+//
+//nolint:mnd // this is fine xD
+func getBigWordNibbles() (int, error) {
+	// This is a weird way to compute the number of nibbles required for
+	// big.Word. The usual way would be to use constant arithmetic but go vet
+	// can't handle that
+	b, _ := new(big.Int).SetString("FFFFFFFFFF", 16)
+	switch len(b.Bits()) {
+	case 1:
+		return 16, nil
+	case 2:
+		return 8, nil
+	default:
+		return 0, ErrInvalidBigWordSize
+	}
 }
