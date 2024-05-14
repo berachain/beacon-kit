@@ -34,6 +34,8 @@ import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
  * @notice A contract that handles deposits of stake.
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
+ * @dev It is based on the Ethereum 2.0 specification.
+ * @dev From https://github.com/ethereum/consensus-specs/blob/dev/solidity_deposit_contract/deposit_contract.sol
  */
 contract BeaconDepositContract is IBeaconDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
