@@ -52,15 +52,15 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		types.BeaconBlock,
 		BlobsSidecarsT,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		types.BeaconBlock,
 	) error
 	VerifyPayloadOnBlk(
-		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		context.Context, types.BeaconBlock,
 	) error
 }

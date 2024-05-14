@@ -172,22 +172,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		)
 	}
 
-	// Compute the state root for the block.
-	// TODO: IMPLEMENT RN THIS DOES NOTHING.
-	stateRoot, err := s.computeStateRoot(st)
-	if err != nil {
-		return nil, sidecars, errors.Newf(
-			"failed to compute state root: %w",
-			err,
-		)
-	}
-
 	// Create a new empty block from the current state.
 	blk, err := types.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
-		stateRoot,
+		common.Root{},
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
@@ -273,6 +263,17 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 
 	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
+
+	// Compute the state root for the block.
+	// TODO: IMPLEMENT RN THIS DOES NOTHING.
+	stateRoot, err := s.computeStateRoot(st, blk)
+	if err != nil {
+		return nil, sidecars, errors.Newf(
+			"failed to compute state root: %w",
+			err,
+		)
+	}
+	blk.SetStateRoot(stateRoot)
 
 	// Set the execution payload on the block body.
 	return blk, blobSidecars, nil

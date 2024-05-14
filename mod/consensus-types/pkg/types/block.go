@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -103,6 +104,11 @@ func (b *BeaconBlockDeneb) Version() uint32 {
 // IsNil checks if the BeaconBlockDeneb instance is nil.
 func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
+}
+
+// SetStateRoot sets the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
+	b.StateRoot = root
 }
 
 // GetBody retrieves the body of the BeaconBlockDeneb.

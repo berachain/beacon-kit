@@ -120,5 +120,12 @@ type StateProcessor[
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
-	ProcessSlot(st BeaconStateT) error
+	ProcessBlock(
+		st BeaconStateT,
+		blk types.BeaconBlock,
+	) error
+
+	ProcessSlot(
+		st BeaconStateT,
+	) error
 }
