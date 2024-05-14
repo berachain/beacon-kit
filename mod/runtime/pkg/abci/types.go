@@ -41,7 +41,6 @@ type BuilderService[
 ] interface {
 	RequestBestBlock(
 		context.Context,
-		BeaconStateT,
 		math.Slot,
 	) (types.BeaconBlock, BlobsSidecarsT, error)
 }

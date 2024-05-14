@@ -57,9 +57,14 @@ type Service[
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
+	bsb BeaconStorageBackend[BeaconStateT]
+
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor[BeaconStateT]
+
+	// stateProcessor is responsible for processing the state.
+	stateProcessor StateProcessor[BeaconStateT]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -84,6 +89,7 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
+	bsb BeaconStorageBackend[BeaconStateT],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],
@@ -94,6 +100,7 @@ func NewService[
 	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
 		logger:          logger,
+		bsb:             bsb,
 		chainSpec:       chainSpec,
 		signer:          signer,
 		blobFactory:     blobFactory,
@@ -126,7 +133,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 //nolint:funlen // todo:fix.
 func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	st BeaconStateT,
 	slot math.Slot,
 ) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
@@ -136,6 +142,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
+
+	st := s.bsb.BeaconState(ctx)
 
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
@@ -164,7 +172,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 
 	// Compute the state root for the block.
 	// TODO: IMPLEMENT RN THIS DOES NOTHING.
-	stateRoot, err := s.computeStateRoot(ctx)
+	stateRoot, err := s.computeStateRoot(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf(
 			"failed to compute state root: %w",

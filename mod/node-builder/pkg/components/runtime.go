@@ -160,6 +160,7 @@ func ProvideRuntime(
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
+		storageBackend,
 		signer,
 		dablob.NewSidecarFactory[
 			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],

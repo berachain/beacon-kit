@@ -128,7 +128,7 @@ func (r *BeaconKitRuntime[
 			BlobSidecarsT,
 			DepositStoreT,
 		]
-		builderService *validator.Service[state.BeaconState, BlobSidecarsT]
+		builderService *validator.Service[BeaconStateT, BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)
@@ -142,7 +142,7 @@ func (r *BeaconKitRuntime[
 		panic("missing services")
 	}
 
-	handler := abci.NewHandler(
+	handler := abci.NewHandler[BlobSidecarsT](
 		r.chainSpec,
 		builderService,
 		chainService,
