@@ -46,4 +46,5 @@ var (
 	HexToAddress   = common.HexToAddress
 	HexToHash      = common.HexToHash
 	Hex2BytesFixed = common.Hex2BytesFixed
+	FromHex        = common.FromHex
 )

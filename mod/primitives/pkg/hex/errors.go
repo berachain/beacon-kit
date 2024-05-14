@@ -23,38 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package hex
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"encoding/json"
+	"errors"
+	"reflect"
 )
 
-// RetrieveDepositsFromBlock gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) retrieveDepositsFromBlock(
-	ctx context.Context,
-	blockNumber math.U64,
-) error {
-	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
+var (
+	ErrEmptyString     = errors.New("empty hex string")
+	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
+	ErrOddLength       = errors.New("hex string of odd length")
+	ErrNonQuotedString = errors.New("non-quoted hex string")
+	ErrInvalidString   = errors.New("invalid hex string")
+
+	ErrLeadingZero = errors.New("hex number with leading zero digits")
+	ErrEmptyNumber = errors.New("hex string \"0x\"")
+	ErrUint64Range = errors.New("hex number > 64 bits")
+	ErrBig256Range = errors.New("hex number > 256 bits")
+
+	ErrInvalidBigWordSize = errors.New("weird big.Word size")
+)
+
+// WrapUnmarshalError wraps an error occurring during JSON unmarshaling.
+func WrapUnmarshalError(err error, t reflect.Type) error {
 	if err != nil {
-		return err
+		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
 	}
 
-	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
-}
-
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
+	return err
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/p2p"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -46,6 +47,8 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler[BlobsSidecarsT ssz.Marshallable] struct {
+	chainSpec primitives.ChainSpec
+
 	builderService BuilderService[state.BeaconState, BlobsSidecarsT]
 	chainService   BlockchainService[BlobsSidecarsT]
 
@@ -59,6 +62,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler[BlobsSidecarsT ssz.Marshallable](
+	chainSpec primitives.ChainSpec,
 	builderService BuilderService[state.BeaconState, BlobsSidecarsT],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BlobsSidecarsT] {
@@ -66,14 +70,16 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 	if chainService == nil {
 		panic("chain service is nil")
 	}
+
 	return &Handler[BlobsSidecarsT]{
+		chainSpec:      chainSpec,
 		builderService: builderService,
 		chainService:   chainService,
 		// TODO: we will eventually gossipt the blobs separately from
 		// CometBFT.
 		blobGossiper: rp2p.NoopGossipHandler[BlobsSidecarsT, []byte]{},
 		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[encoding.ABCIRequest](
-			chainService.ChainSpec(),
+			chainSpec,
 		),
 	}
 }
@@ -97,7 +103,7 @@ func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.builderService.RequestBestBlock(
-		ctx, st, math.Slot(req.Height))
+		ctx, st, math.Slot(req.GetHeight()))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err

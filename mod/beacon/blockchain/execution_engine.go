@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 	"time"
-	"unsafe"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -140,8 +139,7 @@ func (s *Service[
 
 		stCopy := st.Copy()
 		if err = s.sp.ProcessSlot(
-			//#nosec:G103 // TODO:FIX
-			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
+			stCopy,
 		); err != nil {
 			return
 		}
@@ -150,8 +148,7 @@ func (s *Service[
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
 			ctx,
-			//#nosec:G103 // TODO:FIX
-			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
+			stCopy,
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.

@@ -35,12 +35,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -79,7 +78,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
@@ -137,6 +136,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
+
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)

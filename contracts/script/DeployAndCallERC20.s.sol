@@ -36,7 +36,7 @@ contract DeployAndCallERC20 is Script {
         vm.startBroadcast();
         MintableERC20 drop = new MintableERC20();
 
-        for (uint256 i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 1000; i++) {
             quantity += 50_000;
             drop.mint(dropAddress, quantity);
         }

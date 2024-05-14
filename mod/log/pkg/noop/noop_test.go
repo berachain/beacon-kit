@@ -23,38 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package noop_test
 
 import (
-	"context"
+	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 )
 
-// RetrieveDepositsFromBlock gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) retrieveDepositsFromBlock(
-	ctx context.Context,
-	blockNumber math.U64,
-) error {
-	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
-	if err != nil {
-		return err
+func TestNewLogger(t *testing.T) {
+	logger := noop.NewLogger()
+	if logger == nil {
+		t.Error("Expected NewLogger to return a non-nil logger")
 	}
-
-	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
 }
 
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
+func TestLogger_Info(*testing.T) {
+	logger := noop.NewLogger()
+	logger.Info("test message", "key1", "value1", "key2", "value2")
+	// Since it's a no-op logger, there's nothing to assert. This test just
+	// ensures no panic occurs.
+}
+
+func TestLogger_Warn(*testing.T) {
+	logger := noop.NewLogger()
+	logger.Warn("test warning", "key1", "value1", "key2", "value2")
+	// Since it's a no-op logger, there's nothing to assert. This test just
+	// ensures no panic occurs.
+}
+
+func TestLogger_Error(*testing.T) {
+	logger := noop.NewLogger()
+	logger.Error("test error", "key1", "value1", "key2", "value2")
+	// Since it's a no-op logger, there's nothing to assert. This test just
+	// ensures no panic occurs.
+}
+
+func TestLogger_Debug(*testing.T) {
+	logger := noop.NewLogger()
+	logger.Debug("test debug", "key1", "value1", "key2", "value2")
+	// Since it's a no-op logger, there's nothing to assert. This test just
+	// ensures no panic occurs.
 }

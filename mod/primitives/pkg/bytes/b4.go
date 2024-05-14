@@ -25,7 +25,9 @@
 
 package bytes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+)
 
 // B4 represents a 4-byte array.
 type B4 [4]byte
@@ -44,7 +46,7 @@ func ToBytes4(input []byte) B4 {
 
 // String returns the hex string representation of B4.
 func (h B4) String() string {
-	return hexutil.Encode(h[:])
+	return hex.FromBytes(h[:]).Unwrap()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B4.

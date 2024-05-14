@@ -23,38 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package hex
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"encoding"
+	"reflect"
 )
 
-// RetrieveDepositsFromBlock gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) retrieveDepositsFromBlock(
-	ctx context.Context,
-	blockNumber math.U64,
-) error {
-	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
-	if err != nil {
-		return err
+// UnmarshalJSONText unmarshals a JSON string with 0x prefix into a
+// TextUnmarshaler.
+func UnmarshalJSONText(input []byte,
+	u encoding.TextUnmarshaler,
+	t reflect.Type) error {
+	if err := ValidateUnmarshalInput(input); err != nil {
+		return WrapUnmarshalError(err, t)
 	}
-
-	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
-}
-
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
+	return WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), t)
 }
