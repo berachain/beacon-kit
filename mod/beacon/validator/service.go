@@ -28,6 +28,8 @@ package validator
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -57,6 +59,7 @@ type Service[
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
+	// bsb is the beacon state backend.
 	bsb BeaconStorageBackend[BeaconStateT]
 
 	// randaoProcessor is responsible for building the reveal for the
@@ -135,21 +138,37 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 //nolint:funlen // todo:fix.
 func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	slot math.Slot,
+	requestedSlot math.Slot,
 ) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
-	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
+	s.logger.Info("our turn to propose a block 🙈", "slot", requestedSlot)
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-
 	st := s.bsb.BeaconState(ctx)
 
-	// We have to process the slot before building the new reveal.
-	if err := s.stateProcessor.ProcessSlot(st); err != nil {
+	// Get the current state slot.
+	stateSlot, err := st.GetSlot()
+	if err != nil {
 		return nil, sidecars, err
+	}
+
+	// If the slot is less than the state slot, we need to process the state.
+	// If the requested slot == the current on disk slot, then we can build
+	// the block without processing a slot.
+	if requestedSlot-stateSlot == 1 {
+		// We have to process the slot before building the new reveal.
+		if err := s.stateProcessor.ProcessSlot(st); err != nil {
+			return nil, sidecars, err
+		}
+	} else if requestedSlot-stateSlot > 1 {
+		return nil, sidecars, errors.Newf(
+			"requested slot is too far ahead, requested: %d, state: %d",
+			requestedSlot,
+			stateSlot,
+		)
 	}
 
 	// Build the reveal for the current slot.
@@ -159,54 +178,40 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
 	}
 
-	// Get the parent block root for the slot.
-	// TODO: We can optimize to pre-compute this in parallel.
-	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
-	)
-	if err != nil {
-		return nil, sidecars, errors.Newf(
-			"failed to get block root at index: %w",
-			err,
-		)
-	}
-
-	// Get the proposer index for the slot.
-	proposerIndex, err := st.ValidatorIndexByPubkey(
-		s.signer.PublicKey(),
-	)
-	if err != nil {
-		return nil, sidecars, errors.Newf(
-			"failed to get validator by pubkey: %w",
-			err,
-		)
-	}
-
 	// Create a new empty block from the current state.
-	blk, err := types.EmptyBeaconBlock(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+	blk, err := s.GetEmptyBeaconBlock(
+		st,
+		requestedSlot,
 	)
 	if err != nil {
 		return nil, sidecars, err
 	}
 
-	// The latest execution payload header, will be from the previous block
-	// during the block building phase.
-	parentExecutionPayload, err := st.GetLatestExecutionPayloadHeader()
+	// Assemble a new block with the payload.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return nil, sidecars, ErrNilBlkBody
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
+	// Dequeue deposits from the state.
+	deposits, err := s.ds.ExpectedDeposits(
+		s.chainSpec.MaxDepositsPerBlock(),
+	)
 	if err != nil {
 		return nil, sidecars, err
 	}
+
+	// Set the deposits on the block body.
+	body.SetDeposits(deposits)
 
 	// Get the payload for the block.
-	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
+	envelope, err := s.RetrievePayload(
 		ctx,
 		st,
-		slot,
-		parentBlockRoot,
-		parentExecutionPayload.GetBlockHash(),
+		blk,
 	)
 	if err != nil {
 		return blk, sidecars, errors.Newf(
@@ -217,37 +222,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, ErrNilPayload
 	}
 
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil, sidecars, ErrNilBlkBody
-	}
-
-	// If we get returned a nil blobs bundle, we should return an error.
-	// TODO: allow external block builders to override the payload.
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
-		return nil, sidecars, ErrNilBlobsBundle
-	}
-
-	// Dequeue deposits from the state.
-	deposits, err := s.ds.ExpectedDeposits(
-		s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return nil, sidecars, err
-	}
-
 	payload := envelope.GetExecutionPayload()
 	if payload == nil || payload.IsNil() {
 		return nil, sidecars, ErrNilPayload
 	}
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	// Set the deposits on the block body.
-	body.SetDeposits(deposits)
 
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(&types.Eth1Data{
@@ -256,33 +234,51 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		BlockHash:    common.ExecutionHash{},
 	})
 
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
-
 	// Set the execution data.
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, sidecars, err
 	}
 
-	// Build the sidecars for the block.
-	blobSidecars, err := s.blobFactory.BuildSidecars(blk, blobsBundle)
-	if err != nil {
-		return nil, sidecars, err
-	}
+	// Parallelize the building of sidecars and block using errgroup.
+	var (
+		blobSidecars BlobSidecarsT
+	)
 
-	// Compute the state root for the block.
-	stateRoot, err := s.computeStateRoot(st, blk)
-	if err != nil {
-		return nil, sidecars, errors.Newf(
-			"failed to compute state root: %w",
-			err,
-		)
-	}
-	blk.SetStateRoot(stateRoot)
+	g, ctx := errgroup.WithContext(ctx)
 
-	s.logger.Info("finished assembling beacon block 🛟",
-		"slot", slot, "deposits", len(deposits))
+	// Process Blobs.
+	g.Go(func() error {
+		var err error
+
+		// If we get returned a nil blobs bundle, we should return an error.
+		// TODO: allow external block builders to override the payload.
+		blobsBundle := envelope.GetBlobsBundle()
+		if blobsBundle == nil {
+			return ErrNilBlobsBundle
+		}
+
+		// Set the KZG commitments on the block body.
+		body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+		// Build the sidecars.
+		blobSidecars, err = s.BuildSidecars(blk, envelope.GetBlobsBundle())
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	// Set the block state root.
+	g.Go(func() error {
+		if err := s.SetBlockStateRoot(ctx, st, blk); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	defer s.logger.Info("finished assembling beacon block 🛟",
+		"slot", requestedSlot, "deposits", len(deposits))
 
 	// Set the execution payload on the block body.
-	return blk, blobSidecars, nil
+	return blk, blobSidecars, g.Wait()
 }
