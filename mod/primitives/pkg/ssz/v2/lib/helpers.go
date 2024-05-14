@@ -131,8 +131,8 @@ func IterStructFields(
 		// Note: You can get the name this way for deserialization
 		// name := sf.Name
 		if sf.Name == "LatestExecutionPayloadHeader" || sf.Name == "ExtraData" {
-			// fmt.Println(sf.Name)
-			// printTopLevelTypes(vf, val)
+			fmt.Println(sf.Name)
+			printTopLevelTypes(vf, val)
 		}
 
 		sft := sf.Type
@@ -205,19 +205,34 @@ func InterleaveOffsets(
 		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 	}
 
+	fixedPartsWithOffsets := make([][]byte, len(fixedParts))
+
 	for i, part := range fixedParts {
 		if part == nil {
-			fixedParts[i] = variableOffsets[i]
+			fixedPartsWithOffsets[i] = variableOffsets[i]
+		} else {
+			fixedPartsWithOffsets[i] = part
 		}
 	}
 
 	// Flatten the nested arr to a 1d []byte
 	allParts := make([][]byte, 0)
-	allParts = append(allParts, fixedParts...)
+	allParts = append(allParts, fixedPartsWithOffsets...)
 	allParts = append(allParts, variableParts...)
 	res := make([]byte, 0)
 	for i := range allParts {
 		res = append(res, allParts[i]...)
+	}
+	if offsetSum == 2736633 {
+		fmt.Println("final result!? offset sum")
+	}
+
+	if len(res) == 508 ||
+		len(fixedParts) == 508 ||
+		len(res) == 4064 ||
+		len(fixedParts) == 4064 ||
+		len(res) >= 58327640 || len(res) >= 524464 || len(fixedParts) >= 524464 {
+		fmt.Println("final result!?")
 	}
 
 	return res, nil

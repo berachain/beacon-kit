@@ -26,7 +26,6 @@
 package ssz
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -87,9 +86,9 @@ func isVariableSizeType(typ reflect.Type) bool {
 			if err != nil {
 				return false
 			}
-			if f.Name == "ExtraData" {
-				fmt.Println("ExtraData is type at pos", isVariableSizeType(fType), i)
-			}
+			// if f.Name == "ExtraData" {
+			// 	fmt.Println("ExtraData is type at pos", isVariableSizeType(fType), i)
+			// }
 			if isVariableSizeType(fType) {
 				return true
 			}

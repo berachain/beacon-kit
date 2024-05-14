@@ -201,6 +201,9 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	}
 	buf := make([]byte, aLen)
 	_, err = cb(val, typ, buf, 0)
+	if len(buf) == 508 || len(buf) == 4064 {
+		fmt.Println("MarshalToDefaultBuffer bif", val, typ)
+	}
 	return buf, err
 }
 
@@ -332,15 +335,14 @@ func (s *Serializer) MarshalStruct(
 			errCheck = append(errCheck, err)
 			return
 		}
-
+		if field.Name == "LatestExecutionPayloadHeader" || field.Name == "ExtraData" || field.Name == "HistoricalRoots" {
+			fmt.Println(field.Name)
+		}
 		var serializationErr error
 		// If the field has a ssz-size tag set, we treat it as a fixed size
 		// field
 		if hasUndefinedSizeTag(field) && isVariableSizeType(typ) {
 			fmt.Println("MarshalStruct", field)
-			if field.Name == "HistoricalRoots" {
-				fmt.Println("MarshalStruct", field.Name)
-			}
 			variableParts,
 				variableLengths,
 				serializationErr = s.MarshalVariableSizeParts(
@@ -348,6 +350,11 @@ func (s *Serializer) MarshalStruct(
 				variableParts,
 				variableLengths,
 			)
+			fixedParts = append(fixedParts, nil)
+			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+			if field.Name == "HistoricalRoots" {
+				fmt.Println("MarshalStruct isVariableSizeType True", field.Name)
+			}
 		} else {
 			fixedParts,
 				fixedLengths,
@@ -387,6 +394,9 @@ func (s *Serializer) MarshalStruct(
 		return 0, err
 	}
 	buf = SafeCopyBuffer(res, buf, startOffset)
+	if len(buf) == 18528 || len(res) == 18528 {
+		fmt.Println("buf len reached")
+	}
 	return uint64(len(res)), nil
 }
 
@@ -413,7 +423,7 @@ func (s *Serializer) MarshalComposite(
 		// If the field has a ssz-size tag set, we treat it as a fixed size
 		// field
 		if isVariableSizeType(memberTyp) {
-			fmt.Println("MarshalComposite isVariableSizeType", memberTyp)
+			// fmt.Println("MarshalComposite VariableSizeType", memberTyp)
 
 			variableParts,
 				variableLengths,
@@ -463,6 +473,9 @@ func (s *Serializer) MarshalComposite(
 	)
 	if err != nil {
 		return 0, err
+	}
+	if len(buf) == 18528 || len(res) == 18528 {
+		fmt.Println("buf len reached")
 	}
 	buf = SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(res)), nil

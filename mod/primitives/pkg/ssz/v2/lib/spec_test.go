@@ -176,12 +176,24 @@ func TestParityBellatrix(t *testing.T) {
 	// fails on
 	// Got isVariable = false for LatestExecutionPayloadHeader /n
 	// Got isVariable = false for Eth1Data /n
-
+	//  [213,48,209,77,81,177,10,2   <- 18528 < output of native
 	// offset is set in ssz.go for these
 	fmt.Println("data len", len(data))
 	fmt.Println("res lemn", len(res))
 	fmt.Println("o2 len", len(o2))
 	// firstDiff := "" 524464 -> // Offset (7) 'HistoricalRoots'
+	// res[i:i+8]
+	// []uint8 len: 8, cap: 8, [249,193,41,0,142,238,49,234]
+	// o2[i:i+8]
+	// []uint8 len: 8, cap: 8, [142,238,49,234,5,186,118,112]
+	// we are missing 1 offset or fixed part - 249,193,41,0 ,
+	//  size 4 so could be u32 i32
+	//
+	// 	offset := int(2736633) used in fastssz
+	// our offset for fixedparts is 2740697  - diff 4064 - perhaps its from appending variable offsets tho
+	// sumintarr 7 -> 524464
+	// our res is found at fixedparts[7] for HistoricalRoots
+	// Confirmed - it is offset for HistoricalRoots but we do not get it
 	for i := range len(res) {
 		if res[i] != o2[i] {
 			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
