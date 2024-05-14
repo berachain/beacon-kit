@@ -31,7 +31,7 @@ var (
 
 // BeaconDepositContractMetaData contains all meta data concerning the BeaconDepositContract contract.
 var BeaconDepositContractMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"depositCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]}]",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"withdrawal_credentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"deposit_data_root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"depositCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getDepositCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getDepositRoot\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooLow\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidDepositDataRoot\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"MerkleTreeFull\",\"inputs\":[]}]",
 }
 
 // BeaconDepositContractABI is the input ABI used to generate the binding from.
@@ -211,25 +211,87 @@ func (_BeaconDepositContract *BeaconDepositContractCallerSession) DepositCount()
 	return _BeaconDepositContract.Contract.DepositCount(&_BeaconDepositContract.CallOpts)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// GetDepositCount is a free data retrieval call binding the contract method 0x9363a141.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, amount, signature)
+// Solidity: function getDepositCount() view returns(bytes)
+func (_BeaconDepositContract *BeaconDepositContractCaller) GetDepositCount(opts *bind.CallOpts) ([]byte, error) {
+	var out []interface{}
+	err := _BeaconDepositContract.contract.Call(opts, &out, "getDepositCount")
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// GetDepositCount is a free data retrieval call binding the contract method 0x9363a141.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
+// Solidity: function getDepositCount() view returns(bytes)
+func (_BeaconDepositContract *BeaconDepositContractSession) GetDepositCount() ([]byte, error) {
+	return _BeaconDepositContract.Contract.GetDepositCount(&_BeaconDepositContract.CallOpts)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// GetDepositCount is a free data retrieval call binding the contract method 0x9363a141.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
+// Solidity: function getDepositCount() view returns(bytes)
+func (_BeaconDepositContract *BeaconDepositContractCallerSession) GetDepositCount() ([]byte, error) {
+	return _BeaconDepositContract.Contract.GetDepositCount(&_BeaconDepositContract.CallOpts)
+}
+
+// GetDepositRoot is a free data retrieval call binding the contract method 0x3ae05047.
+//
+// Solidity: function getDepositRoot() view returns(bytes32)
+func (_BeaconDepositContract *BeaconDepositContractCaller) GetDepositRoot(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _BeaconDepositContract.contract.Call(opts, &out, "getDepositRoot")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// GetDepositRoot is a free data retrieval call binding the contract method 0x3ae05047.
+//
+// Solidity: function getDepositRoot() view returns(bytes32)
+func (_BeaconDepositContract *BeaconDepositContractSession) GetDepositRoot() ([32]byte, error) {
+	return _BeaconDepositContract.Contract.GetDepositRoot(&_BeaconDepositContract.CallOpts)
+}
+
+// GetDepositRoot is a free data retrieval call binding the contract method 0x3ae05047.
+//
+// Solidity: function getDepositRoot() view returns(bytes32)
+func (_BeaconDepositContract *BeaconDepositContractCallerSession) GetDepositRoot() ([32]byte, error) {
+	return _BeaconDepositContract.Contract.GetDepositRoot(&_BeaconDepositContract.CallOpts)
+}
+
+// Deposit is a paid mutator transaction binding the contract method 0x22895118.
+//
+// Solidity: function deposit(bytes pubkey, bytes withdrawal_credentials, bytes signature, bytes32 deposit_data_root) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, withdrawal_credentials []byte, signature []byte, deposit_data_root [32]byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, withdrawal_credentials, signature, deposit_data_root)
+}
+
+// Deposit is a paid mutator transaction binding the contract method 0x22895118.
+//
+// Solidity: function deposit(bytes pubkey, bytes withdrawal_credentials, bytes signature, bytes32 deposit_data_root) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, withdrawal_credentials []byte, signature []byte, deposit_data_root [32]byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, withdrawal_credentials, signature, deposit_data_root)
+}
+
+// Deposit is a paid mutator transaction binding the contract method 0x22895118.
+//
+// Solidity: function deposit(bytes pubkey, bytes withdrawal_credentials, bytes signature, bytes32 deposit_data_root) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, withdrawal_credentials []byte, signature []byte, deposit_data_root [32]byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, withdrawal_credentials, signature, deposit_data_root)
 }
 
 // BeaconDepositContractDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the BeaconDepositContract contract.
