@@ -122,6 +122,42 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	return res[8:], nil
 }
 
+func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
+	dst := make([]byte, 0)
+	for ii := 0; ii < len(bb.Eth1DataVotes); ii++ {
+		dst, _ = bb.Eth1DataVotes[ii].MarshalSSZTo(dst)
+	}
+	return dst
+}
+
+// Todo: full object serialization
+// func TestParityBellatrix(t *testing.T) {
+// 	sszState, err := getSszState()
+// 	require.NoError(t, err)
+
+// 	s := sszv2.NewSerializer()
+// 	o2, err3 := s.MarshalSSZ(sszState)
+// 	require.NoError(t, err3)
+
+// 	res, err4 := sszState.MarshalSSZ()
+// 	require.NoError(t, err4)
+
+// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+// }
+
+func TestParitySliceOfStructs(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState.Eth1DataVotes)
+	require.NoError(t, err3)
+
+	res := getEth1DataVotesSerialized(sszState)
+
+	require.Equal(t, o2[:64], res[:64], "local output and fastssz output doesn't match")
+}
+
 func TestParityVariableLengthItem2(t *testing.T) {
 	state, err := getSszState()
 	require.NoError(t, err)

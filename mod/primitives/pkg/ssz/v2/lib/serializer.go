@@ -126,7 +126,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		if IsNDimensionalArrayLike(typ) {
 			return s.MarshalNDimensionalArray(val)
 		}
-		if isVariableSizeType(typ.Elem()) {
+		if isVariableSizeType(typ) || isVariableSizeType(typ.Elem()) {
 			// composite arr.
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		}
@@ -138,6 +138,7 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		}
 		fallthrough
 	case k == reflect.Struct:
+		// bugs out on Eth1DataVotes /deposit root :-> slice -> ptr -> struct , size 32
 		return make(
 				[]byte,
 				0,
@@ -407,35 +408,66 @@ func (s *Serializer) MarshalComposite(
 	var variableParts [][]byte
 	var fixedLengths []int
 	var variableLengths []int
-	var vf []reflect.StructField
+	var errCheck []error
 
-	if typ.Kind() == reflect.Ptr {
-		subtyp := reflect.TypeOf(val.Interface()).Elem()
-		vf = reflect.VisibleFields(subtyp)
-	} else {
-		vf = reflect.VisibleFields(typ)
-	}
-	field := vf[len(vf)-1]
-	var serializationErr error
-	// If the field has a ssz-size tag set, we treat it as a fixed size field
-	if hasUndefinedSizeTag(field) && isVariableSizeType(typ) {
-		variableParts, variableLengths, serializationErr = s.MarshalVariableSizeParts(
-			val,
+	var processMember = func(
+		c interface{},
+	) {
+		typ := reflect.TypeOf(c)
+		val := reflect.ValueOf(c)
+		var serializationErr error
+		// If the field has a ssz-size tag set, we treat it as a fixed size
+		// field
+		if isVariableSizeType(typ) {
 			variableParts,
-			variableLengths,
-		)
-	} else {
-		fixedParts, fixedLengths, serializationErr = s.MarshalFixedSizeParts(
-			val,
+				variableLengths,
+				serializationErr = s.MarshalVariableSizeParts(
+				val,
+				variableParts,
+				variableLengths,
+			)
+		} else {
 			fixedParts,
-			fixedLengths,
-		)
-		// We populate variable parts with an empty item based on the spec
-		variableParts = append(variableParts, make([]byte, 0))
-		variableLengths = append(variableLengths, 0)
+				fixedLengths,
+				serializationErr = s.MarshalFixedSizeParts(
+				val,
+				fixedParts,
+				fixedLengths,
+			)
+			// We populate variable parts with an empty item based on the
+			// spec
+			variableParts = append(variableParts, make([]byte, 0))
+			variableLengths = append(variableLengths, 0)
+		}
+		if serializationErr != nil {
+			errCheck = append(errCheck, serializationErr)
+			return
+		}
 	}
-	if serializationErr != nil {
-		return 0, serializationErr
+
+	// Recursive function to traverse and serialize elements
+	var serializeRecursive func(reflect.Value) error
+	serializeRecursive = func(currentVal reflect.Value) error {
+		if currentVal.Kind() == reflect.Array ||
+			currentVal.Kind() == reflect.Slice {
+			for i := range currentVal.Len() {
+				if err := serializeRecursive(currentVal.Index(i)); err != nil {
+					return err
+				}
+			}
+		} else {
+			// Serialize single element
+			processMember(currentVal.Interface())
+		}
+		return nil
+	}
+
+	// Start the recursive serialization
+	if err := serializeRecursive(val); err != nil {
+		return 0, err
+	}
+	if len(errCheck) > 0 {
+		return 0, errCheck[0]
 	}
 
 	// Check lengths and
@@ -449,6 +481,12 @@ func (s *Serializer) MarshalComposite(
 	if err != nil {
 		return 0, err
 	}
-	copy(buf[startOffset:], res)
+	if len(res) > len(buf) {
+		buf2 := make([]byte, len(res)+int(startOffset))
+		copy(buf2, buf[:startOffset])
+		copy(buf2[startOffset:], res)
+	} else {
+		copy(buf[startOffset:], res)
+	}
 	return uint64(len(res)), nil
 }

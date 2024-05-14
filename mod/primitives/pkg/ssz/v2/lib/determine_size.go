@@ -97,6 +97,24 @@ func isVariableSizeType(typ reflect.Type) bool {
 	return false
 }
 
+func isFixedSizeType(typ reflect.Type) bool {
+	kind := typ.Kind()
+	switch {
+	case kind == reflect.Bool:
+		return true
+	case kind == reflect.Uint8:
+		return true
+	case kind == reflect.Uint16:
+		return true
+	case kind == reflect.Uint32 || kind == reflect.Int32:
+		return true
+	case kind == reflect.Uint64:
+		return true
+	default:
+		return false
+	}
+}
+
 func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
 	switch {
@@ -281,6 +299,9 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 
 func inferFieldTypeFromSizeTags(
 	field reflect.StructField, sizes []uint64) reflect.Type {
+	if isFixedSizeType(field.Type) {
+		return field.Type
+	}
 	innerElement := field.Type.Elem()
 	for i := 1; i < len(sizes); i++ {
 		innerElement = innerElement.Elem()
