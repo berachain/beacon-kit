@@ -61,7 +61,7 @@ type BeaconState interface {
 }
 
 type BeaconStorageBackend[BeaconStateT BeaconState] interface {
-	BeaconState(context.Context) BeaconStateT
+	StateFromContext(context.Context) BeaconStateT
 }
 
 // BlobFactory is the interface for building blobs.

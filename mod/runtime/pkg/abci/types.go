@@ -48,7 +48,7 @@ type BuilderService[
 
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessSlot(state.BeaconState) error
-	BeaconState(context.Context) state.BeaconState
+	StateFromContext(context.Context) state.BeaconState
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,

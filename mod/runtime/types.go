@@ -50,7 +50,7 @@ type BeaconStorageBackend[
 	AvailabilityStore(
 		ctx context.Context,
 	) core.AvailabilityStore[BeaconBlockT, BlobSidecarsT]
-	BeaconState(ctx context.Context) BeaconStateT
+	StateFromContext(ctx context.Context) BeaconStateT
 	DepositStore(ctx context.Context) DepositStoreT
 }
 
