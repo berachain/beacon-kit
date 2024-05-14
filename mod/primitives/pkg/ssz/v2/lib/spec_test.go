@@ -27,7 +27,6 @@
 package ssz_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -49,8 +48,6 @@ type TestLogger interface {
 
 func debugPrint(debug bool, t TestLogger, s1 string, s ...any) {
 	if debug {
-		fmt.Println(s1)
-		fmt.Println(s...)
 		t.Logf(s1, s...)
 	}
 }

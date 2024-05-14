@@ -138,7 +138,6 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		}
 		fallthrough
 	case k == reflect.Struct:
-		// bugs out on Eth1DataVotes /deposit root :-> slice -> ptr -> struct , size 32
 		return make(
 				[]byte,
 				0,
@@ -482,6 +481,7 @@ func (s *Serializer) MarshalComposite(
 		return 0, err
 	}
 	if len(res) > len(buf) {
+		//#nosec:G701 // will not realistically cause a problem.
 		buf2 := make([]byte, len(res)+int(startOffset))
 		copy(buf2, buf[:startOffset])
 		copy(buf2[startOffset:], res)
