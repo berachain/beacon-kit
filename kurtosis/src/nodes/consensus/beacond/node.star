@@ -57,6 +57,10 @@ def get_collect_validator_sh():
     command = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
     return command
 
+def get_execution_payload_sh():
+    command = "/usr/bin/beacond genesis execution-payload {} --home {}".format("$ETH_GENESIS", "$BEACOND_HOME")
+    return command
+
 def get_genesis_env_vars(cl_service_name):
     return {
         "BEACOND_MONIKER": cl_service_name,
@@ -69,4 +73,5 @@ def get_genesis_env_vars(cl_service_name):
         "BEACOND_ETH_CHAIN_ID": "80087",
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
+        "ETH_GENESIS": "/root/eth_genesis/genesis.json",
     }

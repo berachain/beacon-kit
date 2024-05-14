@@ -28,49 +28,6 @@ package deposit
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrInvalidPubKeyLength is returned when the public key is invalid.
-	ErrInvalidPubKeyLength = errors.New(
-		"invalid public key length",
-	)
-
-	// ErrInvalidWithdrawalCredentialsLength is returned when the withdrawal
-	// credentials are invalid.
-	ErrInvalidWithdrawalCredentialsLength = errors.New(
-		"invalid withdrawal credentials length",
-	)
-
-	// ErrInvalidAmount is returned when the deposit amount is invalid.
-	ErrInvalidAmount = errors.New(
-		"invalid amount",
-	)
-
-	// ErrInvalidSignatureLength is returned when the signature is invalid.
-	ErrInvalidSignatureLength = errors.New(
-		"invalid signature length",
-	)
-
-	// ErrInvalidVersionLength is returned when the deposit version is invalid.
-	ErrInvalidVersionLength = errors.New(
-		"invalid version",
-	)
-
-	// ErrInvalidRootLength is returned when the deposit root is invalid.
-	ErrInvalidRootLength = errors.New(
-		"invalid root length",
-	)
-
-	// ErrDepositTransactionFailed is returned when the deposit transaction
-	// fails.
-	ErrDepositTransactionFailed = errors.New(
-		"deposit transaction failed",
-	)
-
-	// ErrPrivateKeyRequired is returned when the broadcast flag is set but a
-	// private key is not provided.
-	ErrPrivateKeyRequired = errors.New(
-		"private key required",
-	)
-
 	// ErrValidatorPrivateKeyRequired is returned when the validator private key
 	// is required but not provided.
 	ErrValidatorPrivateKeyRequired = errors.New(

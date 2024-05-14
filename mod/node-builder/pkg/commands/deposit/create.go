@@ -31,10 +31,11 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
@@ -91,29 +92,29 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		credentials, err := convertWithdrawalCredentials(args[0])
+		credentials, err := parser.ConvertWithdrawalCredentials(args[0])
 		if err != nil {
 			return err
 		}
 
-		amount, err := convertAmount(args[1])
+		amount, err := parser.ConvertAmount(args[1])
 		if err != nil {
 			return err
 		}
 
-		currentVersion, err := convertVersion(args[2])
+		currentVersion, err := parser.ConvertVersion(args[2])
 		if err != nil {
 			return err
 		}
 
-		genesisValidatorRoot, err := convertGenesisValidatorRoot(args[3])
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[3])
 		if err != nil {
 			return err
 		}
 
 		// Create and sign the deposit message.
-		depositMsg, signature, err := consensus.CreateAndSignDepositMessage(
-			consensus.NewForkData(currentVersion, genesisValidatorRoot),
+		depositMsg, signature, err := types.CreateAndSignDepositMessage(
+			types.NewForkData(currentVersion, genesisValidatorRoot),
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
 			blsSigner,
 			credentials,
@@ -125,7 +126,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 
 		// Verify the deposit message.
 		if err = depositMsg.VerifyCreateValidator(
-			consensus.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			signer.BLSSigner{}.VerifySignature,
 			spec.LocalnetChainSpec().DomainTypeDeposit(),
@@ -137,11 +138,11 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		// signature and return early.
 		logger.Info(
 			"Deposit Message CallData",
-			"pubkey", hex.EncodeToString(depositMsg.Pubkey[:]),
+			"pubkey", parser.EncodeTo0xPrefixedString(depositMsg.Pubkey[:]),
 			"withdrawal credentials",
-			hex.EncodeToString(depositMsg.Credentials[:]),
+			parser.EncodeTo0xPrefixedString(depositMsg.Credentials[:]),
 			"amount", depositMsg.Amount,
-			"signature", hex.EncodeToString(signature[:]),
+			"signature", parser.EncodeTo0xPrefixedString(signature[:]),
 		)
 
 		// TODO: once broadcast is fixed, remove this.

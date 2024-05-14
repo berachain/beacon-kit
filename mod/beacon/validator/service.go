@@ -28,22 +28,23 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service is responsible for building beacon blocks.
 type Service[
+	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
+
 	// logger is a logger.
 	logger log.Logger[any]
 
@@ -54,11 +55,11 @@ type Service[
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody]
+	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
-	randaoProcessor RandaoProcessor[state.BeaconState]
+	randaoProcessor RandaoProcessor[BeaconStateT]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -68,26 +69,29 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder[state.BeaconState]
+	localBuilder PayloadBuilder[BeaconStateT]
 
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder[state.BeaconState]
+	remoteBuilders []PayloadBuilder[BeaconStateT]
 }
 
 // NewService creates a new validator service.
-func NewService[BlobSidecarsT BlobSidecars](
+func NewService[
+	BeaconStateT BeaconState,
+	BlobSidecarsT BlobSidecars,
+](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BlobSidecarsT, consensus.BeaconBlockBody],
-	randaoProcessor RandaoProcessor[state.BeaconState],
+	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
+	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
-	localBuilder PayloadBuilder[state.BeaconState],
-	remoteBuilders []PayloadBuilder[state.BeaconState],
-) *Service[BlobSidecarsT] {
-	return &Service[BlobSidecarsT]{
+	localBuilder PayloadBuilder[BeaconStateT],
+	remoteBuilders []PayloadBuilder[BeaconStateT],
+) *Service[BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
 		logger:          logger,
 		chainSpec:       chainSpec,
@@ -101,31 +105,30 @@ func NewService[BlobSidecarsT BlobSidecars](
 }
 
 // Name returns the name of the service.
-func (s *Service[BlobSidecarsT]) Name() string {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 	return "validator"
 }
 
-func (s *Service[BlobSidecarsT]) Start(context.Context) {}
+// Start starts the service.
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
 
-func (s *Service[BlobSidecarsT]) Status() error { return nil }
+// Status returns the status of the service.
+func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
 
-func (s *Service[BlobSidecarsT]) WaitForHealthy(context.Context) {}
-
-// LocalBuilder returns the local builder.
-//
-//nolint:lll // weird.
-func (s *Service[BlobSidecarsT]) LocalBuilder() PayloadBuilder[state.BeaconState] {
-	return s.localBuilder
+// WaitForHealthy waits for the service to become healthy.
+func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+	context.Context,
+) {
 }
 
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service[BlobSidecarsT]) RequestBestBlock(
+func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	slot math.Slot,
-) (consensus.BeaconBlock, BlobSidecarsT, error) {
+) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
 	s.logger.Info("our turn to propose a block 🙈", "slot", slot)
 	// The goal here is to acquire a payload whose parent is the previously
@@ -169,7 +172,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := consensus.EmptyBeaconBlock(
+	blk, err := types.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -237,7 +240,7 @@ func (s *Service[BlobSidecarsT]) RequestBestBlock(
 	body.SetDeposits(deposits)
 
 	// TODO: assemble real eth1data.
-	body.SetEth1Data(&consensus.Eth1Data{
+	body.SetEth1Data(&types.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
 		BlockHash:    common.ExecutionHash{},

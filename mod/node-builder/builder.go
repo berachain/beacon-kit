@@ -64,6 +64,9 @@ type AppInfo[T servertypes.Application] struct {
 type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
+
+	// rootCmd is the root command for the application.
+	rootCmd *cobra.Command
 }
 
 // NewNodeBuilder creates a new NodeBuilder.
@@ -73,16 +76,15 @@ func NewNodeBuilder[T servertypes.Application]() *NodeBuilder[T] {
 
 // Run runs the application.
 func (nb *NodeBuilder[T]) RunNode() error {
-	rootCmd, err := nb.BuildRootCmd()
-	if err != nil {
+	if err := nb.BuildRootCmd(); err != nil {
 		return err
 	}
 
 	// Run the root command.
-	if err = svrcmd.Execute(
-		rootCmd, "", components.DefaultNodeHome,
+	if err := svrcmd.Execute(
+		nb.rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).
+		log.NewLogger(nb.rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
 		return err
 	}
@@ -90,7 +92,7 @@ func (nb *NodeBuilder[T]) RunNode() error {
 }
 
 // BuildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
+func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -116,10 +118,10 @@ func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
 		&mm,
 		&clientCtx,
 	); err != nil {
-		return nil, err
+		return err
 	}
 
-	rootCmd := &cobra.Command{
+	nb.rootCmd = &cobra.Command{
 		Use:   nb.appInfo.Name,
 		Short: nb.appInfo.Description,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
@@ -168,7 +170,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
 	}
 
 	cmdlib.DefaultRootCommandSetup(
-		rootCmd,
+		nb.rootCmd,
 		mm,
 		nb.appInfo.Creator,
 		func(
@@ -185,9 +187,5 @@ func (nb *NodeBuilder[T]) BuildRootCmd() (*cobra.Command, error) {
 		},
 	)
 
-	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-		return nil, err
-	}
-
-	return rootCmd, nil
+	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)
 }

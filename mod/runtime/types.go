@@ -28,9 +28,8 @@ package runtime
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/core"
-	"github.com/berachain/beacon-kit/mod/core/state"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -43,14 +42,15 @@ type AppOptions interface {
 // BeaconStorageBackend is an interface that provides the
 // beacon state to the runtime.
 type BeaconStorageBackend[
+	BeaconBlockT,
+	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockT any,
 ] interface {
 	AvailabilityStore(
 		ctx context.Context,
-	) core.AvailabilityStore[ReadOnlyBeaconBlockT, BlobSidecarsT]
-	BeaconState(ctx context.Context) state.BeaconState
+	) core.AvailabilityStore[BeaconBlockT, BlobSidecarsT]
+	BeaconState(ctx context.Context) BeaconStateT
 	DepositStore(ctx context.Context) DepositStoreT
 }
 
@@ -68,11 +68,11 @@ type Config interface{}
 type DepositStore interface {
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*consensus.Deposit, error)
-	EnqueueDeposits(deposits []*consensus.Deposit) error
+	) ([]*types.Deposit, error)
+	EnqueueDeposits(deposits []*types.Deposit) error
 	DequeueDeposits(
 		numDequeue uint64,
-	) ([]*consensus.Deposit, error)
+	) ([]*types.Deposit, error)
 	PruneToIndex(
 		index uint64,
 	) error

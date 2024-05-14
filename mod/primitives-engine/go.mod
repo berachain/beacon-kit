@@ -1,16 +1,17 @@
 module github.com/berachain/beacon-kit/mod/primitives-engine
 
-go 1.22.2
+go 1.22.3
 
 replace (
+	// TODO: DECOUPLE
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 )
 
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.14.0
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 )
 
@@ -54,7 +55,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/onsi/gomega v1.31.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
+	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.14.0 // indirect

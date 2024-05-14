@@ -29,20 +29,19 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/consensus"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient) NewPayload(
+func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	ctx context.Context,
-	payload engineprimitives.ExecutionPayload,
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -52,7 +51,7 @@ func (s *EngineClient) NewPayload(
 		dctx,
 		payload,
 		versionedHashes,
-		parentBlockRoot,
+		parentBeaconBlockRoot,
 	)
 	if err != nil {
 		return nil, err
@@ -74,22 +73,29 @@ func (s *EngineClient) NewPayload(
 }
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient) callNewPayloadRPC(
+func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	ctx context.Context,
-	payload engineprimitives.ExecutionPayload,
+	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *primitives.Root,
 ) (*engineprimitives.PayloadStatus, error) {
-	switch payloadPb := payload.(type) {
-	case *consensus.ExecutableDataDeneb:
-		return s.NewPayloadV3(ctx, payloadPb, versionedHashes, parentBlockRoot)
+	switch payload.Version() {
+	case version.Deneb:
+		return s.NewPayloadV3(
+			ctx,
+			payload,
+			versionedHashes,
+			parentBeaconBlockRoot,
+		)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra payload")
 	default:
 		return nil, ErrInvalidPayloadType
 	}
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient) ForkchoiceUpdated(
+func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceState,
 	attrs engineprimitives.PayloadAttributer,
@@ -114,7 +120,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
-func (s *EngineClient) callUpdatedForkchoiceRPC(
+func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceState,
 	attrs engineprimitives.PayloadAttributer,
@@ -123,6 +129,8 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
 		return nil, ErrInvalidPayloadAttributes
 	}
@@ -130,7 +138,7 @@ func (s *EngineClient) callUpdatedForkchoiceRPC(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient) GetPayload(
+func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -138,12 +146,15 @@ func (s *EngineClient) GetPayload(
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// Determine what version we want to call.
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
+	case version.Electra:
+		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
 		return nil, ErrInvalidGetPayloadVersion
 	}
@@ -166,11 +177,11 @@ func (s *EngineClient) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient) ExchangeCapabilities(
+func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
-		ctx, eth.BeaconKitSupportedCapabilities(),
+		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {
 		s.statusErrMu.Lock()
@@ -187,7 +198,7 @@ func (s *EngineClient) ExchangeCapabilities(
 	}
 
 	// Log the capabilities that the execution client does not have.
-	for _, capability := range eth.BeaconKitSupportedCapabilities() {
+	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
 		if _, exists := s.capabilities[capability]; !exists {
 			s.logger.Warn(
 				"your execution client may require an update 🚸",
