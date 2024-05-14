@@ -44,7 +44,7 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
 		BeaconBlockTxIndex,
-		h.chainService.ChainSpec().ActiveForkVersionForSlot(
+		h.chainSpec.ActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		),
 	)

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -52,9 +53,10 @@ type BeaconKitRuntime[
 		DepositStoreT,
 	],
 ] struct {
-	logger   log.Logger[any]
-	services *service.Registry
-	fscp     StorageBackendT
+	logger    log.Logger[any]
+	services  *service.Registry
+	fscp      StorageBackendT
+	chainSpec primitives.ChainSpec
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -71,6 +73,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 	],
 ](
+	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
@@ -88,9 +91,10 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		logger:   logger,
-		services: services,
-		fscp:     fscp,
+		chainSpec: chainSpec,
+		logger:    logger,
+		services:  services,
+		fscp:      fscp,
 	}, nil
 }
 
@@ -124,7 +128,7 @@ func (r *BeaconKitRuntime[
 			BlobSidecarsT,
 			DepositStoreT,
 		]
-		builderService *validator.Service[state.BeaconState, BlobSidecarsT]
+		builderService *validator.Service[BeaconStateT, BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)
@@ -138,7 +142,8 @@ func (r *BeaconKitRuntime[
 		panic("missing services")
 	}
 
-	handler := abci.NewHandler(
+	handler := abci.NewHandler[BlobSidecarsT](
+		r.chainSpec,
 		builderService,
 		chainService,
 	)

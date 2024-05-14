@@ -51,7 +51,7 @@ func (s *Service[
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
 	var (
@@ -175,7 +175,7 @@ func (s *Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -216,7 +216,7 @@ func (s *Service[
 ]) PostBlockProcess(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload

@@ -56,12 +56,18 @@ type BeaconState interface {
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+
+	HashTreeRoot() ([32]byte, error)
+}
+
+type BeaconStorageBackend[BeaconStateT BeaconState] interface {
+	BeaconState(context.Context) BeaconStateT
 }
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BlobSidecarsT BlobSidecars,
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -106,4 +112,21 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+}
+
+// StateProcessor defines the interface for processing the state.
+type StateProcessor[
+	BeaconStateT BeaconState,
+] interface {
+	// BuildReveal generates a RANDAO reveal based on the given beacon state.
+	// It returns a Reveal object and any error encountered during the process.
+	ProcessBlock(
+		st BeaconStateT,
+		blk types.BeaconBlock,
+	) error
+
+	// ProcessSlot processes the slot.
+	ProcessSlot(
+		st BeaconStateT,
+	) error
 }
