@@ -44,7 +44,7 @@ import (
 // TODO: take in BeaconConfig params to determine the
 // default length of the arrays, which we are currently
 // and INCORRECTLY setting to 0.
-func DefaultStateFromContext() (*BeaconState, error) {
+func DefaultBeaconState() (*BeaconState, error) {
 	defaultExecPayloadHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
