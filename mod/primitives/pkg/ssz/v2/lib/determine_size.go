@@ -246,7 +246,7 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 			err,
 			"could not parse ssz struct field tags")
 	}
-	if exists && len(fieldSizeTags) > 0 {
+	if exists && len(fieldSizeTags) > 0 && !hasUndefinedSizeTag(field) {
 		// If the field does indeed specify ssz struct tags
 		// we infer the field's type.
 		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil

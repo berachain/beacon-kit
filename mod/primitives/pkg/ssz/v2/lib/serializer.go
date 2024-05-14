@@ -27,6 +27,7 @@
 package ssz
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -105,12 +106,12 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		if isBasicType(typ.Elem().Kind()) {
 			return s.MarshalNDimensionalArray(val)
 		}
-		if IsNDimensionalSliceLike(typ) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		if isVariableSizeType(typ.Elem()) {
+		if isVariableSizeType(typ.Elem()) || isVariableSizeType(typ) {
 			// composite arr.
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		}
+		if IsNDimensionalSliceLike(typ) {
+			return s.MarshalNDimensionalArray(val)
 		}
 		fallthrough
 	case k == reflect.Array:
@@ -123,12 +124,12 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		if isBasicType(typ.Elem().Kind()) {
 			return s.MarshalNDimensionalArray(val)
 		}
-		if IsNDimensionalArrayLike(typ) {
-			return s.MarshalNDimensionalArray(val)
-		}
 		if isVariableSizeType(typ) || isVariableSizeType(typ.Elem()) {
 			// composite arr.
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
+		}
+		if IsNDimensionalArrayLike(typ) {
+			return s.MarshalNDimensionalArray(val)
 		}
 		fallthrough
 	case k == reflect.Ptr:
@@ -336,6 +337,10 @@ func (s *Serializer) MarshalStruct(
 		// If the field has a ssz-size tag set, we treat it as a fixed size
 		// field
 		if hasUndefinedSizeTag(field) && isVariableSizeType(typ) {
+			fmt.Println("MarshalStruct", field)
+			if field.Name == "HistoricalRoots" {
+				fmt.Println("MarshalStruct", field.Name)
+			}
 			variableParts,
 				variableLengths,
 				serializationErr = s.MarshalVariableSizeParts(
@@ -397,15 +402,19 @@ func (s *Serializer) MarshalComposite(
 	var variableLengths []int
 	var errCheck []error
 
+	fmt.Println("MarshalComposite", val.Len(), startOffset)
 	var processMember = func(
 		c interface{},
 	) {
 		memberTyp := reflect.TypeOf(c)
 		memberVal := reflect.ValueOf(c)
 		var serializationErr error
+		// fmt.Println("MarshalComposite", memberTyp, c)
 		// If the field has a ssz-size tag set, we treat it as a fixed size
 		// field
 		if isVariableSizeType(memberTyp) {
+			fmt.Println("MarshalComposite isVariableSizeType", memberTyp)
+
 			variableParts,
 				variableLengths,
 				serializationErr = s.MarshalVariableSizeParts(
@@ -432,10 +441,14 @@ func (s *Serializer) MarshalComposite(
 		}
 	}
 
-	// Start the recursive serialization
-	if err := SerializeRecursive(val, processMember); err != nil {
-		return 0, err
+	for i := range val.Len() {
+		processMember(val.Index(i).Interface())
 	}
+
+	// Start the recursive serialization
+	// if err := SerializeRecursive(val, processMember); err != nil {
+	// 	return 0, err
+	// }
 	if len(errCheck) > 0 {
 		return 0, errCheck[0]
 	}

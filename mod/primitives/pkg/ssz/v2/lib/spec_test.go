@@ -27,6 +27,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -48,6 +49,7 @@ type TestLogger interface {
 
 func debugPrint(debug bool, t TestLogger, s1 string, s ...any) {
 	if debug {
+		// fmt.Printf(s1, s...)
 		t.Logf(s1, s...)
 	}
 }
@@ -158,6 +160,11 @@ func TestParityBellatrix(t *testing.T) {
 	sszState, err := getSszState()
 	require.NoError(t, err)
 
+	data, _ := os.ReadFile(TestFileName)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
 	s := sszv2.NewSerializer()
 	// outputs 58331700 len
 	o2, err3 := s.MarshalSSZ(sszState)
@@ -171,8 +178,18 @@ func TestParityBellatrix(t *testing.T) {
 	// Got isVariable = false for Eth1Data /n
 
 	// offset is set in ssz.go for these
+	fmt.Println("data len", len(data))
+	fmt.Println("res lemn", len(res))
+	fmt.Println("o2 len", len(o2))
+	// firstDiff := "" 524464 -> // Offset (7) 'HistoricalRoots'
+	for i := range len(res) {
+		if res[i] != o2[i] {
+			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
+			break
+		}
+	}
 
-	require.Equal(t, o2[0:64], res[0:64], "local & fastssz output doesn't match")
+	require.Equal(t, o2[:128], res[:128], "local & fastssz output doesn't match")
 }
 
 func BenchmarkNativeFull(b *testing.B) {

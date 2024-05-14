@@ -132,7 +132,7 @@ func IterStructFields(
 		// name := sf.Name
 		if sf.Name == "LatestExecutionPayloadHeader" || sf.Name == "ExtraData" {
 			// fmt.Println(sf.Name)
-			printTopLevelTypes(vf, val)
+			// printTopLevelTypes(vf, val)
 		}
 
 		sft := sf.Type
@@ -213,8 +213,8 @@ func InterleaveOffsets(
 
 	// Flatten the nested arr to a 1d []byte
 	allParts := make([][]byte, 0)
-	allParts = append(allParts, variableParts...)
 	allParts = append(allParts, fixedParts...)
+	allParts = append(allParts, variableParts...)
 	res := make([]byte, 0)
 	for i := range allParts {
 		res = append(res, allParts[i]...)
