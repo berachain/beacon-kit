@@ -54,16 +54,13 @@ interface IBeaconDepositContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Error thrown when the deposit amount is too small, to prevent dust deposits.
-    error InsufficientDeposit();
+    error DepositValueTooLow();
 
     /// @dev Error thrown when the deposit amount is not a multiple of Gwei.
     error DepositNotMultipleOfGwei();
 
     /// @dev Error thrown when the deposit amount is too high, since it is a uint64.
     error DepositValueTooHigh();
-
-    /// @dev Error thrown when the deposit amount is too low
-    error DepositValueTooLow();
 
     /// @dev Error thrown when the public key length is not 48 bytes.
     error InvalidPubKeyLength();
@@ -98,7 +95,13 @@ interface IBeaconDepositContract {
         bytes calldata withdrawal_credentials,
         bytes calldata signature,
         bytes32 deposit_data_root
-    ) external payable;
+    )
+        external
+        payable;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        READS                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
      * @notice Gets the root of the deposit Merkle tree.

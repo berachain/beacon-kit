@@ -53,10 +53,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
     uint8 private constant WITHDRAWAL_CREDENTIALS_LENGTH = 32;
 
     /// @dev The maximum depth of the deposit contract's Merkle tree.
-    uint constant DEPOSIT_CONTRACT_TREE_DEPTH = 32;
+    uint256 constant DEPOSIT_CONTRACT_TREE_DEPTH = 32;
 
     /// @dev The maximum number of deposits that can be made to the contract.
-    uint constant MAX_DEPOSIT_COUNT = 2**DEPOSIT_CONTRACT_TREE_DEPTH - 1;
+    uint256 constant MAX_DEPOSIT_COUNT = 2 ** DEPOSIT_CONTRACT_TREE_DEPTH - 1;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
@@ -72,48 +72,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// @dev zeroHashes stores the zero hashes for the deposit contract.
     bytes32[DEPOSIT_CONTRACT_TREE_DEPTH] zeroHashes;
 
-    // constructor() public {
-    //     // Compute hashes in empty sparse Merkle tree
-    //     for (uint height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH - 1; height++)
-    //         zero_hashes[height + 1] = sha256(abi.encodePacked(zero_hashes[height], zero_hashes[height]));
-    // }
-
-    bool private initialized = false;
-
-    function initialize() public {
-        require(!initialized, "Already initialized");
-        initialized = true;
-
+    constructor() {
         // Compute hashes in empty sparse Merkle tree
-        for (uint height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH - 1; height++)
-            zeroHashes[height + 1] = sha256(abi.encodePacked(zeroHashes[height], zeroHashes[height]));
-    }
-
-    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                            READS                           */
-    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-    /// @inheritdoc IBeaconDepositContract
-    function getDepositRoot() override external view returns (bytes32) {
-        bytes32 node;
-        uint size = depositCount;
-        for (uint height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++) {
-            if ((size & 1) == 1)
-                node = sha256(abi.encodePacked(branch[height], node));
-            else
-                node = sha256(abi.encodePacked(node, zeroHashes[height]));
-            size /= 2;
+        for (
+            uint256 height = 0;
+            height < DEPOSIT_CONTRACT_TREE_DEPTH - 1;
+            height++
+        ) {
+            zeroHashes[height + 1] =
+                sha256(abi.encodePacked(zeroHashes[height], zeroHashes[height]));
         }
-        return sha256(abi.encodePacked(
-            node,
-            _toLittleEndian64(uint64(depositCount)),
-            bytes24(0)
-        ));
-    }
-
-    /// @inheritdoc IBeaconDepositContract
-    function getDepositCount() override external view returns (bytes memory) {
-        return _toLittleEndian64(uint64(depositCount));
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -126,7 +94,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         bytes calldata withdrawal_credentials,
         bytes calldata signature,
         bytes32 deposit_data_root
-    ) external payable {
+    )
+        external
+        payable
+    {
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -141,17 +112,29 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
         uint64 amountInGwei = _deposit();
 
+        emit Deposit(
+            pubkey,
+            withdrawal_credentials,
+            amountInGwei,
+            signature,
+            depositCount
+        );
+
         bytes memory amount = _toLittleEndian64(amountInGwei);
         // Compute deposit data root (`DepositData` hash tree root)
         bytes32 pubkey_root = sha256(abi.encodePacked(pubkey, bytes16(0)));
-        bytes32 signature_root = sha256(abi.encodePacked(
-            sha256(abi.encodePacked(signature[:64])),
-            sha256(abi.encodePacked(signature[64:], bytes32(0)))
-        ));
-        bytes32 node = sha256(abi.encodePacked(
-            sha256(abi.encodePacked(pubkey_root, withdrawal_credentials)),
-            sha256(abi.encodePacked(amount, bytes24(0), signature_root))
-        ));
+        bytes32 signature_root = sha256(
+            abi.encodePacked(
+                sha256(abi.encodePacked(signature[:64])),
+                sha256(abi.encodePacked(signature[64:], bytes32(0)))
+            )
+        );
+        bytes32 node = sha256(
+            abi.encodePacked(
+                sha256(abi.encodePacked(pubkey_root, withdrawal_credentials)),
+                sha256(abi.encodePacked(amount, bytes24(0), signature_root))
+            )
+        );
 
         if (node != deposit_data_root) {
             revert InvalidDepositDataRoot();
@@ -161,12 +144,50 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert MerkleTreeFull();
         }
 
-        unchecked {
-            // slither-disable-next-line reentrancy-benign,reentrancy-events
-            emit Deposit(
-                pubkey, withdrawal_credentials, amountInGwei, signature, depositCount++
-            );
+        // Add deposit data root to Merkle tree (update a single `branch` node)
+        depositCount += 1;
+        uint256 size = depositCount;
+        for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
+        {
+            if ((size & 1) == 1) {
+                branch[height] = node;
+                return;
+            }
+            node = sha256(abi.encodePacked(branch[height], node));
+            size /= 2;
         }
+        // As the loop should always end prematurely with the `return` statement,
+        // this code should be unreachable. We assert `false` just to be safe.
+        assert(false);
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                            READS                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @inheritdoc IBeaconDepositContract
+    function getDepositRoot() external view override returns (bytes32) {
+        bytes32 node;
+        uint256 size = depositCount;
+        for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
+        {
+            if ((size & 1) == 1) {
+                node = sha256(abi.encodePacked(branch[height], node));
+            } else {
+                node = sha256(abi.encodePacked(node, zeroHashes[height]));
+            }
+            size /= 2;
+        }
+        return sha256(
+            abi.encodePacked(
+                node, _toLittleEndian64(uint64(depositCount)), bytes24(0)
+            )
+        );
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function getDepositCount() external view override returns (bytes memory) {
+        return _toLittleEndian64(uint64(depositCount));
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -175,21 +196,17 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @dev Validates the deposit amount and sends the native asset to the zero address.
     function _deposit() internal virtual returns (uint64) {
-        if (msg.value < 1 ether) {
-            revert DepositValueTooLow();
-        }
-
         if (msg.value % 1 gwei != 0) {
             revert DepositNotMultipleOfGwei();
         }
 
         uint256 amountInGwei = msg.value / 1 gwei;
-        if (amountInGwei > type(uint64).max) {
-            revert DepositValueTooHigh();
+        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
+            revert DepositValueTooLow();
         }
 
-        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
-            revert InsufficientDeposit();
+        if (amountInGwei > type(uint64).max) {
+            revert DepositValueTooHigh();
         }
 
         _safeTransferETH(address(0), msg.value);
@@ -220,7 +237,11 @@ contract BeaconDepositContract is IBeaconDepositContract {
      * @dev From the ETH2 Deposit Contract.
      * @param value The uint64 value to convert.
      */
-    function _toLittleEndian64(uint64 value) internal pure returns (bytes memory ret) {
+    function _toLittleEndian64(uint64 value)
+        internal
+        pure
+        returns (bytes memory ret)
+    {
         ret = new bytes(8);
         bytes8 bytesValue = bytes8(value);
         // Byteswapping during copying to bytes.
