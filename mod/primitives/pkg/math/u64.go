@@ -32,7 +32,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	hex2 "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
 const (
@@ -120,19 +120,19 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 
 // MarshalText implements encoding.TextMarshaler.
 func (u U64) MarshalText() ([]byte, error) {
-	return hex2.MarshalText(u.Unwrap())
+	return hex.MarshalText(u.Unwrap())
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex2.UnmarshalJSONText(input, u, uint64T)
+	return hex.UnmarshalJSONText(input, u, uint64T)
 }
 
 // ---------------------------------- Hex ----------------------------------
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (u *U64) UnmarshalText(input []byte) error {
-	dec, err := hex2.UnmarshalUint64Text(input)
+	dec, err := hex.UnmarshalUint64Text(input)
 	if err != nil {
 		return err
 	}
@@ -141,8 +141,8 @@ func (u *U64) UnmarshalText(input []byte) error {
 }
 
 // String returns the hex encoding of b.
-func (u U64) String() hex2.String {
-	return hex2.FromUint64(u.Unwrap())
+func (u U64) String() hex.String {
+	return hex.FromUint64(u.Unwrap())
 }
 
 // ----------------------- U64 Mathematical Methods -----------------------

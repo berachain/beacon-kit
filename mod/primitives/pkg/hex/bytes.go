@@ -70,7 +70,7 @@ func DecodeFixedJSON(typ reflect.Type,
 
 // UnmarshalFixedText decodes the input as a string with 0x prefix. The length
 // of out determines the required input length.
-func DecodeFixedText(typname string, input, out []byte) error {
+func DecodeFixedText(typename string, input, out []byte) error {
 	raw, err := formatAndValidateText(input)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func DecodeFixedText(typname string, input, out []byte) error {
 	if len(raw)/encDecRatio != len(out) {
 		return errors.Newf(
 			"hex string has length %d, want %d for %s",
-			len(raw), len(out)*encDecRatio, typname,
+			len(raw), len(out)*encDecRatio, typename,
 		)
 	}
 	// Pre-verify syntax before modifying out.

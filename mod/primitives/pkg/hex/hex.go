@@ -120,9 +120,9 @@ func (s String) ToUint64() (uint64, error) {
 	return strconv.ParseUint(raw, 16, 64)
 }
 
-// MustToUint64 decodes a hex string with 0x prefix.
+// MustToUInt64 decodes a hex string with 0x prefix.
 // It panics for invalid input.
-func (s String) MustToUint64() uint64 {
+func (s String) MustToUInt64() uint64 {
 	i, err := s.ToUint64()
 	if err != nil {
 		panic(err)
