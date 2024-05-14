@@ -48,3 +48,10 @@ var (
 	Hex2BytesFixed = common.Hex2BytesFixed
 	FromHex        = common.FromHex
 )
+
+var (
+	// ZeroAddress is the zero execution address.
+	ZeroAddress = ExecutionAddress{}
+	// ZeroHash is the zero execution hash.
+	ZeroHash = ExecutionHash{}
+)

@@ -66,7 +66,7 @@ func (pb *PayloadBuilder[BeaconStateT]) getPayloadAttribute(
 	}
 
 	// If the suggested fee recipient is not set, log a warning.
-	if pb.cfg.SuggestedFeeRecipient == (common.ExecutionAddress{}) {
+	if pb.cfg.SuggestedFeeRecipient == (common.ZeroAddress) {
 		pb.logger.Warn("No suggested fee recipient set for the payload")
 	}
 
