@@ -2,7 +2,6 @@
 pragma solidity ^0.8.25;
 
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
-import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 import { IBeaconDepositContract } from
     "../src/staking/IBeaconDepositContract.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
@@ -18,6 +17,7 @@ contract DepositContractTest is SoladyTest {
     /// @dev The withdrawal credentials that we will use.
     bytes internal WITHDRAWAL_CREDENTIALS = _credential(address(this));
 
+    /// @dev The staking credentials that are right.
     bytes internal SIGNATURE = _create96Byte();
 
     bytes32 internal DEPOSIT_DATA_ROOT;
@@ -26,59 +26,97 @@ contract DepositContractTest is SoladyTest {
     BeaconDepositContract internal depositContract;
 
     function setUp() public virtual {
-        // Set the STAKE_ASSET to the NATIVE token.
+        // Create the deposit contract.
         depositContract = new BeaconDepositContract();
-        DEPOSIT_DATA_ROOT = this.createDepositDataRoot(32 gwei, SIGNATURE);
+        DEPOSIT_DATA_ROOT = this.computeDepositDataRoot(32 gwei, SIGNATURE);
     }
 
-    function test_DepositFailsIfInvalidPubKeySize() public {
-        vm.deal(depositor, 32 ether);
+    function testFuzz_DepositsWrongPubKey(bytes calldata pubKey) public {
+        vm.assume(pubKey.length != 96);
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
         depositContract.deposit{ value: 32 ether }(
-            abi.encode(bytes32("32")),
+            bytes("wrong_public_key"),
             WITHDRAWAL_CREDENTIALS,
             SIGNATURE,
             DEPOSIT_DATA_ROOT
         );
     }
 
-    function test_DepositFailsIfInvalidSignatureSize() public {
-        vm.deal(depositor, 32 ether);
-        vm.expectRevert(IBeaconDepositContract.InvalidSignatureLength.selector);
+    function test_DepositWrongPubKey() public {
+        vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
         depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY,
+            bytes("wrong_public_key"),
             WITHDRAWAL_CREDENTIALS,
-            abi.encode(bytes32("32")),
+            SIGNATURE,
             DEPOSIT_DATA_ROOT
         );
     }
 
-    function test_DepositFailsIfInvalidWithdrawalCredentialsSize() public {
-        vm.deal(depositor, 32 ether);
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
+        public
+    {
+        vm.assume(credentials.length != 32);
         vm.expectRevert(
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
         depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, bytes(""), SIGNATURE, DEPOSIT_DATA_ROOT
+            VALIDATOR_PUBKEY, credentials, SIGNATURE, DEPOSIT_DATA_ROOT
         );
     }
 
-    function testFuzz_DepositWrongMinAmount(uint256 amountInEther) public {
-        amountInEther = _bound(amountInEther, 0, 31);
-        uint256 amountInETH = amountInEther * 1 ether;
-        vm.deal(depositor, amountInETH);
-        vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
-        depositContract.deposit{ value: amountInETH }(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
+    function test_DepositWrongCredentials() public {
+        vm.expectRevert(
+            IBeaconDepositContract.InvalidCredentialsLength.selector
+        );
+        depositContract.deposit{ value: 32 ether }(
+            VALIDATOR_PUBKEY,
+            bytes("wrong_credentials"),
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
         );
     }
 
-    function test_DepositWrongMinAmount() public {
-        uint256 amount = 31 ether;
-        vm.deal(depositor, amount);
+    function testFuzz_DepositWrongSignature(bytes calldata signature) public {
+        vm.assume(signature.length != 96);
+        vm.expectRevert(IBeaconDepositContract.InvalidSignatureLength.selector);
+        depositContract.deposit{ value: 32 ether }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            signature,
+            DEPOSIT_DATA_ROOT
+        );
+    }
+
+    function test_DepositWrongSignature() public {
+        vm.expectRevert(IBeaconDepositContract.InvalidSignatureLength.selector);
+        depositContract.deposit{ value: 32 ether }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            bytes("wrong_signature"),
+            DEPOSIT_DATA_ROOT
+        );
+    }
+
+    function testFuzz_DepositWrongAmount(uint256 amount) public {
+        amount = _bound(amount, 1, 32e9 - 1);
+        vm.deal(depositor, amount * 1e9);
         vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
+        depositContract.deposit{ value: (amount * 1 gwei) }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
+        );
+    }
+
+    function test_DepositWrongAmount() public {
+        vm.deal(depositor, (32e9 - 1) * 1e9);
+        vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
+        depositContract.deposit{ value: (32e9 - 1) * 1e9 }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
         );
     }
 
@@ -86,42 +124,6 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, uint256(type(uint64).max) * 2 gwei);
         vm.expectRevert(IBeaconDepositContract.DepositValueTooHigh.selector);
         depositContract.deposit{ value: uint256(type(uint64).max) * 2 gwei }(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
-        );
-    }
-
-    function testFuzz_DepositNotDivisibleByGwei(uint256 amount) public {
-        amount = _bound(amount, 31e9 + 1, uint256(type(uint64).max));
-        vm.assume(amount % 1e9 != 0);
-        vm.deal(depositor, amount);
-
-        vm.prank(depositor);
-        vm.expectRevert(
-            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
-        );
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
-        );
-    }
-
-    function test_DepositNotDivisibleByGwei() public {
-        uint256 amount = 32e9 + 1;
-        vm.deal(depositor, amount);
-        vm.expectRevert(
-            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
-        );
-        vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
-        );
-
-        amount = 32e9 - 1;
-        vm.deal(depositor, amount);
-        vm.expectRevert(
-            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
-        );
-        vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
         );
     }
@@ -138,9 +140,54 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, 32 ether);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32 gwei, SIGNATURE, 0
+            VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9, SIGNATURE, 0
         );
         depositContract.deposit{ value: 32 ether }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
+        );
+    }
+
+    function testFuzz_DepositAmountNotDivisibleByGwei(uint256 amount) public {
+        amount = _bound(amount, 31e9 + 1, uint256(type(uint64).max));
+        vm.assume(amount % 1e9 != 0);
+        vm.deal(depositor, amount);
+
+        vm.prank(depositor);
+        vm.expectRevert(
+            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
+        );
+        depositContract.deposit{ value: amount }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
+        );
+    }
+
+    function test_DepositAmountNotDivisibleByGwei() public {
+        uint256 amount = 32e9 + 1;
+        vm.deal(depositor, amount);
+        vm.expectRevert(
+            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
+        );
+        vm.prank(depositor);
+        depositContract.deposit{ value: amount }(
+            VALIDATOR_PUBKEY,
+            WITHDRAWAL_CREDENTIALS,
+            SIGNATURE,
+            DEPOSIT_DATA_ROOT
+        );
+
+        amount = 32e9 - 1;
+        vm.deal(depositor, amount);
+        vm.expectRevert(
+            IBeaconDepositContract.DepositNotMultipleOfGwei.selector
+        );
+        vm.prank(depositor);
+        depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY,
             WITHDRAWAL_CREDENTIALS,
             SIGNATURE,
@@ -158,7 +205,7 @@ contract DepositContractTest is SoladyTest {
             emit IBeaconDepositContract.Deposit(
                 VALIDATOR_PUBKEY,
                 WITHDRAWAL_CREDENTIALS,
-                32 gwei,
+                32e9,
                 SIGNATURE,
                 depositCount
             );
@@ -186,7 +233,7 @@ contract DepositContractTest is SoladyTest {
         return abi.encodePacked(bytes32("32"), bytes16("16"));
     }
 
-    function createDepositDataRoot(
+    function computeDepositDataRoot(
         uint64 amountInGwei,
         bytes calldata signature
     )

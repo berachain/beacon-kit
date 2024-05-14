@@ -167,6 +167,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     /// @inheritdoc IBeaconDepositContract
     function getDepositRoot() external view override returns (bytes32) {
+        //slither-disable-next-line uninitialized-local
         bytes32 node;
         uint256 size = depositCount;
         for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
