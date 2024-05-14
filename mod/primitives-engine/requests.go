@@ -104,7 +104,11 @@ func (n *NewPayloadRequest[Eth1TransactionT, ExecutionPayloadT]) HasValidVersion
 
 	var tx Eth1TransactionT
 	if reflect.TypeOf(tx).Kind() == reflect.Ptr {
-		tx = reflect.New(reflect.TypeOf(tx).Elem()).Interface().(Eth1TransactionT)
+		typedtx, ok := reflect.New(reflect.TypeOf(tx).Elem()).Interface().(Eth1TransactionT)
+		if !ok {
+			return fmt.Errorf("invalid type for tx: %v", tx)
+		}
+		tx = typedtx
 	}
 
 	for _, txBz := range txs {

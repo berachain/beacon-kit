@@ -142,6 +142,8 @@ func (ee *Engine[
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
+//
+//nolint:lll
 func (ee *Engine[
 	ExecutionPayloadT, ExecutionPayloadDenebT,
 ]) VerifyAndNotifyNewPayload(
