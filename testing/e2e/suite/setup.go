@@ -63,6 +63,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.cfg = config.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
+	s.Require().NoError(err, "Error loading starlark helper file")
 	s.testAccounts = make([]*types.EthAccount, 0)
 
 	s.genesisAccount = types.NewEthAccountFromHex(
@@ -138,6 +139,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
 
+
 	// Setup the JSON-RPC balancer.
 	s.logger.Info("setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
@@ -162,16 +164,18 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	if err != nil {
 		return err
 	}
+
 	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
-		sCtx,
+		types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking),
 	)
+	s.logger.Info("consensus client ports", "ports", s.consensusClients["cl-validator-beaconkit-0"].GetPublicPorts()["cometbft-rpc"].GetNumber())
 
 	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
 	if err != nil {
 		return err
 	}
 	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
-		sCtx,
+		types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking),
 	)
 	return nil
 }

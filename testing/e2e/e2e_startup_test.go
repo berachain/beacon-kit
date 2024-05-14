@@ -38,6 +38,16 @@ type BeaconKitE2ESuite struct {
 // TestBasicStartup tests the basic startup of the beacon-kit network.
 // TODO: Should check all clients, opposed to the load balancer.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	err := s.WaitForFinalizedBlockNumber(5)
+	res, err := s.ConsensusClients()["cl-validator-beaconkit-0"].Stop(s.Ctx())
+	s.Require().NoError(err)
+	s.Logger().Info("Stopped validator \n", res)
+
+	res, err = s.ConsensusClients()["cl-validator-beaconkit-0"].Start(s.Ctx(), s.Enclave())
+	s.Require().NoError(err)
+	s.Logger().Info("Started validator \n", res)
+
+	s.Logger().Info("consensus client ports", "ports", s.ConsensusClients()["cl-validator-beaconkit-0"].GetPublicPorts()["cometbft-rpc"].GetNumber())
+
+	err = s.WaitForFinalizedBlockNumber(5)
 	s.Require().NoError(err)
 }
