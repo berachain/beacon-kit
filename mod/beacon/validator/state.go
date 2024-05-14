@@ -26,15 +26,19 @@
 package validator
 
 import (
-	"context"
-
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// computeStateRoot computes the state root of the block to be included in the
-// proposal.
+// computeStateRoot computes the state root of an outgoing block.
 func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
-	_ context.Context,
+	st BeaconStateT,
+	blk types.BeaconBlock,
 ) (primitives.Root, error) {
-	return primitives.Root{}, nil
+	if err := s.stateProcessor.ProcessBlock(st, blk); err != nil {
+		return primitives.Root{}, err
+	}
+
+	// TODO: we are doing this also in process slot rn, optimize.
+	return st.HashTreeRoot()
 }

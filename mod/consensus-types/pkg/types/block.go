@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -35,11 +36,10 @@ import (
 // returns an error if the fork version is not supported.
 func EmptyBeaconBlock[
 	SlotT, ProposerIndexT ~uint64,
-	ParentBlockRootT, StateRootT ~[32]byte](
+	ParentBlockRootT ~[32]byte](
 	slot SlotT,
 	proposerIndex ProposerIndexT,
 	parentBlockRoot ParentBlockRootT,
-	stateRoot StateRootT,
 	forkVersion uint32,
 ) (BeaconBlock, error) {
 	var block BeaconBlock
@@ -52,7 +52,7 @@ func EmptyBeaconBlock[
 				//#nosec:G701 // this is safe.
 				ProposerIndex:   uint64(proposerIndex),
 				ParentBlockRoot: bytes.B32(parentBlockRoot),
-				StateRoot:       bytes.B32(stateRoot),
+				StateRoot:       bytes.B32{},
 			},
 			Body: &BeaconBlockBodyDeneb{},
 		}
@@ -103,6 +103,11 @@ func (b *BeaconBlockDeneb) Version() uint32 {
 // IsNil checks if the BeaconBlockDeneb instance is nil.
 func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
+}
+
+// SetStateRoot sets the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
+	b.StateRoot = root
 }
 
 // GetBody retrieves the body of the BeaconBlockDeneb.

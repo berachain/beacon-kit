@@ -153,6 +153,24 @@ func ProvideRuntime(
 		logger.With("service", "randao"),
 	)
 
+	stateProcessor := core.NewStateProcessor[
+		types.BeaconBlock,
+		state.BeaconState,
+		*datypes.BlobSidecars,
+	](
+		chainSpec,
+		stda.NewBlobProcessor[
+			types.BeaconBlockBody, *datypes.BlobSidecars,
+		](
+			logger.With("module", "blob-processor"),
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+		),
+		randaoProcessor,
+		signer,
+		logger.With("module", "state-processor"),
+	)
+
 	// Build the builder service.
 	validatorService := validator.NewService[
 		state.BeaconState, *datypes.BlobSidecars,
@@ -160,6 +178,8 @@ func ProvideRuntime(
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
+		storageBackend,
+		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
 			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -184,23 +204,7 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		verification.NewBlockVerifier[state.BeaconState](chainSpec),
-		core.NewStateProcessor[
-			types.BeaconBlock,
-			state.BeaconState,
-			*datypes.BlobSidecars,
-		](
-			chainSpec,
-			stda.NewBlobProcessor[
-				types.BeaconBlockBody, *datypes.BlobSidecars,
-			](
-				logger.With("module", "blob-processor"),
-				chainSpec,
-				dablob.NewVerifier(blobProofVerifier),
-			),
-			randaoProcessor,
-			signer,
-			logger.With("module", "state-processor"),
-		),
+		stateProcessor,
 		verification.NewPayloadVerifier(chainSpec),
 		beaconDepositContract,
 	)

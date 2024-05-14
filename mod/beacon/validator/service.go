@@ -57,9 +57,14 @@ type Service[
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
+	bsb BeaconStorageBackend[BeaconStateT]
+
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor[BeaconStateT]
+
+	// stateProcessor is responsible for processing the state.
+	stateProcessor StateProcessor[BeaconStateT]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -84,6 +89,8 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
+	bsb BeaconStorageBackend[BeaconStateT],
+	stateProcessor StateProcessor[BeaconStateT],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],
@@ -94,8 +101,10 @@ func NewService[
 	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
 		logger:          logger,
+		bsb:             bsb,
 		chainSpec:       chainSpec,
 		signer:          signer,
+		stateProcessor:  stateProcessor,
 		blobFactory:     blobFactory,
 		randaoProcessor: randaoProcessor,
 		ds:              ds,
@@ -126,7 +135,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 //nolint:funlen // todo:fix.
 func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	ctx context.Context,
-	st BeaconStateT,
 	slot math.Slot,
 ) (types.BeaconBlock, BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
@@ -137,11 +145,22 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
+	st := s.bsb.BeaconState(ctx)
+
+	// We have to process the slot before building the new reveal.
+	if err := s.stateProcessor.ProcessSlot(st); err != nil {
+		return nil, sidecars, err
+	}
+
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel.
 	reveal, err := s.randaoProcessor.BuildReveal(st)
 	if err != nil {
 		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
 	}
 
+	// Get the parent block root for the slot.
+	// TODO: We can optimize to pre-compute this in parallel.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
@@ -151,6 +170,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 			err,
 		)
 	}
+
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey(),
@@ -162,22 +182,11 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		)
 	}
 
-	// Compute the state root for the block.
-	// TODO: IMPLEMENT RN THIS DOES NOTHING.
-	stateRoot, err := s.computeStateRoot(ctx)
-	if err != nil {
-		return nil, sidecars, errors.Newf(
-			"failed to compute state root: %w",
-			err,
-		)
-	}
-
 	// Create a new empty block from the current state.
 	blk, err := types.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
-		stateRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
 	if err != nil {
@@ -260,6 +269,16 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	if err != nil {
 		return nil, sidecars, err
 	}
+
+	// Compute the state root for the block.
+	stateRoot, err := s.computeStateRoot(st, blk)
+	if err != nil {
+		return nil, sidecars, errors.Newf(
+			"failed to compute state root: %w",
+			err,
+		)
+	}
+	blk.SetStateRoot(stateRoot)
 
 	s.logger.Info("finished assembling beacon block 🛟",
 		"slot", slot, "deposits", len(deposits))
