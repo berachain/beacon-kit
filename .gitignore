@@ -9,6 +9,7 @@ data/
 site/
 contracts/cache
 contracts/out
+tmp/
 
 ##########
 # Golang #
@@ -227,3 +228,6 @@ out
 # integration testing coverage
 coverage-test-unit-cover.txt
 .vercel
+
+# server dev env for Air
+.air.toml

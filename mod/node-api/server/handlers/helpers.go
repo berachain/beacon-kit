@@ -23,44 +23,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package handlers
 
 import (
-	"context"
+	"errors"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	echo "github.com/labstack/echo/v4"
 )
 
-// BuilderService is responsible for building beacon blocks.
-type BuilderService[
-	BeaconBlockT types.BeaconBlock,
-	BeaconStateT state.BeaconState,
-	BlobsSidecarsT ssz.Marshallable,
-] interface {
-	RequestBestBlock(
-		context.Context,
-		math.Slot,
-	) (BeaconBlockT, BlobsSidecarsT, error)
-}
-
-type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	ProcessSlot(state.BeaconState) error
-	StateFromContext(context.Context) state.BeaconState
-	ProcessBeaconBlock(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-		BlobsSidecarsT,
-	) error
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-	) error
-	VerifyPayloadOnBlk(
-		context.Context, types.BeaconBlock,
-	) error
+func CustomHTTPErrorHandler(err error, c echo.Context) {
+	code := http.StatusInternalServerError
+	var message any = http.StatusText(code)
+	httpError := &echo.HTTPError{}
+	if errors.As(err, &httpError) {
+		code = httpError.Code
+		message = httpError.Message
+	}
+	c.Logger().Error(err)
+	response := &types.ErrorResponse{
+		Code:    code,
+		Message: message,
+	}
+	if jsonErr := c.JSON(code, response); jsonErr != nil {
+		c.Logger().Error(jsonErr)
+	}
 }

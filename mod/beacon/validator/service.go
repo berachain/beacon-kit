@@ -162,7 +162,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
-	st := s.bsb.BeaconState(ctx)
+	st := s.bsb.StateFromContext(ctx)
 
 	// Get the current state slot.
 	stateSlot, err := st.GetSlot()

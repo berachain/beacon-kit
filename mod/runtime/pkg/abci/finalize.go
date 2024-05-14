@@ -61,7 +61,7 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 		return err
 	}
 
-	st := h.chainService.BeaconState(ctx)
+	st := h.chainService.StateFromContext(ctx)
 
 	// Process the Slot.
 	if err = h.chainService.ProcessSlot(st); err != nil {

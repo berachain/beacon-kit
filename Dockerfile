@@ -52,6 +52,7 @@ COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-t
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/
+COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-builder/go.mod ./mod/node-builder/go.sum ./mod/node-builder/
 COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
@@ -68,6 +69,7 @@ RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution
 RUN go work use ./mod/log
+RUN go work use ./mod/node-api
 RUN go work use ./mod/node-builder
 RUN go work use ./mod/p2p
 RUN go work use ./mod/payload

@@ -23,44 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package handlers
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	echo "github.com/labstack/echo/v4"
 )
 
-// BuilderService is responsible for building beacon blocks.
-type BuilderService[
-	BeaconBlockT types.BeaconBlock,
-	BeaconStateT state.BeaconState,
-	BlobsSidecarsT ssz.Marshallable,
-] interface {
-	RequestBestBlock(
-		context.Context,
-		math.Slot,
-	) (BeaconBlockT, BlobsSidecarsT, error)
+type RouteHandlers struct {
 }
 
-type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	ProcessSlot(state.BeaconState) error
-	StateFromContext(context.Context) state.BeaconState
-	ProcessBeaconBlock(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-		BlobsSidecarsT,
-	) error
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-	) error
-	VerifyPayloadOnBlk(
-		context.Context, types.BeaconBlock,
-	) error
+func (rh RouteHandlers) NotImplemented(_ echo.Context) error {
+	return echo.NewHTTPError(http.StatusNotImplemented, "Not implemented")
 }
