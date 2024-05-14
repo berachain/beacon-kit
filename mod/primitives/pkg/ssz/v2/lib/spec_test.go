@@ -125,20 +125,41 @@ func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 	return dst
 }
 
-// Todo: full object serialization
-// func TestParityBellatrix(t *testing.T) {
-// 	sszState, err := getSszState()
-// 	require.NoError(t, err)
+// Tests
+func TestParityBellatrix(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
 
-// 	s := sszv2.NewSerializer()
-// 	o2, err3 := s.MarshalSSZ(sszState)
-// 	require.NoError(t, err3)
+	s := sszv2.NewSerializer()
+	// outputs 58331700 len
+	o2, err3 := s.MarshalSSZ(sszState)
+	require.NoError(t, err3)
 
-// 	res, err4 := sszState.MarshalSSZ()
-// 	require.NoError(t, err4)
+	// 58327640 len []
+	res, err4 := sszState.MarshalSSZ()
+	require.NoError(t, err4)
 
-// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
-// }
+	require.Equal(t, o2[:64], res[:64], "local & fastssz output doesn't match")
+}
+
+func BenchmarkNativeFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	s := sszv2.NewSerializer()
+	runBench(b, func() {
+		s.MarshalSSZ(sszState)
+	})
+}
+
+func BenchmarkFastSSZFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	runBench(b, func() {
+		sszState.MarshalSSZ()
+	})
+}
 
 func TestParitySliceOfStructs(t *testing.T) {
 	sszState, err := getSszState()

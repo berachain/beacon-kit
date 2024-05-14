@@ -26,6 +26,7 @@
 package ssz
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -129,9 +130,23 @@ func IterStructFields(
 		sf := vf[i]
 		// Note: You can get the name this way for deserialization
 		// name := sf.Name
+		if sf.Name == "HistoricalRoots" {
+			fmt.Println(sf.Name)
+			printTopLevelTypes(vf, val)
+		}
 		sft := sf.Type
 		sfv := val.Elem().Field(i)
 		cb(sft, sfv, sf, nil)
+	}
+}
+
+func printTopLevelTypes(vf []reflect.StructField, val reflect.Value) {
+	for i := range len(vf) {
+		sf := vf[i]
+		sft := sf.Type
+		// sfv := val.Elem().Field(i)
+		b := hasUndefinedSizeTag(sf) && isVariableSizeType(sft)
+		fmt.Printf("Got isVariable = %v for %v /n \n", b, sf.Name)
 	}
 }
 
@@ -143,6 +158,7 @@ func SerializeRecursive(currentVal reflect.Value, cb func(interface{})) error {
 			if err := SerializeRecursive(currentVal.Index(i), cb); err != nil {
 				return err
 			}
+
 		}
 	} else {
 		// Serialize single element
@@ -216,8 +232,9 @@ func IsStruct(typ reflect.Type, val reflect.Value) bool {
 
 func SafeCopyBuffer(res []byte, buf []byte, startOffset uint64) []byte {
 	if len(res) > len(buf) {
+		fmt.Println("buffer and res mismatch", len(buf), len(res))
 		//#nosec:G701 // will not realistically cause a problem.
-		buf2 := make([]byte, len(res)+int(startOffset))
+		buf2 := make([]byte, len(res)+int(startOffset)+int(len(buf)))
 		copy(buf2, buf[:startOffset])
 		copy(buf2[startOffset:], res)
 		return buf2
