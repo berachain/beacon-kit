@@ -88,9 +88,11 @@ func (h Hash) String() string {
 
 // Format implements fmt.Formatter.
 // Hash supports the %v, %s, %q, %x, %X and %d format verbs.
-func (h Hash) Format(s fmt.State, c rune) {
+func (h Hash) Format(s fmt.State, c rune) error {
+	// i hate how this is written. delete if not needed
 	hexb := hex.EncodeWithPrefix(h[:])
 
+	var err error
 	switch c {
 	case 'x', 'X':
 		if !s.Flag('#') {
@@ -99,19 +101,25 @@ func (h Hash) Format(s fmt.State, c rune) {
 		if c == 'X' {
 			hexb = bytes.ToUpper(hexb)
 		}
-		fallthrough
+		_, err = s.Write(hexb)
 	case 'v', 's':
-		s.Write(hexb)
+		_, err = s.Write(hexb)
 	case 'q':
 		q := []byte{'"'}
-		s.Write(q)
-		s.Write(hexb)
-		s.Write(q)
+		if _, err = s.Write(q); err == nil {
+			if _, err = s.Write(hexb); err == nil {
+				_, err = s.Write(q)
+			}
+		}
 	case 'd':
-		fmt.Fprint(s, ([len(h)]byte)(h))
+		_, err = fmt.Fprint(s, ([len(h)]byte)(h))
 	default:
-		fmt.Fprintf(s, "%%!%c(hash=%x)", c, h)
+		_, err = fmt.Fprintf(s, "%%!%c(hash=%x)", c, h)
 	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
