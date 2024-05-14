@@ -31,13 +31,13 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
@@ -71,7 +71,6 @@ type BeaconApp struct {
 			*datypes.BlobSidecars,
 			*deposit.KVStore,
 		]]
-	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
 // NewBeaconKitAppWithDefaultBaseAppOptions returns a reference to an
@@ -118,10 +117,10 @@ func NewBeaconKitApp(
 				logger,
 				// TODO: allow nodebuilder to inject.
 				spec.LocalnetChainSpec(),
+				comet.NewConsensusParamsStore(spec.LocalnetChainSpec()),
 			),
 		),
 		&appBuilder,
-		&app.ConsensusParamsKeeper,
 		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {

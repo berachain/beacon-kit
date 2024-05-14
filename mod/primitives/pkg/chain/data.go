@@ -33,6 +33,7 @@ type SpecData[
 	EpochT ~uint64,
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
+	CometBFTConfigT any,
 ] struct {
 	// Gwei value constants.
 	//
@@ -136,4 +137,7 @@ type SpecData[
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
+
+	// CometValues
+	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
 }
