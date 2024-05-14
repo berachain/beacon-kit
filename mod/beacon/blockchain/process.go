@@ -166,7 +166,7 @@ func (s *Service[
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
-		s.bsb.BeaconState(ctx), blk,
+		s.bsb.StateFromContext(ctx), blk,
 	)
 }
 
@@ -188,7 +188,7 @@ func (s *Service[
 
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
-		s.bsb.BeaconState(ctx),
+		s.bsb.StateFromContext(ctx),
 		body.GetExecutionPayload(),
 	); err != nil {
 		return err

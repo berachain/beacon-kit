@@ -145,7 +145,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 
-	st := s.bsb.BeaconState(ctx)
+	st := s.bsb.StateFromContext(ctx)
 
 	// We have to process the slot before building the new reveal.
 	if err := s.stateProcessor.ProcessSlot(st); err != nil {

@@ -129,8 +129,8 @@ func (s *Service[
 // TODO: Remove
 func (s Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) BeaconState(
+]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
-	return s.bsb.BeaconState(ctx)
+	return s.bsb.StateFromContext(ctx)
 }

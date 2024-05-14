@@ -23,44 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package main
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	server "github.com/berachain/beacon-kit/mod/node-api/server"
+	handlers "github.com/berachain/beacon-kit/mod/node-api/server/handlers"
+	echo "github.com/labstack/echo/v4"
+	middleware "github.com/labstack/echo/v4/middleware"
 )
 
-// BuilderService is responsible for building beacon blocks.
-type BuilderService[
-	BeaconBlockT types.BeaconBlock,
-	BeaconStateT state.BeaconState,
-	BlobsSidecarsT ssz.Marshallable,
-] interface {
-	RequestBestBlock(
-		context.Context,
-		math.Slot,
-	) (BeaconBlockT, BlobsSidecarsT, error)
+func NewServer(corsConfig middleware.CORSConfig,
+	loggingConfig middleware.LoggerConfig) *echo.Echo {
+	e := echo.New()
+	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
+	server.UseMiddlewares(e,
+		middleware.CORSWithConfig(corsConfig),
+		middleware.LoggerWithConfig(loggingConfig))
+	server.AssignRoutes(e, handlers.RouteHandlers{})
+	return e
 }
 
-type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	ProcessSlot(state.BeaconState) error
-	StateFromContext(context.Context) state.BeaconState
-	ProcessBeaconBlock(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-		BlobsSidecarsT,
-	) error
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-	) error
-	VerifyPayloadOnBlk(
-		context.Context, types.BeaconBlock,
-	) error
+func run() {
+	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
+	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func main() {
+	run()
 }
