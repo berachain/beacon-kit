@@ -30,9 +30,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func TestNewFromHex(t *testing.T) {
@@ -186,10 +186,10 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 	}
 
 	// Encode the original secret to hex string
-	encodedSecret := hexutil.Encode(originalSecret.Bytes())
+	encodedSecret := hex.FromBytes(originalSecret.Bytes())
 
 	// Decode the hex string back to secret
-	decodedSecret, err := jwt.NewFromHex(encodedSecret)
+	decodedSecret, err := jwt.NewFromHex(encodedSecret.Unwrap())
 	if err != nil {
 		t.Fatalf("NewFromHex() error = %v", err)
 	}
