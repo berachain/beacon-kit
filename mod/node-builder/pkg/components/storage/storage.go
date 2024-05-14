@@ -84,7 +84,7 @@ func (k *Backend) AvailabilityStore(
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Backend) BeaconState(
+func (k *Backend) StateFromContext(
 	ctx context.Context,
 ) state.BeaconState {
 	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cs)

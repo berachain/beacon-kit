@@ -36,7 +36,7 @@ import (
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	defaultGenesis, err := deneb.DefaultBeaconState()
+	defaultGenesis, err := deneb.DefaultStateFromContext()
 	if err != nil {
 		panic(err)
 	}
