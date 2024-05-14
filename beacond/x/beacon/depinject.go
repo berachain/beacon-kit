@@ -34,14 +34,14 @@ import (
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/deposit"
-	filedb "github.com/berachain/beacon-kit/mod/storage/filedb"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	filedb "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
-//nolint:init // okay.
+//nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(ProvideModule),

@@ -85,9 +85,10 @@ nilaway:
 	for dir in $$dirs; do \
 		count=$$((count + 1)); \
 		printf "[%d/%d modules complete] Running nilaway in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,staking/abi" -v ./...) || exit 1; \
+		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,pkg/deposit" -v ./...) || exit 1; \
 	done
 	@printf "Nilaway complete for all modules\n"
+
 #################
 #     gosec     #
 #################
@@ -107,3 +108,11 @@ slither:
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox:edge \
 	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
+
+#################
+# markdown-lint #
+#################
+
+markdownlint:
+	@echo "--> Running markdownlint"
+	@docker run --rm -v $(ROOT_DIR):/workspace -w /workspace -t markdownlint/markdownlint:latest --git-recurse **/**.md

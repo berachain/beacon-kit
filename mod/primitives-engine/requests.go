@@ -26,11 +26,10 @@
 package engineprimitives
 
 import (
-	"unsafe"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
-	gengine "github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -38,30 +37,45 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
 //
 //nolint:lll
-type NewPayloadRequest struct {
+type NewPayloadRequest[
+	ExecutionPayloadT interface {
+		GetTransactions() [][]byte
+		Version() uint32
+	},
+] struct {
 	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload ExecutionPayload
+	ExecutionPayload ExecutionPayloadT
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []primitives.ExecutionHash
+	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
 	// SkipIfExists is a flag that indicates if the payload should be skipped
-	// if it already exists in the database of the execution client.
+	// if it alreadyexists in the database of the execution client.
 	SkipIfExists bool
+	// Optimistic is a flag that indicates if the payload should be
+	// optimistically deemed valid. This is useful during syncing.
+	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
-func BuildNewPayloadRequest(
-	executionPayload ExecutionPayload,
-	versionedHashes []primitives.ExecutionHash,
+func BuildNewPayloadRequest[
+	ExecutionPayloadT interface {
+		GetTransactions() [][]byte
+		Version() uint32
+	},
+](
+	executionPayload ExecutionPayloadT,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 	skipIfExists bool,
-) *NewPayloadRequest {
-	return &NewPayloadRequest{
+	optimistic bool,
+) *NewPayloadRequest[ExecutionPayloadT] {
+	return &NewPayloadRequest[ExecutionPayloadT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 		SkipIfExists:          skipIfExists,
+		Optimistic:            optimistic,
 	}
 }
 
@@ -72,37 +86,40 @@ func BuildNewPayloadRequest(
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 //
 //nolint:lll
-func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
 	payload := n.ExecutionPayload
-	withdrawals := payload.GetWithdrawals()
-	blobGasUsed := payload.GetBlobGasUsed().Unwrap()
-	excessBlobGas := payload.GetExcessBlobGas().Unwrap()
-	data := gengine.ExecutableData{
-		ParentHash:    payload.GetParentHash(),
-		FeeRecipient:  payload.GetFeeRecipient(),
-		StateRoot:     common.Hash(payload.GetStateRoot()),
-		ReceiptsRoot:  common.Hash(payload.GetReceiptsRoot()),
-		LogsBloom:     payload.GetLogsBloom(),
-		Random:        common.Hash(payload.GetPrevRandao()),
-		Number:        payload.GetNumber().Unwrap(),
-		GasLimit:      payload.GetGasLimit().Unwrap(),
-		GasUsed:       payload.GetGasUsed().Unwrap(),
-		Timestamp:     payload.GetTimestamp().Unwrap(),
-		ExtraData:     payload.GetExtraData(),
-		BaseFeePerGas: payload.GetBaseFeePerGas().UnwrapBig(),
-		BlockHash:     payload.GetBlockHash(),
-		Transactions:  payload.GetTransactions(),
-		//#nosec:G103 // henlo I am the captain now.
-		Withdrawals:   *(*[]*coretypes.Withdrawal)(unsafe.Pointer(&withdrawals)),
-		BlobGasUsed:   &blobGasUsed,
-		ExcessBlobGas: &excessBlobGas,
+
+	txs := payload.GetTransactions()
+	versionedHashes := n.VersionedHashes
+
+	var blobHashes []common.ExecutionHash
+	for _, txBz := range txs {
+		tx := new(coretypes.Transaction)
+		if err := tx.UnmarshalBinary(txBz); err != nil {
+			return err
+		}
+		blobHashes = append(blobHashes, tx.BlobHashes()...)
 	}
-	_, err := gengine.ExecutableDataToBlock(
-		data,
-		n.VersionedHashes,
-		(*primitives.ExecutionHash)(n.ParentBeaconBlockRoot),
-	)
-	return err
+
+	if len(blobHashes) != len(versionedHashes) {
+		return fmt.Errorf(
+			"invalid number of versionedHashes: %v blobHashes: %v",
+			versionedHashes,
+			blobHashes,
+		)
+	}
+
+	for i := range blobHashes {
+		if blobHashes[i] != versionedHashes[i] {
+			return fmt.Errorf(
+				"invalid versionedHash at %v: %v blobHashes: %v",
+				i,
+				versionedHashes,
+				blobHashes,
+			)
+		}
+	}
+	return nil
 }
 
 // ForkchoiceUpdateRequest.

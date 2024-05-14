@@ -28,8 +28,8 @@ package e2e_test
 import (
 	"math/big"
 
-	stakingabi "github.com/berachain/beacon-kit/mod/beacon/staking/abi"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/bytes"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -58,7 +58,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
-	dc, err := stakingabi.NewBeaconDepositContract(
+	dc, err := deposit.NewBeaconDepositContract(
 		common.HexToAddress(DepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
@@ -201,7 +201,7 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 // 	s.Require().NoError(err)
 
 // 	msg := beacontypes.DepositMessage{
-// 		Pubkey:      primitives.BLSPubkey(nodePubkey),
+// 		Pubkey:      crypto.BLSSignaturePubkey(nodePubkey),
 // 		Credentials: beacontypes.WithdrawalCredentials(credentials),
 // 		Amount:      math.Gwei(32 * suite.OneGwei),
 // 	}

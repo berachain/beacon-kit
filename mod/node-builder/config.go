@@ -28,7 +28,7 @@ package nodebuilder
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
@@ -73,9 +73,8 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
 	consensus.TimeoutPropose = 3000 * time.Millisecond
-	consensus.TimeoutPrevote = 2000 * time.Millisecond
-	consensus.TimeoutPrecommit = 2000 * time.Millisecond
-	consensus.TimeoutCommit = 6000 * time.Millisecond
+	consensus.TimeoutVote = 3000 * time.Millisecond
+	consensus.TimeoutCommit = 3000 * time.Millisecond
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.DBBackend = "pebbledb"

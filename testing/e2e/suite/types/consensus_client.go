@@ -29,7 +29,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
@@ -49,7 +49,7 @@ func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 		panic("Couldn't find the public port for the JSON-RPC WebSocket")
 	}
 	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
-	client, err := httpclient.New(clientURL, "/websocket")
+	client, err := httpclient.New(clientURL)
 	if err != nil {
 		panic(err)
 	}

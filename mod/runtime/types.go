@@ -25,8 +25,64 @@
 
 package runtime
 
+import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	ssz "github.com/ferranbt/fastssz"
+)
+
 // AppOptions is an interface that provides the ability to
 // retrieve options from the application.
 type AppOptions interface {
 	Get(string) interface{}
+}
+
+// BeaconStorageBackend is an interface that provides the
+// beacon state to the runtime.
+type BeaconStorageBackend[
+	BeaconBlockT,
+	BeaconStateT,
+	BlobSidecarsT any,
+	DepositStoreT DepositStore,
+] interface {
+	AvailabilityStore(
+		ctx context.Context,
+	) core.AvailabilityStore[BeaconBlockT, BlobSidecarsT]
+	BeaconState(ctx context.Context) BeaconStateT
+	DepositStore(ctx context.Context) DepositStoreT
+}
+
+// BlobSidecars is an interface that represents the sidecars.
+type BlobSidecars interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	Len() int
+}
+
+type Config interface{}
+
+// DepositStore is an interface that provides the
+// expected deposits to the runtime.
+type DepositStore interface {
+	ExpectedDeposits(
+		numView uint64,
+	) ([]*types.Deposit, error)
+	EnqueueDeposits(deposits []*types.Deposit) error
+	DequeueDeposits(
+		numDequeue uint64,
+	) ([]*types.Deposit, error)
+	PruneToIndex(
+		index uint64,
+	) error
+}
+
+// Service is a struct that can be registered into a ServiceRegistry for
+// easy dependency management.
+type Service interface {
+	// Start spawns any goroutines required by the service.
+	Start(ctx context.Context)
+	// Status returns error if the service is not considered healthy.
+	Status() error
 }

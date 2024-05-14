@@ -6,6 +6,7 @@ CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
 TESTAPP_DIR = beacond
+TESTAPP_FILES_DIR = testing/files
 TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
@@ -38,6 +39,7 @@ build_tags += pebbledb
 
 # always include blst
 build_tags += blst
+build_tags += bls12381
 
 # always include ckzg
 build_tags += ckzg
@@ -62,12 +64,11 @@ ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
 build_tags += $(BUILD_TAGS)
-# build_tags := $(strip $(build_tags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath
+  BUILD_FLAGS += -trimpath 
 endif
 
 # Check for debug option
