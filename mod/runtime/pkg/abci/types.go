@@ -36,13 +36,14 @@ import (
 
 // BuilderService is responsible for building beacon blocks.
 type BuilderService[
+	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
 	RequestBestBlock(
 		context.Context,
 		math.Slot,
-	) (types.BeaconBlock, BlobsSidecarsT, error)
+	) (BeaconBlockT, BlobsSidecarsT, error)
 }
 
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {

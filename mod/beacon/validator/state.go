@@ -39,5 +39,4 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 
 	// TODO: we are doing this also in process slot rn, optimize.
 	return st.HashTreeRoot()
-
 }
