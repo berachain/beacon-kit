@@ -37,6 +37,7 @@ type (
 	PayloadID          = engine.PayloadID
 	PayloadStatus      = engine.PayloadStatusV1
 	ClientVersionV1    = engine.ClientVersionV1
+	ExecutableData     = engine.ExecutableData
 )
 
 type PayloadStatusStr = string
@@ -46,4 +47,9 @@ var (
 	PayloadStatusInvalid  PayloadStatusStr = "INVALID"
 	PayloadStatusSyncing  PayloadStatusStr = "SYNCING"
 	PayloadStatusAccepted PayloadStatusStr = "ACCEPTED"
+)
+
+var (
+	// ExecutableDataToBlock constructs a block from executable data.
+	ExecutableDataToBlock = engine.ExecutableDataToBlock
 )

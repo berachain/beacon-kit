@@ -31,14 +31,15 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
-func (s *Service[BlobSidecarsT]) sendFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendFCU(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
@@ -61,9 +62,11 @@ func (s *Service[BlobSidecarsT]) sendFCU(
 }
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
-func (s *Service[BlobSidecarsT]) sendPostBlockFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendPostBlockFCU(
 	ctx context.Context,
-	st state.BeaconState,
+	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
 ) {
 	var (
@@ -135,7 +138,9 @@ func (s *Service[BlobSidecarsT]) sendPostBlockFCU(
 		}
 
 		stCopy := st.Copy()
-		if err = s.sp.ProcessSlot(stCopy); err != nil {
+		if err = s.sp.ProcessSlot(
+			stCopy,
+		); err != nil {
 			return
 		}
 
@@ -147,7 +152,7 @@ func (s *Service[BlobSidecarsT]) sendPostBlockFCU(
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(time.Now().Unix()),
+			uint64(time.Now().Unix()+1),
 			root,
 			headHash,
 		); err == nil {

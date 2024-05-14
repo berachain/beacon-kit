@@ -1,34 +1,41 @@
 ---
 title: Vocs – React Documentation Framework
 layout: landing
-showLogo: false
+showLogo: true
+content:
+  horizontalPadding: 0px
+  width: 100%
+  verticalPadding: 0px
 ---
 
-import { HomePage } from 'vocs/components'
+import { HomePage } from "vocs/components";
+import { Sponsors } from "vocs/components";
+import FeatureCards from "../components/FeatureCards";
+import Overview from "../components/Overview";
+import Bento from "../components/Bento";
+import "../styles.css";
 
-<HomePage.Root>
-  <HomePage.Logo />
-  <HomePage.Tagline>EVM Consensus Framwork</HomePage.Tagline>
-  <HomePage.Description>BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to create a flexible, customizable consensus layer tailored for Ethereum-based blockchains</HomePage.Description>
-  <HomePage.Buttons>
-    <HomePage.Button href="/quick-start" variant="accent">Get started</HomePage.Button>
-    <HomePage.Button href="https://github.com/berachain/beacon-kit">GitHub</HomePage.Button>
-  </HomePage.Buttons>
-</HomePage.Root>
+<div className="max-w-[1120px] mx-auto vp-doc relative px-8 mb-16 mt-8 md:px-0 md:mb-16 flex flex-col h-full w-full gap-8 pt-8 items-center">
 
-# What Is BeaconKit?
+  <div className="container flex flex-col md:flex-row h-full w-full justify-between p-2">
+    <div className="flex flex-col h-full gap-8 max-md:justify-center max-md:items-center">
+      <HomePage.Logo />
+      <HomePage.Description className="text-wrap w-[320px]">
+        BeaconKit introduces an innovative framework that utilizes the
+        Cosmos-SDK to create a flexible, customizable consensus layer tailored
+        for Ethereum-based blockchains
+      </HomePage.Description>
+      <HomePage.Buttons>
+        <HomePage.Button href="/quick-start">Get started</HomePage.Button>
+        <HomePage.Button href="https://github.com/berachain/beacon-kit">
+          GitHub
+        </HomePage.Button>
+      </HomePage.Buttons>
+    </div>
+    <div className="w-full bg-[url('https://res.cloudinary.com/duv0g402y/image/upload/v1712931944/BERAxGCP/lqn2pfzxee1xso0qupbv.png')] bg-contain bg-no-repeat bg-right animate-bobbing" />
 
-TBD - What is it?
-
-## What BeaconKit Solves
-
-TBD - What is the problem and how does it solve it?
-
-## BeaconKit Benefits
-
-TBD - Some of the additional benefits of BeaconKit
-
-## BeaconKit Archictecture Overview
-
-TBD - What does a diagram look like
-
+  </div>
+  <Bento />
+  <Overview />
+  <Sponsors />
+</div>

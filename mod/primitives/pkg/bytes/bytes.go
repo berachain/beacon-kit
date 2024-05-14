@@ -26,9 +26,18 @@
 package bytes
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
+
+//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
+var bytesT = reflect.TypeOf(Bytes(nil))
+
+// Bytes marshals/unmarshals as a JSON string with 0x prefix.
+// The empty slice marshals as "0x".
+type Bytes []byte
 
 // MustFromHex returns the bytes represented by the given hex string.
 func MustFromHex(input string) []byte {
@@ -41,7 +50,7 @@ func MustFromHex(input string) []byte {
 
 // BytesFromHex returns the bytes represented by the given hex string.
 func FromHex(input string) ([]byte, error) {
-	return hexutil.Decode(input)
+	return hex.NewString(input).ToBytes()
 }
 
 // SafeCopy creates a copy of the provided byte slice. If the input slice is
@@ -116,7 +125,7 @@ func PrependExtendToSize(slice []byte, length int) []byte {
 
 // Helper function to unmarshal JSON for various byte types.
 func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := hexutil.Bytes{}
+	bz := Bytes{}
 	if err := bz.UnmarshalJSON(input); err != nil {
 		return err
 	}
@@ -132,7 +141,7 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 
 // Helper function to unmarshal text for various byte types.
 func unmarshalTextHelper(target []byte, text []byte) error {
-	bz := hexutil.Bytes{}
+	bz := Bytes{}
 	if err := bz.UnmarshalText(text); err != nil {
 		return err
 	}
@@ -144,4 +153,43 @@ func unmarshalTextHelper(target []byte, text []byte) error {
 	}
 	copy(target, bz)
 	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (b Bytes) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(b)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *Bytes) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, b, bytesT)
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *Bytes) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalByteText(input)
+	if err != nil {
+		return err
+	}
+	*b = Bytes(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (b Bytes) String() hex.String {
+	return hex.FromBytes(b)
+}
+
+// UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length
+// of out determines the required input length. This function is commonly used
+// to implement the UnmarshalJSON method for fixed-size types.
+func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
+	return hex.DecodeFixedJSON(typ, bytesT, input, out)
+}
+
+// UnmarshalFixedText decodes the input as a string with 0x prefix. The length
+// of out determines the required input length. This function is commonly used
+// to implement the UnmarshalText method for fixed-size types.
+func UnmarshalFixedText(typename string, input, out []byte) error {
+	return hex.DecodeFixedText(typename, input, out)
 }

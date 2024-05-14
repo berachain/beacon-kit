@@ -38,6 +38,7 @@ import (
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -60,13 +61,15 @@ type BeaconApp struct {
 	*runtime.App
 	BeaconKeeper     *keeper.Keeper
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
+		types.BeaconBlockBody,
+		state.BeaconState,
 		*datypes.BlobSidecars,
 		*deposit.KVStore,
-		types.ReadOnlyBeaconBlockBody,
 		beaconkitruntime.BeaconStorageBackend[
+			types.BeaconBlockBody,
+			state.BeaconState,
 			*datypes.BlobSidecars,
 			*deposit.KVStore,
-			types.ReadOnlyBeaconBlockBody,
 		]]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
@@ -124,6 +127,7 @@ func NewBeaconKitApp(
 	); err != nil {
 		panic(err)
 	}
+
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 

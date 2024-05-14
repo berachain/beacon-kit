@@ -4,10 +4,10 @@ go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240421190920-f31a6a3024ba
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240506152226-0d32fa94e9eb
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240506152226-0d32fa94e9eb
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240506152226-0d32fa94e9eb
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240514134931-fbc61d2f5d38
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
@@ -19,7 +19,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240506152226-0d32fa94e9eb
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240514143820-01627b1a14d4
 )
 
 require (
@@ -30,8 +30,8 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240509094503-43f6859e2926
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/sourcegraph/conc v0.3.0
@@ -40,11 +40,11 @@ require (
 )
 
 require (
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.33.0-20240130113600-88ef6483f90f.1 // indirect
-	buf.build/gen/go/tendermint/tendermint/protocolbuffers/go v1.32.0-20231117195010-33ed361a9051.1 // indirect
-	cosmossdk.io/api v0.7.4 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.0-20240312114316-c0d3497e35d6.1 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.0-20240130113600-88ef6483f90f.1 // indirect
+	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240421190920-f31a6a3024ba // indirect
+	cosmossdk.io/core v0.12.1-0.20240514134931-fbc61d2f5d38 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
-	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240503201126-6c1fc032d99b // indirect
+	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240509094503-43f6859e2926 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
@@ -127,7 +127,7 @@ require (
 	github.com/petermattis/goid v0.0.0-20240327183114-c42a807a84ba // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
+	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.14.0 // indirect
@@ -156,7 +156,7 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434 // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

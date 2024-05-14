@@ -28,7 +28,7 @@ package eip4844
 import (
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
 // Blob represents an EIP-4844 data blob.
@@ -36,10 +36,10 @@ type Blob [131072]byte
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (b *Blob) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+	return bytes.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
 }
 
 // MarshalText returns the hex representation of b.
 func (b Blob) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(b[:]).MarshalText()
+	return bytes.Bytes(b[:]).MarshalText()
 }

@@ -32,66 +32,78 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
+	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
+		BeaconBlockBodyT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 	],
 ] struct {
-	logger   log.Logger[any]
-	services *service.Registry
-	fscp     StorageBackendT
+	logger    log.Logger[any]
+	services  *service.Registry
+	fscp      StorageBackendT
+	chainSpec primitives.ChainSpec
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
+	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ReadOnlyBeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 	StorageBackendT BeaconStorageBackend[
+		BeaconBlockBodyT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 	],
 ](
+	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
 ) (*BeaconKitRuntime[
+	BeaconBlockBodyT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
 	StorageBackendT,
 ], error) {
 	return &BeaconKitRuntime[
+		BeaconBlockBodyT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ReadOnlyBeaconBlockBodyT,
 		StorageBackendT,
 	]{
-		logger:   logger,
-		services: services,
-		fscp:     fscp,
+		chainSpec: chainSpec,
+		logger:    logger,
+		services:  services,
+		fscp:      fscp,
 	}, nil
 }
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
+	BeaconBlockBodyT,
 	StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
@@ -101,17 +113,22 @@ func (r *BeaconKitRuntime[
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime[
+	BeaconBlockBodyT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-	ReadOnlyBeaconBlockBodyT,
 	StorageBackendT,
 ]) BuildABCIComponents() (
 	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
 	sdk.PreBlocker,
 ) {
 	var (
-		chainService   *blockchain.Service[BlobSidecarsT]
-		builderService *validator.Service[BlobSidecarsT]
+		chainService *blockchain.Service[
+			state.BeaconState,
+			BlobSidecarsT,
+			DepositStoreT,
+		]
+		builderService *validator.Service[state.BeaconState, BlobSidecarsT]
 	)
 	if err := r.services.FetchService(&chainService); err != nil {
 		panic(err)
@@ -126,6 +143,7 @@ func (r *BeaconKitRuntime[
 	}
 
 	handler := abci.NewHandler(
+		r.chainSpec,
 		builderService,
 		chainService,
 	)
