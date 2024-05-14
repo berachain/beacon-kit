@@ -220,6 +220,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](
+		chainSpec,
 		logger.With(
 			"module",
 			"beacon-kit.runtime",

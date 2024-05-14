@@ -73,6 +73,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 	],
 ](
+	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
 	fscp StorageBackendT,
@@ -90,9 +91,10 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		logger:   logger,
-		services: services,
-		fscp:     fscp,
+		chainSpec: chainSpec,
+		logger:    logger,
+		services:  services,
+		fscp:      fscp,
 	}, nil
 }
 
