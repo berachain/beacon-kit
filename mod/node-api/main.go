@@ -26,8 +26,8 @@
 package main
 
 import (
-	server "github.com/berachain/beacon-kit/mod/api/server"
-	handlers "github.com/berachain/beacon-kit/mod/api/server/handlers"
+	server "github.com/berachain/beacon-kit/mod/node-api/server"
+	handlers "github.com/berachain/beacon-kit/mod/node-api/server/handlers"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
 )

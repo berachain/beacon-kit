@@ -1,4 +1,4 @@
-module github.com/berachain/beacon-kit/mod/api
+module github.com/berachain/beacon-kit/mod/node-api
 
 go 1.22.3
 

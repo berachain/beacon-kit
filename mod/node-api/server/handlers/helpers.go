@@ -29,7 +29,7 @@ import (
 	"errors"
 	"net/http"
 
-	types "github.com/berachain/beacon-kit/mod/api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	echo "github.com/labstack/echo/v4"
 )
 

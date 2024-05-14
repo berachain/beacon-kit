@@ -3,7 +3,7 @@ go 1.22.3
 use (
 	./beacond
 	./build/tools
-	./mod/api
+	./mod/node-api
 	./mod/beacon
 	./mod/consensus-types
 	./mod/da
