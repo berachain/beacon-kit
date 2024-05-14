@@ -5,15 +5,12 @@ import (
 )
 
 type Handlers interface {
-
-
 	beaconHandlers
 	configHandlers
-eventHandlers	
-validatorsHandlers
-rewardsHandlers
-		NotImplemented(c echo.Context) error
-
+	eventHandlers
+	validatorsHandlers
+	rewardsHandlers
+	NotImplemented(c echo.Context) error
 }
 
 type beaconHandlers interface {
@@ -33,7 +30,7 @@ type beaconHandlers interface {
 	GetBlockHeader(c echo.Context) error
 	GetBlock(c echo.Context) error
 	GetBlockRoot(c echo.Context) error
-	GetStateAttestations(c echo.Context) error
+	GetBlockAttestations(c echo.Context) error
 	GetBlobSidecars(c echo.Context) error
 	GetSyncCommiteeAwards(c echo.Context) error
 	GetDepositSnapshot(c echo.Context) error
@@ -83,28 +80,28 @@ func AssignRoutes(e *echo.Echo, handler Handlers) {
 }
 
 func assignBeaconRoutes(e *echo.Echo, h Handlers) {
-		e.GET("/eth/v1/beacon/genesis", h.GetGenesis)
+	e.GET("/eth/v1/beacon/genesis", h.GetGenesis)
 	e.GET("/eth/v1/beacon/states/:state_id/root", h.GetStateHashTreeRoot)
 	e.GET("/eth/v1/beacon/states/:state_id/fork", h.GetStateFork)
-		e.GET("/eth/v1/beacon/states/:state_id/finality_checkpoints", h.GetStateFinalityCheckpoints)
-		e.GET("/eth/v1/beacon/states/:state_id/validators", h.GetStateValidators)
-		e.POST("/eth/v1/beacon/states/:state_id/validators", h.PostStateValidators)
+	e.GET("/eth/v1/beacon/states/:state_id/finality_checkpoints", h.GetStateFinalityCheckpoints)
+	e.GET("/eth/v1/beacon/states/:state_id/validators", h.GetStateValidators)
+	e.POST("/eth/v1/beacon/states/:state_id/validators", h.PostStateValidators)
 	e.GET("/eth/v1/beacon/states/:state_id/validators/:validator_id", h.GetStateValidator)
-		e.GET("/eth/v1/beacon/states/:state_id/validators/validator_balances", h.GetStateValidatorBalances)
-		e.POST("/eth/v1/beacon/states/:state_id/validators/validator_balances", h.PostStateValidatorBalances)
-		e.GET("/eth/v1/beacon/states/:state_id/committees", h.GetStateCommittees)
-		e.GET("/eth/v1/beacon/states/:state_id/sync_committees", h.GetStateSyncCommittees)
+	e.GET("/eth/v1/beacon/states/:state_id/validators/validator_balances", h.GetStateValidatorBalances)
+	e.POST("/eth/v1/beacon/states/:state_id/validators/validator_balances", h.PostStateValidatorBalances)
+	e.GET("/eth/v1/beacon/states/:state_id/committees", h.GetStateCommittees)
+	e.GET("/eth/v1/beacon/states/:state_id/sync_committees", h.GetStateSyncCommittees)
 	e.GET("/eth/v1/beacon/states/:state_id/randao", h.GetStateRandao)
-		e.GET("/eth/v1/beacon/headers", h.GetBlockHeaders)
-		e.GET("/eth/v1/beacon/headers/:block_id", h.GetBlockHeader)
+	e.GET("/eth/v1/beacon/headers", h.GetBlockHeaders)
+	e.GET("/eth/v1/beacon/headers/:block_id", h.GetBlockHeader)
 	e.POST("/eth/v1/beacon/blocks/blinded_blocks", h.NotImplemented)
 	e.POST("/eth/v2/beacon/blocks/blinded_blocks", h.NotImplemented)
 	e.POST("/eth/v1/beacon/blocks", h.NotImplemented)
 	e.POST("/eth/v2/beacon/blocks", h.NotImplemented)
-		e.GET("/eth/v2/beacon/blocks/:block_id", h.GetBlock)
+	e.GET("/eth/v2/beacon/blocks/:block_id", h.GetBlock)
 	e.GET("/eth/v1/beacon/blocks/:block_id/root", h.GetBlockRoot)
-	e.GET("/eth/v1/beacon/blocks/:block_id/attestations", h.GetStateAttestations)
-		e.GET("/eth/v1/beacon/blob_sidecars/:block_id", h.GetBlobSidecars)
+	e.GET("/eth/v1/beacon/blocks/:block_id/attestations", h.GetBlockAttestations)
+	e.GET("/eth/v1/beacon/blob_sidecars/:block_id", h.GetBlobSidecars)
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id", h.GetSyncCommiteeAwards)
 	e.GET("/eth/v1/beacon/deposit_snapshot", h.GetDepositSnapshot)
 	e.GET("/eth/v1/beacon/rewards/block/:block_id", h.GetBlockAwards)
@@ -120,11 +117,12 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/pool/attester_slashings", h.NotImplemented)
 	e.GET("/eth/v1/beacon/pool/proposer_slashings", h.NotImplemented)
 	e.POST("/eth/v1/beacon/pool/proposer_slashings", h.NotImplemented)
+
 	e.POST("/eth/v1/beacon/pool/sync_committees", h.PostPoolSyncCommitteeSignature)
-		e.GET("/eth/v1/beacon/pool/voluntary_exits", h.GetPoolVoluntaryExits)
-		e.POST("/eth/v1/beacon/pool/voluntary_exits", h.PostPoolVoluntaryExits)
-		e.GET("/eth/v1/beacon/pool/bls_to_execution_changes", h.GetPoolSignedBLSExecutionChanges)
-		e.POST("/eth/v1/beacon/pool/bls_to_execution_changes", h.PostPoolSignedBLSExecutionChanges)
+	e.GET("/eth/v1/beacon/pool/voluntary_exits", h.GetPoolVoluntaryExits)
+	e.POST("/eth/v1/beacon/pool/voluntary_exits", h.PostPoolVoluntaryExits)
+	e.GET("/eth/v1/beacon/pool/bls_to_execution_changes", h.GetPoolSignedBLSExecutionChanges)
+	e.POST("/eth/v1/beacon/pool/bls_to_execution_changes", h.PostPoolSignedBLSExecutionChanges)
 }
 
 func assignBuilderRoutes(e *echo.Echo, h Handlers) {

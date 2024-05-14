@@ -9,19 +9,22 @@ import (
 	middleware "github.com/labstack/echo/v4/middleware"
 )
 
-func NewServer(corsConfig middleware.CORSConfig, loggingConfig middleware.LoggerConfig, port string) {
+func NewServer(corsConfig middleware.CORSConfig, loggingConfig middleware.LoggerConfig) *echo.Echo {
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
 	e.Validator = &handlers.CustomValidator{Validator: validator.New(validator.WithRequiredStructEnabled())}
 	server.UseMiddlewares(e, middleware.CORSWithConfig(corsConfig), middleware.LoggerWithConfig(loggingConfig))
 	server.AssignRoutes(e, handlers.RouteHandlers{Backend: backend.Backend{}})
-	e.Logger.Fatal(e.Start(port))
+	return e
 }
 
 func run() {
-	NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig, ":8080")
+	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
 func main() {
 	run()
 }
+
+

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	// types "github.com/berachain/beacon-kit/mod/api/server/types"
 	echo "github.com/labstack/echo/v4"
 )
 

@@ -6,10 +6,6 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (rh RouteHandlers) NotImplemented(c echo.Context) (err error) {
-	return c.JSON(http.StatusNotImplemented, "Not Implemented")
-}
-
 func (rh RouteHandlers) GetGenesis(c echo.Context) (err error) {
 	rh.Backend.GetGenesis()
 	return c.String(http.StatusOK, "Genesis")
@@ -70,125 +66,160 @@ func (rh RouteHandlers) GetStateValidator(c echo.Context) (err error) {
 }
 
 func (rh RouteHandlers) GetStateValidatorBalances(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "StateValidatorBalances")
+	return c.String(http.StatusOK, "StateValidatorBalances")
 }
 
 func (rh RouteHandlers) PostStateValidatorBalances(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostStateValidatorBalances")
+	return c.String(http.StatusOK, "PostStateValidatorBalances")
 }
 
 func (rh RouteHandlers) GetStateCommittees(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "StateCommittees")
+	return c.String(http.StatusOK, "StateCommittees")
 }
 
 func (rh RouteHandlers) GetStateSyncCommittees(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "StateSyncCommittees")
+	return c.String(http.StatusOK, "StateSyncCommittees")
 }
 
 func (rh RouteHandlers) GetStateRandao(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "StateRandao")
+	params, err := BindAndValidate[types.RandaoRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetStateRandao(params.StateId, params.Epoch)
+	return c.String(http.StatusOK, "StateRandao")
 }
 
 func (rh RouteHandlers) GetBlockHeaders(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlockHeaders")
+	params, err := BindAndValidate[types.BeaconHeadersRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetStateRandao(params.Slot, params.ParentRoot)
+	return c.String(http.StatusOK, "BlockHeaders")
 }
 
 func (rh RouteHandlers) GetBlockHeader(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlockHeader")
-}
-
-func (rh RouteHandlers) PostSignedBlindBlockV1(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "SignedBlindBlockV1")
-}
-
-func (rh RouteHandlers) PostSignedBlindBlockV2(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "SignedBlindBlockV2")
-}
-
-func (rh RouteHandlers) PostSignedBlockV1(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "SignedBlockV1")
-}
-
-func (rh RouteHandlers) PostSignedBlockV2(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "SignedBlockV2")
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlockHeader(params.BlockId)
+	return c.String(http.StatusOK, "BlockHeaders")
 }
 
 func (rh RouteHandlers) GetBlock(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "Block")
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlock(params.BlockId)
+	return c.String(http.StatusOK, "Block")
 }
 
 func (rh RouteHandlers) GetBlockRoot(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlockRoot")
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlockRoot(params.BlockId)
+	return c.String(http.StatusOK, "BlockRoot")
 }
 
-func (rh RouteHandlers) GetStateAttestations(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "StateAttestations")
+func (rh RouteHandlers) GetBlockAttestations(c echo.Context) (err error) {
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlockAttestations(params.BlockId)
+	return c.String(http.StatusOK, "BlockAttestations")
 }
 
 func (rh RouteHandlers) GetBlobSidecars(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlobSidecars")
+	params, err := BindAndValidate[types.BlobSidecarRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlobSidecars(params.BlockId, params.Indices)
+	return c.String(http.StatusOK, "GetBlobSidecars")
 }
 
 func (rh RouteHandlers) GetSyncCommiteeAwards(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "SyncCommiteeAwards")
+	params, err := BindAndValidate[types.SyncComitteeAwardsRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlobSidecars(params.BlockId, params.Ids)
+	return c.String(http.StatusOK, "GetBlobSidecars")
 }
 
 func (rh RouteHandlers) GetDepositSnapshot(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "DepositSnapshot")
+	rh.Backend.GetDepositSnapshot()
+	return c.String(http.StatusOK, "GetDepositSnapshot")
 }
 
 func (rh RouteHandlers) GetBlockAwards(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlockAwards")
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlockAwards(params.BlockId)
+	return c.String(http.StatusOK, "GetBlockAwards")
 }
 
 func (rh RouteHandlers) GetAttestationRewards(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "AttestationRewards")
+	params, err := BindAndValidate[types.GetAttestationRewardsRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetAttestationRewards(params.Epoch, params.Ids)
+	return c.String(http.StatusOK, "GetAttestationRewards")
 }
 
 func (rh RouteHandlers) GetBlindedBlock(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "BlindedBlock")
+	params, err := BindAndValidate[types.BlockIdRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetBlindedBlock(params.BlockId)
+	return c.String(http.StatusOK, "GetBlindedBlock")
 }
 
 func (rh RouteHandlers) GetPoolAttestations(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PoolAttestations")
+	params, err := BindAndValidate[types.GetPoolAttestationRequest](c)
+	if err != nil {
+		return err
+	}
+	rh.Backend.GetPoolAttestations(params.Slot, params.CommitteeIndex)
+	return c.String(http.StatusOK, "GetPoolAttestations")
 }
 
 func (rh RouteHandlers) PostPoolAttestations(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolAttestations")
-}
-
-func (rh RouteHandlers) GetPoolAttesterSlashings(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PoolAttesterSlashings")
-}
-
-func (rh RouteHandlers) PostPoolAttesterSlashings(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolAttesterSlashings")
-}
-
-func (rh RouteHandlers) GetPoolProposerSlashings(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PoolProposerSlashings")
-}
-
-func (rh RouteHandlers) PostPoolProposerSlashings(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolProposerSlashings")
+	rh.Backend.PostPoolAttestations("")
+	return c.String(http.StatusOK, "PostPoolAttestations")
 }
 
 func (rh RouteHandlers) PostPoolSyncCommitteeSignature(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolSyncCommitteeSignature")
+	rh.Backend.PostPoolSyncCommitteeSignature()
+	return c.String(http.StatusOK, "PostPoolSyncCommitteeSignature")
 }
 
 func (rh RouteHandlers) GetPoolVoluntaryExits(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PoolVoluntaryExits")
+	rh.Backend.GetPoolVoluntaryExits()
+	return c.String(http.StatusOK, "PoolVoluntaryExits")
 }
 
 func (rh RouteHandlers) PostPoolVoluntaryExits(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolVoluntaryExits")
+	rh.Backend.PostPoolVoluntaryExits()
+	return c.String(http.StatusOK, "PostPoolVoluntaryExits")
 }
 
 func (rh RouteHandlers) GetPoolSignedBLSExecutionChanges(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PoolSignedBLSExecutionChanges")
+	rh.Backend.GetPoolSignedBLSExecutionChanges()
+	return c.String(http.StatusOK, "PoolSignedBLSExecutionChanges")
 }
 
 func (rh RouteHandlers) PostPoolSignedBLSExecutionChanges(c echo.Context) (err error) {
-	return c.String(http.StatusNotImplemented, "PostPoolSignedBLSExecutionChanges")
+	rh.Backend.PostPoolSignedBLSExecutionChanges()
+	return c.String(http.StatusOK, "PostPoolSignedBLSExecutionChanges")
 }

@@ -5,6 +5,11 @@ type StateIdRequest struct {
 	StateId string `param:"state_id" validate:"required,oneof=head genesis finalized justified"`
 }
 
+// custom validator? <slot> <hex>
+type BlockIdRequest struct {
+	BlockId string `query:"block_id" validate:"required,oneof=genesis finalized justified"`
+}
+
 type StateValidatorsGetRequest struct {
 	StateIdRequest
 	Id     []string `query:"id" validate:"dive,hexadecimal,lte=98"`
@@ -38,7 +43,7 @@ type EpochOptionalRequest struct {
 }
 
 type EpochRequest struct {
-	Epoch string `query:"epoch" validate:"required,numeric"`
+	Epoch string `param:"epoch" validate:"required,numeric"`
 }
 
 type ComitteeIndexRequest struct {
@@ -71,6 +76,26 @@ type BeaconHeadersRequest struct {
 	ParentRoot string `query:"parent_root" validate:"hexadecimal"`
 }
 
+type BlobSidecarRequest struct {
+	BlockIdRequest
+	Indices []string `query:"indices" validate:"dive,numeric"`
+}
+
+type SyncComitteeAwardsRequest struct {
+	BlockIdRequest
+	Ids []string `json:"ids" validate:"required,dive,hexadecimal"`
+}
+
+type GetPoolAttestationRequest struct {
+	SlotRequest
+	CommitteeIndex string `query:"committee_index" validate:"numeric"`
+}
+
 type EventsRequest struct {
 	Topics []string `query:"topics" validate:"required,dive,oneof=head block block_gossip attestation voluntary_exit bls_to_execution_change proposer_slashing attester_slashing finalized_checkpoint chain_reorg contribution_and_proof light_client_finality_update light_client_optimistic_update payload_attributes blob_sidecar"`
+}
+
+type GetAttestationRewardsRequest struct {
+	EpochRequest
+	Ids []string `query:"ids" validate:"dive,hexadecimal,lte=98"`
 }

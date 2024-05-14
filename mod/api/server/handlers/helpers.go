@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-
 	types "github.com/berachain/beacon-kit/mod/api/server/types"
 	validator "github.com/go-playground/validator/v10"
 	echo "github.com/labstack/echo/v4"
