@@ -23,38 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bytes
+package hex
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+const (
+	prefix          = "0x"
+	prefixLen       = len(prefix)
+	badNibble       = ^uint64(0)
+	hexBase         = 16
+	initialCapacity = 10
+	encDecRatio     = 2
+	bytesPer64Bits  = 16 // 64/8
+	bytesPer256Bits = 64 // 256/8
+
+	// hexadecimal conversion constants.
+	hexBaseOffset       = '0'
+	hexAlphaOffsetUpper = 'A' - 10
+	hexAlphaOffsetLower = 'a' - 10
 )
-
-// B4 represents a 4-byte array.
-type B4 [4]byte
-
-// UnmarshalJSON implements the json.Unmarshaler interface for B4.
-func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// ToBytes4 is a utility function that transforms a byte slice into a fixed
-// 4-byte array. If the input exceeds 4 bytes, it gets truncated.
-func ToBytes4(input []byte) B4 {
-	//nolint:mnd // 32 bytes.
-	return [4]byte(ExtendToSize(input, 4))
-}
-
-// String returns the hex string representation of B4.
-func (h B4) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
-}
-
-// MarshalText implements the encoding.TextMarshaler interface for B4.
-func (h B4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
-func (h *B4) UnmarshalText(text []byte) error {
-	return unmarshalTextHelper(h[:], text)
-}

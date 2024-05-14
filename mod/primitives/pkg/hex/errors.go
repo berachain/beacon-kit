@@ -23,38 +23,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package bytes
+package hex
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"encoding/json"
+	"errors"
+	"reflect"
 )
 
-// B4 represents a 4-byte array.
-type B4 [4]byte
+var (
+	ErrEmptyString     = errors.New("empty hex string")
+	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
+	ErrOddLength       = errors.New("hex string of odd length")
+	ErrNonQuotedString = errors.New("non-quoted hex string")
+	ErrInvalidString   = errors.New("invalid hex string")
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B4.
-func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
+	ErrLeadingZero = errors.New("hex number with leading zero digits")
+	ErrEmptyNumber = errors.New("hex string \"0x\"")
+	ErrUint64Range = errors.New("hex number > 64 bits")
+	ErrBig256Range = errors.New("hex number > 256 bits")
 
-// ToBytes4 is a utility function that transforms a byte slice into a fixed
-// 4-byte array. If the input exceeds 4 bytes, it gets truncated.
-func ToBytes4(input []byte) B4 {
-	//nolint:mnd // 32 bytes.
-	return [4]byte(ExtendToSize(input, 4))
-}
+	ErrInvalidBigWordSize = errors.New("weird big.Word size")
+)
 
-// String returns the hex string representation of B4.
-func (h B4) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
-}
+// WrapUnmarshalError wraps an error occurring during JSON unmarshaling.
+func WrapUnmarshalError(err error, t reflect.Type) error {
+	if err != nil {
+		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
+	}
 
-// MarshalText implements the encoding.TextMarshaler interface for B4.
-func (h B4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
-func (h *B4) UnmarshalText(text []byte) error {
-	return unmarshalTextHelper(h[:], text)
+	return err
 }
