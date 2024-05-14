@@ -28,20 +28,25 @@ package main
 import (
 	"os"
 
-	app "github.com/berachain/beacon-kit/beacond/app"
+	"github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 func main() {
+	// Set the uber max procs
+	if _, err := maxprocs.Set(); err != nil {
+		os.Exit(1)
+	}
+
+	// Build the node using the node-builder.
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:            "beacond",
-				Description:     "beacond is a beacon node for any beacon-kit chain",
-				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				DepInjectConfig: app.Config(),
-			},
-		)
+		WithAppName("beacond").
+		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
+		WithAppCreator(app.NewBeaconKitAppWithDefaultBaseAppOptions).
+		WithDepInjectConfig(app.Config())
+
+	// Run the node.
 	if err := nb.RunNode(); err != nil {
 		os.Exit(1)
 	}

@@ -68,7 +68,7 @@ func NewKeeper(
 		cs: cs,
 		Backend: *storage.NewBackend(
 			cs,
-			dastore.New[types.ReadOnlyBeaconBlockBody](
+			dastore.New[types.BeaconBlockBody](
 				cs, filedb.NewRangeDB(fdb),
 			),
 			beacondb.New[

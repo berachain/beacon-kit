@@ -23,43 +23,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package e2e_test
+package abci
 
 import (
-	"encoding/hex"
-	"log"
-	"os/exec"
+	"context"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-// TestForgeScriptExecution tests the execution of a forge script
-// against the beacon-kit network.
-func (s *BeaconKitE2ESuite) TestForgeScriptExecution() {
-	// TODO: Fix foundry
-	s.T().Skip("Skipping forge script execution test")
-	url := s.KurtosisE2ESuite.JSONRPCBalancer().URL()
-	pk := hex.EncodeToString(
-		crypto.FromECDSA(s.GenesisAccount().PrivateKey()),
-	)
+// BuilderService is responsible for building beacon blocks.
+type BuilderService[
+	BeaconStateT state.BeaconState,
+	BlobsSidecarsT ssz.Marshallable,
+] interface {
+	RequestBestBlock(
+		context.Context,
+		BeaconStateT,
+		math.Slot,
+	) (types.BeaconBlock, BlobsSidecarsT, error)
+}
 
-	// Change directory to /contracts/ before executing the command
-	cmdStr := "cd ../../contracts && " +
-		"forge build && " +
-		"forge script ./script/DeployAndCallERC20.s.sol " +
-		"--broadcast --rpc-url=" + url + " " +
-		"--private-key=" + pk
-
-	// Execute the command
-	cmd := exec.Command("bash", "-c", cmdStr)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatalf(
-			"Failed to execute command: %s, with the error: %s",
-			cmdStr,
-			err,
-		)
-	}
-
-	s.Logger().Info("Output: %s\n", string(output))
+type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
+	ProcessSlot(state.BeaconState) error
+	BeaconState(context.Context) state.BeaconState
+	ProcessBeaconBlock(
+		context.Context,
+		state.BeaconState,
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		BlobsSidecarsT,
+	) error
+	PostBlockProcess(
+		context.Context,
+		state.BeaconState,
+		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
+	ChainSpec() primitives.ChainSpec
+	VerifyPayloadOnBlk(
+		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	) error
 }

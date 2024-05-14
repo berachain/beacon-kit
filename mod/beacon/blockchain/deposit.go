@@ -23,46 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package blockchain
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-// The AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[ReadOnlyBeaconBlockBodyT any, SidecarsT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, ReadOnlyBeaconBlockBodyT,
-	) bool
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, SidecarsT) error
+// RetrieveDepositsFromBlock gets logs in the Eth1 block
+// received from the execution client and processes them to
+// convert them into appropriate objects that can be consumed
+// by other services.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) retrieveDepositsFromBlock(
+	ctx context.Context,
+	blockNumber math.U64,
+) error {
+	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
+	if err != nil {
+		return err
+	}
+
+	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
 }
 
-// BlobVerifier is the interface for the blobs processor.
-type BlobProcessor[SidecarsT any] interface {
-	ProcessBlobs(
-		slot math.Slot,
-		avs AvailabilityStore[types.ReadOnlyBeaconBlockBody, SidecarsT],
-		sidecars SidecarsT,
-	) error
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor interface {
-	ProcessRandao(
-		state.BeaconState,
-		types.BeaconBlock,
-	) error
-	ProcessRandaoMixesReset(
-		state.BeaconState,
-	) error
+// PruneDepositEvents prunes deposit events.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) PruneDepositEvents(
+	ctx context.Context,
+	idx uint64,
+) error {
+	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
 }

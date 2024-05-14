@@ -23,6 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abi
+package core
 
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=abi --type=BeaconDepositContract --out=bdc.go
+// processRandaoReveal processes the randao reveal and
+// ensures it matches the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processRandaoReveal(
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	return sp.rp.ProcessRandao(st, blk)
+}
+
+// processRandaoMixesReset as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
+//
+//nolint:lll
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) processRandaoMixesReset(
+	st BeaconStateT,
+) error {
+	return sp.rp.ProcessRandaoMixesReset(st)
+}

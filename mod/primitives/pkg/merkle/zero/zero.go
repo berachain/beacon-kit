@@ -45,7 +45,7 @@ func InitZeroHashes(zeroHashesLevels int) {
 	}
 }
 
-//nolint:init // saves recomputing.
+//nolint:gochecknoinits // saves recomputing.
 func init() {
 	InitZeroHashes(NumZeroHashes)
 }

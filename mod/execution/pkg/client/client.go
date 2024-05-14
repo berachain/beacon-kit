@@ -37,9 +37,7 @@ import (
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -222,24 +220,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 	}
 
 	return nil
-}
-
-// GetLogs retrieves the logs from the Ethereum execution client.
-// It calls the eth_getLogs method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) GetLogs(
-	ctx context.Context,
-	blockHash common.ExecutionHash,
-	addresses []common.ExecutionAddress,
-) ([]engineprimitives.Log, error) {
-	// Create a filter query for the block, to acquire all logs
-	// from contracts that we care about.
-	query := ethereum.FilterQuery{
-		Addresses: addresses,
-		BlockHash: &blockHash,
-	}
-
-	// Gather all the logs according to the query.
-	return s.FilterLogs(ctx, query)
 }
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.

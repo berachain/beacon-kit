@@ -23,14 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package core
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
-type BeaconStorageBackend interface {
-	BeaconState(context.Context) state.BeaconState
+// ProcessBlobs processes the blobs and ensures they match the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) ProcessBlobs(
+	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	sidecars BlobSidecarsT,
+) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	return sp.bp.ProcessBlobs(slot, avs, sidecars)
 }

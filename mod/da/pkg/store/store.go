@@ -36,17 +36,17 @@ import (
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store[ReadOnlyBeaconBlockBodyT ReadOnlyBeaconBlockBody] struct {
+type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	IndexDB
 	chainSpec primitives.ChainSpec
 }
 
 // New creates a new instance of the AvailabilityStore.
-func New[ReadOnlyBeaconBlockT ReadOnlyBeaconBlockBody](
+func New[BeaconBlockT BeaconBlockBody](
 	chainSpec primitives.ChainSpec,
 	db IndexDB,
-) *Store[ReadOnlyBeaconBlockT] {
-	return &Store[ReadOnlyBeaconBlockT]{
+) *Store[BeaconBlockT] {
+	return &Store[BeaconBlockT]{
 		chainSpec: chainSpec,
 		IndexDB:   db,
 	}
@@ -71,7 +71,7 @@ func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store[ReadOnlyBeaconBlockT]) Persist(
+func (s *Store[BeaconBlockT]) Persist(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {

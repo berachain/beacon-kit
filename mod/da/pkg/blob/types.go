@@ -23,21 +23,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Package maxprocs automatically set GOMAXPROCS to match the Linux container
-// CPU quota (if any), returning any error encountered and an undo function.
-// Set is a no-op on non-Linux systems and in Linux environments without a
-// configured CPU quota.
-package maxprocs
+package blob
 
 import (
-	"go.uber.org/automaxprocs/maxprocs"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// Initialize Uber maxprocs.
-//
-//nolint:init // Initialize Uber maxprocs.
-func init() {
-	if _, err := maxprocs.Set(); err != nil {
-		panic(err)
-	}
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	GetBody() BeaconBlockBodyT
+	GetHeader() *types.BeaconBlockHeader
+}
+
+type BeaconBlockBody interface {
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetTopLevelRoots() ([][32]byte, error)
+	Length() uint64
+}
+
+// ChainSpec represents a chain spec.
+type ChainSpec interface {
+	MaxBlobCommitmentsPerBlock() uint64
 }

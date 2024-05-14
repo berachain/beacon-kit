@@ -23,51 +23,45 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package builder
+package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
-type PayloadBuilder[
-	BeaconStateT BeaconState,
-] struct {
-	cfg       *Config
-	chainSpec primitives.ChainSpec
-	logger    log.Logger[any]
-
-	// ee is the execution engine.
-	ee ExecutionEngine
-
-	// pc is the payload ID cache, it is used to store
-	// "in-flight" payloads that are being built on
-	// the execution client.
-	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
-	]
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		context.Context, math.Slot, BeaconBlockBodyT,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// NewService creates a new service.
-func New[BeaconStateT BeaconState](
-	cfg *Config,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger[any],
-	ee ExecutionEngine,
-	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
-	],
-) *PayloadBuilder[BeaconStateT] {
-	return &PayloadBuilder[BeaconStateT]{
-		cfg:       cfg,
-		chainSpec: chainSpec,
-		logger:    logger,
-		ee:        ee,
-		pc:        pc,
-	}
+// BlobVerifier is the interface for the blobs processor.
+type BlobProcessor[BlobSidecarsT any] interface {
+	ProcessBlobs(
+		slot math.Slot,
+		avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+		sidecars BlobSidecarsT,
+	) error
+}
+
+// RandaoProcessor is the interface for the randao processor.
+type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
+	ProcessRandao(
+		BeaconStateT,
+		BeaconBlockT,
+	) error
+	ProcessRandaoMixesReset(
+		BeaconStateT,
+	) error
 }

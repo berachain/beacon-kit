@@ -23,23 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package verification
 
 import (
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-const (
-	// Name of the Deposit event
-	// in the deposit contract.
-	DepositEventName = "Deposit"
-)
-
-//nolint:gochecknoglobals // Avoid re-allocating these variables.
-var (
-	// Signature and type of the Deposit event
-	// in the deposit contract.
-	DepositEventSig = crypto.Keccak256Hash(
-		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
-	)
-)
+// BeaconState represents the state of the beacon chain.
+type BeaconState interface {
+	GetSlot() (math.Slot, error)
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+}
