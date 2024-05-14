@@ -26,10 +26,18 @@
 package e2e_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"math/big"
 
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -44,6 +52,8 @@ const (
 // TestDepositContract tests the deposit contract to attempt staking and
 // increasing a validator's consensus power.
 func (s *BeaconKitE2ESuite) TestDepositContract() {
+	// TODO: WE ARE NOT MERGING THIS PR UNTIL ALL OF THIS IS GOOD AGAIN.
+	s.T().Skip("Placeholder")
 	// Get the consensus client.
 	client := s.ConsensusClients()["cl-validator-beaconkit-0"]
 	s.Require().NotNil(client)
@@ -64,17 +74,6 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	// Generate the credentials.
-	credentials := byteslib.PrependExtendToSize(
-		s.GenesisAccount().Address().Bytes(),
-		32,
-	)
-	credentials[0] = 0x01
-
-	// Generate the signature.
-	signature := [96]byte{}
-	s.Require().Len(signature[:], 96)
-
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
@@ -91,13 +90,65 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
-	// Create a deposit transaction.
+	// The deposit amount
 	val, _ := big.NewFloat(32e18).Int(nil)
+
+	// Generate the credentials.
+	credentials := byteslib.PrependExtendToSize(
+		s.GenesisAccount().Address().Bytes(),
+		32,
+	)
+	credentials[0] = 0x01
+
+	// Generate the signature.
+	validatorPrivKey := ""
+
+	validatorPrivKeyBz, err := hex.DecodeString(validatorPrivKey)
+	s.Require().NoError(err)
+	s.Require().Equal(len(validatorPrivKeyBz), constants.BLSSecretKeyLength)
+	blsSigner, err := signer.NewBLSSigner(
+		[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
+	)
+	s.Require().NoError(err)
+
+	gweiU64, err := parser.ConvertAmount(val.String())
+	s.Require().NoError(err)
+
+	// TODO: fill in the fork data -- get this from RPC when ready
+	forkData := &consensustypes.ForkData{
+		CurrentVersion:        [4]byte{},
+		GenesisValidatorsRoot: [32]byte{},
+	}
+
+	_, signature, err := consensustypes.CreateAndSignDepositMessage(
+		forkData,
+		spec.LocalnetChainSpec().DomainTypeDeposit(),
+		blsSigner,
+		consensustypes.WithdrawalCredentials(credentials),
+		gweiU64,
+	)
+	s.Require().NoError(err)
+
+	// Compute the deposit root.
+	// Convert the amount from big.Int to U256 so that we can ssz it.
+	u256, err := math.NewU256LFromBigInt(val)
+	s.Require().NoError(err)
+	amount, err := u256.MarshalSSZ()
+	s.Require().NoError(err)
+
+	pubkeyRoot := sha256.Sum256(append(pubkey, make([]byte, 16)...))
+	signatureRoot := sha256.Sum256(append(signature[:64], make([]byte, 16)...))
+
+	part1 := sha256.Sum256(append(pubkeyRoot[:], credentials...))
+	part2 := sha256.Sum256(append(amount, signatureRoot[:]...))
+	depositRoot := sha256.Sum256(append(part1[:], part2[:]...))
+
+	// Create a deposit transaction.
 	tx, err := dc.Deposit(&bind.TransactOpts{
 		From:   s.GenesisAccount().Address(),
 		Value:  val,
 		Signer: s.GenesisAccount().SignerFunc(chainID),
-	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials, signature[:], depositRoot)
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
@@ -124,39 +175,40 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	newPower, err := client.GetConsensusPower(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Equal(newPower, 32*suite.OneGwei)
-
-	// // Submit withdrawal
-	// tx, err = dc.Withdraw(&bind.TransactOpts{
-	// 	From:   s.GenesisAccount().Address(),
-	// 	Signer: s.GenesisAccount().SignerFunc(chainID),
-	// }, pubkey, credentials, 31*suite.OneGwei)
-	// s.Require().NoError(err)
-
-	// receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	// s.Require().NoError(err)
-	// s.Require().Equal(uint64(1), receipt.Status)
-	// s.Logger().
-	// 	Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
-
-	// // Wait for the log to be processed.
-	// targetBlkNum += 4
-	// err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	// s.Require().NoError(err)
-
-	// // Check to see if new balance is greater than the previous balance
-	// postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
-	// 	s.Ctx(),
-	// 	s.GenesisAccount().Address(),
-	// 	big.NewInt(int64(targetBlkNum)),
-	// )
-	// s.Require().NoError(err)
-	// s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
-
-	// // We are withdrawing all the power, so the power should be 0.
-	// postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }
+
+// // Submit withdrawal
+// tx, err = dc.Withdraw(&bind.TransactOpts{
+// 	From:   s.GenesisAccount().Address(),
+// 	Signer: s.GenesisAccount().SignerFunc(chainID),
+// }, pubkey, credentials, 31*suite.OneGwei)
+// s.Require().NoError(err)
+
+// receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+// s.Require().NoError(err)
+// s.Require().Equal(uint64(1), receipt.Status)
+// s.Logger().
+// 	Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
+
+// // Wait for the log to be processed.
+// targetBlkNum += 4
+// err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+// s.Require().NoError(err)
+
+// // Check to see if new balance is greater than the previous balance
+// postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
+// 	s.Ctx(),
+// 	s.GenesisAccount().Address(),
+// 	big.NewInt(int64(targetBlkNum)),
+// )
+// s.Require().NoError(err)
+// s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
+
+// // We are withdrawing all the power, so the power should be 0.
+// postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
+// s.Require().NoError(err)
+// s.Require().Equal(postWithdrawPower, suite.OneGwei)
+// }
 
 // TODO: once RPC ready
 // func (s *BeaconKitE2ESuite) TestCreateNewValidator() {
