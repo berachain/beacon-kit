@@ -62,6 +62,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	blobGossiper p2p.Publisher[
 		BlobsSidecarsT, []byte,
 	]
+
 	beaconBlockGossiper p2p.PublisherReceiver[
 		types.BeaconBlock,
 		[]byte,
