@@ -79,7 +79,10 @@ func sliceBlockData(start int, end int) []byte {
 	if err != nil {
 		return nil
 	}
-	data, _ := s.MarshalSSZ()
+	data, err := s.MarshalSSZ()
+	if err != nil || data == nil {
+		return make([]byte, 0)
+	}
 	if len(data) > end {
 		return data[start:end]
 	}
