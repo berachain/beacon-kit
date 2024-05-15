@@ -32,10 +32,15 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	filedb "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -62,27 +67,43 @@ type DepInjectInput struct {
 type DepInjectOutput struct {
 	depinject.Out
 
-	Keeper *keeper.Keeper
+	Keeper *storage.Backend[state.BeaconState]
 	Module appmodule.AppModule
 }
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := keeper.NewKeeper(
-		filedb.NewDB(
-			filedb.WithRootDirectory(
-				cast.ToString(in.AppOpts.Get(flags.FlagHome))+"/data/blobs"),
-			filedb.WithFileExtension("ssz"),
-			filedb.WithDirectoryPermissions(os.ModePerm),
-			filedb.WithLogger(in.Environment.Logger),
-		),
-		in.Environment,
+	k := storage.NewBackend[state.BeaconState](
 		in.ChainSpec,
+		dastore.New[types.BeaconBlockBody](
+			in.ChainSpec, filedb.NewRangeDB(filedb.NewDB(
+				filedb.WithRootDirectory(
+					cast.ToString(
+						in.AppOpts.Get(flags.FlagHome),
+					)+"/data/blobs",
+				),
+				filedb.WithFileExtension("ssz"),
+				filedb.WithDirectoryPermissions(os.ModePerm),
+				filedb.WithLogger(in.Environment.Logger),
+			),
+			),
+		),
+		beacondb.New[
+			*types.Fork,
+			*types.BeaconBlockHeader,
+			engineprimitives.ExecutionPayloadHeader,
+			*types.Eth1Data,
+			*types.Validator,
+		](in.Environment.KVStoreService, DenebPayloadFactory),
 		in.DepositStore,
 	)
-
 	return DepInjectOutput{
 		Keeper: k,
-		Module: NewAppModule(k),
+		Module: NewAppModule(k, in.ChainSpec),
 	}
+}
+
+// TODO: move this.
+func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
+	return &engineprimitives.ExecutionPayloadHeaderDeneb{}
 }

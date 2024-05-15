@@ -32,12 +32,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
-	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
@@ -59,7 +58,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	BeaconKeeper     *keeper.Keeper
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
 		types.BeaconBlockBody,
 		state.BeaconState,
@@ -70,7 +68,8 @@ type BeaconApp struct {
 			state.BeaconState,
 			*datypes.BlobSidecars,
 			*deposit.KVStore,
-		]]
+		],
+	]
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
@@ -122,7 +121,6 @@ func NewBeaconKitApp(
 		),
 		&appBuilder,
 		&app.ConsensusParamsKeeper,
-		&app.BeaconKeeper,
 		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)

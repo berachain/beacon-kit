@@ -36,15 +36,15 @@ require (
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
+	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240510171419-8088d5e4f810
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240509094503-43f6859e2926
-	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240509094503-43f6859e2926
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
+	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0

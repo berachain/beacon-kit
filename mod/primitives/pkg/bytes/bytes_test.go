@@ -36,6 +36,105 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
+func TestFromHex(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.Bytes
+		wantErr bool
+	}{
+		{
+			name:    "Valid hex string",
+			input:   "0x48656c6c6f",
+			want:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			wantErr: false,
+		},
+		{
+			name:    "Empty hex string",
+			input:   "0x",
+			want:    bytes.Bytes{},
+			wantErr: false,
+		},
+		{
+			name:    "Invalid hex string - odd length",
+			input:   "0x12345",
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "Invalid hex string - no 0x prefix",
+			input:   "12345",
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "Empty input string",
+			input:   "",
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := bytes.FromHex(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FromHex() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !stdbytes.Equal(got, tt.want) {
+				t.Errorf("FromHex() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMustFromHex(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expected    bytes.Bytes
+		shouldPanic bool
+	}{
+		{
+			name:        "Valid hex string",
+			input:       "0x48656c6c6f",
+			expected:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			shouldPanic: false,
+		},
+		{
+			name:        "Empty hex string",
+			input:       "0x",
+			expected:    bytes.Bytes{},
+			shouldPanic: false,
+		},
+		{
+			name:        "Invalid hex string",
+			input:       "0x12345",
+			expected:    nil,
+			shouldPanic: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.shouldPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("MustFromHex did not panic for input: %s", test.input)
+					}
+				}()
+				_ = bytes.MustFromHex(test.input)
+			} else {
+				result := bytes.MustFromHex(test.input)
+				if !stdbytes.Equal(result, test.expected) {
+					t.Errorf("Unexpected result for input %s. Expected: %v, Got: %v", test.input, test.expected, result)
+				}
+			}
+		})
+	}
+}
+
 func TestSafeCopy(t *testing.T) {
 	tests := []struct {
 		name     string

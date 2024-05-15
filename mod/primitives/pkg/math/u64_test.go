@@ -26,8 +26,10 @@
 package math_test
 
 import (
+	"reflect"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -152,6 +154,86 @@ func TestU64_RoundTripSSZ(t *testing.T) {
 			err = unmarshaled.UnmarshalSSZ(tt.expected)
 			require.NoError(t, err)
 			require.Equal(t, tt.value, unmarshaled)
+		})
+	}
+}
+
+func TestU64_MarshalText(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    uint64
+		expected string
+	}{
+		{"Zero value", 0, "0x0"},
+		{"Small value", 123, "0x7b"},
+		{"Max uint64 value", ^uint64(0), "0xffffffffffffffff"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := math.U64(tt.input)
+			result, err := u.MarshalText()
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, string(result))
+		})
+	}
+}
+
+func TestU64_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		json     string
+		expected uint64
+		err      error
+	}{
+		{"Valid hex string", "\"0x7b\"", 123, nil},
+		{"Zero value", "\"0x0\"", 0, nil},
+		{"Max uint64 value", "\"0xffffffffffffffff\"", ^uint64(0), nil},
+		{"Invalid hex string", "\"0xxyz\"", 0,
+			hex.WrapUnmarshalError(hex.ErrInvalidString, reflect.TypeOf(math.U64(0)))},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var u math.U64
+			err := u.UnmarshalJSON([]byte(tt.json))
+			if tt.err != nil {
+				require.Error(t, err)
+				require.Equal(t, tt.err, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, math.U64(tt.expected), u)
+			}
+		})
+	}
+}
+
+func TestU64_UnmarshalText(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected uint64
+		err      error
+	}{
+		{"Valid hex string", "0x7b", 123, nil},
+		{"Zero value", "0x0", 0, nil},
+		{"Max uint64 value", "0xffffffffffffffff", ^uint64(0), nil},
+		{"Invalid hex string", "0xxyz", 0, hex.ErrInvalidString},
+		{"Overflow hex string", "0x10000000000000000", 0, hex.ErrUint64Range},
+		{"Empty string", "", 0, hex.ErrEmptyString},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var u math.U64
+			err := u.UnmarshalText([]byte(tt.input))
+			if tt.err != nil {
+				require.Error(t, err)
+				require.EqualError(t, err, tt.err.Error())
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, math.U64(tt.expected), u)
+			}
 		})
 	}
 }
