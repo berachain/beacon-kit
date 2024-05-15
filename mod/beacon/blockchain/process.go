@@ -298,7 +298,7 @@ func (s *Service[
 
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(
-		&engineprimitives.ExecutionPayloadHeaderDeneb{
+		&types.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
 			StateRoot:        payload.GetStateRoot(),
