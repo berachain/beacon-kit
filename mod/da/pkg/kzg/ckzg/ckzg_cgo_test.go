@@ -33,10 +33,8 @@ import (
 	"os"
 	"testing"
 
-	ckzg "github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -50,27 +48,6 @@ var (
 	validProof      = eip4844.KZGProof{}
 	validCommitment = eip4844.KZGCommitment{}
 )
-
-var verifier *ckzg.Verifier
-
-// TestMain sets up the trusted setup before running the tests
-func TestMain(m *testing.M) {
-	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "./files/kzg-trusted-setup.json")
-
-	dummyT := &testing.T{}
-	require.NoError(dummyT, err)
-	var ts gokzg4844.JSONTrustedSetup
-	err = json.Unmarshal(file, &ts)
-	require.NoError(dummyT, err)
-
-	verifier, err = ckzg.NewVerifier(&ts)
-
-	require.NoError(dummyT, err)
-	require.NotNil(dummyT, verifier)
-	// Run the tests
-	os.Exit(m.Run())
-}
 
 func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 	setup(t, "./files/test_data.json")
@@ -100,7 +77,7 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := verifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
+			err := globalVerifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
@@ -194,6 +171,6 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 		args.Commitments[i] = commitment
 	}
 
-	err = verifier.VerifyBlobProofBatch(args)
+	err = globalVerifier.VerifyBlobProofBatch(args)
 	require.NoError(t, err)
 }

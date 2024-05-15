@@ -32,45 +32,12 @@ import (
 	"os"
 	"testing"
 
-	ckzg "github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
-var verifier *ckzg.Verifier
-
-var (
-	validBlob       = &eip4844.Blob{}
-	validProof      = eip4844.KZGProof{}
-	validCommitment = eip4844.KZGCommitment{}
-)
-
-func TestMain(m *testing.M) {
-	// Load the trusted setup before any tests are run
-	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "./files/kzg-trusted-setup.json")
-	if err != nil {
-		panic(err)
-	}
-
-	var ts gokzg4844.JSONTrustedSetup
-	err = json.Unmarshal(file, &ts)
-	if err != nil {
-		panic(err)
-	}
-
-	verifier, err = ckzg.NewVerifier(&ts)
-	if err != nil {
-		panic(err)
-	}
-
-	// Run the tests
-	os.Exit(m.Run())
-}
-
-func setup(t *testing.T, filePath string) {
+func setupTestData(t *testing.T, filePath string) (
+	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
 	data, err := os.ReadFile(filePath)
 	require.NoError(t, err)
 	type Test struct {
@@ -85,19 +52,28 @@ func setup(t *testing.T, filePath string) {
 	err = json.Unmarshal(data, &test)
 	require.NoError(t, err)
 
-	errBlob := validBlob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
+	var blob eip4844.Blob
+	errBlob := blob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
 	require.NoError(t, errBlob)
 
-	errCommitment := validCommitment.UnmarshalJSON([]byte(
+	var commitment eip4844.KZGCommitment
+
+	errCommitment := commitment.UnmarshalJSON([]byte(
 		`"` + test.Input.Commitment + `"`))
 	require.NoError(t, errCommitment)
 
-	errProof := validProof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
+	var proof eip4844.KZGProof
+
+	errProof := proof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
 	require.NoError(t, errProof)
+
+	return &blob, proof, commitment
 }
 
 func TestVerifyBlobKZGProof(t *testing.T) {
-	setup(t, "./files/test_data.json")
+	validBlob, validProof, validCommitment := setupTestData(
+		t, "./files/test_data.json")
+
 	testCases := []struct {
 		name        string
 		blob        *eip4844.Blob
@@ -116,7 +92,7 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := verifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
+			err := globalVerifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
 			if tc.expectError {
 				require.Error(t, err, "cgo is not enabled")
 			} else {
