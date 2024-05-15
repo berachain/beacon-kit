@@ -73,7 +73,7 @@ func FromUint64[U ~uint64](i U) String {
 }
 
 // FromBigInt encodes bigint as a hex string with 0x prefix.
-// Precondition: bigint is non-negative
+// Precondition: bigint is non-negative.
 func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
 		return NewString("0x0")

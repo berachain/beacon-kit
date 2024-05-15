@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// nolint:lll // long strings
+//nolint:lll // long strings
 package hex_test
 
 import (
@@ -175,7 +175,7 @@ func TestFromBytes(t *testing.T) {
 
 // ====================== Numeric ===========================.
 
-// FromUint64, then ToUint64
+// FromUint64, then ToUint64.
 func TestUint64RoundTrip(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -218,7 +218,7 @@ func TestUint64RoundTrip(t *testing.T) {
 	}
 }
 
-// FromBigInt, then ToBigInt
+// FromBigInt, then ToBigInt.
 func TestBigIntRoundTrip(t *testing.T) {
 	// assume FromBigInt only called on non-negative big.Int
 	tests := []struct {
