@@ -26,17 +26,12 @@
 package keeper
 
 import (
-	"context"
-
 	"cosmossdk.io/core/appmodule"
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -79,85 +74,4 @@ func NewKeeper(
 				*types.Validator,
 			](env.KVStoreService, DenebPayloadFactory), ddb),
 	}
-}
-
-// ApplyAndReturnValidatorSetUpdates returns the validator set updates from
-// the beacon state.
-//
-// TODO: this function is horribly inefficient and should be replaced with a
-// more efficient implementation, that does not update the entire
-// valset every block.
-func (k *Keeper) ApplyAndReturnValidatorSetUpdates(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	store := k.BeaconStore().WithContext(ctx)
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		panic(err)
-	}
-
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range val {
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx math.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey)
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: "bls12_381",
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
-	}
-
-	// Save the store.
-	store.Save()
-	return validatorUpdates, nil
-}
-
-// InitGenesis initializes the genesis state of the module.
-func (k *Keeper) InitGenesis(
-	ctx context.Context,
-	data *deneb.BeaconState,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	// Load the store.
-	store := k.BeaconStore().WithContext(ctx)
-	sdb := state.NewBeaconStateFromDB(store, k.cs)
-	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
-		return nil, err
-	}
-
-	// Build ValidatorUpdates for CometBFT.
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	blsType := "bls12_381"
-	for _, validator := range data.Validators {
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: blsType,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
-	}
-	return validatorUpdates, nil
-}
-
-// ExportGenesis exports the current state of the module as genesis state.
-func (k *Keeper) ExportGenesis(_ context.Context) *deneb.BeaconState {
-	return &deneb.BeaconState{}
 }

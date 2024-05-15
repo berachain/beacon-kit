@@ -32,8 +32,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/keeper"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	filedb "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -83,6 +83,6 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 
 	return DepInjectOutput{
 		Keeper: k,
-		Module: NewAppModule(k),
+		Module: NewAppModule(k, in.ChainSpec),
 	}
 }
