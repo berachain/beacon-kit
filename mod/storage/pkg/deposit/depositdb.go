@@ -30,6 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	v2db "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
@@ -42,15 +43,15 @@ const (
 var _ store.KVStoreService = (*KVStoreProvider)(nil)
 
 type KVStoreProvider struct {
-	*PebbleDB
+	store.KVStoreWithBatch
 }
 
 func NewKVStoreProvider(name, backend, dir string) (*KVStoreProvider, error) {
-	var db *PebbleDB
+	var db *v2db.PebbleDB
 	var err error
 	switch backend {
 	case "pebble":
-		db, err = NewPebbleDB(name, dir)
+		db, err = v2db.NewPebbleDB(name, dir)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +66,7 @@ func NewKVStoreProvider(name, backend, dir string) (*KVStoreProvider, error) {
 
 // OpenKVStore opens a new KV store.
 func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	return p.PebbleDB
+	return p.KVStoreWithBatch
 }
 
 // KVStore is a wrapper around an sdk.Context.
