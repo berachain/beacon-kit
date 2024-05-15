@@ -36,7 +36,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime"
+	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"

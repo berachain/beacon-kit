@@ -46,7 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
