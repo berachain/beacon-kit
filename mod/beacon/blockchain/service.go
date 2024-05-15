@@ -129,15 +129,8 @@ func (s *Service[
 // TODO: Remove
 func (s Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) BeaconState(
+]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
-	return s.bsb.BeaconState(ctx)
-}
-
-// TODO: Remove
-func (s Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ChainSpec() primitives.ChainSpec {
-	return s.cs
+	return s.bsb.StateFromContext(ctx)
 }

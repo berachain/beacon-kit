@@ -29,9 +29,10 @@ import (
 	"encoding/binary"
 	"math/big"
 	"math/bits"
+	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
 const (
@@ -40,6 +41,9 @@ const (
 	// U64NumBits is the number of bits in a U64.
 	U64NumBits = U64NumBytes * 8
 )
+
+//nolint:gochecknoglobals // stores the reflect type of U64.
+var uint64T = reflect.TypeOf(U64(0))
 
 // U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 // marshallable. We marshal U64 as hex strings in JSON in order to keep the
@@ -114,17 +118,34 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 
 // -------------------------- JSONMarshallable -------------------------
 
-// UnmarshalJSON parses a blob in hex syntax.
-func (u *U64) UnmarshalJSON(input []byte) error {
-	return (*hexutil.Uint64)(u).UnmarshalJSON(input)
-}
-
-// MarshalText returns the hex representation of b.
+// MarshalText implements encoding.TextMarshaler.
 func (u U64) MarshalText() ([]byte, error) {
-	return hexutil.Uint64(u).MarshalText()
+	return hex.MarshalText(u.Unwrap())
 }
 
-// ---------------------------- U64 Methods ----------------------------
+// UnmarshalJSON implements json.Unmarshaler.
+func (u *U64) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, u, uint64T)
+}
+
+// ---------------------------------- Hex ----------------------------------
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (u *U64) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalUint64Text(input)
+	if err != nil {
+		return err
+	}
+	*u = U64(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (u U64) String() hex.String {
+	return hex.FromUint64(u.Unwrap())
+}
+
+// ----------------------- U64 Mathematical Methods -----------------------
 
 // Unwrap returns a copy of the underlying uint64 value of U64.
 func (u U64) Unwrap() uint64 {

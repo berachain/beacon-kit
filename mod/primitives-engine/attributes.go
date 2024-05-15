@@ -66,7 +66,7 @@ func NewPayloadAttributes[
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
-	suggestedFeeReceipient common.ExecutionAddress,
+	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals []Withdrawal,
 	parentBeaconBlockRoot primitives.Root,
 ) (*PayloadAttributes[Withdrawal], error) {
@@ -74,7 +74,7 @@ func NewPayloadAttributes[
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
-		SuggestedFeeRecipient: suggestedFeeReceipient,
+		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}

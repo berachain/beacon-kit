@@ -49,7 +49,7 @@ import (
 // TODO: The keeper will eventually be dissolved.
 type Keeper struct {
 	cs primitives.ChainSpec
-	storage.Backend
+	storage.Backend[state.BeaconState]
 }
 
 // TODO: move this.
@@ -66,7 +66,7 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cs: cs,
-		Backend: *storage.NewBackend(
+		Backend: *storage.NewBackend[state.BeaconState](
 			cs,
 			dastore.New[types.BeaconBlockBody](
 				cs, filedb.NewRangeDB(fdb),
