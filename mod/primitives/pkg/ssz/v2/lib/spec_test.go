@@ -173,20 +173,20 @@ func debugDiff(o2 []byte, res []byte) {
 // 	})
 // }
 
-// func TestParityStruct2(t *testing.T) {
-// 	sszState, err := getSszState()
-// 	require.NoError(t, err)
+func TestParityStruct2(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
 
-// 	s := sszv2.NewSerializer()
-// 	o2, err3 := s.MarshalSSZ(sszState.CurrentSyncCommittee)
-// 	require.NoError(t, err3)
-// 	debugPrint(debug, t, "Local Serializer output: ", o2, err)
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState.CurrentSyncCommittee)
+	require.NoError(t, err3)
+	debugPrint(debug, t, "Local Serializer output: ", o2, err)
 
-// 	res, _ := sszState.CurrentSyncCommittee.MarshalSSZ()
-// 	debugPrint(debug, t, "FastSSZ Output: ", res)
-// 	debugDiff(o2, res)
-// 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
-// }
+	res, _ := sszState.CurrentSyncCommittee.MarshalSSZ()
+	debugPrint(debug, t, "FastSSZ Output: ", res)
+	debugDiff(o2, res)
+	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+}
 
 func TestParityExecutionPayloadHeader(t *testing.T) {
 	sszState, err := getSszState()

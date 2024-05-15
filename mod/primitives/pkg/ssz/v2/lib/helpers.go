@@ -77,22 +77,15 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 }
 
 func IsUintLike(kind reflect.Kind) bool {
-	isUintLike := false
-
 	switch kind {
-	case reflect.Uint8:
-		isUintLike = true
-	case reflect.Uint16:
-		isUintLike = true
-	case reflect.Uint32:
-		isUintLike = true
-	case reflect.Uint64:
-		isUintLike = true
+	case reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
 	default:
-		return isUintLike
+		return false
 	}
-
-	return isUintLike
 }
 
 // Helper to iterate over fields in a struct.
@@ -219,7 +212,7 @@ func IsStruct(typ reflect.Type, val reflect.Value) bool {
 
 func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) {
 	bufLocal := *buf
-	if len(res) > len(bufLocal) {
+	if len(res) != len(bufLocal) {
 		//#nosec:G701 // will not realistically cause a problem.
 		buf2 := make([]byte, len(res)+int(startOffset))
 		copy(buf2, bufLocal[:startOffset])
