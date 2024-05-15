@@ -57,6 +57,20 @@ import (
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
+// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
+type BeaconKitRuntime = runtime.BeaconKitRuntime[
+	types.BeaconBlockBody,
+	state.BeaconState,
+	*datypes.BlobSidecars,
+	*depositdb.KVStore,
+	runtime.BeaconStorageBackend[
+		types.BeaconBlockBody,
+		state.BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore,
+	],
+]
+
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
@@ -75,18 +89,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime[
-	types.BeaconBlockBody,
-	state.BeaconState,
-	*datypes.BlobSidecars,
-	*depositdb.KVStore,
-	runtime.BeaconStorageBackend[
-		types.BeaconBlockBody,
-		state.BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore,
-	],
-], error) {
+) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
