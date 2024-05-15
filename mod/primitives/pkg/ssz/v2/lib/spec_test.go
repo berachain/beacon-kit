@@ -27,6 +27,7 @@
 package ssz_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -125,20 +126,64 @@ func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 	return dst
 }
 
-// Todo: full object serialization
-// func TestParityBellatrix(t *testing.T) {
-// 	sszState, err := getSszState()
-// 	require.NoError(t, err)
+func debugDiff(o2 []byte, res []byte) {
+	for i := range len(res) {
+		if res[i] != o2[i] {
+			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
+			break
+		}
+	}
+}
 
-// 	s := sszv2.NewSerializer()
-// 	o2, err3 := s.MarshalSSZ(sszState)
-// 	require.NoError(t, err3)
+// TESTS
 
-// 	res, err4 := sszState.MarshalSSZ()
-// 	require.NoError(t, err4)
+// Full block object serialization
+func TestParityBellatrix(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
 
-// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
-// }
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState)
+	require.NoError(t, err3)
+
+	res, err4 := sszState.MarshalSSZ()
+	require.NoError(t, err4)
+	debugDiff(res, o2)
+
+	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+}
+func BenchmarkNativeFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	s := sszv2.NewSerializer()
+	runBench(b, func() {
+		s.MarshalSSZ(sszState)
+	})
+}
+
+func BenchmarkFastSSZFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	runBench(b, func() {
+		sszState.MarshalSSZ()
+	})
+}
+
+func TestParityExecutionPayloadHeader(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState.LatestExecutionPayloadHeader)
+	require.NoError(t, err3)
+
+	res, fastSSZErr := sszState.LatestExecutionPayloadHeader.MarshalSSZ()
+	require.NoError(t, fastSSZErr)
+
+	require.Equal(t, res, o2, "local & fastssz output doesn't match")
+}
 
 func TestParitySliceOfStructs(t *testing.T) {
 	sszState, err := getSszState()
@@ -178,6 +223,7 @@ func TestParityVariableLengthItem1(t *testing.T) {
 
 	// magic nums from the generated ssz.go file for historicalRoots
 	res := sliceBlockData(2736633, 2755161)
+	debugDiff(o2, res)
 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
 }
 
