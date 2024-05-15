@@ -42,6 +42,11 @@ type (
 	ExecutableData  = engine.ExecutableData
 )
 
+var (
+	// ExecutableDataToBlock constructs a block from executable data.
+	ExecutableDataToBlock = engine.ExecutableDataToBlock
+)
+
 // PayloadVersion denotes the version of PayloadAttributes used to request the
 // building of the payload to commence.
 type PayloadVersion byte
@@ -71,19 +76,17 @@ var (
 	PayloadStatusAccepted PayloadStatusStr = "ACCEPTED"
 )
 
-var (
-	// ExecutableDataToBlock constructs a block from executable data.
-	ExecutableDataToBlock = engine.ExecutableDataToBlock
-)
-
 // ForkchoiceResponseV1 as per the EngineAPI Specification:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#response-2
 //
 //nolint:lll // link.
 type ForkchoiceResponseV1 struct {
-	// Payload
+	// PayloadStatus is the payload status.
 	PayloadStatus PayloadStatusV1 `json:"payloadStatus"`
-	PayloadID     *PayloadID      `json:"payloadId"`
+
+	// PayloadID isthe identifier of the payload build process, it
+	// can also be `nil`.
+	PayloadID *PayloadID `json:"payloadId"`
 }
 
 // ForkchoicStateV1 as per the EngineAPI Specification:
