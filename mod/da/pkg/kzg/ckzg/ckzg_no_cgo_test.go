@@ -29,46 +29,13 @@ package ckzg_test
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
-
-func setupTestData(t *testing.T, filePath string) (
-	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
-	data, err := os.ReadFile(filePath)
-	require.NoError(t, err)
-	type Test struct {
-		Input struct {
-			Blob       string `json:"blob"`
-			Commitment string `json:"commitment"`
-			Proof      string `json:"proof"`
-		} `json:"input"`
-	}
-	var test Test
-
-	err = json.Unmarshal(data, &test)
-	require.NoError(t, err)
-
-	var blob eip4844.Blob
-	errBlob := blob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
-	require.NoError(t, errBlob)
-
-	var commitment eip4844.KZGCommitment
-
-	errCommitment := commitment.UnmarshalJSON([]byte(
-		`"` + test.Input.Commitment + `"`))
-	require.NoError(t, errCommitment)
-
-	var proof eip4844.KZGProof
-
-	errProof := proof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
-	require.NoError(t, errProof)
-
-	return &blob, proof, commitment
-}
 
 func TestVerifyBlobKZGProof(t *testing.T) {
 	validBlob, validProof, validCommitment := setupTestData(
@@ -100,4 +67,47 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestVerifyBlobProofBatch tests the valid proofs in batch.
+func TestVerifyBlobProofBatch(t *testing.T) {
+	// Load the test data
+	fs := afero.NewOsFs()
+	file, err := afero.ReadFile(fs, "./files/test_data_batch.json")
+	require.NoError(t, err)
+
+	// Unmarshal the JSON data
+	var data struct {
+		Blobs       []string `json:"blobs"`
+		Proofs      []string `json:"proofs"`
+		Commitments []string `json:"commitments"`
+	}
+	err = json.Unmarshal(file, &data)
+	require.NoError(t, err)
+
+	// Convert the data to the types expected by VerifyBlobProofBatch
+	args := &prooftypes.BlobProofArgs{
+		Blobs:       make([]*eip4844.Blob, len(data.Blobs)),
+		Proofs:      make([]eip4844.KZGProof, len(data.Proofs)),
+		Commitments: make([]eip4844.KZGCommitment, len(data.Commitments)),
+	}
+	for i := range data.Blobs {
+		var blob eip4844.Blob
+		err = blob.UnmarshalJSON([]byte(`"` + data.Blobs[i] + `"`))
+		require.NoError(t, err)
+		args.Blobs[i] = &blob
+
+		var proof eip4844.KZGProof
+		err = proof.UnmarshalJSON([]byte(`"` + data.Proofs[i] + `"`))
+		require.NoError(t, err)
+		args.Proofs[i] = proof
+
+		var commitment eip4844.KZGCommitment
+		err = commitment.UnmarshalJSON([]byte(`"` + data.Commitments[i] + `"`))
+		require.NoError(t, err)
+		args.Commitments[i] = commitment
+	}
+
+	err = globalVerifier.VerifyBlobProofBatch(args)
+	require.Error(t, err, "cgo is not enabled")
 }

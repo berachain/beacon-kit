@@ -29,8 +29,6 @@ package ckzg_test
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
 	"testing"
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
@@ -39,19 +37,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Mock data for testing
-var (
-	testBlob        = &eip4844.Blob{}
-	testProof       = eip4844.KZGProof{}
-	testCommitment  = eip4844.KZGCommitment{}
-	validBlob       = &eip4844.Blob{}
-	validProof      = eip4844.KZGProof{}
-	validCommitment = eip4844.KZGCommitment{}
-)
-
 func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
-	setup(t, "./files/test_data.json")
-
+	validBlob, validProof, validCommitment := setupTestData(
+		t, "./files/test_data.json")
 	testCases := []struct {
 		name        string
 		blob        *eip4844.Blob
@@ -68,9 +56,9 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 		},
 		{
 			name:        "Bad arguments",
-			blob:        testBlob,
-			proof:       testProof,
-			commitment:  testCommitment,
+			blob:        &eip4844.Blob{},
+			proof:       eip4844.KZGProof{},
+			commitment:  eip4844.KZGCommitment{},
 			expectError: true,
 		},
 	}
@@ -85,51 +73,6 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 			}
 		})
 	}
-}
-
-func setup(t *testing.T, filePath string) {
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		t.Fatalf("Failed to read JSON file: %v", err)
-	}
-	require.NoError(t, err)
-	type Test struct {
-		Input struct {
-			Blob       string `json:"blob"`
-			Commitment string `json:"commitment"`
-			Proof      string `json:"proof"`
-		}
-		Output *bool `json:"output"`
-	}
-	var test Test
-
-	err = json.Unmarshal(data, &test)
-	require.NoError(t, err)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal JSON data: %v", err)
-	}
-
-	errBlob := validBlob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
-	fmt.Println("errBlob", errBlob)
-	require.NoError(t, errBlob)
-
-	if errBlob != nil {
-		require.Nil(t, test.Output)
-		return
-	}
-
-	err = validCommitment.UnmarshalJSON([]byte(`"` + test.Input.Commitment + `"`))
-	if err != nil {
-		require.Nil(t, test.Output)
-		return
-	}
-
-	err = validProof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
-	if err != nil {
-		require.Nil(t, test.Output)
-		return
-	}
-
 }
 
 // TestVerifyBlobProofBatch tests the VerifyBlobProofBatch function for valid proofs

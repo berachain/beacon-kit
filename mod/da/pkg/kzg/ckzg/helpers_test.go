@@ -27,37 +27,78 @@ package ckzg_test
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
 )
 
 //nolint:gochecknoglobals // this is a test.
 var globalVerifier *ckzg.Verifier
 
 func TestMain(m *testing.M) {
-	globalVerifier = setupVerifier()
+	var err error
+	globalVerifier, err = setupVerifier()
+	if err != nil {
+		log.Fatal(err)
+	}
 	os.Exit(m.Run())
 }
 
-func setupVerifier() *ckzg.Verifier {
+func setupVerifier() (*ckzg.Verifier, error) {
 	fs := afero.NewOsFs()
 	file, err := afero.ReadFile(fs, "./files/kzg-trusted-setup.json")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var ts gokzg4844.JSONTrustedSetup
 	if errUnmarshal := json.Unmarshal(file, &ts); errUnmarshal != nil {
-		panic(errUnmarshal)
+		return nil, errUnmarshal
 	}
 
 	verifier, errVerifier := ckzg.NewVerifier(&ts)
 	if errVerifier != nil {
 		panic(errVerifier)
 	}
-	return verifier
+	return verifier, nil
+}
+
+func setupTestData(t *testing.T, filePath string) (
+	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
+	data, err := os.ReadFile(filePath)
+	require.NoError(t, err)
+	type Test struct {
+		Input struct {
+			Blob       string `json:"blob"`
+			Commitment string `json:"commitment"`
+			Proof      string `json:"proof"`
+		} `json:"input"`
+	}
+	var test Test
+
+	err = json.Unmarshal(data, &test)
+	require.NoError(t, err)
+
+	var blob eip4844.Blob
+	errBlob := blob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
+	require.NoError(t, errBlob)
+
+	var commitment eip4844.KZGCommitment
+
+	errCommitment := commitment.UnmarshalJSON([]byte(
+		`"` + test.Input.Commitment + `"`))
+	require.NoError(t, errCommitment)
+
+	var proof eip4844.KZGProof
+
+	errProof := proof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
+	require.NoError(t, errProof)
+
+	return &blob, proof, commitment
 }
