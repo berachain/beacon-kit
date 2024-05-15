@@ -27,13 +27,15 @@
 package hex_test
 
 import (
+	"bytes"
 	"math/big"
+	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-// ====================== String Invariants Testing ===========================.
+// ====================== Constructors ===========================.
 func TestNewStringStrictInvariants(t *testing.T) {
 	// NewStringStrict constructor should error if the input is invalid
 	tests := []struct {
@@ -74,12 +76,7 @@ func TestNewStringStrictInvariants(t *testing.T) {
 			if (err != nil) != test.expectErr {
 				t.Errorf("NewStringStrict() error = %v, expectErr %v", err, test.expectErr)
 			} else if err == nil {
-				if !str.Has0xPrefix() {
-					t.Errorf("NewStringStrict() result does not have 0x prefix: %v", str)
-				}
-				if str.IsEmpty() {
-					t.Errorf("NewStringStrict() result is empty: %v", str)
-				}
+				verifyInvariants("NewStringStrict()", t, str)
 			}
 		})
 	}
@@ -117,100 +114,172 @@ func TestNewStringInvariants(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			str := hex.NewString(test.input)
-			if !str.Has0xPrefix() {
-				t.Errorf("NewString() result does not have 0x prefix: %v", str)
+			verifyInvariants("NewString()", t, str)
+		})
+	}
+}
+
+// ====================== From Bytes ===========================.
+func TestFromBytes(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected string
+	}{
+		{
+			name:     "typical byte slice",
+			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			expected: "0x48656c6c6f",
+		},
+		{
+			name:     "empty byte slice",
+			input:    []byte{},
+			expected: "0x",
+		},
+		{
+			name:     "single byte",
+			input:    []byte{0x01},
+			expected: "0x01",
+		},
+		{
+			name: "long byte slice",
+			input: []byte{
+				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
+				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
+				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
+				0xba, 0xbe},
+			expected: "0xdeadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := hex.FromBytes(tt.input)
+
+			if result.Unwrap() != tt.expected {
+				t.Errorf("FromBytes() = %v, want %v", result.Unwrap(), tt.expected)
 			}
-			if str.IsEmpty() {
-				t.Errorf("NewString() result is empty: %v", str)
+
+			verifyInvariants("FromBytes()", t, result)
+
+			decoded, err := result.ToBytes()
+			if err != nil {
+				t.Errorf("ToBytes() error = %v", err)
+			}
+			if !bytes.Equal(decoded, tt.input) {
+				t.Errorf("ToBytes() = %v, want %v", decoded, tt.input)
 			}
 		})
 	}
 }
 
-func TestFromBytesInvariant(t *testing.T) {
+// ====================== From Numeric ===========================.
+
+func TestFromUint64(t *testing.T) {
 	tests := []struct {
-		name  string
-		input []byte
+		name     string
+		input    uint64
+		expected string
 	}{
 		{
-			name:  "Valid byte slice",
-			input: []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			name:     "Zero value",
+			input:    0,
+			expected: "0x0",
 		},
 		{
-			name:  "Empty byte slice",
-			input: []byte{},
+			name:     "Positive value",
+			input:    12345,
+			expected: "0x3039",
+		},
+		{
+			name:     "Max uint64 value",
+			input:    ^uint64(0), // 2^64 - 1
+			expected: "0xffffffffffffffff",
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str := hex.FromBytes(test.input)
-			if !str.Has0xPrefix() {
-				t.Errorf("FromBytes() result does not have 0x prefix: %v", str)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := hex.FromUint64(tt.input)
+
+			if result.Unwrap() != tt.expected {
+				t.Errorf("FromUint64() = %v, want %v", result.Unwrap(), tt.expected)
 			}
-			if str.IsEmpty() {
-				t.Errorf("FromBytes() result is empty: %v", str)
+
+			verifyInvariants("FromUint64()", t, result)
+
+			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
+			if err != nil {
+				t.Errorf("ParseUint() error = %v", err)
+			}
+			if decoded != tt.input {
+				t.Errorf("ParseUint() = %v, want %v", decoded, tt.input)
 			}
 		})
 	}
 }
 
-func TestFromUint64Invariant(t *testing.T) {
+func TestFromBigInt(t *testing.T) {
+	// assume FromBigInt never called on negative big.Int
 	tests := []struct {
-		name  string
-		input uint64
+		name     string
+		input    *big.Int
+		expected string
 	}{
 		{
-			name:  "Zero value",
-			input: 0,
+			name:     "zero value",
+			input:    big.NewInt(0),
+			expected: "0x0",
 		},
 		{
-			name:  "Positive value",
-			input: 12345,
+			name:     "positive value",
+			input:    big.NewInt(12345),
+			expected: "0x3039",
+		},
+		{
+			name:     "large positive value",
+			input:    new(big.Int).SetBytes(bytes.Repeat([]byte{0xff}, 32)),
+			expected: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str := hex.FromUint64(test.input)
-			if !str.Has0xPrefix() {
-				t.Errorf("FromUint64() result does not have 0x prefix: %v", str)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := hex.FromBigInt(tt.input)
+
+			if result.Unwrap() != tt.expected {
+				t.Errorf("FromBigInt() = %v, want %v", result.Unwrap(), tt.expected)
 			}
-			if str.IsEmpty() {
-				t.Errorf("FromUint64() result is empty: %v", str)
+
+			verifyInvariants("FromBigInt()", t, result)
+
+			var dec *big.Int
+			var err error
+
+			if tt.input.Sign() >= 0 {
+				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
+			} else {
+				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
+				dec = dec.Neg(dec)
+			}
+
+			if err != nil {
+				t.Errorf("ToBigInt() error = %v", err)
+			}
+			if dec.Cmp(tt.input) != 0 {
+				t.Errorf("ToBigInt() = %v, want %v", dec, tt.input)
 			}
 		})
 	}
 }
 
-func TestFromBigIntInvariant(t *testing.T) {
-	tests := []struct {
-		name  string
-		input *big.Int
-	}{
-		{
-			name:  "Zero value",
-			input: big.NewInt(0),
-		},
-		{
-			name:  "Positive value",
-			input: big.NewInt(12345),
-		},
-		{
-			name:  "Negative value",
-			input: big.NewInt(-12345),
-		},
-	}
+// ====================== Helpers ===========================.
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str := hex.FromBigInt(test.input)
-			if !str.Has0xPrefix() {
-				t.Errorf("FromBigInt() result does not have 0x prefix: %v", str)
-			}
-			if str.IsEmpty() {
-				t.Errorf("FromBigInt() result is empty: %v", str)
-			}
-		})
+func verifyInvariants(invoker string, t *testing.T, s hex.String) {
+	if !s.Has0xPrefix() {
+		t.Errorf(invoker+"result does not have 0x prefix: %v", s)
+	}
+	if s.IsEmpty() {
+		t.Errorf(invoker+"result is empty: %v", s)
 	}
 }
