@@ -40,8 +40,8 @@ type (
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
 
-	// PrettyBytes is an alias for common.PrettyBytes.
-	PrettyBytes = common.PrettyBytes
+	// DisplayBytes is an alias for common.PrettyBytes.
+	DisplayBytes = common.PrettyBytes
 )
 
 //nolint:gochecknoglobals // alias.

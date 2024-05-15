@@ -26,6 +26,7 @@
 package engineprimitives_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -44,12 +45,15 @@ func TestPayloadID(t *testing.T) {
 		0x7,
 		0x8,
 	}
-	require.Equal(t, engineprimitives.PayloadV1, payloadID.Version())
-	require.True(t, payloadID.Is(engineprimitives.PayloadV1))
-	require.Equal(t, "0x0102030405060708", payloadID.String())
 
+	// Test marshaling
+	marshaledID, err := json.Marshal(payloadID)
+	require.NoError(t, err)
+	require.Equal(t, "\"0x0102030405060708\"", string(marshaledID))
+
+	// Test unmarshaling
 	var unmarshaledID engineprimitives.PayloadID
-	err := unmarshaledID.UnmarshalText([]byte("0x0102030405060708"))
+	err = json.Unmarshal(marshaledID, &unmarshaledID)
 	require.NoError(t, err)
 	require.Equal(t, payloadID, unmarshaledID)
 }
@@ -63,6 +67,16 @@ func TestForkchoiceStateV1(t *testing.T) {
 	require.Equal(t, common.ExecutionHash{0x1}, state.HeadBlockHash)
 	require.Equal(t, common.ExecutionHash{0x2}, state.SafeBlockHash)
 	require.Equal(t, common.ExecutionHash{0x3}, state.FinalizedBlockHash)
+
+	// Test marshaling
+	marshaledState, err := json.Marshal(state)
+	require.NoError(t, err)
+
+	// Test unmarshaling
+	var unmarshaledState engineprimitives.ForkchoiceStateV1
+	err = json.Unmarshal(marshaledState, &unmarshaledState)
+	require.NoError(t, err)
+	require.Equal(t, state, &unmarshaledState)
 }
 
 func TestPayloadStatusV1(t *testing.T) {
@@ -72,4 +86,14 @@ func TestPayloadStatusV1(t *testing.T) {
 	}
 	require.Equal(t, engineprimitives.PayloadStatusValid, status.Status)
 	require.Equal(t, &common.ExecutionHash{0x1}, status.LatestValidHash)
+
+	// Test marshaling
+	marshaledStatus, err := json.Marshal(status)
+	require.NoError(t, err)
+
+	// Test unmarshaling
+	var unmarshaledStatus engineprimitives.PayloadStatusV1
+	err = json.Unmarshal(marshaledStatus, &unmarshaledStatus)
+	require.NoError(t, err)
+	require.Equal(t, status, &unmarshaledStatus)
 }

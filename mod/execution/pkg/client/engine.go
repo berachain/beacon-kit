@@ -108,7 +108,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(
 			"suggested fee recipient is not configured 🔆",
-			"fee-recipent", common.PrettyBytes(
+			"fee-recipent", common.DisplayBytes(
 				common.ZeroAddress[:]).TerminalString(),
 		)
 	}
