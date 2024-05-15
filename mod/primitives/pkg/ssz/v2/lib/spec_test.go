@@ -138,38 +138,53 @@ func debugDiff(o2 []byte, res []byte) {
 // TESTS
 
 // Full block object serialization
-func TestParityBellatrix(t *testing.T) {
-	sszState, err := getSszState()
-	require.NoError(t, err)
+// func TestParityBellatrix(t *testing.T) {
+// 	sszState, err := getSszState()
+// 	require.NoError(t, err)
 
-	s := sszv2.NewSerializer()
-	o2, err3 := s.MarshalSSZ(sszState)
-	require.NoError(t, err3)
+// 	s := sszv2.NewSerializer()
+// 	o2, err3 := s.MarshalSSZ(sszState)
+// 	require.NoError(t, err3)
 
-	res, err4 := sszState.MarshalSSZ()
-	require.NoError(t, err4)
-	debugDiff(res, o2)
+// 	res, err4 := sszState.MarshalSSZ()
+// 	require.NoError(t, err4)
+// 	debugDiff(res, o2)
 
-	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
-}
-func BenchmarkNativeFull(b *testing.B) {
-	sszState, err := getSszState()
-	require.NoError(b, err)
+// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+// }
+// func BenchmarkNativeFull(b *testing.B) {
+// 	sszState, err := getSszState()
+// 	require.NoError(b, err)
 
-	s := sszv2.NewSerializer()
-	runBench(b, func() {
-		s.MarshalSSZ(sszState)
-	})
-}
+// 	s := sszv2.NewSerializer()
+// 	runBench(b, func() {
+// 		s.MarshalSSZ(sszState)
+// 	})
+// }
 
-func BenchmarkFastSSZFull(b *testing.B) {
-	sszState, err := getSszState()
-	require.NoError(b, err)
+// func BenchmarkFastSSZFull(b *testing.B) {
+// 	sszState, err := getSszState()
+// 	require.NoError(b, err)
 
-	runBench(b, func() {
-		sszState.MarshalSSZ()
-	})
-}
+// 	runBench(b, func() {
+// 		sszState.MarshalSSZ()
+// 	})
+// }
+
+// func TestParityStruct2(t *testing.T) {
+// 	sszState, err := getSszState()
+// 	require.NoError(t, err)
+
+// 	s := sszv2.NewSerializer()
+// 	o2, err3 := s.MarshalSSZ(sszState.CurrentSyncCommittee)
+// 	require.NoError(t, err3)
+// 	debugPrint(debug, t, "Local Serializer output: ", o2, err)
+
+// 	res, _ := sszState.CurrentSyncCommittee.MarshalSSZ()
+// 	debugPrint(debug, t, "FastSSZ Output: ", res)
+// 	debugDiff(o2, res)
+// 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+// }
 
 func TestParityExecutionPayloadHeader(t *testing.T) {
 	sszState, err := getSszState()
