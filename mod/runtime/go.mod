@@ -7,7 +7,6 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240514134931-fbc61d2f5d38
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240514134931-fbc61d2f5d38
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240514134931-fbc61d2f5d38
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240514134931-fbc61d2f5d38
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
