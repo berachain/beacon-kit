@@ -140,7 +140,7 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 }
 
 // Helper function to unmarshal text for various byte types.
-func unmarshalTextHelper(target []byte, text []byte) error {
+func UnmarshalTextHelper(target []byte, text []byte) error {
 	bz := Bytes{}
 	if err := bz.UnmarshalText(text); err != nil {
 		return err

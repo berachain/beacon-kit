@@ -78,7 +78,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatus, error) {
+) (*engineprimitives.PayloadStatusV1, error) {
 	switch payload.Version() {
 	case version.Deneb:
 		return s.NewPayloadV3(
@@ -97,7 +97,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
@@ -131,10 +131,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 // JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engineprimitives.ForkchoiceResponse, error) {
+) (*engineprimitives.ForkchoiceResponseV1, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)

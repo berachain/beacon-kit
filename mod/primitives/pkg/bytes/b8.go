@@ -29,32 +29,32 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-// B96 represents a 96-byte array.
-type B96 [96]byte
+// B8 represents a 4-byte array.
+type B8 [8]byte
 
-// ToBytes96 is a utility function that transforms a byte slice into a fixed
-// 96-byte array. If the input exceeds 96 bytes, it gets truncated.
-func ToBytes96(input []byte) B96 {
-	//nolint:mnd // 96 bytes.
-	return B96(ExtendToSize(input, 96))
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for Bytes96.
-func (h *B96) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON implements the json.Unmarshaler interface for B8.
+func (h *B8) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
 }
 
-// String returns the hex string representation of Bytes96.
-func (h B96) String() string {
+// ToBytes8 is a utility function that transforms a byte slice into a fixed
+// 8-byte array. If the input exceeds 4 bytes, it gets truncated.
+func ToBytes8(input []byte) B8 {
+	//nolint:mnd // 8 bytes.
+	return [8]byte(ExtendToSize(input, 8))
+}
+
+// String returns the hex string representation of B8.
+func (h B8) String() string {
 	return hex.FromBytes(h[:]).Unwrap()
 }
 
-// MarshalText implements the encoding.TextMarshaler interface for Bytes96.
-func (h B96) MarshalText() ([]byte, error) {
+// MarshalText implements the encoding.TextMarshaler interface for B8.
+func (h B8) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes96.
-func (h *B96) UnmarshalText(text []byte) error {
+// UnmarshalText implements the encoding.TextUnmarshaler interface for B8.
+func (h *B8) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
