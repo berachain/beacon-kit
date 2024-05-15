@@ -223,7 +223,7 @@ func InterleaveOffsets(
 	for i := range allParts {
 		res = append(res, allParts[i]...)
 	}
-	if offsetSum == 2736633 {
+	if offsetSum == 2736633 || len(variableParts) == 17 || len(variableParts) == 14 {
 		fmt.Println("final result!? offset sum")
 	}
 
@@ -250,14 +250,22 @@ func IsStruct(typ reflect.Type, val reflect.Value) bool {
 	return typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct
 }
 
-func SafeCopyBuffer(res []byte, buf []byte, startOffset uint64) []byte {
-	if len(res) > len(buf) {
+func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) []byte {
+	bufLocal := *buf
+	if len(res) > len(*buf) {
+		// triggers once for exrtadata MarshalStruct {ExtraData  []uint8 json:"extra_data"                       ssz-max:"32" 176 [10] false}
+		// 536 res vs 532 buf
+
 		//#nosec:G701 // will not realistically cause a problem.
-		buf2 := make([]byte, len(res)+int(startOffset)+int(len(buf)))
-		copy(buf2, buf[:startOffset])
+		buf2 := make([]byte, len(res)+int(startOffset))
+		copy(buf2, bufLocal[:startOffset])
 		copy(buf2[startOffset:], res)
+
+		copy(bufLocal[startOffset:], buf2)
+		*buf = bufLocal
 		return buf2
 	}
-	copy(buf[startOffset:], res)
-	return buf
+	copy(bufLocal[startOffset:], res)
+	*buf = bufLocal
+	return bufLocal
 }

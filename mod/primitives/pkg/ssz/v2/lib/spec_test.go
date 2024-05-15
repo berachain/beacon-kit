@@ -127,6 +127,15 @@ func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 	return dst
 }
 
+func debugDiff(o2 []byte, res []byte) {
+	for i := range len(res) {
+		if res[i] != o2[i] {
+			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
+			break
+		}
+	}
+}
+
 // Tests
 // Offsets in fast ssz
 
@@ -194,6 +203,12 @@ func TestParityBellatrix(t *testing.T) {
 	// sumintarr 7 -> 524464
 	// our res is found at fixedparts[7] for HistoricalRoots
 	// Confirmed - it is offset for HistoricalRoots but we do not get it
+	// correct offset to write => 273663  at pos 524464
+
+	//
+	// data len 58327640
+	// res lemn 58327640
+	// o2 len 58661732
 	for i := range len(res) {
 		if res[i] != o2[i] {
 			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
@@ -221,6 +236,21 @@ func BenchmarkFastSSZFull(b *testing.B) {
 	runBench(b, func() {
 		sszState.MarshalSSZ()
 	})
+}
+
+func TestParityExecutionPayloadHeader(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState.LatestExecutionPayloadHeader)
+	require.NoError(t, err3)
+
+	res, fastSSZErr := sszState.LatestExecutionPayloadHeader.MarshalSSZ()
+	require.NoError(t, fastSSZErr)
+	debugDiff(res, o2)
+
+	require.Equal(t, res, o2, "local & fastssz output doesn't match")
 }
 
 func TestParitySliceOfStructs(t *testing.T) {
@@ -261,6 +291,7 @@ func TestParityVariableLengthItem1(t *testing.T) {
 
 	// magic nums from the generated ssz.go file for historicalRoots
 	res := sliceBlockData(2736633, 2755161)
+	debugDiff(o2, res)
 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
 }
 

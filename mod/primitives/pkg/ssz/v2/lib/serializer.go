@@ -136,6 +136,8 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// Composite structs appear initially as pointers so we Look inside
 		if typ.Elem().Kind() == reflect.Struct {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
+			// return s.MarshalStruct(val, typ)
+
 		}
 		fallthrough
 	case k == reflect.Struct:
@@ -184,7 +186,7 @@ func (s *Serializer) Marshal(
 func (s *Serializer) MarshalToDefaultBuffer(
 	val reflect.Value,
 	typ reflect.Type,
-	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
+	cb func(reflect.Value, reflect.Type, *[]byte, uint64) (uint64, error),
 ) ([]byte, error) {
 	aLen := 0
 	err := errors.New("MarshalToDefaultBuffer Failure")
@@ -200,7 +202,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 		aLen = val.Len()
 	}
 	buf := make([]byte, aLen)
-	_, err = cb(val, typ, buf, 0)
+	_, err = cb(val, typ, &buf, 0)
 	if len(buf) == 508 || len(buf) == 4064 {
 		fmt.Println("MarshalToDefaultBuffer bif", val, typ)
 	}
@@ -254,25 +256,29 @@ func (s *Serializer) MarshalNDimensionalArray(
 func (s *Serializer) MarshalByteArray(
 	val reflect.Value,
 	typ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
+	//fmt.Println("MarshalByteArray called")
+	bufLocal := *buf
 	if val.Kind() == reflect.Array {
 		for i := range val.Len() {
 			//#nosec:G701 // int overflow should be caught earlier in the stack.
-			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
+			bufLocal[int(startOffset)+i] = uint8(val.Index(i).Uint())
 		}
+		*buf = bufLocal
 		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(val.Len()), nil
 	}
 	if val.IsNil() {
 		item := make([]byte, typ.Len())
-		copy(buf[startOffset:], item)
+		copy(bufLocal[startOffset:], item)
+		*buf = bufLocal
 		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(typ.Len()), nil
 	}
-	copy(buf[startOffset:], val.Bytes())
-
+	copy(bufLocal[startOffset:], val.Bytes())
+	*buf = bufLocal
 	//#nosec:G701 // int overflow should be caught earlier in the stack.
 	return startOffset + uint64(val.Len()), nil
 }
@@ -312,7 +318,7 @@ func (s *Serializer) MarshalVariableSizeParts(
 func (s *Serializer) MarshalStruct(
 	val reflect.Value,
 	typ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
 	if !IsStruct(typ, val) {
@@ -351,7 +357,7 @@ func (s *Serializer) MarshalStruct(
 				variableLengths,
 			)
 			fixedParts = append(fixedParts, nil)
-			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+			// fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 			if field.Name == "HistoricalRoots" {
 				fmt.Println("MarshalStruct isVariableSizeType True", field.Name)
 			}
@@ -393,17 +399,20 @@ func (s *Serializer) MarshalStruct(
 	if err != nil {
 		return 0, err
 	}
-	buf = SafeCopyBuffer(res, buf, startOffset)
-	if len(buf) == 18528 || len(res) == 18528 {
+	*buf = SafeCopyBuffer(
+		res,
+		buf,
+		startOffset)
+	if len(*buf) == 18528 || len(res) == 18528 {
 		fmt.Println("buf len reached")
 	}
-	return uint64(len(res)), nil
+	return uint64(len(*buf)), nil
 }
 
 func (s *Serializer) MarshalComposite(
 	val reflect.Value,
 	_ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
 	var fixedParts [][]byte
@@ -432,6 +441,9 @@ func (s *Serializer) MarshalComposite(
 				variableParts,
 				variableLengths,
 			)
+			// Create holes in the fixedparts array using nil for interleaving offsets later
+			fixedParts = append(fixedParts, nil)
+			// fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
 			fixedParts,
 				fixedLengths,
@@ -474,9 +486,9 @@ func (s *Serializer) MarshalComposite(
 	if err != nil {
 		return 0, err
 	}
-	if len(buf) == 18528 || len(res) == 18528 {
+	if len(*buf) == 18528 || len(res) == 18528 {
 		fmt.Println("buf len reached")
 	}
-	buf = SafeCopyBuffer(res, buf, startOffset)
-	return uint64(len(res)), nil
+	*buf = SafeCopyBuffer(res, buf, startOffset)
+	return uint64(len(*buf)), nil
 }
