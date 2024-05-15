@@ -71,6 +71,9 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 
 // TestVerifyBlobProofBatch tests the valid proofs in batch.
 func TestVerifyBlobProofBatch(t *testing.T) {
+	if globalVerifier == nil {
+		t.Fatal("globalVerifier is not initialized")
+	}
 	// Load the test data
 	fs := afero.NewOsFs()
 	file, err := afero.ReadFile(fs, "./files/test_data_batch.json")

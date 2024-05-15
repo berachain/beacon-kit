@@ -64,7 +64,7 @@ func setupVerifier() (*ckzg.Verifier, error) {
 
 	verifier, errVerifier := ckzg.NewVerifier(&ts)
 	if errVerifier != nil {
-		panic(errVerifier)
+		return nil, errVerifier
 	}
 	return verifier, nil
 }
