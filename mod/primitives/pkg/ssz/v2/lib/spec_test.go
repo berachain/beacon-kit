@@ -77,7 +77,7 @@ func getSszState() (*sszv2.BeaconStateBellatrix, error) {
 func sliceBlockData(start int, end int) []byte {
 	s, err := getSszState()
 	if err != nil {
-		return nil
+		return make([]byte, 0)
 	}
 	data, err := s.MarshalSSZ()
 	if err != nil || data == nil {
@@ -126,6 +126,9 @@ func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
 }
 
 func debugDiff(o2 []byte, res []byte) {
+	if res == nil || o2 == nil {
+		return
+	}
 	for i := range len(res) {
 		if res[i] != o2[i] {
 			// fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
@@ -237,7 +240,6 @@ func TestParityVariableLengthItem1(t *testing.T) {
 
 	// magic nums from the generated ssz.go file for historicalRoots
 	res := sliceBlockData(2736633, 2755161)
-	debugDiff(o2, res)
 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
 }
 
