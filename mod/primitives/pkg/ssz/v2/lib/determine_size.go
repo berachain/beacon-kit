@@ -50,12 +50,17 @@ func DetermineSize(val reflect.Value) uint64 {
 }
 
 func isBasicType(kind reflect.Kind) bool {
-	return kind == reflect.Bool ||
-		kind == reflect.Int32 ||
-		kind == reflect.Uint8 ||
-		kind == reflect.Uint16 ||
-		kind == reflect.Uint32 ||
-		kind == reflect.Uint64
+	switch kind {
+	case reflect.Bool,
+		reflect.Int32,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
+	default:
+		return false
+	}
 }
 
 func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
@@ -65,13 +70,11 @@ func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
 func isVariableSizeType(typ reflect.Type) bool {
 	kind := typ.Kind()
 	switch {
-	case isBasicType(kind):
+	case isBasicType(kind),
+		isBasicTypeArray(typ, kind):
 		return false
-	case isBasicTypeArray(typ, kind):
-		return false
-	case kind == reflect.Slice:
-		return true
-	case kind == reflect.String:
+	case kind == reflect.Slice,
+		kind == reflect.String:
 		return true
 	case kind == reflect.Array:
 		return isVariableSizeType(typ.Elem())
@@ -100,15 +103,12 @@ func isVariableSizeType(typ reflect.Type) bool {
 func isFixedSizeType(typ reflect.Type) bool {
 	kind := typ.Kind()
 	switch kind {
-	case reflect.Bool:
-		return true
-	case reflect.Uint8:
-		return true
-	case reflect.Uint16:
-		return true
-	case reflect.Uint32, reflect.Int32:
-		return true
-	case reflect.Uint64:
+	case reflect.Bool,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Int32,
+		reflect.Uint64:
 		return true
 	default:
 		return false
@@ -118,11 +118,8 @@ func isFixedSizeType(typ reflect.Type) bool {
 func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
 	switch kind {
-	case reflect.Bool:
-
-		return 1
-	case reflect.Uint8:
-
+	case reflect.Bool,
+		reflect.Uint8:
 		return 1
 	case reflect.Uint16:
 		//nolint:mnd // static mapped types
