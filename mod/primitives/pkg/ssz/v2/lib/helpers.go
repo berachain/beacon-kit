@@ -135,6 +135,22 @@ func IterStructFields(
 	}
 }
 
+// Recursive function to traverse and serialize elements in slice or arr.
+func SerializeRecursive(currentVal reflect.Value, cb func(interface{})) error {
+	if currentVal.Kind() == reflect.Array ||
+		currentVal.Kind() == reflect.Slice {
+		for i := range currentVal.Len() {
+			if err := SerializeRecursive(currentVal.Index(i), cb); err != nil {
+				return err
+			}
+		}
+	} else {
+		// Serialize single element
+		cb(currentVal.Interface())
+	}
+	return nil
+}
+
 func InterleaveOffsets(
 	fixedParts [][]byte,
 	fixedLengths []int,
@@ -196,4 +212,16 @@ func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
 
 func IsStruct(typ reflect.Type, val reflect.Value) bool {
 	return typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct
+}
+
+func SafeCopyBuffer(res []byte, buf []byte, startOffset uint64) []byte {
+	if len(res) > len(buf) {
+		//#nosec:G701 // will not realistically cause a problem.
+		buf2 := make([]byte, len(res)+int(startOffset))
+		copy(buf2, buf[:startOffset])
+		copy(buf2[startOffset:], res)
+		return buf2
+	}
+	copy(buf[startOffset:], res)
+	return buf
 }
