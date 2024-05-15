@@ -13,6 +13,26 @@ start-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-all.yaml \
 		--enclave my-local-devnet
 
+# Starts a Kurtosis enclave containing a local devnet on GCP.
+# --production flag is used to indicate that the enclave is 
+# running in production mode to allow pod restarts when doing chaos testing.
+start-gcp-devnet-no-build:
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
+		--enclave my-gcp-devnet --production --image-download always
+
+# Stops the running Kurtosis enclave on GCP
+stop-gcp-devnet:
+	kurtosis enclave stop my-gcp-devnet
+
+# Stops and removes the specified Kurtosis enclave
+reset-gcp-devnet:
+	$(MAKE) stop-gcp-devnet
+	kurtosis enclave rm my-gcp-devnet
+
+# Removes the specified Kurtosis enclave
+rm-gcp-devnet:
+	kurtosis enclave rm my-gcp-devnet --force
+
 # Stops the running Kurtosis enclave
 stop-devnet:
 	kurtosis enclave stop my-local-devnet
@@ -44,4 +64,6 @@ star-fix:
 	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 
 # Marks targets as not being associated with files
-.PHONY: start-devnet stop-devnet reset-devnet rm-devnet buildifier-install star-lint star-fix
+.PHONY: start-devnet stop-devnet reset-devnet rm-devnet buildifier-install \
+  star-lint star-fix start-gcp-devnet-no-build stop-gcp-devnet \
+  reset-gcp-devnet rm-gcp-devnet

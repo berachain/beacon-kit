@@ -27,6 +27,7 @@ package builder
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -62,6 +63,11 @@ func (pb *PayloadBuilder[BeaconStateT]) getPayloadAttribute(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// If the suggested fee recipient is not set, log a warning.
+	if pb.cfg.SuggestedFeeRecipient == (common.ZeroAddress) {
+		pb.logger.Warn("No suggested fee recipient set for the payload")
 	}
 
 	return engineprimitives.NewPayloadAttributes(

@@ -61,7 +61,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled:               true,
-		SuggestedFeeRecipient: common.ExecutionAddress{},
+		SuggestedFeeRecipient: common.ZeroAddress,
 		PayloadTimeout:        defaultPayloadTimeout,
 	}
 }

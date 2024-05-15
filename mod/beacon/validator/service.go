@@ -276,7 +276,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	body.SetEth1Data(&types.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
 		DepositCount: 0,
-		BlockHash:    common.ExecutionHash{},
+		BlockHash:    common.ZeroHash,
 	})
 
 	payload := envelope.GetExecutionPayload()

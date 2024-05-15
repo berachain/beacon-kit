@@ -48,3 +48,15 @@ var (
 	Hex2BytesFixed = common.Hex2BytesFixed
 	FromHex        = common.FromHex
 )
+
+//nolint:gochecknoglobals // alias.
+var (
+	// ZeroAddress is the zero execution address.
+	ZeroAddress = ExecutionAddress{}
+	// ZeroHash is the zero execution hash.
+	ZeroHash = ExecutionHash{}
+)
+
+func IsNullAddress(address ExecutionAddress) bool {
+	return address == ZeroAddress
+}
