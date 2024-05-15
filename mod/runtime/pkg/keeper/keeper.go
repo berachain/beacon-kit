@@ -43,7 +43,6 @@ import (
 //
 // TODO: The keeper will eventually be dissolved.
 type Keeper struct {
-	cs primitives.ChainSpec
 	storage.Backend[state.BeaconState]
 }
 
@@ -60,7 +59,6 @@ func NewKeeper(
 	ddb *deposit.KVStore,
 ) *Keeper {
 	return &Keeper{
-		cs: cs,
 		Backend: *storage.NewBackend[state.BeaconState](
 			cs,
 			dastore.New[types.BeaconBlockBody](

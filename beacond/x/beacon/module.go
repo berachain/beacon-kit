@@ -61,7 +61,8 @@ func NewAppModule(
 	chainSpec primitives.ChainSpec,
 ) AppModule {
 	return AppModule{
-		keeper: keeper,
+		keeper:    keeper,
+		chainSpec: chainSpec,
 	}
 }
 
