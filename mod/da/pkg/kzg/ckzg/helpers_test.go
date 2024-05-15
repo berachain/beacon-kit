@@ -29,6 +29,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
@@ -41,6 +42,9 @@ import (
 //nolint:gochecknoglobals // this is a test.
 var globalVerifier *ckzg.Verifier
 
+//nolint:gochecknoglobals // this is a test.
+var baseDir = "./beacon-kit/testing/files/"
+
 func TestMain(m *testing.M) {
 	var err error
 	globalVerifier, err = setupVerifier()
@@ -52,7 +56,14 @@ func TestMain(m *testing.M) {
 
 func setupVerifier() (*ckzg.Verifier, error) {
 	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "../../../../../testing/files/kzg-trusted-setup.json")
+	// TODO : Not sure why using the global baseDir, gives error
+	// open beacon-kit/testing/files/kzg-trusted-setup.json:
+	// no such file or directory
+	baseDir = "../../../../../testing/files/"
+	fileName := "kzg-trusted-setup.json"
+	fullPath := filepath.Join(baseDir, fileName)
+	file, err := afero.ReadFile(fs, fullPath)
+
 	if err != nil {
 		return nil, err
 	}
@@ -69,9 +80,10 @@ func setupVerifier() (*ckzg.Verifier, error) {
 	return verifier, nil
 }
 
-func setupTestData(t *testing.T, filePath string) (
+func setupTestData(t *testing.T, fileName string) (
 	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
-	data, err := os.ReadFile(filePath)
+	filePath := filepath.Join(baseDir, fileName)
+	data, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	require.NoError(t, err)
 	type Test struct {
 		Input struct {

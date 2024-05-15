@@ -29,6 +29,7 @@ package ckzg_test
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"testing"
 
 	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
@@ -39,7 +40,7 @@ import (
 
 func TestVerifyBlobKZGProof(t *testing.T) {
 	validBlob, validProof, validCommitment := setupTestData(
-		t, "../../../../../testing/files/test_data.json")
+		t, "test_data.json")
 
 	testCases := []struct {
 		name        string
@@ -76,7 +77,9 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	}
 	// Load the test data
 	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "../../../../../testing/files/test_data_batch.json")
+	fullPath := filepath.Join(baseDir, "test_data_batch.json")
+	file, err := afero.ReadFile(fs, fullPath)
+
 	require.NoError(t, err)
 
 	// Unmarshal the JSON data
