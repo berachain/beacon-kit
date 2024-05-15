@@ -99,16 +99,16 @@ func isVariableSizeType(typ reflect.Type) bool {
 
 func isFixedSizeType(typ reflect.Type) bool {
 	kind := typ.Kind()
-	switch {
-	case kind == reflect.Bool:
+	switch kind {
+	case reflect.Bool:
 		return true
-	case kind == reflect.Uint8:
+	case reflect.Uint8:
 		return true
-	case kind == reflect.Uint16:
+	case reflect.Uint16:
 		return true
-	case kind == reflect.Uint32 || kind == reflect.Int32:
+	case reflect.Uint32, reflect.Int32:
 		return true
-	case kind == reflect.Uint64:
+	case reflect.Uint64:
 		return true
 	default:
 		return false
@@ -117,36 +117,34 @@ func isFixedSizeType(typ reflect.Type) bool {
 
 func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
-	switch {
-	case kind == reflect.Bool:
+	switch kind {
+	case reflect.Bool:
 
 		return 1
-	case kind == reflect.Uint8:
+	case reflect.Uint8:
 
 		return 1
-	case kind == reflect.Uint16:
+	case reflect.Uint16:
 		//nolint:mnd // static mapped types
 		return 2
-	case kind == reflect.Uint32 || kind == reflect.Int32:
+	case reflect.Uint32, reflect.Int32:
 		//nolint:mnd // static mapped types
 		return 4
-	case kind == reflect.Uint64:
+	case reflect.Uint64:
 		//nolint:mnd // static mapped types
 		return 8
-	case kind == reflect.Array && typ.Elem().Kind() == reflect.Uint8:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(typ.Len())
-	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(val.Len())
-	case kind == reflect.Array || kind == reflect.Slice:
+	case reflect.Array, reflect.Slice:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			//#nosec:G701 // will not realistically cause a problem.
+			return uint64(val.Len())
+		}
 		var num uint64
 		n := val.Len()
 		for i := range n {
 			num += determineFixedSize(val.Index(i), typ.Elem())
 		}
 		return num
-	case kind == reflect.Struct:
+	case reflect.Struct:
 		totalSize := uint64(0)
 		n := typ.NumField()
 		for i := range n {
@@ -161,7 +159,7 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 			totalSize += determineFixedSize(val.Field(i), fType)
 		}
 		return totalSize
-	case kind == reflect.Ptr:
+	case reflect.Ptr:
 		if val.IsNil() {
 			newElem := reflect.New(typ.Elem()).Elem()
 			return determineVariableSize(newElem, newElem.Type())
@@ -174,18 +172,19 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 
 func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
-	switch {
-	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
+	switch kind {
+	case reflect.String:
 		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
-	case kind == reflect.String:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(val.Len())
-	case kind == reflect.Slice || kind == reflect.Array:
+	case reflect.Slice, reflect.Array:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			//#nosec:G701 // will not realistically cause a problem.
+			return uint64(val.Len())
+		}
 		return determineSizeSliceOrArray(val, typ)
-	case kind == reflect.Struct:
+	case reflect.Struct:
 		return determineSizeStruct(val, typ)
-	case kind == reflect.Ptr:
+	case reflect.Ptr:
 		if val.IsNil() {
 			newElem := reflect.New(typ.Elem()).Elem()
 			return determineVariableSize(newElem, newElem.Type())
