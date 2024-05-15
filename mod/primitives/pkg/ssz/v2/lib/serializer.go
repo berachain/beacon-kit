@@ -357,7 +357,7 @@ func (s *Serializer) MarshalStruct(
 				variableLengths,
 			)
 			fixedParts = append(fixedParts, nil)
-			// fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 			if field.Name == "HistoricalRoots" {
 				fmt.Println("MarshalStruct isVariableSizeType True", field.Name)
 			}
@@ -442,8 +442,8 @@ func (s *Serializer) MarshalComposite(
 				variableLengths,
 			)
 			// Create holes in the fixedparts array using nil for interleaving offsets later
-			fixedParts = append(fixedParts, nil)
-			// fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+			// fixedParts = append(fixedParts, nil)
+			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
 			fixedParts,
 				fixedLengths,
@@ -492,3 +492,40 @@ func (s *Serializer) MarshalComposite(
 	*buf = SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(*buf)), nil
 }
+
+// func () {
+// 	var serializationErr error
+// 		// fmt.Println("MarshalComposite", memberTyp, c)
+// 		// If the field has a ssz-size tag set, we treat it as a fixed size
+// 		// field
+// 		if isVariableSizeType(memberTyp) {
+// 			// fmt.Println("MarshalComposite VariableSizeType", memberTyp)
+
+// 			variableParts,
+// 				variableLengths,
+// 				serializationErr = s.MarshalVariableSizeParts(
+// 				memberVal,
+// 				variableParts,
+// 				variableLengths,
+// 			)
+// 			// Create holes in the fixedparts array using nil for interleaving offsets later
+// 			fixedParts = append(fixedParts, nil)
+// 			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+// 		} else {
+// 			fixedParts,
+// 				fixedLengths,
+// 				serializationErr = s.MarshalFixedSizeParts(
+// 				memberVal,
+// 				fixedParts,
+// 				fixedLengths,
+// 			)
+// 			// We populate variable parts with an empty item based on the
+// 			// spec
+// 			variableParts = append(variableParts, make([]byte, 0))
+// 			variableLengths = append(variableLengths, 0)
+// 		}
+// 		if serializationErr != nil {
+// 			errCheck = append(errCheck, serializationErr)
+// 			return
+// 		}
+// }

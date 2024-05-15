@@ -261,8 +261,7 @@ func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) []byte {
 		copy(buf2, bufLocal[:startOffset])
 		copy(buf2[startOffset:], res)
 
-		copy(bufLocal[startOffset:], buf2)
-		*buf = bufLocal
+		*buf = buf2
 		return buf2
 	}
 	copy(bufLocal[startOffset:], res)

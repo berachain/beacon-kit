@@ -249,7 +249,7 @@ func TestParityExecutionPayloadHeader(t *testing.T) {
 	res, fastSSZErr := sszState.LatestExecutionPayloadHeader.MarshalSSZ()
 	require.NoError(t, fastSSZErr)
 	debugDiff(res, o2)
-
+	// 20 instead of 24 at i 436
 	require.Equal(t, res, o2, "local & fastssz output doesn't match")
 }
 
