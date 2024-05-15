@@ -195,55 +195,5 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	}
 
 	err = verifier.VerifyBlobProofBatch(args)
-	fmt.Println("err in batch", err)
 	require.NoError(t, err)
 }
-
-//func TestVerifier_VerifyBlobProof(t *testing.T) {
-//	t.Run("should verify proof", func(t *testing.T) {
-//		fs := afero.NewOsFs()
-//		file, err := afero.ReadFile(
-//			fs, "../../../../../testing/files/kzg-trusted-setup.json")
-//		if err != nil {
-//			fmt.Println("err", err)
-//		}
-//		require.NoError(t, err)
-//
-//		// Get the contents from file
-//		var ts gokzg4844.JSONTrustedSetup
-//		err = json.Unmarshal(file, &ts)
-//		if err != nil {
-//			require.Error(t, err)
-//			return
-//		}
-//
-//		verifier, err := ckzg.NewVerifier(&ts)
-//		require.NoError(t, err)
-//		require.NotNil(t, verifier)
-//
-//		// Load the test data
-//		file, err = afero.ReadFile(
-//			fs, "../../../../../testing/files/kzg-proof.json")
-//		if err != nil {
-//			fmt.Println("err", err)
-//		}
-//		require.NoError(t, err)
-//
-//		// Get the contents from file
-//
-//		var proofData ckzg4844.Blob
-//		err = json.Unmarshal(file, &proofData)
-//		if err != nil {
-//			require.Error(t, err)
-//			return
-//		}
-//
-//		// Verify the proof
-//		//err = verifier.VerifyBlobProof(
-//		//	(*ckzg4844.Blob)(&proofData.Blob),
-//		//	eip4844.KZGProof((ckzg4844.Bytes48)(proofData.Proof)),
-//		//	eip4844.KZGCommitment((ckzg4844.Bytes48)(proofData.Commitment)),
-//		//)
-//		//require.NoError(t, err)
-//	})
-//}

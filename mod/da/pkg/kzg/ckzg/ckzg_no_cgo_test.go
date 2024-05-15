@@ -1,17 +1,42 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 //go:build !ckzg
 
 package ckzg_test
 
 import (
 	"encoding/json"
+	"os"
+	"testing"
+
 	ckzg "github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"os"
-
-	"testing"
 )
 
 var verifier *ckzg.Verifier
@@ -53,7 +78,7 @@ func setup(t *testing.T, filePath string) {
 			Blob       string `json:"blob"`
 			Commitment string `json:"commitment"`
 			Proof      string `json:"proof"`
-		}
+		} `json:"input"`
 	}
 	var test Test
 
@@ -63,12 +88,12 @@ func setup(t *testing.T, filePath string) {
 	errBlob := validBlob.UnmarshalJSON([]byte(`"` + test.Input.Blob + `"`))
 	require.NoError(t, errBlob)
 
-	err = validCommitment.UnmarshalJSON([]byte(`"` + test.Input.Commitment + `"`))
-	require.NoError(t, errBlob)
+	errCommitment := validCommitment.UnmarshalJSON([]byte(
+		`"` + test.Input.Commitment + `"`))
+	require.NoError(t, errCommitment)
 
-	err = validProof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
-	require.NoError(t, errBlob)
-
+	errProof := validProof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
+	require.NoError(t, errProof)
 }
 
 func TestVerifyBlobKZGProof(t *testing.T) {
