@@ -38,7 +38,7 @@ import (
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
-	result *engineprimitives.PayloadStatus,
+	result *engineprimitives.PayloadStatusV1,
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:

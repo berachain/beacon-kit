@@ -125,7 +125,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes()
 // ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
-	State *ForkchoiceState
+	State *ForkchoiceStateV1
 	// PayloadAttributes is the payload attributer.
 	PayloadAttributes PayloadAttributer
 	// ForkVersion is the fork version that we
@@ -135,7 +135,7 @@ type ForkchoiceUpdateRequest struct {
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
-	state *ForkchoiceState,
+	state *ForkchoiceStateV1,
 	payloadAttributes PayloadAttributer,
 	forkVersion uint32,
 ) *ForkchoiceUpdateRequest {

@@ -39,6 +39,9 @@ type (
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
+
+	// DisplayBytes is an alias for common.PrettyBytes.
+	DisplayBytes = common.PrettyBytes
 )
 
 //nolint:gochecknoglobals // alias.
