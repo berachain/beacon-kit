@@ -281,9 +281,7 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	var err error
 	for i := range len(items) {
 		// If a field is unbounded, we skip it
-		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
-			continue
-		} else {
+		if items[i] != ssz.UnboundedSSZFieldSizeMarker {
 			sizes[i], err = strconv.ParseUint(items[i], 10, 64)
 			if err != nil {
 				return make([]uint64, 0), false, err
