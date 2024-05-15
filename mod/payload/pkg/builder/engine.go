@@ -53,7 +53,7 @@ func (pb *PayloadBuilder[BeaconStateT]) submitForkchoiceUpdate(
 
 	return pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      parentEth1BlockHash,
 				FinalizedBlockHash: parentEth1BlockHash,

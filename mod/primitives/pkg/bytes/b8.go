@@ -23,34 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package bytes
 
 import (
-	"cosmossdk.io/depinject"
-	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
-type DepositStoreInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
+// B8 represents a 4-byte array.
+type B8 [8]byte
+
+// UnmarshalJSON implements the json.Unmarshaler interface for B8.
+func (h *B8) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
 }
 
-// ProvideDepositStore is a function that provides the module to the
-// application.
-func ProvideDepositStore(in DepositStoreInput) (*deposit.KVStore, error) {
-	name := "deposits"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
-	if err != nil {
-		return nil, err
-	}
+// ToBytes8 is a utility function that transforms a byte slice into a fixed
+// 8-byte array. If the input exceeds 4 bytes, it gets truncated.
+func ToBytes8(input []byte) B8 {
+	//nolint:mnd // 8 bytes.
+	return [8]byte(ExtendToSize(input, 8))
+}
 
-	return deposit.NewStore(&deposit.KVStoreProvider{
-		KVStoreWithBatch: kvp,
-	}), nil
+// String returns the hex string representation of B8.
+func (h B8) String() string {
+	return hex.FromBytes(h[:]).Unwrap()
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for B8.
+func (h B8) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for B8.
+func (h *B8) UnmarshalText(text []byte) error {
+	return UnmarshalTextHelper(h[:], text)
 }

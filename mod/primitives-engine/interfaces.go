@@ -95,4 +95,5 @@ type ExecutionPayloadHeader interface {
 type PayloadAttributer interface {
 	Version() uint32
 	Validate() error
+	GetSuggestedFeeRecipient() common.ExecutionAddress
 }
