@@ -179,6 +179,17 @@ func InterleaveOffsets(
 	variableLengths []int,
 ) ([]byte, error) {
 	sumIntArr := sumArr[[]int]
+
+	fixedLens := make([]int, len(fixedParts))
+
+	for i, part := range fixedParts {
+		if part == nil {
+			fixedLens[i] = BytesPerLengthOffset
+			// fmt.Println("filled gap at: with: oflen ", i, variableOffsets[i], len(fixedParts))
+		} else {
+			fixedLens[i] = len(part)
+		}
+	}
 	// Check lengths
 	totalLength := sumIntArr(fixedLengths) + sumIntArr(variableLengths)
 	if totalLength >= 1<<(BytesPerLengthOffset*BitsPerByte) {
@@ -195,7 +206,7 @@ func InterleaveOffsets(
 	// Interleave offsets of variable-size parts with fixed-size parts.
 	// variable_offsets = [serialize(uint32(sum(fixed_lengths +
 	// variable_lengths[:i]))) for i in range(len(value))].
-	offsetSum := sumIntArr(fixedLengths)
+	offsetSum := sumIntArr(fixedLens)
 	variableOffsets := make([][]byte, len(variableParts))
 	for i := range len(variableParts) {
 		offsetSum += variableLengths[i]
@@ -206,9 +217,9 @@ func InterleaveOffsets(
 	}
 
 	fixedPartsWithOffsets := make([][]byte, len(fixedParts))
-
 	for i, part := range fixedParts {
 		if part == nil {
+			// fmt.Println("filled gap at: with: oflen ", i, variableOffsets[i], len(fixedParts))
 			fixedPartsWithOffsets[i] = variableOffsets[i]
 		} else {
 			fixedPartsWithOffsets[i] = part
@@ -224,7 +235,7 @@ func InterleaveOffsets(
 		res = append(res, allParts[i]...)
 	}
 	if offsetSum == 2736633 || len(variableParts) == 17 || len(variableParts) == 14 {
-		fmt.Println("final result!? offset sum")
+		fmt.Println("final result!? offset sum", offsetSum)
 	}
 
 	if len(res) == 508 ||
@@ -232,7 +243,7 @@ func InterleaveOffsets(
 		len(res) == 4064 ||
 		len(fixedParts) == 4064 ||
 		len(res) >= 58327640 || len(res) >= 524464 || len(fixedParts) >= 524464 {
-		fmt.Println("final result!?")
+		fmt.Println("final result!?", len(res), len(fixedPartsWithOffsets), len(variableParts))
 	}
 
 	return res, nil

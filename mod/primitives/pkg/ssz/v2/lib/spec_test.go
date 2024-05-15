@@ -208,7 +208,7 @@ func TestParityBellatrix(t *testing.T) {
 	//
 	// data len 58327640
 	// res lemn 58327640
-	// o2 len 58661732
+	// o2 len 58661732 58657604 (diff of 329964!)
 	for i := range len(res) {
 		if res[i] != o2[i] {
 			fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
@@ -216,7 +216,7 @@ func TestParityBellatrix(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, o2[:128], res[:128], "local & fastssz output doesn't match")
+	require.Equal(t, o2, res, "local & fastssz output doesn't match")
 }
 
 func BenchmarkNativeFull(b *testing.B) {

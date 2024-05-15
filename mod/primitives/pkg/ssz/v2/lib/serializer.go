@@ -443,7 +443,7 @@ func (s *Serializer) MarshalComposite(
 			)
 			// Create holes in the fixedparts array using nil for interleaving offsets later
 			// fixedParts = append(fixedParts, nil)
-			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
+			// fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
 			fixedParts,
 				fixedLengths,
