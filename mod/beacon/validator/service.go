@@ -149,7 +149,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
 	defer func() {
 		s.logger.Info(
-			"finished beacon block assembly 🛟",
+			"finished beacon block assembly 🛟 ",
 			"slot",
 			requestedSlot,
 			"duration",
@@ -230,22 +230,21 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, ErrNilPayload
 	}
 
-	// Process Blobs.
-	g.Go(func() error {
-		// Build the sidecars.
-		var sidecarErr error
-		sidecars, sidecarErr = s.BuildSidecars(
-			blk,
-			envelope.GetBlobsBundle(),
-		)
-		return sidecarErr
-	})
-
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
 		return nil, sidecars, ErrNilBlkBody
 	}
+
+	// If we get returned a nil blobs bundle, we should return an error.
+	// TODO: allow external block builders to override the payload.
+	blobsBundle := envelope.GetBlobsBundle()
+	if blobsBundle == nil {
+		return nil, sidecars, ErrNilBlobsBundle
+	}
+
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel.
@@ -268,13 +267,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// If we get returned a nil blobs bundle, we should return an error.
-	// TODO: allow external block builders to override the payload.
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
-		return nil, sidecars, ErrNilBlobsBundle
-	}
-
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
@@ -294,6 +286,17 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	if err = body.SetExecutionData(payload); err != nil {
 		return nil, sidecars, err
 	}
+
+	// Process Blobs.
+	g.Go(func() error {
+		// Build the sidecars.
+		var sidecarErr error
+		sidecars, sidecarErr = s.BuildSidecars(
+			blk,
+			envelope.GetBlobsBundle(),
+		)
+		return sidecarErr
+	})
 
 	// Set the block state root.
 	g.Go(func() error {
