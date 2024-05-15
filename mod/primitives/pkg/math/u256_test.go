@@ -225,3 +225,43 @@ func TestSignedness_Big(t *testing.T) {
 		require.Error(t, err)
 	}
 }
+
+// UnwrapBig() should never return a negative number.
+func TestUnwrapBigSign(t *testing.T) {
+	tests := []struct {
+		name  string
+		input math.U256L
+	}{
+		{
+			name:  "Zero value",
+			input: math.U256L{},
+		},
+		{
+			name: "Maximum value",
+			input: func() math.U256L {
+				var maxVal math.U256L
+				for i := range maxVal {
+					maxVal[i] = 0xff
+				}
+				return maxVal
+			}(),
+		},
+		{
+			name: "Random value",
+			input: math.U256L{
+				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
+				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
+				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
+				0xba, 0xbe},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.input.UnwrapBig()
+			if result.Sign() < 0 {
+				t.Errorf("UnwrapBig() resulted in a negative number: %v", result)
+			}
+		})
+	}
+}

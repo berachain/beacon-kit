@@ -119,7 +119,7 @@ func TestNewStringInvariants(t *testing.T) {
 	}
 }
 
-// ====================== From Bytes ===========================.
+// ====================== Bytes ===========================.
 func TestFromBytes(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -173,9 +173,10 @@ func TestFromBytes(t *testing.T) {
 	}
 }
 
-// ====================== From Numeric ===========================.
+// ====================== Numeric ===========================.
 
-func TestFromUint64(t *testing.T) {
+// FromUint64, then ToUint64
+func TestUint64RoundTrip(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    uint64
@@ -205,9 +206,7 @@ func TestFromUint64(t *testing.T) {
 			if result.Unwrap() != tt.expected {
 				t.Errorf("FromUint64() = %v, want %v", result.Unwrap(), tt.expected)
 			}
-
 			verifyInvariants("FromUint64()", t, result)
-
 			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
 			if err != nil {
 				t.Errorf("ParseUint() error = %v", err)
@@ -219,8 +218,9 @@ func TestFromUint64(t *testing.T) {
 	}
 }
 
-func TestFromBigInt(t *testing.T) {
-	// assume FromBigInt never called on negative big.Int
+// FromBigInt, then ToBigInt
+func TestBigIntRoundTrip(t *testing.T) {
+	// assume FromBigInt only called on non-negative big.Int
 	tests := []struct {
 		name     string
 		input    *big.Int
