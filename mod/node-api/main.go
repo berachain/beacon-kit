@@ -23,23 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package main
 
 import (
-	"github.com/ethereum/go-ethereum/crypto"
+	server "github.com/berachain/beacon-kit/mod/node-api/server"
+	handlers "github.com/berachain/beacon-kit/mod/node-api/server/handlers"
+	echo "github.com/labstack/echo/v4"
+	middleware "github.com/labstack/echo/v4/middleware"
 )
 
-const (
-	// Name of the Deposit event
-	// in the deposit contract.
-	DepositEventName = "Deposit"
-)
+func NewServer(corsConfig middleware.CORSConfig,
+	loggingConfig middleware.LoggerConfig) *echo.Echo {
+	e := echo.New()
+	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
+	server.UseMiddlewares(e,
+		middleware.CORSWithConfig(corsConfig),
+		middleware.LoggerWithConfig(loggingConfig))
+	server.AssignRoutes(e, handlers.RouteHandlers{})
+	return e
+}
 
-//nolint:gochecknoglobals // Avoid re-allocating these variables.
-var (
-	// Signature and type of the Deposit event
-	// in the deposit contract.
-	DepositEventSig = crypto.Keccak256Hash(
-		[]byte(DepositEventName + "(bytes,bytes,uint64,bytes,uint64)"),
-	)
-)
+func run() {
+	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
+	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func main() {
+	run()
+}

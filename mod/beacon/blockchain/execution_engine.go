@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 	"time"
-	"unsafe"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,7 +35,9 @@ import (
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
-func (s *Service[BeaconStateT, BlobSidecarsT]) sendFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendFCU(
 	ctx context.Context,
 	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
@@ -50,7 +51,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendFCU(
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		&engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceState{
+			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
@@ -61,7 +62,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendFCU(
 }
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
-func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,
@@ -136,8 +139,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
 
 		stCopy := st.Copy()
 		if err = s.sp.ProcessSlot(
-			//#nosec:G103 // TODO:FIX
-			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
+			stCopy,
 		); err != nil {
 			return
 		}
@@ -146,8 +148,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) sendPostBlockFCU(
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
 			ctx,
-			//#nosec:G103 // TODO:FIX
-			*(*BeaconStateT)(unsafe.Pointer(&stCopy)),
+			stCopy,
 			slot+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.

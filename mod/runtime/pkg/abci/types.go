@@ -29,39 +29,38 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
+// BuilderService is responsible for building beacon blocks.
 type BuilderService[
+	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
 	RequestBestBlock(
 		context.Context,
-		BeaconStateT,
 		math.Slot,
-	) (types.BeaconBlock, BlobsSidecarsT, error)
+	) (BeaconBlockT, BlobsSidecarsT, error)
 }
 
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	ProcessSlot(state.BeaconState) error
-	BeaconState(context.Context) state.BeaconState
+	StateFromContext(context.Context) state.BeaconState
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
-		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		types.BeaconBlock,
 		BlobsSidecarsT,
 	) error
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
-		types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		types.BeaconBlock,
 	) error
-	ChainSpec() primitives.ChainSpec
 	VerifyPayloadOnBlk(
-		context.Context, types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+		context.Context, types.BeaconBlock,
 	) error
 }

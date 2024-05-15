@@ -23,30 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package staking
+package hex
 
-import (
-	"context"
+const (
+	prefix          = "0x"
+	prefixLen       = len(prefix)
+	badNibble       = ^uint64(0)
+	hexBase         = 16
+	initialCapacity = 10
+	encDecRatio     = 2
+	bytesPer64Bits  = 16 // 64/8
+	bytesPer256Bits = 64 // 256/8
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	// hexadecimal conversion constants.
+	hexBaseOffset       = '0'
+	hexAlphaOffsetUpper = 'A' - 10
+	hexAlphaOffsetLower = 'a' - 10
 )
-
-type BeaconStorageBackend interface {
-	BeaconState(context.Context) state.BeaconState
-}
-
-type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
-}
-
-type EngineClient interface {
-	GetLogs(
-		context.Context,
-		common.ExecutionHash,
-		[]common.ExecutionAddress,
-	) ([]engineprimitives.Log, error)
-}

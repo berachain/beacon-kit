@@ -31,14 +31,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
 
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
-
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives-engine/withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
@@ -64,9 +62,9 @@ type ExecutableDataDeneb struct {
 
 // JSON type overrides for ExecutableDataDeneb.
 type executableDataDenebMarshaling struct {
-	ExtraData    hexutil.Bytes
-	LogsBloom    hexutil.Bytes
-	Transactions []hexutil.Bytes
+	ExtraData    bytes.Bytes
+	LogsBloom    bytes.Bytes
+	Transactions []bytes.Bytes
 }
 
 // Version returns the version of the ExecutableDataDeneb.

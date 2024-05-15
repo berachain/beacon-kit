@@ -4,11 +4,11 @@ go 1.22.3
 
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240510154417-946c62410f30
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240510154417-946c62410f30
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240510154417-946c62410f30
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240510154417-946c62410f30
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240510154417-946c62410f30
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240514134931-fbc61d2f5d38
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
@@ -25,26 +25,26 @@ replace (
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/berachain/beacon-kit/mod/state-transition => ../mod/state-transition
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240510164054-6b2d6bd75642
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240514143820-01627b1a14d4
 )
 
 require (
 	cosmossdk.io/api v0.7.5
-	cosmossdk.io/core v0.12.1-0.20240510154417-946c62410f30
+	cosmossdk.io/core v0.12.1-0.20240514134931-fbc61d2f5d38
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/da v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
+	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240510171419-8088d5e4f810
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240509094503-43f6859e2926
-	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240509094503-43f6859e2926
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
+	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
@@ -61,6 +61,7 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
+	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91 // indirect
@@ -85,6 +86,7 @@ require (
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
+	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
@@ -239,8 +241,8 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434 // indirect
-	google.golang.org/grpc v1.63.2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
+	google.golang.org/grpc v1.64.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

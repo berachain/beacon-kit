@@ -35,7 +35,9 @@ import (
 )
 
 // ProcessSlot processes the incoming beacon slot.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessSlot(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessSlot(
 	st BeaconStateT,
 ) error {
 	return s.sp.ProcessSlot(st)
@@ -43,10 +45,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessSlot(
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ProcessBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
 	var (
@@ -144,34 +148,33 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) ProcessBeaconBlock(
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
-
 	idx, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
 
-	if err = s.sks.PruneDepositEvents(idx); err != nil {
-		s.logger.Error("failed to prune deposit events", "error", err)
-		return err
-	}
-
-	return nil
+	// TODO: pruner shouldn't be in main block processing thread.
+	return s.PruneDepositEvents(ctx, idx)
 }
 
 // ValidateBlock validates the incoming beacon block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) ValidateBlock(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) ValidateBlock(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
-		s.bsb.BeaconState(ctx), blk,
+		s.bsb.StateFromContext(ctx), blk,
 	)
 }
 
 // VerifyPayload validates the execution payload on the block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -184,7 +187,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
 
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
-		s.bsb.BeaconState(ctx),
+		s.bsb.StateFromContext(ctx),
 		body.GetExecutionPayload(),
 	); err != nil {
 		return err
@@ -207,10 +210,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyPayloadOnBlk(
 
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
-func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) PostBlockProcess(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -241,17 +246,31 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	if err != nil {
 		return err
 	}
-	prevEth1Block := latestExecutionPayloadHeader.GetBlockHash()
 
-	// Process the logs in the block.
-	if err = s.sks.ProcessLogsInETH1Block(ctx, prevEth1Block); err != nil {
+	// Process the logs from the previous blocks execution payload.
+	// TODO: This should be moved out of the main block processing flow.
+	if err = s.retrieveDepositsFromBlock(
+		ctx, latestExecutionPayloadHeader.GetNumber(),
+	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 
+	// Update the latest execution payload header.
+	return s.updateLatestExecutionPayload(ctx, st, payload)
+}
+
+// updateLatestExecutionPayload.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) updateLatestExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	payload engineprimitives.ExecutionPayload,
+) error {
 	// Get the merkle roots of transactions and withdrawals in parallel.
+	g, _ := errgroup.WithContext(ctx)
 	var (
-		g, _            = errgroup.WithContext(ctx)
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)
@@ -273,12 +292,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 	})
 
 	// If deriving either of the roots fails, return the error.
-	if err = g.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
 	// Set the latest execution payload header.
-	if err = st.SetLatestExecutionPayloadHeader(
+	return st.SetLatestExecutionPayloadHeader(
 		&engineprimitives.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
@@ -298,9 +317,5 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) PostBlockProcess(
 			BlobGasUsed:      payload.GetBlobGasUsed(),
 			ExcessBlobGas:    payload.GetExcessBlobGas(),
 		},
-	); err != nil {
-		return err
-	}
-
-	return nil
+	)
 }

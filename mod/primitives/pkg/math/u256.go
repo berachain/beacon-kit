@@ -26,11 +26,10 @@
 package math
 
 import (
-	"bytes"
 	"math/big"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/holiman/uint256"
 )
 
@@ -130,14 +129,14 @@ func (s U256L) UnwrapBig() *big.Int {
 // MarshalJSON marshals a U256L to JSON, it flips the endianness
 // before encoding it to hex such that it is marshalled as big-endian.
 func (s U256L) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + hexutil.EncodeBig(s.UnwrapBig()) + "\""), nil
+	return []byte(hex.FromBigInt(s.UnwrapBig()).AddQuotes().Unwrap()), nil
 }
 
 // UnmarshalJSON unmarshals a U256L from JSON by decoding the hex
 // string and flipping the endianness, such that it is unmarshalled as
 // big-endian.
 func (s *U256L) UnmarshalJSON(input []byte) error {
-	baseFee, err := hexutil.DecodeBig(string(bytes.Trim(input, "\"")))
+	baseFee, err := hex.FromJSONString(input).ToBigInt()
 	if err != nil {
 		return err
 	}

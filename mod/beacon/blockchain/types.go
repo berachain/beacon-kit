@@ -38,15 +38,58 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
+// BeaconState defines the interface for accessing various components of the
+// beacon state.
+type BeaconState[T any] interface {
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+
+	// GetBlockRootAtIndex fetches the block root at a specified index.
+	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+
+	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (
+		engineprimitives.ExecutionPayloadHeader,
+		error,
+	)
+
+	// SetLatestExecutionPayloadHeader sets the most recent execution payload
+	// header.
+	SetLatestExecutionPayloadHeader(
+		engineprimitives.ExecutionPayloadHeader,
+	) error
+
+	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
+	GetEth1DepositIndex() (uint64, error)
+
+	// GetLatestBlockHeader returns the most recent block header.
+	GetLatestBlockHeader() (
+		*types.BeaconBlockHeader,
+		error,
+	)
+
+	// HashTreeRoot returns the hash tree root of the beacon state.
+	HashTreeRoot() ([32]byte, error)
+
+	// Copy creates a copy of the beacon state.
+	Copy() T
+
+	// ValidatorIndexByPubkey finds the index of a validator based on their
+	// public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+}
+
 type BeaconStorageBackend[
-	BeaconStateT any, BlobSidecarsT BlobSidecars,
+	BeaconStateT any, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
 ] interface {
 	AvailabilityStore(
 		context.Context,
 	) core.AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	]
-	BeaconState(context.Context) BeaconStateT
+	StateFromContext(context.Context) BeaconStateT
+	DepositStore(context.Context) DepositStoreT
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
@@ -62,6 +105,19 @@ type BlockVerifier[BeaconStateT any] interface {
 		st BeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
+}
+
+// DepositContract is the ABI for the deposit contract.
+type DepositContract interface {
+	GetDeposits(
+		ctx context.Context,
+		blockNumber uint64,
+	) ([]*types.Deposit, error)
+}
+
+type DepositStore interface {
+	PruneToIndex(uint64) error
+	EnqueueDeposits([]*types.Deposit) error
 }
 
 type ExecutionEngine interface {
@@ -122,15 +178,27 @@ type RandaoProcessor[BeaconStateT any] interface {
 	) error
 }
 
-// StakingService is the interface for the staking service.
-type StakingService interface {
-	// ProcessLogsInETH1Block processes logs in an eth1 block.
-	ProcessLogsInETH1Block(
-		ctx context.Context,
-		blockHash common.ExecutionHash,
+// StateProcessor defines the interface for processing various state transitions
+// in the beacon chain.
+type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
+	// ProcessBlock processes a given beacon block and updates the state
+	// accordingly.
+	ProcessBlock(
+		st BeaconStateT,
+		blk types.BeaconBlock,
 	) error
 
-	// PruneDepositEvents prunes deposit events.
-	// TODO: decouple.
-	PruneDepositEvents(idx uint64) error
+	// ProcessSlot processes the state transition for a single slot.
+	ProcessSlot(
+		st BeaconStateT,
+	) error
+
+	// ProcessBlobs processes the blobs associated with a beacon block.
+	ProcessBlobs(
+		st BeaconStateT,
+		avs core.AvailabilityStore[
+			types.BeaconBlockBody, BlobSidecarsT,
+		],
+		blobs BlobSidecarsT,
+	) error
 }

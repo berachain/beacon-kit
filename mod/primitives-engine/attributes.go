@@ -66,7 +66,7 @@ func NewPayloadAttributes[
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
-	suggestedFeeReceipient common.ExecutionAddress,
+	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals []Withdrawal,
 	parentBeaconBlockRoot primitives.Root,
 ) (*PayloadAttributes[Withdrawal], error) {
@@ -74,7 +74,7 @@ func NewPayloadAttributes[
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
-		SuggestedFeeRecipient: suggestedFeeReceipient,
+		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
@@ -84,6 +84,13 @@ func NewPayloadAttributes[
 	}
 
 	return p, nil
+}
+
+// GetSuggestionsFeeRecipient returns the suggested fee recipient.
+//
+//nolint:lll // formatter being annoying.
+func (p *PayloadAttributes[Withdrawal]) GetSuggestedFeeRecipient() common.ExecutionAddress {
+	return p.SuggestedFeeRecipient
 }
 
 // Version returns the version of the PayloadAttributes.

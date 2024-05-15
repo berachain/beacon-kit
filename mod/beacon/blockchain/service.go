@@ -28,22 +28,20 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Service is the blockchain service.
 type Service[
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
 ] struct {
 	// bsb represents the backend storage for beacon states and associated
 	// sidecars.
 	bsb BeaconStorageBackend[
-		BeaconStateT, BlobSidecarsT,
+		BeaconStateT, BlobSidecarsT, DepositStoreT,
 	]
 
 	// logger is used for logging messages in the service.
@@ -55,17 +53,17 @@ type Service[
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
 
+	// bdc is a connection to the deposit contract.
+	bdc DepositContract
+
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
-
-	// sks is the staking service managing staking logic.
-	sks StakingService
 
 	// bv is responsible for verifying beacon blocks.
 	bv BlockVerifier[BeaconStateT]
 
 	// sp is the state processor for beacon blocks and states.
-	sp *core.StateProcessor[types.BeaconBlock, BeaconStateT, BlobSidecarsT]
+	sp StateProcessor[BeaconStateT, BlobSidecarsT]
 
 	// pv verifies the payload of beacon blocks.
 	pv PayloadVerifier[BeaconStateT]
@@ -73,57 +71,66 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT state.BeaconState, BlobSidecarsT BlobSidecars,
+	BeaconStateT BeaconState[BeaconStateT],
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
 ](
-	bsb BeaconStorageBackend[BeaconStateT, BlobSidecarsT],
+	bsb BeaconStorageBackend[
+		BeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
-	sks StakingService,
 	bv BlockVerifier[BeaconStateT],
-	sp *core.StateProcessor[
-		types.BeaconBlock,
-		BeaconStateT,
-		BlobSidecarsT,
-	],
+	sp StateProcessor[BeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[BeaconStateT],
-) *Service[BeaconStateT, BlobSidecarsT] {
-	return &Service[BeaconStateT, BlobSidecarsT]{
+	bdc DepositContract,
+) *Service[BeaconStateT, BlobSidecarsT, DepositStoreT] {
+	return &Service[BeaconStateT, BlobSidecarsT, DepositStoreT]{
 		bsb:    bsb,
 		logger: logger,
 		cs:     cs,
 		ee:     ee,
 		lb:     lb,
-		sks:    sks,
 		bv:     bv,
 		sp:     sp,
 		pv:     pv,
+		bdc:    bdc,
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Start(
+	context.Context,
+) {
+}
 
-func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) Status() error {
+	return nil
+}
 
-func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+func (s *Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) WaitForHealthy(
 	context.Context,
 ) {
 }
 
 // TODO: Remove
-func (s Service[BeaconStateT, BlobSidecarsT]) BeaconState(
+func (s Service[
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
+]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
-	return s.bsb.BeaconState(ctx)
-}
-
-// TODO: Remove
-func (s Service[BeaconStateT, BlobSidecarsT]) ChainSpec() primitives.ChainSpec {
-	return s.cs
+	return s.bsb.StateFromContext(ctx)
 }
