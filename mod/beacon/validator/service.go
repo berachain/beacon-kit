@@ -277,19 +277,15 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		BlockHash:    common.ZeroHash,
 	})
 
-	payload := envelope.GetExecutionPayload()
-	if payload == nil || payload.IsNil() {
-		return nil, sidecars, ErrNilPayload
-	}
-
 	// Set the execution data.
-	if err = body.SetExecutionData(payload); err != nil {
+	if err = body.SetExecutionData(
+		envelope.GetExecutionPayload(),
+	); err != nil {
 		return nil, sidecars, err
 	}
 
-	// Process Blobs.
+	// Produce block sidecars.
 	g.Go(func() error {
-		// Build the sidecars.
 		var sidecarErr error
 		sidecars, sidecarErr = s.BuildSidecars(
 			blk,
@@ -298,7 +294,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return sidecarErr
 	})
 
-	// Set the block state root.
+	// Set the state root on the BeaconBlock.
 	g.Go(func() error {
 		return s.SetBlockStateRoot(gCtx, st, blk)
 	})
