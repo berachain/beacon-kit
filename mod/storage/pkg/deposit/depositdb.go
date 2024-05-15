@@ -30,9 +30,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	v2db "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
 )
 
@@ -40,28 +38,8 @@ const (
 	KeyDepositPrefix = "deposit"
 )
 
-var _ store.KVStoreService = (*KVStoreProvider)(nil)
-
 type KVStoreProvider struct {
 	store.KVStoreWithBatch
-}
-
-func NewKVStoreProvider(name, backend, dir string) (*KVStoreProvider, error) {
-	var db *v2db.PebbleDB
-	var err error
-	switch backend {
-	case "pebble":
-		db, err = v2db.NewPebbleDB(name, dir)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errors.New("unsupported backend")
-	}
-
-	return &KVStoreProvider{
-		db,
-	}, nil
 }
 
 // OpenKVStore opens a new KV store.
