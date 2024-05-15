@@ -179,6 +179,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 			return nil, sidecars, err
 		}
 
+		// Request the slot again, it should've been incremented by 1.
+		stateSlot, err = st.GetSlot()
+		if err != nil {
+			return nil, sidecars, err
+		}
+
 		// If after doing so, we aren't exactly at the requested slot,
 		// we should return an error.
 		if requestedSlot != stateSlot {

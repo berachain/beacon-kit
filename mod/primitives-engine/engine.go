@@ -28,6 +28,7 @@ package engineprimitives
 
 import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // There are some types we can borrow from geth.
@@ -53,3 +54,9 @@ var (
 	// ExecutableDataToBlock constructs a block from executable data.
 	ExecutableDataToBlock = engine.ExecutableDataToBlock
 )
+
+type ForkchoiceStateV1 struct {
+	HeadBlockHash      common.Hash `json:"headBlockHash"`
+	SafeBlockHash      common.Hash `json:"safeBlockHash"`
+	FinalizedBlockHash common.Hash `json:"finalizedBlockHash"`
+}

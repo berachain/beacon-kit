@@ -86,6 +86,13 @@ func NewPayloadAttributes[
 	return p, nil
 }
 
+// GetSuggestionsFeeRecipient returns the suggested fee recipient.
+//
+//nolint:lll // formatter being annoying.
+func (p *PayloadAttributes[Withdrawal]) GetSuggestedFeeRecipient() common.ExecutionAddress {
+	return p.SuggestedFeeRecipient
+}
+
 // Version returns the version of the PayloadAttributes.
 func (p *PayloadAttributes[Withdrawal]) Version() uint32 {
 	return p.version

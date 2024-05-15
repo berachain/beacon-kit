@@ -104,6 +104,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// If the suggested fee recipient is not set, log a warning.
+	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+		s.logger.Warn(
+			"suggested fee recipient is not configured 🔆",
+			"fee-recipent", common.PrettyBytes(
+				common.ZeroAddress[:]).TerminalString(),
+		)
+	}
+
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
