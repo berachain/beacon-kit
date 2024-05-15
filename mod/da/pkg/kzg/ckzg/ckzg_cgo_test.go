@@ -39,7 +39,7 @@ import (
 
 func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 	validBlob, validProof, validCommitment := setupTestData(
-		t, "./files/test_data.json")
+		t, "../../../../../testing/files/test_data.json")
 	testCases := []struct {
 		name        string
 		blob        *eip4844.Blob
@@ -79,7 +79,7 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 func TestVerifyBlobProofBatch(t *testing.T) {
 	// Load the test data
 	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "./files/test_data_batch.json")
+	file, err := afero.ReadFile(fs, "../../../../../testing/files/test_data_batch.json")
 	require.NoError(t, err)
 
 	// Unmarshal the JSON data

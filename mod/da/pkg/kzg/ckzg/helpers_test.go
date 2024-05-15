@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 
 func setupVerifier() (*ckzg.Verifier, error) {
 	fs := afero.NewOsFs()
-	file, err := afero.ReadFile(fs, "./files/kzg-trusted-setup.json")
+	file, err := afero.ReadFile(fs, "../../../../../testing/files/kzg-trusted-setup.json")
 	if err != nil {
 		return nil, err
 	}
