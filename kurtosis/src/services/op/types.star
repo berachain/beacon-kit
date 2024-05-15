@@ -1,8 +1,14 @@
 contracts = import_module("packages/contracts.star")
+wallets = import_module("packages/wallets.star")
 
 def get_files(plan):
+    contracts_dir = contracts.clone_dir(plan)
     return struct(
-        contracts=contracts.clone_dir(plan)
+        contracts=contracts_dir,
+        wallets=wallets.get(plan, contracts_dir),
+        config="config", # gets set in deploy
+        l2="l2", # gets set in deploy
+        rollup="rollup", # gets set in deploy
     )
 
 def get_l1(
@@ -10,8 +16,8 @@ def get_l1(
     rpc_kind="any",
     ws_url="http://localhost:8546",
     auth_rpc_url="http://localhost:8551",
-    block_time=6,
-    chain_id=80087,
+    block_time="6",
+    chain_id="80087",
 ):
     return struct(
         rpc_url=rpc_url,

@@ -1,23 +1,24 @@
-def init(plan, image, env):
+NODE_RPC_URL_BASE="op-node"
+
+def init(plan, image, env, files):
     plan.run_sh(
         image=image,
-        run='mkdir datadir && genesis l2\
+        run='genesis l2\
             --deploy-config contracts-bedrock/deploy-config/getting-started.json \
             --l1-deployments contracts-bedrock/deployments/getting-started/l1.json \
             --outfile.l2 genesis.json \
             --outfile.rollup rollup.json \
             --l1-rpc {}'.format(env["L1_RPC_URL"]),
         store=[
-            StoreSpec(src="genesis.json", name="/l2/genesis.json"),
-            StoreSpec(src="rollup.json", name="/rollup/rollup.json"),
-            StoreSpec(src="datadir", name="/datadir"),
+            StoreSpec(src="genesis.json", name=files.l2),
+            StoreSpec(src="rollup.json", name=files.rollup),
         ]
     )
 
 
 def launch(plan, image, files, env, l1, l2, node_rpc_port):
-    node_rpc_url = "http://{}:{}".format("0.0.0.0", node_rpc_port)
-    return plan.add_service(
+    node_rpc_url = "http://{}:{}".format(NODE_RPC_URL_BASE, node_rpc_port)
+    service = plan.add_service(
         name="op-node",
         config=ServiceConfig(
             image=image,
@@ -32,16 +33,20 @@ def launch(plan, image, files, env, l1, l2, node_rpc_port):
                 "--sequencer.l1-confs=5",
                 "--verifier.l1-confs=4",
                 "--rollup.config=./rollup/rollup.json",
-                "--rpc.addr=0.0.0.0",
+                "--rpc.addr={}".format(NODE_RPC_URL_BASE),
                 "--rpc.port={}".format(node_rpc_port),
                 "--p2p.disable",
                 "--rpc.enable-admin",
                 "--p2p.sequencer.key={}".format(env["GS_SEQUENCER_PRIVATE_KEY"]),            
             ],
             ports={
-                "rpc": PortSpec(number=node_rpc_port),
+                "rpc": PortSpec(
+                    number=int(node_rpc_port),
+                    url=node_rpc_url,
+                ),
             },
             files={"/config": files.config, "/rollup": files.rollup},
-            env_vars=env,
         ),
     )
+
+    return service.ports["rpc"].url

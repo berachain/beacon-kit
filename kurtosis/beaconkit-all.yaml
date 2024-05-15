@@ -75,10 +75,10 @@ rpc_endpoints:
       # - el-full-erigon-5:8545
       # - el-full-ethereumjs-6:8545
 op_images:
-  - geth: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:latest
-  - node: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest
-  - batcher: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher:latest
-  - proposer: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer:latest
+  geth: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:latest
+  node: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest
+  batcher: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher:latest
+  proposer: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer:latest
 additional_services: 
   # - "goomy_blob"
   # - "tx-fuzz"

@@ -150,7 +150,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], op_images = [], a
         op.launch(
             plan,
             op_images,
-            rpc_endpoints[0], # TODO: Make this always use a full node
+            "http://{}".format(rpc_endpoints[0]["services"][0]), # TODO: Make this always use a full node
         )
 
     if "prometheus" in additional_services:

@@ -1,19 +1,19 @@
+wallets = import_module("./packages/wallets.star")
+
 def get(
     plan,
-    files,
     l1,
     private_key="fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
 ):
-    wallets = get_wallets(plan, files)
     return {
-        "GS_ADMIN_ADDRESS": wallets[0],
-        "GS_ADMIN_PRIVATE_KEY": wallets[1],
-        "GS_BATCHER_ADDRESS": wallets[2],
-        "GS_BATCHER_PRIVATE_KEY": wallets[3],
-        "GS_PROPOSER_ADDRESS": wallets[4],
-        "GS_PROPOSER_PRIVATE_KEY": wallets[5],
-        "GS_SEQUENCER_ADDRESS": wallets[6],
-        "GS_SEQUENCER_PRIVATE_KEY": wallets[7],
+        "GS_ADMIN_ADDRESS": wallets.get_by_index(plan, 1),
+        "GS_ADMIN_PRIVATE_KEY": wallets.get_by_index(plan, 2),
+        "GS_BATCHER_ADDRESS": wallets.get_by_index(plan, 3),
+        "GS_BATCHER_PRIVATE_KEY": wallets.get_by_index(plan, 4),
+        "GS_PROPOSER_ADDRESS": wallets.get_by_index(plan, 5),
+        "GS_PROPOSER_PRIVATE_KEY": wallets.get_by_index(plan, 6),
+        "GS_SEQUENCER_ADDRESS": wallets.get_by_index(plan, 7),
+        "GS_SEQUENCER_PRIVATE_KEY": wallets.get_by_index(plan, 8),
         "L1_RPC_KIND": l1.rpc_kind,
         "L1_BLOCK_TIME": l1.block_time,
         "L1_RPC_URL": l1.rpc_url,
@@ -25,21 +25,8 @@ def get(
         "PRIVATE_KEY": private_key
     }
 
-
-# Returns wallets (address, pk pair) in the order of:
-#   GS_ADMIN, GS_BATCHER, GS_PROPOSER, GS_SEQUENCER
-def get_wallets(plan, files):
-    wallets=plan.run_sh(
-        run='ls contracts-bedrock && ./contracts-bedrock/scripts/getting-started/wallets.sh | grep "_ADDRESS\\|_PRIVATE_KEY" | cut -d "=" -f 2',
-        files={"/contracts-bedrock": files.contracts},
-    )
-    plan.print(wallets.output)
-    # return wallets.output.split("\n")
-    return ["" for i in range(8)]
-
-
 def get_salt(plan):
     return plan.run_sh(
-        image="alpine:latest",
-        run="apk add openssl && openssl rand -hex 32"
+        image="alpine/openssl:latest",
+        run="openssl rand -hex 32"
     ).output
