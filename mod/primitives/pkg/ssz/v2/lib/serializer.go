@@ -90,12 +90,14 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	val := reflect.ValueOf(c)
 	k := typ.Kind()
 
-	switch {
-	case IsUintLike(k):
+	if IsUintLike(k) {
 		return RouteUint(val, typ), nil
-	case k == reflect.Bool:
+	}
+
+	switch k {
+	case reflect.Bool:
 		return ssz.MarshalBool(c.(bool)), nil
-	case k == reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		// 1 dimensional array of uint8s or bytearray []byte.
 		if typ.Elem().Kind() == reflect.Uint8 {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
@@ -113,31 +115,13 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 			return s.MarshalNDimensionalArray(val)
 		}
 		fallthrough
-	case k == reflect.Array:
-		// 1 dimensional array of uint8s or bytearray []byte.
-		if typ.Elem().Kind() == reflect.Uint8 {
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
-		}
-		// We follow fastssz generated code samples in
-		// bellatrix.ssz.go for these.
-		if isBasicType(typ.Elem().Kind()) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		if isVariableSizeType(typ) || isVariableSizeType(typ.Elem()) {
-			// composite arr.
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
-		}
-		if IsNDimensionalArrayLike(typ) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		fallthrough
-	case k == reflect.Ptr:
+	case reflect.Ptr:
 		// Composite structs appear initially as pointers so we Look inside
 		if typ.Elem().Kind() == reflect.Struct {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
 		}
 		fallthrough
-	case k == reflect.Struct:
+	case reflect.Struct:
 		return make(
 				[]byte,
 				0,
