@@ -30,7 +30,10 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/beacond/x/beacon/keeper"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -49,15 +52,18 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	keeper *keeper.Keeper
+	keeper    *storage.Backend[state.BeaconState]
+	chainSpec primitives.ChainSpec
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	keeper *keeper.Keeper,
+	keeper *storage.Backend[state.BeaconState],
+	chainSpec primitives.ChainSpec,
 ) AppModule {
 	return AppModule{
-		keeper: keeper,
+		keeper:    keeper,
+		chainSpec: chainSpec,
 	}
 }
 
@@ -82,5 +88,44 @@ func (am AppModule) IsAppModule() {}
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	store := am.keeper.BeaconStore().WithContext(ctx)
+
+	// Get the public key of the validator
+	val, err := store.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		panic(err)
+	}
+
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+	for _, validator := range val {
+		// TODO: Config
+		// Max 100 validators in the active set.
+		// TODO: this is kinda hood.
+		if validator.EffectiveBalance == 0 {
+			var idx math.ValidatorIndex
+			idx, err = store.WithContext(ctx).
+				ValidatorIndexByPubkey(validator.Pubkey)
+			if err != nil {
+				return nil, err
+			}
+			if err = store.WithContext(ctx).
+				RemoveValidatorAtIndex(idx); err != nil {
+				return nil, err
+			}
+		}
+
+		// TODO: this works, but there is a bug where if we send a validator to
+		// 0 voting power, it can somehow still propose the next block? This
+		// feels big bad.
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: "bls12_381",
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		})
+	}
+
+	// Save the store.
+	store.Save()
+	return validatorUpdates, nil
 }

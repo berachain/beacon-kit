@@ -31,6 +31,7 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // DefaultGenesis returns default genesis state as raw bytes
@@ -61,17 +62,37 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	var gs deneb.BeaconState
-	if err := json.Unmarshal(bz, &gs); err != nil {
+	data := new(deneb.BeaconState)
+	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	return am.keeper.InitGenesis(ctx, &gs)
+
+	// Load the store.
+	store := am.keeper.BeaconStore().WithContext(ctx)
+	sdb := state.NewBeaconStateFromDB(store, am.chainSpec)
+	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
+		return nil, err
+	}
+
+	// Build ValidatorUpdates for CometBFT.
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+	blsType := "bls12_381"
+	for _, validator := range data.Validators {
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: blsType,
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		},
+		)
+	}
+	return validatorUpdates, nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(
-	ctx context.Context,
+	_ context.Context,
 ) (json.RawMessage, error) {
-	return json.Marshal(am.keeper.ExportGenesis(ctx))
+	return json.Marshal(&deneb.BeaconState{})
 }

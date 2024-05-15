@@ -46,7 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -56,6 +56,20 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
+
+// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
+type BeaconKitRuntime = runtime.BeaconKitRuntime[
+	types.BeaconBlockBody,
+	state.BeaconState,
+	*datypes.BlobSidecars,
+	*depositdb.KVStore,
+	runtime.BeaconStorageBackend[
+		types.BeaconBlockBody,
+		state.BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore,
+	],
+]
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
@@ -75,18 +89,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime[
-	types.BeaconBlockBody,
-	state.BeaconState,
-	*datypes.BlobSidecars,
-	*depositdb.KVStore,
-	runtime.BeaconStorageBackend[
-		types.BeaconBlockBody,
-		state.BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore,
-	],
-], error) {
+) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
