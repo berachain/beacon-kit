@@ -105,5 +105,5 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 
 // TODO: move this.
 func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
-	return &engineprimitives.ExecutionPayloadHeaderDeneb{}
+	return &types.ExecutionPayloadHeaderDeneb{}
 }
