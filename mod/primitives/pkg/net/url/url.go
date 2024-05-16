@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package url
 
 import "net/url"
 
@@ -35,6 +35,14 @@ type DialURL struct {
 // NewDialURL creates a new DialURL.
 func NewDialURL(u *url.URL) *DialURL {
 	return &DialURL{u}
+}
+
+func NewFromRaw(raw string) (*DialURL, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	return NewDialURL(u), nil
 }
 
 // IsHTTP checks if the DialURL scheme is HTTP.
