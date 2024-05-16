@@ -111,6 +111,7 @@ func (r *BeaconKitRuntime[
 ]) StartServices(
 	ctx context.Context,
 ) {
+	r.engineClient.Start(ctx)
 	r.services.StartAll(ctx)
 }
 
