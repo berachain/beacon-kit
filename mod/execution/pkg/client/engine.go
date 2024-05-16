@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -56,7 +57,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	if err != nil {
 		return nil, err
 	} else if result == nil {
-		return nil, ErrNilPayloadStatus
+		return nil, engineerrors.ErrNilPayloadStatus
 	}
 
 	// This case is only true when the payload is invalid, so
@@ -90,7 +91,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra payload")
 	default:
-		return nil, ErrInvalidPayloadType
+		return nil, engineerrors.ErrInvalidPayloadType
 	}
 }
 
@@ -117,7 +118,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
 	} else if result == nil {
-		return nil, nil, ErrNilForkchoiceResponse
+		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
 	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
@@ -141,7 +142,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
-		return nil, ErrInvalidPayloadAttributes
+		return nil, engineerrors.ErrInvalidPayloadAttributes
 	}
 }
 
@@ -165,7 +166,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
-		return nil, ErrInvalidGetPayloadVersion
+		return nil, engineerrors.ErrInvalidGetPayloadVersion
 	}
 
 	// Call and check for errors.
@@ -174,11 +175,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	case err != nil:
 		return result, s.handleRPCError(err)
 	case result == nil:
-		return result, ErrNilExecutionPayloadEnvelope
+		return result, engineerrors.ErrNilExecutionPayloadEnvelope
 	case result.GetExecutionPayload() == nil:
-		return result, ErrNilExecutionPayload
+		return result, engineerrors.ErrNilExecutionPayload
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
-		return result, ErrNilBlobsBundle
+		return result, engineerrors.ErrNilBlobsBundle
 	}
 
 	return result, nil

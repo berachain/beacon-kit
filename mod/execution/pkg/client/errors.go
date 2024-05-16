@@ -29,6 +29,8 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
+	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -49,128 +51,6 @@ var (
 
 	// ErrHTTPTimeout indicates a timeout error from http.Client.
 	ErrHTTPTimeout = errors.New("timeout from http.Client")
-
-	// ErrEmptyBlockHash indicates an empty block hash scenario.
-	ErrEmptyBlockHash = errors.New("block hash is empty 0x0000...000")
-
-	// ErrNilResponse indicates a nil response from the execution client.
-	ErrNilResponse = errors.New("nil response from execution client")
-
-	// ErrParse indicates a parsing error
-	// (JSON-RPC code -32700).
-	ErrParse = errors.New("invalid JSON was received by the server")
-
-	// ErrInvalidRequest indicates an invalid request object
-	// (JSON-RPC code -32600).
-	ErrInvalidRequest = errors.New("JSON sent is not valid request object")
-
-	// ErrMethodNotFound indicates a non-existent method call
-	// (JSON-RPC code -32601).
-	ErrMethodNotFound = errors.New("method not found")
-
-	// ErrInvalidParams indicates invalid method parameters
-	// (JSON-RPC code -32602).
-	ErrInvalidParams = errors.New("invalid method parameter(s)")
-
-	// ErrInternal indicates an internal JSON-RPC error
-	// (JSON-RPC code -32603).
-	ErrInternal = errors.New("internal JSON-RPC error")
-
-	// ErrServer indicates a client-side error during request processing
-	// (JSON-RPC code -32000).
-	ErrServer = errors.New(
-		"client error while processing request")
-
-	// ErrUnknownPayload indicates an unavailable or non-existent payload
-	// (JSON-RPC code -38001).
-	ErrUnknownPayload = errors.New(
-		"payload does not exist or is not available")
-
-	// ErrInvalidForkchoiceState indicates an invalid fork choice state
-	// (JSON-RPC code -38002).
-	ErrInvalidForkchoiceState = errors.New(
-		"invalid forkchoice state")
-
-	// ErrInvalidPayloadAttributes indicates invalid or inconsistent payload
-	// attributes
-	// (JSON-RPC code -38003).
-	ErrInvalidPayloadAttributes = errors.New(
-		"payload attributes are invalid / inconsistent")
-
-	// ErrUnknownPayloadStatus indicates an unknown payload status.
-	ErrUnknownPayloadStatus = errors.New(
-		"unknown payload status")
-
-	// ErrAcceptedPayloadStatus indicates a payload status of ACCEPTED.
-	ErrAcceptedPayloadStatus = errors.New(
-		"payload status is ACCEPTED")
-
-	// ErrSyncingPayloadStatus indicates a payload status of SYNCING.
-	ErrSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING",
-	)
-
-	// ErrInvalidPayloadStatus indicates an invalid payload status.
-	ErrInvalidPayloadStatus = errors.New(
-		"payload status is INVALID")
-
-	// ErrInvalidBlockHashPayloadStatus indicates a failure in validating the
-	// block hash for the payload.
-	ErrInvalidBlockHashPayloadStatus = errors.New(
-		"payload status is INVALID_BLOCK_HASH")
-
-	// ErrNilForkchoiceResponse indicates a nil forkchoice response.
-	ErrNilForkchoiceResponse = errors.New(
-		"nil forkchoice response",
-	)
-
-	// ErrNilPayloadStatus indicates a nil payload status.
-	ErrNilPayloadStatus = errors.New(
-		"nil payload status",
-	)
-
-	// ErrRequestTooLarge indicates that the request size exceeded the limit.
-	ErrRequestTooLarge = errors.New(
-		"request too large")
-
-	// ErrUnsupportedVersion indicates a request for a block type with an
-	// unknown ExecutionPayload schema.
-	ErrUnsupportedVersion = errors.New(
-		"unknown ExecutionPayload schema for block version")
-
-	// ErrNilJWTSecret indicates that the JWT secret is nil.
-	ErrNilJWTSecret = errors.New("nil JWT secret")
-
-	// ErrNilAttributesPassedToClient is returned when nil attributes are
-	// passed to the client.
-	ErrNilAttributesPassedToClient = errors.New(
-		"nil attributes passed to client")
-
-	// ErrNilExecutionPayloadEnvelope is returned when nil execution payload
-	// envelope is received.
-	ErrNilExecutionPayloadEnvelope = errors.New(
-		"nil execution payload envelope received from execution client")
-
-	// ErrNilExecutionPayload is returned when nil execution payload
-	// envelope is received.
-	ErrNilExecutionPayload = errors.New(
-		"nil execution payload received from execution client")
-
-	/// ErrNilBlobsBundle is returned when nil blobs bundle is received.
-	ErrNilBlobsBundle = errors.New(
-		"nil blobs bundle received from execution client")
-
-	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
-	// attributes was provided.
-	ErrInvalidPayloadAttributeVersion = errors.New(
-		"invalid payload attribute version")
-	// ErrInvalidPayloadType indicates an invalid payload type
-	// was provided for an RPC call.
-	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
-
-	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
-	// provided for getting a payload.
-	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
 )
 
 // Handles errors received from the RPC server according to the specification.
@@ -198,31 +78,31 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 	switch e.ErrorCode() {
 	case -32700:
 		// telemetry.IncrCounter(1, MetricKeyParseErrorCount)
-		return ErrParse
+		return jsonrpc.ErrParse
 	case -32600:
 		// telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
-		return ErrInvalidRequest
+		return jsonrpc.ErrInvalidRequest
 	case -32601:
 		// telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
-		return ErrMethodNotFound
+		return jsonrpc.ErrMethodNotFound
 	case -32602:
 		// telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
-		return ErrInvalidParams
+		return jsonrpc.ErrInvalidParams
 	case -32603:
 		// telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
-		return ErrInternal
+		return jsonrpc.ErrInternal
 	case -38001:
 		// telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
-		return ErrUnknownPayload
+		return engineerrors.ErrUnknownPayload
 	case -38002:
 		// telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
-		return ErrInvalidForkchoiceState
+		return engineerrors.ErrInvalidForkchoiceState
 	case -38003:
 		// telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
-		return ErrInvalidPayloadAttributes
+		return engineerrors.ErrInvalidPayloadAttributes
 	case -38004:
 		// telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
-		return ErrRequestTooLarge
+		return engineerrors.ErrRequestTooLarge
 	case -32000:
 		// telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
 		// Only -32000 status codes are data errors in the RPC specification.
@@ -232,7 +112,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 			return errors.Wrapf(
 				err, "got an unexpected error in JSON-RPC response")
 		}
-		return errors.Wrapf(ErrServer, "%v", errWithData.Error())
+		return errors.Wrapf(jsonrpc.ErrServer, "%v", errWithData.Error())
 	default:
 		return err
 	}
