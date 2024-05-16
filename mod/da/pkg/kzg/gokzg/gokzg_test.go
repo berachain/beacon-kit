@@ -71,7 +71,11 @@ func TestVerifyBlobProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			errVerify := verifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
+			errVerify := verifier.VerifyBlobProof(
+				tc.blob,
+				tc.proof,
+				tc.commitment,
+			)
 			if tc.expectError {
 				require.Error(t, errVerify)
 			} else {

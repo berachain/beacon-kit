@@ -121,7 +121,10 @@ func TestMustFromHex(t *testing.T) {
 			if test.shouldPanic {
 				defer func() {
 					if r := recover(); r == nil {
-						t.Errorf("MustFromHex did not panic for input: %s", test.input)
+						t.Errorf(
+							"MustFromHex did not panic for input: %s",
+							test.input,
+						)
 					}
 				}()
 				_ = bytes.MustFromHex(test.input)

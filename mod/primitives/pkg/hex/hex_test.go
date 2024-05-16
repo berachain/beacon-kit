@@ -74,7 +74,11 @@ func TestNewStringStrictInvariants(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			str, err := hex.NewStringStrict(test.input)
 			if (err != nil) != test.expectErr {
-				t.Errorf("NewStringStrict() error = %v, expectErr %v", err, test.expectErr)
+				t.Errorf(
+					"NewStringStrict() error = %v, expectErr %v",
+					err,
+					test.expectErr,
+				)
 			} else if err == nil {
 				verifyInvariants("NewStringStrict()", t, str)
 			}
@@ -157,7 +161,11 @@ func TestFromBytes(t *testing.T) {
 			result := hex.FromBytes(tt.input)
 
 			if result.Unwrap() != tt.expected {
-				t.Errorf("FromBytes() = %v, want %v", result.Unwrap(), tt.expected)
+				t.Errorf(
+					"FromBytes() = %v, want %v",
+					result.Unwrap(),
+					tt.expected,
+				)
 			}
 
 			verifyInvariants("FromBytes()", t, result)
@@ -204,7 +212,11 @@ func TestUint64RoundTrip(t *testing.T) {
 			result := hex.FromUint64(tt.input)
 
 			if result.Unwrap() != tt.expected {
-				t.Errorf("FromUint64() = %v, want %v", result.Unwrap(), tt.expected)
+				t.Errorf(
+					"FromUint64() = %v, want %v",
+					result.Unwrap(),
+					tt.expected,
+				)
 			}
 			verifyInvariants("FromUint64()", t, result)
 			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
@@ -248,7 +260,11 @@ func TestBigIntRoundTrip(t *testing.T) {
 			result := hex.FromBigInt(tt.input)
 
 			if result.Unwrap() != tt.expected {
-				t.Errorf("FromBigInt() = %v, want %v", result.Unwrap(), tt.expected)
+				t.Errorf(
+					"FromBigInt() = %v, want %v",
+					result.Unwrap(),
+					tt.expected,
+				)
 			}
 
 			verifyInvariants("FromBigInt()", t, result)

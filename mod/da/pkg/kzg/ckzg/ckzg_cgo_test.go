@@ -29,12 +29,13 @@ package ckzg_test
 
 import (
 	"encoding/json"
+	"path/filepath"
+	"testing"
+
 	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"path/filepath"
-	"testing"
 )
 
 func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
@@ -65,7 +66,11 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := globalVerifier.VerifyBlobProof(tc.blob, tc.proof, tc.commitment)
+			err := globalVerifier.VerifyBlobProof(
+				tc.blob,
+				tc.proof,
+				tc.commitment,
+			)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
@@ -75,7 +80,8 @@ func TestVerifyBlobKZGProofCgoEnabled(t *testing.T) {
 	}
 }
 
-// TestVerifyBlobProofBatch tests the VerifyBlobProofBatch function for valid proofs
+// TestVerifyBlobProofBatch tests the VerifyBlobProofBatch function for valid
+// proofs
 func TestVerifyBlobProofBatch(t *testing.T) {
 	// Load the test data
 	fs := afero.NewOsFs()
