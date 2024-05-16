@@ -179,14 +179,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
         //slither-disable-next-line uninitialized-local
         bytes32 node;
         uint256 size = depositCount;
-        for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
-        {
-            if ((size & 1) == 1) {
-                node = sha256(abi.encodePacked(branch[height], node));
-            } else {
-                node = sha256(abi.encodePacked(node, zeroHashes[height]));
+        unchecked {
+            for (uint256 height; height < DEPOSIT_CONTRACT_TREE_DEPTH; ++height)
+            {
+                if ((size & 1) == 1) {
+                    node = sha256(abi.encodePacked(branch[height], node));
+                } else {
+                    node = sha256(abi.encodePacked(node, zeroHashes[height]));
+                }
+                size >>= 1;
             }
-            size /= 2;
         }
         return sha256(
             abi.encodePacked(node, SSZ.toLittleEndian(uint64(depositCount)))
