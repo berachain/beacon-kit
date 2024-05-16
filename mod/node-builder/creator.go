@@ -23,37 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package nodebuilder
 
 import (
-	"log/slog"
-	"os"
+	"io"
+	"reflect"
 
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
-	"go.uber.org/automaxprocs/maxprocs"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
-
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config())
-
-	return nb.RunNode()
-}
-
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+// NodeBuilder is a struct that holds the.
+func (nb *NodeBuilder[T]) AppCreator(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) T {
+	bk := *app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		appOpts,
+		nb.appInfo.DepInjectConfig,
+		server.DefaultBaseappOptions(appOpts)...,
+	)
+	return reflect.ValueOf(bk).Convert(
+		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
 }

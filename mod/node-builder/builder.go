@@ -52,8 +52,6 @@ type AppInfo[T servertypes.Application] struct {
 	Name string
 	// Description is a short description of the application.
 	Description string
-	// Creator is a function that creates the application.
-	Creator servertypes.AppCreator[T]
 	// DepInjectConfig is the configuration for the application.
 	DepInjectConfig depinject.Config
 }
@@ -170,7 +168,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	cmdlib.DefaultRootCommandSetup(
 		nb.rootCmd,
 		mm,
-		nb.appInfo.Creator,
+		nb.AppCreator,
 	)
 
 	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)
