@@ -75,22 +75,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		}
 		return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
 	}
+
+	// Check to see if the error is one of the predefined errors
+	// as per the JSON-RPC 2.0 specification.
+	if err = jsonrpc.GetPredefinedError(e); err != nil {
+		return err
+	}
+
+	// Otherwise check for our engine errors.
 	switch e.ErrorCode() {
-	case -32700:
-		// telemetry.IncrCounter(1, MetricKeyParseErrorCount)
-		return jsonrpc.ErrParse
-	case -32600:
-		// telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
-		return jsonrpc.ErrInvalidRequest
-	case -32601:
-		// telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
-		return jsonrpc.ErrMethodNotFound
-	case -32602:
-		// telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
-		return jsonrpc.ErrInvalidParams
-	case -32603:
-		// telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
-		return jsonrpc.ErrInternal
 	case -38001:
 		// telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
 		return engineerrors.ErrUnknownPayload

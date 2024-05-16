@@ -30,6 +30,9 @@ import (
 )
 
 var (
+	// ErrPreDefinedJSONRPC is a custom error type for JSON-RPC errors.
+	ErrJSONRPCError = errors.New("json-rpc error")
+
 	// ErrUnknownPayload indicates an unavailable or non-existent payload
 	// (JSON-RPC code -38001).
 	ErrUnknownPayload = errors.New(

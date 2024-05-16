@@ -215,7 +215,7 @@ func (ee *Engine[
 		)
 		return ErrBadBlockProduced
 
-	case errors.Is(err, jsonrpc.ErrServer):
+	case jsonrpc.IsPreDefinedError(err):
 		var (
 			loggerFn = ee.logger.Error
 			logMsg   = "json-rpc execution error during payload verification"
