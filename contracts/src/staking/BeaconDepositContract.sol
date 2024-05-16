@@ -77,13 +77,15 @@ contract BeaconDepositContract is IBeaconDepositContract {
 
     constructor() {
         // Compute hashes in empty sparse Merkle tree
-        for (
-            uint256 height = 0;
-            height < DEPOSIT_CONTRACT_TREE_DEPTH - 1;
-            height++
-        ) {
-            zeroHashes[height + 1] =
-                sha256(abi.encodePacked(zeroHashes[height], zeroHashes[height]));
+        unchecked {
+            for (
+                uint256 height;
+                height < DEPOSIT_CONTRACT_TREE_DEPTH - 1;
+                ++height
+            ) {
+                zeroHashes[height + 1] =
+                    sha256(abi.encodePacked(zeroHashes[height], zeroHashes[height]));
+            }
         }
     }
 
