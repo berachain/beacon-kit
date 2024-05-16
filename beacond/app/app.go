@@ -105,7 +105,6 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideJWTSecret,
 				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
 			),
@@ -149,9 +148,11 @@ func NewBeaconKitApp(
 	}
 
 	// TODO: this needs to be made un-hood.
-	app.BeaconKitRuntime.StartServices(
+	if err := app.BeaconKitRuntime.StartServices(
 		context.Background(),
-	)
+	); err != nil {
+		panic(err)
+	}
 
 	return app
 }

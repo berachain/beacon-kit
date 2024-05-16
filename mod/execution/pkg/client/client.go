@@ -34,11 +34,11 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -89,7 +89,15 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 }
 
 // Start starts the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) error {
+	var err error
+
+	// TODO: For IPC need to check if needed.
+	if s.jwtSecret, err = LoadJWTFromFile(s.cfg.JWTSecretPath); err != nil {
+		s.logger.Error("failed to load JWT secret", "err", err)
+		return err
+	}
+
 	for {
 		s.logger.Info("waiting for execution client to start 🍺🕔",
 			"dial-url", s.cfg.RPCDialURL)
@@ -107,7 +115,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	chainID, err := s.ChainID(ctx)
 	if err != nil {
 		s.logger.Error("failed to get chain ID", "err", err)
-		return
+		return err
 	}
 
 	// Log the chain ID.
@@ -124,11 +132,13 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	// Exchange capabilities with the execution client.
 	if _, err = s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
+		return err
 	}
 
 	// If we reached this point, the execution client is connected so we can
 	// start the jwt refresh loop.
 	go s.jwtRefreshLoop(ctx)
+	return nil
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy
@@ -280,15 +290,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 		err    error
 	)
 
-	// Build an http.Header with the JWT token attached.
-	header, err := s.buildJWTHeader()
-	if err != nil {
-		return err
-	}
-
 	// Dial the execution client based on the URL scheme.
 	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
+		// Build an http.Header with the JWT token attached.
+		header, err := s.buildJWTHeader()
+		if err != nil {
+			return err
+		}
+
 		client, err = rpc.DialOptions(
 			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 		)
@@ -306,8 +316,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 		return err
 	}
 
-	s.Client = ethclient.NewClient(client)
-	return nil
+	// Refresh the execution client with the new client.
+	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadDenebT](
+		client,
+	)
+	return err
 }
 
 // buildJWTHeader builds an http.Header that has the JWT token
