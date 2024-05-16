@@ -222,6 +222,10 @@ func (ee *Engine[
 			logErr   = err
 		)
 
+		defer func() {
+			loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
+		}()
+
 		// Under the optimistic condition, we are fine ignoring the error. This
 		// is mainly to allow us to safely call the execution client
 		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
@@ -237,8 +241,6 @@ func (ee *Engine[
 		// and the beginning of abci.FinalizeBlock. Without handling this case
 		// it would cause a failure of abci.FinalizeBlock and a
 		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
-
-		defer loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
 		if req.Optimistic {
 			loggerFn = ee.logger.Warn
 			logMsg += " - please monitor"

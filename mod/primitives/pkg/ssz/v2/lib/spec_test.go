@@ -131,7 +131,8 @@ func debugDiff(o2 []byte, res []byte) {
 	}
 	for i := range len(res) {
 		if res[i] != o2[i] {
-			// fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
+			// fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i],
+			// i)
 			break
 		}
 	}
