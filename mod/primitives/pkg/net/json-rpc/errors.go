@@ -30,8 +30,11 @@ import "github.com/berachain/beacon-kit/mod/errors"
 // Error wraps RPC errors, which contain an error code in addition to the
 // message.
 type Error interface {
-	Error() string  // returns the message
-	ErrorCode() int // returns the code
+	// Error returns the error message.
+	Error() string
+
+	// ErrorCode returns the JSON-RPC error code.
+	ErrorCode() int
 }
 
 // IsPreDefinedError returns true if the given
