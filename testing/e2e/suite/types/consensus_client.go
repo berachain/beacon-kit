@@ -32,35 +32,65 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 )
 
 // ConsensusClient represents a consensus client.
 type ConsensusClient struct {
-	*services.ServiceContext
+	*WrappedServiceContext
 	rpcclient.Client
 }
 
 // NewConsensusClient creates a new consensus client.
-func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
+func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
+	cc := &ConsensusClient{
+		WrappedServiceContext: serviceCtx,
+	}
+
+	if err := cc.Connect(); err != nil {
+		panic(err)
+	}
+
+	return cc
+}
+
+// Connect connects the consensus client to the consensus client.
+func (cc *ConsensusClient) Connect() error {
 	// Start by trying to get the public port for the JSON-RPC WebSocket
-	port, ok := serviceCtx.GetPublicPorts()["cometbft-rpc"]
+	port, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
 		panic("Couldn't find the public port for the JSON-RPC WebSocket")
 	}
 	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
 	client, err := httpclient.New(clientURL)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	return &ConsensusClient{
-		ServiceContext: serviceCtx,
-		Client:         client,
-	}
+	cc.Client = client
+	return nil
 }
 
-// GetPubKey returns the public key of the validat running on this node.
+// Start starts the consensus client.
+func (cc ConsensusClient) Start(
+	ctx context.Context,
+	enclaveContext *enclaves.EnclaveContext,
+) (*enclaves.StarlarkRunResult, error) {
+	res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, cc.Connect()
+}
+
+// Stop stops the consensus client.
+func (cc ConsensusClient) Stop(
+	ctx context.Context,
+) (*enclaves.StarlarkRunResult, error) {
+	return cc.WrappedServiceContext.Stop(ctx)
+}
+
+// GetPubKey returns the public key of the validator running on this node.
 func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
