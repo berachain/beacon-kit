@@ -40,6 +40,15 @@ type BeaconKitE2ESuite struct {
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	client := s.ConsensusClients()["cl-validator-beaconkit-0"]
 	s.Require().NotNil(client)
+
+	ports := client.GetPublicPorts()
+	s.Logger().
+		Info(
+			"consensus client ports",
+			"ports",
+			ports["cometbft-rpc"].GetNumber(),
+		)
+
 	res, err := client.Stop(s.Ctx())
 	s.Require().NoError(err)
 	s.Logger().Info("Stopped validator \n", res)
@@ -50,7 +59,7 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	)
 	s.Require().NoError(err)
 	s.Logger().Info("Started validator \n", res)
-	ports := client.GetPublicPorts()
+	ports = client.GetPublicPorts()
 	s.Logger().
 		Info(
 			"consensus client ports",
