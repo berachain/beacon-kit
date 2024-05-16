@@ -4,21 +4,21 @@ go 1.22.3
 
 replace (
 	// // The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240514134931-fbc61d2f5d38
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240514134931-fbc61d2f5d38
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240516114011-e03476679912
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240516114011-e03476679912
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 
 	// TODO consensus-types should be decoupleable.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240514143820-01627b1a14d4
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
 require (
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.12.1-0.20240514134931-fbc61d2f5d38
+	cosmossdk.io/core v0.12.1-0.20240516114011-e03476679912
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
@@ -32,9 +32,10 @@ require (
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.0-20240312114316-c0d3497e35d6.1 // indirect
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.0-20240130113600-88ef6483f90f.1 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.1-20240312114316-c0d3497e35d6.1 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.1-20240130113600-88ef6483f90f.1 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
+	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
@@ -94,7 +95,6 @@ require (
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
