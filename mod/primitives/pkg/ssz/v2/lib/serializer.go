@@ -404,7 +404,8 @@ func (s *Serializer) MarshalComposite(
 				variableParts,
 				variableLengths,
 			)
-			// spec-deviation: we differ from the ssz.dev composite spec but align
+			// spec-deviation: we differ from the ssz.dev composite spec but
+			// align
 			// with fastssz output by not writing a nil value into fixedParts.
 			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
