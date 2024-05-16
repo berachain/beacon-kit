@@ -26,8 +26,6 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -99,9 +97,6 @@ func ProvideRuntime(
 		logger.With("module", "beacon-kit.engine.client"),
 		jwtSecret,
 	)
-
-	// TODO: move.
-	engineClient.Start(context.Background())
 
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
@@ -227,6 +222,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](
+		engineClient,
 		chainSpec,
 		logger.With(
 			"module",
