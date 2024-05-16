@@ -113,9 +113,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 
 		// If we are in a JWT mode, we will start the JWT refresh loop.
 		defer func() {
-			if err != nil {
-				go s.jwtRefreshLoop(ctx)
-			}
+			go s.jwtRefreshLoop(ctx)
 		}()
 	}
 
@@ -254,6 +252,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
+	s.logger.Info("starting JWT refresh loop 🔄")
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
 	defer ticker.Stop()
 	for {
