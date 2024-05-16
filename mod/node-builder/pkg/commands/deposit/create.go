@@ -80,7 +80,9 @@ func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 // for the geth client but something about the Deposit binding is not handling
 // other execution layers correctly. Peep the commit history for what we had.
 // 🤷‍♂️.
-func createValidatorCmd(chainSpec primitives.ChainSpec) func(*cobra.Command, []string) error {
+func createValidatorCmd(
+	chainSpec primitives.ChainSpec,
+) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
 			logger = log.NewLogger(os.Stdout)

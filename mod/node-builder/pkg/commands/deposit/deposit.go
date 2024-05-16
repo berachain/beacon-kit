@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
@@ -119,8 +118,7 @@ func validateDepositMessage(chainSpec primitives.ChainSpec) func(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			signer.BLSSigner{}.VerifySignature,
-			// TODO: needs to be configurable.
-			spec.LocalnetChainSpec().DomainTypeDeposit(),
+			chainSpec.DomainTypeDeposit(),
 		)
 	}
 }
