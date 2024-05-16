@@ -43,7 +43,7 @@ import (
 var globalVerifier *ckzg.Verifier
 
 //nolint:gochecknoglobals // this is a test.
-var baseDir = "./beacon-kit/testing/files/"
+var baseDir = "../../../../../testing/files/"
 
 func TestMain(m *testing.M) {
 	var err error
@@ -56,10 +56,6 @@ func TestMain(m *testing.M) {
 
 func setupVerifier() (*ckzg.Verifier, error) {
 	fs := afero.NewOsFs()
-	// TODO : Not sure why using the global baseDir, gives error
-	// open beacon-kit/testing/files/kzg-trusted-setup.json:
-	// no such file or directory
-	baseDir = "../../../../../testing/files/"
 	fileName := "kzg-trusted-setup.json"
 	fullPath := filepath.Join(baseDir, fileName)
 	file, err := afero.ReadFile(fs, fullPath)
