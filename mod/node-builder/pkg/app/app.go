@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -79,6 +79,7 @@ func NewBeaconKitApp(
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	dCfg depinject.Config,
+	chainSpec primitives.ChainSpec,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
@@ -100,8 +101,7 @@ func NewBeaconKitApp(
 				appOpts,
 				// supply the logger
 				logger,
-				// TODO: allow nodebuilder to inject.
-				spec.LocalnetChainSpec(),
+				chainSpec,
 			),
 		),
 		&appBuilder,
