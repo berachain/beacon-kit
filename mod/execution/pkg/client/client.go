@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"math/big"
 	"net/http"
 	"strings"
 	"sync"
@@ -34,11 +35,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
-	eth "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -46,20 +46,34 @@ import (
 type EngineClient[
 	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
 ] struct {
-	*eth.Eth1Client[ExecutionPayloadDenebT]
+	// Eth1Client is a struct that holds the Ethereum 1 client and
+	// its configuration.
+	*ethclient.Eth1Client[ExecutionPayloadDenebT]
 
-	cfg          *Config
-	capabilities map[string]struct{}
-	logger       log.Logger[any]
-	jwtSecret    *jwt.Secret
+	// cfg is the supplied configuration for the engine client.
+	cfg *Config
+
+	// logger is the logger for the engine client.
+	logger log.Logger[any]
 
 	// engineCache is an all-in-one cache for data
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
 
+	// jwtSecret is the JWT secret for the execution client.
+	jwtSecret *jwt.Secret
+
+	// capabilities is a map of capabilities that the execution client has.
+	capabilities map[string]struct{}
+
+	// statusErrCond is a condition variable for the status error.
 	statusErrCond *sync.Cond
-	statusErrMu   *sync.RWMutex
-	statusErr     error
+
+	// statusErrMu is a mutex for the status error.
+	statusErrMu *sync.RWMutex
+
+	// statusErr is the status error of the engine client.
+	statusErr error
 }
 
 // New creates a new engine client EngineClient.
@@ -70,30 +84,47 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
 ) *EngineClient[ExecutionPayloadDenebT] {
-	ec := &EngineClient[ExecutionPayloadDenebT]{
-		cfg:          cfg,
-		logger:       logger,
-		jwtSecret:    jwtSecret,
-		Eth1Client:   new(eth.Eth1Client[ExecutionPayloadDenebT]),
-		capabilities: make(map[string]struct{}),
-		statusErrMu:  new(sync.RWMutex),
+	statusErrMu := new(sync.RWMutex)
+	return &EngineClient[ExecutionPayloadDenebT]{
+		cfg:           cfg,
+		logger:        logger,
+		jwtSecret:     jwtSecret,
+		Eth1Client:    new(ethclient.Eth1Client[ExecutionPayloadDenebT]),
+		capabilities:  make(map[string]struct{}),
+		statusErrMu:   statusErrMu,
+		statusErrCond: sync.NewCond(statusErrMu),
+		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
 	}
-	ec.statusErrCond = sync.NewCond(ec.statusErrMu)
-
-	// If the engine cache is not set, we create a new one.
-	if ec.engineCache == nil {
-		ec.engineCache = cache.NewEngineCacheWithDefaultConfig()
-	}
-
-	return ec
 }
 
 // Start starts the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) Start(
+	ctx context.Context,
+) error {
+	var (
+		err     error
+		chainID *big.Int
+	)
+
+	// TODO: This is not required for IPC connections.
+	if true /* http || https */ {
+		// If we are in a JWT mode, we will start the JWT refresh loop.
+		defer func() {
+			if s.jwtSecret == nil {
+				s.logger.Warn(
+					"JWT secret not provided for http(s) connection" +
+						" - please verify your configuration settings",
+				)
+				return
+			}
+			go s.jwtRefreshLoop(ctx)
+		}()
+	}
+
 	for {
 		s.logger.Info("waiting for execution client to start 🍺🕔",
 			"dial-url", s.cfg.RPCDialURL)
-		if err := s.setupExecutionClientConnection(ctx); err != nil {
+		if err = s.setupExecutionClientConnection(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
 			s.statusErrMu.Unlock()
@@ -104,10 +135,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	}
 
 	// Get the chain ID from the execution client.
-	chainID, err := s.ChainID(ctx)
+	chainID, err = s.ChainID(ctx)
 	if err != nil {
 		s.logger.Error("failed to get chain ID", "err", err)
-		return
+		return err
 	}
 
 	// Log the chain ID.
@@ -124,11 +155,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	// Exchange capabilities with the execution client.
 	if _, err = s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
+		return err
 	}
 
-	// If we reached this point, the execution client is connected so we can
-	// start the jwt refresh loop.
-	go s.jwtRefreshLoop(ctx)
+	return nil
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy
@@ -226,6 +256,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
+	s.logger.Info("starting JWT refresh loop 🔄")
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
 	defer ticker.Stop()
 	for {
@@ -277,23 +308,29 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 ) error {
 	var (
 		client *rpc.Client
-		err    error
 	)
-
-	// Build an http.Header with the JWT token attached.
-	header, err := s.buildJWTHeader()
-	if err != nil {
-		return err
-	}
 
 	// Dial the execution client based on the URL scheme.
 	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
+		// Build an http.Header with the JWT token attached.
+		header, err := s.buildJWTHeader()
+		if err != nil {
+			return err
+		}
+
 		client, err = rpc.DialOptions(
 			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 		)
+		if err != nil {
+			return err
+		}
 	case "", "ipc":
+		var err error
 		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
+		if err != nil {
+			return err
+		}
 	default:
 		return errors.Newf(
 			"no known transport for URL scheme %q",
@@ -301,13 +338,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 		)
 	}
 
-	// Check for an error when dialing the execution client.
-	if err != nil {
-		return err
-	}
-
-	s.Client = ethclient.NewClient(client)
-	return nil
+	// Refresh the execution client with the new client.
+	var err error
+	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadDenebT](
+		client,
+	)
+	return err
 }
 
 // buildJWTHeader builds an http.Header that has the JWT token

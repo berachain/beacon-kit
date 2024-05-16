@@ -23,37 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package components
 
 import (
-	"log/slog"
-	"os"
-
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
-	"go.uber.org/automaxprocs/maxprocs"
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
+// EngineClientInputs is the input for the EngineClient.
+type EngineClientInputs struct {
+	depinject.In
 
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config())
+	// Config is the BeaconKit configuration.
+	Config *config.Config
 
-	return nb.RunNode()
+	// Logger is the logger.
+	Logger log.Logger
+
+	// JWTSecret is the jwt secret. It is optional, since
+	// it is not required when connecting to the execution client
+	// over IPC.
+	JWTSecret *jwt.Secret `optional:"true"`
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+// ProvideEngineClient creates a new EngineClient.
+func ProvideEngineClient(
+	in EngineClientInputs,
+) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
+	return engineclient.New[*types.ExecutableDataDeneb](
+		&in.Config.Engine,
+		in.Logger.With("module", "beacon-kit.engine.client"),
+		in.JWTSecret,
+	)
 }
