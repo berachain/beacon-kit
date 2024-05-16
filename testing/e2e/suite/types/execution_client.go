@@ -26,13 +26,15 @@
 package types
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 )
 
 // ExecutionClient represents an execution client.
 type ExecutionClient struct {
-	*services.ServiceContext
+	*WrappedServiceContext
 	*JSONRPCConnection
 	logger log.Logger
 }
@@ -40,26 +42,54 @@ type ExecutionClient struct {
 // NewExecutionClientFromServiceCtx creates a new execution client from a
 // service context.
 func NewExecutionClientFromServiceCtx(
-	serviceCtx *services.ServiceContext,
+	serviceCtx *WrappedServiceContext,
 	logger log.Logger,
-) (*ExecutionClient, error) {
-	jsonRPCConn, err := NewJSONRPCConnection(serviceCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ExecutionClient{
-		ServiceContext:    serviceCtx,
-		JSONRPCConnection: jsonRPCConn,
+) *ExecutionClient {
+	ec := &ExecutionClient{
+		WrappedServiceContext: serviceCtx,
 		logger: logger.With(
 			"client-name",
 			serviceCtx.GetServiceName(),
 		),
-	}, nil
+	}
+
+	if err := ec.Connect(); err != nil {
+		panic(err)
+	}
+
+	return ec
+}
+
+func (ec *ExecutionClient) Connect() error {
+	jsonRPCConn, err := NewJSONRPCConnection(ec.ServiceContext)
+	if err != nil {
+		return err
+	}
+
+	ec.JSONRPCConnection = jsonRPCConn
+	return nil
+}
+
+func (ec ExecutionClient) Start(
+	ctx context.Context,
+	enclaveContext *enclaves.EnclaveContext,
+) (*enclaves.StarlarkRunResult, error) {
+	res, err := ec.WrappedServiceContext.Start(ctx, enclaveContext)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, ec.Connect()
+}
+
+func (ec ExecutionClient) Stop(
+	ctx context.Context,
+) (*enclaves.StarlarkRunResult, error) {
+	return ec.WrappedServiceContext.Stop(ctx)
 }
 
 // IsValidator returns true if the execution client is a validator.
 // TODO: All nodes are validators rn.
-func (c *ExecutionClient) IsValidator() bool {
+func (ec *ExecutionClient) IsValidator() bool {
 	return true
 }
