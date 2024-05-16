@@ -68,15 +68,18 @@ func isBasicTypeSliceOrArr(t reflect.Type, k reflect.Kind) bool {
 }
 
 func isBasicTypeSlice(typ reflect.Type, kind reflect.Kind) bool {
-	return typeCheckSliceOrArr(reflect.Slice, typ, kind)
+	return isBasicList(reflect.Slice, typ, kind)
 }
 
 func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
-	return typeCheckSliceOrArr(reflect.Array, typ, kind)
+	return isBasicList(reflect.Array, typ, kind)
 }
 
-func typeCheckSliceOrArr(exp reflect.Kind, typ reflect.Type, kind reflect.Kind) bool {
-	return kind == exp && isBasicType(typ.Elem().Kind())
+func isBasicList(
+	listType reflect.Kind,
+	typ reflect.Type,
+	kind reflect.Kind) bool {
+	return kind == listType && isBasicType(typ.Elem().Kind())
 }
 
 func isVariableSizeType(typ reflect.Type) bool {

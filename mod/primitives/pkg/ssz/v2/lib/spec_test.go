@@ -44,6 +44,9 @@ const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
 //nolint:gochecknoglobals // test debug print toggle
 var debug = false
 
+//nolint:gochecknoglobals // test debug default err msg
+var defaultErrMsg = "local output & fastssz output doesnt match"
+
 type TestLogger interface {
 	Logf(format string, args ...any)
 }
@@ -133,7 +136,8 @@ func debugDiff(o2 []byte, res []byte) {
 	}
 	for i := range len(res) {
 		if res[i] != o2[i] {
-			// fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i], i)
+			// fmt.Printf("Expected %v but got %v at index %v", res[i], o2[i],
+			// i)
 			break
 		}
 	}
@@ -159,21 +163,25 @@ func TestParityDenebLocal(t *testing.T) {
 
 	destBlockBz, err := block.MarshalSSZ()
 	if err != nil {
-		panic("Step 1: Deserialize-Serialize -- could not serialize back the deserialized input block")
+		panic(`Step 1: Deserialize-Serialize 
+		-- could not serialize back the 
+		deserialized input block`)
 	}
 
 	if !reflect.DeepEqual(data, destBlockBz) {
-		panic("Step 2: Deserialize-Serialize -- input != serialize(deserialize(input))")
+		panic(`Step 2: Deserialize-Serialize 
+		-- input != serialize(deserialize(input))`)
 	}
 
 	// Use our native serializer to do the same
 	s := sszv2.NewSerializer()
 	o2, err3 := s.MarshalSSZ(genesis)
 	require.NoError(t, err3)
-	require.Equal(t, len(o2), len(data), "local output and fastssz output doesnt match")
+	require.Equal(t, len(o2), len(data), defaultErrMsg)
 
 	// TODO: not a full match yet
-	// require.Equal(t, o2, data, "local output and fastssz output doesnt match")
+	// require.Equal(t, o2, data, "local output and fastssz output doesnt
+	// match")
 }
 
 // Full block object serialization.
@@ -190,9 +198,9 @@ func TestParityBellatrix(t *testing.T) {
 
 	// TODO: Fixme - doesnt match fastssz 100%
 	// debugDiff(res, o2)
-	// require.Equal(t, o2, res, "local output and fastssz output doesn't match")
+	// require.Equal(t, o2, res, defaultErrMsg)
 
-	require.Equal(t, len(o2), len(res), "local output and fastssz output doesn't match")
+	require.Equal(t, len(o2), len(res), defaultErrMsg)
 }
 
 func BenchmarkNativeFull(b *testing.B) {
@@ -226,7 +234,7 @@ func TestParityStruct2(t *testing.T) {
 	res, _ := sszState.CurrentSyncCommittee.MarshalSSZ()
 	debugPrint(debug, t, "FastSSZ Output: ", res)
 	debugDiff(o2, res)
-	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+	require.Equal(t, o2, res, defaultErrMsg)
 }
 
 func TestParityExecutionPayloadHeader(t *testing.T) {

@@ -234,7 +234,9 @@ func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
 }
 
 func IsStruct(typ reflect.Type, val reflect.Value) bool {
-	return (typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct) || typ.Kind() == reflect.Struct
+	return typ.Kind() == reflect.Struct ||
+		(typ.Kind() == reflect.Ptr &&
+			val.Elem().Kind() == reflect.Struct)
 }
 
 func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) {
