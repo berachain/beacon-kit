@@ -82,11 +82,13 @@ type EngineClient[
 func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	cfg *Config,
 	logger log.Logger[any],
+	jwtSecret *jwt.Secret,
 ) *EngineClient[ExecutionPayloadDenebT] {
 	statusErrMu := new(sync.RWMutex)
 	return &EngineClient[ExecutionPayloadDenebT]{
 		cfg:           cfg,
 		logger:        logger,
+		jwtSecret:     jwtSecret,
 		Eth1Client:    new(ethclient.Eth1Client[ExecutionPayloadDenebT]),
 		capabilities:  make(map[string]struct{}),
 		statusErrMu:   statusErrMu,
@@ -106,13 +108,15 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 
 	// TODO: This is not required for IPC connections.
 	if true /* http || https */ {
-		if s.jwtSecret, err = LoadJWTFromFile(s.cfg.JWTSecretPath); err != nil {
-			s.logger.Error("failed to load JWT secret", "err", err)
-			return err
-		}
-
 		// If we are in a JWT mode, we will start the JWT refresh loop.
 		defer func() {
+			if s.jwtSecret == nil {
+				s.logger.Warn(
+					"JWT secret not provided for http(s) connection" +
+						" - please verify your configuration settings",
+				)
+				return
+			}
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}

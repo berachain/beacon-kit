@@ -27,11 +27,7 @@ package client
 
 import (
 	"net/url"
-	"strings"
 	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/spf13/afero"
 )
 
 const (
@@ -80,14 +76,4 @@ type Config struct {
 	// RequiredChainID is the chain id that the consensus client must be
 	// connected to.
 	RequiredChainID uint64 `mapstructure:"required-chain-id"`
-}
-
-// LoadJWTFromFile reads the JWT secret from a file and returns it.
-func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
-	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
-	if err != nil {
-		// Return an error if the file cannot be read.
-		return nil, err
-	}
-	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

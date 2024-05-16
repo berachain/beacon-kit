@@ -29,7 +29,7 @@ import (
 	"os"
 	"path/filepath"
 
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/afero"
@@ -173,7 +173,7 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 }
 
 func validateJWTSecret(cmd *cobra.Command, filePath string) error {
-	_, err := engineclient.LoadJWTFromFile(filePath)
+	_, err := components.LoadJWTFromFile(filePath)
 	if err != nil {
 		return err
 	}

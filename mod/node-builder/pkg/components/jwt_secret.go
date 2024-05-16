@@ -26,37 +26,33 @@
 package components
 
 import (
+	"strings"
+
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 )
 
-// EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+// TrustedSetupInput is the input for the dep inject framework.
+type JWTSecretInput struct {
 	depinject.In
-
-	// Config is the BeaconKit configuration.
-	Config *config.Config
-
-	// Logger is the logger.
-	Logger log.Logger
-
-	// JWTSecret is the jwt secret. It is optional, since
-	// it is not required when connecting to the execution client
-	// over IPC.
-	JWTSecret *jwt.Secret `optional:"true"`
+	AppOpts servertypes.AppOptions
 }
 
-// ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
-	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
-	return engineclient.New[*types.ExecutableDataDeneb](
-		&in.Config.Engine,
-		in.Logger.With("module", "beacon-kit.engine.client"),
-		in.JWTSecret,
-	)
+// ProvideJWTSecret is a function that provides the module to the application.
+func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
+	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
+}
+
+// LoadJWTFromFile reads the JWT secret from a file and returns it.
+func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
+	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
+	if err != nil {
+		// Return an error if the file cannot be read.
+		return nil, err
+	}
+	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

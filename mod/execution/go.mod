@@ -18,7 +18,6 @@ require (
 	github.com/ethereum/go-ethereum v1.14.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
-	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 )
 
