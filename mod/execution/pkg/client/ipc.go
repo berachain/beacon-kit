@@ -34,19 +34,23 @@ import (
 
 //nolint:lll // long line length due to struct tags.
 func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Context) {
+	if s.cfg.RPCDialURL == nil || !s.cfg.RPCDialURL.IsIPC() {
+		s.logger.Error("IPC server not started, invalid IPC URL")
+		return
+	}
 	// remove existing socket file if exists
 	// alternatively we can use existing one by checking for os.IsNotExist(err)
-	if _, err := os.Stat(s.cfg.IPCPath); err != nil {
-		s.logger.Info("Removing existing IPC file", "path", s.cfg.IPCPath)
+	if _, err := os.Stat(s.cfg.RPCDialURL.Path); err != nil {
+		s.logger.Info("Removing existing IPC file", "path", s.cfg.RPCDialURL.Path)
 
-		if err = os.Remove(s.cfg.IPCPath); err != nil {
+		if err = os.Remove(s.cfg.RPCDialURL.Path); err != nil {
 			s.logger.Error("failed to remove existing IPC file", "err", err)
 			return
 		}
 	}
 
 	// use UDS for IPC
-	listener, err := net.Listen("unix", s.cfg.IPCPath)
+	listener, err := net.Listen("unix", s.cfg.RPCDialURL.Path)
 	if err != nil {
 		s.logger.Error("failed to listen on IPC socket", "err", err)
 		return
@@ -59,7 +63,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 		s.logger.Error("failed to register RPC server", "err", err)
 		return
 	}
-	s.logger.Info("IPC server started", "path", s.cfg.IPCPath)
+	s.logger.Info("IPC server started", "path", s.cfg.RPCDialURL.Path)
 
 	// start server in a goroutine
 	go func() {

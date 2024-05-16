@@ -101,17 +101,24 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-// Start starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
-	var (
-		err     error
-		chainID *big.Int
-	)
+	if err := s.initializeConnection(ctx, false); err != nil {
+		return err
+	}
+	if s.cfg.RPCDialURL.IsIPC() {
+		s.startIPCServer(ctx)
+	}
+	return nil
+}
 
-	// TODO: This is not required for IPC connections.
-	if true /* http || https */ {
+// Start starts the engine client.
+func (s *EngineClient[ExecutionPayloadDenebT]) StartWithJWT(
+	ctx context.Context,
+) error {
+	// This is not required for IPC connections.
+	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
 		// If we are in a JWT mode, we will start the JWT refresh loop.
 		defer func() {
 			if s.jwtSecret == nil {
@@ -124,45 +131,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
-
-	for {
-		s.logger.Info("waiting for execution client to start 🍺🕔",
-			"dial-url", s.cfg.RPCDialURL)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
-			s.statusErrMu.Lock()
-			s.statusErr = err
-			s.statusErrMu.Unlock()
-			time.Sleep(s.cfg.RPCStartupCheckInterval)
-			continue
-		}
-		break
-	}
-
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
-	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
-		return err
-	}
-
-	// Log the chain ID.
-	s.logger.Info(
-		"connected to execution client 🔌",
-		"dial-url",
-		s.cfg.RPCDialURL.String(),
-		"chain-id",
-		chainID.Uint64(),
-		"required-chain-id",
-		s.cfg.RequiredChainID,
-	)
-
-	// Exchange capabilities with the execution client.
-	if _, err = s.ExchangeCapabilities(ctx); err != nil {
-		s.logger.Error("failed to exchange capabilities", "err", err)
-		return err
-	}
-
-	return nil
+	return s.initializeConnection(ctx, true)
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy
@@ -235,6 +204,52 @@ func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
 	}
 }
 
+func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
+	ctx context.Context, withJWT bool,
+) error {
+	// Initialize the connection to the execution client.
+	var (
+		err     error
+		chainID *big.Int
+	)
+	for {
+		s.logger.Info("waiting for execution client to start 🍺🕔",
+			"dial-url", s.cfg.RPCDialURL)
+		if err = s.setupExecutionClientConnection(ctx, withJWT); err != nil {
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			continue
+		}
+		break
+	}
+	// Get the chain ID from the execution client.
+	chainID, err = s.ChainID(ctx)
+	if err != nil {
+		s.logger.Error("failed to get chain ID", "err", err)
+		return err
+	}
+
+	// Log the chain ID.
+	s.logger.Info(
+		"connected to execution client 🔌",
+		"dial-url",
+		s.cfg.RPCDialURL.String(),
+		"chain-id",
+		chainID.Uint64(),
+		"required-chain-id",
+		s.cfg.RequiredChainID,
+	)
+
+	// Exchange capabilities with the execution client.
+	if _, err = s.ExchangeCapabilities(ctx); err != nil {
+		s.logger.Error("failed to exchange capabilities", "err", err)
+		return err
+	}
+	return nil
+}
+
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
 func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
@@ -269,7 +284,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
 			return
 		case <-ticker.C:
 			s.statusErrMu.Lock()
-			if err := s.dialExecutionRPCClient(ctx); err != nil {
+			if err := s.dialExecutionRPCClient(ctx, true); err != nil {
 				s.logger.Error("failed to refresh JWT token", "err", err)
 				//#nosec:G703 wtf is even this problem here.
 				s.statusErr = errors.Newf(
@@ -287,10 +302,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
 func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
-	ctx context.Context,
+	ctx context.Context, withJWT bool,
 ) error {
 	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
+	if err := s.dialExecutionRPCClient(ctx, withJWT); err != nil {
 		return err
 	}
 
@@ -306,9 +321,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
 	return nil
 }
 
-// DialExecutionRPCClient dials the execution client's RPC endpoint.
+// dialExecutionRPCClient dials the execution client's RPC endpoint.
 func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
-	ctx context.Context,
+	ctx context.Context, withJWT bool,
 ) error {
 	var (
 		client *rpc.Client
@@ -318,16 +333,23 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 	switch s.cfg.RPCDialURL.Scheme {
 	case "http", "https":
 		// Build an http.Header with the JWT token attached.
-		header, err := s.buildJWTHeader()
-		if err != nil {
-			return err
-		}
-
-		client, err = rpc.DialOptions(
-			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
-		)
-		if err != nil {
-			return err
+		if withJWT {
+			header, err := s.buildJWTHeader()
+			if err != nil {
+				return err
+			}
+			client, err = rpc.DialOptions(
+				ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
+			)
+			if err != nil {
+				return err
+			}
+		} else {
+			var err error
+			client, err = rpc.DialContext(ctx, s.cfg.RPCDialURL.String())
+			if err != nil {
+				return err
+			}
 		}
 	case "", "ipc":
 		var err error

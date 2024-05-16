@@ -70,7 +70,7 @@ func (ee *Engine[
 ) {
 	go func() {
 		// TODO: handle better
-		if err := ee.ec.Start(ctx); err != nil {
+		if err := ee.ec.StartWithJWT(ctx); err != nil {
 			panic(err)
 		}
 	}()
