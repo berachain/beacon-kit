@@ -148,13 +148,13 @@ func ProvideRuntime(
 		stda.NewBlobProcessor[
 			types.BeaconBlockBody, *datypes.BlobSidecars,
 		](
-			logger.With("module", "blob-processor"),
+			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),
 		),
 		randaoProcessor,
 		signer,
-		logger.With("module", "state-processor"),
+		logger.With("service", "state-processor"),
 	)
 
 	// Build the builder service.
