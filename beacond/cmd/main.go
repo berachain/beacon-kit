@@ -26,6 +26,7 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/berachain/beacon-kit/beacond/app"
@@ -53,6 +54,7 @@ func run() error {
 // main is the entry point.
 func main() {
 	if err := run(); err != nil {
+		slog.Error("startup failure", "error", err)
 		os.Exit(1)
 	}
 }
