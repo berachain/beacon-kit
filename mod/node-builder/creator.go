@@ -43,12 +43,13 @@ func (nb *NodeBuilder[T]) AppCreator(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) T {
-	bk := *app.NewBeaconKitApp(
+	app := *app.NewBeaconKitApp(
 		logger, db, traceStore, true,
 		appOpts,
 		nb.appInfo.DepInjectConfig,
+		nb.chainSpec,
 		server.DefaultBaseappOptions(appOpts)...,
 	)
-	return reflect.ValueOf(bk).Convert(
+	return reflect.ValueOf(app).Convert(
 		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
 }
