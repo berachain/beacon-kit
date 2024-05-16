@@ -9,7 +9,12 @@ import (
 	middleware "github.com/labstack/echo/v4/middleware"
 )
 
-func NewServer(corsConfig middleware.CORSConfig, loggingConfig middleware.LoggerConfig) *echo.Echo {
+// func NewServer[KVStoreT state.KVStore[KVStoreT]](corsConfig middleware.CORSConfig,
+//
+//	loggingConfig middleware.LoggerConfig,
+//	state *state.StateDB[KVStoreT]) *echo.Echo {
+func NewServer(corsConfig middleware.CORSConfig,
+	loggingConfig middleware.LoggerConfig) *echo.Echo {
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
 	e.Validator = &handlers.CustomValidator{Validator: validator.New(validator.WithRequiredStructEnabled())}
@@ -18,13 +23,13 @@ func NewServer(corsConfig middleware.CORSConfig, loggingConfig middleware.Logger
 	return e
 }
 
+
 func run() {
-	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
+	e := NewServer(middleware.DefaultCORSConfig,
+		middleware.DefaultLoggerConfig)
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
 func main() {
 	run()
 }
-
-

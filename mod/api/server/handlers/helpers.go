@@ -50,3 +50,7 @@ func BindAndValidate[T any](c echo.Context) (*T, error) {
 	}
 	return t, nil
 }
+
+// func dataResponse(c echo.Context, data any) error {
+// 	return c.JSON(http.StatusOK, data)
+// }

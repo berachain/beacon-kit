@@ -8,7 +8,7 @@ import (
 
 func (rh RouteHandlers) GetGenesis(c echo.Context) (err error) {
 	rh.Backend.GetGenesis()
-	return c.String(http.StatusOK, "Genesis")
+	return echo.NewHTTPError(http.StatusNotFound, "Chain genesis info is not yet known")
 }
 
 func (rh RouteHandlers) GetStateHashTreeRoot(c echo.Context) (err error) {
@@ -17,7 +17,7 @@ func (rh RouteHandlers) GetStateHashTreeRoot(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateHashTreeRoot(params.StateId)
-	return c.String(http.StatusOK, "StateHashTree")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateFork(c echo.Context) (err error) {
@@ -26,7 +26,7 @@ func (rh RouteHandlers) GetStateFork(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateFork(params.StateId)
-	return c.String(http.StatusOK, "StateFork")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateFinalityCheckpoints(c echo.Context) (err error) {
@@ -35,7 +35,7 @@ func (rh RouteHandlers) GetStateFinalityCheckpoints(c echo.Context) (err error) 
 		return err
 	}
 	rh.Backend.GetStateFinalityCheckpoints(params.StateId)
-	return c.String(http.StatusOK, "StateFinalityCheckpoints")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateValidators(c echo.Context) (err error) {
@@ -44,7 +44,7 @@ func (rh RouteHandlers) GetStateValidators(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateValidators(params.StateId, params.Id, params.Status)
-	return c.String(http.StatusOK, "StateValidators")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) PostStateValidators(c echo.Context) (err error) {
@@ -53,7 +53,7 @@ func (rh RouteHandlers) PostStateValidators(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateValidators(params.StateId, params.Ids, params.Statuses)
-	return c.String(http.StatusOK, "PostStateValidators")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateValidator(c echo.Context) (err error) {
@@ -62,23 +62,23 @@ func (rh RouteHandlers) GetStateValidator(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateValidator(params.StateId, params.ValidatorId)
-	return c.String(http.StatusOK, "StateValidator")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateValidatorBalances(c echo.Context) (err error) {
-	return c.String(http.StatusOK, "StateValidatorBalances")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) PostStateValidatorBalances(c echo.Context) (err error) {
-	return c.String(http.StatusOK, "PostStateValidatorBalances")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateCommittees(c echo.Context) (err error) {
-	return c.String(http.StatusOK, "StateCommittees")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateSyncCommittees(c echo.Context) (err error) {
-	return c.String(http.StatusOK, "StateSyncCommittees")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetStateRandao(c echo.Context) (err error) {
@@ -87,7 +87,7 @@ func (rh RouteHandlers) GetStateRandao(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetStateRandao(params.StateId, params.Epoch)
-	return c.String(http.StatusOK, "StateRandao")
+	return echo.NewHTTPError(http.StatusNotFound, "State not found")
 }
 
 func (rh RouteHandlers) GetBlockHeaders(c echo.Context) (err error) {
@@ -95,7 +95,7 @@ func (rh RouteHandlers) GetBlockHeaders(c echo.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	rh.Backend.GetStateRandao(params.Slot, params.ParentRoot)
+	rh.Backend.GetBlockHeaders(params.Slot, params.ParentRoot)
 	return c.String(http.StatusOK, "BlockHeaders")
 }
 
@@ -105,7 +105,7 @@ func (rh RouteHandlers) GetBlockHeader(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlockHeader(params.BlockId)
-	return c.String(http.StatusOK, "BlockHeaders")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetBlock(c echo.Context) (err error) {
@@ -114,7 +114,7 @@ func (rh RouteHandlers) GetBlock(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlock(params.BlockId)
-	return c.String(http.StatusOK, "Block")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetBlockRoot(c echo.Context) (err error) {
@@ -123,7 +123,7 @@ func (rh RouteHandlers) GetBlockRoot(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlockRoot(params.BlockId)
-	return c.String(http.StatusOK, "BlockRoot")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetBlockAttestations(c echo.Context) (err error) {
@@ -132,7 +132,7 @@ func (rh RouteHandlers) GetBlockAttestations(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlockAttestations(params.BlockId)
-	return c.String(http.StatusOK, "BlockAttestations")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetBlobSidecars(c echo.Context) (err error) {
@@ -141,7 +141,7 @@ func (rh RouteHandlers) GetBlobSidecars(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlobSidecars(params.BlockId, params.Indices)
-	return c.String(http.StatusOK, "GetBlobSidecars")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetSyncCommiteeAwards(c echo.Context) (err error) {
@@ -150,12 +150,12 @@ func (rh RouteHandlers) GetSyncCommiteeAwards(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlobSidecars(params.BlockId, params.Ids)
-	return c.String(http.StatusOK, "GetBlobSidecars")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetDepositSnapshot(c echo.Context) (err error) {
 	rh.Backend.GetDepositSnapshot()
-	return c.String(http.StatusOK, "GetDepositSnapshot")
+	return echo.NewHTTPError(http.StatusNotFound, "No Finalized Snapshot Available")
 }
 
 func (rh RouteHandlers) GetBlockAwards(c echo.Context) (err error) {
@@ -164,7 +164,7 @@ func (rh RouteHandlers) GetBlockAwards(c echo.Context) (err error) {
 		return err
 	}
 	rh.Backend.GetBlockAwards(params.BlockId)
-	return c.String(http.StatusOK, "GetBlockAwards")
+	return echo.NewHTTPError(http.StatusNotFound, "Block not found")
 }
 
 func (rh RouteHandlers) GetAttestationRewards(c echo.Context) (err error) {
