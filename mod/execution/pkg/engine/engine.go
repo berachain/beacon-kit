@@ -241,10 +241,12 @@ func (ee *Engine[
 			loggerFn = ee.logger.Warn
 			logMsg += " - please monitor"
 			err = nil
+		} else {
+			err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 		}
 
 		loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
-		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		return err
 	}
 
 	// If we get any other error, we will just return it.
