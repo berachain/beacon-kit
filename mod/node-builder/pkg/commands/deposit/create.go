@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
@@ -45,7 +45,7 @@ import (
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:gomnd // lots of magic numbers
-func NewCreateValidator() *cobra.Command {
+func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -54,7 +54,7 @@ func NewCreateValidator() *cobra.Command {
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd(),
+		RunE: createValidatorCmd(chainSpec),
 	}
 
 	cmd.Flags().BoolP(
@@ -80,7 +80,9 @@ func NewCreateValidator() *cobra.Command {
 // for the geth client but something about the Deposit binding is not handling
 // other execution layers correctly. Peep the commit history for what we had.
 // 🤷‍♂️.
-func createValidatorCmd() func(*cobra.Command, []string) error {
+func createValidatorCmd(
+	chainSpec primitives.ChainSpec,
+) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
 			logger = log.NewLogger(os.Stdout)
@@ -115,7 +117,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		// Create and sign the deposit message.
 		depositMsg, signature, err := types.CreateAndSignDepositMessage(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
-			spec.LocalnetChainSpec().DomainTypeDeposit(),
+			chainSpec.DomainTypeDeposit(),
 			blsSigner,
 			credentials,
 			amount,
@@ -129,7 +131,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			signer.BLSSigner{}.VerifySignature,
-			spec.LocalnetChainSpec().DomainTypeDeposit(),
+			chainSpec.DomainTypeDeposit(),
 		); err != nil {
 			return err
 		}

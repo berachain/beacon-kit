@@ -27,6 +27,7 @@ package nodebuilder
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // WithAppName sets the application name.
@@ -46,6 +47,14 @@ func (nb *NodeBuilder[T]) WithAppDescription(
 		nb.appInfo = &AppInfo[T]{}
 	}
 	nb.appInfo.Description = description
+	return nb
+}
+
+// WithChainSpec sets the chain specification.
+func (nb *NodeBuilder[T]) WithChainSpec(
+	spec primitives.ChainSpec,
+) *NodeBuilder[T] {
+	nb.chainSpec = spec
 	return nb
 }
 
