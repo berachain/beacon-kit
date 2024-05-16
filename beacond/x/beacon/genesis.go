@@ -62,8 +62,12 @@ func (AppModule) ValidateGenesis(
 	seenValidators := make(map[[48]byte]struct{})
 	for _, validator := range data.Validators {
 		if _, ok := seenValidators[validator.Pubkey]; ok {
-			return fmt.Errorf("duplicate pubkey in genesis state: %x", validator.Pubkey)
+			return fmt.Errorf(
+				"duplicate pubkey in genesis state: %x",
+				validator.Pubkey,
+			)
 		}
+		seenValidators[validator.Pubkey] = struct{}{}
 	}
 	return nil
 }
@@ -87,10 +91,8 @@ func (am AppModule) InitGenesis(
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-
 	blsType := "bls12_381"
 	for _, validator := range data.Validators {
-
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: blsType,
