@@ -88,7 +88,15 @@ func sliceBlockData(start int, end int) []byte {
 	if err != nil || data == nil {
 		return make([]byte, 0)
 	}
-	if len(data) > end {
+	return safeSlice(start, end, data)
+}
+
+// Used to keep nilaway away.
+func safeSlice(start int, end int, data []byte) []byte {
+	if len(data) < start || len(data) == 0 {
+		return data
+	}
+	if len(data) >= end {
 		return data[start:end]
 	}
 	return data[start:]
@@ -109,7 +117,7 @@ func getByteArray32(bb *sszv2.BeaconStateBellatrix) []byte {
 func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	res, err := getStruct(bb).MarshalSSZ()
 	if err != nil {
-		return nil, err
+		return make([]byte, 0), err
 	}
 	// type Checkpoint struct {
 	// 	Epoch uint64 `json:"epoch"`
@@ -118,8 +126,7 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	// We grab the buf section from the serialized by fastSSZ buffer.
 	// See bellatrix.ssz.go for buffer read done by fastssz codegen.
 	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32.
-
-	return res[8:], nil
+	return safeSlice(8, len(res), res), nil
 }
 
 func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
@@ -426,9 +433,7 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 	// fast ssz: len 262144 []uint8  | cap: 58065320.
 	// local: len 262144 []uint8  |  cap:278528.
 
-	res, err3 := sszState.MarshalSSZ()
-	require.NoError(t, err3)
-	prInRes := res[262320:524464]
+	prInRes := sliceBlockData(262320, 524464)
 	debugPrint(debug, t, "Local Serializer output length:", len(exp))
 	debugPrint(debug, t, "FastSSZ Serializer output length:", len(prInRes))
 	require.Equal(
