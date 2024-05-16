@@ -26,7 +26,6 @@
 package nodebuilder
 
 import (
-	"context"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -45,7 +44,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 )
 
 // AppInfo is a struct that holds the application information.
@@ -173,18 +171,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		nb.rootCmd,
 		mm,
 		nb.appInfo.Creator,
-		func(
-			_app T,
-			_ *server.Context,
-			clientCtx client.Context,
-			ctx context.Context,
-			_ *errgroup.Group,
-		) error {
-			return interface{}(_app).(BeaconApp).PostStartup(
-				ctx,
-				clientCtx,
-			)
-		},
 	)
 
 	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)

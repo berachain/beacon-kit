@@ -53,10 +53,11 @@ type BeaconKitRuntime[
 		DepositStoreT,
 	],
 ] struct {
-	logger    log.Logger[any]
-	services  *service.Registry
-	fscp      StorageBackendT
-	chainSpec primitives.ChainSpec
+	engineClient   interface{ Start(context.Context) }
+	logger         log.Logger[any]
+	services       *service.Registry
+	storageBackend StorageBackendT
+	chainSpec      primitives.ChainSpec
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -73,10 +74,11 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 	],
 ](
+	engineClient interface{ Start(context.Context) },
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
-	fscp StorageBackendT,
+	storageBackend StorageBackendT,
 ) (*BeaconKitRuntime[
 	BeaconBlockBodyT,
 	BeaconStateT,
@@ -91,10 +93,11 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		chainSpec: chainSpec,
-		logger:    logger,
-		services:  services,
-		fscp:      fscp,
+		engineClient:   engineClient,
+		chainSpec:      chainSpec,
+		logger:         logger,
+		services:       services,
+		storageBackend: storageBackend,
 	}, nil
 }
 
@@ -108,6 +111,7 @@ func (r *BeaconKitRuntime[
 ]) StartServices(
 	ctx context.Context,
 ) {
+	r.engineClient.Start(ctx)
 	r.services.StartAll(ctx)
 }
 

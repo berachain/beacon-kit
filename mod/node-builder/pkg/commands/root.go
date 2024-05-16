@@ -49,15 +49,13 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	rootCmd *cobra.Command,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
-	postSetupFn PostSetupFn[T],
 ) {
 	// Add the ToS Flag to the root command.
 	beaconconfig.AddToSFlag(rootCmd)
 
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags:  beaconconfig.AddBeaconKitFlags,
-		PostSetup: postSetupFn,
+		AddFlags: beaconconfig.AddBeaconKitFlags,
 	}
 
 	// Add all the commands to the root command.

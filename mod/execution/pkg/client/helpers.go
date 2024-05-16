@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
@@ -42,15 +43,15 @@ func processPayloadStatusResult(
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
-		return nil, ErrAcceptedPayloadStatus
+		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
-		return nil, ErrSyncingPayloadStatus
+		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
-		return result.LatestValidHash, ErrInvalidPayloadStatus
+		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
 		return result.LatestValidHash, nil
 	default:
-		return nil, ErrUnknownPayloadStatus
+		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
 }
 

@@ -30,9 +30,9 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -169,7 +169,7 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	// malicious validator to push a bad block through.
 	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.Is(
 		err,
-		engineclient.ErrSyncingPayloadStatus,
+		engineerrors.ErrSyncingPayloadStatus,
 	) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,

@@ -93,7 +93,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 func DefaultGenesisExecutionPayloadHeader() (
-	*engineprimitives.ExecutionPayloadHeaderDeneb, error,
+	*types.ExecutionPayloadHeaderDeneb, error,
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
@@ -119,7 +119,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 		return nil, err
 	}
 
-	return &engineprimitives.ExecutionPayloadHeaderDeneb{
+	return &types.ExecutionPayloadHeaderDeneb{
 		ParentHash:   common.ZeroHash,
 		FeeRecipient: common.ZeroAddress,
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
@@ -166,9 +166,9 @@ type BeaconState struct {
 	StateRoots        []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data                               `json:"eth1Data"`
-	Eth1DepositIndex             uint64                                        `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *engineprimitives.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *types.Eth1Data                    `json:"eth1Data"`
+	Eth1DepositIndex             uint64                             `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
