@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
@@ -48,9 +49,6 @@ var (
 
 	// ErrInvalidJWTSecretLength indicates incorrect JWT secret length.
 	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
-
-	// ErrHTTPTimeout indicates a timeout error from http.Client.
-	ErrHTTPTimeout = errors.New("timeout from http.Client")
 )
 
 // Handles errors received from the RPC server according to the specification.
@@ -58,9 +56,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if isTimeout(err) {
-		return ErrHTTPTimeout
+
+	if http.IsTimeoutError(err) {
+		return http.ErrTimeout
 	}
+
 	e, ok := err.(gethRPC.Error) //nolint:errorlint // from prysm.
 	if !ok {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
@@ -116,26 +116,4 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 	default:
 		return err
 	}
-}
-
-// httpTimeoutError defines an interface for timeout errors.
-// It includes methods for error message retrieval and timeout status checking.
-type httpTimeoutError interface {
-	// Error returns the error message.
-	Error() string
-	// Timeout indicates whether the error is a timeout error.
-	Timeout() bool
-}
-
-// isTimeout checks if the given error is a timeout error.
-// It asserts the error to the httpTimeoutError interface and checks its Timeout
-// status.
-// Returns true if the error is a timeout error, false otherwise.
-func isTimeout(e error) bool {
-	if e == nil {
-		return false
-	}
-	//nolint:errorlint // by design.
-	t, ok := e.(httpTimeoutError)
-	return ok && t.Timeout()
 }

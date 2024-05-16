@@ -27,6 +27,16 @@ package jsonrpc
 
 import "errors"
 
+// Error wraps RPC errors, which contain an error code in addition to the message.
+type Error interface {
+	Error() string  // returns the message
+	ErrorCode() int // returns the code
+}
+
+func IsPredefinedError(e Error) {
+
+}
+
 var (
 	// ErrParseError indicates that invalid JSON was received by the server.
 	// (code: -32700).
