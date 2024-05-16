@@ -216,14 +216,16 @@ func (ee *Engine[
 		return ErrBadBlockProduced
 
 	case errors.Is(err, jsonrpc.ErrServer):
-		loggerFn := ee.logger.Error
-		logMsg := "json-rpc execution error during payload verification"
-		logErr := err
+		var (
+			loggerFn = ee.logger.Error
+			logMsg   = "json-rpc execution error during payload verification"
+			logErr   = err
+		)
 
 		// Under the optimistic condition, we are fine ignoring the error. This
 		// is mainly to allow us to safely call the execution client
 		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
-		// we get an error here, we make the assumption tat abci.ProcessProposal
+		// we get an error here, we make the assumption that abci.ProcessProposal
 		// has deemed that the BeaconBlock containing the given ExecutionPayload
 		// was marked as valid by an honest majority of validators, and we
 		// don't want to halt the chain because of an error here.
@@ -235,8 +237,6 @@ func (ee *Engine[
 		// it would cause a failure of abci.FinalizeBlock and a
 		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
 		if req.Optimistic {
-			// If optimistic is set, we will log the error as a warning
-			// instead of an error and return nil.
 			loggerFn = ee.logger.Warn
 			logMsg += " - please monitor"
 			err = nil
