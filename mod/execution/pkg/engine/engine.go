@@ -215,25 +215,25 @@ func (ee *Engine[
 		)
 		return ErrBadBlockProduced
 
-	// If we can a undefined server error, we want to log it and return it.
 	case errors.Is(err, jsonrpc.ErrServer):
-		// Under the optimistic condition, we are fine ignoring the error. This
-		// is
-		// mainly to allow us to safely call the execution client
-		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
-		// we get an error here, we make the assumption tat abci.ProcessProposal
-		// has deemed that this BeaconBlock was marked as valid by an honest
-		// majority,
-		// and we don't want to halt the chain because of an error here.
-		//
-		// The reason we want to do this is to prevent an awkward shutdown
-		// condition, in which an execution client dies between the end of
-		// ProcessProposal and the beginning of FinalizeBlock, in which it will
-		// cause a failure of FinalizeBlock and a
-		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
 		loggerFn := ee.logger.Error
 		logMsg := "json-rpc execution error during payload verification"
 		logErr := err
+		// Under the optimistic condition, we are fine ignoring the error. This
+		// is mainly to allow us to safely call the execution client
+		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
+		// we get an error here, we make the assumption tat abci.ProcessProposal
+		// has deemed that the BeaconBlock containing the given ExecutionPayload
+		// was marked as valid by an honest majority of validators, and we
+		// don't want to halt the chain because of an error here.
+		//
+		// The pratical reason we want to handle this edge case
+		// is to protect against an awkward shutdown condition in which an
+		// execution client dies between the end of abci.ProcessProposal
+		// and the beginning of abci.FinalizeBlock. Without handling this case
+		// it would cause a failure of abci.FinalizeBlock and a
+		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
+
 		if req.Optimistic {
 			// If optimistic is set, we will log the error as a warning
 			// instead of an error and return nil.
