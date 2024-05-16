@@ -191,7 +191,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
             }
         }
         return sha256(
-            abi.encodePacked(node, SSZ.toLittleEndian(uint64(depositCount)))
+            abi.encodePacked(node, SSZ.toLittleEndian(depositCount))
         );
     }
 
