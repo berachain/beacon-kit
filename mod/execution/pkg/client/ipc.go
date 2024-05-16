@@ -38,7 +38,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 	// alternatively we can use existing one by checking for os.IsNotExist(err)
 	if _, err := os.Stat(s.cfg.IPCPath); err != nil {
 		s.logger.Info("Removing existing IPC file", "path", s.cfg.IPCPath)
-		os.Remove(s.cfg.IPCPath)
+
+		if err := os.Remove(s.cfg.IPCPath); err != nil {
+			s.logger.Error("failed to remove existing IPC file", "err", err)
+			return
+		}
 	}
 
 	// use UDS for IPC
