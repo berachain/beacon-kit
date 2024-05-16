@@ -35,6 +35,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -213,6 +214,39 @@ func (ee *Engine[
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
 		)
 		return ErrBadBlockProduced
+
+	case jsonrpc.IsPreDefinedError(err):
+		var (
+			loggerFn = ee.logger.Error
+			logMsg   = "json-rpc execution error during payload verification"
+			logErr   = err
+		)
+
+		defer func() {
+			loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
+		}()
+
+		// Under the optimistic condition, we are fine ignoring the error. This
+		// is mainly to allow us to safely call the execution client
+		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
+		// we get an error here, we make the assumption that
+		// abci.ProcessProposal
+		// has deemed that the BeaconBlock containing the given ExecutionPayload
+		// was marked as valid by an honest majority of validators, and we
+		// don't want to halt the chain because of an error here.
+		//
+		// The pratical reason we want to handle this edge case
+		// is to protect against an awkward shutdown condition in which an
+		// execution client dies between the end of abci.ProcessProposal
+		// and the beginning of abci.FinalizeBlock. Without handling this case
+		// it would cause a failure of abci.FinalizeBlock and a
+		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
+		if req.Optimistic {
+			loggerFn = ee.logger.Warn
+			logMsg += " - please monitor"
+			return nil
+		}
+		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	}
 
 	// If we get any other error, we will just return it.

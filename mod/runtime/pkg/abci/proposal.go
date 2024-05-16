@@ -167,9 +167,12 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	// validators have their EL's syncing. If nodes were to accept this proposal
 	// optmistically when they are syncing, it could potentially allow for a
 	// malicious validator to push a bad block through.
-	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.Is(
+	//
+	// We also defensively check for a variety of pre-defined JSON-RPC errors.
+	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.IsAny(
 		err,
 		engineerrors.ErrSyncingPayloadStatus,
+		engineerrors.ErrPreDefinedJSONRPC,
 	) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,

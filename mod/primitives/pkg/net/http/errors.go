@@ -23,23 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package errors
+package http
 
-import (
-	"github.com/cockroachdb/errors"
-)
+import "errors"
 
-// TODO: eventually swap out via build flags if we believe there is value
-// to doing so.
-//
-//nolint:gochecknoglobals // used an alias.
-var (
-	New   = errors.New
-	Newf  = errors.Newf
-	Wrap  = errors.Wrap
-	Wrapf = errors.Wrapf
-	Is    = errors.Is
-	IsAny = errors.IsAny
-	As    = errors.As
-	Join  = errors.Join
-)
+// ErrTimeout indicates a timeout error from http.Client.
+var ErrTimeout = errors.New("timeout from HTTP client")
+
+// TimeoutError defines an interface for timeout errors.
+// It includes methods for error message retrieval and timeout status checking.
+type TimeoutError interface {
+	// Error returns the error message.
+	Error() string
+	// Timeout indicates whether the error is a timeout error.
+	Timeout() bool
+}
+
+// isTimeout checks if the given error is a timeout error.
+// It asserts the error to the httpTimeoutError interface and checks its Timeout
+// status.
+// Returns true if the error is a timeout error, false otherwise.
+func IsTimeoutError(e error) bool {
+	if e == nil {
+		return false
+	}
+	//nolint:errorlint // by design.
+	t, ok := e.(TimeoutError)
+	return ok && t.Timeout()
+}

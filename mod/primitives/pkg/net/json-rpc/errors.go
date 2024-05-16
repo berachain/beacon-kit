@@ -25,7 +25,55 @@
 
 package jsonrpc
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
+
+// Error wraps RPC errors, which contain an error code in addition to the
+// message.
+type Error interface {
+	// Error returns the error message.
+	Error() string
+
+	// ErrorCode returns the JSON-RPC error code.
+	ErrorCode() int
+}
+
+// IsPreDefinedError returns true if the given
+// error is a predefined JSON-RPC errors.
+func IsPreDefinedError(err error) bool {
+	return errors.IsAny(
+		err,
+		ErrParse,
+		ErrInvalidRequest,
+		ErrMethodNotFound,
+		ErrInvalidParams,
+		ErrInternal,
+		ErrServer,
+		ErrServerParse,
+	)
+}
+
+// GetPredefinedError returns a predefined error for the given error code.
+func GetPredefinedError(e Error) error {
+	switch e.ErrorCode() {
+	case -32700:
+		// telemetry.IncrCounter(1, MetricKeyParseErrorCount)
+		return ErrParse
+	case -32600:
+		// telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
+		return ErrInvalidRequest
+	case -32601:
+		// telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
+		return ErrMethodNotFound
+	case -32602:
+		// telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
+		return ErrInvalidParams
+	case -32603:
+		// telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
+		return ErrInternal
+	default:
+		return nil
+	}
+}
 
 var (
 	// ErrParseError indicates that invalid JSON was received by the server.
