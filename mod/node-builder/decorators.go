@@ -27,7 +27,6 @@ package nodebuilder
 
 import (
 	"cosmossdk.io/depinject"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // WithAppName sets the application name.
@@ -47,17 +46,6 @@ func (nb *NodeBuilder[T]) WithAppDescription(
 		nb.appInfo = &AppInfo[T]{}
 	}
 	nb.appInfo.Description = description
-	return nb
-}
-
-// WithAppCreator sets the application creator function.
-func (nb *NodeBuilder[T]) WithAppCreator(
-	creator servertypes.AppCreator[T],
-) *NodeBuilder[T] {
-	if nb.appInfo == nil {
-		nb.appInfo = &AppInfo[T]{}
-	}
-	nb.appInfo.Creator = creator
 	return nb
 }
 

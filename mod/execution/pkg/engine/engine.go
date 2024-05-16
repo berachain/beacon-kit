@@ -68,7 +68,12 @@ func (ee *Engine[
 ]) Start(
 	ctx context.Context,
 ) {
-	go ee.ec.Start(ctx)
+	go func() {
+		// TODO: handle better
+		if err := ee.ec.Start(ctx); err != nil {
+			panic(err)
+		}
+	}()
 }
 
 // Status returns error if the service is not considered healthy.

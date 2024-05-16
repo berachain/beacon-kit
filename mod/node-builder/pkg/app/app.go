@@ -42,7 +42,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
@@ -72,21 +71,6 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
-// NewBeaconKitAppWithDefaultBaseAppOptions returns a reference to an
-// initialized BeaconApp.
-func NewBeaconKitAppWithDefaultBaseAppOptions(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) BeaconApp {
-	return *NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		server.DefaultBaseappOptions(appOpts)...,
-	)
-}
-
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
 	logger log.Logger,
@@ -94,20 +78,22 @@ func NewBeaconKitApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
+	dCfg depinject.Config,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 	if err := depinject.Inject(
 		depinject.Configs(
-			Config(),
+			dCfg,
 			depinject.Provide(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideJWTSecret,
 				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
+				bkcomponents.ProvideEngineClient,
+				bkcomponents.ProvideJWTSecret,
 			),
 			depinject.Supply(
 				// supply the application options
@@ -149,9 +135,11 @@ func NewBeaconKitApp(
 	}
 
 	// TODO: this needs to be made un-hood.
-	app.BeaconKitRuntime.StartServices(
+	if err := app.BeaconKitRuntime.StartServices(
 		context.Background(),
-	)
+	); err != nil {
+		panic(err)
+	}
 
 	return app
 }

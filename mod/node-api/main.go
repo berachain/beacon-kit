@@ -26,10 +26,10 @@
 package main
 
 import (
-	server "github.com/berachain/beacon-kit/mod/node-api/server"
-	handlers "github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	echo "github.com/labstack/echo/v4"
-	middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func NewServer(corsConfig middleware.CORSConfig,

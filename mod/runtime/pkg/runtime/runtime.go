@@ -53,7 +53,7 @@ type BeaconKitRuntime[
 		DepositStoreT,
 	],
 ] struct {
-	engineClient   interface{ Start(context.Context) }
+	engineClient   interface{ Start(context.Context) error }
 	logger         log.Logger[any]
 	services       *service.Registry
 	storageBackend StorageBackendT
@@ -74,7 +74,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 	],
 ](
-	engineClient interface{ Start(context.Context) },
+	engineClient interface{ Start(context.Context) error },
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
@@ -110,9 +110,12 @@ func (r *BeaconKitRuntime[
 	StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
-) {
-	r.engineClient.Start(ctx)
+) error {
+	if err := r.engineClient.Start(ctx); err != nil {
+		return err
+	}
 	r.services.StartAll(ctx)
+	return nil
 }
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
