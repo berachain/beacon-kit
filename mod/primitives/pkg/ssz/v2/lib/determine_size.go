@@ -63,8 +63,20 @@ func isBasicType(kind reflect.Kind) bool {
 	}
 }
 
+func isBasicTypeSliceOrArr(t reflect.Type, k reflect.Kind) bool {
+	return isBasicTypeSlice(t, k) || isBasicTypeArray(t, k)
+}
+
+func isBasicTypeSlice(typ reflect.Type, kind reflect.Kind) bool {
+	return typeCheckSliceOrArr(reflect.Slice, typ, kind)
+}
+
 func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
-	return kind == reflect.Array && isBasicType(typ.Elem().Kind())
+	return typeCheckSliceOrArr(reflect.Array, typ, kind)
+}
+
+func typeCheckSliceOrArr(exp reflect.Kind, typ reflect.Type, kind reflect.Kind) bool {
+	return kind == exp && isBasicType(typ.Elem().Kind())
 }
 
 func isVariableSizeType(typ reflect.Type) bool {
@@ -332,6 +344,12 @@ func GetNestedArrayLength(val reflect.Value) int {
 // Function to determine the dimensionality of an N-dimensional array.
 func GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
+	typ := reflect.TypeOf(val.Interface())
+	if val.Len() == 0 && isBasicTypeSliceOrArr(typ, typ.Kind()) {
+		// 1 dimensional empty arr. e.g.
+		//Balances   []uint64
+		return 1
+	}
 	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		dimensionality++
 		val = val.Index(0) // Move to the next nested array.

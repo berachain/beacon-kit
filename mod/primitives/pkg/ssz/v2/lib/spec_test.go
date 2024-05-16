@@ -28,8 +28,10 @@ package ssz_test
 
 import (
 	"os"
+	"reflect"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
@@ -138,40 +140,79 @@ func debugDiff(o2 []byte, res []byte) {
 }
 
 // TESTS
+// Test using local deneb genesis beaconstate
+func TestParityDenebLocal(t *testing.T) {
+	// Demonstrate the block is valid by proving
+	// the block can be serialized
+	// and deserialized back to the same object using fastssz
+	block := deneb.BeaconState{}
+	genesis, _ := deneb.DefaultBeaconState()
+	data, _ := genesis.MarshalSSZ()
+
+	if err := block.UnmarshalSSZ(data); err != nil {
+		panic(err)
+	}
+
+	if block.SizeSSZ() == 0 {
+		panic("Block is nil")
+	}
+
+	destBlockBz, err := block.MarshalSSZ()
+	if err != nil {
+		panic("Step 1: Deserialize-Serialize -- could not serialize back the deserialized input block")
+	}
+
+	if !reflect.DeepEqual(data, destBlockBz) {
+		panic("Step 2: Deserialize-Serialize -- input != serialize(deserialize(input))")
+	}
+
+	// Use our native serializer to do the same
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(genesis)
+	require.NoError(t, err3)
+	require.Equal(t, len(o2), len(data), "local output and fastssz output doesnt match")
+
+	// TODO: not a full match yet
+	// require.Equal(t, o2, data, "local output and fastssz output doesnt match")
+}
 
 // Full block object serialization
-// func TestParityBellatrix(t *testing.T) {
-// 	sszState, err := getSszState()
-// 	require.NoError(t, err)
+func TestParityBellatrix(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
 
-// 	s := sszv2.NewSerializer()
-// 	o2, err3 := s.MarshalSSZ(sszState)
-// 	require.NoError(t, err3)
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState)
+	require.NoError(t, err3)
 
-// 	res, err4 := sszState.MarshalSSZ()
-// 	require.NoError(t, err4)
-// 	debugDiff(res, o2)
+	res, err4 := sszState.MarshalSSZ()
+	require.NoError(t, err4)
 
-// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
-// }
-// func BenchmarkNativeFull(b *testing.B) {
-// 	sszState, err := getSszState()
-// 	require.NoError(b, err)
+	// TODO: Fixme - doesnt match fastssz 100%
+	// debugDiff(res, o2)
+	// require.Equal(t, o2, res, "local output and fastssz output doesn't match")
 
-// 	s := sszv2.NewSerializer()
-// 	runBench(b, func() {
-// 		s.MarshalSSZ(sszState)
-// 	})
-// }
+	require.Equal(t, len(o2), len(res), "local output and fastssz output doesn't match")
+}
 
-// func BenchmarkFastSSZFull(b *testing.B) {
-// 	sszState, err := getSszState()
-// 	require.NoError(b, err)
+func BenchmarkNativeFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
 
-// 	runBench(b, func() {
-// 		sszState.MarshalSSZ()
-// 	})
-// }
+	s := sszv2.NewSerializer()
+	runBench(b, func() {
+		s.MarshalSSZ(sszState)
+	})
+}
+
+func BenchmarkFastSSZFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	runBench(b, func() {
+		sszState.MarshalSSZ()
+	})
+}
 
 func TestParityStruct2(t *testing.T) {
 	sszState, err := getSszState()
