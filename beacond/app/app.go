@@ -107,6 +107,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
+				bkcomponents.ProvideEngineClient,
 			),
 			depinject.Supply(
 				// supply the application options
