@@ -4,9 +4,9 @@ go 1.22.3
 
 replace (
 	// // The following are required to build with the lastest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240514134931-fbc61d2f5d38
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240514134931-fbc61d2f5d38
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240514134931-fbc61d2f5d38
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240516114011-e03476679912
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240516114011-e03476679912
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 
 	// TODO consensus-types should be decoupleable.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
