@@ -220,10 +220,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Get the payload for the block.
 	envelope, err := s.RetrievePayload(ctx, st, blk)
 	if err != nil {
-		return blk, sidecars, errors.Newf(
-			"failed to get block root at index: %w",
-			err,
-		)
+		return blk, sidecars, err
 	} else if envelope == nil {
 		return nil, sidecars, ErrNilPayload
 	}
