@@ -237,16 +237,14 @@ func (ee *Engine[
 		// and the beginning of abci.FinalizeBlock. Without handling this case
 		// it would cause a failure of abci.FinalizeBlock and a
 		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
+
+		defer loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
 		if req.Optimistic {
 			loggerFn = ee.logger.Warn
 			logMsg += " - please monitor"
-			err = nil
-		} else {
-			err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+			return nil
 		}
-
-		loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
-		return err
+		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	}
 
 	// If we get any other error, we will just return it.
