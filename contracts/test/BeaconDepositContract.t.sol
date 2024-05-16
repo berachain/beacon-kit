@@ -101,6 +101,7 @@ contract DepositContractTest is SoladyTest {
     function testFuzz_DepositWrongAmount(uint256 amount) public {
         amount = _bound(amount, 1, 32e9 - 1);
         vm.deal(depositor, amount * 1e9);
+        vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
         depositContract.deposit{ value: (amount * 1 gwei) }(
             VALIDATOR_PUBKEY,
