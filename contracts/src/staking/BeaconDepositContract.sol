@@ -154,14 +154,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
             ++depositCount;
         }
         uint256 size = depositCount;
-        for (uint256 height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH; height++)
-        {
-            if ((size & 1) == 1) {
-                branch[height] = node;
-                return;
+        unchecked {
+            for (uint256 height; height < DEPOSIT_CONTRACT_TREE_DEPTH; ++height)
+            {
+                if ((size & 1) == 1) {
+                    branch[height] = node;
+                    return;
+                }
+                node = sha256(abi.encodePacked(branch[height], node));
+                size >>= 1;
             }
-            node = sha256(abi.encodePacked(branch[height], node));
-            size /= 2;
         }
         // As the loop should always end prematurely with the `return` statement,
         // this code should be unreachable. We assert `false` just to be safe.
