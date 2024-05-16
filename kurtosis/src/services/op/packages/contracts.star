@@ -1,13 +1,14 @@
 deps = import_module("deps.star")
+optimism = import_module("optimism.star")
 
-PATH = "optimism/packages/contracts_bedrock"
+PATH = "/optimism/packages/contracts-bedrock"
 
 def install(plan, files):
     plan.run_sh(
         image = "ghcr.io/foundry-rs/foundry:latest",
         run = "cd {} && forge install".format(PATH),
-        files = {files.optimism: files.optimism},
-        store = [StoreSpec(src = files.optimism, name = files.optimism)],
+        files = {optimism.PATH: files.optimism},
+        store = [StoreSpec(src = optimism.PATH, name = files.optimism)],
     )
 
 def deploy_create2(plan, env):
@@ -43,7 +44,7 @@ def deploy_create2(plan, env):
 
 # deploy_l1 deploys the L1 contracts and builds required files for the L2 deployment
 def deploy_l1(plan, env, files):
-    copy_cmd = "cp deployments/getting-started/.deploy l1.json"
+    copy_cmd = "cp deployments/getting-started/.deploy deployments/getting-started/l1.json"
     plan.run_sh(
         image = "ghcr.io/foundry-rs/foundry:latest",
         run = "{} && cd {} && forge script scripts/Deploy.s.sol:Deploy --private-key {} --broadcast --rpc-url {} --legacy && {}".format(
@@ -53,8 +54,8 @@ def deploy_l1(plan, env, files):
             env.l1_rpc_url,
             copy_cmd,
         ),
-        files = {files.optimism: files.optimism},
-        store = [StoreSpec(src = "{}/l1.json".format(PATH), name = files.config)],
+        files = {optimism.PATH: files.optimism},
+        store = [StoreSpec(src = optimism.PATH, name = files.optimism)],
         env_vars = {
             "GS_ADMIN_ADDRESS": env.admin_address,
             "GS_ADMIN_PRIVATE_KEY": env.admin_pk,

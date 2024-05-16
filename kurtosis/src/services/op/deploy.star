@@ -1,5 +1,6 @@
 deps = import_module("packages/deps.star")
 contracts = import_module("packages/contracts.star")
+optimism = import_module("packages/optimism.star")
 
 # build_deploy_config sets the rollup deploy configuration defined
 # in the environment variables to rollup.json
@@ -23,8 +24,8 @@ def build_deploy_config(plan, files, env, chain_id):
             "GS_SEQUENCER_ADDRESS": env.sequencer_address,
             "L1_RPC_URL": env.l1_rpc_url,
         },
-        files = {files.optimism: files.optimism},
-        store = [StoreSpec(src = files.optimism, name = files.optimism)],
+        files = {optimism.PATH: files.optimism},
+        store = [StoreSpec(src = optimism.PATH, name = files.optimism)],
     )
 
 def build_getting_started_dir(plan, env, files, l1):
@@ -37,14 +38,6 @@ def build_getting_started_dir(plan, env, files, l1):
             chain_id_cmd,
             deploy_cmd,
         ),
-        files = {files.optimism: files.optimism},
-        store = [StoreSpec(src = files.optimism, name = files.optimism)],
-    )
-
-def generate_jwt_secret(plan, files):
-    plan.run_sh(
-        image = "alpine/openssl:latest",
-        run = "openssl rand -hex 32 > /config/jwt.txt",
-        files = {"/config": files.config},
-        store = [StoreSpec(src = "/config", name = files.config)],
+        files = {optimism.PATH: files.optimism},
+        store = [StoreSpec(src = optimism.PATH, name = files.optimism)],
     )

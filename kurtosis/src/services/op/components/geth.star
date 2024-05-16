@@ -1,13 +1,23 @@
+NAME="op-geth"
+
+ARTIFACT_NAME = NAME
+PATH = "/op-geth"
+
+DATADIR = "{}/datadir".format(PATH)
+JWT_PATH = "{}/jwt.txt".format(PATH)
+GENESIS_PATH = "{}/genesis.json".format(PATH)
+
 def init(plan, image, files):
     plan.run_sh(
         image = image,
-        run = "mkdir /config/datadir && geth init --datadir=/config/datadir /config/genesis.json",
-        files = {
-            "/config": files.config,
-        },
-        store = [
-            StoreSpec(src = "/config", name = files.config),
-        ],
+        run = "cd {} && mkdir {} && geth init --datadir={} {}".format(
+            PATH,
+            DATADIR,
+            DATADIR,
+            GENESIS_PATH,
+        ),
+        files = {PATH: files.op_geth},
+        store = [StoreSpec(src=PATH, name=files.op_geth)],
     )
 
 def launch(plan, image, l1, files):
@@ -15,13 +25,13 @@ def launch(plan, image, l1, files):
     ws_base, ws_port = get_url_parts(l1.ws_url)
     auth_rpc_base, auth_rpc_port = get_url_parts(l1.auth_rpc_url)
     service = plan.add_service(
-        name = "op-geth",
+        name = NAME,
         config = ServiceConfig(
             image = image,
             cmd = [
                 "geth",
                 "--datadir",
-                "/config/datadir",
+                DATADIR,
                 "--http",
                 "--http.corsdomain=*",
                 "--http.vhosts=*",
@@ -41,7 +51,7 @@ def launch(plan, image, l1, files):
                 "--authrpc.vhosts=*",
                 "--authrpc.addr={}".format(auth_rpc_base),
                 "--authrpc.port={}".format(auth_rpc_port),
-                "--authrpc.jwtsecret=./config/jwt.txt",
+                "--authrpc.jwtsecret={}".format(JWT_PATH),
                 "--rollup.disabletxpoolgossip=true",
             ],
             ports = {
@@ -58,9 +68,7 @@ def launch(plan, image, l1, files):
                     url = l1.auth_rpc_url,
                 ),
             },
-            files = {
-                "/config": files.config,
-            },
+            files = {PATH: files.op_geth},
         ),
     )
 
@@ -72,3 +80,12 @@ def get_url_parts(url):
         parts[1] = parts[1][2:]
 
     return parts[1], parts[-1]
+
+def generate_jwt_secret(plan):
+    output = plan.run_sh(
+        image = "alpine/openssl:latest",
+        run = "mkdir {} && openssl rand -hex 32 > {}".format(PATH, JWT_PATH),
+        store = [StoreSpec(src=JWT_PATH, name=ARTIFACT_NAME)],
+    )
+
+    return output.files_artifacts[0]

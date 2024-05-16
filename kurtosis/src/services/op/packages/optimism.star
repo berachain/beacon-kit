@@ -1,6 +1,7 @@
 GITHUB_URL = "https://github.com/ethereum-optimism/optimism.git"
 BRANCH = "tutorials/chain"
 ARTIFACT_NAME = "optimism"
+PATH = "/optimism"
 
 def clone(plan):
     output = plan.run_sh(

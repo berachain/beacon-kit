@@ -1,12 +1,13 @@
 contracts = import_module("contracts.star")
 deps = import_module("deps.star")
+optimism = import_module("optimism.star")
 
 ARTIFACT_NAME = "wallets"
-PATH = "wallets/wallets.txt"
+PATH = "/wallets/wallets.txt"
 
 # get returns wallets (<address, pk> pair) in the order of:
 #   GS_ADMIN, GS_BATCHER, GS_PROPOSER, GS_SEQUENCER
-def get(plan, optimism):
+def get(plan, op):
     wallets = plan.run_sh(
         image = "ghcr.io/foundry-rs/foundry:latest",
         run = '{} && cd {} && scripts/getting-started/wallets.sh | grep "_ADDRESS\\|_PRIVATE_KEY" | cut -d "=" -f 2 > {}'.format(
@@ -14,8 +15,8 @@ def get(plan, optimism):
             contracts.PATH,
             "wallets.txt",
         ),
-        files = {optimism: optimism},
-        store = [StoreSpec(src = "wallets.txt", name = ARTIFACT_NAME)],
+        files = {optimism.PATH: op},
+        store = [StoreSpec(src = "{}/wallets.txt".format(contracts.PATH), name = ARTIFACT_NAME)],
     )
     return wallets.files_artifacts[0]
 

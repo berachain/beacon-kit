@@ -1,14 +1,14 @@
 optimism = import_module("packages/optimism.star")
 wallets = import_module("packages/wallets.star")
+geth = import_module("components/geth.star")
 
-def get_files(plan):
+def get_file_artifacts(plan):
     optimism_dir = optimism.clone(plan)
     return struct(
         optimism = optimism_dir,
         wallets = wallets.get(plan, optimism_dir),
-        config = "config",  # gets set in deploy
+        op_geth = geth.generate_jwt_secret(plan),
         l2 = "l2",  # gets set in deploy
-        rollup = "rollup",  # gets set in deploy
     )
 
 def get_l1(
