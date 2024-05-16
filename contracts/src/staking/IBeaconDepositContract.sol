@@ -108,10 +108,4 @@ interface IBeaconDepositContract {
      * @return The root of the deposit Merkle tree.
      */
     function getDepositRoot() external view returns (bytes32);
-
-    /**
-     * @notice Gets the number of deposits that have been made to the contract.
-     * @return The number of deposits that have been made to the contract.
-     */
-    function getDepositCount() external view returns (bytes32);
 }

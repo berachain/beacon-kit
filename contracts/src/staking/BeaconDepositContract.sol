@@ -83,8 +83,9 @@ contract BeaconDepositContract is IBeaconDepositContract {
                 height < DEPOSIT_CONTRACT_TREE_DEPTH - 1;
                 ++height
             ) {
-                zeroHashes[height + 1] =
-                    sha256(abi.encodePacked(zeroHashes[height], zeroHashes[height]));
+                zeroHashes[height + 1] = sha256(
+                    abi.encodePacked(zeroHashes[height], zeroHashes[height])
+                );
             }
         }
     }
@@ -190,14 +191,7 @@ contract BeaconDepositContract is IBeaconDepositContract {
                 size >>= 1;
             }
         }
-        return sha256(
-            abi.encodePacked(node, SSZ.toLittleEndian(depositCount))
-        );
-    }
-
-    /// @inheritdoc IBeaconDepositContract
-    function getDepositCount() external view override returns (bytes32) {
-        return SSZ.toLittleEndian(uint64(depositCount));
+        return sha256(abi.encodePacked(node, SSZ.toLittleEndian(depositCount)));
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
