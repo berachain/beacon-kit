@@ -123,6 +123,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositFailsWithMaxAmount() public {
         vm.deal(depositor, uint256(type(uint64).max) * 2 gwei);
+        vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.DepositValueTooHigh.selector);
         depositContract.deposit{ value: uint256(type(uint64).max) * 2 gwei }(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
