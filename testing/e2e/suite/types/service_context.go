@@ -37,39 +37,49 @@ import (
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 )
 
-
 type WrappedServiceContext struct {
-	runStarklarkScript func(	ctx context.Context,
+	runStarklarkScript func(
+		ctx context.Context,
 		serializedScript string,
-		runConfig *starlark_run_config.StarlarkRunConfig,) (*enclaves.StarlarkRunResult, error)
+		runConfig *starlark_run_config.StarlarkRunConfig,
+	) (*enclaves.StarlarkRunResult, error)
 	*services.ServiceContext
 	helpersScript string
 }
 
+//nolint:dogsled // no risk from e2e suite
 func getHelpersScript() string {
-    _, filename, _, _ := runtime.Caller(0)
-    dir := filepath.Dir(filename)
-    path := filepath.Join(dir, "../../../../kurtosis/src/lib/helpers.star")
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+	path := filepath.Join(dir, "../../../../kurtosis/src/lib/helpers.star")
 
-    b, err := os.ReadFile(path)
-    if err != nil {
-        panic(err)
-    }
+	b, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
 
-    return string(b)
+	return string(b)
 }
 
-func NewWrappedServiceContext(serviceCtx *services.ServiceContext, runStarklarkScript func(	ctx context.Context,
-	serializedScript string,
-	runConfig *starlark_run_config.StarlarkRunConfig,) (*enclaves.StarlarkRunResult, error)) *WrappedServiceContext {
+func NewWrappedServiceContext(
+	serviceCtx *services.ServiceContext,
+	runStarklarkScript func(
+		ctx context.Context,
+		serializedScript string,
+		runConfig *starlark_run_config.StarlarkRunConfig,
+	) (*enclaves.StarlarkRunResult, error),
+) *WrappedServiceContext {
 	return &WrappedServiceContext{
 		runStarklarkScript: runStarklarkScript,
-		ServiceContext: serviceCtx,
-		helpersScript: getHelpersScript(),
+		ServiceContext:     serviceCtx,
+		helpersScript:      getHelpersScript(),
 	}
 }
 
-func (s *WrappedServiceContext) Start(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+func (s *WrappedServiceContext) Start(
+	ctx context.Context,
+	enclaveContext *enclaves.EnclaveContext,
+) (*enclaves.StarlarkRunResult, error) {
 	res, err := s.RunHelper(ctx, "start_service", map[string]interface{}{
 		"service_name": s.GetServiceName(),
 	})
@@ -77,7 +87,9 @@ func (s *WrappedServiceContext) Start(ctx context.Context, enclaveContext *encla
 		return nil, err
 	}
 
-	replacementSCtx, err := enclaveContext.GetServiceContext(string(s.ServiceContext.GetServiceName()))
+	replacementSCtx, err := enclaveContext.GetServiceContext(
+		string(s.ServiceContext.GetServiceName()),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +99,19 @@ func (s *WrappedServiceContext) Start(ctx context.Context, enclaveContext *encla
 	return res, nil
 }
 
-func (s *WrappedServiceContext) Stop(ctx context.Context) (*enclaves.StarlarkRunResult, error) {
+func (s *WrappedServiceContext) Stop(
+	ctx context.Context,
+) (*enclaves.StarlarkRunResult, error) {
 	return s.RunHelper(ctx, "stop_service", map[string]interface{}{
 		"service_name": s.GetServiceName(),
 	})
 }
 
-func (s *WrappedServiceContext) RunHelper(ctx context.Context, mainFunctionName string, args map[string]interface{}) (*enclaves.StarlarkRunResult, error) {
+func (s *WrappedServiceContext) RunHelper(
+	ctx context.Context,
+	mainFunctionName string,
+	args map[string]interface{},
+) (*enclaves.StarlarkRunResult, error) {
 	jsonBytes, err := json.Marshal(args)
 	if err != nil {
 		panic(err)
@@ -109,4 +127,3 @@ func (s *WrappedServiceContext) RunHelper(ctx context.Context, mainFunctionName 
 	)
 	return res, err
 }
-

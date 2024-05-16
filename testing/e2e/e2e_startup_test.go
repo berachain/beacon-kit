@@ -42,11 +42,19 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	s.Require().NoError(err)
 	s.Logger().Info("Stopped validator \n", res)
 
-	res, err = s.ConsensusClients()["cl-validator-beaconkit-0"].Start(s.Ctx(), s.Enclave())
+	res, err = s.ConsensusClients()["cl-validator-beaconkit-0"].Start(
+		s.Ctx(),
+		s.Enclave(),
+	)
 	s.Require().NoError(err)
 	s.Logger().Info("Started validator \n", res)
-
-	s.Logger().Info("consensus client ports", "ports", s.ConsensusClients()["cl-validator-beaconkit-0"].GetPublicPorts()["cometbft-rpc"].GetNumber())
+	ports := s.ConsensusClients()["cl-validator-beaconkit-0"].GetPublicPorts()
+	s.Logger().
+		Info(
+			"consensus client ports",
+			"ports",
+			ports["cometbft-rpc"].GetNumber(),
+		)
 
 	err = s.WaitForFinalizedBlockNumber(5)
 	s.Require().NoError(err)

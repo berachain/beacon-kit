@@ -71,7 +71,10 @@ func (cc *ConsensusClient) Connect() error {
 }
 
 // Start starts the consensus client.
-func (cc ConsensusClient) Start(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+func (cc ConsensusClient) Start(
+	ctx context.Context,
+	enclaveContext *enclaves.EnclaveContext,
+) (*enclaves.StarlarkRunResult, error) {
 	res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
 	if err != nil {
 		return nil, err
@@ -81,10 +84,11 @@ func (cc ConsensusClient) Start(ctx context.Context, enclaveContext *enclaves.En
 }
 
 // Stop stops the consensus client.
-func (cc ConsensusClient) Stop(ctx context.Context) (*enclaves.StarlarkRunResult, error) {
+func (cc ConsensusClient) Stop(
+	ctx context.Context,
+) (*enclaves.StarlarkRunResult, error) {
 	return cc.WrappedServiceContext.Stop(ctx)
 }
-
 
 // GetPubKey returns the public key of the validator running on this node.
 func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {

@@ -119,4 +119,3 @@ func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
 func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
 	return s.testAccounts
 }
-

@@ -46,7 +46,7 @@ func NewExecutionClientFromServiceCtx(
 	logger log.Logger,
 ) *ExecutionClient {
 	ec := &ExecutionClient{
-		WrappedServiceContext:    serviceCtx,
+		WrappedServiceContext: serviceCtx,
 		logger: logger.With(
 			"client-name",
 			serviceCtx.GetServiceName(),
@@ -70,7 +70,10 @@ func (ec *ExecutionClient) Connect() error {
 	return nil
 }
 
-func (ec ExecutionClient) Start(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+func (ec ExecutionClient) Start(
+	ctx context.Context,
+	enclaveContext *enclaves.EnclaveContext,
+) (*enclaves.StarlarkRunResult, error) {
 	res, err := ec.WrappedServiceContext.Start(ctx, enclaveContext)
 	if err != nil {
 		return nil, err
@@ -79,12 +82,14 @@ func (ec ExecutionClient) Start(ctx context.Context, enclaveContext *enclaves.En
 	return res, ec.Connect()
 }
 
-func (ec ExecutionClient) Stop(ctx context.Context) (*enclaves.StarlarkRunResult, error) {
+func (ec ExecutionClient) Stop(
+	ctx context.Context,
+) (*enclaves.StarlarkRunResult, error) {
 	return ec.WrappedServiceContext.Stop(ctx)
 }
 
 // IsValidator returns true if the execution client is a validator.
 // TODO: All nodes are validators rn.
-func (c *ExecutionClient) IsValidator() bool {
+func (ec *ExecutionClient) IsValidator() bool {
 	return true
 }
