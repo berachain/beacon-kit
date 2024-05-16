@@ -41,7 +41,6 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
-	optimistic bool,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -64,7 +63,6 @@ func (s *Service[
 			},
 			nil,
 			s.cs.ActiveForkVersionForSlot(slot),
-			optimistic,
 		),
 	)
 	return err
@@ -180,7 +178,7 @@ func (s *Service[
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(ctx, st, headHash, true); err != nil {
+	if err := s.sendFCU(ctx, st, headHash); err != nil {
 		s.logger.
 			Error(
 				"failed to send forkchoice update in postBlockProcess",

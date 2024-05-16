@@ -131,9 +131,6 @@ type ForkchoiceUpdateRequest struct {
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
 	ForkVersion uint32
-	// Optimistic is a flag that indicates if the forkchoice update
-	// should be deemed optimistically valid.
-	Optimistic bool
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
@@ -141,13 +138,11 @@ func BuildForkchoiceUpdateRequest(
 	state *ForkchoiceStateV1,
 	payloadAttributes PayloadAttributer,
 	forkVersion uint32,
-	optimistic bool,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:             state,
 		PayloadAttributes: payloadAttributes,
 		ForkVersion:       forkVersion,
-		Optimistic:        optimistic,
 	}
 }
 
