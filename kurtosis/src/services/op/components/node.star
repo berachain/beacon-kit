@@ -1,28 +1,29 @@
-NODE_RPC_URL_BASE="op-node"
+contracts = import_module("../packages/contracts.star")
+
+NODE_RPC_URL_BASE = "op-node"
 
 def init(plan, image, env, files):
     plan.run_sh(
-        image=image,
-        run='genesis l2\
-            --deploy-config contracts-bedrock/deploy-config/getting-started.json \
-            --l1-deployments contracts-bedrock/deployments/getting-started/l1.json \
-            --outfile.l2 genesis.json \
-            --outfile.rollup rollup.json \
-            --l1-rpc {}'.format(env["L1_RPC_URL"]),
-        store=[
-            StoreSpec(src="genesis.json", name=files.l2),
-            StoreSpec(src="rollup.json", name=files.rollup),
-        ]
+        image = image,
+        run = "genesis l2            --deploy-config {}/deploy-config/getting-started.json             --l1-deployments {}/deployments/getting-started/l1.json             --outfile.l2 genesis.json             --outfile.rollup rollup.json             --l1-rpc {}".format(
+            contracts.PATH,
+            contracts.PATH,
+            env.l1_rpc_url,
+        ),
+        files = {files.optimism: files.optimism},
+        store = [
+            StoreSpec(src = "genesis.json", name = files.l2),
+            StoreSpec(src = "rollup.json", name = files.rollup),
+        ],
     )
-
 
 def launch(plan, image, files, env, l1, l2, node_rpc_port):
     node_rpc_url = "http://{}:{}".format(NODE_RPC_URL_BASE, node_rpc_port)
     service = plan.add_service(
-        name="op-node",
-        config=ServiceConfig(
-            image=image,
-            cmd=[
+        name = "op-node",
+        config = ServiceConfig(
+            image = image,
+            cmd = [
                 "op-node",
                 "--l1={}".format(l1.rpc_url),
                 "--l1.rpckind={}".format(l1.rpc_kind),
@@ -37,15 +38,15 @@ def launch(plan, image, files, env, l1, l2, node_rpc_port):
                 "--rpc.port={}".format(node_rpc_port),
                 "--p2p.disable",
                 "--rpc.enable-admin",
-                "--p2p.sequencer.key={}".format(env["GS_SEQUENCER_PRIVATE_KEY"]),            
+                "--p2p.sequencer.key={}".format(env.sequencer_pk),
             ],
-            ports={
+            ports = {
                 "rpc": PortSpec(
-                    number=int(node_rpc_port),
-                    url=node_rpc_url,
+                    number = int(node_rpc_port),
+                    url = node_rpc_url,
                 ),
             },
-            files={"/config": files.config, "/rollup": files.rollup},
+            files = {"/config": files.config, "/rollup": files.rollup},
         ),
     )
 

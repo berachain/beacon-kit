@@ -2,6 +2,7 @@ env = import_module("env.star")
 deployer = import_module("deploy.star")
 types = import_module("types.star")
 
+optimism = import_module("packages/optimism.star")
 wallets = import_module("packages/wallets.star")
 contracts = import_module("packages/contracts.star")
 
@@ -11,20 +12,19 @@ node = import_module("components/node.star")
 proposer = import_module("components/proposer.star")
 
 # TODO: Make these configurable
-GETH_RPC_PORT="8545"
-NODE_RPC_PORT="8547"
-BATCHER_RPC_PORT="8548"
-PROPOSER_RPC_PORT="8560"
+GETH_RPC_PORT = "8545"
+NODE_RPC_PORT = "8547"
+BATCHER_RPC_PORT = "8548"
+PROPOSER_RPC_PORT = "8560"
 
 def launch(plan, images, l1_rpc_url):
     l1 = types.get_l1(l1_rpc_url)
     files = types.get_files(plan)
-    contracts.install(plan, files)
     e = env.get(plan, l1)
 
     wallets.fund(plan, e)
     deployer.build_deploy_config(plan, files, e, l1.chain_id)
-    deployer.deploy_create2(plan, e)
+    contracts.deploy_create2(plan, e)
 
     deployer.build_getting_started_dir(plan, e, files, l1)
     contracts.deploy_l1(plan, e, files)
@@ -42,4 +42,3 @@ def launch(plan, images, l1_rpc_url):
     proposer_rpc_url = proposer.launch(plan, images["proposer"], files, e, l1, PROPOSER_RPC_PORT, node_rpc_url)
 
     # TODO: Bridge Tokens to Address
-    

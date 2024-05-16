@@ -1,12 +1,12 @@
 def init(plan, image, files):
     plan.run_sh(
-        image=image,
-        run="mkdir /config/datadir && geth init --datadir=/config/datadir /config/genesis.json",
-        files={
+        image = image,
+        run = "mkdir /config/datadir && geth init --datadir=/config/datadir /config/genesis.json",
+        files = {
             "/config": files.config,
         },
-        store=[
-            StoreSpec(src="/config", name=files.config),
+        store = [
+            StoreSpec(src = "/config", name = files.config),
         ],
     )
 
@@ -15,12 +15,13 @@ def launch(plan, image, l1, files):
     ws_base, ws_port = get_url_parts(l1.ws_url)
     auth_rpc_base, auth_rpc_port = get_url_parts(l1.auth_rpc_url)
     service = plan.add_service(
-        name="op-geth",
-        config=ServiceConfig(
-            image=image,
-            cmd=[
+        name = "op-geth",
+        config = ServiceConfig(
+            image = image,
+            cmd = [
                 "geth",
-                "--datadir", "/config/datadir",
+                "--datadir",
+                "/config/datadir",
                 "--http",
                 "--http.corsdomain=*",
                 "--http.vhosts=*",
@@ -43,21 +44,21 @@ def launch(plan, image, l1, files):
                 "--authrpc.jwtsecret=./config/jwt.txt",
                 "--rollup.disabletxpoolgossip=true",
             ],
-            ports={
+            ports = {
                 "rpc": PortSpec(
-                    number=int(rpc_port),
-                    url=l1.rpc_url,
+                    number = int(rpc_port),
+                    url = l1.rpc_url,
                 ),
                 "ws": PortSpec(
-                    number=int(ws_port),
-                    url=l1.ws_url,
+                    number = int(ws_port),
+                    url = l1.ws_url,
                 ),
                 "auth_rpc": PortSpec(
-                    number=int(auth_rpc_port),
-                    url=l1.auth_rpc_url,
+                    number = int(auth_rpc_port),
+                    url = l1.auth_rpc_url,
                 ),
             },
-            files={
+            files = {
                 "/config": files.config,
             },
         ),

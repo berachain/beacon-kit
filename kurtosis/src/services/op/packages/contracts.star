@@ -1,66 +1,74 @@
-OP_STACK_GITHUB_URL = "https://github.com/ethereum-optimism/optimism.git"
-BRANCH = "tutorials/chain"
-CONTRACTS_PATH = "packages/contracts_bedrock"
+deps = import_module("deps.star")
 
-def clone_dir(plan):
-    output = plan.run_sh(
-        image = "alpine/git:latest",
-        run = 'mkdir contracts && cd contracts && git init && git remote add origin https://github.com/ethereum-optimism/optimism.git && git config core.sparseCheckout true && echo "packages/contracts-bedrock/*" > .git/info/sparse-checkout && git pull --depth=1 origin tutorials/chain'.format(
-            OP_STACK_GITHUB_URL,
-            CONTRACTS_PATH,
-            BRANCH,
-        ),
-        store = [StoreSpec(src="./git/contracts", name="contracts")],
-    )
-    return output.files_artifacts[0]
+PATH = "optimism/packages/contracts_bedrock"
 
 def install(plan, files):
     plan.run_sh(
-        image="ghcr.io/foundry-rs/foundry:latest",
-        run="cd /contracts/packages/contracts-bedrock && forge install",
-        wait="3600s", # this takes hella long
-        files={"/contracts": files.contracts},
-        store=[
-            StoreSpec(
-                src="/contracts/packages/contracts-bedrock",
-                name=files.contracts,
-            )
-        ],
+        image = "ghcr.io/foundry-rs/foundry:latest",
+        run = "cd {} && forge install".format(PATH),
+        files = {files.optimism: files.optimism},
+        store = [StoreSpec(src = files.optimism, name = files.optimism)],
     )
 
+def deploy_create2(plan, env):
+    codesize_output = plan.run_sh(
+        image = "ghcr.io/foundry-rs/foundry:latest",
+        run = "cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url {}".format(
+            env.l1_rpc_url,
+        ),
+    ).output
+
+    # TODO: Fix this logic: since output is a future value, this condition
+    # will always be false even if the result is 0
+    # if codesize_output == "0\n":
+    #     plan.run_sh(
+    #         image="ghcr.io/foundry-rs/foundry:latest",
+    #         run="cast send --private-key {} 0x3fAB184622Dc19b6109349B94811493BF2a45362 --value 1ether --rpc-url {} --legacy && \
+    #             cast publish --rpc-url {} 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222 \
+    #             ".format(
+    #             env.pk,
+    #             env.l1_rpc_url,
+    #             env.l1_rpc_url,
+    #         ),
+    #     )
+    #     codesize_output = plan.run_sh(
+    #         image="ghcr.io/foundry-rs/foundry:latest",
+    #         run="cast codesize 0x4e59b44847b379578588920cA78FbF26c0B4956C --rpc-url {}".format(
+    #             env.l1_rpc_url,
+    #         ),
+    #     ).output.strip()
+    #     plan.verify(value=codesize_output, assertion="!=", target_value="0\n")
+
+    plan.verify(value = codesize_output, assertion = "==", target_value = "69\n")
+
+# deploy_l1 deploys the L1 contracts and builds required files for the L2 deployment
 def deploy_l1(plan, env, files):
-    get_deps_cmd = "apk add bash jq "
     copy_cmd = "cp deployments/getting-started/.deploy l1.json"
     plan.run_sh(
-        image="ghcr.io/foundry-rs/foundry:latest",
-        run="cd contracts-bedrock && forge script scripts/Deploy.s.sol:Deploy --private-key {} --broadcast --rpc-url {} --legacy && {}".format(
-            env["GS_ADMIN_PRIVATE_KEY"],
-            env["L1_RPC_URL"],
+        image = "ghcr.io/foundry-rs/foundry:latest",
+        run = "{} && cd {} && forge script scripts/Deploy.s.sol:Deploy --private-key {} --broadcast --rpc-url {} --legacy && {}".format(
+            deps.get(["bash", "jq"]),
+            PATH,
+            env.admin_pk,
+            env.l1_rpc_url,
             copy_cmd,
         ),
-        wait="3600s", # this takes hella long
-        files={
-            "/contracts-bedrock": files.contracts,    
-        },
-        store=[
-            StoreSpec(
-                src="contracts-bedrock/l1.json",
-                name=files.config,
-            )
-        ],
-        env_vars={
-            "GS_ADMIN_ADDRESS": env["GS_ADMIN_ADDRESS"],
-            "GS_ADMIN_PRIVATE_KEY": env["GS_ADMIN_PRIVATE_KEY"],
-            "GS_BATCHER_ADDRESS": env["GS_BATCHER_ADDRESS"],
-            "GS_BATCHER_PRIVATE_KEY": env["GS_BATCHER_PRIVATE_KEY"],
-            "GS_PROPOSER_ADDRESS": env["GS_PROPOSER_ADDRESS"],
-            "GS_PROPOSER_PRIVATE_KEY": env["GS_PROPOSER_PRIVATE_KEY"],
-            "GS_SEQUENCER_ADDRESS": env["GS_SEQUENCER_ADDRESS"],
-            "L1_RPC_KIND": env["L1_RPC_KIND"],
-            "L1_RPC_URL": env["L1_RPC_URL"],
-            "L1_BLOCK_TIME": env["L1_BLOCK_TIME"],
-            "IMPL_SALT": env["IMPL_SALT"],
-            "DEPLOYMENT_CONTEXT": env["DEPLOYMENT_CONTEXT"],
-            "PRIVATE_KEY": env["PRIVATE_KEY"],
+        files = {files.optimism: files.optimism},
+        store = [StoreSpec(src = "{}/l1.json".format(PATH), name = files.config)],
+        env_vars = {
+            "GS_ADMIN_ADDRESS": env.admin_address,
+            "GS_ADMIN_PRIVATE_KEY": env.admin_pk,
+            "GS_BATCHER_ADDRESS": env.batcher_address,
+            "GS_BATCHER_PRIVATE_KEY": env.batcher_pk,
+            "GS_PROPOSER_ADDRESS": env.proposer_address,
+            "GS_PROPOSER_PRIVATE_KEY": env.proposer_pk,
+            "GS_SEQUENCER_ADDRESS": env.sequencer_address,
+            "GS_SEQUENCER_PRIVATE_KEY": env.sequencer_pk,
+            "L1_RPC_KIND": env.l1_rpc_kind,
+            "L1_RPC_URL": env.l1_rpc_url,
+            "L1_BLOCK_TIME": env.l1_block_time,
+            "IMPL_SALT": env.impl_salt,
+            "DEPLOYMENT_CONTEXT": env.deployment_context,
+            "PRIVATE_KEY": env.pk,
         },
     )
