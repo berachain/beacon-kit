@@ -28,6 +28,7 @@ package beacon
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
@@ -51,9 +52,19 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the evm module.
 func (AppModule) ValidateGenesis(
-	_ json.RawMessage,
+	bz json.RawMessage,
 ) error {
-	// TODO: implement.
+	data := new(deneb.BeaconState)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return err
+	}
+
+	seenValidators := make(map[[48]byte]struct{})
+	for _, validator := range data.Validators {
+		if _, ok := seenValidators[validator.Pubkey]; ok {
+			return fmt.Errorf("duplicate pubkey in genesis state: %x", validator.Pubkey)
+		}
+	}
 	return nil
 }
 
@@ -76,8 +87,10 @@ func (am AppModule) InitGenesis(
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+
 	blsType := "bls12_381"
 	for _, validator := range data.Validators {
+
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: blsType,
