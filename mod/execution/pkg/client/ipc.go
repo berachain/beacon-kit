@@ -39,7 +39,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 	if _, err := os.Stat(s.cfg.IPCPath); err != nil {
 		s.logger.Info("Removing existing IPC file", "path", s.cfg.IPCPath)
 
-		if err := os.Remove(s.cfg.IPCPath); err != nil {
+		if err = os.Remove(s.cfg.IPCPath); err != nil {
 			s.logger.Error("failed to remove existing IPC file", "err", err)
 			return
 		}

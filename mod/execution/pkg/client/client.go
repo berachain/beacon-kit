@@ -324,7 +324,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 }
 
 // buildJWTHeader builds an http.Header that has the JWT token
-// attached for authorization.
+// attached for a
 //
 //nolint:lll
 func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, error) {
