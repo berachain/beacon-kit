@@ -33,8 +33,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
+//
 //nolint:lll // long variable names.
-var _ engineprimitives.ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(nil)
+var _ engineprimitives.ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(
+	nil,
+)
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //

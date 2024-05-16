@@ -260,7 +260,10 @@ func TestUnwrapBigSign(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.UnwrapBig()
 			if result.Sign() < 0 {
-				t.Errorf("UnwrapBig() resulted in a negative number: %v", result)
+				t.Errorf(
+					"UnwrapBig() resulted in a negative number: %v",
+					result,
+				)
 			}
 		})
 	}

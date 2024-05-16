@@ -190,7 +190,10 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 		{"Zero value", "\"0x0\"", 0, nil},
 		{"Max uint64 value", "\"0xffffffffffffffff\"", ^uint64(0), nil},
 		{"Invalid hex string", "\"0xxyz\"", 0,
-			hex.WrapUnmarshalError(hex.ErrInvalidString, reflect.TypeOf(math.U64(0)))},
+			hex.WrapUnmarshalError(
+				hex.ErrInvalidString,
+				reflect.TypeOf(math.U64(0)),
+			)},
 	}
 
 	for _, tt := range tests {

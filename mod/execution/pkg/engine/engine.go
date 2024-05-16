@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -111,15 +112,15 @@ func (ee *Engine[
 		req.ForkVersion,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
-		errors.Is(err, client.ErrSyncingPayloadStatus):
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		ee.logger.Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", req.State.HeadBlockHash,
 		)
 		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
-		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrInvalidBlockHashPayloadStatus):
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
@@ -185,8 +186,8 @@ func (ee *Engine[
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
 	// its execution client is fetching things over it's p2p layer.
-	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
-		errors.Is(err, client.ErrSyncingPayloadStatus):
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
@@ -205,8 +206,8 @@ func (ee *Engine[
 	//
 	// These two cases are semantically the same:
 	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
-		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),

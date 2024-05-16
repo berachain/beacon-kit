@@ -41,7 +41,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -149,17 +148,10 @@ func NewBeaconKitApp(
 		panic(err)
 	}
 
-	return app
-}
-
-// PostStartup is called after the app has started up and CometBFT is connected.
-func (app BeaconApp) PostStartup(
-	ctx context.Context,
-	_ client.Context,
-) error {
-	// Initial check for execution client sync.
+	// TODO: this needs to be made un-hood.
 	app.BeaconKitRuntime.StartServices(
-		ctx,
+		context.Background(),
 	)
-	return nil
+
+	return app
 }
