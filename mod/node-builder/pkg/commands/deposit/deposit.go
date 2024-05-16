@@ -29,13 +29,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands() *cobra.Command {
+func Commands(chainSpec primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
@@ -45,8 +45,8 @@ func Commands() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewValidateDeposit(),
-		NewCreateValidator(),
+		NewValidateDeposit(chainSpec),
+		NewCreateValidator(chainSpec),
 	)
 
 	return cmd
@@ -55,7 +55,7 @@ func Commands() *cobra.Command {
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:mnd // lots of magic numbers
-func NewValidateDeposit() *cobra.Command {
+func NewValidateDeposit(chainSpec primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
@@ -65,7 +65,7 @@ func NewValidateDeposit() *cobra.Command {
 		withdrawal credentials, deposit amount, signature, current version,
 		and genesis validator root.`,
 		Args: cobra.ExactArgs(6),
-		RunE: validateDepositMessage,
+		RunE: validateDepositMessage(chainSpec),
 	}
 
 	return cmd
@@ -73,51 +73,52 @@ func NewValidateDeposit() *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func validateDepositMessage(
+func validateDepositMessage(chainSpec primitives.ChainSpec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {
-	pubkey, err := parser.ConvertPubkey(args[0])
-	if err != nil {
-		return err
-	}
+	return func(_ *cobra.Command, args []string) error {
+		pubkey, err := parser.ConvertPubkey(args[0])
+		if err != nil {
+			return err
+		}
 
-	credentials, err := parser.ConvertWithdrawalCredentials(args[1])
-	if err != nil {
-		return err
-	}
+		credentials, err := parser.ConvertWithdrawalCredentials(args[1])
+		if err != nil {
+			return err
+		}
 
-	amount, err := parser.ConvertAmount(args[2])
-	if err != nil {
-		return err
-	}
+		amount, err := parser.ConvertAmount(args[2])
+		if err != nil {
+			return err
+		}
 
-	signature, err := parser.ConvertSignature(args[3])
-	if err != nil {
-		return err
-	}
+		signature, err := parser.ConvertSignature(args[3])
+		if err != nil {
+			return err
+		}
 
-	currentVersion, err := parser.ConvertVersion(args[4])
-	if err != nil {
-		return err
-	}
+		currentVersion, err := parser.ConvertVersion(args[4])
+		if err != nil {
+			return err
+		}
 
-	genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[5])
-	if err != nil {
-		return err
-	}
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[5])
+		if err != nil {
+			return err
+		}
 
-	depositMessage := types.DepositMessage{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-	}
+		depositMessage := types.DepositMessage{
+			Pubkey:      pubkey,
+			Credentials: credentials,
+			Amount:      amount,
+		}
 
-	return depositMessage.VerifyCreateValidator(
-		types.NewForkData(currentVersion, genesisValidatorRoot),
-		signature,
-		signer.BLSSigner{}.VerifySignature,
-		// TODO: needs to be configurable.
-		spec.LocalnetChainSpec().DomainTypeDeposit(),
-	)
+		return depositMessage.VerifyCreateValidator(
+			types.NewForkData(currentVersion, genesisValidatorRoot),
+			signature,
+			signer.BLSSigner{}.VerifySignature,
+			chainSpec.DomainTypeDeposit(),
+		)
+	}
 }
