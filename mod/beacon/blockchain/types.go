@@ -88,7 +88,7 @@ type BeaconStorageBackend[
 	) core.AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	]
-	BeaconState(context.Context) BeaconStateT
+	StateFromContext(context.Context) BeaconStateT
 	DepositStore(context.Context) DepositStoreT
 }
 
@@ -178,17 +178,22 @@ type RandaoProcessor[BeaconStateT any] interface {
 	) error
 }
 
-// StakingService is the interface for the staking service.
+// StateProcessor defines the interface for processing various state transitions
+// in the beacon chain.
 type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
+	// ProcessBlock processes a given beacon block and updates the state
+	// accordingly.
 	ProcessBlock(
 		st BeaconStateT,
 		blk types.BeaconBlock,
 	) error
 
+	// ProcessSlot processes the state transition for a single slot.
 	ProcessSlot(
 		st BeaconStateT,
 	) error
 
+	// ProcessBlobs processes the blobs associated with a beacon block.
 	ProcessBlobs(
 		st BeaconStateT,
 		avs core.AvailabilityStore[

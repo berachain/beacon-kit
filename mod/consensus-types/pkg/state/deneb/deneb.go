@@ -78,7 +78,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 		Eth1Data: &types.Eth1Data{
 			DepositRoot:  primitives.Root{},
 			DepositCount: 0,
-			BlockHash:    common.ExecutionHash{},
+			BlockHash:    common.ZeroHash,
 		},
 		Eth1DepositIndex:             0,
 		Validators:                   make([]*types.Validator, 0),
@@ -93,7 +93,7 @@ func DefaultBeaconState() (*BeaconState, error) {
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 func DefaultGenesisExecutionPayloadHeader() (
-	*engineprimitives.ExecutionPayloadHeaderDeneb, error,
+	*types.ExecutionPayloadHeaderDeneb, error,
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
@@ -119,9 +119,9 @@ func DefaultGenesisExecutionPayloadHeader() (
 		return nil, err
 	}
 
-	return &engineprimitives.ExecutionPayloadHeaderDeneb{
-		ParentHash:   common.ExecutionHash{},
-		FeeRecipient: common.ExecutionAddress{},
+	return &types.ExecutionPayloadHeaderDeneb{
+		ParentHash:   common.ZeroHash,
+		FeeRecipient: common.ZeroAddress,
 		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,
@@ -166,9 +166,9 @@ type BeaconState struct {
 	StateRoots        []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data                               `json:"eth1Data"`
-	Eth1DepositIndex             uint64                                        `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *engineprimitives.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *types.Eth1Data                    `json:"eth1Data"`
+	Eth1DepositIndex             uint64                             `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`

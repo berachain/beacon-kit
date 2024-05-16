@@ -66,10 +66,10 @@ func (sp *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]) ProcessBlobs(
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.
-	numBlobs := sidecars.Len()
-	if numBlobs == 0 {
+	numSidecars := sidecars.Len()
+	if numSidecars == 0 {
 		sp.logger.Info(
-			"no blobs to verify, skipping verifier 🧢",
+			"no blob sidecars to verify, skipping verifier 🧢",
 			"slot",
 			slot,
 		)
@@ -86,8 +86,8 @@ func (sp *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]) ProcessBlobs(
 
 	sp.logger.Info(
 		"successfully verified all blob sidecars 💦",
-		"num_blobs",
-		numBlobs,
+		"num-sidecars",
+		numSidecars,
 		"slot",
 		slot,
 	)

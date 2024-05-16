@@ -31,6 +31,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -130,7 +131,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 // interface.
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
+) (*types.ExecutionPayloadHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -182,7 +183,7 @@ func executableDataToExecutionPayloadHeader(
 		return nil, err
 	}
 
-	executionPayloadHeader := &engineprimitives.ExecutionPayloadHeaderDeneb{
+	executionPayloadHeader := &types.ExecutionPayloadHeaderDeneb{
 		ParentHash:       data.ParentHash,
 		FeeRecipient:     data.FeeRecipient,
 		StateRoot:        primitives.Bytes32(data.StateRoot),

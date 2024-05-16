@@ -52,6 +52,13 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
+// BeforeTest executes before specific tests in the suite.
+func (s *KurtosisE2ESuite) BeforeTest(_, testName string) {
+	if testName == "TestDepositContract" {
+		s.SetupSuite()
+	}
+}
+
 // Option is a function that sets a field on the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
@@ -63,6 +70,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.cfg = config.DefaultE2ETestConfig()
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
+	s.Require().NoError(err, "Error loading starlark helper file")
 	s.testAccounts = make([]*types.EthAccount, 0)
 
 	s.genesisAccount = types.NewEthAccountFromHex(
@@ -162,8 +170,18 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	if err != nil {
 		return err
 	}
+
 	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
-		sCtx,
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+	)
+	ports := s.consensusClients["cl-validator-beaconkit-0"].GetPublicPorts()
+	s.logger.Info(
+		"consensus client ports",
+		"ports",
+		ports["cometbft-rpc"].GetNumber(),
 	)
 
 	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
@@ -171,7 +189,10 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 		return err
 	}
 	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
-		sCtx,
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
 	)
 	return nil
 }

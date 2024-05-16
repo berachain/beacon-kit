@@ -26,6 +26,7 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/berachain/beacon-kit/beacond/app"
@@ -33,10 +34,11 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-func main() {
+// run runs the beacon node.
+func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
-		os.Exit(1)
+		return err
 	}
 
 	// Build the node using the node-builder.
@@ -46,8 +48,13 @@ func main() {
 		WithAppCreator(app.NewBeaconKitAppWithDefaultBaseAppOptions).
 		WithDepInjectConfig(app.Config())
 
-	// Run the node.
-	if err := nb.RunNode(); err != nil {
+	return nb.RunNode()
+}
+
+// main is the entry point.
+func main() {
+	if err := run(); err != nil {
+		slog.Error("startup failure", "error", err)
 		os.Exit(1)
 	}
 }

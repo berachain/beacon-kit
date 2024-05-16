@@ -61,8 +61,8 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) NewPayloadV3(
 	payload any,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatus, error) {
-	result := &engineprimitives.PayloadStatus{}
+) (*engineprimitives.PayloadStatusV1, error) {
+	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
 		(*common.ExecutionHash)(parentBlockRoot),
@@ -75,9 +75,9 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) NewPayloadV3(
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadDenebT]) ForkchoiceUpdatedV3(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
-) (*engineprimitives.ForkchoiceResponse, error) {
+) (*engineprimitives.ForkchoiceResponseV1, error) {
 	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
@@ -86,10 +86,10 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) ForkchoiceUpdatedV3(
 func (s *Eth1Client[ExecutionPayloadDenebT]) forkchoiceUpdateCall(
 	ctx context.Context,
 	method string,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
-) (*engineprimitives.ForkchoiceResponse, error) {
-	result := &engineprimitives.ForkchoiceResponse{}
+) (*engineprimitives.ForkchoiceResponseV1, error) {
+	result := &engineprimitives.ForkchoiceResponseV1{}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, method, state, attrs,
@@ -97,7 +97,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) forkchoiceUpdateCall(
 		return nil, err
 	}
 
-	if (result.PayloadStatus == engineprimitives.PayloadStatus{}) {
+	if (result.PayloadStatus == engineprimitives.PayloadStatusV1{}) {
 		return nil, ErrNilResponse
 	}
 

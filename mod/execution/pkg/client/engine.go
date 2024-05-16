@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -56,7 +57,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	if err != nil {
 		return nil, err
 	} else if result == nil {
-		return nil, ErrNilPayloadStatus
+		return nil, engineerrors.ErrNilPayloadStatus
 	}
 
 	// This case is only true when the payload is invalid, so
@@ -78,7 +79,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatus, error) {
+) (*engineprimitives.PayloadStatusV1, error) {
 	switch payload.Version() {
 	case version.Deneb:
 		return s.NewPayloadV3(
@@ -90,25 +91,34 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra payload")
 	default:
-		return nil, ErrInvalidPayloadType
+		return nil, engineerrors.ErrInvalidPayloadType
 	}
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// If the suggested fee recipient is not set, log a warning.
+	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+		s.logger.Warn(
+			"suggested fee recipient is not configured 🔆",
+			"fee-recipent", common.DisplayBytes(
+				common.ZeroAddress[:]).TerminalString(),
+		)
+	}
+
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
 	if err != nil {
 		return nil, nil, s.handleRPCError(err)
 	} else if result == nil {
-		return nil, nil, ErrNilForkchoiceResponse
+		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
 	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
@@ -122,17 +132,17 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 // JSON-RPC.
 func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engineprimitives.ForkchoiceResponse, error) {
+) (*engineprimitives.ForkchoiceResponseV1, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
-		return nil, ErrInvalidPayloadAttributes
+		return nil, engineerrors.ErrInvalidPayloadAttributes
 	}
 }
 
@@ -156,7 +166,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
-		return nil, ErrInvalidGetPayloadVersion
+		return nil, engineerrors.ErrInvalidGetPayloadVersion
 	}
 
 	// Call and check for errors.
@@ -165,11 +175,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	case err != nil:
 		return result, s.handleRPCError(err)
 	case result == nil:
-		return result, ErrNilExecutionPayloadEnvelope
+		return result, engineerrors.ErrNilExecutionPayloadEnvelope
 	case result.GetExecutionPayload() == nil:
-		return result, ErrNilExecutionPayload
+		return result, engineerrors.ErrNilExecutionPayload
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
-		return result, ErrNilBlobsBundle
+		return result, engineerrors.ErrNilBlobsBundle
 	}
 
 	return result, nil

@@ -105,6 +105,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock interface {
+	SetStateRoot(common.Root)
 	ReadOnlyBeaconBlock[BeaconBlockBody]
 }
 

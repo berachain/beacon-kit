@@ -26,8 +26,6 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -46,7 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/berachain/beacon-kit/mod/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -56,6 +54,20 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
+
+// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
+type BeaconKitRuntime = runtime.BeaconKitRuntime[
+	types.BeaconBlockBody,
+	state.BeaconState,
+	*datypes.BlobSidecars,
+	*depositdb.KVStore,
+	runtime.BeaconStorageBackend[
+		types.BeaconBlockBody,
+		state.BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore,
+	],
+]
 
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
@@ -75,18 +87,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	],
 	logger log.Logger,
-) (*runtime.BeaconKitRuntime[
-	types.BeaconBlockBody,
-	state.BeaconState,
-	*datypes.BlobSidecars,
-	*depositdb.KVStore,
-	runtime.BeaconStorageBackend[
-		types.BeaconBlockBody,
-		state.BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore,
-	],
-], error) {
+) (*BeaconKitRuntime, error) {
 	// Set the module as beacon-kit to override the cosmos-sdk naming.
 	logger = logger.With("module", "beacon-kit")
 
@@ -96,9 +97,6 @@ func ProvideRuntime(
 		logger.With("module", "beacon-kit.engine.client"),
 		jwtSecret,
 	)
-
-	// TODO: move.
-	engineClient.Start(context.Background())
 
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
@@ -153,6 +151,24 @@ func ProvideRuntime(
 		logger.With("service", "randao"),
 	)
 
+	stateProcessor := core.NewStateProcessor[
+		types.BeaconBlock,
+		state.BeaconState,
+		*datypes.BlobSidecars,
+	](
+		chainSpec,
+		stda.NewBlobProcessor[
+			types.BeaconBlockBody, *datypes.BlobSidecars,
+		](
+			logger.With("module", "blob-processor"),
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+		),
+		randaoProcessor,
+		signer,
+		logger.With("module", "state-processor"),
+	)
+
 	// Build the builder service.
 	validatorService := validator.NewService[
 		state.BeaconState, *datypes.BlobSidecars,
@@ -160,6 +176,8 @@ func ProvideRuntime(
 		&cfg.Validator,
 		logger.With("service", "validator"),
 		chainSpec,
+		storageBackend,
+		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
 			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -184,23 +202,7 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		verification.NewBlockVerifier[state.BeaconState](chainSpec),
-		core.NewStateProcessor[
-			types.BeaconBlock,
-			state.BeaconState,
-			*datypes.BlobSidecars,
-		](
-			chainSpec,
-			stda.NewBlobProcessor[
-				types.BeaconBlockBody, *datypes.BlobSidecars,
-			](
-				logger.With("module", "blob-processor"),
-				chainSpec,
-				dablob.NewVerifier(blobProofVerifier),
-			),
-			randaoProcessor,
-			signer,
-			logger.With("module", "state-processor"),
-		),
+		stateProcessor,
 		verification.NewPayloadVerifier(chainSpec),
 		beaconDepositContract,
 	)
@@ -220,6 +222,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](
+		engineClient,
 		chainSpec,
 		logger.With(
 			"module",

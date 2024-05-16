@@ -33,7 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -111,15 +113,15 @@ func (ee *Engine[
 		req.ForkVersion,
 	)
 	switch {
-	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
-		errors.Is(err, client.ErrSyncingPayloadStatus):
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		ee.logger.Info("forkchoice updated with optimistic block",
 			"head_eth1_hash", req.State.HeadBlockHash,
 		)
 		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil, nil
-	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
-		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrInvalidBlockHashPayloadStatus):
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
@@ -185,8 +187,8 @@ func (ee *Engine[
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
 	// its execution client is fetching things over it's p2p layer.
-	case errors.Is(err, client.ErrAcceptedPayloadStatus) ||
-		errors.Is(err, client.ErrSyncingPayloadStatus):
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		ee.logger.Info("new payload called with optimistic block",
 			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
 			"parent_hash", (req.ExecutionPayload.GetParentHash()),
@@ -205,13 +207,46 @@ func (ee *Engine[
 	//
 	// These two cases are semantically the same:
 	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.Is(err, client.ErrInvalidPayloadStatus) ||
-		errors.Is(err, client.ErrInvalidBlockHashPayloadStatus):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus) ||
+		errors.Is(err, engineerrors.ErrInvalidBlockHashPayloadStatus):
 		ee.logger.Error(
 			"invalid payload status",
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
 		)
 		return ErrBadBlockProduced
+
+	case jsonrpc.IsPreDefinedError(err):
+		var (
+			loggerFn = ee.logger.Error
+			logMsg   = "json-rpc execution error during payload verification"
+			logErr   = err
+		)
+
+		defer func() {
+			loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
+		}()
+
+		// Under the optimistic condition, we are fine ignoring the error. This
+		// is mainly to allow us to safely call the execution client
+		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
+		// we get an error here, we make the assumption that
+		// abci.ProcessProposal
+		// has deemed that the BeaconBlock containing the given ExecutionPayload
+		// was marked as valid by an honest majority of validators, and we
+		// don't want to halt the chain because of an error here.
+		//
+		// The pratical reason we want to handle this edge case
+		// is to protect against an awkward shutdown condition in which an
+		// execution client dies between the end of abci.ProcessProposal
+		// and the beginning of abci.FinalizeBlock. Without handling this case
+		// it would cause a failure of abci.FinalizeBlock and a
+		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
+		if req.Optimistic {
+			loggerFn = ee.logger.Warn
+			logMsg += " - please monitor"
+			return nil
+		}
+		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	}
 
 	// If we get any other error, we will just return it.

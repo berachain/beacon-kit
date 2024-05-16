@@ -56,5 +56,5 @@ func (h B96) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes96.
 func (h *B96) UnmarshalText(text []byte) error {
-	return unmarshalTextHelper(h[:], text)
+	return UnmarshalTextHelper(h[:], text)
 }

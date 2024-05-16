@@ -297,7 +297,7 @@ func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
 	switch activeFork {
 	case version.Deneb:
 		executionPayloadHeader, ok :=
-			latestExecutionPayloadHeader.(*engineprimitives.ExecutionPayloadHeaderDeneb)
+			latestExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
