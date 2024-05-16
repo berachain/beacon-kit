@@ -235,7 +235,7 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 			err,
 			"could not parse ssz struct field tags")
 	}
-	if exists {
+	if exists && len(fieldSizeTags) > 0 && !hasUndefinedSizeTag(field) {
 		// If the field does indeed specify ssz struct tags
 		// we infer the field's type.
 		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil
@@ -280,17 +280,15 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	sizes := make([]uint64, len(items))
 	var err error
 	for i := range len(items) {
-		// If a field is unbounded, we mark it with a size of 0.
-		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
-			sizes[i] = 0
-			continue
-		}
-		sizes[i], err = strconv.ParseUint(items[i], 10, 64)
-		if err != nil {
-			return make([]uint64, 0), false, err
+		// If a field is unbounded, we skip it
+		if items[i] != ssz.UnboundedSSZFieldSizeMarker {
+			sizes[i], err = strconv.ParseUint(items[i], 10, 64)
+			if err != nil {
+				return make([]uint64, 0), false, err
+			}
 		}
 	}
-	return sizes, true, nil
+	return sizes, len(sizes) > 0, nil
 }
 
 func inferFieldTypeFromSizeTags(
