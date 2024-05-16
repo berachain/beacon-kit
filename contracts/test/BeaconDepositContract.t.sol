@@ -112,6 +112,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositWrongAmount() public {
         vm.deal(depositor, (32e9 - 1) * 1e9);
+        vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.DepositValueTooLow.selector);
         depositContract.deposit{ value: (32e9 - 1) * 1e9 }(
             VALIDATOR_PUBKEY,
