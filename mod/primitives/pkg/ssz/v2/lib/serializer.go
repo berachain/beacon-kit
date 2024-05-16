@@ -90,12 +90,14 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 	val := reflect.ValueOf(c)
 	k := typ.Kind()
 
-	switch {
-	case IsUintLike(k):
+	if IsUintLike(k) {
 		return RouteUint(val, typ), nil
-	case k == reflect.Bool:
+	}
+
+	switch k {
+	case reflect.Bool:
 		return ssz.MarshalBool(c.(bool)), nil
-	case k == reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		// 1 dimensional array of uint8s or bytearray []byte.
 		if typ.Elem().Kind() == reflect.Uint8 {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
@@ -103,41 +105,23 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 		// We follow fastssz generated code samples in
 		// bellatrix.ssz.go for these.
 		if isBasicType(typ.Elem().Kind()) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		if IsNDimensionalSliceLike(typ) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		if isVariableSizeType(typ.Elem()) {
-			// composite arr.
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
-		}
-		fallthrough
-	case k == reflect.Array:
-		// 1 dimensional array of uint8s or bytearray []byte.
-		if typ.Elem().Kind() == reflect.Uint8 {
-			return s.MarshalToDefaultBuffer(val, typ, s.MarshalByteArray)
-		}
-		// We follow fastssz generated code samples in
-		// bellatrix.ssz.go for these.
-		if isBasicType(typ.Elem().Kind()) {
-			return s.MarshalNDimensionalArray(val)
-		}
-		if IsNDimensionalArrayLike(typ) {
 			return s.MarshalNDimensionalArray(val)
 		}
 		if isVariableSizeType(typ) || isVariableSizeType(typ.Elem()) {
 			// composite arr.
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalComposite)
 		}
+		if IsNDimensionalSliceLike(typ) {
+			return s.MarshalNDimensionalArray(val)
+		}
 		fallthrough
-	case k == reflect.Ptr:
+	case reflect.Ptr:
 		// Composite structs appear initially as pointers so we Look inside
 		if typ.Elem().Kind() == reflect.Struct {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
 		}
 		fallthrough
-	case k == reflect.Struct:
+	case reflect.Struct:
 		return make(
 				[]byte,
 				0,
@@ -183,7 +167,7 @@ func (s *Serializer) Marshal(
 func (s *Serializer) MarshalToDefaultBuffer(
 	val reflect.Value,
 	typ reflect.Type,
-	cb func(reflect.Value, reflect.Type, []byte, uint64) (uint64, error),
+	cb func(reflect.Value, reflect.Type, *[]byte, uint64) (uint64, error),
 ) ([]byte, error) {
 	aLen := 0
 	err := errors.New("MarshalToDefaultBuffer Failure")
@@ -199,7 +183,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 		aLen = val.Len()
 	}
 	buf := make([]byte, aLen)
-	_, err = cb(val, typ, buf, 0)
+	_, err = cb(val, typ, &buf, 0)
 	return buf, err
 }
 
@@ -250,25 +234,28 @@ func (s *Serializer) MarshalNDimensionalArray(
 func (s *Serializer) MarshalByteArray(
 	val reflect.Value,
 	typ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
+	bufLocal := *buf
 	if val.Kind() == reflect.Array {
 		for i := range val.Len() {
 			//#nosec:G701 // int overflow should be caught earlier in the stack.
-			buf[int(startOffset)+i] = uint8(val.Index(i).Uint())
+			bufLocal[int(startOffset)+i] = uint8(val.Index(i).Uint())
 		}
+		*buf = bufLocal
 		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(val.Len()), nil
 	}
 	if val.IsNil() {
 		item := make([]byte, typ.Len())
-		copy(buf[startOffset:], item)
+		copy(bufLocal[startOffset:], item)
+		*buf = bufLocal
 		//#nosec:G701 // int overflow should be caught earlier in the stack.
 		return startOffset + uint64(typ.Len()), nil
 	}
-	copy(buf[startOffset:], val.Bytes())
-
+	copy(bufLocal[startOffset:], val.Bytes())
+	*buf = bufLocal
 	//#nosec:G701 // int overflow should be caught earlier in the stack.
 	return startOffset + uint64(val.Len()), nil
 }
@@ -308,7 +295,7 @@ func (s *Serializer) MarshalVariableSizeParts(
 func (s *Serializer) MarshalStruct(
 	val reflect.Value,
 	typ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
 	if !IsStruct(typ, val) {
@@ -343,6 +330,10 @@ func (s *Serializer) MarshalStruct(
 				variableParts,
 				variableLengths,
 			)
+			// We create holes in fixedParts using nil
+			// which is where we slot in offsets in interleaveOffsets.
+			fixedParts = append(fixedParts, nil)
+			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
 			fixedParts,
 				fixedLengths,
@@ -381,14 +372,14 @@ func (s *Serializer) MarshalStruct(
 	if err != nil {
 		return 0, err
 	}
-	buf = SafeCopyBuffer(res, buf, startOffset)
+	SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(res)), nil
 }
 
 func (s *Serializer) MarshalComposite(
 	val reflect.Value,
 	_ reflect.Type,
-	buf []byte,
+	buf *[]byte,
 	startOffset uint64,
 ) (uint64, error) {
 	var fixedParts [][]byte
@@ -413,6 +404,9 @@ func (s *Serializer) MarshalComposite(
 				variableParts,
 				variableLengths,
 			)
+			// spec-deviation: we differ from the ssz.dev composite spec but align
+			// with fastssz output by not writing a nil value into fixedParts.
+			fixedLengths = append(fixedLengths, BytesPerLengthOffset)
 		} else {
 			fixedParts,
 				fixedLengths,
@@ -433,8 +427,8 @@ func (s *Serializer) MarshalComposite(
 	}
 
 	// Start the recursive serialization
-	if err := SerializeRecursive(val, processMember); err != nil {
-		return 0, err
+	for i := range val.Len() {
+		processMember(val.Index(i).Interface())
 	}
 	if len(errCheck) > 0 {
 		return 0, errCheck[0]
@@ -451,6 +445,6 @@ func (s *Serializer) MarshalComposite(
 	if err != nil {
 		return 0, err
 	}
-	buf = SafeCopyBuffer(res, buf, startOffset)
+	SafeCopyBuffer(res, buf, startOffset)
 	return uint64(len(res)), nil
 }
