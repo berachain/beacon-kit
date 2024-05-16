@@ -217,16 +217,19 @@ func (ee *Engine[
 
 	// If we can a undefined server error, we want to log it and return it.
 	case errors.Is(err, jsonrpc.ErrServer):
-		// Under the optimistic condition, we are fine ignoring the error. This is
+		// Under the optimistic condition, we are fine ignoring the error. This
+		// is
 		// mainly to allow us to safely call the execution client
 		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
 		// we get an error here, we make the assumption tat abci.ProcessProposal
-		// has deemed that this BeaconBlock was marked as valid by an honest majority,
+		// has deemed that this BeaconBlock was marked as valid by an honest
+		// majority,
 		// and we don't want to halt the chain because of an error here.
 		//
-		// The reason we want to do this is to prevent an awkward shutdown condition, in
-		// which an execution client dies between the end of ProcessProposal and the beginning
-		// of FinalizeBlock, in which it will cause a failure of FinalizeBlock and a
+		// The reason we want to do this is to prevent an awkward shutdown
+		// condition, in which an execution client dies between the end of
+		// ProcessProposal and the beginning of FinalizeBlock, in which it will
+		// cause a failure of FinalizeBlock and a
 		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
 		loggerFn := ee.logger.Error
 		if req.Optimistic {
@@ -238,8 +241,10 @@ func (ee *Engine[
 
 		loggerFn(
 			"json-rpc execution error during payload verification - please monitor",
-			"optimistic", req.Optimistic,
-			"error", err,
+			"optimistic",
+			req.Optimistic,
+			"error",
+			err,
 		)
 		return err
 	}
