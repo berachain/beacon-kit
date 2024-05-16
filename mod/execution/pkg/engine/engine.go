@@ -244,7 +244,7 @@ func (ee *Engine[
 		}
 
 		loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
-		return err
+		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	}
 
 	// If we get any other error, we will just return it.
