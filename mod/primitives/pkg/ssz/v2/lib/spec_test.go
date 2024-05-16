@@ -140,7 +140,7 @@ func debugDiff(o2 []byte, res []byte) {
 }
 
 // TESTS
-// Test using local deneb genesis beaconstate
+// Test using local deneb genesis beaconstate.
 func TestParityDenebLocal(t *testing.T) {
 	// Demonstrate the block is valid by proving
 	// the block can be serialized
@@ -176,7 +176,7 @@ func TestParityDenebLocal(t *testing.T) {
 	// require.Equal(t, o2, data, "local output and fastssz output doesnt match")
 }
 
-// Full block object serialization
+// Full block object serialization.
 func TestParityBellatrix(t *testing.T) {
 	sszState, err := getSszState()
 	require.NoError(t, err)
