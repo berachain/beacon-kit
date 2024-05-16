@@ -18,6 +18,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.1
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/sourcegraph/conc v0.3.0
+	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
 )

@@ -28,10 +28,23 @@
 # Define the root directory of your Go project
 ROOT_DIR="."
 
+if ! command -v golines &> /dev/null; then
+    echo "⚠️ 'golines' not found. Installing..."
+    go install github.com/segmentio/golines@latest
+    if [ $? -ne 0 ]; then
+        echo "Failed to install golines. Manually install to run 'make format'."
+        exit 1
+    else
+        echo "✅ 'golines' successfully installed! Running..."
+    fi
+else
+    echo "✅ 'golines' is already installed. Running..."
+fi
+
 # Find all .go files in the project directory and its subdirectories, ignoring .pb.go and .pb_encoding.go files
 find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" ! -name "*.pb_encoding.go" | while read -r file; do
     echo "Processing $file..."
     golines --reformat-tags --shorten-comments --write-output --max-len=80 "$file"
 done
 
-echo "All files processed."
+echo "✅ All files processed."

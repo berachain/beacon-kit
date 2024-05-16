@@ -50,7 +50,7 @@ func (s *Service[
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
 	var (
@@ -165,7 +165,7 @@ func (s *Service[
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 ) error {
 	return s.bv.ValidateBlock(
-		s.bsb.BeaconState(ctx), blk,
+		s.bsb.StateFromContext(ctx), blk,
 	)
 }
 
@@ -174,7 +174,7 @@ func (s *Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -187,7 +187,7 @@ func (s *Service[
 
 	// Call the standard payload validator.
 	if err := s.pv.VerifyPayload(
-		s.bsb.BeaconState(ctx),
+		s.bsb.StateFromContext(ctx),
 		body.GetExecutionPayload(),
 	); err != nil {
 		return err
@@ -215,7 +215,7 @@ func (s *Service[
 ]) PostBlockProcess(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+	blk types.BeaconBlock,
 ) error {
 	var (
 		payload engineprimitives.ExecutionPayload
@@ -298,7 +298,7 @@ func (s *Service[
 
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(
-		&engineprimitives.ExecutionPayloadHeaderDeneb{
+		&types.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
 			StateRoot:        payload.GetStateRoot(),
