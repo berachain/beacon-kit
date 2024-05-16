@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -60,6 +61,9 @@ type EngineClient[
 	statusErrCond *sync.Cond
 	statusErrMu   *sync.RWMutex
 	statusErr     error
+
+	// IPC
+	ipcListener net.Listener
 }
 
 // New creates a new engine client EngineClient.
