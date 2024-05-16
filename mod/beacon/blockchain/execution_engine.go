@@ -41,6 +41,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	headEth1Hash common.ExecutionHash,
+	optimistic bool,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -48,15 +49,23 @@ func (s *Service[
 	}
 	eth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
+		engineprimitives.BuildForkchoiceUpdateRequest(
+			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
 			},
-		},
+			nil,
+			s.cs.ActiveForkVersionForSlot(slot),
+			optimistic,
+		),
 	)
 	return err
 }
@@ -171,7 +180,7 @@ func (s *Service[
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(ctx, st, headHash); err != nil {
+	if err := s.sendFCU(ctx, st, headHash, true); err != nil {
 		s.logger.
 			Error(
 				"failed to send forkchoice update in postBlockProcess",
