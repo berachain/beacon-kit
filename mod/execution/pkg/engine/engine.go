@@ -35,6 +35,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -197,7 +198,7 @@ func (ee *Engine[
 		// for this case, otherwise, we will pass the error onto the caller
 		// to allow them to choose how to handle it.
 		if req.Optimistic {
-			return nil
+			err = nil
 		}
 		return err
 
@@ -213,6 +214,34 @@ func (ee *Engine[
 			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
 		)
 		return ErrBadBlockProduced
+
+	// If we can a undefined server error, we want to log it and return it.
+	case errors.Is(err, jsonrpc.ErrServer):
+		// Under the optimistic condition, we are fine ignoring the error. This is
+		// mainly to allow us to safely call the execution client
+		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
+		// we get an error here, we make the assumption tat abci.ProcessProposal
+		// has deemed that this BeaconBlock was marked as valid by an honest majority,
+		// and we don't want to halt the chain because of an error here.
+		//
+		// The reason we want to do this is to prevent an awkward shutdown condition, in
+		// which an execution client dies between the end of ProcessProposal and the beginning
+		// of FinalizeBlock, in which it will cause a failure of FinalizeBlock and a
+		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
+		loggerFn := ee.logger.Error
+		if req.Optimistic {
+			// If optimistic is set, we will log the error as a warning
+			// instead of an error and return nil.
+			loggerFn = ee.logger.Warn
+			err = nil
+		}
+
+		loggerFn(
+			"json-rpc execution error during payload verification - please monitor",
+			"optimistic", req.Optimistic,
+			"error", err,
+		)
+		return err
 	}
 
 	// If we get any other error, we will just return it.
