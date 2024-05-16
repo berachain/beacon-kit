@@ -225,7 +225,8 @@ func (ee *Engine[
 		// Under the optimistic condition, we are fine ignoring the error. This
 		// is mainly to allow us to safely call the execution client
 		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
-		// we get an error here, we make the assumption that abci.ProcessProposal
+		// we get an error here, we make the assumption that
+		// abci.ProcessProposal
 		// has deemed that the BeaconBlock containing the given ExecutionPayload
 		// was marked as valid by an honest majority of validators, and we
 		// don't want to halt the chain because of an error here.
