@@ -346,8 +346,7 @@ func GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
 	typ := reflect.TypeOf(val.Interface())
 	if val.Len() == 0 && isBasicTypeSliceOrArr(typ, typ.Kind()) {
-		// 1 dimensional empty arr. e.g.
-		//Balances   []uint64
+		// 1 dimensional empty arr. e.g. Balances   []uint64
 		return 1
 	}
 	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
