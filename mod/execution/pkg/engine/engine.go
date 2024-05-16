@@ -198,7 +198,7 @@ func (ee *Engine[
 		// for this case, otherwise, we will pass the error onto the caller
 		// to allow them to choose how to handle it.
 		if req.Optimistic {
-			err = nil
+			return nil
 		}
 		return err
 
@@ -232,20 +232,17 @@ func (ee *Engine[
 		// cause a failure of FinalizeBlock and a
 		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
 		loggerFn := ee.logger.Error
+		logMsg := "json-rpc execution error during payload verification"
+		logErr := err
 		if req.Optimistic {
 			// If optimistic is set, we will log the error as a warning
 			// instead of an error and return nil.
 			loggerFn = ee.logger.Warn
+			logMsg += " - please monitor"
 			err = nil
 		}
 
-		loggerFn(
-			"json-rpc execution error during payload verification - please monitor",
-			"optimistic",
-			req.Optimistic,
-			"error",
-			err,
-		)
+		loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
 		return err
 	}
 
