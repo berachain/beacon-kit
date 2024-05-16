@@ -131,8 +131,17 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(ctx context.Context) {
 	}
 
 	// If we reached this point, the execution client is connected so we can
-	// start the jwt refresh loop.
-	go s.jwtRefreshLoop(ctx)
+	// start the server.
+
+	// start IPC server if comm method is IPC
+	if s.cfg.RPCDialURL.IsIPC() {
+		s.startIPCServer(ctx)
+	}
+
+	// start the jwt refresh loop if comm method is HTTP or HTTPS
+	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
+		go s.jwtRefreshLoop(ctx)
+	}
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy

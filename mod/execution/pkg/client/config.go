@@ -45,7 +45,8 @@ const (
 // DefaultConfig is the default configuration for the engine client.
 func DefaultConfig() Config {
 	//#nosec:G703 // ignoring on purpose since it is the default URL.
-	dialURL, _ := url.Parse(defaultDialURL)
+	url, _ := url.Parse(defaultDialURL)
+	dialURL := NewDialURL(url)
 	return Config{
 		RPCDialURL:              dialURL,
 		RPCRetries:              defaultRPCRetries,
@@ -63,7 +64,7 @@ func DefaultConfig() Config {
 //nolint:lll // struct tags.
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL *url.URL `mapstructure:"rpc-dial-url"`
+	RPCDialURL *DialURL `mapstructure:"rpc-dial-url"`
 	// RPCRetries is the number of retries before shutting down consensus
 	// client.
 	RPCRetries uint64 `mapstructure:"rpc-retries"`
