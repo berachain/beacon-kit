@@ -69,14 +69,6 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		BlobsSidecarsT,
 	) error
 
-	// PostBlockProcess performs any necessary operations after processing a
-	// block.
-	PostBlockProcess(
-		context.Context,
-		state.BeaconState,
-		types.BeaconBlock,
-	) error
-
 	// VerifyPayloadOnBlk verifies the payload on the given beacon block.
 	VerifyPayloadOnBlk(
 		context.Context, types.BeaconBlock,

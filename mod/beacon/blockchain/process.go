@@ -45,6 +45,8 @@ func (s *Service[
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
+//
+//nolint:funlen // todo cleanup.
 func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ProcessBeaconBlock(
@@ -143,6 +145,15 @@ func (s *Service[
 		return ErrDataNotAvailable
 	}
 
+	// No matter what happens we always want to forkchoice at the end of post
+	// block processing.
+	defer func() {
+		go s.sendPostBlockFCU(ctx, st, blk)
+	}()
+
+	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
+	//  MAIN BLOCK PROCESSING THREAD.
+
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
@@ -152,7 +163,28 @@ func (s *Service[
 	}
 
 	// TODO: pruner shouldn't be in main block processing thread.
-	return s.PruneDepositEvents(ctx, idx)
+	if err = s.PruneDepositEvents(ctx, idx); err != nil {
+		return err
+	}
+
+	var latestExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader
+	latestExecutionPayloadHeader, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	// Process the logs from the previous blocks execution payload.
+	// TODO: This should be moved out of the main block processing flow.
+	// TODO: eth1FollowDistance should be done actually proper
+	eth1FollowDistance := math.U64(1)
+	if err = s.retrieveDepositsFromBlock(
+		ctx, latestExecutionPayloadHeader.GetNumber()-eth1FollowDistance,
+	); err != nil {
+		s.logger.Error("failed to process logs", "error", err)
+		return err
+	}
+
+	return nil
 }
 
 // ValidateBlock validates the incoming beacon block.
@@ -213,44 +245,5 @@ func (s *Service[
 		"payload-block-number", payload.GetNumber(),
 		"num-txs", len(payload.GetTransactions()),
 	)
-	return nil
-}
-
-// PostBlockProcess is called after a block has been processed.
-// It is responsible for processing logs and other post block tasks.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) PostBlockProcess(
-	ctx context.Context,
-	st ReadOnlyBeaconStateT,
-	blk types.BeaconBlock,
-) error {
-	// No matter what happens we always want to forkchoice at the end of post
-	// block processing.
-	defer func() {
-		s.sendPostBlockFCU(ctx, st, blk.GetBody().GetExecutionPayload())
-	}()
-
-	// If the block is nil, exit early.
-	if blk == nil || blk.IsNil() {
-		return nil
-	}
-
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	// Process the logs from the previous blocks execution payload.
-	// TODO: This should be moved out of the main block processing flow.
-	// TODO: eth1FollowDistance should be done actually proper
-	eth1FollowDistance := math.U64(1)
-	if err = s.retrieveDepositsFromBlock(
-		ctx, latestExecutionPayloadHeader.GetNumber()-eth1FollowDistance,
-	); err != nil {
-		s.logger.Error("failed to process logs", "error", err)
-		return err
-	}
-
 	return nil
 }
