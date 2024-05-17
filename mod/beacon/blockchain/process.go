@@ -123,6 +123,7 @@ func (s *Service[
 		return s.sp.ProcessBlock(
 			st,
 			blk,
+			true,
 		)
 	})
 

@@ -93,19 +93,8 @@ func (sp *StateProcessor[
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(st, blk); err != nil {
+	if err := sp.ProcessBlock(st, blk, validateResult); err != nil {
 		return err
-	}
-
-	if validateResult {
-		stateRoot, err := st.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
-		if stateRoot != blk.GetStateRoot() {
-			return ErrStateRootMismatch
-		}
 	}
 
 	return nil
@@ -186,6 +175,7 @@ func (sp *StateProcessor[
 ]) ProcessBlock(
 	st BeaconStateT,
 	blk BeaconBlockT,
+	validateResult bool,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -224,22 +214,23 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// Ensure the state root matches the block.
-	htr, err := st.HashTreeRoot()
-	if err != nil {
-		return err
-	}
+	if validateResult {
+		// Ensure the state root matches the block.
+		htr, err := st.HashTreeRoot()
+		if err != nil {
+			return err
+		}
 
-	// Ensure the state root matches the block.
-	//
-	// TODO: We need to validate this in ProcessProposal as well.
-	if blk.GetStateRoot() != htr {
-		return errors.Wrapf(
-			ErrStateRootMismatch, "expected %s, got %s",
-			primitives.Root(htr), blk.GetStateRoot(),
-		)
+		// Ensure the state root matches the block.
+		//
+		// TODO: We need to validate this in ProcessProposal as well.
+		if blk.GetStateRoot() != htr {
+			return errors.Wrapf(
+				ErrStateRootMismatch, "expected %s, got %s",
+				primitives.Root(htr), blk.GetStateRoot(),
+			)
+		}
 	}
-
 	return nil
 }
 
