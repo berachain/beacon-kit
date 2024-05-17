@@ -216,18 +216,14 @@ func (sp *StateProcessor[
 
 	if validateResult {
 		// Ensure the state root matches the block.
-		htr, err := st.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
-		// Ensure the state root matches the block.
 		//
 		// TODO: We need to validate this in ProcessProposal as well.
-		if blk.GetStateRoot() != htr {
+		if stateRoot, err := st.HashTreeRoot(); err != nil {
+			return err
+		} else if blk.GetStateRoot() != stateRoot {
 			return errors.Wrapf(
 				ErrStateRootMismatch, "expected %s, got %s",
-				primitives.Root(htr), blk.GetStateRoot(),
+				primitives.Root(stateRoot), blk.GetStateRoot(),
 			)
 		}
 	}
