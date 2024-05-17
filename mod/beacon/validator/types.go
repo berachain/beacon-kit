@@ -123,6 +123,7 @@ type StateProcessor[
 	ProcessBlock(
 		st BeaconStateT,
 		blk types.BeaconBlock,
+		validateResult bool,
 	) error
 
 	// ProcessSlot processes the slot.

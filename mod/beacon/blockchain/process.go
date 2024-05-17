@@ -29,8 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -123,6 +123,7 @@ func (s *Service[
 		return s.sp.ProcessBlock(
 			st,
 			blk,
+			true,
 		)
 	})
 
@@ -227,28 +228,14 @@ func (s *Service[
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) error {
-	var (
-		payload engineprimitives.ExecutionPayload
-	)
-
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
-	defer func(payloadPtr *engineprimitives.ExecutionPayload) {
-		s.sendPostBlockFCU(ctx, st, *payloadPtr)
-	}(&payload)
+	defer func() {
+		s.sendPostBlockFCU(ctx, st, blk.GetBody().GetExecutionPayload())
+	}()
 
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
-		return nil
-	}
-
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil
-	}
-	// Update the forkchoice.
-	payload = blk.GetBody().GetExecutionPayload()
-	if payload.IsNil() {
 		return nil
 	}
 
@@ -259,73 +246,14 @@ func (s *Service[
 
 	// Process the logs from the previous blocks execution payload.
 	// TODO: This should be moved out of the main block processing flow.
+	// TODO: eth1FollowDistance should be done actually proper
+	eth1FollowDistance := math.U64(1)
 	if err = s.retrieveDepositsFromBlock(
-		ctx, latestExecutionPayloadHeader.GetNumber(),
+		ctx, latestExecutionPayloadHeader.GetNumber()-eth1FollowDistance,
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 
-	// Update the latest execution payload header.
-	return s.updateLatestExecutionPayload(ctx, st, payload)
-}
-
-// updateLatestExecutionPayload.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) updateLatestExecutionPayload(
-	ctx context.Context,
-	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
-) error {
-	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, _ := errgroup.WithContext(ctx)
-	var (
-		txsRoot         primitives.Root
-		withdrawalsRoot primitives.Root
-	)
-
-	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
-		return withdrawalsRootErr
-	})
-
-	// If deriving either of the roots fails, return the error.
-	if err := g.Wait(); err != nil {
-		return err
-	}
-
-	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	return nil
 }
