@@ -26,6 +26,8 @@
 package blob
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"golang.org/x/sync/errgroup"
@@ -50,7 +52,7 @@ func NewVerifier(
 func (bv *Verifier) VerifyBlobs(
 	sidecars *types.BlobSidecars, kzgOffset uint64,
 ) error {
-	g, _ := errgroup.WithContext(nil)
+	g, _ := errgroup.WithContext(context.Background())
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {

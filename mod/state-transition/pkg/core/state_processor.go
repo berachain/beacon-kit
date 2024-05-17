@@ -26,6 +26,8 @@
 package core
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -249,7 +251,7 @@ func (sp *StateProcessor[
 ) error {
 	payload := body.GetExecutionPayload()
 	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, _ := errgroup.WithContext(nil)
+	g, _ := errgroup.WithContext(context.Background())
 	var (
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
