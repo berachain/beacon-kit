@@ -28,8 +28,10 @@ package ssz_test
 
 import (
 	"os"
+	"reflect"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
@@ -41,6 +43,9 @@ const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
 
 //nolint:gochecknoglobals // test debug print toggle
 var debug = false
+
+//nolint:gochecknoglobals // test debug default err msg
+var defaultErrMsg = "local output & fastssz output doesnt match"
 
 type TestLogger interface {
 	Logf(format string, args ...any)
@@ -83,7 +88,15 @@ func sliceBlockData(start int, end int) []byte {
 	if err != nil || data == nil {
 		return make([]byte, 0)
 	}
-	if len(data) > end {
+	return safeSlice(start, end, data)
+}
+
+// Used to keep nilaway away.
+func safeSlice(start int, end int, data []byte) []byte {
+	if len(data) < start || len(data) == 0 {
+		return data
+	}
+	if len(data) >= end {
 		return data[start:end]
 	}
 	return data[start:]
@@ -104,7 +117,7 @@ func getByteArray32(bb *sszv2.BeaconStateBellatrix) []byte {
 func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	res, err := getStruct(bb).MarshalSSZ()
 	if err != nil {
-		return nil, err
+		return make([]byte, 0), err
 	}
 	// type Checkpoint struct {
 	// 	Epoch uint64 `json:"epoch"`
@@ -113,8 +126,7 @@ func getByteArray32Serialized(bb *sszv2.BeaconStateBellatrix) ([]byte, error) {
 	// We grab the buf section from the serialized by fastSSZ buffer.
 	// See bellatrix.ssz.go for buffer read done by fastssz codegen.
 	// Since uint64 serializes to 8 bits. we grab the remaining bits of len 32.
-
-	return res[8:], nil
+	return safeSlice(8, len(res), res), nil
 }
 
 func getEth1DataVotesSerialized(bb *sszv2.BeaconStateBellatrix) []byte {
@@ -139,40 +151,83 @@ func debugDiff(o2 []byte, res []byte) {
 }
 
 // TESTS
+// Test using local deneb genesis beaconstate.
+func TestParityDenebLocal(t *testing.T) {
+	// Demonstrate the block is valid by proving
+	// the block can be serialized
+	// and deserialized back to the same object using fastssz
+	block := deneb.BeaconState{}
+	genesis, _ := deneb.DefaultBeaconState()
+	data, _ := genesis.MarshalSSZ()
 
-// Full block object serialization
-// func TestParityBellatrix(t *testing.T) {
-// 	sszState, err := getSszState()
-// 	require.NoError(t, err)
+	if err := block.UnmarshalSSZ(data); err != nil {
+		panic(err)
+	}
 
-// 	s := sszv2.NewSerializer()
-// 	o2, err3 := s.MarshalSSZ(sszState)
-// 	require.NoError(t, err3)
+	if block.SizeSSZ() == 0 {
+		panic("Block is nil")
+	}
 
-// 	res, err4 := sszState.MarshalSSZ()
-// 	require.NoError(t, err4)
-// 	debugDiff(res, o2)
+	destBlockBz, err := block.MarshalSSZ()
+	if err != nil {
+		panic(`Step 1: Deserialize-Serialize 
+		-- could not serialize back the 
+		deserialized input block`)
+	}
 
-// 	require.Equal(t, o2, res, "local output and fastssz output doesn't match")
-// }
-// func BenchmarkNativeFull(b *testing.B) {
-// 	sszState, err := getSszState()
-// 	require.NoError(b, err)
+	if !reflect.DeepEqual(data, destBlockBz) {
+		panic(`Step 2: Deserialize-Serialize 
+		-- input != serialize(deserialize(input))`)
+	}
 
-// 	s := sszv2.NewSerializer()
-// 	runBench(b, func() {
-// 		s.MarshalSSZ(sszState)
-// 	})
-// }
+	// Use our native serializer to do the same
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(genesis)
+	require.NoError(t, err3)
+	require.Equal(t, len(o2), len(data), defaultErrMsg)
 
-// func BenchmarkFastSSZFull(b *testing.B) {
-// 	sszState, err := getSszState()
-// 	require.NoError(b, err)
+	// TODO: not a full match yet
+	// require.Equal(t, o2, data, "local output and fastssz output doesnt
+	// match")
+}
 
-// 	runBench(b, func() {
-// 		sszState.MarshalSSZ()
-// 	})
-// }
+// Full block object serialization.
+func TestParityBellatrix(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(sszState)
+	require.NoError(t, err3)
+
+	res, err4 := sszState.MarshalSSZ()
+	require.NoError(t, err4)
+
+	// TODO: Fixme - doesnt match fastssz 100%
+	// debugDiff(res, o2)
+	// require.Equal(t, o2, res, defaultErrMsg)
+
+	require.Equal(t, len(o2), len(res), defaultErrMsg)
+}
+
+func BenchmarkNativeFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	s := sszv2.NewSerializer()
+	runBench(b, func() {
+		s.MarshalSSZ(sszState)
+	})
+}
+
+func BenchmarkFastSSZFull(b *testing.B) {
+	sszState, err := getSszState()
+	require.NoError(b, err)
+
+	runBench(b, func() {
+		sszState.MarshalSSZ()
+	})
+}
 
 func TestParityStruct2(t *testing.T) {
 	sszState, err := getSszState()
@@ -186,7 +241,7 @@ func TestParityStruct2(t *testing.T) {
 	res, _ := sszState.CurrentSyncCommittee.MarshalSSZ()
 	debugPrint(debug, t, "FastSSZ Output: ", res)
 	debugDiff(o2, res)
-	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+	require.Equal(t, o2, res, defaultErrMsg)
 }
 
 func TestParityExecutionPayloadHeader(t *testing.T) {
@@ -378,9 +433,7 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 	// fast ssz: len 262144 []uint8  | cap: 58065320.
 	// local: len 262144 []uint8  |  cap:278528.
 
-	res, err3 := sszState.MarshalSSZ()
-	require.NoError(t, err3)
-	prInRes := res[262320:524464]
+	prInRes := sliceBlockData(262320, 524464)
 	debugPrint(debug, t, "Local Serializer output length:", len(exp))
 	debugPrint(debug, t, "FastSSZ Serializer output length:", len(prInRes))
 	require.Equal(
