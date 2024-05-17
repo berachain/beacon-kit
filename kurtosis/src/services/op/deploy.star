@@ -9,7 +9,7 @@ optimism = import_module("packages/optimism.star")
 # in the environment variables to rollup.json
 def build_deploy_config(plan, files, env, chain_id):
     plan.run_sh(
-        description = "Building the L1 deploy config"
+        description = "Building the L1 deploy config",
         image = images.FOUNDRY,
         run = bash.run([
             deps.get(["bash", "jq"]),
@@ -42,7 +42,7 @@ def build_getting_started_dir(plan, env, files, l1):
             "cd {}/deployments".format(contracts.PATH),
             "mkdir getting-started",
             "echo -n {} > getting-started/.chainId".format(l1.chain_id),
-            "echo -n '{}' > getting-started/.deploy"
+            "echo -n '{}' > getting-started/.deploy",
         ]),
         files = {optimism.PATH: files.optimism},
         store = [StoreSpec(src = optimism.PATH, name = files.optimism)],
