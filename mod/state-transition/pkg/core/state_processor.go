@@ -160,7 +160,7 @@ func (sp *StateProcessor[
 			return err
 		}
 		sp.logger.Info(
-			"processed epoch transition ⏰ ",
+			"processed epoch transition 🔃",
 			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
 			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
 		)
