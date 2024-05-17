@@ -9,10 +9,10 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240516114011-e03476679912
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/async => ../async
+	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/da => ../da
 	github.com/berachain/beacon-kit/mod/errors => ../errors
@@ -37,6 +37,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/async v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
