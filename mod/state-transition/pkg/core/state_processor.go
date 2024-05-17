@@ -82,10 +82,9 @@ func NewStateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) Transition(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	/*validateSignature bool, */
-	validateResult bool,
 ) error {
 	// Process the slot.
 	if err := sp.ProcessSlot(st); err != nil {
@@ -93,7 +92,7 @@ func (sp *StateProcessor[
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(st, blk, validateResult); err != nil {
+	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
 		return err
 	}
 
@@ -173,9 +172,9 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	validateResult bool,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
@@ -215,7 +214,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if validateResult {
+	if ctx.GetValidateResult() {
 		// Ensure the state root matches the block.
 		//
 		// TODO: We need to validate this in ProcessProposal as well.

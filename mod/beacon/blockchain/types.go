@@ -176,9 +176,9 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 	// ProcessBlock processes a given beacon block and updates the state
 	// accordingly.
 	ProcessBlock(
+		ctx core.Context,
 		st ReadOnlyBeaconStateT,
 		blk types.BeaconBlock,
-		validateResult bool,
 	) error
 
 	// ProcessSlot processes the state transition for a single slot.

@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -123,9 +124,9 @@ func (s *Service[
 
 		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
+			core.NewContext(ctx, true, false, false),
 			st,
 			blk,
-			true,
 		)
 	})
 
