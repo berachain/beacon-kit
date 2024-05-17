@@ -87,7 +87,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 				filedb.WithLogger(in.Environment.Logger),
 			),
 			),
-			in.Environment.Logger,
+			in.Environment.Logger.With("service", "beacon-kit.da.store"),
 			in.ChainSpec,
 		),
 		beacondb.New[
