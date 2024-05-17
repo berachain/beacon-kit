@@ -3,6 +3,7 @@ optimism = import_module("optimism.star")
 
 PATH = "/optimism/packages/contracts-bedrock"
 
+# TODO: Run this concurrently with the rest of setup
 def install(plan, files):
     plan.run_sh(
         image = "ghcr.io/foundry-rs/foundry:latest",

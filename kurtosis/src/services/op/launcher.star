@@ -34,7 +34,7 @@ def launch(plan, images, l1_ip_address):
     deployer.build_getting_started_dir(plan, e, files, l1)
     contracts.deploy_l1(plan, e, files)
 
-    node.init(plan, e, files)
+    node.init(plan, images["node"], e, files)
     geth.init(plan, images["geth"], files)
 
     # Deploy L2 Components
