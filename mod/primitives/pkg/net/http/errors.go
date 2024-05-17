@@ -27,8 +27,13 @@ package http
 
 import "errors"
 
-// ErrTimeout indicates a timeout error from http.Client.
-var ErrTimeout = errors.New("timeout from HTTP client")
+var (
+	// ErrTimeout indicates a timeout error from http.Client.
+	ErrTimeout = errors.New("timeout from HTTP client")
+
+	// ErrUnauthorized indicates an unauthorized error from http.Client.
+	ErrUnauthorized = errors.New("401 unauthorized request")
+)
 
 // TimeoutError defines an interface for timeout errors.
 // It includes methods for error message retrieval and timeout status checking.

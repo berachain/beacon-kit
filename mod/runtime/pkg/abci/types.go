@@ -40,26 +40,44 @@ type BuilderService[
 	BeaconStateT state.BeaconState,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
+	// RequestBestBlock requests the best beacon block for a given slot.
+	// It returns the beacon block, associated blobs sidecars, and an error if
+	// any.
 	RequestBestBlock(
-		context.Context,
-		math.Slot,
-	) (BeaconBlockT, BlobsSidecarsT, error)
+		context.Context, // The context for the request.
+		math.Slot, // The slot for which the best block is requested.
+	) (
+		BeaconBlockT, BlobsSidecarsT, error,
+	)
 }
 
+// BlockchainService defines the interface for interacting with the blockchain
+// state and processing blocks.
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
+	// ProcessSlot processes the given beacon state for the current slot.
 	ProcessSlot(state.BeaconState) error
+
+	// StateFromContext retrieves the beacon state from the provided context.
 	StateFromContext(context.Context) state.BeaconState
+
+	// ProcessBeaconBlock processes the given beacon block and associated blobs
+	// sidecars.
 	ProcessBeaconBlock(
 		context.Context,
 		state.BeaconState,
 		types.BeaconBlock,
 		BlobsSidecarsT,
 	) error
+
+	// PostBlockProcess performs any necessary operations after processing a
+	// block.
 	PostBlockProcess(
 		context.Context,
 		state.BeaconState,
 		types.BeaconBlock,
 	) error
+
+	// VerifyPayloadOnBlk verifies the payload on the given beacon block.
 	VerifyPayloadOnBlk(
 		context.Context, types.BeaconBlock,
 	) error
