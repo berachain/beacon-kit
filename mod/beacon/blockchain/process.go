@@ -127,12 +127,6 @@ func (s *Service[
 		)
 	})
 
-	// We ask for the slot before waiting as a minor optimization.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	// of the goroutines returned an error.
 	if err = g.Wait(); err != nil {
@@ -141,8 +135,11 @@ func (s *Service[
 	}
 
 	// If the blobs needed to process the block are not available, we
-	// return an error.
-	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(ctx, slot, body) {
+	// return an error. It is safe to use the slot off of the beacon block
+	// since it has been verified as correct already.
+	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(
+		ctx, blk.GetSlot(), body,
+	) {
 		return ErrDataNotAvailable
 	}
 
