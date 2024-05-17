@@ -23,7 +23,7 @@ def launch(plan, image, env, l1, l2, batcher_rpc_port, node_rpc_url):
                 "--private-key={}".format(env.batcher_pk),
             ],
             ports = {
-                "rpc": PortSpec(number=int(batcher_rpc_port)),
+                "rpc": PortSpec(number = int(batcher_rpc_port)),
             },
         ),
     )

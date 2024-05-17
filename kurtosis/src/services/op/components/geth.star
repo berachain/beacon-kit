@@ -1,6 +1,6 @@
 execution = import_module("../../../nodes/execution/execution.star")
 
-NAME="op-geth"
+NAME = "op-geth"
 
 NETWORK_ID = 42069
 ARTIFACT_NAME = NAME
@@ -20,7 +20,7 @@ def init(plan, image, files):
             GENESIS_PATH,
         ),
         files = {PATH: files.op_geth},
-        store = [StoreSpec(src=PATH, name=files.op_geth)],
+        store = [StoreSpec(src = PATH, name = files.op_geth)],
     )
 
 def launch(plan, image, l1, files):
@@ -68,7 +68,7 @@ def generate_jwt_secret(plan):
     output = plan.run_sh(
         image = "alpine/openssl:latest",
         run = "mkdir {} && openssl rand -hex 32 > {}".format(PATH, JWT_PATH),
-        store = [StoreSpec(src=JWT_PATH, name=ARTIFACT_NAME)],
+        store = [StoreSpec(src = JWT_PATH, name = ARTIFACT_NAME)],
     )
 
     return output.files_artifacts[0]

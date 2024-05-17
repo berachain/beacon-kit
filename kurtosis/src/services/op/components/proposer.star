@@ -23,7 +23,7 @@ def launch(plan, image, files, env, l1, proposer_rpc_port, node_rpc_url):
                 "{} && L2ProxyAddress=$(jq -r '.L2OutputOracleProxy' {}/deployments/getting-started/l1.json) && {}".format(
                     deps.get(["bash", "jq"]),
                     contracts.PATH,
-                    proposer_cmd
+                    proposer_cmd,
                 ),
             ],
             ports = {

@@ -3,7 +3,7 @@ contracts = import_module("../packages/contracts.star")
 optimism = import_module("../packages/optimism.star")
 
 NAME = "op-node"
-PATH="/optimism/op-node"
+PATH = "/optimism/op-node"
 
 def init(plan, env, files):
     plan.run_sh(
@@ -26,8 +26,8 @@ def init(plan, env, files):
             geth.PATH: files.op_geth,
         },
         store = [
-            StoreSpec(src=optimism.PATH, name=files.optimism),
-            StoreSpec(src=geth.PATH, name=files.op_geth),
+            StoreSpec(src = optimism.PATH, name = files.optimism),
+            StoreSpec(src = geth.PATH, name = files.op_geth),
         ],
     )
 
