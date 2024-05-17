@@ -35,14 +35,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
@@ -72,21 +71,6 @@ type BeaconApp struct {
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
-// NewBeaconKitAppWithDefaultBaseAppOptions returns a reference to an
-// initialized BeaconApp.
-func NewBeaconKitAppWithDefaultBaseAppOptions(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) BeaconApp {
-	return *NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		server.DefaultBaseappOptions(appOpts)...,
-	)
-}
-
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
 	logger log.Logger,
@@ -94,28 +78,30 @@ func NewBeaconKitApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
+	dCfg depinject.Config,
+	chainSpec primitives.ChainSpec,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
 	appBuilder := &runtime.AppBuilder{}
 	if err := depinject.Inject(
 		depinject.Configs(
-			Config(),
+			dCfg,
 			depinject.Provide(
 				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideJWTSecret,
 				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
+				bkcomponents.ProvideEngineClient,
+				bkcomponents.ProvideJWTSecret,
 			),
 			depinject.Supply(
 				// supply the application options
 				appOpts,
 				// supply the logger
 				logger,
-				// TODO: allow nodebuilder to inject.
-				spec.LocalnetChainSpec(),
+				chainSpec,
 			),
 		),
 		&appBuilder,
@@ -149,9 +135,11 @@ func NewBeaconKitApp(
 	}
 
 	// TODO: this needs to be made un-hood.
-	app.BeaconKitRuntime.StartServices(
+	if err := app.BeaconKitRuntime.StartServices(
 		context.Background(),
-	)
+	); err != nil {
+		panic(err)
+	}
 
 	return app
 }

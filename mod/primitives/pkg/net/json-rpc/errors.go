@@ -25,7 +25,11 @@
 
 package jsonrpc
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"strings"
+
+	"github.com/berachain/beacon-kit/mod/errors"
+)
 
 // Error wraps RPC errors, which contain an error code in addition to the
 // message.
@@ -112,3 +116,21 @@ var (
 		"an error occurred on the server while parsing the JSON text (code: -32700)",
 	)
 )
+
+// IsUnauthorizedError defines an interface for unauthorized errors.
+func IsUnauthorizedError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	//nolint:errorlint // its'ok.
+	e, ok := err.(Error)
+	if !ok {
+		if strings.Contains(
+			e.Error(), "401 Unauthorized",
+		) {
+			return true
+		}
+	}
+	return false
+}

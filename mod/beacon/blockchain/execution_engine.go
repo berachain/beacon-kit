@@ -29,17 +29,20 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
-	st BeaconStateT,
+	st ReadOnlyBeaconStateT,
+	slot math.Slot,
 	headEth1Hash common.ExecutionHash,
 ) error {
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
@@ -47,11 +50,6 @@ func (s *Service[
 		return err
 	}
 	eth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
-
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
@@ -70,18 +68,21 @@ func (s *Service[
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
-	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
+	st ReadOnlyBeaconStateT,
+	blk types.BeaconBlock,
 ) {
 	var (
 		headHash common.ExecutionHash
 	)
 
+	payload := blk.GetBody().GetExecutionPayload()
+
 	// If we have a payload we want to set our head to it's block hash.
 	// Otherwise we are going to use the justified payload block hash.
+	// TODO: clean this up.
 	if payload != nil {
 		headHash = payload.GetBlockHash()
 	} else {
@@ -138,12 +139,6 @@ func (s *Service[
 			return
 		}
 
-		slot, err := st.GetSlot()
-		if err != nil {
-			s.logger.
-				Error("failed to get slot in postBlockProcess", "error", err)
-		}
-
 		stCopy := st.Copy()
 		if err = s.sp.ProcessSlot(
 			stCopy,
@@ -156,7 +151,7 @@ func (s *Service[
 		if _, err = s.lb.RequestPayload(
 			ctx,
 			stCopy,
-			slot+1,
+			blk.GetSlot()+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
 			uint64(time.Now().Unix()+1),
@@ -178,7 +173,9 @@ func (s *Service[
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(ctx, st, headHash); err != nil {
+	if err := s.sendFCU(
+		ctx, st, blk.GetSlot(), headHash,
+	); err != nil {
 		s.logger.
 			Error(
 				"failed to send forkchoice update in postBlockProcess",

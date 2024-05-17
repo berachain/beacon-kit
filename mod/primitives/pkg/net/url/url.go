@@ -23,29 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verification
+package url
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "net/url"
 
-var (
-	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
-	ErrStateRootMismatch = errors.New("state root mismatch")
+// ConnectionURL is a URL struct that is used to dial the execution client.
+type ConnectionURL struct {
+	*url.URL
+}
 
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
+// NewDialURL creates a new DialURL.
+func NewDialURL(u *url.URL) *ConnectionURL {
+	return &ConnectionURL{u}
+}
 
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
+func NewFromRaw(raw string) (*ConnectionURL, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	return NewDialURL(u), nil
+}
 
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
+// IsHTTP checks if the DialURL scheme is HTTP.
+func (d *ConnectionURL) IsHTTP() bool {
+	return d.Scheme == "http"
+}
 
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
+// IsHTTPS checks if the DialURL scheme is HTTPS.
+func (d *ConnectionURL) IsHTTPS() bool {
+	return d.Scheme == "https"
+}
 
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
-)
+// IsIPC checks if the DialURL scheme is IPC.
+func (d *ConnectionURL) IsIPC() bool {
+	return d.Scheme == "ipc"
+}

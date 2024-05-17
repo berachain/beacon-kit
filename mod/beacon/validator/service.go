@@ -122,7 +122,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 }
 
 // Start starts the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) error {
+	return nil
+}
 
 // Status returns the status of the service.
 func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
@@ -147,15 +149,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	)
 
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
-	defer func() {
-		s.logger.Info(
-			"finished beacon block assembly 🛟 ",
-			"slot",
-			requestedSlot,
-			"duration",
-			time.Since(startTime).String(),
-		)
-	}()
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -220,10 +213,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Get the payload for the block.
 	envelope, err := s.RetrievePayload(ctx, st, blk)
 	if err != nil {
-		return blk, sidecars, errors.Newf(
-			"failed to get block root at index: %w",
-			err,
-		)
+		return blk, sidecars, err
 	} else if envelope == nil {
 		return nil, sidecars, ErrNilPayload
 	}
@@ -297,6 +287,19 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return s.SetBlockStateRoot(gCtx, st, blk)
 	})
 
+	if err = g.Wait(); err != nil {
+		return nil, sidecars, err
+	}
+
+	s.logger.Info("beacon block assembled 🎉",
+		"slot",
+		requestedSlot,
+		"duration",
+		"state-root",
+		blk.GetStateRoot(),
+		time.Since(startTime).String(),
+	)
+
 	// Set the execution payload on the block body.
-	return blk, sidecars, g.Wait()
+	return blk, sidecars, nil
 }

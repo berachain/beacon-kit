@@ -23,29 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verification
+package nodebuilder
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"io"
+	"reflect"
 
-var (
-	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
-	ErrStateRootMismatch = errors.New("state root mismatch")
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
-
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
+
+// NodeBuilder is a struct that holds the.
+func (nb *NodeBuilder[T]) AppCreator(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) T {
+	app := *app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		appOpts,
+		nb.appInfo.DepInjectConfig,
+		nb.chainSpec,
+		server.DefaultBaseappOptions(appOpts)...,
+	)
+	return reflect.ValueOf(app).Convert(
+		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+}

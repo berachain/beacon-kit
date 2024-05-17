@@ -35,7 +35,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
-	if err := s.stateProcessor.ProcessBlock(st, blk); err != nil {
+	if err := s.stateProcessor.ProcessBlock(
+		st, blk, false,
+	); err != nil {
 		return primitives.Root{}, err
 	}
 

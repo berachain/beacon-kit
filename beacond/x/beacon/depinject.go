@@ -76,7 +76,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	k := storage.NewBackend[state.BeaconState](
 		in.ChainSpec,
 		dastore.New[types.BeaconBlockBody](
-			in.ChainSpec, filedb.NewRangeDB(filedb.NewDB(
+			filedb.NewRangeDB(filedb.NewDB(
 				filedb.WithRootDirectory(
 					cast.ToString(
 						in.AppOpts.Get(flags.FlagHome),
@@ -87,6 +87,8 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 				filedb.WithLogger(in.Environment.Logger),
 			),
 			),
+			in.Environment.Logger.With("service", "beacon-kit.da.store"),
+			in.ChainSpec,
 		),
 		beacondb.New[
 			*types.Fork,
