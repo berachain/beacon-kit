@@ -41,7 +41,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 ) (primitives.Root, error) {
 	if err := s.stateProcessor.ProcessBlock(
 		core.NewContext(
-			ctx, false, false, false,
+			ctx, false, true, true,
 		),
 		st, blk,
 	); err != nil {
