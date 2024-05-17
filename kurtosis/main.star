@@ -121,6 +121,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], op_images = [], a
     for n, rpc in enumerate(rpc_endpoints):
         nginx.get_config(plan, rpc["services"])
 
+    plan.print(full_node_configs)
+
     # 7. Start additional services
     if "goomy_blob" in additional_services:
         plan.print("Launching Goomy the Blob Spammer")
@@ -147,10 +149,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], op_images = [], a
 
     if "op" in additional_services:
         plan.print("Launching OP stack L2")
+        l1_full_node = full_node_el_clients[0]["service"]
+        plan.print(l1_full_node)
         op.launch(
             plan,
             op_images,
-            "http://{}".format(rpc_endpoints[0]["services"][0]),  # TODO: Make this always use a full node
+            l1_full_node.ip_address,
         )
 
     if "prometheus" in additional_services:

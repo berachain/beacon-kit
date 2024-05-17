@@ -1,3 +1,4 @@
+execution = import_module("../../nodes/execution/execution.star")
 optimism = import_module("packages/optimism.star")
 wallets = import_module("packages/wallets.star")
 geth = import_module("components/geth.star")
@@ -12,22 +13,20 @@ def get_file_artifacts(plan):
     )
 
 def get_l1(
-        rpc_url,
+        ip_address,
         rpc_kind = "any",
-        ws_url = "http://localhost:8546",
-        auth_rpc_url = "http://localhost:8551",
         block_time = "6",
         chain_id = "80087"):
     return struct(
-        rpc_url = rpc_url,
+        ip_address = ip_address,
         rpc_kind = rpc_kind,
-        ws_url = ws_url,
-        auth_rpc_url = auth_rpc_url,
+        rpc_url = "http://{}:{}".format(ip_address, execution.RPC_PORT_NUM),
         block_time = block_time,
         chain_id = chain_id,
     )
 
-def get_l2(rpc_url):
+def get_l2(ip_address):
     return struct(
-        rpc_url = rpc_url,
+        rpc_url = "http://{}:{}".format(ip_address, execution.RPC_PORT_NUM),
+        auth_rpc_url = "http://{}:{}".format(ip_address, execution.ENGINE_RPC_PORT_NUM),
     )

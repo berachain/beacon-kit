@@ -16,7 +16,7 @@ def get(
         l1_rpc_kind = l1.rpc_kind,
         l1_block_time = l1.block_time,
         l1_rpc_url = l1.rpc_url,
-        impl_salt = get_salt(plan),
+        impl_salt = generate_salt(plan),
         deployment_context = "getting-started",
         tenderly_project = "",
         tenderly_username = "",
@@ -24,7 +24,7 @@ def get(
         pk = private_key,
     )
 
-def get_salt(plan):
+def generate_salt(plan):
     return plan.run_sh(
         image = "alpine/openssl:latest",
         run = "openssl rand -hex 32",

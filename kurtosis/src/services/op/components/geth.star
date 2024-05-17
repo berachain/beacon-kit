@@ -1,5 +1,8 @@
+execution = import_module("../../../nodes/execution/execution.star")
+
 NAME="op-geth"
 
+NETWORK_ID = 42069
 ARTIFACT_NAME = NAME
 PATH = "/op-geth"
 
@@ -21,65 +24,45 @@ def init(plan, image, files):
     )
 
 def launch(plan, image, l1, files):
-    rpc_base, rpc_port = get_url_parts(l1.rpc_url)
-    ws_base, ws_port = get_url_parts(l1.ws_url)
-    auth_rpc_base, auth_rpc_port = get_url_parts(l1.auth_rpc_url)
     service = plan.add_service(
         name = NAME,
         config = ServiceConfig(
             image = image,
             cmd = [
-                "geth",
                 "--datadir",
                 DATADIR,
                 "--http",
                 "--http.corsdomain=*",
                 "--http.vhosts=*",
-                "--http.addr={}".format(rpc_base),
-                "--http.port={}".format(rpc_port),
+                "--http.addr=0.0.0.0",
+                "--http.port={}".format(execution.RPC_PORT_NUM),
                 "--http.api=web3,debug,eth,txpool,net,engine",
                 "--ws",
-                "--ws.addr={}".format(ws_base),
-                "--ws.port={}".format(ws_port),
+                "--ws.addr=0.0.0.0",
+                "--ws.port={}".format(execution.WS_PORT_NUM),
                 "--ws.origins=*",
                 "--ws.api=debug,eth,txpool,net,engine",
                 "--syncmode=full",
                 "--gcmode=archive",
                 "--nodiscover",
                 "--maxpeers=0",
-                "--networkid={}".format(l1.chain_id),
+                "--networkid={}".format(NETWORK_ID),
                 "--authrpc.vhosts=*",
-                "--authrpc.addr={}".format(auth_rpc_base),
-                "--authrpc.port={}".format(auth_rpc_port),
+                "--authrpc.addr=0.0.0.0",
+                "--authrpc.port={}".format(execution.ENGINE_RPC_PORT_NUM),
                 "--authrpc.jwtsecret={}".format(JWT_PATH),
                 "--rollup.disabletxpoolgossip=true",
             ],
             ports = {
-                "rpc": PortSpec(
-                    number = int(rpc_port),
-                    url = l1.rpc_url,
-                ),
-                "ws": PortSpec(
-                    number = int(ws_port),
-                    url = l1.ws_url,
-                ),
-                "auth_rpc": PortSpec(
-                    number = int(auth_rpc_port),
-                    url = l1.auth_rpc_url,
-                ),
+                "rpc": PortSpec(number = execution.RPC_PORT_NUM),
+                "ws": PortSpec(number = execution.WS_PORT_NUM),
+                "auth_rpc": PortSpec(number = execution.ENGINE_RPC_PORT_NUM),
             },
             files = {PATH: files.op_geth},
         ),
     )
 
-    return service.ports["rpc"].url
-
-def get_url_parts(url):
-    parts = url.split(":")
-    if parts[1].startswith("//"):
-        parts[1] = parts[1][2:]
-
-    return parts[1], parts[-1]
+    return service.ip_address
 
 def generate_jwt_secret(plan):
     output = plan.run_sh(

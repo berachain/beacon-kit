@@ -38,27 +38,24 @@ def launch(plan, image, files, env, l1, l2, node_rpc_port):
         config = ServiceConfig(
             image = image,
             cmd = [
-                "op-node",
+                NAME,
                 "--l1={}".format(l1.rpc_url),
                 "--l1.rpckind={}".format(l1.rpc_kind),
                 "--l1.trustrpc=true",
-                "--l2={}".format(l2.rpc_url),
+                "--l2={}".format(l2.auth_rpc_url),
                 "--l2.jwt-secret={}".format(geth.JWT_PATH),
                 "--sequencer.enabled",
                 "--sequencer.l1-confs=5",
                 "--verifier.l1-confs=4",
                 "--rollup.config={}/rollup.json".format(PATH),
-                "--rpc.addr={}".format(NAME),
+                "--rpc.addr=0.0.0.0",
                 "--rpc.port={}".format(node_rpc_port),
                 "--p2p.disable",
                 "--rpc.enable-admin",
                 "--p2p.sequencer.key={}".format(env.sequencer_pk),
             ],
             ports = {
-                "rpc": PortSpec(
-                    number = int(node_rpc_port),
-                    url = node_rpc_url,
-                ),
+                "rpc": PortSpec(number = int(node_rpc_port)),
             },
             files = {
                 optimism.PATH: files.optimism,
@@ -67,4 +64,4 @@ def launch(plan, image, files, env, l1, l2, node_rpc_port):
         ),
     )
 
-    return service.ports["rpc"].url
+    return service.ip_address
