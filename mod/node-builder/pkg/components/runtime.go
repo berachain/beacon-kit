@@ -153,6 +153,7 @@ func ProvideRuntime(
 			dablob.NewVerifier(blobProofVerifier),
 		),
 		randaoProcessor,
+		executionEngine,
 		signer,
 		logger.With("service", "state-processor"),
 	)

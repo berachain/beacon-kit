@@ -47,12 +47,12 @@ type StateProcessor[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
 ] struct {
-	cs     primitives.ChainSpec
-	bp     BlobProcessor[BlobSidecarsT]
-	rp     RandaoProcessor[BeaconBlockT, BeaconStateT]
-	signer crypto.BLSSigner
-	logger log.Logger[any]
-
+	cs              primitives.ChainSpec
+	bp              BlobProcessor[BlobSidecarsT]
+	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
+	signer          crypto.BLSSigner
+	logger          log.Logger[any]
+	executionEngine ExecutionEngine
 	// DepositProcessor
 	// WithdrawalProcessor
 }
@@ -66,15 +66,17 @@ func NewStateProcessor[
 	cs primitives.ChainSpec,
 	bp BlobProcessor[BlobSidecarsT],
 	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
+	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		cs:     cs,
-		bp:     bp,
-		rp:     rp,
-		signer: signer,
-		logger: logger,
+		cs:              cs,
+		bp:              bp,
+		rp:              rp,
+		executionEngine: executionEngine,
+		signer:          signer,
+		logger:          logger,
 	}
 }
 
@@ -82,10 +84,10 @@ func NewStateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) Transition(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	/*validateSignature bool, */
-	validateResult bool,
 ) error {
 	// Process the slot.
 	if err := sp.ProcessSlot(st); err != nil {
@@ -93,7 +95,7 @@ func (sp *StateProcessor[
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(st, blk, validateResult); err != nil {
+	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
 		return err
 	}
 
@@ -173,25 +175,24 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	validateResult bool,
 ) error {
 	// process the freshly created header.
 	if err := sp.processHeader(st, blk); err != nil {
 		return err
 	}
 
-	body := blk.GetBody()
-
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
-		st, body,
+		ctx, st, blk,
 	); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
+	body := blk.GetBody()
 	if err := sp.processWithdrawals(
 		st, body.GetExecutionPayload(),
 	); err != nil {
@@ -215,7 +216,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if validateResult {
+	if ctx.GetValidateResult() {
 		// Ensure the state root matches the block.
 		//
 		// TODO: We need to validate this in ProcessProposal as well.
@@ -231,19 +232,59 @@ func (sp *StateProcessor[
 	return nil
 }
 
+// processExecutionPayload processes the execution payload and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processExecutionPayload(
+	ctx Context,
 	st BeaconStateT,
-	body types.BeaconBlockBody,
+	blk BeaconBlockT,
 ) error {
+	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
+
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	g, _ := errgroup.WithContext(context.Background())
 	var (
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)
+
+	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	if safeHash := latestExecutionPayloadHeader.
+		GetBlockHash(); safeHash != payload.GetParentHash() {
+		return errors.Newf(
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			payload.GetParentHash(),
+			safeHash,
+		)
+	}
+
+	// Get the current epoch.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// When we are verifying a payload we expect that it was produced by
+	// the proposer for the slot that it is for.
+	expectedMix, err := st.GetRandaoMixAtIndex(
+		uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
+	if err != nil {
+		return err
+	}
+
+	// Ensure the prev randao matches the local state.
+	if payload.GetPrevRandao() != expectedMix {
+		return errors.Newf(
+			"prev randao does not match, expected: %x, got: %x",
+			expectedMix, payload.GetPrevRandao(),
+		)
+	}
 
 	g.Go(func() error {
 		var txsRootErr error
@@ -260,6 +301,42 @@ func (sp *StateProcessor[
 		).HashTreeRoot()
 		return withdrawalsRootErr
 	})
+
+	// TODO: Verify timestamp data once Clock is done.
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
+	// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
+	// compute time: %v", err)
+	// } else if payload.Timestamp != expectedTime {
+	// 	return errors.Newf("state at slot %d, genesis time %d, expected
+	// execution
+	// payload time %d, but got %d",
+	// 		slot, genesisTime, expectedTime, payload.Timestamp)
+	// }
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+		context.Background(), engineprimitives.BuildNewPayloadRequest(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			ctx.GetOptimisticEngine(),
+			ctx.GetSkipPayloadIfExists(),
+		),
+	); err != nil {
+		sp.logger.
+			Error("failed to notify engine of new payload", "error", err)
+		return err
+	}
+
+	// Verify the number of withdrawals.
+	if withdrawals := payload.GetWithdrawals(); uint64(
+		len(payload.GetWithdrawals()),
+	) > sp.cs.MaxWithdrawalsPerPayload() {
+		return errors.Newf(
+			"too many withdrawals, expected: %d, got: %d",
+			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+		)
+	}
 
 	// If deriving either of the roots fails, return the error.
 	if err := g.Wait(); err != nil {

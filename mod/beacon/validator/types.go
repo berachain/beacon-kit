@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -114,16 +115,22 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }
 
+type StateProcessorContext interface {
+	GetValidateResult() bool
+	GetSkipPayloadIfExists() bool
+	GetOptimisticEngine() bool
+}
+
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconStateT BeaconState,
 ] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
+	// ProcessBlock processes a given beacon block and updates the state
+	// accordingly.
 	ProcessBlock(
+		ctx core.Context,
 		st BeaconStateT,
 		blk types.BeaconBlock,
-		validateResult bool,
 	) error
 
 	// ProcessSlot processes the slot.
