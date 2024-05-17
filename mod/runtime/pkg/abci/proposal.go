@@ -30,9 +30,9 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -167,9 +167,12 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	// validators have their EL's syncing. If nodes were to accept this proposal
 	// optmistically when they are syncing, it could potentially allow for a
 	// malicious validator to push a bad block through.
-	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.Is(
+	//
+	// We also defensively check for a variety of pre-defined JSON-RPC errors.
+	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.IsAny(
 		err,
-		engineclient.ErrSyncingPayloadStatus,
+		engineerrors.ErrSyncingPayloadStatus,
+		engineerrors.ErrPreDefinedJSONRPC,
 	) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,

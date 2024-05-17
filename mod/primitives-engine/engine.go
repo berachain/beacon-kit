@@ -27,12 +27,8 @@
 package engineprimitives
 
 import (
-	"fmt"
-	"slices"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
@@ -45,21 +41,6 @@ type (
 var (
 	// ExecutableDataToBlock constructs a block from executable data.
 	ExecutableDataToBlock = engine.ExecutableDataToBlock
-)
-
-// PayloadVersion denotes the version of PayloadAttributes used to request the
-// building of the payload to commence.
-type PayloadVersion byte
-
-var (
-	// PayloadV1 is the payload version for the Bellatrix hard fork.
-	PayloadV1 PayloadVersion = 0x1
-	// PayloadV2 is the payload version for the Shanghai hard fork.
-	PayloadV2 PayloadVersion = 0x2
-	// PayloadV3 is the payload version for the Deneb hard fork.
-	PayloadV3 PayloadVersion = 0x3
-	// PayloadV4 is the payload version for the Electra hard fork.
-	PayloadV4 PayloadVersion = 0x4
 )
 
 type PayloadStatusStr = string
@@ -129,33 +110,4 @@ type PayloadStatusV1 struct {
 }
 
 // PayloadID is an identifier for the payload build process.
-type PayloadID bytes.B8
-
-// Version returns the payload version associated with the identifier.
-func (b PayloadID) Version() PayloadVersion {
-	return PayloadVersion(b[0])
-}
-
-// Is checks if the identifier matches any of the provided payload versions.
-func (b PayloadID) Is(versions ...PayloadVersion) bool {
-	return slices.Contains(versions, b.Version())
-}
-
-// String returns the hex string representation of the PayloadID.
-func (b PayloadID) String() string {
-	return hex.FromBytes(b[:]).Unwrap()
-}
-
-// MarshalText encodes the PayloadID as text.
-func (b PayloadID) MarshalText() ([]byte, error) {
-	return []byte(b.String()), nil
-}
-
-// UnmarshalText decodes the text into the PayloadID.
-func (b *PayloadID) UnmarshalText(input []byte) error {
-	err := bytes.UnmarshalFixedText("PayloadID", input, b[:])
-	if err != nil {
-		return fmt.Errorf("invalid payload id %q: %w", input, err)
-	}
-	return nil
-}
+type PayloadID = bytes.B8

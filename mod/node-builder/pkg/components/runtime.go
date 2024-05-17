@@ -26,8 +26,6 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -45,7 +43,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -79,9 +76,8 @@ func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	jwtSecret *jwt.Secret,
+	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	// TODO: this is really poor coupling, we should fix.
 	storageBackend runtime.BeaconStorageBackend[
 		types.BeaconBlockBody,
 		state.BeaconState,
@@ -90,23 +86,10 @@ func ProvideRuntime(
 	],
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Set the module as beacon-kit to override the cosmos-sdk naming.
-	logger = logger.With("module", "beacon-kit")
-
-	// Build the client to interact with the Engine API.
-	engineClient := engineclient.New[*types.ExecutableDataDeneb](
-		&cfg.Engine,
-		logger.With("module", "beacon-kit.engine.client"),
-		jwtSecret,
-	)
-
-	// TODO: move.
-	engineClient.Start(context.Background())
-
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
 		engineClient,
-		logger,
+		logger.With("service", "execution-engine"),
 	)
 
 	// Build the deposit contract.
@@ -165,13 +148,13 @@ func ProvideRuntime(
 		stda.NewBlobProcessor[
 			types.BeaconBlockBody, *datypes.BlobSidecars,
 		](
-			logger.With("module", "blob-processor"),
+			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),
 		),
 		randaoProcessor,
 		signer,
-		logger.With("module", "state-processor"),
+		logger.With("service", "state-processor"),
 	)
 
 	// Build the builder service.
@@ -208,7 +191,7 @@ func ProvideRuntime(
 		localBuilder,
 		verification.NewBlockVerifier[state.BeaconState](chainSpec),
 		stateProcessor,
-		verification.NewPayloadVerifier(chainSpec),
+		verification.NewPayloadVerifier(chainSpec, logger),
 		beaconDepositContract,
 	)
 
@@ -227,6 +210,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](
+		engineClient,
 		chainSpec,
 		logger.With(
 			"module",

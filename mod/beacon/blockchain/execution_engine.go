@@ -48,15 +48,22 @@ func (s *Service[
 	}
 	eth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
+		engineprimitives.BuildForkchoiceUpdateRequest(
+			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1Hash,
 				SafeBlockHash:      eth1BlockHash,
 				FinalizedBlockHash: eth1BlockHash,
 			},
-		},
+			nil,
+			s.cs.ActiveForkVersionForSlot(slot),
+		),
 	)
 	return err
 }

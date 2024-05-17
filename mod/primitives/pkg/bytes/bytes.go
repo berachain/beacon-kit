@@ -40,6 +40,7 @@ var bytesT = reflect.TypeOf(Bytes(nil))
 type Bytes []byte
 
 // MustFromHex returns the bytes represented by the given hex string.
+// It panics if the input is not a valid hex string.
 func MustFromHex(input string) []byte {
 	bz, err := FromHex(input)
 	if err != nil {
@@ -49,8 +50,17 @@ func MustFromHex(input string) []byte {
 }
 
 // BytesFromHex returns the bytes represented by the given hex string.
+// An error is returned if the input is not a valid hex string.
 func FromHex(input string) ([]byte, error) {
-	return hex.NewString(input).ToBytes()
+	s, err := hex.NewStringStrict(input)
+	if err != nil {
+		return nil, err
+	}
+	h, err := s.ToBytes()
+	if err != nil {
+		return nil, err
+	}
+	return h, nil
 }
 
 // SafeCopy creates a copy of the provided byte slice. If the input slice is

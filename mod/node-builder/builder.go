@@ -26,7 +26,6 @@
 package nodebuilder
 
 import (
-	"context"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -35,7 +34,7 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -45,7 +44,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 )
 
 // AppInfo is a struct that holds the application information.
@@ -54,8 +52,6 @@ type AppInfo[T servertypes.Application] struct {
 	Name string
 	// Description is a short description of the application.
 	Description string
-	// Creator is a function that creates the application.
-	Creator servertypes.AppCreator[T]
 	// DepInjectConfig is the configuration for the application.
 	DepInjectConfig depinject.Config
 }
@@ -64,6 +60,9 @@ type AppInfo[T servertypes.Application] struct {
 type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
+
+	// chainSpec is the chain specification for the application.
+	chainSpec primitives.ChainSpec
 
 	// rootCmd is the root command for the application.
 	rootCmd *cobra.Command
@@ -104,7 +103,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				spec.LocalnetChainSpec(),
+				nb.chainSpec,
 				&depositdb.KVStore{},
 			),
 			depinject.Provide(
@@ -172,19 +171,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	cmdlib.DefaultRootCommandSetup(
 		nb.rootCmd,
 		mm,
-		nb.appInfo.Creator,
-		func(
-			_app T,
-			_ *server.Context,
-			clientCtx client.Context,
-			ctx context.Context,
-			_ *errgroup.Group,
-		) error {
-			return interface{}(_app).(BeaconApp).PostStartup(
-				ctx,
-				clientCtx,
-			)
-		},
+		nb.AppCreator,
+		nb.chainSpec,
 	)
 
 	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)

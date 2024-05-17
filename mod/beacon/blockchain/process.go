@@ -195,17 +195,27 @@ func (s *Service[
 
 	// We notify the engine of the new payload.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	return s.ee.VerifyAndNotifyNewPayload(
+	payload := body.GetExecutionPayload()
+	if err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
-			body.GetExecutionPayload(),
+			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
 			// We do not want to optimistically assume truth here.
 			false,
 		),
+	); err != nil {
+		return err
+	}
+
+	s.logger.Info(
+		"successfully verified execution payload 💸",
+		"payload-block-number", payload.GetNumber(),
+		"num-txs", len(payload.GetTransactions()),
 	)
+	return nil
 }
 
 // PostBlockProcess is called after a block has been processed.
@@ -298,7 +308,7 @@ func (s *Service[
 
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(
-		&engineprimitives.ExecutionPayloadHeaderDeneb{
+		&types.ExecutionPayloadHeaderDeneb{
 			ParentHash:       payload.GetParentHash(),
 			FeeRecipient:     payload.GetFeeRecipient(),
 			StateRoot:        payload.GetStateRoot(),
