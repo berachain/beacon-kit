@@ -330,7 +330,7 @@ func (sp *StateProcessor[
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		context.Background(), engineprimitives.BuildNewPayloadRequest(
+		ctx.Unwrap(), engineprimitives.BuildNewPayloadRequest(
 			payload,
 			blobKzgCommitments.ToVersionedHashes(),
 			&parentBeaconBlockRoot,
