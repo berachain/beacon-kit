@@ -36,9 +36,9 @@ import (
 
 // ProcessSlot processes the incoming beacon slot.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ProcessSlot(
-	st BeaconStateT,
+	st ReadOnlyBeaconStateT,
 ) error {
 	return s.sp.ProcessSlot(st)
 }
@@ -46,10 +46,10 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	st BeaconStateT,
+	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
@@ -160,7 +160,7 @@ func (s *Service[
 
 // ValidateBlock validates the incoming beacon block.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ValidateBlock(
 	ctx context.Context,
 	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
@@ -172,7 +172,7 @@ func (s *Service[
 
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.BeaconBlock,
@@ -222,10 +222,10 @@ func (s *Service[
 // PostBlockProcess is called after a block has been processed.
 // It is responsible for processing logs and other post block tasks.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) PostBlockProcess(
 	ctx context.Context,
-	st BeaconStateT,
+	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
 ) error {
 	// No matter what happens we always want to forkchoice at the end of post

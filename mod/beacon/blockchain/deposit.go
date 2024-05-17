@@ -36,7 +36,7 @@ import (
 // convert them into appropriate objects that can be consumed
 // by other services.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) retrieveDepositsFromBlock(
 	ctx context.Context,
 	blockNumber math.U64,
@@ -51,7 +51,7 @@ func (s *Service[
 
 // PruneDepositEvents prunes deposit events.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) PruneDepositEvents(
 	ctx context.Context,
 	idx uint64,
