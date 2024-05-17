@@ -5,7 +5,8 @@ optimism = import_module("../packages/optimism.star")
 NAME = "op-node"
 PATH = "/optimism/op-node"
 
-# TODO:
+# TODO: Use the docker image here instead of the local build
+# was encountering invalid json unmarshal issue when using built image.
 def init(plan, image, env, files):
     plan.run_sh(
         description = "Initializing op-node",
