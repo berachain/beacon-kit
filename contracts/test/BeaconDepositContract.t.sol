@@ -134,6 +134,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_DepositFailsWithInvalidDepositRoot() public {
         vm.deal(depositor, 32 ether);
+        vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.InvalidDepositDataRoot.selector);
         depositContract.deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, SIGNATURE, bytes32("")
@@ -142,6 +143,7 @@ contract DepositContractTest is SoladyTest {
 
     function test_Deposit() public {
         vm.deal(depositor, 32 ether);
+        vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
         emit IBeaconDepositContract.Deposit(
             VALIDATOR_PUBKEY, WITHDRAWAL_CREDENTIALS, 32e9, SIGNATURE, 0
@@ -158,7 +160,6 @@ contract DepositContractTest is SoladyTest {
         amount = _bound(amount, 31e9 + 1, uint256(type(uint64).max));
         vm.assume(amount % 1e9 != 0);
         vm.deal(depositor, amount);
-
         vm.prank(depositor);
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
@@ -174,10 +175,10 @@ contract DepositContractTest is SoladyTest {
     function test_DepositAmountNotDivisibleByGwei() public {
         uint256 amount = 32e9 + 1;
         vm.deal(depositor, amount);
+        vm.prank(depositor);
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
-        vm.prank(depositor);
         depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY,
             WITHDRAWAL_CREDENTIALS,
@@ -187,10 +188,10 @@ contract DepositContractTest is SoladyTest {
 
         amount = 32e9 - 1;
         vm.deal(depositor, amount);
+        vm.prank(depositor);
         vm.expectRevert(
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
-        vm.prank(depositor);
         depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY,
             WITHDRAWAL_CREDENTIALS,
