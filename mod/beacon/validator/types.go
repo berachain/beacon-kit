@@ -115,12 +115,6 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }
 
-type StateProcessorContext interface {
-	GetValidateResult() bool
-	GetSkipPayloadIfExists() bool
-	GetOptimisticEngine() bool
-}
-
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconStateT BeaconState,
