@@ -232,8 +232,8 @@ func (sp *StateProcessor[
 	//
 	// TODO: We need to validate this in ProcessProposal as well.
 	if blk.GetStateRoot() != htr {
-		return errors.Newf(
-			"state root does not match: expected %s, got %s",
+		return errors.Wrapf(
+			ErrStateRootMismatch, "expected %s, got %s",
 			primitives.Root(htr), blk.GetStateRoot(),
 		)
 	}
