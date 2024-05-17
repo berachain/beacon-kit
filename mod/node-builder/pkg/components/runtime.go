@@ -200,6 +200,7 @@ func ProvideRuntime(
 		service.WithLogger(logger.With("module", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
+		service.WithService(engineClient),
 		// service.WithService(stakingService),
 	)
 
@@ -210,7 +211,6 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](
-		engineClient,
 		chainSpec,
 		logger.With(
 			"module",

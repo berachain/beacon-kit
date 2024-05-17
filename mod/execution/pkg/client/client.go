@@ -101,7 +101,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) StartWithJWT(
+func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
 	ctx context.Context,
 ) error {
 	if err := s.initializeConnection(ctx, false); err != nil {
@@ -113,7 +113,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) StartWithJWT(
 	return nil
 }
 
-// Start starts the engine client.
+// StartWithHTTP starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
@@ -389,4 +389,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, er
 	// Add the JWT token to the headers.
 	header.Set("Authorization", "Bearer "+token)
 	return header, nil
+}
+
+func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
+	return "EngineClient"
 }

@@ -110,7 +110,8 @@ func (s *Service[
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) Start(
 	context.Context,
-) {
+) error {
+	return nil
 }
 
 func (s *Service[
