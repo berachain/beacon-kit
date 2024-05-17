@@ -172,6 +172,8 @@ func (sp *StateProcessor[
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
@@ -180,7 +182,7 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	// process the freshly created header.
-	if err := sp.processHeader(st, blk); err != nil {
+	if err := sp.processBlockHeader(st, blk); err != nil {
 		return err
 	}
 
@@ -233,7 +235,10 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// processExecutionPayload processes the execution payload and ensures it matches the local state.
+// processExecutionPayload processes the execution payload and ensures it
+// matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processExecutionPayload(
@@ -314,14 +319,23 @@ func (sp *StateProcessor[
 	// 		slot, genesisTime, expectedTime, payload.Timestamp)
 	// }
 
+	// Verify the number of blobs.
+	blobKzgCommitments := body.GetBlobKzgCommitments()
+	if len(blobKzgCommitments) > int(sp.cs.MaxBlobsPerBlock()) {
+		return errors.Newf(
+			"too many blobs, expected: %d, got: %d",
+			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
+		)
+	}
+
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
 		context.Background(), engineprimitives.BuildNewPayloadRequest(
 			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			blobKzgCommitments.ToVersionedHashes(),
 			&parentBeaconBlockRoot,
-			ctx.GetOptimisticEngine(),
 			ctx.GetSkipPayloadIfExists(),
+			ctx.GetOptimisticEngine(),
 		),
 	); err != nil {
 		sp.logger.
@@ -340,7 +354,7 @@ func (sp *StateProcessor[
 	}
 
 	// If deriving either of the roots fails, return the error.
-	if err := g.Wait(); err != nil {
+	if err = g.Wait(); err != nil {
 		return err
 	}
 
@@ -387,35 +401,101 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// processHeader processes the header and ensures it matches the local state.
+// processBlockHeader processes the header and ensures it matches the local
+// state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
-]) processHeader(
+]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// TODO: this function is really confusing, can probably just
-	// be removed and the logic put in the ProcessBlock function.
-	header := blk.GetHeader()
-	if header == nil {
-		return ErrNilBlockHeader
+	// Get the current slot.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the block slot matches the state slot.
+	if blk.GetSlot() != slot {
+		return errors.Newf(
+			"slot does not match, expected: %d, got: %d",
+			slot,
+			blk.GetSlot(),
+		)
+	}
+
+	latestBlockHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
+		return errors.Newf(
+			"block slot is too low, expected: > %d, got: %d",
+			latestBlockHeader.GetSlot(),
+			blk.GetSlot(),
+		)
+	}
+
+	// Ensure the parent root matches the latest block header.
+	parentBlockRoot, err := latestBlockHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the parent root matches the latest block header.
+	if parentBlockRoot != blk.GetParentBlockRoot() {
+		return errors.Newf(
+			"parent root does not match, expected: %x, got: %x",
+			parentBlockRoot,
+			blk.GetParentBlockRoot(),
+		)
+	}
+
+	// Ensure the block is within the acceptable range.
+	// TODO: move this is in the wrong spot.
+	if deposits := blk.GetBody().GetDeposits(); uint64(
+		len(deposits),
+	) > sp.cs.MaxDepositsPerBlock() {
+		return errors.Newf(
+			"too many deposits, expected: %d, got: %d",
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
+		)
+	}
+
+	// Ensure the proposer is not slashed.
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
 	}
 
 	// Store as the new latest block
-	headerRaw := &types.BeaconBlockHeader{
-		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            header.Slot,
-			ProposerIndex:   header.ProposerIndex,
-			ParentBlockRoot: header.ParentBlockRoot,
-			// state_root is zeroed and overwritten in the next `process_slot`
-			// call.
-			// with BlockHeaderState.UpdateStateRoot(), once the post state is
-			// available.
-			StateRoot: [32]byte{},
-		},
-		BodyRoot: header.BodyRoot,
+	if err = st.SetLatestBlockHeader(
+		types.NewBeaconBlockHeader(
+			blk.GetSlot(),
+			blk.GetProposerIndex(),
+			blk.GetParentBlockRoot(),
+			// state_root is zeroed and overwritten
+			// in the next `process_slot` call.
+			[32]byte{},
+			bodyRoot),
+	); err != nil {
+		return err
 	}
-	return st.SetLatestBlockHeader(headerRaw)
+
+	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
+	if err != nil {
+		return err
+	}
+
+	// Verify the proposer is not slashed.
+	if proposer.Slashed {
+		return errors.Newf(
+			"proposer is slashed, index: %d",
+			blk.GetProposerIndex(),
+		)
+	}
+	return nil
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.

@@ -66,26 +66,7 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	// Validate payload in Parallel.
-	g.Go(func() error {
-		body := blk.GetBody()
-		if body == nil || body.IsNil() {
-			return ErrNilBlkBody
-		}
-		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
-	})
-
-	// Validate block in Parallel.
-	g.Go(func() error {
-		return s.bv.ValidateBlock(st, blk)
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
-		return err
-	}
+	body := blk.GetBody()
 
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
@@ -97,34 +78,11 @@ func (s *Service[
 		)
 	})
 
-	body := blk.GetBody()
-
 	// We can also parallelize the call to the execution layer.
 	g.Go(func() error {
-		// Then we notify the engine of the new payload.
-		parentBeaconBlockRoot := blk.GetParentBlockRoot()
-		if err = s.ee.VerifyAndNotifyNewPayload(
-			ctx, engineprimitives.BuildNewPayloadRequest(
-				body.GetExecutionPayload(),
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				false,
-				// Since this is called during FinalizeBlock, we want to assume
-				// the payload is valid, if it ends up not being valid later the
-				// node will simply AppHash which is completely fine, since this
-				// means we were syncing from a bad peer, and we would likely
-				// AppHash anyways.
-				true,
-			),
-		); err != nil {
-			s.logger.
-				Error("failed to notify engine of new payload", "error", err)
-			return err
-		}
-
 		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
-			core.NewContext(ctx, true, false, true),
+			core.NewContext(ctx, true, true, true),
 			st,
 			blk,
 		)
@@ -188,18 +146,6 @@ func (s *Service[
 	return nil
 }
 
-// ValidateBlock validates the incoming beacon block.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ValidateBlock(
-	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-) error {
-	return s.bv.ValidateBlock(
-		s.bsb.StateFromContext(ctx), blk,
-	)
-}
-
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
@@ -211,27 +157,18 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	// Call the standard payload validator.
-	if err := s.pv.VerifyPayload(
-		s.bsb.StateFromContext(ctx),
-		body.GetExecutionPayload(),
-	); err != nil {
-		return err
-	}
-
 	// We notify the engine of the new payload.
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payload := body.GetExecutionPayload()
+	var (
+		parentBeaconBlockRoot = blk.GetParentBlockRoot()
+		body                  = blk.GetBody()
+		payload               = body.GetExecutionPayload()
+	)
+
 	if err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
 			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			blk.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
 			// We do not want to optimistically assume truth here.
