@@ -150,7 +150,6 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], op_images = [], a
     if "op" in additional_services:
         plan.print("Launching OP stack L2")
         l1_full_node = full_node_el_clients[0]["service"]
-        plan.print(l1_full_node)
         op.launch(
             plan,
             op_images,

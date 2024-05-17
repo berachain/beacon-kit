@@ -9,10 +9,12 @@ optimism = import_module("packages/optimism.star")
 # in the environment variables to rollup.json
 def build_deploy_config(plan, files, env, chain_id):
     plan.run_sh(
+        description = "Building the L1 deploy config"
         image = images.FOUNDRY,
         run = bash.run([
             deps.get(["bash", "jq"]),
             "cd {}".format(contracts.PATH),
+            "./scripts/getting-started/config.sh",
             "jq --argjson chainId {} \
   --argjson blockTime {} \
   '.l1ChainID = $chainId | .l1BlockTime = $blockTime | .finalizationPeriodSeconds = $blockTime' \
