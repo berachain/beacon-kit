@@ -138,6 +138,13 @@ func (ee *Engine[
 			return nil, nil, err
 		}
 		return payloadID, latestValidHash, ErrBadBlockProduced
+	case jsonrpc.IsPreDefinedError(err):
+		// If we get a predefined JSON-RPC error, we will log it and
+		// return it.
+		ee.logger.Error("json-rpc execution error during forkchoice update",
+			"error", err,
+		)
+		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	case err != nil:
 		ee.logger.Error("undefined execution engine error", "error", err)
 		return nil, nil, err
