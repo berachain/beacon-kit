@@ -68,6 +68,11 @@ func (bv *Verifier) VerifyBlobs(
 		return bv.VerifyKZGProofs(sidecars)
 	})
 
+	g.Go(func() error {
+		// Ensure that all sidecars have the same block root.
+		return sidecars.ValidateBlockRoots()
+	})
+
 	// Wait for all goroutines to finish and return the result.
 	return g.Wait()
 }
