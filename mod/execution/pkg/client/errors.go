@@ -26,8 +26,6 @@
 package client
 
 import (
-	"strings"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
@@ -39,39 +37,42 @@ import (
 // authenticated.
 //
 //nolint:lll
-const UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
+const (
+	UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your 
 	connection is not authenticated. If connecting to your execution client via HTTP, you 
 	will need to set up JWT authentication...`
+
+	AuthErrMsg = "HTTP authentication to your execution client " +
+		"is not working. Please ensure you are setting a correct " +
+		"value for the JWT secret path" +
+		"is set correctly, or use an IPC " +
+		"connection if on the same machine."
+)
 
 var (
 	// ErrNotStarted indicates that the execution client is not started.
 	ErrNotStarted = errors.New("engine client is not started")
-
-	// ErrInvalidJWTSecretLength indicates incorrect JWT secret length.
-	ErrInvalidJWTSecretLength = errors.New("invalid JWT secret length")
 )
 
 // Handles errors received from the RPC server according to the specification.
 func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
+	// Exit early if there is no error.
 	if err == nil {
 		return nil
 	}
 
+	// Check for timeout errors.
 	if http.IsTimeoutError(err) {
 		return http.ErrTimeout
 	}
 
-	e, ok := err.(gethRPC.Error) //nolint:errorlint // from prysm.
+	// Check for connection errors.
+	//
+	//nolint:errorlint // from prysm.
+	e, ok := err.(jsonrpc.Error)
 	if !ok {
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			authErrMsg := "HTTP authentication to your execution client " +
-				"is not working. Please ensure you are setting a correct " +
-				"value for the JWT secret path" +
-				"is set correctly, or use an IPC " +
-				"connection if on the same machine."
-			s.logger.Error(authErrMsg)
-			return errors.Newf("could not authenticate connection to "+
-				"execution client: %w", err)
+		if jsonrpc.IsUnauthorizedError(e) {
+			return http.ErrUnauthorized
 		}
 		return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
 	}
@@ -103,7 +104,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
 		if !ok {
 			return errors.Wrapf(
-				err, "got an unexpected error in JSON-RPC response")
+				errors.Join(jsonrpc.ErrServer, err),
+				"got an unexpected error in JSON-RPC response",
+			)
 		}
 		return errors.Wrapf(jsonrpc.ErrServer, "%v", errWithData.Error())
 	default:

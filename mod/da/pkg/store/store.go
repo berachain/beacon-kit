@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
@@ -38,17 +39,20 @@ import (
 // Store is the default implementation of the AvailabilityStore.
 type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	IndexDB
+	logger    log.Logger[any]
 	chainSpec primitives.ChainSpec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New[BeaconBlockT BeaconBlockBody](
-	chainSpec primitives.ChainSpec,
 	db IndexDB,
+	logger log.Logger[any],
+	chainSpec primitives.ChainSpec,
 ) *Store[BeaconBlockT] {
 	return &Store[BeaconBlockT]{
-		chainSpec: chainSpec,
 		IndexDB:   db,
+		chainSpec: chainSpec,
+		logger:    logger,
 	}
 }
 
@@ -80,11 +84,6 @@ func (s *Store[BeaconBlockT]) Persist(
 		return nil
 	}
 
-	// Ensure that all sidecars have the same block root.
-	if err := sidecars.ValidateBlockRoots(); err != nil {
-		return err
-	}
-
 	// Check to see if we are required to store the sidecar anymore, if
 	// this sidecar is from outside the required DA period, we can skip it.
 	if !s.chainSpec.WithinDAPeriod(
@@ -98,7 +97,7 @@ func (s *Store[BeaconBlockT]) Persist(
 	}
 
 	// Store each sidecar in parallel.
-	return errors.Join(iter.Map(
+	if err := errors.Join(iter.Map(
 		sidecars.Sidecars,
 		func(sidecar **types.BlobSidecar) error {
 			if *sidecar == nil {
@@ -111,5 +110,10 @@ func (s *Store[BeaconBlockT]) Persist(
 			}
 			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
 		},
-	)...)
+	)...); err != nil {
+		return err
+	}
+
+	s.logger.Info("successfully stored all blob sidecars 🚗", "slot", slot)
+	return nil
 }
