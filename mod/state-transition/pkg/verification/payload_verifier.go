@@ -27,6 +27,7 @@ package verification
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -35,13 +36,17 @@ import (
 // PayloadVerifier is responsible for verifying incoming execution
 // payloads to ensure they are valid.
 type PayloadVerifier struct {
-	cs primitives.ChainSpec
+	cs     primitives.ChainSpec
+	logger log.Logger[any]
 }
 
 // NewPayloadVerifier creates a new payload validator.
-func NewPayloadVerifier(cs primitives.ChainSpec) *PayloadVerifier {
+func NewPayloadVerifier(
+	cs primitives.ChainSpec, logger log.Logger[any],
+) *PayloadVerifier {
 	return &PayloadVerifier{
-		cs: cs,
+		cs:     cs,
+		logger: logger,
 	}
 }
 
@@ -106,6 +111,13 @@ func (pv *PayloadVerifier) VerifyPayload(
 			pv.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
+
+	pv.logger.Info(
+		"successfully verified execution payload 💸",
+		"slot", slot,
+		"payload-block-number", payload.GetNumber(),
+		"num-txs", len(payload.GetTransactions()),
+	)
 
 	return nil
 }
