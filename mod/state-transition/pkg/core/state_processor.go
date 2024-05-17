@@ -182,15 +182,16 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	body := blk.GetBody()
+
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
-		st, blk.GetBody(),
+		st, body,
 	); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
-	body := blk.GetBody()
 	if err := sp.processWithdrawals(
 		st, body.GetExecutionPayload(),
 	); err != nil {

@@ -38,14 +38,10 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// BeaconState defines the interface for accessing various components of the
+// ReadOnlyBeaconState defines the interface for accessing various components of
+// the
 // beacon state.
-type BeaconState[T any] interface {
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
-
-	// GetBlockRootAtIndex fetches the block root at a specified index.
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+type ReadOnlyBeaconState[T any] interface {
 
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
@@ -53,12 +49,6 @@ type BeaconState[T any] interface {
 		engineprimitives.ExecutionPayloadHeader,
 		error,
 	)
-
-	// SetLatestExecutionPayloadHeader sets the most recent execution payload
-	// header.
-	SetLatestExecutionPayloadHeader(
-		engineprimitives.ExecutionPayloadHeader,
-	) error
 
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
 	GetEth1DepositIndex() (uint64, error)
@@ -81,7 +71,9 @@ type BeaconState[T any] interface {
 }
 
 type BeaconStorageBackend[
-	BeaconStateT any, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
+	BeaconStateT any,
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
 ] interface {
 	AvailabilityStore(
 		context.Context,
@@ -100,9 +92,9 @@ type BlobSidecars interface {
 }
 
 // BlockVerifier is the interface for the block verifier.
-type BlockVerifier[BeaconStateT any] interface {
+type BlockVerifier[ReadOnlyBeaconStateT any] interface {
 	ValidateBlock(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
 	) error
 }
@@ -143,10 +135,10 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[BeaconStateT any] interface {
+type LocalBuilder[ReadOnlyBeaconStateT any] interface {
 	RequestPayload(
 		ctx context.Context,
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -155,24 +147,24 @@ type LocalBuilder[BeaconStateT any] interface {
 }
 
 // PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier[BeaconStateT any] interface {
+type PayloadVerifier[ReadOnlyBeaconStateT any] interface {
 	VerifyPayload(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		payload engineprimitives.ExecutionPayload,
 	) error
 }
 
 // RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconStateT any] interface {
+type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
 	BuildReveal(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 	) (crypto.BLSSignature, error)
 	MixinNewReveal(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		reveal crypto.BLSSignature,
 	) error
 	VerifyReveal(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		proposerPubkey crypto.BLSPubkey,
 		reveal crypto.BLSSignature,
 	) error
@@ -180,23 +172,23 @@ type RandaoProcessor[BeaconStateT any] interface {
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
+type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 	// ProcessBlock processes a given beacon block and updates the state
 	// accordingly.
 	ProcessBlock(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		blk types.BeaconBlock,
 		validateResult bool,
 	) error
 
 	// ProcessSlot processes the state transition for a single slot.
 	ProcessSlot(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 	) error
 
 	// ProcessBlobs processes the blobs associated with a beacon block.
 	ProcessBlobs(
-		st BeaconStateT,
+		st ReadOnlyBeaconStateT,
 		avs core.AvailabilityStore[
 			types.BeaconBlockBody, BlobSidecarsT,
 		],
