@@ -52,13 +52,6 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
-// BeforeTest executes before specific tests in the suite.
-func (s *KurtosisE2ESuite) BeforeTest(_, testName string) {
-	if testName == "TestDepositContract" {
-		s.SetupSuite()
-	}
-}
-
 // Option is a function that sets a field on the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
