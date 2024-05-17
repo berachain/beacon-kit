@@ -112,12 +112,5 @@ func (pv *PayloadVerifier) VerifyPayload(
 		)
 	}
 
-	pv.logger.Info(
-		"successfully verified execution payload 💸",
-		"slot", slot,
-		"payload-block-number", payload.GetNumber(),
-		"num-txs", len(payload.GetTransactions()),
-	)
-
 	return nil
 }
