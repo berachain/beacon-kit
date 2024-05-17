@@ -67,6 +67,9 @@ type Service[
 
 	// pv verifies the payload of beacon blocks.
 	pv PayloadVerifier[BeaconStateT]
+
+	// relay
+	relay Relay
 }
 
 // NewService creates a new validator service.
@@ -85,6 +88,7 @@ func NewService[
 	sp StateProcessor[BeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[BeaconStateT],
 	bdc DepositContract,
+	relay Relay,
 ) *Service[BeaconStateT, BlobSidecarsT, DepositStoreT] {
 	return &Service[BeaconStateT, BlobSidecarsT, DepositStoreT]{
 		bsb:    bsb,
@@ -96,6 +100,7 @@ func NewService[
 		sp:     sp,
 		pv:     pv,
 		bdc:    bdc,
+		relay:  relay,
 	}
 }
 

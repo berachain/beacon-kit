@@ -33,6 +33,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
@@ -176,6 +177,11 @@ type RandaoProcessor[BeaconStateT any] interface {
 		proposerPubkey crypto.BLSPubkey,
 		reveal crypto.BLSSignature,
 	) error
+}
+
+// Relay is the interface for the relay service.
+type Relay interface {
+	Notify(v events.Data[any])
 }
 
 // StateProcessor defines the interface for processing various state transitions

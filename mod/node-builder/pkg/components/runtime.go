@@ -27,6 +27,7 @@ package components
 
 import (
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -42,6 +43,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -105,6 +107,8 @@ func ProvideRuntime(
 		return nil, err
 	}
 
+	relay := async.NewRelay[events.Data[any]]()
+
 	// Build the local builder service.
 	localBuilder := payloadbuilder.New[state.BeaconState](
 		&cfg.PayloadBuilder,
@@ -157,6 +161,9 @@ func ProvideRuntime(
 		logger.With("service", "state-processor"),
 	)
 
+	// TODO: this API for adding subscribers sucks.
+	relayerSubscriber := relay.AddSubscriber(1)
+
 	// Build the builder service.
 	validatorService := validator.NewService[
 		state.BeaconState, *datypes.BlobSidecars,
@@ -178,6 +185,7 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		localBuilder,
 		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
+		relayerSubscriber,
 	)
 
 	// Build the blockchain service.
@@ -193,6 +201,7 @@ func ProvideRuntime(
 		stateProcessor,
 		verification.NewPayloadVerifier(chainSpec, logger),
 		beaconDepositContract,
+		relay,
 	)
 
 	// Build the service registry.

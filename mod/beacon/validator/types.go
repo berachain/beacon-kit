@@ -58,6 +58,8 @@ type BeaconState interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 
 	HashTreeRoot() ([32]byte, error)
+
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }
 
 type BeaconStorageBackend[BeaconStateT BeaconState] interface {
@@ -103,6 +105,14 @@ type RandaoProcessor[
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT BeaconState] interface {
+	RequestPayload(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+		timestamp uint64,
+		parentBlockRoot primitives.Root,
+		parentEth1Hash common.ExecutionHash,
+	) (*engineprimitives.PayloadID, error)
 	// RetrieveOrBuildPayload retrieves or builds the payload for the given
 	// slot.
 	RetrieveOrBuildPayload(
@@ -112,6 +122,14 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+}
+
+type RelaySubscriber[T any] interface {
+	// Channel returns the Subscriber's channel.
+	Channel() <-chan T
+
+	// Close closes the subscriber.
+	Close()
 }
 
 // StateProcessor defines the interface for processing the state.

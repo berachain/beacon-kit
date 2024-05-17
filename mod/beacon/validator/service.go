@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
@@ -82,6 +83,9 @@ type Service[
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remoteBuilders []PayloadBuilder[BeaconStateT]
+
+	// relaySubscriber is used to subscribe to relay events.
+	relaySubscriber RelaySubscriber[events.Data[any]]
 }
 
 // NewService creates a new validator service.
@@ -100,6 +104,7 @@ func NewService[
 	ds DepositStore,
 	localBuilder PayloadBuilder[BeaconStateT],
 	remoteBuilders []PayloadBuilder[BeaconStateT],
+	relaySubscriber RelaySubscriber[events.Data[any]],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{
 		cfg:             cfg,
@@ -113,6 +118,7 @@ func NewService[
 		ds:              ds,
 		localBuilder:    localBuilder,
 		remoteBuilders:  remoteBuilders,
+		relaySubscriber: relaySubscriber,
 	}
 }
 
@@ -122,7 +128,103 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 }
 
 // Start starts the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[
+	BeaconStateT, BlobSidecarsT,
+]) Start(ctx context.Context) {
+	go s.mainLoop(ctx)
+}
+
+// mainLoop is the main loop of the service.
+func (s *Service[
+	BeaconStateT, BlobSidecarsT,
+]) mainLoop(ctx context.Context) {
+	// listen for events from chain.
+	ch := s.relaySubscriber.Channel()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-ch:
+			s.logger.Info("received event", "event", event)
+			st := event.Data.(BeaconStateT)
+
+			payload, err := st.GetLatestExecutionPayloadHeader()
+			if err != nil {
+				s.logger.Error("failed to get latest execution payload hash", "error", err)
+				return
+			}
+
+			// TODO: This BlockRoot calculation is sound, but very confusing
+			// and hard to explain to someone who is not familiar with the
+			// nuance of our implementation. We should refactor this.
+			h, err := st.GetLatestBlockHeader()
+			if err != nil {
+				s.logger.
+					Error(
+						"failed to get latest block header in postBlockProcess",
+						"error",
+						err,
+					)
+				return
+			}
+
+			stateRoot, err := st.HashTreeRoot()
+			if err != nil {
+				s.logger.
+					Error(
+						"failed to get state root in postBlockProcess",
+						"error",
+						err,
+					)
+				return
+			}
+
+			h.StateRoot = stateRoot
+			root, err := h.HashTreeRoot()
+			if err != nil {
+				s.logger.
+					Error(
+						"failed to get block header root in postBlockProcess",
+						"error",
+						err,
+					)
+				return
+			}
+
+			slot, err := st.GetSlot()
+			if err != nil {
+				s.logger.
+					Error("failed to get slot in postBlockProcess", "error", err)
+				return
+			}
+
+			// Ask the builder to send a forkchoice update with attributes.
+			// This will trigger a new payload to be built.
+			if _, err = s.localBuilder.RequestPayload(
+				ctx,
+				st,
+				slot+1,
+				//#nosec:G701 // won't realistically overflow.
+				// TODO: clock time properly.
+				uint64(time.Now().Unix()+1),
+				root,
+				payload.GetBlockHash(),
+			); err == nil {
+				return
+			}
+
+			// If we error we log and continue, we try again without building a
+			// block
+			// just incase this can help get our execution client back on track.
+			s.logger.
+				Error(
+					"failed to send forkchoice update with attributes",
+					"error",
+					err,
+				)
+		}
+	}
+}
 
 // Status returns the status of the service.
 func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
