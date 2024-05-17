@@ -1,5 +1,5 @@
-execution = import_module("../../nodes/execution/execution.star")
 constants = import_module("../../constants.star")
+ports = import_module("constants/ports.star")
 
 env = import_module("env.star")
 deployer = import_module("deploy.star")
@@ -14,12 +14,6 @@ geth = import_module("components/geth.star")
 batcher = import_module("components/batcher.star")
 node = import_module("components/node.star")
 proposer = import_module("components/proposer.star")
-
-# TODO: Make these configurable
-GETH_RPC_PORT = "8545"
-NODE_RPC_PORT = "8547"
-BATCHER_RPC_PORT = "8548"
-PROPOSER_RPC_PORT = "8560"
 
 def launch(plan, images, l1_ip_address):
     l1 = types.get_l1(l1_ip_address)
@@ -41,11 +35,11 @@ def launch(plan, images, l1_ip_address):
     geth_ip_address = geth.launch(plan, images["geth"], l1, files)
     l2 = types.get_l2(geth_ip_address)
 
-    node_ip_address = node.launch(plan, images["node"], files, e, l1, l2, NODE_RPC_PORT)
-    node_rpc_url = "http://{}:{}".format(node_ip_address, NODE_RPC_PORT)
+    node_ip_address = node.launch(plan, images["node"], files, e, l1, l2, ports.NODE_RPC)
+    node_rpc_url = "http://{}:{}".format(node_ip_address, ports.NODE_RPC)
 
-    batcher_ip_address = batcher.launch(plan, images["batcher"], e, l1, l2, BATCHER_RPC_PORT, node_rpc_url)
-    proposer_ip_address = proposer.launch(plan, images["proposer"], files, e, l1, PROPOSER_RPC_PORT, node_rpc_url)
+    batcher_ip_address = batcher.launch(plan, images["batcher"], e, l1, l2, ports.BATCHER_RPC, node_rpc_url)
+    proposer_ip_address = proposer.launch(plan, images["proposer"], files, e, l1, ports.PROPOSER_RPC, node_rpc_url)
 
     # Bridge Tokens to Address
     for wallet in constants.PRE_FUNDED_ACCOUNTS:

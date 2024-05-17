@@ -1,4 +1,4 @@
-execution = import_module("../../nodes/execution/execution.star")
+ports = import_module("constants/ports.star")
 optimism = import_module("packages/optimism.star")
 wallets = import_module("packages/wallets.star")
 geth = import_module("components/geth.star")
@@ -20,13 +20,13 @@ def get_l1(
     return struct(
         ip_address = ip_address,
         rpc_kind = rpc_kind,
-        rpc_url = "http://{}:{}".format(ip_address, execution.RPC_PORT_NUM),
+        rpc_url = "http://{}:{}".format(ip_address, ports.L1_ETH_RPC),
         block_time = block_time,
         chain_id = chain_id,
     )
 
 def get_l2(ip_address):
     return struct(
-        rpc_url = "http://{}:{}".format(ip_address, execution.RPC_PORT_NUM),
-        auth_rpc_url = "http://{}:{}".format(ip_address, execution.ENGINE_RPC_PORT_NUM),
+        rpc_url = "http://{}:{}".format(ip_address, ports.L1_ETH_RPC),
+        auth_rpc_url = "http://{}:{}".format(ip_address, ports.L1_ENGINE_RPC),
     )

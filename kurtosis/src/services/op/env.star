@@ -1,4 +1,5 @@
-wallets = import_module("./packages/wallets.star")
+images = import_module("constants/images.star")
+wallets = import_module("packages/wallets.star")
 
 def get(
         plan,
@@ -26,6 +27,6 @@ def get(
 
 def generate_salt(plan):
     return plan.run_sh(
-        image = "alpine/openssl:latest",
+        image = images.ALPINE_OPENSSL,
         run = "openssl rand -hex 32",
     ).output

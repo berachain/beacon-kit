@@ -5,11 +5,12 @@ optimism = import_module("../packages/optimism.star")
 NAME = "op-node"
 PATH = "/optimism/op-node"
 
-# TODO: Run this concurrently with the rest of setup
+# TODO:
 def init(plan, image, env, files):
     plan.run_sh(
-        image = image,
-        run = "op-node genesis l2 \
+        description = "Initializing op-node",
+        image = "golang:latest",
+        run = "cd {} && go mod tidy && cd {} && go run cmd/main.go genesis l2 \
   --deploy-config {}/deploy-config/getting-started.json \
   --l1-deployments {}/deployments/getting-started/l1.json \
   --outfile.l2 genesis.json \
@@ -33,7 +34,6 @@ def init(plan, image, env, files):
     )
 
 def launch(plan, image, files, env, l1, l2, node_rpc_port):
-    node_rpc_url = "http://{}:{}".format(NAME, node_rpc_port)
     service = plan.add_service(
         name = NAME,
         config = ServiceConfig(

@@ -1,5 +1,8 @@
-contracts = import_module("contracts.star")
+images = import_module("../constants/images.star")
+
+bash = import_module("bash.star")
 deps = import_module("deps.star")
+contracts = import_module("contracts.star")
 optimism = import_module("optimism.star")
 
 ARTIFACT_NAME = "wallets"
@@ -9,12 +12,15 @@ PATH = "/wallets/wallets.txt"
 #   GS_ADMIN, GS_BATCHER, GS_PROPOSER, GS_SEQUENCER
 def get(plan, op):
     wallets = plan.run_sh(
-        image = "ghcr.io/foundry-rs/foundry:latest",
-        run = '{} && cd {} && scripts/getting-started/wallets.sh | grep "_ADDRESS\\|_PRIVATE_KEY" | cut -d "=" -f 2 > {}'.format(
+        description = "Generating op-component wallets",
+        image = images.FOUNDRY,
+        run = bash.run([
             deps.get(["bash"]),
-            contracts.PATH,
-            "wallets.txt",
-        ),
+            "cd {}".format(contracts.PATH),
+            "scripts/getting-started/wallets.sh | grep '_ADDRESS\\|_PRIVATE_KEY' | cut -d '=' -f 2 > {}".format(
+                "wallets.txt",
+            ),
+        ]),
         files = {optimism.PATH: op},
         store = [StoreSpec(src = "{}/wallets.txt".format(contracts.PATH), name = ARTIFACT_NAME)],
     )
@@ -25,7 +31,7 @@ def get(plan, op):
 # requires: wallets/wallets.txt to be a valid file artifact
 def get_by_index(plan, index):
     wallet = plan.run_sh(
-        image = "alpine:latest",
+        image = images.ALPINE,
         run = "sed -n '{}p' {} | tr -d '\n'".format(index, PATH),
         files = {"/{}".format(ARTIFACT_NAME): ARTIFACT_NAME},
     )
@@ -35,10 +41,11 @@ def get_by_index(plan, index):
 def fund(plan, env):
     wallet_cmd = "cast send --private-key {} --value 10ether --rpc-url {} --legacy {} "
     plan.run_sh(
-        image = "ghcr.io/foundry-rs/foundry:latest",
-        run = "{} && {} && {}".format(
+        description = "Funding op-component wallets with 10 ether",
+        image = images.FOUNDRY,
+        run = bash.run([
             wallet_cmd.format(env.pk, env.l1_rpc_url, env.admin_address),
             wallet_cmd.format(env.pk, env.l1_rpc_url, env.batcher_address),
             wallet_cmd.format(env.pk, env.l1_rpc_url, env.proposer_address),
-        ),
+        ]),
     )

@@ -12,6 +12,7 @@ GENESIS_PATH = "{}/genesis.json".format(PATH)
 
 def init(plan, image, files):
     plan.run_sh(
+        description = "Initializing op-geth",
         image = image,
         run = "cd {} && mkdir {} && geth init --datadir={} {}".format(
             PATH,

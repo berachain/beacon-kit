@@ -1,7 +1,6 @@
 NAME = "op-batcher"
 
 def launch(plan, image, env, l1, l2, batcher_rpc_port, node_rpc_url):
-    batcher_rpc_url = "http://{}:{}".format(NAME, batcher_rpc_port)
     service = plan.add_service(
         name = NAME,
         config = ServiceConfig(
