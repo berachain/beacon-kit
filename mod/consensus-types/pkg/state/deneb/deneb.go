@@ -26,7 +26,6 @@
 package deneb
 
 import (
-	"context"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -97,7 +96,7 @@ func DefaultGenesisExecutionPayloadHeader() (
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
-		g, _                 = errgroup.WithContext(context.Background())
+		g, _                 = errgroup.WithContext(nil)
 		emptyTxsRoot         primitives.Root
 		emptyWithdrawalsRoot primitives.Root
 	)

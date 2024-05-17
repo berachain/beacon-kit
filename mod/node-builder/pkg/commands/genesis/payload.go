@@ -26,7 +26,6 @@
 package genesis
 
 import (
-	"context"
 	"encoding/json"
 	"unsafe"
 
@@ -157,7 +156,7 @@ func executableDataToExecutionPayloadHeader(
 
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
-		g, _            = errgroup.WithContext(context.Background())
+		g, _            = errgroup.WithContext(nil)
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)

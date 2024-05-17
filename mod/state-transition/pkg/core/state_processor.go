@@ -26,8 +26,6 @@
 package core
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -224,7 +222,21 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// ProcessVoluntaryExits
+	// Ensure the state root matches the block.
+	htr, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the state root matches the block.
+	//
+	// TODO: We need to validate this in ProcessProposal as well.
+	if blk.GetStateRoot() != htr {
+		return errors.Newf(
+			"state root does not match: expected %s, got %s",
+			primitives.Root(htr), blk.GetStateRoot(),
+		)
+	}
 
 	return nil
 }
@@ -237,7 +249,7 @@ func (sp *StateProcessor[
 ) error {
 	payload := body.GetExecutionPayload()
 	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, _ := errgroup.WithContext(context.Background())
+	g, _ := errgroup.WithContext(nil)
 	var (
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
