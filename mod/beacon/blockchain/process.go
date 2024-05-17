@@ -263,6 +263,8 @@ func (s *Service[
 	}
 
 	// Ensure the state root matches the block.
+	//
+	// TODO: We need to validate this in ProcessProposal as well.
 	if blk.GetStateRoot() != htr {
 		return errors.Newf(
 			"state root does not match: expected %s, got %s",
