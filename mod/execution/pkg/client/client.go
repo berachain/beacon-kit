@@ -28,7 +28,10 @@ package client
 import (
 	"context"
 	"math/big"
+	"net"
 	"net/http"
+	"net/rpc"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -39,7 +42,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	"github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
@@ -74,6 +77,9 @@ type EngineClient[
 
 	// statusErr is the status error of the engine client.
 	statusErr error
+
+	// IPC
+	ipcListener net.Listener
 }
 
 // New creates a new engine client EngineClient.
@@ -97,17 +103,24 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-// Start starts the engine client.
+func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
+	ctx context.Context,
+) error {
+	if err := s.initializeConnection(ctx); err != nil {
+		return err
+	}
+	if s.cfg.RPCDialURL.IsIPC() {
+		s.startIPCServer(ctx)
+	}
+	return nil
+}
+
+// StartWithHTTP starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
-	var (
-		err     error
-		chainID *big.Int
-	)
-
-	// TODO: This is not required for IPC connections.
-	if true /* http || https */ {
+	// This is not required for IPC connections.
+	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
 		// If we are in a JWT mode, we will start the JWT refresh loop.
 		defer func() {
 			if s.jwtSecret == nil {
@@ -120,45 +133,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
-
-	for {
-		s.logger.Info("waiting for execution client to start 🍺🕔",
-			"dial-url", s.cfg.RPCDialURL)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
-			s.statusErrMu.Lock()
-			s.statusErr = err
-			s.statusErrMu.Unlock()
-			time.Sleep(s.cfg.RPCStartupCheckInterval)
-			continue
-		}
-		break
-	}
-
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
-	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
-		return err
-	}
-
-	// Log the chain ID.
-	s.logger.Info(
-		"connected to execution client 🔌",
-		"dial-url",
-		s.cfg.RPCDialURL.String(),
-		"chain-id",
-		chainID.Uint64(),
-		"required-chain-id",
-		s.cfg.RequiredChainID,
-	)
-
-	// Exchange capabilities with the execution client.
-	if _, err = s.ExchangeCapabilities(ctx); err != nil {
-		s.logger.Error("failed to exchange capabilities", "err", err)
-		return err
-	}
-
-	return nil
+	return s.initializeConnection(ctx)
 }
 
 // Status verifies the chain ID via JSON-RPC. By proxy
@@ -167,29 +142,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Status() error {
 	s.statusErrMu.RLock()
 	defer s.statusErrMu.RUnlock()
 	return s.status(context.Background())
-}
-
-// status returns the status of the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) status(
-	ctx context.Context,
-) error {
-	// If the client is not started, we return an error.
-	if s.Eth1Client.Client == nil {
-		return ErrNotStarted
-	}
-
-	if s.statusErr == nil {
-		// If we have an error, we will attempt
-		// to verify the chain ID again.
-		//#nosec:G703 wtf is even this problem here.
-		s.statusErr = s.VerifyChainID(ctx)
-	}
-
-	if s.statusErr == nil {
-		s.statusErrCond.Broadcast()
-	}
-
-	return s.statusErr
 }
 
 // WaitForHealthy waits for the engine client to be healthy.
@@ -207,26 +159,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) WaitForHealthy(
 		default:
 			// Then we wait until we are blessed tf up.
 			s.statusErrCond.Wait()
-		}
-	}
-}
-
-// refreshUntilHealthy refreshes the engine client until it is healthy.
-// TODO: remove after hack testing done.
-func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
-	ctx context.Context,
-) {
-	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if err := s.status(ctx); err == nil {
-				return
-			}
 		}
 	}
 }
@@ -251,6 +183,130 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 
 	return nil
 }
+
+// ============================== HELPERS ==============================
+
+// ================================ Setup ==============================
+
+func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
+	ctx context.Context,
+) error {
+	// Initialize the connection to the execution client.
+	var (
+		err     error
+		chainID *big.Int
+	)
+	for {
+		s.logger.Info("waiting for execution client to start 🍺🕔",
+			"dial-url", s.cfg.RPCDialURL)
+		if err = s.setupExecutionClientConnection(ctx); err != nil {
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			continue
+		}
+		break
+	}
+	// Get the chain ID from the execution client.
+	chainID, err = s.ChainID(ctx)
+	if err != nil {
+		s.logger.Error("failed to get chain ID", "err", err)
+		return err
+	}
+
+	// Log the chain ID.
+	s.logger.Info(
+		"connected to execution client 🔌",
+		"dial-url",
+		s.cfg.RPCDialURL.String(),
+		"chain-id",
+		chainID.Uint64(),
+		"required-chain-id",
+		s.cfg.RequiredChainID,
+	)
+
+	// Exchange capabilities with the execution client.
+	if _, err = s.ExchangeCapabilities(ctx); err != nil {
+		s.logger.Error("failed to exchange capabilities", "err", err)
+		return err
+	}
+	return nil
+}
+
+// setupExecutionClientConnections dials the execution client and
+// ensures the chain ID is correct.
+func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
+	ctx context.Context,
+) error {
+	// Dial the execution client.
+	if err := s.dialExecutionRPCClient(ctx); err != nil {
+		return err
+	}
+
+	// Ensure the execution client is connected to the correct chain.
+	if err := s.VerifyChainID(ctx); err != nil {
+		s.Client.Close()
+		if strings.Contains(err.Error(), "401 Unauthorized") {
+			// We always log this error as it is a critical error.
+			s.logger.Error(UnauthenticatedConnectionErrorStr)
+		}
+		return err
+	}
+	return nil
+}
+
+// ================================ Dialing ================================
+
+// dialExecutionRPCClient dials the execution client's RPC endpoint.
+func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
+	ctx context.Context,
+) error {
+	var (
+		client *ethrpc.Client
+		err    error
+	)
+
+	// Dial the execution client based on the URL scheme.
+	switch {
+	case s.cfg.RPCDialURL.IsHTTP(), s.cfg.RPCDialURL.IsHTTPS():
+		// Build an http.Header with the JWT token attached.
+		if s.jwtSecret != nil {
+			var header http.Header
+			if header, err = s.buildJWTHeader(); err != nil {
+				return err
+			}
+			if client, err = ethrpc.DialOptions(
+				ctx, s.cfg.RPCDialURL.String(), ethrpc.WithHeaders(header),
+			); err != nil {
+				return err
+			}
+		} else {
+			if client, err = ethrpc.DialContext(
+				ctx, s.cfg.RPCDialURL.String()); err != nil {
+				return err
+			}
+		}
+	case s.cfg.RPCDialURL.IsIPC():
+		if client, err = ethrpc.DialIPC(
+			ctx, s.cfg.RPCDialURL.String()); err != nil {
+			return err
+		}
+	default:
+		return errors.Newf(
+			"no known transport for URL scheme %q",
+			s.cfg.RPCDialURL.Scheme,
+		)
+	}
+
+	// Refresh the execution client with the new client.
+	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadDenebT](
+		client,
+	)
+	return err
+}
+
+// ================================ JWT ================================
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
@@ -280,72 +336,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) jwtRefreshLoop(
 	}
 }
 
-// setupExecutionClientConnections dials the execution client and
-// ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
-	ctx context.Context,
-) error {
-	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		return err
-	}
-
-	// Ensure the execution client is connected to the correct chain.
-	if err := s.VerifyChainID(ctx); err != nil {
-		s.Client.Close()
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			// We always log this error as it is a critical error.
-			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		}
-		return err
-	}
-	return nil
-}
-
-// DialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
-	ctx context.Context,
-) error {
-	var (
-		client *rpc.Client
-	)
-
-	// Dial the execution client based on the URL scheme.
-	switch s.cfg.RPCDialURL.Scheme {
-	case "http", "https":
-		// Build an http.Header with the JWT token attached.
-		header, err := s.buildJWTHeader()
-		if err != nil {
-			return err
-		}
-
-		client, err = rpc.DialOptions(
-			ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
-		)
-		if err != nil {
-			return err
-		}
-	case "", "ipc":
-		var err error
-		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.Newf(
-			"no known transport for URL scheme %q",
-			s.cfg.RPCDialURL.Scheme,
-		)
-	}
-
-	// Refresh the execution client with the new client.
-	var err error
-	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadDenebT](
-		client,
-	)
-	return err
-}
-
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
 //
@@ -363,4 +353,109 @@ func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, er
 	// Add the JWT token to the headers.
 	header.Set("Authorization", "Bearer "+token)
 	return header, nil
+}
+
+func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
+	return "EngineClient"
+}
+
+// ================================ IPC ================================
+
+//nolint:lll // long line length due to struct tags.
+func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Context) {
+	if s.cfg.RPCDialURL == nil || !s.cfg.RPCDialURL.IsIPC() {
+		s.logger.Error("IPC server not started, invalid IPC URL")
+		return
+	}
+	// remove existing socket file if exists
+	// alternatively we can use existing one by checking for os.IsNotExist(err)
+	if _, err := os.Stat(s.cfg.RPCDialURL.Path); err != nil {
+		s.logger.Info("Removing existing IPC file", "path", s.cfg.RPCDialURL.Path)
+
+		if err = os.Remove(s.cfg.RPCDialURL.Path); err != nil {
+			s.logger.Error("failed to remove existing IPC file", "err", err)
+			return
+		}
+	}
+
+	// use UDS for IPC
+	listener, err := net.Listen("unix", s.cfg.RPCDialURL.Path)
+	if err != nil {
+		s.logger.Error("failed to listen on IPC socket", "err", err)
+		return
+	}
+	s.ipcListener = listener
+
+	// register the RPC server
+	server := rpc.NewServer()
+	if err = server.Register(s); err != nil {
+		s.logger.Error("failed to register RPC server", "err", err)
+		return
+	}
+	s.logger.Info("IPC server started", "path", s.cfg.RPCDialURL.Path)
+
+	// start server in a goroutine
+	go func() {
+		for {
+			// continuously accept incoming connections until context is cancelled
+			select {
+			case <-ctx.Done():
+				s.logger.Info("shutting down IPC server")
+				return
+			default:
+				var conn net.Conn
+				conn, err = listener.Accept()
+				if err != nil {
+					s.logger.Error("failed to accept IPC connection", "err", err)
+					continue
+				}
+				go server.ServeConn(conn)
+			}
+		}
+	}()
+}
+
+// ================================ info ================================
+
+// status returns the status of the engine client.
+func (s *EngineClient[ExecutionPayloadDenebT]) status(
+	ctx context.Context,
+) error {
+	// If the client is not started, we return an error.
+	if s.Eth1Client.Client == nil {
+		return ErrNotStarted
+	}
+
+	if s.statusErr == nil {
+		// If we have an error, we will attempt
+		// to verify the chain ID again.
+		//#nosec:G703 wtf is even this problem here.
+		s.statusErr = s.VerifyChainID(ctx)
+	}
+
+	if s.statusErr == nil {
+		s.statusErrCond.Broadcast()
+	}
+
+	return s.statusErr
+}
+
+// refreshUntilHealthy refreshes the engine client until it is healthy.
+// TODO: remove after hack testing done.
+func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
+	ctx context.Context,
+) {
+	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.status(ctx); err == nil {
+				return
+			}
+		}
+	}
 }

@@ -53,7 +53,6 @@ type BeaconKitRuntime[
 		DepositStoreT,
 	],
 ] struct {
-	engineClient   interface{ Start(context.Context) error }
 	logger         log.Logger[any]
 	services       *service.Registry
 	storageBackend StorageBackendT
@@ -74,7 +73,6 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 	],
 ](
-	engineClient interface{ Start(context.Context) error },
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
@@ -93,7 +91,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		engineClient:   engineClient,
+		// engineClient:   engineClient,
 		chainSpec:      chainSpec,
 		logger:         logger,
 		services:       services,
@@ -111,9 +109,6 @@ func (r *BeaconKitRuntime[
 ]) StartServices(
 	ctx context.Context,
 ) error {
-	if err := r.engineClient.Start(ctx); err != nil {
-		return err
-	}
 	r.services.StartAll(ctx)
 	return nil
 }
