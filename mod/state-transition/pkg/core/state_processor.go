@@ -321,7 +321,7 @@ func (sp *StateProcessor[
 
 	// Verify the number of blobs.
 	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if len(blobKzgCommitments) > int(sp.cs.MaxBlobsPerBlock()) {
+	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
 		return errors.Newf(
 			"too many blobs, expected: %d, got: %d",
 			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
