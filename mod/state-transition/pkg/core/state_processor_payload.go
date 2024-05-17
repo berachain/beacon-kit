@@ -56,6 +56,22 @@ func (sp *StateProcessor[
 		withdrawalsRoot primitives.Root
 	)
 
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			payload.GetTransactions(),
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			payload.GetWithdrawals(),
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
 	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
@@ -91,22 +107,6 @@ func (sp *StateProcessor[
 			expectedMix, payload.GetPrevRandao(),
 		)
 	}
-
-	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
-		return withdrawalsRootErr
-	})
 
 	// TODO: Verify timestamp data once Clock is done.
 	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
