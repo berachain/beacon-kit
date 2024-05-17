@@ -27,6 +27,7 @@ package genesis
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gentypes "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -142,6 +144,7 @@ func CollectValidatorJSONFiles(
 
 	// prepare the list of validators
 	validators := make([]*types.Validator, 0)
+	seenPubKeys := make(map[crypto.BLSPubkey]struct{})
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -164,6 +167,14 @@ func CollectValidatorJSONFiles(
 			return nil, err
 		}
 
+		pubKey := val.GetPubkey()
+		if _, found := seenPubKeys[pubKey]; found {
+			return nil, fmt.Errorf(
+				"duplicate pubkey in genesis state: %x",
+				pubKey.String(),
+			)
+		}
+		seenPubKeys[pubKey] = struct{}{}
 		validators = append(validators, val)
 	}
 

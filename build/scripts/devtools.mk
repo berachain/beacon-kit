@@ -30,6 +30,14 @@ tidy: ## run go mod tidy in all modules
 yap: ## the yap cave
 	@go run ./mod/node-builder/pkg/utils/yap/yap.go
 
+tidy-sync-check:
+	@$(MAKE) tidy sync repo-rinse
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Tidy and sync operations resulted in changes"; \
+		git status -s; \
+		git diff --exit-code; \
+	fi
+
 
 .PHONY: format build test-unit bet
 
