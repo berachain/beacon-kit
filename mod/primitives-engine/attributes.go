@@ -86,6 +86,11 @@ func NewPayloadAttributes[
 	return p, nil
 }
 
+// IsNil returns true if the PayloadAttributes is nil.
+func (p *PayloadAttributes[Withdrawal]) IsNil() bool {
+	return p == nil
+}
+
 // GetSuggestionsFeeRecipient returns the suggested fee recipient.
 //
 //nolint:lll // formatter being annoying.
