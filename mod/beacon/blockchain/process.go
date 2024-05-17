@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"golang.org/x/sync/errgroup"
@@ -267,7 +268,24 @@ func (s *Service[
 	}
 
 	// Update the latest execution payload header.
-	return s.updateLatestExecutionPayload(ctx, st, payload)
+	if err := s.updateLatestExecutionPayload(ctx, st, payload); err != nil {
+		return err
+	}
+
+	// Ensure the state root matches the block.
+	htr, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the state root matches the block.
+	if blk.GetStateRoot() != htr {
+		return errors.Newf(
+			"state root does not match: expected %s, got %s",
+			primitives.Root(htr), blk.GetStateRoot(),
+		)
+	}
+	return nil
 }
 
 // updateLatestExecutionPayload.

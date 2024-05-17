@@ -60,6 +60,10 @@ type BeaconState interface {
 	HashTreeRoot() ([32]byte, error)
 
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+
+	SetLatestExecutionPayloadHeader(
+		engineprimitives.ExecutionPayloadHeader,
+	) error
 }
 
 type BeaconStorageBackend[BeaconStateT BeaconState] interface {
