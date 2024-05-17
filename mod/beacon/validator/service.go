@@ -122,7 +122,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 }
 
 // Start starts the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) {}
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) error {
+	return nil
+}
 
 // Status returns the status of the service.
 func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }

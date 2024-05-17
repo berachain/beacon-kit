@@ -102,6 +102,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			mapstructure.StringToSliceHookFunc(","),
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDialURLFunc(),
+			viperlib.StringToConnectionURLFunc(),
 		))); err != nil {
 		return nil, errors.Newf(
 			"failed to decode beacon-kit configuration: %w",

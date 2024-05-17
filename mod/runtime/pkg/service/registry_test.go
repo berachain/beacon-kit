@@ -42,11 +42,11 @@ func TestRegistry_StartAll(t *testing.T) {
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := &mocks.Basic{}
-	service1.On("Start", mock.Anything).Return().Once()
+	service1.On("Start", mock.Anything).Return(nil).Once()
 	service1.On("Name").Return("Service1")
 
 	service2 := &mocks.Basic{}
-	service2.On("Start", mock.Anything).Return().Once()
+	service2.On("Start", mock.Anything).Return(nil).Once()
 	service2.On("Name").Return("Service2")
 
 	err := registry.RegisterService(service1)
@@ -99,8 +99,8 @@ func TestRegistry_Statuses(t *testing.T) {
 		}
 	}
 
-	service1.On("Start", mock.Anything).Return().Once()
-	service2.On("Start", mock.Anything).Return().Once()
+	service1.On("Start", mock.Anything).Return(nil).Once()
+	service2.On("Start", mock.Anything).Return(nil).Once()
 	registry.StartAll(context.Background())
 
 	statuses = registry.Statuses()
