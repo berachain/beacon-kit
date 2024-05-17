@@ -101,7 +101,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) Start(
+func (s *EngineClient[ExecutionPayloadDenebT]) StartWithJWT(
 	ctx context.Context,
 ) error {
 	if err := s.initializeConnection(ctx, false); err != nil {
@@ -114,7 +114,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 }
 
 // Start starts the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) StartWithJWT(
+func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
 	// This is not required for IPC connections.
