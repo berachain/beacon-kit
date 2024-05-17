@@ -330,8 +330,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 	)
 
 	// Dial the execution client based on the URL scheme.
-	switch s.cfg.RPCDialURL.Scheme {
-	case "http", "https":
+	switch {
+	case s.cfg.RPCDialURL.IsHTTP(), s.cfg.RPCDialURL.IsHTTPS():
 		// Build an http.Header with the JWT token attached.
 		if withJWT {
 			header, err := s.buildJWTHeader()
@@ -351,7 +351,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 				return err
 			}
 		}
-	case "", "ipc":
+	case s.cfg.RPCDialURL.IsIPC():
 		var err error
 		client, err = rpc.DialIPC(ctx, s.cfg.RPCDialURL.String())
 		if err != nil {

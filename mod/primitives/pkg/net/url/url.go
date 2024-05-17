@@ -27,17 +27,17 @@ package url
 
 import "net/url"
 
-// DialURL is a URL struct that is used to dial the execution client.
-type DialURL struct {
+// ConnectionURL is a URL struct that is used to dial the execution client.
+type ConnectionURL struct {
 	*url.URL
 }
 
 // NewDialURL creates a new DialURL.
-func NewDialURL(u *url.URL) *DialURL {
-	return &DialURL{u}
+func NewDialURL(u *url.URL) *ConnectionURL {
+	return &ConnectionURL{u}
 }
 
-func NewFromRaw(raw string) (*DialURL, error) {
+func NewFromRaw(raw string) (*ConnectionURL, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return nil, err
@@ -46,16 +46,16 @@ func NewFromRaw(raw string) (*DialURL, error) {
 }
 
 // IsHTTP checks if the DialURL scheme is HTTP.
-func (d *DialURL) IsHTTP() bool {
+func (d *ConnectionURL) IsHTTP() bool {
 	return d.Scheme == "http"
 }
 
 // IsHTTPS checks if the DialURL scheme is HTTPS.
-func (d *DialURL) IsHTTPS() bool {
+func (d *ConnectionURL) IsHTTPS() bool {
 	return d.Scheme == "https"
 }
 
 // IsIPC checks if the DialURL scheme is IPC.
-func (d *DialURL) IsIPC() bool {
+func (d *ConnectionURL) IsIPC() bool {
 	return d.Scheme == "ipc"
 }

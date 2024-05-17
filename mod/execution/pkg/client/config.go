@@ -62,7 +62,7 @@ func DefaultConfig() Config {
 //nolint:lll // struct tags.
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
-	RPCDialURL *url.DialURL `mapstructure:"rpc-dial-url"`
+	RPCDialURL *url.ConnectionURL `mapstructure:"rpc-dial-url"`
 	// RPCRetries is the number of retries before shutting down consensus
 	// client.
 	RPCRetries uint64 `mapstructure:"rpc-retries"`
