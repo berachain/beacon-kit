@@ -26,8 +26,11 @@
 package validator
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"golang.org/x/sync/errgroup"
 )
 
 // computeStateRoot computes the state root of an outgoing block.
@@ -36,6 +39,61 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
 	if err := s.stateProcessor.ProcessBlock(st, blk); err != nil {
+		return primitives.Root{}, err
+	}
+
+	payload := blk.GetBody().GetExecutionPayload()
+
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	g, _ := errgroup.WithContext(context.Background())
+	var (
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			payload.GetTransactions(),
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			payload.GetWithdrawals(),
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// If deriving either of the roots fails, return the error.
+	if err := g.Wait(); err != nil {
+		return primitives.Root{}, err
+	}
+
+	// Set the latest execution payload header.
+	if err := st.SetLatestExecutionPayloadHeader(
+		&types.ExecutionPayloadHeaderDeneb{
+			ParentHash:       payload.GetParentHash(),
+			FeeRecipient:     payload.GetFeeRecipient(),
+			StateRoot:        payload.GetStateRoot(),
+			ReceiptsRoot:     payload.GetReceiptsRoot(),
+			LogsBloom:        payload.GetLogsBloom(),
+			Random:           payload.GetPrevRandao(),
+			Number:           payload.GetNumber(),
+			GasLimit:         payload.GetGasLimit(),
+			GasUsed:          payload.GetGasUsed(),
+			Timestamp:        payload.GetTimestamp(),
+			ExtraData:        payload.GetExtraData(),
+			BaseFeePerGas:    payload.GetBaseFeePerGas(),
+			BlockHash:        payload.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      payload.GetBlobGasUsed(),
+			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		},
+	); err != nil {
 		return primitives.Root{}, err
 	}
 
