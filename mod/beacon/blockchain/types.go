@@ -186,6 +186,7 @@ type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
 	ProcessBlock(
 		st BeaconStateT,
 		blk types.BeaconBlock,
+		validateResult bool,
 	) error
 
 	// ProcessSlot processes the state transition for a single slot.
