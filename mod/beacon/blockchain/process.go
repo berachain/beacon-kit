@@ -66,8 +66,6 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
 	g.Go(func() error {
@@ -99,7 +97,7 @@ func (s *Service[
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
 	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(
-		ctx, blk.GetSlot(), body,
+		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
 		return ErrDataNotAvailable
 	}
@@ -110,8 +108,19 @@ func (s *Service[
 		go s.sendPostBlockFCU(ctx, st, blk)
 	}()
 
+	//
+	//
+	//
+	//
+	//
 	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
 	//  MAIN BLOCK PROCESSING THREAD.
+	//
+	//
+	//
+	//
+	//
+	//
 
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
