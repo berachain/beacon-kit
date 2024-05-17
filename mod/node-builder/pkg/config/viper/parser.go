@@ -26,11 +26,12 @@
 package viper
 
 import (
+	"net/url"
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	beaconurl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/mitchellh/mapstructure"
-	"net/url"
-	"reflect"
 )
 
 // StringToSliceHookFunc returns a DecodeHookFunc that converts
