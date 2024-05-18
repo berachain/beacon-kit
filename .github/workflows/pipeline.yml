@@ -35,6 +35,9 @@ on:
       - "vercel.json"
       - "docs/**"
 
+env:
+  GOPRIVATE: github.com/berachain
+
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -79,10 +82,11 @@ jobs:
           check-latest: true
           token: ${{ secrets.DEV_PAT }}
           cache-dependency-path: "**/*.sum"
-      - name: Configure git for private modules
+      - name: Configure private token
         env:
-            TOKEN: ${{ secrets.DEV_PAT }}
-        run: git config --global url."https://YOUR_GITHUB_USERNAME:${TOKEN}@github.com".insteadOf "https://github.com"
+          DEV_PAT: ${{ secrets.DEV_PAT }}
+        run: |
+          git config --global url."https://${DEV_PAT}:x-oauth-basic@github.com/".insteadOf "https://github.com/"          
       - name: Configure GOPRIVATE
         run: go env -w GOPRIVATE=github.com/berachain
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
