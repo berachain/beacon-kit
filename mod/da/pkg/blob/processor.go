@@ -32,18 +32,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Processor is the blob processor.
+// Processor is the blob processor that handles the processing and verification of blob sidecars.
 type Processor[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *types.BlobSidecars,
 	],
 	BeaconBlockBodyT any,
 ] struct {
-	logger    log.Logger[any]
-	chainSpec primitives.ChainSpec
-	bv        *Verifier
+	// logger is used to log information and errors.
+	logger log.Logger[any]
 
-	// TODO: This is hood as fuck.
+	// chainSpec defines the specifications of the blockchain.
+	chainSpec primitives.ChainSpec
+
+	// verifier is responsible for verifying the blobs.
+	verifier *Verifier
+
+	// blockBodyOffsetFn is a function that calculates the block body offset based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
 }
 
@@ -56,13 +61,13 @@ func NewProcessor[
 ](
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bv *Verifier,
+	verifier *Verifier,
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
 ) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
 	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
 		logger:            logger,
 		chainSpec:         chainSpec,
-		bv:                bv,
+		verifier:          verifier,
 		blockBodyOffsetFn: blockBodyOffsetFn,
 	}
 }
@@ -85,7 +90,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	}
 
 	// Otherwise, we run the verification checks on the blobs.
-	if err := sp.bv.VerifyBlobs(
+	if err := sp.verifier.VerifyBlobs(
 		sidecars,
 		sp.blockBodyOffsetFn(slot, sp.chainSpec),
 	); err != nil {
