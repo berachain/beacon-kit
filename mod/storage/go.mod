@@ -10,9 +10,6 @@ replace (
 
 	// TODO consensus-types should be decoupleable.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
@@ -22,7 +19,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
-	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240518161709-f1474c8762fc
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc

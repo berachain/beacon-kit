@@ -13,7 +13,6 @@ replace (
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
