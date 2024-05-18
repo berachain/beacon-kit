@@ -181,7 +181,9 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		dablob.NewProcessor[types.BeaconBlockBody](
+		dablob.NewProcessor[
+			core.AvailabilityStore[types.BeaconBlockBody, *datypes.BlobSidecars],
+			types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),
