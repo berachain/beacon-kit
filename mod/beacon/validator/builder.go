@@ -77,10 +77,10 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 ]) SetBlockStateRoot(
-	_ context.Context, st BeaconStateT, blk types.BeaconBlock,
+	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
 ) error {
 	// Compute the state root for the block.
-	stateRoot, err := s.computeStateRoot(st, blk)
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
 	if err != nil {
 		return err
 	}

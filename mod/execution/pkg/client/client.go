@@ -361,8 +361,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
 
 // ================================ IPC ================================
 
+//
 //nolint:lll // long line length due to struct tags.
-func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Context) {
+func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
+	ctx context.Context,
+) {
 	if s.cfg.RPCDialURL == nil || !s.cfg.RPCDialURL.IsIPC() {
 		s.logger.Error("IPC server not started, invalid IPC URL")
 		return
@@ -370,7 +373,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 	// remove existing socket file if exists
 	// alternatively we can use existing one by checking for os.IsNotExist(err)
 	if _, err := os.Stat(s.cfg.RPCDialURL.Path); err != nil {
-		s.logger.Info("Removing existing IPC file", "path", s.cfg.RPCDialURL.Path)
+		s.logger.Info(
+			"Removing existing IPC file",
+			"path",
+			s.cfg.RPCDialURL.Path,
+		)
 
 		if err = os.Remove(s.cfg.RPCDialURL.Path); err != nil {
 			s.logger.Error("failed to remove existing IPC file", "err", err)
@@ -397,7 +404,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 	// start server in a goroutine
 	go func() {
 		for {
-			// continuously accept incoming connections until context is cancelled
+			// continuously accept incoming connections until context is
+			// cancelled
 			select {
 			case <-ctx.Done():
 				s.logger.Info("shutting down IPC server")
@@ -406,7 +414,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(ctx context.Contex
 				var conn net.Conn
 				conn, err = listener.Accept()
 				if err != nil {
-					s.logger.Error("failed to accept IPC connection", "err", err)
+					s.logger.Error(
+						"failed to accept IPC connection",
+						"err",
+						err,
+					)
 					continue
 				}
 				go server.ServeConn(conn)

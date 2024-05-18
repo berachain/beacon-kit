@@ -76,3 +76,22 @@ type BeaconBlockHeader struct {
 	// 	// BodyRoot is the root of the block body.
 	BodyRoot common.Root `json:"bodyRoot"`
 }
+
+// NewBeaconBlockHeader creates a new BeaconBlockHeader.
+func NewBeaconBlockHeader(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
+	stateRoot common.Root,
+	bodyRoot common.Root,
+) *BeaconBlockHeader {
+	return &BeaconBlockHeader{
+		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
+			Slot:            uint64(slot),
+			ProposerIndex:   uint64(proposerIndex),
+			ParentBlockRoot: parentBlockRoot,
+			StateRoot:       stateRoot,
+		},
+		BodyRoot: bodyRoot,
+	}
+}
