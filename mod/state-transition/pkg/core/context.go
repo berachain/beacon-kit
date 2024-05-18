@@ -43,6 +43,9 @@ type Context interface {
 	// by the execution engine.
 	GetOptimisticEngine() bool
 
+	// WithContext sets the underlying context.
+	WithContext(ctx context.Context) Context
+
 	// Unwrap returns the underlying standard context.
 	Unwrap() context.Context
 }
@@ -76,6 +79,12 @@ func NewContext(
 		SkipPayloadIfExists: skipIfPayloadIfExists,
 		OptimisticEngine:    optimisticEngine,
 	}
+}
+
+// WithContext sets the underlying context.
+func (c *ctx) WithContext(ctx context.Context) Context {
+	c.Context = ctx
+	return c
 }
 
 // GetValidateResult returns whether to validate the result of the state

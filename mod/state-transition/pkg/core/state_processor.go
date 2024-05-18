@@ -91,12 +91,10 @@ func (sp *StateProcessor[
 	// 	return err
 	// }
 
-	var (
-		g, _ = errgroup.WithContext(ctx)
-	)
+	// Create a new errgroup with the provided context.
+	g, gCtx := errgroup.WithContext(ctx)
 
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
+	// Launch a goroutine to process blobs.
 	g.Go(func() error {
 		return sp.ProcessBlobs(
 			st,
@@ -105,11 +103,10 @@ func (sp *StateProcessor[
 		)
 	})
 
-	// We can also parallelize the call to the execution layer.
+	// Launch a goroutine to process the block.
 	g.Go(func() error {
-		// We also want to verify the payload on the block.
 		return sp.ProcessBlock(
-			ctx,
+			ctx.WithContext(gCtx),
 			st,
 			blk,
 		)
