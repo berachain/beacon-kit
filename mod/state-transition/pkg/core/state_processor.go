@@ -97,16 +97,30 @@ func (sp *StateProcessor[
 	//              |                         |
 	//           Yes, it is                No, it isn't
 	//              |                         |
-	//  +-----------+-----------+     +-------+----------------+
-	//  |                       |     |                        |
-	// Process the slot     Is state slot equal to        Return error:
-	//                      the block slot?               "out of sync"
+	//              |                         |
+	//      +-------+-------+                 |
+	//      |               |                 |
+	// Process the slot   Is state slot equal to the block slot?
+	//      |               |                 |
+	//      |           Yes, it is            |
+	//      |               |                 |
+	//      |       Skip slot processing      |
+	//      |               |                 |
+	//      +-------+-------+                 |
+	//              |                         |
+	//              +-----------+-------------+
 	//                          |
-	//              +-----------+-----------+
-	//              |                       |
-	//           Yes, it is                No, it isn't
-	//              |                       |
-	//        Skip slot processing     (This case should not occur)
+	//                    No, it isn't
+	//                          |
+	//                    Return error:
+	//                    "out of sync"
+	//                        "out of sync"       the block slot?
+	//                                                    |
+	//                                +-------------------+---+
+	//                                |                       |
+	//                          Yes, it is                No, it isn't
+	//                                |                       |
+	//                    Skip slot processing     (This case should not occur)
 	//
 	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
 	// behind.
@@ -132,18 +146,18 @@ func (sp *StateProcessor[
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
+	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
 		sp.logger.Error(
 			"failed to process block",
 			"slot", blkSlot,
 			"error", err,
 		)
-	} else {
-		// We only want to persist state changes if we successfully
-		// processed the block.
-		st.Save()
+		return err
 	}
 
+	// We only want to persist state changes if we successfully
+	// processed the block.
+	st.Save()
 	return nil
 }
 
