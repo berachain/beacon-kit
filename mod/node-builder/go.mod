@@ -9,17 +9,6 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240516114011-e03476679912
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-
-	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/da => ../da
-	github.com/berachain/beacon-kit/mod/execution => ../execution
-	github.com/berachain/beacon-kit/mod/payload => ../payload
-	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
-	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
-	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
@@ -34,13 +23,13 @@ require (
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240518161120-134a1180a2ee
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240518161120-134a1180a2ee
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518161120-134a1180a2ee
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240518161120-134a1180a2ee
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
