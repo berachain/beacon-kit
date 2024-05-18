@@ -40,7 +40,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
 	if err := s.stateProcessor.ProcessBlock(
-		core.NewContext(ctx, false, false, false),
+		// TODO: We should think about how having optimistic
+		// engine enabled here would affect the proposer when
+		// the payload in their block has come from a remote builder.
+		core.NewContext(ctx, false, true, false),
 		st, blk,
 	); err != nil {
 		return primitives.Root{}, err
