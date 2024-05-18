@@ -67,7 +67,7 @@ func (s *Service[
 		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		core.NewContext(ctx, true, false, true),
+		core.NewContext(ctx, true, true, true),
 		st,
 		s.bsb.AvailabilityStore(ctx),
 		blk,
