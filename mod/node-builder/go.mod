@@ -32,7 +32,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
@@ -41,7 +41,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518141702-8e558f01aa38
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
 	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
