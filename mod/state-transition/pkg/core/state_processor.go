@@ -252,13 +252,14 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	// Calculate the body root to place on the header.
 	bodyRoot, err := blk.GetBody().HashTreeRoot()
 	if err != nil {
 		return err
 	}
 
 	// Store as the new latest header.
-	return st.SetLatestBlockHeader(
+	if err = st.SetLatestBlockHeader(
 		types.NewBeaconBlockHeader(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
@@ -270,7 +271,20 @@ func (sp *StateProcessor[
 			[32]byte{},
 			bodyRoot,
 		),
-	)
+	); err != nil {
+		return err
+	}
+
+	// Check to make sure the proposer isn't slashed.
+	if proposer, err := st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
+		return err
+	} else if proposer.Slashed {
+		return errors.Newf(
+			"proposer is slashed, index: %d",
+			blk.GetProposerIndex(),
+		)
+	}
+	return nil
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.
