@@ -62,6 +62,11 @@ func (s *Service[
 
 	// Perform the state transition.
 	if err := s.sp.Transition(
+		// We set `OptimisticEngine` to true since this is called during
+		// FinalizeBlock. We want to assume the payload is valid. If it
+		// ends up not being valid later, the node will simply AppHash,
+		// which is completely fine. This means we were syncing from a
+		// bad peer, and we would likely AppHash anyways.
 		core.NewContext(ctx, true, false, true),
 		st,
 		s.bsb.AvailabilityStore(ctx),

@@ -85,7 +85,6 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 	blobs BlobSidecarsT,
 ) error {
-
 	// TODO: Re-enable.
 	// // Process the slot.
 	// if err := sp.ProcessSlot(st); err != nil {
