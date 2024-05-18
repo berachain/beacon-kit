@@ -61,7 +61,7 @@ type BeaconState interface {
 	HashTreeRoot() ([32]byte, error)
 }
 
-type BeaconStorageBackend[BeaconStateT BeaconState] interface {
+type StorageBackend[BeaconStateT BeaconState] interface {
 	StateFromContext(context.Context) BeaconStateT
 }
 

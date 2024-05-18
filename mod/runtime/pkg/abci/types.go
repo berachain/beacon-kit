@@ -57,15 +57,11 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	// ProcessSlot processes the given beacon state for the current slot.
 	ProcessSlot(state.BeaconState) error
 
-	// StateFromContext retrieves the beacon state from the provided context.
-	StateFromContext(context.Context) state.BeaconState
-
 	// ProcessStateTransition processes the given beacon block and associated
 	// blobs
 	// sidecars.
 	ProcessStateTransition(
 		context.Context,
-		state.BeaconState,
 		types.BeaconBlock,
 		BlobsSidecarsT,
 	) error

@@ -56,6 +56,9 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 // the
 // beacon state.
 type ReadOnlyBeaconState[T any] interface {
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -83,7 +86,7 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type BeaconStorageBackend[
+type StorageBackend[
 	BeaconStateT any,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,

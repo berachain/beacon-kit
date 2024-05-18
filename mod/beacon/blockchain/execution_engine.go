@@ -45,11 +45,11 @@ func (s *Service[
 	slot math.Slot,
 	headEth1Hash common.ExecutionHash,
 ) error {
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	eth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
+	eth1BlockHash := lph.GetBlockHash()
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
@@ -86,7 +86,7 @@ func (s *Service[
 	if payload != nil {
 		headHash = payload.GetBlockHash()
 	} else {
-		latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+		lph, err := st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			s.logger.Error(
 				"failed to get latest execution payload in postBlockProcess",
@@ -94,7 +94,7 @@ func (s *Service[
 			)
 			return
 		}
-		headHash = latestExecutionPayloadHeader.GetBlockHash()
+		headHash = lph.GetBlockHash()
 	}
 
 	// If we are the local builder and we are not in init sync

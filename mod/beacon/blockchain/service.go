@@ -40,9 +40,9 @@ type Service[
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
-	// bsb represents the backend storage for beacon states and associated
+	// sb represents the backend storage for beacon states and associated
 	// sidecars.
-	bsb BeaconStorageBackend[
+	sb StorageBackend[
 		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 	]
 
@@ -55,8 +55,8 @@ type Service[
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
 
-	// bdc is a connection to the deposit contract.
-	bdc DepositContract
+	// dc is a connection to the deposit contract.
+	dc DepositContract
 
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[ReadOnlyBeaconStateT]
@@ -77,7 +77,7 @@ func NewService[
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
-	bsb BeaconStorageBackend[
+	sb StorageBackend[
 		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
@@ -88,17 +88,17 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],
-	bdc DepositContract,
+	dc DepositContract,
 ) *Service[ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT] {
 	return &Service[ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT]{
-		bsb:    bsb,
+		sb:     sb,
 		logger: logger,
 		cs:     cs,
 		ee:     ee,
 		lb:     lb,
 		bp:     bp,
 		sp:     sp,
-		bdc:    bdc,
+		dc:     dc,
 	}
 }
 
@@ -136,5 +136,5 @@ func (s Service[
 ]) StateFromContext(
 	ctx context.Context,
 ) ReadOnlyBeaconStateT {
-	return s.bsb.StateFromContext(ctx)
+	return s.sb.StateFromContext(ctx)
 }

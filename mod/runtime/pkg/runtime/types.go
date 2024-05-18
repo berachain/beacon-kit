@@ -39,9 +39,9 @@ type AppOptions interface {
 	Get(string) interface{}
 }
 
-// BeaconStorageBackend is an interface that provides the
+// StorageBackend is an interface that provides the
 // beacon state to the runtime.
-type BeaconStorageBackend[
+type StorageBackend[
 	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT any,

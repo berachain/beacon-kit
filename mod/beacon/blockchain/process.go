@@ -52,7 +52,6 @@ func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ProcessStateTransition(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
 ) error {
@@ -63,6 +62,7 @@ func (s *Service[
 
 	// Create a new errgroup with the provided context.
 	g, gCtx := errgroup.WithContext(ctx)
+	st := s.sb.StateFromContext(ctx)
 
 	// Launch a goroutine to process the state transition.
 	g.Go(func() error {
@@ -85,7 +85,7 @@ func (s *Service[
 	g.Go(func() error {
 		return s.bp.ProcessBlobs(
 			blk.GetSlot(),
-			s.bsb.AvailabilityStore(ctx),
+			s.sb.AvailabilityStore(ctx),
 			sidecars,
 		)
 	})
@@ -97,7 +97,7 @@ func (s *Service[
 	// If the blobs needed to process the block are not available, we
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
-	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(
+	if !s.sb.AvailabilityStore(ctx).IsDataAvailable(
 		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
 		return ErrDataNotAvailable
@@ -136,8 +136,8 @@ func (s *Service[
 		return err
 	}
 
-	var latestExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader
-	latestExecutionPayloadHeader, err = st.GetLatestExecutionPayloadHeader()
+	var lph engineprimitives.ExecutionPayloadHeader
+	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (s *Service[
 	// TODO: eth1FollowDistance should be done actually proper
 	eth1FollowDistance := math.U64(1)
 	if err = s.retrieveDepositsFromBlock(
-		ctx, latestExecutionPayloadHeader.GetNumber()-eth1FollowDistance,
+		ctx, lph.GetNumber()-eth1FollowDistance,
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err

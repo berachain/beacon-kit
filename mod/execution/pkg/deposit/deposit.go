@@ -50,7 +50,7 @@ type NewDepositFn[
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 //
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=bdc.go
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=deposit.abigen.go
 type WrappedBeaconDepositContract[
 	DepositT any,
 	WithdrawalCredentialsT ~[32]byte,
@@ -98,14 +98,14 @@ func NewWrappedBeaconDepositContract[
 }
 
 // GetDeposits gets deposits from the deposit contract.
-func (bdc *WrappedBeaconDepositContract[
+func (dc *WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ]) GetDeposits(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]DepositT, error) {
-	logs, err := bdc.FilterDeposit(
+	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
 			Start:   blkNum,
@@ -118,7 +118,7 @@ func (bdc *WrappedBeaconDepositContract[
 
 	deposits := make([]DepositT, 0)
 	for logs.Next() {
-		deposits = append(deposits, bdc.newDepositFn(
+		deposits = append(deposits, dc.newDepositFn(
 			bytes.ToBytes48(logs.Event.Pubkey),
 			WithdrawalCredentialsT(
 				bytes.ToBytes32(logs.Event.Credentials)),

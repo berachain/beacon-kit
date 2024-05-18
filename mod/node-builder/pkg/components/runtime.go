@@ -58,7 +58,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
-	runtime.BeaconStorageBackend[
+	runtime.StorageBackend[
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -76,7 +76,7 @@ func ProvideRuntime(
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	storageBackend runtime.BeaconStorageBackend[
+	storageBackend runtime.StorageBackend[
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,

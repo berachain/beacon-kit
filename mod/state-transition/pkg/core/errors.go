@@ -31,6 +31,11 @@ var (
 	// ErrBlockSlotTooLow is returned when the block slot is too low.
 	ErrBlockSlotTooLow = errors.New("block slot too low")
 
+	// ErrBeaconStateOutOfSync is returned when the state is either too far
+	// behind
+	// or too far ahead of the head and we must abort the state transition.
+	ErrBeaconStateOutOfSync = errors.New("state is out of sync with head")
+
 	// ErrSlotMismatch is returned when the slot in a block header does not
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
