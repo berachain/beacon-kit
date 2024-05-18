@@ -56,7 +56,6 @@ func (s *Service[
 	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
-
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
@@ -66,7 +65,10 @@ func (s *Service[
 	if body == nil || body.IsNil() {
 		return ErrNilBlkBody
 	}
-	return s.pv.VerifyPayload(st, body.GetExecutionPayload())
+
+	if err := s.pv.VerifyPayload(st, body.GetExecutionPayload()); err != nil {
+		return err
+	}
 
 	var (
 		g, _ = errgroup.WithContext(ctx)
