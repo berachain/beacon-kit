@@ -326,7 +326,8 @@ func (sp *StateProcessor[
 			// state_root is zeroed and overwritten
 			// in the next `process_slot` call.
 			[32]byte{},
-			bodyRoot),
+			bodyRoot,
+		),
 	); err != nil {
 		return err
 	}
