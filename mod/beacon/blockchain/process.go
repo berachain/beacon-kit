@@ -32,7 +32,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessSlot processes the incoming beacon slot.
@@ -44,13 +43,13 @@ func (s *Service[
 	return s.sp.ProcessSlot(st)
 }
 
-// ProcessBeaconBlock receives an incoming beacon block, it first validates
+// ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
 //
 //nolint:funlen // todo cleanup.
 func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessBeaconBlock(
+]) ProcessStateTransition(
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
@@ -61,40 +60,14 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body == nil || body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	var (
-		g, _ = errgroup.WithContext(ctx)
-		err  error
-	)
-
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
-	g.Go(func() error {
-		return s.sp.ProcessBlobs(
-			st,
-			s.bsb.AvailabilityStore(ctx),
-			blobs,
-		)
-	})
-
-	// We can also parallelize the call to the execution layer.
-	g.Go(func() error {
-		// We also want to verify the payload on the block.
-		return s.sp.ProcessBlock(
-			core.NewContext(ctx, true, false, true),
-			st,
-			blk,
-		)
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
+	// Perform the state transition.
+	if err := s.sp.Transition(
+		core.NewContext(ctx, true, false, true),
+		st,
+		s.bsb.AvailabilityStore(ctx),
+		blk,
+		blobs,
+	); err != nil {
 		return err
 	}
 

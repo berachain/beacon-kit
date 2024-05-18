@@ -70,7 +70,7 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	}
 
 	// Processing the incoming beacon block and blobs.
-	if err = h.chainService.ProcessBeaconBlock(
+	if err = h.chainService.ProcessStateTransition(
 		ctx, st, blk, blobSideCars,
 	); err != nil {
 		logger.Warn(

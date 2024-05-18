@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"golang.org/x/sync/errgroup"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -80,19 +81,42 @@ func (sp *StateProcessor[
 ]) Transition(
 	ctx Context,
 	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	blk BeaconBlockT,
+	blobs BlobSidecarsT,
 ) error {
-	// Process the slot.
-	if err := sp.ProcessSlot(st); err != nil {
-		return err
-	}
 
-	// Process the block.
-	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
-		return err
-	}
+	// TODO: Re-enable.
+	// // Process the slot.
+	// if err := sp.ProcessSlot(st); err != nil {
+	// 	return err
+	// }
 
-	return nil
+	var (
+		g, _ = errgroup.WithContext(ctx)
+	)
+
+	// We want to get a headstart on blob processing since it
+	// is a relatively expensive operation.
+	g.Go(func() error {
+		return sp.ProcessBlobs(
+			st,
+			avs,
+			blobs,
+		)
+	})
+
+	// We can also parallelize the call to the execution layer.
+	g.Go(func() error {
+		// We also want to verify the payload on the block.
+		return sp.ProcessBlock(
+			ctx,
+			st,
+			blk,
+		)
+	})
+
+	return g.Wait()
 }
 
 // ProcessSlot is run when a slot is missed.
