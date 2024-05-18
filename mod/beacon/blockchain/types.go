@@ -132,7 +132,6 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[ReadOnlyBeaconStateT any] interface {
-	// RequestPayload requests a new payload for the given slot.
 	RequestPayload(
 		ctx context.Context,
 		st ReadOnlyBeaconStateT,
@@ -189,12 +188,14 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 		st ReadOnlyBeaconStateT,
 	) error
 
-	// ProcessBlobs processes the blobs associated with a beacon block.
-	ProcessBlobs(
+	// Transition processes the state transition for a given block.
+	Transition(
+		ctx core.Context,
 		st ReadOnlyBeaconStateT,
 		avs core.AvailabilityStore[
 			types.BeaconBlockBody, BlobSidecarsT,
 		],
+		blk types.BeaconBlock,
 		blobs BlobSidecarsT,
 	) error
 }
