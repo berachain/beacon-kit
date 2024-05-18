@@ -232,17 +232,12 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
-	var err error
-	if err = sp.processRewardsAndPenalties(st); err != nil {
+	if err := sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	} else if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return err
-	}
-	if err = sp.processRandaoMixesReset(st); err != nil {
-		return err
-	}
-	return nil
+	return sp.processRandaoMixesReset(st)
 }
 
 // processHeader processes the header and ensures it matches the local state.
@@ -252,13 +247,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
+	// Calculate the body root to place on the header.
+	if bodyRoot, err := blk.GetBody().HashTreeRoot(); err != nil {
 		return err
-	}
-
-	// Store as the new latest header.
-	return st.SetLatestBlockHeader(
+	} else if err = st.SetLatestBlockHeader(
 		types.NewBeaconBlockHeader(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
@@ -270,7 +262,19 @@ func (sp *StateProcessor[
 			[32]byte{},
 			bodyRoot,
 		),
-	)
+	); err != nil {
+		return err
+	}
+
+	// Check to make sure the proposer isn't slashed.
+	if proposer, err := st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
+		return err
+	} else if proposer.Slashed {
+		return errors.Wrapf(
+			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
+		)
+	}
+	return nil
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.
