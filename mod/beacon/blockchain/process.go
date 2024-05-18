@@ -80,7 +80,7 @@ func (s *Service[
 	g.Go(func() error {
 		// We also want to verify the payload on the block.
 		return s.sp.ProcessBlock(
-			core.NewContext(ctx, true, true, true),
+			core.NewContext(ctx, true, false, true),
 			st,
 			blk,
 		)
