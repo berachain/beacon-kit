@@ -553,6 +553,7 @@ github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible h1
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8/go.mod h1:U5YBXSbq2odNSTLvtwKlA/2hO25C7Uk7gubbaBVDIn0=
+github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240515154823-9321cabc0e88/go.mod h1:TTwBifkUbBGeJp/hgyzAYJHQO8zMrTOBUeeVPONe5Lk=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.7.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
