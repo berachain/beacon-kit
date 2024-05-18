@@ -59,6 +59,7 @@ type Service[
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[ReadOnlyBeaconStateT]
 
+	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[BlobSidecarsT]
 
 	// sp is the state processor for beacon blocks and states.
