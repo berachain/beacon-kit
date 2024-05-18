@@ -79,7 +79,8 @@ func (sp *StateProcessor[
 
 	if safeHash := latestExecutionPayloadHeader.
 		GetBlockHash(); safeHash != payload.GetParentHash() {
-		return errors.Newf(
+		return errors.Wrapf(
+			ErrParentRootMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,
@@ -102,7 +103,8 @@ func (sp *StateProcessor[
 
 	// Ensure the prev randao matches the local state.
 	if payload.GetPrevRandao() != expectedMix {
-		return errors.Newf(
+		return errors.Wrapf(
+			ErrRandaoMixMismatch,
 			"prev randao does not match, expected: %x, got: %x",
 			expectedMix, payload.GetPrevRandao(),
 		)
@@ -122,8 +124,9 @@ func (sp *StateProcessor[
 	// Verify the number of blobs.
 	blobKzgCommitments := body.GetBlobKzgCommitments()
 	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Newf(
-			"too many blobs, expected: %d, got: %d",
+		return errors.Wrapf(
+			ErrExceedBlockBlobLimit,
+			"expected: %d, got: %d",
 			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
 		)
 	}
@@ -144,6 +147,7 @@ func (sp *StateProcessor[
 	}
 
 	// Verify the number of withdrawals.
+	// TODO: This is in the wrong spot I think.
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
 	) > sp.cs.MaxWithdrawalsPerPayload() {

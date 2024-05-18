@@ -318,7 +318,7 @@ func (sp *StateProcessor[
 		return err
 	} else if proposer.Slashed {
 		return errors.Wrapf(
-			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
+			ErrSlashedProposer, "index: %d", blk.GetProposerIndex(),
 		)
 	}
 	return nil
