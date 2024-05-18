@@ -100,6 +100,8 @@ github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2e
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee/go.mod h1:bPHldhMhe1RJlhWLfD2jcENRI4kJ5ig7XwTeHGnhMoc=
 github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee h1:saH5m7V+rvCg1q+eThG7gu3+YSz7K8XCwDsv7KuyqTs=
 github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee/go.mod h1:gJPEkpdOGy3wXhtmM3FHqinKsF+Rkj8EPYSWLMm9vRE=
+github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240518161120-134a1180a2ee h1:hUb2zIvlxJ8vCOmLeiVFY6hsHpRiG4uxuaoEJxCYGkU=
+github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240518161120-134a1180a2ee/go.mod h1:naCUqbzRlIiuYAq4nU0+plLvlIJyEYp+5IReq89BqrU=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518161120-134a1180a2ee h1:PQLdp5goZnpsB+jC8W258DPXUFCbpdWyORe1em/rVhA=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518161120-134a1180a2ee/go.mod h1:Ntjtug8Nl0cNW8vq8aDDyxvlaY3xQixcMPFQnndxDiE=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88 h1:9aHdEploWitMsojqcgIEsDOzk7hIxIRWcy04Kbuo9r8=

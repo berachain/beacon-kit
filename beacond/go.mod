@@ -10,7 +10,6 @@ replace (
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240516114011-e03476679912
 	github.com/berachain/beacon-kit/mod/node-builder => ../mod/node-builder
-	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
