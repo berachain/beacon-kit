@@ -59,9 +59,6 @@ type Service[
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[ReadOnlyBeaconStateT]
 
-	// bv is responsible for verifying beacon blocks.
-	bv BlockVerifier[ReadOnlyBeaconStateT]
-
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT]
 
@@ -81,7 +78,6 @@ func NewService[
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder[ReadOnlyBeaconStateT],
-	bv BlockVerifier[ReadOnlyBeaconStateT],
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],
 	pv PayloadVerifier[ReadOnlyBeaconStateT],
 	bdc DepositContract,
@@ -92,7 +88,6 @@ func NewService[
 		cs:     cs,
 		ee:     ee,
 		lb:     lb,
-		bv:     bv,
 		sp:     sp,
 		pv:     pv,
 		bdc:    bdc,

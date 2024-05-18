@@ -56,36 +56,24 @@ func (s *Service[
 	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
-	var (
-		g, _ = errgroup.WithContext(ctx)
-		err  error
-	)
-
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
 	}
 
-	// Validate payload in Parallel.
-	g.Go(func() error {
-		body := blk.GetBody()
-		if body == nil || body.IsNil() {
-			return ErrNilBlkBody
-		}
-		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
-	})
+	body := blk.GetBody()
+	if body == nil || body.IsNil() {
+		return ErrNilBlkBody
+	}
 
-	// Validate block in Parallel.
-	g.Go(func() error {
-		return s.bv.ValidateBlock(st, blk)
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
+	if err := s.pv.VerifyPayload(st, body.GetExecutionPayload()); err != nil {
 		return err
 	}
+
+	var (
+		g, _ = errgroup.WithContext(ctx)
+		err  error
+	)
 
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
@@ -96,8 +84,6 @@ func (s *Service[
 			blobs,
 		)
 	})
-
-	body := blk.GetBody()
 
 	// We can also parallelize the call to the execution layer.
 	g.Go(func() error {
@@ -197,18 +183,6 @@ func (s *Service[
 	}
 
 	return nil
-}
-
-// ValidateBlock validates the incoming beacon block.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ValidateBlock(
-	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-) error {
-	return s.bv.ValidateBlock(
-		s.bsb.StateFromContext(ctx), blk,
-	)
 }
 
 // VerifyPayload validates the execution payload on the block.
