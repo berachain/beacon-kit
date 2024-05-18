@@ -40,11 +40,12 @@ var (
 	// limit.
 	ErrExceedBlockBlobLimit = errors.New("block exceeds blob limit")
 
-	// ErrSlashedProposer is returned when the proposer of a block is slashed.
+	// ErrSlashedProposer is returned when a block is processed in which
+	// the proposer is slashed.
 	ErrSlashedProposer = errors.New(
 		"attempted to process a block with a slashed proposer")
 
 	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
+	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
 )
