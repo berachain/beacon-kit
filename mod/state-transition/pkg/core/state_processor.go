@@ -49,8 +49,6 @@ type StateProcessor[
 	signer          crypto.BLSSigner
 	logger          log.Logger[any]
 	executionEngine ExecutionEngine
-	// DepositProcessor
-	// WithdrawalProcessor
 }
 
 // NewStateProcessor creates a new state processor.
