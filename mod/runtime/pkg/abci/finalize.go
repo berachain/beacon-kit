@@ -38,8 +38,6 @@ import (
 func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
-	logger := ctx.Logger().With("module", "pre-block")
-
 	// Extract the beacon block from the ABCI request.
 	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		req,
@@ -61,29 +59,6 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 		return err
 	}
 
-	st := h.chainService.StateFromContext(ctx)
-
-	// Process the Slot.
-	if err = h.chainService.ProcessSlot(st); err != nil {
-		logger.Error("failed to process slot", "error", err)
-		return err
-	}
-
 	// Processing the incoming beacon block and blobs.
-	if err = h.chainService.ProcessStateTransition(
-		ctx, st, blk, blobSideCars,
-	); err != nil {
-		logger.Warn(
-			"failed to receive beacon block",
-			"error",
-			err,
-		)
-		// TODO: Emit Evidence so that the validator can be slashed.
-	} else {
-		// We only want to persist state changes if we successfully
-		// processed the block.
-		st.Save()
-	}
-
-	return nil
+	return h.chainService.ProcessStateTransition(ctx, blk, blobSideCars)
 }

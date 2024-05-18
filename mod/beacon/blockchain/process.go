@@ -52,7 +52,6 @@ func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 ]) ProcessStateTransition(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
 ) error {
@@ -63,6 +62,7 @@ func (s *Service[
 
 	// Create a new errgroup with the provided context.
 	g, gCtx := errgroup.WithContext(ctx)
+	st := s.sb.StateFromContext(ctx)
 
 	// Launch a goroutine to process the state transition.
 	g.Go(func() error {
