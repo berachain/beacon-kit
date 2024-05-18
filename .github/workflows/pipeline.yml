@@ -73,8 +73,7 @@ jobs:
     steps:
       - name: Configure git to use env.DEV_PAT
         run: |
-          git config --global url."https://${DEV_PAT}@github.com/berachain".insteadOf "https://github.com/berachain"     
-          git config --global url."git@github.com:".insteadOf "https://github.com/"     
+          git config --global url."https://${DEV_PAT}@github.com/berachain".insteadOf "https://github.com/berachain"
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
