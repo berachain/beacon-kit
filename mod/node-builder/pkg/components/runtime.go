@@ -189,7 +189,6 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		verification.NewBlockVerifier[state.BeaconState](chainSpec),
 		stateProcessor,
 		verification.NewPayloadVerifier(chainSpec, logger),
 		beaconDepositContract,

@@ -75,11 +75,6 @@ func (s *Service[
 		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
 	})
 
-	// Validate block in Parallel.
-	g.Go(func() error {
-		return s.bv.ValidateBlock(st, blk)
-	})
-
 	// Wait for the errgroup to finish, the error will be non-nil if any
 	// of the goroutines returned an error.
 	if err = g.Wait(); err != nil {
@@ -197,18 +192,6 @@ func (s *Service[
 	}
 
 	return nil
-}
-
-// ValidateBlock validates the incoming beacon block.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ValidateBlock(
-	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-) error {
-	return s.bv.ValidateBlock(
-		s.bsb.StateFromContext(ctx), blk,
-	)
 }
 
 // VerifyPayload validates the execution payload on the block.

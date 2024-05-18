@@ -91,14 +91,6 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// BlockVerifier is the interface for the block verifier.
-type BlockVerifier[ReadOnlyBeaconStateT any] interface {
-	ValidateBlock(
-		st ReadOnlyBeaconStateT,
-		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-	) error
-}
-
 // DepositContract is the ABI for the deposit contract.
 type DepositContract interface {
 	GetDeposits(
