@@ -11,11 +11,11 @@ replace (
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.1
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
