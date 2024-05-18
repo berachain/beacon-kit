@@ -163,7 +163,8 @@ func (s *Service[
 			blk.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
-			// We do not want to optimistically assume truth here.
+			// We do not want to optimistically assume truth here, since
+			// this is being called in process proposal.
 			false,
 		),
 	); err != nil {
