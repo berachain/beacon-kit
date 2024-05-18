@@ -30,12 +30,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // Processor is the blob processor.
 type Processor[
-	AvailabilityStoreT core.AvailabilityStore[BeaconBlockBodyT, *types.BlobSidecars],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, *types.BlobSidecars,
+	],
 	BeaconBlockBodyT any,
 ] struct {
 	logger    log.Logger[any]
@@ -48,7 +49,9 @@ type Processor[
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT core.AvailabilityStore[BeaconBlockBodyT, *types.BlobSidecars],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, *types.BlobSidecars,
+	],
 	BeaconBlockBodyT any,
 ](
 	logger log.Logger[any],
