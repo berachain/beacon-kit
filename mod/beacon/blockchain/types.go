@@ -85,6 +85,7 @@ type BeaconStorageBackend[
 
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[BlobSidecarsT any] interface {
+	// ProcessBlobs processes the blobs and ensures they match the local state.
 	ProcessBlobs(
 		slot math.Slot,
 		avs core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
@@ -184,14 +185,6 @@ type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
-	// ProcessBlock processes a given beacon block and updates the state
-	// accordingly.
-	ProcessBlock(
-		ctx core.Context,
-		st ReadOnlyBeaconStateT,
-		blk types.BeaconBlock,
-	) error
-
 	// ProcessSlot processes the state transition for a single slot.
 	ProcessSlot(
 		st ReadOnlyBeaconStateT,

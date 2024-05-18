@@ -78,9 +78,7 @@ func (sp *StateProcessor[
 ]) Transition(
 	ctx Context,
 	st BeaconStateT,
-	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	blk BeaconBlockT,
-	blobs BlobSidecarsT,
 ) error {
 	// TODO: Re-enable.
 	// // Process the slot.
