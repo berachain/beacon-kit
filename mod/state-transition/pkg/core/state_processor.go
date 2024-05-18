@@ -181,7 +181,7 @@ func (sp *StateProcessor[
 
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
-		st, body,
+		ctx, st, body,
 	); err != nil {
 		return err
 	}
