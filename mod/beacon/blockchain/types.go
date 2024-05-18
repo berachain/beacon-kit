@@ -186,7 +186,7 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 	Transition(
 		ctx core.Context,
 		st ReadOnlyBeaconStateT,
-		availabilityStore core.AvailabilityStore[
+		avs core.AvailabilityStore[
 			types.BeaconBlockBody, BlobSidecarsT,
 		],
 		blk types.BeaconBlock,
