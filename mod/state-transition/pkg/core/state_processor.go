@@ -94,7 +94,7 @@ func (sp *StateProcessor[
 	// Create a new errgroup with the provided context.
 	g, gCtx := errgroup.WithContext(ctx)
 
-	// Launch a goroutine to process blobs.
+	// Launch a goroutine to process the blobs.
 	g.Go(func() error {
 		return sp.ProcessBlobs(
 			st,
