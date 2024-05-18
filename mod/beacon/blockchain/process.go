@@ -56,15 +56,20 @@ func (s *Service[
 	blk types.BeaconBlock,
 	blobs BlobSidecarsT,
 ) error {
-	var (
-		g, _ = errgroup.WithContext(ctx)
-		err  error
-	)
-
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
 	}
+
+	body := blk.GetBody()
+	if body == nil || body.IsNil() {
+		return ErrNilBlkBody
+	}
+
+	var (
+		g, _ = errgroup.WithContext(ctx)
+		err  error
+	)
 
 	// We want to get a headstart on blob processing since it
 	// is a relatively expensive operation.
