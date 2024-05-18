@@ -26,7 +26,6 @@
 package blob
 
 import (
-	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -41,6 +40,9 @@ type Processor[
 	logger    log.Logger[any]
 	chainSpec primitives.ChainSpec
 	bv        *Verifier
+
+	// TODO: This is hood as fuck.
+	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
 }
 
 // NewProcessor creates a new blob processor.
@@ -50,11 +52,13 @@ func NewProcessor[
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	bv *Verifier,
+	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
 ) *Processor[BeaconBlockBodyT] {
 	return &Processor[BeaconBlockBodyT]{
-		logger:    logger,
-		chainSpec: chainSpec,
-		bv:        bv,
+		logger:            logger,
+		chainSpec:         chainSpec,
+		bv:                bv,
+		blockBodyOffsetFn: blockBodyOffsetFn,
 	}
 }
 
@@ -78,7 +82,7 @@ func (sp *Processor[BeaconBlockBodyT]) ProcessBlobs(
 	// Otherwise, we run the verification checks on the blobs.
 	if err := sp.bv.VerifyBlobs(
 		sidecars,
-		ctypes.BlockBodyKZGOffset(slot, sp.chainSpec),
+		sp.blockBodyOffsetFn(slot, sp.chainSpec),
 	); err != nil {
 		return err
 	}

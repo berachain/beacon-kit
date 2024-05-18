@@ -185,6 +185,7 @@ func ProvideRuntime(
 			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),
+			types.BlockBodyKZGOffset,
 		),
 		stateProcessor,
 		beaconDepositContract,
