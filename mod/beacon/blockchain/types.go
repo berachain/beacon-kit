@@ -91,14 +91,6 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// BlockVerifier is the interface for the block verifier.
-type BlockVerifier[ReadOnlyBeaconStateT any] interface {
-	ValidateBlock(
-		st ReadOnlyBeaconStateT,
-		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-	) error
-}
-
 // DepositContract is the ABI for the deposit contract.
 type DepositContract interface {
 	GetDeposits(
@@ -107,9 +99,13 @@ type DepositContract interface {
 	) ([]*types.Deposit, error)
 }
 
+// DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
+	// PruneToIndex prunes the deposit store up to the specified index.
+	PruneToIndex(index uint64) error
+
+	// EnqueueDeposits adds a list of deposits to the deposit store.
+	EnqueueDeposits(deposits []*types.Deposit) error
 }
 
 type ExecutionEngine interface {
