@@ -181,8 +181,6 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	body := blk.GetBody()
-
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
 		ctx, st, blk,
@@ -192,7 +190,7 @@ func (sp *StateProcessor[
 
 	// process the withdrawals.
 	if err := sp.processWithdrawals(
-		st, body.GetExecutionPayload(),
+		st, blk.GetBody().GetExecutionPayload(),
 	); err != nil {
 		return err
 	}
@@ -210,7 +208,7 @@ func (sp *StateProcessor[
 	// TODO: LOOK HERE
 	//
 	// process the deposits and ensure they match the local state.
-	if err := sp.processOperations(st, body); err != nil {
+	if err := sp.processOperations(st, blk); err != nil {
 		return err
 	}
 

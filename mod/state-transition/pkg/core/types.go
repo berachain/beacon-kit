@@ -56,6 +56,7 @@ type BlobProcessor[BlobSidecarsT any] interface {
 	) error
 }
 
+// ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
