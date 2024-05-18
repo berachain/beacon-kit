@@ -9,9 +9,6 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240516114011-e03476679912
-
-	// TODO: Fix this replace once p2p/go.mod issue fixed
-	github.com/berachain/beacon-kit/mod/p2p => ../mod/p2p
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
@@ -64,7 +61,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518161120-134a1180a2ee // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240518161120-134a1180a2ee // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240518161709-f1474c8762fc // indirect
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240518161120-134a1180a2ee // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240518161120-134a1180a2ee // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240518161120-134a1180a2ee // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
