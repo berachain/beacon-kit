@@ -41,11 +41,11 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processOperations(
 	st BeaconStateT,
-	body types.BeaconBlockBody,
+	blk BeaconBlockT,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
 	// of deposits.
-	deposits := body.GetDeposits()
+	deposits := blk.GetBody().GetDeposits()
 	index, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err

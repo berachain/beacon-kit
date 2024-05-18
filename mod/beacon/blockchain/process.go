@@ -152,8 +152,19 @@ func (s *Service[
 		go s.sendPostBlockFCU(ctx, st, blk)
 	}()
 
+	//
+	//
+	//
+	//
+	//
 	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
 	//  MAIN BLOCK PROCESSING THREAD.
+	//
+	//
+	//
+	//
+	//
+	//
 
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
