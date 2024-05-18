@@ -45,7 +45,6 @@ type StateProcessor[
 	BlobSidecarsT interface{ Len() int },
 ] struct {
 	cs              primitives.ChainSpec
-	bp              BlobProcessor[BlobSidecarsT]
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
 	signer          crypto.BLSSigner
 	logger          log.Logger[any]
@@ -59,7 +58,6 @@ func NewStateProcessor[
 	BlobSidecarsT interface{ Len() int },
 ](
 	cs primitives.ChainSpec,
-	bp BlobProcessor[BlobSidecarsT],
 	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
 	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
@@ -67,7 +65,6 @@ func NewStateProcessor[
 ) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
 		cs:              cs,
-		bp:              bp,
 		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
@@ -81,9 +78,7 @@ func (sp *StateProcessor[
 ]) Transition(
 	ctx Context,
 	st BeaconStateT,
-	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	blk BeaconBlockT,
-	blobs BlobSidecarsT,
 ) error {
 	// TODO: Re-enable.
 	// // Process the slot.
@@ -96,15 +91,6 @@ func (sp *StateProcessor[
 
 	// We attach the group context to the core.Context.
 	ctx = ctx.WithContext(gCtx)
-
-	// Launch a goroutine to process the blobs.
-	g.Go(func() error {
-		return sp.ProcessBlobs(
-			st,
-			avs,
-			blobs,
-		)
-	})
 
 	// Launch a goroutine to process the block.
 	g.Go(func() error {

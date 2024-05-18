@@ -47,15 +47,6 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// BlobVerifier is the interface for the blobs processor.
-type BlobProcessor[BlobSidecarsT any] interface {
-	ProcessBlobs(
-		slot math.Slot,
-		avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
