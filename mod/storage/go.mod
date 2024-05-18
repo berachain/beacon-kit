@@ -7,9 +7,6 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240516114011-e03476679912
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240516114011-e03476679912
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240516114011-e03476679912
-
-	// TODO consensus-types should be decoupleable.
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240516163857-5c61dbd65a25
 )
 
@@ -17,7 +14,7 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240516114011-e03476679912
 	cosmossdk.io/log v1.3.1
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240518161709-f1474c8762fc
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
