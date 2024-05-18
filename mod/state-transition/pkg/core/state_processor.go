@@ -315,28 +315,25 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// TODO: this function is really confusing, can probably just
-	// be removed and the logic put in the ProcessBlock function.
-	header := blk.GetHeader()
-	if header == nil {
-		return ErrNilBlockHeader
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
 	}
 
-	// Store as the new latest block
-	headerRaw := &types.BeaconBlockHeader{
-		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            header.Slot,
-			ProposerIndex:   header.ProposerIndex,
-			ParentBlockRoot: header.ParentBlockRoot,
+	// Store as the new latest header.
+	return st.SetLatestBlockHeader(
+		types.NewBeaconBlockHeader(
+			blk.GetSlot(),
+			blk.GetProposerIndex(),
+			blk.GetParentBlockRoot(),
 			// state_root is zeroed and overwritten in the next `process_slot`
 			// call.
 			// with BlockHeaderState.UpdateStateRoot(), once the post state is
 			// available.
-			StateRoot: [32]byte{},
-		},
-		BodyRoot: header.BodyRoot,
-	}
-	return st.SetLatestBlockHeader(headerRaw)
+			[32]byte{},
+			bodyRoot,
+		),
+	)
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.
