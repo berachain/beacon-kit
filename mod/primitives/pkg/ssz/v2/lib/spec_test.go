@@ -353,6 +353,12 @@ func TestParityUint64(t *testing.T) {
 	res = ssz.MarshalUint64(res, testU64)
 	debugPrint(debug, t, "FastSSZ Output:", res)
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+
+	// test deserialization
+	d := sszv2.Deserializer{}
+	elem := reflect.New(reflect.TypeOf(testU64))
+	iface, err := d.UnmarshalSSZ(elem.Interface(), o2)
+	require.Equal(t, testU64, iface, "local output and fastssz output doesnt match")
 }
 
 func BenchmarkNativeUint64(b *testing.B) {
@@ -394,6 +400,12 @@ func TestParityByteArray(t *testing.T) {
 	debugPrint(debug, t, "FastSSZ Output:", res)
 
 	require.Equal(t, exp, res, "local output and fastssz output doesnt match")
+
+	// test deserialization
+	d := sszv2.Deserializer{}
+	elem := reflect.New(reflect.TypeOf(testByteArr))
+	iface, err := d.UnmarshalSSZ(elem.Interface(), res)
+	require.Equal(t, testByteArr, iface, defaultErrMsg)
 }
 
 func BenchmarkNativeByteArray(b *testing.B) {
@@ -506,4 +518,10 @@ func TestParityU64Array(t *testing.T) {
 		slashings,
 		"local output and fastssz output doesnt match",
 	)
+
+	// Test deserialization
+	d := sszv2.Deserializer{}
+	elem := reflect.New(reflect.TypeOf(slashings))
+	iface, err := d.UnmarshalSSZ(elem.Interface(), exp)
+	require.Equal(t, slashings, iface, defaultErrMsg)
 }

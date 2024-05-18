@@ -163,17 +163,17 @@ func (s *Serializer) MarshalToDefaultBuffer(
 ) ([]byte, error) {
 	aLen := 0
 	err := errors.New("MarshalToDefaultBuffer Failure")
-	switch {
-	case IsStruct(typ, val):
-		aLen, err = CalculateBufferSizeForStruct(val)
-		if err != nil {
-			return nil, err
-		}
-	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
-		aLen = GetNestedArrayLength(val)
-	default:
-		aLen = val.Len()
-	}
+	// switch {
+	// case IsStruct(typ, val):
+	// 	aLen, err = CalculateBufferSizeForStruct(val)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
+	// 	aLen = GetNestedArrayLength(val)
+	// default:
+	// 	aLen = val.Len()
+	// }
 	buf := make([]byte, aLen)
 	_, err = cb(val, typ, &buf, 0)
 	return buf, err
@@ -230,6 +230,9 @@ func (s *Serializer) MarshalByteArray(
 	startOffset uint64,
 ) (uint64, error) {
 	bufLocal := *buf
+	if len(bufLocal) < val.Len() {
+		bufLocal = make([]byte, val.Len())
+	}
 	if val.Kind() == reflect.Array {
 		for i := range val.Len() {
 			//#nosec:G701 // int overflow should be caught earlier in the stack.
