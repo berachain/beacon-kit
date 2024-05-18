@@ -50,8 +50,8 @@ type Context interface {
 	Unwrap() context.Context
 }
 
-// Context is the context for the state transition.
-type ctx struct {
+// stateTransitionContext is the context for the state transition.
+type stateTransitionContext struct {
 	context.Context
 
 	// ValidateResult indicates whether to validate the result of
@@ -73,7 +73,7 @@ func NewContext(
 	stdctx context.Context,
 	validateResult, skipIfPayloadIfExists, optimisticEngine bool,
 ) Context {
-	return &ctx{
+	return &stateTransitionContext{
 		Context:             stdctx,
 		ValidateResult:      validateResult,
 		SkipPayloadIfExists: skipIfPayloadIfExists,
@@ -82,31 +82,31 @@ func NewContext(
 }
 
 // WithContext sets the underlying context.
-func (c *ctx) WithContext(ctx context.Context) Context {
+func (c *stateTransitionContext) WithContext(ctx context.Context) Context {
 	c.Context = ctx
 	return c
 }
 
 // GetValidateResult returns whether to validate the result of the state
 // transition.
-func (c *ctx) GetValidateResult() bool {
+func (c *stateTransitionContext) GetValidateResult() bool {
 	return c.ValidateResult
 }
 
 // GetSkipPayloadIfExists returns whether to skip verifying the payload if it
 // already exists on the execution client.
-func (c *ctx) GetSkipPayloadIfExists() bool {
+func (c *stateTransitionContext) GetSkipPayloadIfExists() bool {
 	return c.SkipPayloadIfExists
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
 // client has the correct state when certain errors are returned by the
 // execution engine.
-func (c *ctx) GetOptimisticEngine() bool {
+func (c *stateTransitionContext) GetOptimisticEngine() bool {
 	return c.OptimisticEngine
 }
 
 // Unwrap returns the underlying standard context.
-func (c *ctx) Unwrap() context.Context {
+func (c *stateTransitionContext) Unwrap() context.Context {
 	return c.Context
 }

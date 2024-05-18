@@ -92,7 +92,10 @@ func (sp *StateProcessor[
 	// }
 
 	// Create a new errgroup with the provided context.
-	g, gCtx := errgroup.WithContext(ctx)
+	g, gCtx := errgroup.WithContext(ctx.Unwrap())
+
+	// We attach the group context to the core.Context.
+	ctx = ctx.WithContext(gCtx)
 
 	// Launch a goroutine to process the blobs.
 	g.Go(func() error {
@@ -106,7 +109,7 @@ func (sp *StateProcessor[
 	// Launch a goroutine to process the block.
 	g.Go(func() error {
 		return sp.ProcessBlock(
-			ctx.WithContext(gCtx),
+			ctx,
 			st,
 			blk,
 		)
