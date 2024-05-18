@@ -115,20 +115,12 @@ func (s *Serializer) MarshalSSZ(c interface{}) ([]byte, error) {
 			return s.MarshalNDimensionalArray(val)
 		}
 		fallthrough
-	case reflect.Ptr:
+	case reflect.Ptr, reflect.Struct:
 		// Composite structs appear initially as pointers so we Look inside
-		if typ.Elem().Kind() == reflect.Struct {
+		if k == reflect.Struct || typ.Elem().Kind() == reflect.Struct {
 			return s.MarshalToDefaultBuffer(val, typ, s.MarshalStruct)
 		}
 		fallthrough
-	case reflect.Struct:
-		return make(
-				[]byte,
-				0,
-			), errors.Newf(
-				"kind %v is not serializable. Pass Structs as a Ptr",
-				k,
-			)
 	default:
 		return make(
 				[]byte,
@@ -172,7 +164,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	aLen := 0
 	err := errors.New("MarshalToDefaultBuffer Failure")
 	switch {
-	case val.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct:
+	case IsStruct(typ, val):
 		aLen, err = CalculateBufferSizeForStruct(val)
 		if err != nil {
 			return nil, err

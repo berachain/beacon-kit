@@ -83,7 +83,6 @@ func (sp *StateProcessor[
 	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	/*validateSignature bool, */
 ) error {
 	// Process the slot.
 	if err := sp.ProcessSlot(st); err != nil {
