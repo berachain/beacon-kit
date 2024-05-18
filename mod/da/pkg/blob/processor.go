@@ -23,47 +23,62 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package da
+package blob
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-// BlobProcessor is the blob processor.
-type BlobProcessor[
+// Processor is the blob processor that handles the processing and verification
+// of blob sidecars.
+type Processor[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, *types.BlobSidecars,
+	],
 	BeaconBlockBodyT any,
-	BlobSidecarsT interface{ Len() int },
 ] struct {
-	logger    log.Logger[any]
+	// logger is used to log information and errors.
+	logger log.Logger[any]
+
+	// chainSpec defines the specifications of the blockchain.
 	chainSpec primitives.ChainSpec
-	bv        BlobVerifier[BlobSidecarsT]
+
+	// verifier is responsible for verifying the blobs.
+	verifier *Verifier
+
+	// blockBodyOffsetFn is a function that calculates the block body offset
+	// based on the slot and chain specifications.
+	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
 }
 
-// NewBlobProcessor creates a new blob processor.
-func NewBlobProcessor[
-	BeaconBlockBodyT any, BlobSidecarsT interface{ Len() int },
+// NewProcessor creates a new blob processor.
+func NewProcessor[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, *types.BlobSidecars,
+	],
+	BeaconBlockBodyT any,
 ](
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bv BlobVerifier[BlobSidecarsT],
-) *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT] {
-	return &BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]{
-		logger:    logger,
-		chainSpec: chainSpec,
-		bv:        bv,
+	verifier *Verifier,
+	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
+) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
+	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
+		logger:            logger,
+		chainSpec:         chainSpec,
+		verifier:          verifier,
+		blockBodyOffsetFn: blockBodyOffsetFn,
 	}
 }
 
 // ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]) ProcessBlobs(
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	slot math.Slot,
-	// TODO: decouple from core.
-	avs core.AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	sidecars BlobSidecarsT,
+	avs AvailabilityStoreT,
+	sidecars *types.BlobSidecars,
 ) error {
 	// If there are no blobs to verify, return early.
 	numSidecars := sidecars.Len()
@@ -77,9 +92,9 @@ func (sp *BlobProcessor[BeaconBlockBodyT, BlobSidecarsT]) ProcessBlobs(
 	}
 
 	// Otherwise, we run the verification checks on the blobs.
-	if err := sp.bv.VerifyBlobs(
+	if err := sp.verifier.VerifyBlobs(
 		sidecars,
-		types.BlockBodyKZGOffset(slot, sp.chainSpec),
+		sp.blockBodyOffsetFn(slot, sp.chainSpec),
 	); err != nil {
 		return err
 	}

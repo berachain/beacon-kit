@@ -42,7 +42,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processExecutionPayload(
-	_ Context,
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -129,6 +129,21 @@ func (sp *StateProcessor[
 			"expected: %d, got: %d",
 			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
 		)
+	}
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+		ctx.Unwrap(), engineprimitives.BuildNewPayloadRequest(
+			payload,
+			blobKzgCommitments.ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			ctx.GetSkipPayloadIfExists(),
+			ctx.GetOptimisticEngine(),
+		),
+	); err != nil {
+		sp.logger.
+			Error("failed to notify engine of new payload", "error", err)
+		return err
 	}
 
 	// Verify the number of withdrawals.

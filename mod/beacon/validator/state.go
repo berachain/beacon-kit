@@ -43,7 +43,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
-		core.NewContext(ctx, false, true, false),
+		core.NewContext(ctx, false, true, true),
 		st, blk,
 	); err != nil {
 		return primitives.Root{}, err
