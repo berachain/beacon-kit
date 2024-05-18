@@ -70,9 +70,8 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	}
 
 	// Processing the incoming beacon block and blobs.
-	stCopy := st.Copy()
 	if err = h.chainService.ProcessBeaconBlock(
-		ctx, stCopy, blk, blobSideCars,
+		ctx, st, blk, blobSideCars,
 	); err != nil {
 		logger.Warn(
 			"failed to receive beacon block",
@@ -83,9 +82,8 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	} else {
 		// We only want to persist state changes if we successfully
 		// processed the block.
-		stCopy.Save()
+		st.Save()
 	}
 
-	// Process the finalization of the beacon block.
-	return h.chainService.PostBlockProcess(ctx, st, blk)
+	return nil
 }

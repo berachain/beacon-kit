@@ -78,10 +78,9 @@ func NewStateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) Transition(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	/*validateSignature bool, */
-	validateResult bool,
 ) error {
 	// Process the slot.
 	if err := sp.ProcessSlot(st); err != nil {
@@ -89,19 +88,8 @@ func (sp *StateProcessor[
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(st, blk); err != nil {
+	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
 		return err
-	}
-
-	if validateResult {
-		stateRoot, err := st.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
-		if stateRoot != blk.GetStateRoot() {
-			return ErrStateRootMismatch
-		}
 	}
 
 	return nil
@@ -167,7 +155,7 @@ func (sp *StateProcessor[
 			return err
 		}
 		sp.logger.Info(
-			"processed epoch transition ⏰ ",
+			"processed epoch transition 🔃",
 			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
 			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
 		)
@@ -180,6 +168,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -188,8 +177,16 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// process the withdrawals.
 	body := blk.GetBody()
+
+	// process the execution payload.
+	if err := sp.processExecutionPayload(
+		st, body,
+	); err != nil {
+		return err
+	}
+
+	// process the withdrawals.
 	if err := sp.processWithdrawals(
 		st, body.GetExecutionPayload(),
 	); err != nil {
@@ -213,8 +210,19 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// ProcessVoluntaryExits
-
+	if ctx.GetValidateResult() {
+		// Ensure the state root matches the block.
+		//
+		// TODO: We need to validate this in ProcessProposal as well.
+		if stateRoot, err := st.HashTreeRoot(); err != nil {
+			return err
+		} else if blk.GetStateRoot() != stateRoot {
+			return errors.Wrapf(
+				ErrStateRootMismatch, "expected %s, got %s",
+				primitives.Root(stateRoot), blk.GetStateRoot(),
+			)
+		}
+	}
 	return nil
 }
 
@@ -244,28 +252,25 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// TODO: this function is really confusing, can probably just
-	// be removed and the logic put in the ProcessBlock function.
-	header := blk.GetHeader()
-	if header == nil {
-		return ErrNilBlockHeader
+	bodyRoot, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
 	}
 
-	// Store as the new latest block
-	headerRaw := &types.BeaconBlockHeader{
-		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            header.Slot,
-			ProposerIndex:   header.ProposerIndex,
-			ParentBlockRoot: header.ParentBlockRoot,
+	// Store as the new latest header.
+	return st.SetLatestBlockHeader(
+		types.NewBeaconBlockHeader(
+			blk.GetSlot(),
+			blk.GetProposerIndex(),
+			blk.GetParentBlockRoot(),
 			// state_root is zeroed and overwritten in the next `process_slot`
 			// call.
 			// with BlockHeaderState.UpdateStateRoot(), once the post state is
 			// available.
-			StateRoot: [32]byte{},
-		},
-		BodyRoot: header.BodyRoot,
-	}
-	return st.SetLatestBlockHeader(headerRaw)
+			[32]byte{},
+			bodyRoot,
+		),
+	)
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.

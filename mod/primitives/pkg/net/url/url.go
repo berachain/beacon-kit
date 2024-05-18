@@ -23,16 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package url
 
-const (
-	// MetricReceivedInvalidPayload is used to count the number of times an
-	// invalid payload is received.
-	MetricReceivedInvalidPayload = "beaconkit.blockchain.received_invalid_payload"
+import "net/url"
 
-	// MetricFailedToRequestPayload is used to count the number of times the
-	// local builder fails to build a payload when triggered via
-	// the chain service.
-	//nolint:lll
-	MetricFailedToRequestPayload = "beaconkit.blockchain.failed_to_build_local_payload"
-)
+// ConnectionURL is a URL struct that is used to dial the execution client.
+type ConnectionURL struct {
+	*url.URL
+}
+
+// NewDialURL creates a new DialURL.
+func NewDialURL(u *url.URL) *ConnectionURL {
+	return &ConnectionURL{u}
+}
+
+func NewFromRaw(raw string) (*ConnectionURL, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	return NewDialURL(u), nil
+}
+
+// IsHTTP checks if the DialURL scheme is HTTP.
+func (d *ConnectionURL) IsHTTP() bool {
+	return d.Scheme == "http"
+}
+
+// IsHTTPS checks if the DialURL scheme is HTTPS.
+func (d *ConnectionURL) IsHTTPS() bool {
+	return d.Scheme == "https"
+}
+
+// IsIPC checks if the DialURL scheme is IPC.
+func (d *ConnectionURL) IsIPC() bool {
+	return d.Scheme == "ipc"
+}

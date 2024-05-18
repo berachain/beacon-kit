@@ -45,7 +45,7 @@ func AssignRoutes(e *echo.Echo, handler Handlers) {
 	assignConfigRoutes(e, handler)
 	assignDebugRoutes(e, handler)
 	assignEventsRoutes(e, handler)
-	aasignNodeRoutes(e, handler)
+	assignNodeRoutes(e, handler)
 	assignValidatorRoutes(e, handler)
 	assignRewardsRoutes(e, handler)
 }
@@ -165,7 +165,7 @@ func assignEventsRoutes(e *echo.Echo, h Handlers) {
 		h.NotImplemented)
 }
 
-func aasignNodeRoutes(e *echo.Echo, h Handlers) {
+func assignNodeRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/node/identity",
 		h.NotImplemented)
 	e.GET("/eth/v1/node/peers",

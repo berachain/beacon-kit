@@ -61,8 +61,6 @@ type BlobSidecars interface {
 	Len() int
 }
 
-type Config interface{}
-
 // DepositStore is an interface that provides the
 // expected deposits to the runtime.
 type DepositStore interface {

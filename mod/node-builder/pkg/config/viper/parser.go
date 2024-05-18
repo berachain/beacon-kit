@@ -30,6 +30,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	beaconurl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -55,6 +56,12 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 			return url, nil
 		},
 	)
+}
+
+// StringToDialURLFunc returns a DecodeHookFunc that converts
+// string to *url.URL by parsing the string.
+func StringToConnectionURLFunc() mapstructure.DecodeHookFunc {
+	return StringTo(beaconurl.NewFromRaw)
 }
 
 // StringTo is a helper function for creating DecodeHookFuncs that convert

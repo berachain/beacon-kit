@@ -23,29 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verification
+package components
 
-import "github.com/berachain/beacon-kit/mod/errors"
-
-var (
-	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
-	ErrStateRootMismatch = errors.New("state root mismatch")
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
-
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
+import (
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
+
+// EngineClientInputs is the input for the EngineClient.
+type EngineClientInputs struct {
+	depinject.In
+
+	// Config is the BeaconKit configuration.
+	Config *config.Config
+
+	// Logger is the logger.
+	Logger log.Logger
+
+	// JWTSecret is the jwt secret. It is optional, since
+	// it is not required when connecting to the execution client
+	// over IPC.
+	JWTSecret *jwt.Secret `optional:"true"`
+}
+
+// ProvideEngineClient creates a new EngineClient.
+func ProvideEngineClient(
+	in EngineClientInputs,
+) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
+	return engineclient.New[*types.ExecutableDataDeneb](
+		&in.Config.Engine,
+		in.Logger.With("module", "beacon-kit.engine.client"),
+		in.JWTSecret,
+	)
+}
