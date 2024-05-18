@@ -144,13 +144,6 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 	](
 		chainSpec,
-		stda.NewBlobProcessor[
-			types.BeaconBlockBody, *datypes.BlobSidecars,
-		](
-			logger.With("service", "blob-processor"),
-			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
-		),
 		randaoProcessor,
 		executionEngine,
 		signer,
@@ -189,6 +182,13 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
+		stda.NewBlobProcessor[
+			types.BeaconBlockBody, *datypes.BlobSidecars,
+		](
+			logger.With("service", "blob-processor"),
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+		),
 		stateProcessor,
 		beaconDepositContract,
 	)

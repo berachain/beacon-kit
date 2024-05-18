@@ -32,6 +32,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"golang.org/x/sync/errgroup"
 )
 
 // ProcessSlot processes the incoming beacon slot.
@@ -53,29 +54,43 @@ func (s *Service[
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
-	blobs BlobSidecarsT,
+	sidecars BlobSidecarsT,
 ) error {
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
 	}
 
-	// Perform the state transition.
-	if err := s.sp.Transition(
-		// We set `OptimisticEngine` to true since this is called during
-		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the node will simply AppHash,
-		// which is completely fine. This means we were syncing from a
-		// bad peer, and we would likely AppHash anyways.
-		//
-		// TODO: Figure out why SkipPayloadIfExists being `true`
-		// causes nodes to create gaps in their chain.
-		core.NewContext(ctx, true, false, true),
-		st,
-		s.bsb.AvailabilityStore(ctx),
-		blk,
-		blobs,
-	); err != nil {
+	// Create a new errgroup with the provided context.
+	g, gCtx := errgroup.WithContext(ctx)
+
+	// Launch a goroutine to process the state transition.
+	g.Go(func() error {
+		return s.sp.Transition(
+			// We set `OptimisticEngine` to true since this is called during
+			// FinalizeBlock. We want to assume the payload is valid. If it
+			// ends up not being valid later, the node will simply AppHash,
+			// which is completely fine. This means we were syncing from a
+			// bad peer, and we would likely AppHash anyways.
+			//
+			// TODO: Figure out why SkipPayloadIfExists being `true`
+			// causes nodes to create gaps in their chain.
+			core.NewContext(gCtx, true, false, true),
+			st,
+			blk,
+		)
+	})
+
+	// Launch a goroutine to process the blob sidecars.
+	g.Go(func() error {
+		return s.bp.ProcessBlobs(
+			blk.GetSlot(),
+			s.bsb.AvailabilityStore(ctx),
+			sidecars,
+		)
+	})
+
+	if err := g.Wait(); err != nil {
 		return err
 	}
 

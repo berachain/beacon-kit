@@ -83,6 +83,15 @@ type BeaconStorageBackend[
 	DepositStore(context.Context) DepositStoreT
 }
 
+// BlobVerifier is the interface for the blobs processor.
+type BlobProcessor[BlobSidecarsT any] interface {
+	ProcessBlobs(
+		slot math.Slot,
+		avs core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+		sidecars BlobSidecarsT,
+	) error
+}
+
 // BlobsSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshaler
@@ -192,10 +201,6 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 	Transition(
 		ctx core.Context,
 		st ReadOnlyBeaconStateT,
-		avs core.AvailabilityStore[
-			types.BeaconBlockBody, BlobSidecarsT,
-		],
 		blk types.BeaconBlock,
-		blobs BlobSidecarsT,
 	) error
 }
