@@ -136,8 +136,8 @@ func (s *Service[
 		return err
 	}
 
-	var latestExecutionPayloadHeader engineprimitives.ExecutionPayloadHeader
-	latestExecutionPayloadHeader, err = st.GetLatestExecutionPayloadHeader()
+	var lph engineprimitives.ExecutionPayloadHeader
+	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (s *Service[
 	// TODO: eth1FollowDistance should be done actually proper
 	eth1FollowDistance := math.U64(1)
 	if err = s.retrieveDepositsFromBlock(
-		ctx, latestExecutionPayloadHeader.GetNumber()-eth1FollowDistance,
+		ctx, lph.GetNumber()-eth1FollowDistance,
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
 		return err
