@@ -99,9 +99,13 @@ type DepositContract interface {
 	) ([]*types.Deposit, error)
 }
 
+// DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
+	// PruneToIndex prunes the deposit store up to the specified index.
+	PruneToIndex(index uint64) error
+
+	// EnqueueDeposits adds a list of deposits to the deposit store.
+	EnqueueDeposits(deposits []*types.Deposit) error
 }
 
 type ExecutionEngine interface {
@@ -148,13 +152,19 @@ type PayloadVerifier[ReadOnlyBeaconStateT any] interface {
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
+	// BuildReveal generates a new RANDAO reveal for the given state.
 	BuildReveal(
 		st ReadOnlyBeaconStateT,
 	) (crypto.BLSSignature, error)
+
+	// MixinNewReveal mixes a new RANDAO reveal into the given state.
 	MixinNewReveal(
 		st ReadOnlyBeaconStateT,
 		reveal crypto.BLSSignature,
 	) error
+
+	// VerifyReveal verifies the provided RANDAO reveal against the
+	// given state and proposer public key.
 	VerifyReveal(
 		st ReadOnlyBeaconStateT,
 		proposerPubkey crypto.BLSPubkey,
@@ -178,12 +188,14 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 		st ReadOnlyBeaconStateT,
 	) error
 
-	// ProcessBlobs processes the blobs associated with a beacon block.
-	ProcessBlobs(
+	// Transition processes the state transition for a given block.
+	Transition(
+		ctx core.Context,
 		st ReadOnlyBeaconStateT,
 		avs core.AvailabilityStore[
 			types.BeaconBlockBody, BlobSidecarsT,
 		],
+		blk types.BeaconBlock,
 		blobs BlobSidecarsT,
 	) error
 }
