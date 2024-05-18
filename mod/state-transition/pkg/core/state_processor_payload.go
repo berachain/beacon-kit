@@ -38,9 +38,11 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processExecutionPayload(
 	st BeaconStateT,
-	body types.BeaconBlockBody,
+	blk BeaconBlockT,
 ) error {
+	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
+
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	g, _ := errgroup.WithContext(context.Background())
 	var (

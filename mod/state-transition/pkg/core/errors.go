@@ -28,14 +28,10 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
+	ErrProposerIsSlashed = errors.New(
+		"attempted to process a block with a slashed proposer")
+
 	// ErrStateRootMismatch is returned when the state root in a block header
 	// does.
 	ErrStateRootMismatch = errors.New("state root mismatch")
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
 )

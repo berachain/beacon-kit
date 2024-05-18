@@ -173,22 +173,20 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	// process the freshly created header.
-	if err := sp.processHeader(st, blk); err != nil {
+	if err := sp.processBlockHeader(st, blk); err != nil {
 		return err
 	}
 
-	body := blk.GetBody()
-
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
-		st, body,
+		st, blk,
 	); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
 	if err := sp.processWithdrawals(
-		st, body.GetExecutionPayload(),
+		st, blk.GetBody().GetExecutionPayload(),
 	); err != nil {
 		return err
 	}
@@ -206,7 +204,7 @@ func (sp *StateProcessor[
 	// TODO: LOOK HERE
 	//
 	// process the deposits and ensure they match the local state.
-	if err := sp.processOperations(st, body); err != nil {
+	if err := sp.processOperations(st, blk); err != nil {
 		return err
 	}
 
@@ -232,45 +230,94 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
-	var err error
-	if err = sp.processRewardsAndPenalties(st); err != nil {
+	if err := sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	} else if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return err
-	}
-	if err = sp.processRandaoMixesReset(st); err != nil {
-		return err
-	}
-	return nil
+	return sp.processRandaoMixesReset(st)
 }
 
-// processHeader processes the header and ensures it matches the local state.
+// processBlockHeader processes the header and ensures it matches the local
+// state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
-]) processHeader(
+]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
+	var (
+		slot              math.Slot
+		err               error
+		latestBlockHeader *types.BeaconBlockHeader
+		parentBlockRoot   primitives.Root
+		bodyRoot          primitives.Root
+		proposer          *types.Validator
+	)
+
+	// Ensure the block slot matches the state slot.
+	if slot, err = st.GetSlot(); err != nil {
 		return err
+	} else if blk.GetSlot() != slot {
+		return errors.Newf(
+			"slot does not match, expected: %d, got: %d",
+			slot, blk.GetSlot(),
+		)
 	}
 
-	// Store as the new latest header.
-	return st.SetLatestBlockHeader(
+	// Verify the parent block root is correct.
+	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
+		return err
+	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
+		return errors.Newf(
+			"block slot is too low, expected: > %d, got: %d",
+			latestBlockHeader.GetSlot(), blk.GetSlot(),
+		)
+	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
+		return err
+	} else if parentBlockRoot != blk.GetParentBlockRoot() {
+		return errors.Newf(
+			"parent root does not match, expected: %x, got: %x",
+			parentBlockRoot, blk.GetParentBlockRoot(),
+		)
+	}
+
+	// Ensure the block is within the acceptable range.
+	// TODO: move this is in the wrong spot.
+	deposits := blk.GetBody().GetDeposits()
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+		return errors.Newf(
+			"too many deposits, expected: %d, got: %d",
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
+		)
+	}
+
+	// Calculate the body root to place on the header.
+	if bodyRoot, err = blk.GetBody().HashTreeRoot(); err != nil {
+		return err
+	} else if err = st.SetLatestBlockHeader(
 		types.NewBeaconBlockHeader(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
 			blk.GetParentBlockRoot(),
-			// state_root is zeroed and overwritten in the next `process_slot`
-			// call.
-			// with BlockHeaderState.UpdateStateRoot(), once the post state is
-			// available.
+			// state_root is zeroed and overwritten
+			// in the next `process_slot` call.
 			[32]byte{},
 			bodyRoot,
 		),
-	)
+	); err != nil {
+		return err
+	}
+
+	// Check to make sure the proposer isn't slashed.
+	if proposer, err = st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
+		return err
+	} else if proposer.Slashed {
+		return errors.Wrapf(
+			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
+		)
+	}
+	return nil
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.
