@@ -116,10 +116,10 @@ func (sp *StateProcessor[
 	// behind.
 	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
 	//
-	// TODO: We should probably not assume this to make our Transition function
-	// more generalizable, since right now it makes an assumption about the
-	// consensus.
-	// finalization properties.
+	// TODO: We should probably not assume this to make our Transition
+	// function more generalizable, since right now it makes an
+	// assumption about the finalization properties of the cosnensus
+	// engine.
 	switch stateSlot {
 	case blkSlot - 1:
 		if err = sp.ProcessSlot(st); err != nil {
