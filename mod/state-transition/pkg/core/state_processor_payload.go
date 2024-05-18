@@ -80,7 +80,7 @@ func (sp *StateProcessor[
 	if safeHash := latestExecutionPayloadHeader.
 		GetBlockHash(); safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
-			ErrMismatchParentRoot,
+			ErrParentRootMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,

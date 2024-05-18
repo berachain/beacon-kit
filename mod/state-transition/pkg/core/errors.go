@@ -28,9 +28,9 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrMismatchParentRoot is returned when the parent root in an execution
+	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
-	ErrMismatchParentRoot = errors.New("parent root mismatch")
+	ErrParentRootMismatch = errors.New("parent root mismatch")
 
 	// ErrRandaoMixMismatch is returned when the randao mix in an execution
 	// payload does not match the expected value.
@@ -40,8 +40,8 @@ var (
 	// limit.
 	ErrExceedBlockBlobLimit = errors.New("block exceeds blob limit")
 
-	// ErrInvalidPayload indicates that the payload of a beacon block is.
-	ErrProposerIsSlashed = errors.New(
+	// ErrSlashedProposer is returned when the proposer of a block is slashed.
+	ErrSlashedProposer = errors.New(
 		"attempted to process a block with a slashed proposer")
 
 	// ErrStateRootMismatch is returned when the state root in a block header
