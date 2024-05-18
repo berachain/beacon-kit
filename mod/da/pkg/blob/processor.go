@@ -32,7 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Processor is the blob processor that handles the processing and verification of blob sidecars.
+// Processor is the blob processor that handles the processing and verification
+// of blob sidecars.
 type Processor[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *types.BlobSidecars,
@@ -48,7 +49,8 @@ type Processor[
 	// verifier is responsible for verifying the blobs.
 	verifier *Verifier
 
-	// blockBodyOffsetFn is a function that calculates the block body offset based on the slot and chain specifications.
+	// blockBodyOffsetFn is a function that calculates the block body offset
+	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
 }
 
