@@ -47,7 +47,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -182,9 +181,7 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		stda.NewBlobProcessor[
-			types.BeaconBlockBody, *datypes.BlobSidecars,
-		](
+		dablob.NewProcessor[types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),

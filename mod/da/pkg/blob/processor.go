@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // Processor is the blob processor.
@@ -60,7 +61,7 @@ func NewProcessor[
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *Processor[BeaconBlockBodyT]) ProcessBlobs(
 	slot math.Slot,
-	avs AvailabilityStore[BeaconBlockBodyT, *types.BlobSidecars],
+	avs core.AvailabilityStore[BeaconBlockBodyT, *types.BlobSidecars],
 	sidecars *types.BlobSidecars,
 ) error {
 	// If there are no blobs to verify, return early.
