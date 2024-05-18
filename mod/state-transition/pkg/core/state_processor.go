@@ -88,47 +88,36 @@ func (sp *StateProcessor[
 	// We perform some initial logic to ensure the BeaconState is in the correct
 	// state before we process the block.
 	//
-	//                +-------------------------------+
-	//                |  Is state slot equal to the   |
-	//                |  block slot minus one?        |
-	//                +-------------------------------+
+	//            +-------------------------------+
+	//            |  Is state slot equal to the   |
+	//            |  block slot minus one?        |
+	//            +-------------------------------+
+	//                           |
 	//                           |
 	//              +------------+------------+
 	//              |                         |
-	//           Yes, it is                No, it isn't
+	//           Yes, it is               No, it isn't
 	//              |                         |
 	//              |                         |
-	//      +-------+-------+                 |
-	//      |               |                 |
-	// Process the slot   Is state slot equal to the block slot?
-	//      |               |                 |
-	//      |           Yes, it is            |
-	//      |               |                 |
-	//      |       Skip slot processing      |
-	//      |               |                 |
-	//      +-------+-------+                 |
+	//       Process the slot                 |
+	//                                        |
+	//                           +------------+
+	//                           |
+	//          Is state slot equal to the block slot?
+	//                           |
+	//              +------------+------------+
 	//              |                         |
-	//              +-----------+-------------+
-	//                          |
-	//                    No, it isn't
-	//                          |
-	//                    Return error:
-	//                    "out of sync"
-	//                        "out of sync"       the block slot?
-	//                                                    |
-	//                                +-------------------+---+
-	//                                |                       |
-	//                          Yes, it is                No, it isn't
-	//                                |                       |
-	//                    Skip slot processing     (This case should not occur)
+	//           Yes, it is               No, it isn't
+	//              |                         |
+	//     Skip slot processing          Return error:
+	//                                   "out of sync"
 	//
 	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
 	// behind.
 	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
 	//
 	// TODO: We should probably not assume this to make our Transition function
-	// more
-	// generalizable, since right now it makes an assumption about the
+	// more generalizable, since right now it makes an assumption about the
 	// consensus.
 	// finalization properties.
 	switch stateSlot {
