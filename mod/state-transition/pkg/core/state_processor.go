@@ -366,10 +366,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if len(validators) != len(rewards) || len(validators) != len(penalties) {
-		return errors.Newf(
-			"mismatched rewards and penalties lengths: %d, %d, %d",
-			len(validators), len(rewards), len(penalties),
+	if len(validators) != len(rewards) {
+		return errors.Wrapf(
+			ErrRewardsLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(rewards),
+		)
+	} else if len(validators) != len(penalties) {
+		return errors.Wrapf(
+			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(penalties),
 		)
 	}
 
