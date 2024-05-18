@@ -28,6 +28,13 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
+	// ErrBlockSlotTooLow is returned when the block slot is too low.
+	ErrBlockSlotTooLow = errors.New("block slot too low")
+
+	// ErrSlotMismatch is returned when the slot in a block header does not
+	// match the expected value.
+	ErrSlotMismatch = errors.New("slot mismatch")
+
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
 	ErrParentRootMismatch = errors.New("parent root mismatch")
@@ -36,9 +43,21 @@ var (
 	// payload does not match the expected value.
 	ErrRandaoMixMismatch = errors.New("randao mix mismatch")
 
-	// ErrExceedBlockBlobLimit is returned when the block exceeds the blob
+	// ErrExceedsBlockDepositLimit is returned when the block exceeds the
+	// deposit limit.
+	ErrExceedsBlockDepositLimit = errors.New("block exceeds deposit limit")
+
+	// ErrRewardsLengthMismatch is returned when the length of the rewards
+	// in a block does not match the expected value.
+	ErrRewardsLengthMismatch = errors.New("rewards length mismatch")
+
+	// ErrPenaltiesLengthMismatch is returned when the length of the penalties
+	// in a block does not match the expected value.
+	ErrPenaltiesLengthMismatch = errors.New("penalties length mismatch")
+
+	// ErrExceedsBlockBlobLimit is returned when the block exceeds the blob
 	// limit.
-	ErrExceedBlockBlobLimit = errors.New("block exceeds blob limit")
+	ErrExceedsBlockBlobLimit = errors.New("block exceeds blob limit")
 
 	// ErrSlashedProposer is returned when a block is processed in which
 	// the proposer is slashed.

@@ -125,7 +125,7 @@ func (sp *StateProcessor[
 	blobKzgCommitments := body.GetBlobKzgCommitments()
 	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
 		return errors.Wrapf(
-			ErrExceedBlockBlobLimit,
+			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
 			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
 		)
