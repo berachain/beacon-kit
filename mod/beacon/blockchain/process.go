@@ -67,7 +67,10 @@ func (s *Service[
 		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		core.NewContext(ctx, true, true, true),
+		//
+		// TODO: Figure out why SkipPayloadIfExists being `true`
+		// causes nodes to create gaps in their chain.
+		core.NewContext(ctx, true, false, true),
 		st,
 		s.bsb.AvailabilityStore(ctx),
 		blk,
