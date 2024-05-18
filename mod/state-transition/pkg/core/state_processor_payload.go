@@ -35,10 +35,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// processExecutionPayload processes the execution payload and ensures it
+// matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) processExecutionPayload(
-	ctx Context,
+	_ Context,
 	st BeaconStateT,
 	body types.BeaconBlockBody,
 ) error {

@@ -36,10 +36,11 @@ var (
 	// payload does not match the expected value.
 	ErrRandaoMixMismatch = errors.New("randao mix mismatch")
 
-	// ErrExceedBlockBlobLimit is returned when the block exceeds the blob limit.
+	// ErrExceedBlockBlobLimit is returned when the block exceeds the blob
+	// limit.
 	ErrExceedBlockBlobLimit = errors.New("block exceeds blob limit")
 
-	// ErrInvalidPayload indicates that the payload of a beacon block is
+	// ErrInvalidPayload indicates that the payload of a beacon block is.
 	ErrProposerIsSlashed = errors.New(
 		"attempted to process a block with a slashed proposer")
 
