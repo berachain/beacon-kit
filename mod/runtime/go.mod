@@ -50,7 +50,6 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
-	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
