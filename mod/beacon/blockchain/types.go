@@ -152,13 +152,19 @@ type PayloadVerifier[ReadOnlyBeaconStateT any] interface {
 
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
+	// BuildReveal generates a new RANDAO reveal for the given state.
 	BuildReveal(
 		st ReadOnlyBeaconStateT,
 	) (crypto.BLSSignature, error)
+
+	// MixinNewReveal mixes a new RANDAO reveal into the given state.
 	MixinNewReveal(
 		st ReadOnlyBeaconStateT,
 		reveal crypto.BLSSignature,
 	) error
+
+	// VerifyReveal verifies the provided RANDAO reveal against the
+	// given state and proposer public key.
 	VerifyReveal(
 		st ReadOnlyBeaconStateT,
 		proposerPubkey crypto.BLSPubkey,
