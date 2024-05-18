@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"golang.org/x/sync/errgroup"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -43,14 +44,12 @@ type StateProcessor[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
 ] struct {
-	cs     primitives.ChainSpec
-	bp     BlobProcessor[BlobSidecarsT]
-	rp     RandaoProcessor[BeaconBlockT, BeaconStateT]
-	signer crypto.BLSSigner
-	logger log.Logger[any]
-
-	// DepositProcessor
-	// WithdrawalProcessor
+	cs              primitives.ChainSpec
+	bp              BlobProcessor[BlobSidecarsT]
+	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
+	signer          crypto.BLSSigner
+	logger          log.Logger[any]
+	executionEngine ExecutionEngine
 }
 
 // NewStateProcessor creates a new state processor.
@@ -62,15 +61,17 @@ func NewStateProcessor[
 	cs primitives.ChainSpec,
 	bp BlobProcessor[BlobSidecarsT],
 	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
+	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		cs:     cs,
-		bp:     bp,
-		rp:     rp,
-		signer: signer,
-		logger: logger,
+		cs:              cs,
+		bp:              bp,
+		rp:              rp,
+		executionEngine: executionEngine,
+		signer:          signer,
+		logger:          logger,
 	}
 }
 
@@ -80,19 +81,41 @@ func (sp *StateProcessor[
 ]) Transition(
 	ctx Context,
 	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	blk BeaconBlockT,
+	blobs BlobSidecarsT,
 ) error {
-	// Process the slot.
-	if err := sp.ProcessSlot(st); err != nil {
-		return err
-	}
+	// TODO: Re-enable.
+	// // Process the slot.
+	// if err := sp.ProcessSlot(st); err != nil {
+	// 	return err
+	// }
 
-	// Process the block.
-	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
-		return err
-	}
+	// Create a new errgroup with the provided context.
+	g, gCtx := errgroup.WithContext(ctx.Unwrap())
 
-	return nil
+	// We attach the group context to the core.Context.
+	ctx = ctx.WithContext(gCtx)
+
+	// Launch a goroutine to process the blobs.
+	g.Go(func() error {
+		return sp.ProcessBlobs(
+			st,
+			avs,
+			blobs,
+		)
+	})
+
+	// Launch a goroutine to process the block.
+	g.Go(func() error {
+		return sp.ProcessBlock(
+			ctx,
+			st,
+			blk,
+		)
+	})
+
+	return g.Wait()
 }
 
 // ProcessSlot is run when a slot is missed.
@@ -165,6 +188,8 @@ func (sp *StateProcessor[
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
@@ -179,7 +204,7 @@ func (sp *StateProcessor[
 
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
-		st, blk,
+		ctx, st, blk,
 	); err != nil {
 		return err
 	}
@@ -259,8 +284,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Newf(
-			"slot does not match, expected: %d, got: %d",
+		return errors.Wrapf(ErrSlotMismatch,
+			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
 	}
@@ -269,15 +294,15 @@ func (sp *StateProcessor[
 	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
 		return err
 	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
-		return errors.Newf(
-			"block slot is too low, expected: > %d, got: %d",
+		return errors.Wrapf(
+			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
 	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
-		return errors.Newf(
-			"parent root does not match, expected: %x, got: %x",
+		return errors.Wrapf(ErrParentRootMismatch,
+			"expected: %x, got: %x",
 			parentBlockRoot, blk.GetParentBlockRoot(),
 		)
 	}
@@ -286,8 +311,8 @@ func (sp *StateProcessor[
 	// TODO: move this is in the wrong spot.
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Newf(
-			"too many deposits, expected: %d, got: %d",
+		return errors.Wrapf(ErrExceedsBlockDepositLimit,
+			"expected: %d, got: %d",
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
@@ -314,7 +339,7 @@ func (sp *StateProcessor[
 		return err
 	} else if proposer.Slashed {
 		return errors.Wrapf(
-			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
+			ErrSlashedProposer, "index: %d", blk.GetProposerIndex(),
 		)
 	}
 	return nil
@@ -366,10 +391,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if len(validators) != len(rewards) || len(validators) != len(penalties) {
-		return errors.Newf(
-			"mismatched rewards and penalties lengths: %d, %d, %d",
-			len(validators), len(rewards), len(penalties),
+	if len(validators) != len(rewards) {
+		return errors.Wrapf(
+			ErrRewardsLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(rewards),
+		)
+	} else if len(validators) != len(penalties) {
+		return errors.Wrapf(
+			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(penalties),
 		)
 	}
 
