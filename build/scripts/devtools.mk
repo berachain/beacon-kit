@@ -25,6 +25,7 @@ sync:
 
 tidy: ## run go mod tidy in all modules
 	@echo "Running go mod tidy in all modules"
+	@go env -w GOPRIVATE=github.com/berachain
 	@find . -name 'go.mod' ! -path './go.mod' -execdir go mod tidy \;
 
 yap: ## the yap cave
