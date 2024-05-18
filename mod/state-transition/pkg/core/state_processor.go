@@ -259,8 +259,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Newf(
-			"slot does not match, expected: %d, got: %d",
+		return errors.Wrapf(ErrSlotMismatch,
+			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
 	}
@@ -269,15 +269,15 @@ func (sp *StateProcessor[
 	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
 		return err
 	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
-		return errors.Newf(
-			"block slot is too low, expected: > %d, got: %d",
+		return errors.Wrapf(
+			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
 	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
-		return errors.Newf(
-			"parent root does not match, expected: %x, got: %x",
+		return errors.Wrapf(ErrParentRootMismatch,
+			"expected: %x, got: %x",
 			parentBlockRoot, blk.GetParentBlockRoot(),
 		)
 	}
@@ -286,8 +286,8 @@ func (sp *StateProcessor[
 	// TODO: move this is in the wrong spot.
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Newf(
-			"too many deposits, expected: %d, got: %d",
+		return errors.Wrapf(ErrExceedsBlockDepositLimit,
+			"expected: %d, got: %d",
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
@@ -366,10 +366,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if len(validators) != len(rewards) || len(validators) != len(penalties) {
-		return errors.Newf(
-			"mismatched rewards and penalties lengths: %d, %d, %d",
-			len(validators), len(rewards), len(penalties),
+	if len(validators) != len(rewards) {
+		return errors.Wrapf(
+			ErrRewardsLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(rewards),
+		)
+	} else if len(validators) != len(penalties) {
+		return errors.Wrapf(
+			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(penalties),
 		)
 	}
 
