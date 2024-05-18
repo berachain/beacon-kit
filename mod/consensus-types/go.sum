@@ -6,6 +6,12 @@ github.com/VictoriaMetrics/fastcache v1.12.1 h1:i0mICQuojGDL3KblA7wUNlY5lOK6a4bw
 github.com/VictoriaMetrics/fastcache v1.12.1/go.mod h1:tX04vaqcNoQeGLD+ra5pU5sWkuxnzWhEzLwhP9w653o=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38 h1:JmQxIGK8XBKX+DKk19w6ZwX2vglv64L6LASdLtRXflk=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38/go.mod h1:aEQErwjiU/zTeLYoLMCapdrRKg3LLjvojQDWZzYZaa0=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee h1:tdA/NDYdteGbG/9spseDyqF8F75Cdl9p+IzlwHdDmBE=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee/go.mod h1:bPHldhMhe1RJlhWLfD2jcENRI4kJ5ig7XwTeHGnhMoc=
+github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee h1:saH5m7V+rvCg1q+eThG7gu3+YSz7K8XCwDsv7KuyqTs=
+github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee/go.mod h1:gJPEkpdOGy3wXhtmM3FHqinKsF+Rkj8EPYSWLMm9vRE=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=

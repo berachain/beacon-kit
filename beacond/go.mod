@@ -30,11 +30,11 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
+	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
