@@ -41,12 +41,12 @@ func (s *Service[
 	ctx context.Context,
 	blockNumber math.U64,
 ) error {
-	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
+	deposits, err := s.dc.GetDeposits(ctx, blockNumber.Unwrap())
 	if err != nil {
 		return err
 	}
 
-	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
+	return s.sb.DepositStore(ctx).EnqueueDeposits(deposits)
 }
 
 // PruneDepositEvents prunes deposit events.
@@ -56,5 +56,5 @@ func (s *Service[
 	ctx context.Context,
 	idx uint64,
 ) error {
-	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
+	return s.sb.DepositStore(ctx).PruneToIndex(idx)
 }

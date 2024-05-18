@@ -60,7 +60,7 @@ type Service[
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
 	// bsb is the beacon state backend.
-	bsb BeaconStorageBackend[BeaconStateT]
+	bsb StorageBackend[BeaconStateT]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
@@ -92,7 +92,7 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb BeaconStorageBackend[BeaconStateT],
+	bsb StorageBackend[BeaconStateT],
 	stateProcessor StateProcessor[BeaconStateT],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],

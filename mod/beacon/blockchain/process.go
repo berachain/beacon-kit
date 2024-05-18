@@ -85,7 +85,7 @@ func (s *Service[
 	g.Go(func() error {
 		return s.bp.ProcessBlobs(
 			blk.GetSlot(),
-			s.bsb.AvailabilityStore(ctx),
+			s.sb.AvailabilityStore(ctx),
 			sidecars,
 		)
 	})
@@ -97,7 +97,7 @@ func (s *Service[
 	// If the blobs needed to process the block are not available, we
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
-	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(
+	if !s.sb.AvailabilityStore(ctx).IsDataAvailable(
 		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
 		return ErrDataNotAvailable

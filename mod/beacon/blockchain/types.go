@@ -83,7 +83,7 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type BeaconStorageBackend[
+type StorageBackend[
 	BeaconStateT any,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,

@@ -61,7 +61,7 @@ type BeaconApp struct {
 		state.BeaconState,
 		*datypes.BlobSidecars,
 		*deposit.KVStore,
-		beaconkitruntime.BeaconStorageBackend[
+		beaconkitruntime.StorageBackend[
 			types.BeaconBlockBody,
 			state.BeaconState,
 			*datypes.BlobSidecars,
