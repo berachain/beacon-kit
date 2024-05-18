@@ -92,8 +92,8 @@ github.com/berachain/beacon-kit/mod/execution v0.0.0-20240518161120-134a1180a2ee
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240518161120-134a1180a2ee/go.mod h1:04ty6697EadiqkNy1anMqFVa+Tf+neFehWHTmjM+dJg=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240518161709-f1474c8762fc h1:IxGZvKuBFBuWqCzkFyZBHgnPl1E/l7S8Z6+AlMRwuLA=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240518161709-f1474c8762fc/go.mod h1:FX3eMGrapjfQupotJkiYb0JNPclI77tRz8y3xwK3V60=
-github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240518161709-f1474c8762fc h1:DbDR9FVVWvZ4mHLeCp/MVgiPS46ZysWOpT9JNglx010=
-github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240518161709-f1474c8762fc/go.mod h1:aKuudFtxQUg423vDoqt+kxapRtAv9fGnucZS0XhB1gw=
+github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240518161120-134a1180a2ee h1:3Ej++NcF5RgcboZ274/a71cY8tmES5OtC9NTUxJmHcw=
+github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240518161120-134a1180a2ee/go.mod h1:xvwByRx600Vjy5aAZy4G1HzfH8xK3DRRdHoCVyrFj10=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240518161120-134a1180a2ee h1:PsxU2KNwjfFOnVhPEr9DAbY4io8o63GfwpBFgHa0EVw=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240518161120-134a1180a2ee/go.mod h1:ikYtkTP6rKhIQ9jLj4M//unmk3YFBBFCvo5OQ9puJXQ=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee h1:tdA/NDYdteGbG/9spseDyqF8F75Cdl9p+IzlwHdDmBE=
