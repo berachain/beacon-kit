@@ -131,13 +131,19 @@ func (sp *StateProcessor[
 		)
 	}
 
-	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
-		return err
+	// Process the block.
+	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
+		sp.logger.Error(
+			"failed to process block",
+			"slot", blkSlot,
+			"error", err,
+		)
 	} else {
 		// We only want to persist state changes if we successfully
 		// processed the block.
 		st.Save()
 	}
+
 	return nil
 }
 
