@@ -160,7 +160,7 @@ func (s *Service[
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
 			payload,
-			blk.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
 			// We do not want to optimistically assume truth here, since
