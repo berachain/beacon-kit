@@ -29,6 +29,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -52,6 +53,16 @@ type BlobProcessor[BlobSidecarsT any] interface {
 		slot math.Slot,
 		avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 		sidecars BlobSidecarsT,
+	) error
+}
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+	// execution client.
+	VerifyAndNotifyNewPayload(
+		ctx context.Context,
+		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
 	) error
 }
 
