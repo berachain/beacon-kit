@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"golang.org/x/sync/errgroup"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -80,28 +79,59 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// TODO: Re-enable.
-	// // Process the slot.
-	// if err := sp.ProcessSlot(st); err != nil {
-	// 	return err
-	// }
+	blkSlot := blk.GetSlot()
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
 
-	// Create a new errgroup with the provided context.
-	g, gCtx := errgroup.WithContext(ctx.Unwrap())
-
-	// We attach the group context to the core.Context.
-	ctx = ctx.WithContext(gCtx)
-
-	// Launch a goroutine to process the block.
-	g.Go(func() error {
-		return sp.ProcessBlock(
-			ctx,
-			st,
-			blk,
+	// We perform some initial logic to ensure the BeaconState is in the correct
+	// state before we process the block.
+	//
+	//                +-------------------------------+
+	//                |  Is state slot equal to the   |
+	//                |  block slot minus one?        |
+	//                +-------------------------------+
+	//                           |
+	//              +------------+------------+
+	//              |                         |
+	//           Yes, it is                No, it isn't
+	//              |                         |
+	//  +-----------+-----------+     +-------+----------------+
+	//  |                       |     |                        |
+	// Process the slot     Is state slot equal to        Return error:
+	//                      the block slot?               "out of sync"
+	//                          |
+	//              +-----------+-----------+
+	//              |                       |
+	//           Yes, it is                No, it isn't
+	//              |                       |
+	//        Skip slot processing     (This case should not occur)
+	//
+	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
+	// behind.
+	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
+	//
+	// TODO: We should probably not assume this to make our Transition function
+	// more
+	// generalizable, since right now it makes an assumption about the
+	// consensus.
+	// finalization properties.
+	switch stateSlot {
+	case blkSlot - 1:
+		if err = sp.ProcessSlot(st); err != nil {
+			return err
+		}
+	case blkSlot:
+		// skip slot processing.
+	default:
+		return errors.Wrapf(
+			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
+			stateSlot, blkSlot,
 		)
-	})
+	}
 
-	return g.Wait()
+	return sp.ProcessBlock(ctx, st, blk)
 }
 
 // ProcessSlot is run when a slot is missed.
