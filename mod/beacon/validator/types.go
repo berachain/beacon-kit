@@ -119,8 +119,8 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 type StateProcessor[
 	BeaconStateT BeaconState,
 ] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
+	// ProcessBlock processes a given beacon block and updates the state
+	// accordingly.
 	ProcessBlock(
 		ctx core.Context,
 		st BeaconStateT,
