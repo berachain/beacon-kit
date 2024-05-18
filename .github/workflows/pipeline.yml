@@ -78,6 +78,7 @@ jobs:
           go-version: "stable"
           check-latest: true
           token: ${{ secrets.DEV_PAT }}
+          cache-dependency-path: "**/*.sum"
       - name: Configure git for private modules
         env:
             TOKEN: ${{ secrets.DEV_PAT }}
