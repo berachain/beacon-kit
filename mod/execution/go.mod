@@ -11,7 +11,7 @@ replace (
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240506203005-b920effebbe8
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240506203005-b920effebbe8
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240506203005-b920effebbe8

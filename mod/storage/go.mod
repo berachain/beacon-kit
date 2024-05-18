@@ -21,7 +21,7 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240516114011-e03476679912
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/cosmos/cosmos-sdk v0.51.0
