@@ -236,17 +236,12 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
-	var err error
-	if err = sp.processRewardsAndPenalties(st); err != nil {
+	if err := sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	} else if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return err
-	}
-	if err = sp.processRandaoMixesReset(st); err != nil {
-		return err
-	}
-	return nil
+	return sp.processRandaoMixesReset(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
@@ -257,14 +252,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Get the current slot.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Ensure the block slot matches the state slot.
-	if blk.GetSlot() != slot {
+	if slot, err := st.GetSlot(); err != nil {
+		return err
+	} else if blk.GetSlot() != slot {
 		return errors.Newf(
 			"slot does not match, expected: %d, got: %d",
 			slot,
@@ -272,27 +263,19 @@ func (sp *StateProcessor[
 		)
 	}
 
-	latestBlockHeader, err := st.GetLatestBlockHeader()
-	if err != nil {
+	// Verify the parent block root is correct.
+	if latestBlockHeader, err := st.GetLatestBlockHeader(); err != nil {
 		return err
-	}
-
-	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
+	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
 		return errors.Newf(
 			"block slot is too low, expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(),
 			blk.GetSlot(),
 		)
-	}
-
-	// Ensure the parent root matches the latest block header.
-	parentBlockRoot, err := latestBlockHeader.HashTreeRoot()
-	if err != nil {
+	} else if parentBlockRoot,
+		err := latestBlockHeader.HashTreeRoot(); err != nil {
 		return err
-	}
-
-	// Ensure the parent root matches the latest block header.
-	if parentBlockRoot != blk.GetParentBlockRoot() {
+	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Newf(
 			"parent root does not match, expected: %x, got: %x",
 			parentBlockRoot,
@@ -311,14 +294,10 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Ensure the proposer is not slashed.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
+	// Calculate the body root to place on the header.
+	if bodyRoot, err := blk.GetBody().HashTreeRoot(); err != nil {
 		return err
-	}
-
-	// Store as the new latest block
-	if err = st.SetLatestBlockHeader(
+	} else if err = st.SetLatestBlockHeader(
 		types.NewBeaconBlockHeader(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
@@ -332,16 +311,12 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
-	if err != nil {
+	// Check to make sure the proposer isn't slashed.
+	if proposer, err := st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
 		return err
-	}
-
-	// Verify the proposer is not slashed.
-	if proposer.Slashed {
-		return errors.Newf(
-			"proposer is slashed, index: %d",
-			blk.GetProposerIndex(),
+	} else if proposer.Slashed {
+		return errors.Wrapf(
+			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
 		)
 	}
 	return nil
