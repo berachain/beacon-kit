@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 ## DevTools:
 
-bet: format build test-unit ## yo bet
+bet: build format test-unit ## yo bet
 	@git add .
 	@git commit -m 'bet'
 	@git push

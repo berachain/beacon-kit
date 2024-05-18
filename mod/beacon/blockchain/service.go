@@ -61,9 +61,6 @@ type Service[
 
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT]
-
-	// pv verifies the payload of beacon blocks.
-	pv PayloadVerifier[ReadOnlyBeaconStateT]
 }
 
 // NewService creates a new validator service.
@@ -79,7 +76,6 @@ func NewService[
 	ee ExecutionEngine,
 	lb LocalBuilder[ReadOnlyBeaconStateT],
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],
-	pv PayloadVerifier[ReadOnlyBeaconStateT],
 	bdc DepositContract,
 ) *Service[ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT] {
 	return &Service[ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT]{
@@ -89,7 +85,6 @@ func NewService[
 		ee:     ee,
 		lb:     lb,
 		sp:     sp,
-		pv:     pv,
 		bdc:    bdc,
 	}
 }

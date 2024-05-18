@@ -42,7 +42,6 @@ import (
 // the
 // beacon state.
 type ReadOnlyBeaconState[T any] interface {
-
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -189,12 +188,14 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 		st ReadOnlyBeaconStateT,
 	) error
 
-	// ProcessBlobs processes the blobs associated with a beacon block.
-	ProcessBlobs(
+	// Transition processes the state transition for a given block.
+	Transition(
+		ctx core.Context,
 		st ReadOnlyBeaconStateT,
 		avs core.AvailabilityStore[
 			types.BeaconBlockBody, BlobSidecarsT,
 		],
+		blk types.BeaconBlock,
 		blobs BlobSidecarsT,
 	) error
 }

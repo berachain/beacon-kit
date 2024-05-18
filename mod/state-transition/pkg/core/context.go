@@ -30,6 +30,7 @@ import "context"
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
+
 	// GetValidateResult returns whether to validate the result of the state
 	// transition.
 	GetValidateResult() bool

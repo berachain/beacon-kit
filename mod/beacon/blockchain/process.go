@@ -32,7 +32,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessSlot processes the incoming beacon slot.
@@ -44,13 +43,13 @@ func (s *Service[
 	return s.sp.ProcessSlot(st)
 }
 
-// ProcessBeaconBlock receives an incoming beacon block, it first validates
+// ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
 //
 //nolint:funlen // todo cleanup.
 func (s *Service[
 	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessBeaconBlock(
+]) ProcessStateTransition(
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
@@ -61,65 +60,22 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body == nil || body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	if err := s.pv.VerifyPayload(st, body.GetExecutionPayload()); err != nil {
-		return err
-	}
-
-	var (
-		g, _ = errgroup.WithContext(ctx)
-		err  error
-	)
-
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
-	g.Go(func() error {
-		return s.sp.ProcessBlobs(
-			st,
-			s.bsb.AvailabilityStore(ctx),
-			blobs,
-		)
-	})
-
-	// We can also parallelize the call to the execution layer.
-	g.Go(func() error {
-		// Then we notify the engine of the new payload.
-		parentBeaconBlockRoot := blk.GetParentBlockRoot()
-		if err = s.ee.VerifyAndNotifyNewPayload(
-			ctx, engineprimitives.BuildNewPayloadRequest(
-				body.GetExecutionPayload(),
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				false,
-				// Since this is called during FinalizeBlock, we want to assume
-				// the payload is valid, if it ends up not being valid later the
-				// node will simply AppHash which is completely fine, since this
-				// means we were syncing from a bad peer, and we would likely
-				// AppHash anyways.
-				true,
-			),
-		); err != nil {
-			s.logger.
-				Error("failed to notify engine of new payload", "error", err)
-			return err
-		}
-
-		// We also want to verify the payload on the block.
-		return s.sp.ProcessBlock(
-			core.NewContext(ctx, true, false, false),
-			st,
-			blk,
-		)
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
+	// Perform the state transition.
+	if err := s.sp.Transition(
+		// We set `OptimisticEngine` to true since this is called during
+		// FinalizeBlock. We want to assume the payload is valid. If it
+		// ends up not being valid later, the node will simply AppHash,
+		// which is completely fine. This means we were syncing from a
+		// bad peer, and we would likely AppHash anyways.
+		//
+		// TODO: Figure out why SkipPayloadIfExists being `true`
+		// causes nodes to create gaps in their chain.
+		core.NewContext(ctx, true, false, true),
+		st,
+		s.bsb.AvailabilityStore(ctx),
+		blk,
+		blobs,
+	); err != nil {
 		return err
 	}
 
@@ -127,7 +83,7 @@ func (s *Service[
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
 	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(
-		ctx, blk.GetSlot(), body,
+		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
 		return ErrDataNotAvailable
 	}
@@ -196,22 +152,13 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	// Call the standard payload validator.
-	if err := s.pv.VerifyPayload(
-		s.bsb.StateFromContext(ctx),
-		body.GetExecutionPayload(),
-	); err != nil {
-		return err
-	}
-
 	// We notify the engine of the new payload.
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payload := body.GetExecutionPayload()
+	var (
+		parentBeaconBlockRoot = blk.GetParentBlockRoot()
+		body                  = blk.GetBody()
+		payload               = body.GetExecutionPayload()
+	)
+
 	if err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
@@ -219,7 +166,8 @@ func (s *Service[
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
-			// We do not want to optimistically assume truth here.
+			// We do not want to optimistically assume truth here, since
+			// this is being called in process proposal.
 			false,
 		),
 	); err != nil {

@@ -49,7 +49,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/verification"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
@@ -153,6 +152,7 @@ func ProvideRuntime(
 			dablob.NewVerifier(blobProofVerifier),
 		),
 		randaoProcessor,
+		executionEngine,
 		signer,
 		logger.With("service", "state-processor"),
 	)
@@ -190,7 +190,6 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		stateProcessor,
-		verification.NewPayloadVerifier(chainSpec, logger),
 		beaconDepositContract,
 	)
 

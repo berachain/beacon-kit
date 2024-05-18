@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"golang.org/x/sync/errgroup"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -43,14 +44,12 @@ type StateProcessor[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
 ] struct {
-	cs     primitives.ChainSpec
-	bp     BlobProcessor[BlobSidecarsT]
-	rp     RandaoProcessor[BeaconBlockT, BeaconStateT]
-	signer crypto.BLSSigner
-	logger log.Logger[any]
-
-	// DepositProcessor
-	// WithdrawalProcessor
+	cs              primitives.ChainSpec
+	bp              BlobProcessor[BlobSidecarsT]
+	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
+	signer          crypto.BLSSigner
+	logger          log.Logger[any]
+	executionEngine ExecutionEngine
 }
 
 // NewStateProcessor creates a new state processor.
@@ -62,15 +61,17 @@ func NewStateProcessor[
 	cs primitives.ChainSpec,
 	bp BlobProcessor[BlobSidecarsT],
 	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
+	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
 ) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		cs:     cs,
-		bp:     bp,
-		rp:     rp,
-		signer: signer,
-		logger: logger,
+		cs:              cs,
+		bp:              bp,
+		rp:              rp,
+		executionEngine: executionEngine,
+		signer:          signer,
+		logger:          logger,
 	}
 }
 
@@ -80,19 +81,41 @@ func (sp *StateProcessor[
 ]) Transition(
 	ctx Context,
 	st BeaconStateT,
+	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	blk BeaconBlockT,
+	blobs BlobSidecarsT,
 ) error {
-	// Process the slot.
-	if err := sp.ProcessSlot(st); err != nil {
-		return err
-	}
+	// TODO: Re-enable.
+	// // Process the slot.
+	// if err := sp.ProcessSlot(st); err != nil {
+	// 	return err
+	// }
 
-	// Process the block.
-	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
-		return err
-	}
+	// Create a new errgroup with the provided context.
+	g, gCtx := errgroup.WithContext(ctx.Unwrap())
 
-	return nil
+	// We attach the group context to the core.Context.
+	ctx = ctx.WithContext(gCtx)
+
+	// Launch a goroutine to process the blobs.
+	g.Go(func() error {
+		return sp.ProcessBlobs(
+			st,
+			avs,
+			blobs,
+		)
+	})
+
+	// Launch a goroutine to process the block.
+	g.Go(func() error {
+		return sp.ProcessBlock(
+			ctx,
+			st,
+			blk,
+		)
+	})
+
+	return g.Wait()
 }
 
 // ProcessSlot is run when a slot is missed.
@@ -165,6 +188,8 @@ func (sp *StateProcessor[
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) ProcessBlock(
