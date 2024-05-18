@@ -28,6 +28,9 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
+	ErrProposerIsSlashed = errors.New(
+		"attempted to process a block with a slashed proposer")
+
 	// ErrStateRootMismatch is returned when the state root in a block header
 	// does.
 	ErrStateRootMismatch = errors.New("state root mismatch")

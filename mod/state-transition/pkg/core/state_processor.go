@@ -232,17 +232,12 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
-	var err error
-	if err = sp.processRewardsAndPenalties(st); err != nil {
+	if err := sp.processRewardsAndPenalties(st); err != nil {
+		return err
+	} else if err = sp.processSlashingsReset(st); err != nil {
 		return err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return err
-	}
-	if err = sp.processRandaoMixesReset(st); err != nil {
-		return err
-	}
-	return nil
+	return sp.processRandaoMixesReset(st)
 }
 
 // processHeader processes the header and ensures it matches the local state.
@@ -253,13 +248,9 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	// Calculate the body root to place on the header.
-	bodyRoot, err := blk.GetBody().HashTreeRoot()
-	if err != nil {
+	if bodyRoot, err := blk.GetBody().HashTreeRoot(); err != nil {
 		return err
-	}
-
-	// Store as the new latest header.
-	if err = st.SetLatestBlockHeader(
+	} else if err = st.SetLatestBlockHeader(
 		types.NewBeaconBlockHeader(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
@@ -279,9 +270,8 @@ func (sp *StateProcessor[
 	if proposer, err := st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
 		return err
 	} else if proposer.Slashed {
-		return errors.Newf(
-			"proposer is slashed, index: %d",
-			blk.GetProposerIndex(),
+		return errors.Wrapf(
+			ErrProposerIsSlashed, "index: %d", blk.GetProposerIndex(),
 		)
 	}
 	return nil
