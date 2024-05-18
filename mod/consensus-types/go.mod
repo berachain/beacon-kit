@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000
 	github.com/ethereum/go-ethereum v1.14.3
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1

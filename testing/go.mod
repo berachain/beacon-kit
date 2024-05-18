@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240518141702-8e558f01aa38
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240518161120-134a1180a2ee
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd
 	github.com/ethereum/go-ethereum v1.14.3
 	github.com/kurtosis-tech/kurtosis/api/golang v0.89.8
