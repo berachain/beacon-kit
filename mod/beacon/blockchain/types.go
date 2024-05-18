@@ -132,6 +132,7 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[ReadOnlyBeaconStateT any] interface {
+	// RequestPayload requests a new payload for the given slot.
 	RequestPayload(
 		ctx context.Context,
 		st ReadOnlyBeaconStateT,
