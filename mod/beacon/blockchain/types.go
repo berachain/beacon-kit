@@ -85,16 +85,23 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconStateT any,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] interface {
+	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore(
 		context.Context,
 	) AvailabilityStoreT
+
+	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
+
+	// DepositStore returns the deposit store for the given context.
 	DepositStore(context.Context) DepositStoreT
 }
 
@@ -135,6 +142,7 @@ type DepositStore interface {
 	EnqueueDeposits(deposits []*types.Deposit) error
 }
 
+// ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
@@ -170,48 +178,20 @@ type LocalBuilder[ReadOnlyBeaconStateT any] interface {
 	) (*engineprimitives.PayloadID, error)
 }
 
-// PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier[ReadOnlyBeaconStateT any] interface {
-	VerifyPayload(
-		st ReadOnlyBeaconStateT,
-		payload engineprimitives.ExecutionPayload,
-	) error
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
-	// BuildReveal generates a new RANDAO reveal for the given state.
-	BuildReveal(
-		st ReadOnlyBeaconStateT,
-	) (crypto.BLSSignature, error)
-
-	// MixinNewReveal mixes a new RANDAO reveal into the given state.
-	MixinNewReveal(
-		st ReadOnlyBeaconStateT,
-		reveal crypto.BLSSignature,
-	) error
-
-	// VerifyReveal verifies the provided RANDAO reveal against the
-	// given state and proposer public key.
-	VerifyReveal(
-		st ReadOnlyBeaconStateT,
-		proposerPubkey crypto.BLSPubkey,
-		reveal crypto.BLSSignature,
-	) error
-}
-
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT, ContextT any] interface {
+type StateProcessor[
+	BeaconStateT, BlobSidecarsT, ContextT any,
+] interface {
 	// ProcessSlot processes the state transition for a single slot.
 	ProcessSlot(
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 	) error
 
 	// Transition processes the state transition for a given block.
 	Transition(
 		ctx ContextT,
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 		blk types.BeaconBlock,
 	) error
 }
