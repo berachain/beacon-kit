@@ -55,7 +55,7 @@ def upload_global_files(plan, node_modules):
 
     return jwt_file, kzg_trusted_setup_file
 
-def get_enode_addr(plan, el_service, el_service_name, el_type):
+def get_enode_addr(plan, el_service_name):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
 
     request_recipe = PostHttpRequestRecipe(
@@ -100,7 +100,16 @@ def deploy_node(plan, config):
         config = service_config,
     )
 
-def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+def deploy_nodes(plan, configs):
+    service_configs = {}
+    for config in configs:
+        service_configs[config["name"]] = service_config_lib.create_from_config(config)
+
+    return plan.add_services(
+        configs = service_configs,
+    )
+
+def generate_node_config(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
     el_type = node.el_type
     node_module = node_modules[el_type]
     el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
@@ -108,9 +117,17 @@ def create_node(plan, node_modules, node, node_type = "validator", index = 0, bo
     # 4a. Launch EL
     el_service_config_dict = get_default_service_config(el_service_name, node_module)
     el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+    return el_service_config_dict
+
+
+def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+    el_type = node.el_type
+    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
+
+    el_service_config_dict = generate_node_config(plan, node_modules, node, node_type, index, bootnode_enode_addrs)
     el_client_service = deploy_node(plan, el_service_config_dict)
 
-    enode_addr = get_enode_addr(plan, el_client_service, el_service_name, el_type)
+    enode_addr = get_enode_addr(plan, el_service_name)
     return {
         "name": el_service_name,
         "service": el_client_service,
