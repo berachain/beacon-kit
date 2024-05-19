@@ -67,13 +67,17 @@ type DepInjectInput struct {
 type DepInjectOutput struct {
 	depinject.Out
 
-	Keeper *storage.Backend[state.BeaconState]
+	Keeper *storage.Backend[
+		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+	]
 	Module appmodule.AppModule
 }
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := storage.NewBackend[state.BeaconState](
+	k := storage.NewBackend[
+		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+	](
 		in.ChainSpec,
 		dastore.New[types.BeaconBlockBody](
 			filedb.NewRangeDB(filedb.NewDB(

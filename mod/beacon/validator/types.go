@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -118,11 +117,12 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconStateT BeaconState,
+	ContextT any,
 ] interface {
 	// ProcessBlock processes a given beacon block and updates the state
 	// accordingly.
 	ProcessBlock(
-		ctx core.Context,
+		ctx ContextT,
 		st BeaconStateT,
 		blk types.BeaconBlock,
 	) error

@@ -34,6 +34,7 @@ import (
 // PrepareProposal is called by the consensus engine to prepare a proposal for
 // the next block.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -58,6 +59,7 @@ func (r *BeaconKitRuntime[
 // ProcessProposal is called by the consensus engine when a new proposal block
 // is received.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -81,6 +83,7 @@ func (r *BeaconKitRuntime[
 
 // but before committing it to the consensus state.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -104,6 +107,7 @@ func (r *BeaconKitRuntime[
 
 // Commit is our custom implementation of the ABCI method Commit.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

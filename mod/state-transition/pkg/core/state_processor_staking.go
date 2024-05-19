@@ -38,7 +38,8 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -69,7 +70,8 @@ func (sp *StateProcessor[
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []*types.Deposit,
@@ -89,7 +91,8 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -125,7 +128,8 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) createValidator(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -174,7 +178,8 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -202,7 +207,8 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	payload engineprimitives.ExecutionPayload,

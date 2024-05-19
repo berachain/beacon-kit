@@ -42,6 +42,7 @@ type StateProcessor[
 	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
+	ContextT Context,
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
@@ -55,14 +56,15 @@ func NewStateProcessor[
 	BeaconBlockT types.BeaconBlock,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
+	ContextT Context,
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
 	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
-) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
-	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
+) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT, ContextT] {
+	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT, ContextT]{
 		cs:              cs,
 		rp:              rp,
 		executionEngine: executionEngine,
@@ -73,9 +75,10 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) Transition(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -152,7 +155,8 @@ func (sp *StateProcessor[
 
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) ProcessSlot(
 	st BeaconStateT,
 ) error {
@@ -223,9 +227,10 @@ func (sp *StateProcessor[
 //
 //nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) ProcessBlock(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -283,7 +288,8 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
@@ -298,7 +304,8 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -382,7 +389,8 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -400,7 +408,8 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {
