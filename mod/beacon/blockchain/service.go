@@ -31,12 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // Service is the blockchain service.
 type Service[
-	AvailabilityStoreT core.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
 	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
@@ -68,10 +67,7 @@ type Service[
 	lb LocalBuilder[ReadOnlyBeaconStateT]
 
 	// bp is the blob processor for processing incoming blobs.
-	bp BlobProcessor[
-		core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-		BlobSidecarsT,
-	]
+	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT]
@@ -79,7 +75,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AvailabilityStoreT core.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
 	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
@@ -94,7 +90,7 @@ func NewService[
 	ee ExecutionEngine,
 	lb LocalBuilder[ReadOnlyBeaconStateT],
 	bp BlobProcessor[
-		core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+		AvailabilityStoreT,
 		BlobSidecarsT,
 	],
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],

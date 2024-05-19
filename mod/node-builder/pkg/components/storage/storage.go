@@ -32,7 +32,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -52,7 +52,7 @@ type KVStore = beacondb.KVStore[
 // provides a simply interface to access all types of storage
 // required by the runtime.
 type Backend[
-	AvailabilityStoreT core.AvailabilityStore[
+	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
 	BeaconStateT any,
@@ -64,7 +64,7 @@ type Backend[
 }
 
 func NewBackend[
-	AvailabilityStoreT core.AvailabilityStore[
+	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
 	BeaconStateT any,

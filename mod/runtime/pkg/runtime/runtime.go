@@ -43,7 +43,7 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
-	AvailabilityStoreT core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,

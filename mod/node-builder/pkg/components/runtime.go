@@ -187,7 +187,7 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		dablob.NewProcessor[
-			core.AvailabilityStore[types.BeaconBlockBody, *datypes.BlobSidecars],
+			*dastore.Store[types.BeaconBlockBody],
 			types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
