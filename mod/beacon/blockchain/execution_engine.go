@@ -38,7 +38,10 @@ import (
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,
@@ -68,7 +71,10 @@ func (s *Service[
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,

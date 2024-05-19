@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -54,11 +55,13 @@ import (
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
+	*dastore.Store[types.BeaconBlockBody],
 	types.BeaconBlockBody,
 	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
 	runtime.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -77,6 +80,7 @@ func ProvideRuntime(
 	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend runtime.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -174,6 +178,7 @@ func ProvideRuntime(
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
+		*dastore.Store[types.BeaconBlockBody],
 		state.BeaconState, *datypes.BlobSidecars,
 	](
 		storageBackend,
@@ -204,6 +209,7 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,

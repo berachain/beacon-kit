@@ -33,6 +33,7 @@ import (
 	"cosmossdk.io/log"
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -57,11 +58,13 @@ var (
 type BeaconApp struct {
 	*runtime.App
 	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
 		*deposit.KVStore,
 		beaconkitruntime.StorageBackend[
+			*dastore.Store[types.BeaconBlockBody],
 			types.BeaconBlockBody,
 			state.BeaconState,
 			*datypes.BlobSidecars,

@@ -40,7 +40,10 @@ import (
 //
 //nolint:funlen // todo cleanup.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) ProcessStateTransition(
 	ctx context.Context,
 	blk types.BeaconBlock,
@@ -149,7 +152,10 @@ func (s *Service[
 
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.BeaconBlock,

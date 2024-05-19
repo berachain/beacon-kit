@@ -54,13 +54,18 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	keeper    *storage.Backend[*dastore.Store[types.BeaconBlockBody], state.BeaconState]
+	keeper *storage.Backend[
+		*dastore.Store[types.BeaconBlockBody],
+		state.BeaconState,
+	]
 	chainSpec primitives.ChainSpec
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	keeper *storage.Backend[*dastore.Store[types.BeaconBlockBody], state.BeaconState],
+	keeper *storage.Backend[
+		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+	],
 	chainSpec primitives.ChainSpec,
 ) AppModule {
 	return AppModule{

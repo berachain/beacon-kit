@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -42,11 +43,13 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
+	AvailabilityStoreT core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
+		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
@@ -62,11 +65,13 @@ type BeaconKitRuntime[
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
+	AvailabilityStoreT core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
+		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
@@ -78,6 +83,7 @@ func NewBeaconKitRuntime[
 	services *service.Registry,
 	storageBackend StorageBackendT,
 ) (*BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
@@ -85,6 +91,7 @@ func NewBeaconKitRuntime[
 	StorageBackendT,
 ], error) {
 	return &BeaconKitRuntime[
+		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
@@ -101,6 +108,7 @@ func NewBeaconKitRuntime[
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -115,6 +123,7 @@ func (r *BeaconKitRuntime[
 
 // BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime[
+	AvailabilityStoreT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
@@ -126,6 +135,7 @@ func (r *BeaconKitRuntime[
 ) {
 	var (
 		chainService *blockchain.Service[
+			AvailabilityStoreT,
 			state.BeaconState,
 			BlobSidecarsT,
 			DepositStoreT,
