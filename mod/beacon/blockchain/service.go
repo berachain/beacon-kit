@@ -95,8 +95,14 @@ func NewService[
 	],
 	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],
 	dc DepositContract,
-) *Service[AvailabilityStoreT, ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT] {
-	return &Service[AvailabilityStoreT, ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT]{
+) *Service[
+	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	BlobSidecarsT, DepositStoreT,
+] {
+	return &Service[
+		AvailabilityStoreT, ReadOnlyBeaconStateT,
+		BlobSidecarsT, DepositStoreT,
+	]{
 		sb:     sb,
 		logger: logger,
 		cs:     cs,
