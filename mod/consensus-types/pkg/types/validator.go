@@ -42,7 +42,7 @@ type Validator struct {
 	// WithdrawalCredentials are an address that controls the validator.
 	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance math.Gwei `json:"effectiveBalance"`
+		EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 	// ActivationEligibilityEpoch is the epoch in which the validator became

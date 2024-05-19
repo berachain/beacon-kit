@@ -145,7 +145,7 @@ func (s *StateDB[
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
-	balance, err := s.GetBalance(idx)
+	balance, err := s.GetBalance(idx) 
 	if err != nil {
 		return err
 	}

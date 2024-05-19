@@ -26,14 +26,14 @@
 package handlers
 
 import (
-	"net/http"
-
-	echo "github.com/labstack/echo/v4"
+	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/labstack/echo/v4"
 )
 
 type RouteHandlers struct {
+	Backend types.BackendHandlers
 }
 
 func (rh RouteHandlers) NotImplemented(_ echo.Context) error {
-	return echo.NewHTTPError(http.StatusNotImplemented, "Not implemented")
+	return echo.ErrNotImplemented
 }

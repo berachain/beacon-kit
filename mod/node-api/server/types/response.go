@@ -25,7 +25,53 @@
 
 package types
 
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
 type ErrorResponse struct {
 	Code    int `json:"code"`
 	Message any `json:"message"`
+}
+
+type DataResponse struct {
+	Data any `json:"data"`
+}
+
+type GenesisData struct {
+	GenesisTime           string             `json:"genesis_time"`
+	GenesisValidatorsRoot primitives.Bytes32 `json:"genesis_validators_root"`
+	GenesisForkVersion    string             `json:"genesis_fork_version"`
+}
+
+type RootData struct {
+	Root primitives.Root `json:"root"`
+}
+
+type ValidatorStateResponse struct {
+	ExecutionOptimistic bool         `json:"execution_optimistic"`
+	Finalized           bool         `json:"finalized"`
+	Data                any `json:"data"`
+}
+
+
+type ValidatorData struct {
+	Index     math.U64         `json:"index"`
+	Balance   math.U64         `json:"balance"`
+	Status    string           `json:"status"`
+	Validator *types.Validator `json:"validator"`
+}
+
+
+type ValidatorBalanceData struct {
+	Index   math.U64 `json:"index"`
+	Balance math.U64 `json:"balance"`
+}
+
+type CommitteeData struct {
+	Index      math.U64   `json:"index"`
+	Slot       math.U64   `json:"slot"`
+	Validators []math.U64 `json:"validators"`
 }

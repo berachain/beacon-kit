@@ -27,11 +27,28 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
-	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
-	echo "github.com/labstack/echo/v4"
+	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 )
+
+type CustomValidator struct {
+	Validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.Validator.Struct(i); err != nil {
+		firstError := err.(validator.ValidationErrors)[0]
+		field := firstError.Field()
+		value := firstError.Value()
+		return echo.NewHTTPError(http.StatusBadRequest,
+			fmt.Sprintf("Invalid %s: %s", field, value))
+	}
+	return nil
+}
 
 func CustomHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
@@ -49,4 +66,19 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	if jsonErr := c.JSON(code, response); jsonErr != nil {
 		c.Logger().Error(jsonErr)
 	}
+}
+
+func BindAndValidate[T any](c echo.Context) (*T, error) {
+	t := new(T)
+	if err := c.Bind(t); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func WrapData(nested any) types.DataResponse {
+	return types.DataResponse{Data: nested}
 }
