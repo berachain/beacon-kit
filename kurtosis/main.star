@@ -141,8 +141,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
 
         remaining_el_clients = execution.deploy_nodes(plan, remaining_el_client_configs)
 
-        for el_client in remaining_el_clients:
-            if validator.el_type != "ethereumjs":
+        for n, el_client in enumerate(remaining_el_clients.keys()):
+            if validators[n].el_type != "ethereumjs":
                 metrics_enabled_services.append({
                     "name": el_client,
                     "service": remaining_el_clients[el_client],
@@ -173,21 +173,26 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
-    full_node_el_clients = []
+    full_node_el_client_configs = []
     for n, full in enumerate(full_nodes):
-        el_client = execution.create_node(plan, node_modules, full, "full", n, el_enode_addrs)
-        full_node_el_clients.append(el_client["service"])
+        el_client_config = execution.generate_node_config(plan, node_modules, full, "full", n, el_enode_addrs)
+        full_node_el_client_configs.append(el_client_config)
 
-        if full.el_type != "ethereumjs":
+    if full_node_el_client_configs != []:
+        full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs)
+
+    for n, el_client in enumerate(full_node_el_clients.keys()):
+        if full_nodes[n].el_type != "ethereumjs":
             metrics_enabled_services.append({
-                "name": el_client["name"],
-                "service": el_client["service"],
-                "metrics_path": node_modules[full.el_type].METRICS_PATH,
+                "name": el_client,
+                "service": full_node_el_clients[el_client],
+                "metrics_path": node_modules[full_nodes[n].el_type].METRICS_PATH,
             })
 
-        # 4b. Launch CL
+    for n, el_client in enumerate(full_node_el_clients.keys()):
+        # 5b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
-        full_node_config = beacond.create_node_config(plan, full.cl_image, consensus_node_peering_info, el_client["name"], "full", jwt_file, kzg_trusted_setup, n)
+        full_node_config = beacond.create_node_config(plan, full_nodes[n].cl_image, consensus_node_peering_info, el_client, "full", jwt_file, kzg_trusted_setup, n)
         full_node_configs[cl_service_name] = full_node_config
 
     if full_node_configs != {}:
@@ -225,7 +230,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         plan.print("Launching tx-fuzz")
         fuzzing_node = validator_node_el_clients[0]
         if len(full_nodes) > 0:
-            fuzzing_node = full_node_el_clients[0]
+            fuzzing_node = full_node_el_clients[full_node_el_clients.keys()[0]]
         tx_fuzz.launch_tx_fuzz(
             plan,
             constants.PRE_FUNDED_ACCOUNTS[1].private_key,
