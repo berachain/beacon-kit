@@ -44,9 +44,6 @@ type Context interface {
 	// by the execution engine.
 	GetOptimisticEngine() bool
 
-	// WithContext sets the underlying context.
-	WithContext(ctx context.Context) Context
-
 	// Unwrap returns the underlying standard context.
 	Unwrap() context.Context
 }

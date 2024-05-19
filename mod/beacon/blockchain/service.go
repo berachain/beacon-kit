@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // Service is the blockchain service.
@@ -70,7 +71,9 @@ type Service[
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 
 	// sp is the state processor for beacon blocks and states.
-	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT]
+	sp StateProcessor[
+		ReadOnlyBeaconStateT, BlobSidecarsT, *transition.Context,
+	]
 }
 
 // NewService creates a new validator service.
@@ -93,7 +96,9 @@ func NewService[
 		AvailabilityStoreT,
 		BlobSidecarsT,
 	],
-	sp StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT],
+	sp StateProcessor[
+		ReadOnlyBeaconStateT, BlobSidecarsT, *transition.Context,
+	],
 	dc DepositContract,
 ) *Service[
 	AvailabilityStoreT, ReadOnlyBeaconStateT,

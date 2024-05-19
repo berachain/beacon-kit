@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -69,7 +69,7 @@ func (s *Service[
 			//
 			// TODO: Figure out why SkipPayloadIfExists being `true`
 			// causes nodes to create gaps in their chain.
-			core.NewContext(gCtx, true, false, true),
+			transition.NewContext(gCtx, true, false, true),
 			st,
 			blk,
 		)

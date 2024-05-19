@@ -44,6 +44,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -145,6 +146,7 @@ func ProvideRuntime(
 		types.BeaconBlock,
 		state.BeaconState,
 		*datypes.BlobSidecars,
+		*transition.Context,
 	](
 		chainSpec,
 		randaoProcessor,

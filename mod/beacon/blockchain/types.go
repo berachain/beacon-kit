@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -203,7 +202,7 @@ type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
+type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT, ContextT any] interface {
 	// ProcessSlot processes the state transition for a single slot.
 	ProcessSlot(
 		st ReadOnlyBeaconStateT,
@@ -211,7 +210,7 @@ type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
 
 	// Transition processes the state transition for a given block.
 	Transition(
-		ctx core.Context,
+		ctx ContextT,
 		st ReadOnlyBeaconStateT,
 		blk types.BeaconBlock,
 	) error
