@@ -27,24 +27,30 @@
 # Monitoring and alerting are not included in this configuration, as they are handled by the GCP infrastructure.
 
 validators:
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
   - el_type: reth
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    replicas: 32
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    replicas: 32
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    replicas: 32
   - el_type: geth
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: erigon
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: ethereumjs
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main  
+    replicas: 32
+  # - el_type: erigon
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  #   replicas: 32
+  # - el_type: ethereumjs
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main  
+  #   replicas: 2
 full_nodes:
   - el_type: besu
     cl_type: beaconkit
@@ -60,22 +66,28 @@ full_nodes:
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
     replicas: 1
-  - el_type: erigon
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: ethereumjs
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 1 
-rpc_endpoints:
-  - type: nginx
-    services:
-      - el-full-besu-0:8545
-      - el-full-nethermind-1:8545
-      - el-full-reth-2:8545
-      - el-full-reth-3:8545
-      - el-full-geth-4:8545
-      - el-full-erigon-5:8545
-      - el-full-ethereumjs-6:8545
+  # - el_type: erigon
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  # - el_type: ethereumjs
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  #   replicas: 1
+boot_sequence:
+  type: parallel
+# rpc_endpoints:
+#   - type: nginx
+#     services:
+#       - el-full-besu-0:8545
+#       - el-full-nethermind-1:8545
+#       - el-full-reth-2:8545
+#       - el-full-reth-3:8545
+#       - el-full-geth-4:8545
+      # - el-full-erigon-5:8545
+      # - el-full-ethereumjs-6:8545
 additional_services: 
-  - "goomy_blob"
+  # - "goomy_blob"
+  # - "tx-fuzz"
+  - "prometheus"
+  - "grafana"
+  # - "pyroscope"

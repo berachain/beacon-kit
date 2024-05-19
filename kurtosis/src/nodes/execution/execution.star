@@ -17,6 +17,11 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
+DEFAULT_MAX_CPU = 2000
+DEFAULT_MAX_MEMORY = 8192
+DEFAULT_MIN_CPU = 1000
+DEFAULT_MIN_MEMORY = 4096
+
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
     sc = service_config_lib.get_service_config_template(
@@ -26,6 +31,10 @@ def get_default_service_config(service_name, node_module):
         entrypoint = node_module.ENTRYPOINT,
         cmd = node_module.CMD,
         files = node_module.FILES,
+        min_cpu = DEFAULT_MIN_CPU,
+        max_cpu = DEFAULT_MAX_CPU,
+        min_memory = DEFAULT_MIN_MEMORY,
+        max_memory = DEFAULT_MAX_MEMORY,
     )
 
     return sc

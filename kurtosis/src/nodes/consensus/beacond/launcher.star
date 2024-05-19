@@ -3,6 +3,11 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
+DEFAULT_MAX_CPU = 1000
+DEFAULT_MAX_MEMORY = 4096
+DEFAULT_MIN_CPU = 500
+DEFAULT_MIN_MEMORY = 1024
+
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
 COMETBFT_GRPC_PORT_NUM = 9090
@@ -44,6 +49,10 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
         files = files,
         entrypoint = entrypoint,
         cmd = cmd,
+        min_cpu = DEFAULT_MIN_CPU,
+        max_cpu = DEFAULT_MAX_CPU,
+        min_memory = DEFAULT_MIN_MEMORY,
+        max_memory = DEFAULT_MAX_MEMORY,
         env_vars = {
             "BEACOND_MONIKER": cl_service_name,
             "BEACOND_NET": "VALUE_2",

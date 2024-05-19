@@ -99,16 +99,17 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         
         el_clients = execution.deploy_nodes(plan, el_client_configs)
 
-        for n, el_client in enumerate(el_clients.keys()):
-            validator_node_el_clients.append(el_client)
-            enode_addr = execution.get_enode_addr(plan, el_client)
+        for n, el_client in enumerate(bootnode_validators):
+            el_service_name = "el-{}-{}-{}".format("validator", el_client.el_type, n)
+            validator_node_el_clients.append(el_service_name)
+            enode_addr = execution.get_enode_addr(plan, el_service_name)
             el_enode_addrs.append(enode_addr)
 
             if validators[n].el_type != "ethereumjs":
                 metrics_enabled_services.append({
-                    "name": el_client,
-                    "service": el_clients[el_client],
-                    "metrics_path": node_modules[validators[n].el_type].METRICS_PATH,
+                    "name": el_service_name,
+                    "service": el_clients[el_service_name],
+                    "metrics_path": node_modules[bootnode_validators[n].el_type].METRICS_PATH,
                 })
 
         validator_node_configs = {}
@@ -122,14 +123,15 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
             configs = validator_node_configs,
         )
 
-        for n, cl_client in enumerate(cl_clients.keys()):
-            peer_info = beacond.get_peer_info(plan, cl_client)
+        for n, cl_client in enumerate(bootnode_validators):
+            cl_service_name = "cl-validator-beaconkit-{}".format(n)
+            peer_info = beacond.get_peer_info(plan, cl_service_name)
             consensus_node_peering_info.append(peer_info)
 
             if validators[n].el_type != "ethereumjs":
                 metrics_enabled_services.append({
-                    "name": cl_client,
-                    "service": cl_clients[cl_client],
+                    "name": cl_service_name,
+                    "service": cl_clients[cl_service_name],
                     "metrics_path": beacond.METRICS_PATH,
                 })
         
@@ -141,11 +143,13 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
 
         remaining_el_clients = execution.deploy_nodes(plan, remaining_el_client_configs)
 
-        for n, el_client in enumerate(remaining_el_clients.keys()):
-            if validators[n].el_type != "ethereumjs":
+        for n, validator in enumerate(remaining_validators):
+            index = n+bootnode_count
+            el_service_name = "el-{}-{}-{}".format("validator", validator.el_type, index)
+            if validator.el_type != "ethereumjs":
                 metrics_enabled_services.append({
-                    "name": el_client,
-                    "service": remaining_el_clients[el_client],
+                    "name": el_service_name,
+                    "service": remaining_el_clients[el_service_name],
                     "metrics_path": node_modules[validator.el_type].METRICS_PATH,
                 })
 
@@ -153,7 +157,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         for n, validator in enumerate(remaining_validators):
             index = n+bootnode_count
             cl_service_name = "cl-validator-beaconkit-{}".format(index)
-            el_client = remaining_el_clients.keys()[n]
+            el_client = "el-{}-{}-{}".format("validator", validator.el_type, index)
             validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, index)
             validator_node_configs[cl_service_name] = validator_node_config
         
@@ -161,11 +165,13 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
             configs = validator_node_configs,
         )
 
-        for n, cl_client in enumerate(remaining_cl_clients.keys()):
-            if validators[n].el_type != "ethereumjs":
+        for n, validator in enumerate(remaining_validators):
+            index = n+bootnode_count
+            cl_service_name = "cl-validator-beaconkit-{}".format(index)
+            if validator.el_type != "ethereumjs":
                 metrics_enabled_services.append({
-                    "name": cl_client,
-                    "service": remaining_cl_clients[cl_client],
+                    "name": cl_service_name,
+                    "service": remaining_cl_clients[cl_service_name],
                     "metrics_path": beacond.METRICS_PATH,
                 })
 
@@ -181,18 +187,20 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
     if full_node_el_client_configs != []:
         full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs)
 
-    for n, el_client in enumerate(full_node_el_clients.keys()):
-        if full_nodes[n].el_type != "ethereumjs":
+    for n, full in enumerate(full_nodes):
+        el_client = "el-{}-{}-{}".format("full", full.el_type, n)
+        if full.el_type != "ethereumjs":
             metrics_enabled_services.append({
                 "name": el_client,
                 "service": full_node_el_clients[el_client],
-                "metrics_path": node_modules[full_nodes[n].el_type].METRICS_PATH,
+                "metrics_path": node_modules[full.el_type].METRICS_PATH,
             })
 
-    for n, el_client in enumerate(full_node_el_clients.keys()):
+    for n, full in enumerate(full_nodes):
         # 5b. Launch CL
         cl_service_name = "cl-full-beaconkit-{}".format(n)
-        full_node_config = beacond.create_node_config(plan, full_nodes[n].cl_image, consensus_node_peering_info, el_client, "full", jwt_file, kzg_trusted_setup, n)
+        el_client = "el-{}-{}-{}".format("full", full.el_type, n)
+        full_node_config = beacond.create_node_config(plan, full.cl_image, consensus_node_peering_info, el_client, "full", jwt_file, kzg_trusted_setup, n)
         full_node_configs[cl_service_name] = full_node_config
 
     if full_node_configs != {}:
