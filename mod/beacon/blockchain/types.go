@@ -87,15 +87,14 @@ type ReadOnlyBeaconState[T any] interface {
 }
 
 type StorageBackend[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconStateT any,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] interface {
 	AvailabilityStore(
 		context.Context,
-	) core.AvailabilityStore[
-		types.BeaconBlockBody, BlobSidecarsT,
-	]
+	) AvailabilityStoreT
 	StateFromContext(context.Context) BeaconStateT
 	DepositStore(context.Context) DepositStoreT
 }

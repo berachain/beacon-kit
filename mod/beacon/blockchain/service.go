@@ -43,6 +43,7 @@ type Service[
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
 	sb StorageBackend[
+		core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
 	]
 
@@ -78,6 +79,7 @@ func NewService[
 	DepositStoreT DepositStore,
 ](
 	sb StorageBackend[
+		core.AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,

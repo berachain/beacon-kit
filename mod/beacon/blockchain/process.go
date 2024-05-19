@@ -35,15 +35,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessSlot processes the incoming beacon slot.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessSlot(
-	st ReadOnlyBeaconStateT,
-) error {
-	return s.sp.ProcessSlot(st)
-}
-
 // ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
 //
