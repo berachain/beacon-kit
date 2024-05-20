@@ -47,8 +47,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	body := blk.GetBody()
-	payload := body.GetExecutionPayload()
+	var (
+		body    = blk.GetBody()
+		payload = body.GetExecutionPayload()
+	)
 
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	g, _ := errgroup.WithContext(context.Background())
@@ -128,7 +130,7 @@ func (sp *StateProcessor[
 		return errors.Wrapf(
 			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
+			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
 		)
 	}
 

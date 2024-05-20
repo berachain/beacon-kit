@@ -257,7 +257,7 @@ func (sp *StateProcessor[
 
 	// process the withdrawals.
 	if err := sp.processWithdrawals(
-		st, blk.GetBody().GetExecutionPayload(),
+		st, blk.GetBody(),
 	); err != nil {
 		return err
 	}
