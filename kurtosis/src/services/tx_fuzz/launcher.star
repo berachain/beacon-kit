@@ -33,15 +33,15 @@ def get_config(
     # A sleep is added to ensure the full node is up in single-node deployments
     cmd = " ".join([
         "sleep",
-        "3",
+        "5",
         "&&",
         "/tx-fuzz.bin",
         "spam",
         "--rpc={}".format(el_uri),
         "--sk={0}".format(prefunded_private_key),
         "--accounts=100",
-        "--txcount=3",
-        "--slot-time=6",
+        "--txcount=100",
+        "--slot-time=3",
     ])
 
     if len(tx_spammer_extra_args) > 0:

@@ -52,16 +52,16 @@ validators:
   #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main  
   #   replicas: 2
 full_nodes:
+  - el_type: reth
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    replicas: 2
   - el_type: besu
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
   - el_type: nethermind
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 2
   - el_type: geth
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
@@ -73,6 +73,11 @@ full_nodes:
   #   cl_type: beaconkit
   #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
   #   replicas: 1
+seed_nodes:
+  - el_type: geth
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    replicas: 3
 boot_sequence:
   type: parallel
 # rpc_endpoints:
@@ -87,7 +92,7 @@ boot_sequence:
       # - el-full-ethereumjs-6:8545
 additional_services: 
   # - "goomy_blob"
-  # - "tx-fuzz"
+  - "tx-fuzz"
   - "prometheus"
   - "grafana"
   # - "pyroscope"

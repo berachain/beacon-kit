@@ -16,7 +16,7 @@ grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 
-def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {"type": "sequential"}, additional_services = [], metrics_enabled_services = []):
+def run(plan, validators, full_nodes = [], seed_nodes = [], rpc_endpoints = [], boot_sequence = {"type": "sequential"}, additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -27,6 +27,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
 
     validators = nodes.parse_nodes_from_dict(validators)
     full_nodes = nodes.parse_nodes_from_dict(full_nodes)
+    seed_nodes = nodes.parse_nodes_from_dict(seed_nodes)
     num_validators = len(validators)
     bootnode_count = num_validators * 0.15
     bootnode_count = int(bootnode_count)
@@ -49,6 +50,12 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
             node_module = import_module(node_path)
             node_modules[node.el_type] = node_module
 
+    for node in seed_nodes:
+        if node.el_type not in node_modules.keys():
+            node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
+            node_module = import_module(node_path)
+            node_modules[node.el_type] = node_module
+
     # 2. Upload files
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
 
@@ -62,6 +69,48 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
     metrics_enabled_services = metrics_enabled_services[:]
 
     consensus_node_peering_info = []
+    all_consensus_peering_info = {}
+
+    # 4i. Start seed nodes
+    seed_node_el_client_configs = []
+    for n, seed in enumerate(seed_nodes):
+        el_client_config = execution.generate_node_config(plan, node_modules, seed, "seed", n)
+        seed_node_el_client_configs.append(el_client_config)
+
+    if seed_node_el_client_configs != []:
+        seed_node_el_clients = execution.deploy_nodes(plan, seed_node_el_client_configs)
+
+    for n, seed in enumerate(seed_nodes):
+        el_service_name = "el-{}-{}-{}".format("seed", seed.el_type, n)
+        if seed.el_type != "ethereumjs":
+            metrics_enabled_services.append({
+                "name": el_service_name,
+                "service": seed_node_el_clients[el_service_name],
+                "metrics_path": node_modules[seed.el_type].METRICS_PATH,
+            })
+
+    seed_node_configs = {}
+    for n, seed in enumerate(seed_nodes):
+        cl_service_name = "cl-seed-beaconkit-{}".format(n)
+        el_client = "el-{}-{}-{}".format("seed", seed.el_type, n)
+        seed_node_config = beacond.create_node_config(plan, seed.cl_image, consensus_node_peering_info, el_client, "seed", jwt_file, kzg_trusted_setup, n)
+        seed_node_configs[cl_service_name] = seed_node_config
+
+    seed_nodes_clients = plan.add_services(
+            configs = seed_node_configs,
+        )
+
+    for n, seed_client in enumerate(seed_nodes):
+            cl_service_name = "cl-seed-beaconkit-{}".format(n)
+            peer_info = beacond.get_peer_info(plan, cl_service_name)
+            consensus_node_peering_info.append(peer_info)
+
+            if seed_client.el_type != "ethereumjs":
+                metrics_enabled_services.append({
+                    "name": cl_service_name,
+                    "service": seed_nodes_clients[cl_service_name],
+                    "metrics_path": beacond.METRICS_PATH,
+                })
 
     # 4. Start network validators
     validator_node_el_clients = []
@@ -116,7 +165,7 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         for n, validator in enumerate(bootnode_validators):
             cl_service_name = "cl-validator-beaconkit-{}".format(n)
             el_client = el_clients.keys()[n]
-            validator_node_config = beacond.create_node_config(plan, validator.cl_image, [], el_client, "validator", jwt_file, kzg_trusted_setup, n)
+            validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, n)
             validator_node_configs[cl_service_name] = validator_node_config
         
         cl_clients = plan.add_services(
@@ -126,7 +175,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         for n, cl_client in enumerate(bootnode_validators):
             cl_service_name = "cl-validator-beaconkit-{}".format(n)
             peer_info = beacond.get_peer_info(plan, cl_service_name)
-            consensus_node_peering_info.append(peer_info)
+            all_consensus_peering_info[cl_service_name] = peer_info
+            # consensus_node_peering_info.append(peer_info)
 
             if validators[n].el_type != "ethereumjs":
                 metrics_enabled_services.append({
@@ -168,6 +218,8 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
         for n, validator in enumerate(remaining_validators):
             index = n+bootnode_count
             cl_service_name = "cl-validator-beaconkit-{}".format(index)
+            peer_info = beacond.get_peer_info(plan, cl_service_name)
+            all_consensus_peering_info[cl_service_name] = peer_info
             if validator.el_type != "ethereumjs":
                 metrics_enabled_services.append({
                     "name": cl_service_name,
@@ -175,7 +227,9 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
                     "metrics_path": beacond.METRICS_PATH,
                 })
 
-        
+    for n, seed_node in enumerate(seed_nodes):
+        cl_service_name = "cl-seed-beaconkit-{}".format(n)
+        beacond.dial_unsafe_peers(plan, cl_service_name, all_consensus_peering_info)
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}

@@ -106,6 +106,7 @@ def perform_genesis_ceremony_parallel(plan, validators, jwt_file):
         },
         env_vars = multiple_gentx_env_vars,
         store = stored_configs,
+        wait = "300s",
         description = "Collecting beacond genesis files",
     )
 
@@ -174,7 +175,7 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
 def get_persistent_peers(plan, peers):
     persistent_peers = peers[:]
     for i in range(len(persistent_peers)):
-        peer_cl_service_name = "cl-validator-beaconkit-{}".format(i)
+        peer_cl_service_name = "cl-seed-beaconkit-{}".format(i)
         peer_service = plan.get_service(peer_cl_service_name)
         persistent_peers[i] = persistent_peers[i] + "@" + peer_service.ip_address + ":26656"
     return ",".join(persistent_peers)
@@ -203,9 +204,11 @@ def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, 
 
     persistent_peers = get_persistent_peers(plan, peers)
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False))
     if node_type == "validator":
-        cmd = node.start(persistent_peers)
+        cmd = node.start(persistent_peers, False)
+    elif node_type == "seed":
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True))
 
     beacond_config = get_config(
         cl_image,
@@ -233,3 +236,24 @@ def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, 
 def get_peer_info(plan, cl_service_name):
     peer_result = bash.exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
     return peer_result["output"]
+
+def dial_unsafe_peers(plan, seed_service_name, peers):
+    peers_list = []
+    for cl_service_name, peer_info in peers.items():
+        p2p_addr = "\"{}@{}:26656\"".format(peer_info, plan.get_service(cl_service_name).ip_address)
+        peers_list.append(p2p_addr)
+
+    # Split peers_list into groups of 20
+    peer_groups = [peers_list[i:i + 20] for i in range(0, len(peers_list), 20)]
+    for group in peer_groups:
+        peer_string = ",".join(group)
+        endpoint = "/dial_peers?peers=%5B{}%5D&persistent=false".format(peer_string)
+        curl_command = ["curl", "-X", "GET", "http://localhost:{}{}".format(COMETBFT_RPC_PORT_NUM, endpoint)]
+        exec_recipe = ExecRecipe(
+            command=curl_command,
+        )
+        plan.exec(
+            service_name=seed_service_name,
+            recipe=exec_recipe,
+            description="Adding peers to seed node",
+        )

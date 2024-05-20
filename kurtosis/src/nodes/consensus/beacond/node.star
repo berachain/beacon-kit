@@ -22,17 +22,24 @@ def collect_validator(plan, cl_service_name):
     command = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
-def start(persistent_peers):
+def start(persistent_peers, is_seed):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^prometheus_listen_addr = \\":26660\\"$/prometheus_listen_addr = \\"0.0.0.0:26660\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"3s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"2.5s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_vote = \\".*\\"$/timeout_vote = \\"3s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"1s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^unsafe = false$/unsafe = true/" "{}/config/config.toml"'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^payload-timeout = \\".*\\"$/payload-timeout = \\"1.5s\\"/" {}/config/app.toml'.format("$BEACOND_HOME")
     persistent_peers_option = ""
+    seed_option = ""
     if persistent_peers != "":
-        persistent_peers_option = "--p2p.persistent_peers {}".format("$BEACOND_PERSISTENT_PEERS")
+        persistent_peers_option = "--p2p.seeds {}".format("$BEACOND_PERSISTENT_PEERS")
+    if is_seed == True:
+        set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
+        set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
+        seed_option = "--p2p.seed_mode"
 
     start_node = "/usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
@@ -41,7 +48,7 @@ def start(persistent_peers):
     --beacon-kit.engine.required-chain-id {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option)
+    --api.enable {} {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option, seed_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 

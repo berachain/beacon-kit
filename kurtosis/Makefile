@@ -18,7 +18,7 @@ start-devnet-no-build:
 # running in production mode to allow pod restarts when doing chaos testing.
 start-gcp-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
-		--enclave my-gcp-devnet --parallelism 200 --production --image-download always
+		--enclave my-gcp-devnet --parallelism 40 --production --image-download always
 
 # Stops the running Kurtosis enclave on GCP
 stop-gcp-devnet:
