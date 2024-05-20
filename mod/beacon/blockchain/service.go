@@ -72,7 +72,10 @@ type Service[
 
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
-		ReadOnlyBeaconStateT, BlobSidecarsT, *transition.Context,
+		types.BeaconBlock,
+		ReadOnlyBeaconStateT,
+		BlobSidecarsT,
+		*transition.Context,
 	]
 }
 
@@ -97,7 +100,8 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		ReadOnlyBeaconStateT, BlobSidecarsT, *transition.Context,
+		types.BeaconBlock, ReadOnlyBeaconStateT,
+		BlobSidecarsT, *transition.Context,
 	],
 	dc DepositContract,
 ) *Service[

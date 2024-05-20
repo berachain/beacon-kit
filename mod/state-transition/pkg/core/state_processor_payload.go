@@ -40,7 +40,7 @@ import (
 //
 //nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processExecutionPayload(
 	ctx Context,

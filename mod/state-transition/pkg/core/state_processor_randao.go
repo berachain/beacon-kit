@@ -28,7 +28,7 @@ package core
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processRandaoReveal(
 	st BeaconStateT,
@@ -42,7 +42,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
