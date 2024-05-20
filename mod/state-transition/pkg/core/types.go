@@ -30,6 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -46,6 +48,18 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
+}
+
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	GetProposerIndex() math.ValidatorIndex
+	GetSlot() math.Slot
+	GetBody() BeaconBlockBodyT
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+}
+
+type BeaconBlockBody interface {
+	GetRandaoReveal() crypto.BLSSignature
 }
 
 // Context defines an interface for managing state transition context.

@@ -39,7 +39,7 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
@@ -54,7 +54,7 @@ type StateProcessor[
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
