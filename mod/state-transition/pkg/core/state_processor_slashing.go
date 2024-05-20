@@ -35,7 +35,7 @@ import (
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processSlashingsReset(
 	st BeaconStateT,
@@ -55,7 +55,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processProposerSlashing(
 	_ BeaconStateT,
@@ -69,7 +69,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
@@ -86,7 +86,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processSlashings(
 	st BeaconStateT,
@@ -100,11 +100,12 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	proportionalSlashingMultiplier := sp.cs.ProportionalSlashingMultiplier
+
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*proportionalSlashingMultiplier(),
+		uint64(totalSlashings)*sp.cs.ProportionalSlashingMultiplier(),
 		uint64(totalBalance),
 	)
+
 	vals, err := st.GetValidators()
 	if err != nil {
 		return err
@@ -116,16 +117,14 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// Iterate through the validators.
+	//nolint:mnd // this is in the spec
+	slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
+
+	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
-		// Checks if the validator is slashable.
-		//nolint:mnd // this is in the spec
-		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
-		// If the validator is slashable, and slashed
 		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
 			if err = sp.processSlash(
-				st,
-				val,
+				st, val,
 				adjustedTotalSlashingBalance,
 				uint64(totalBalance),
 			); err != nil {
@@ -140,7 +139,7 @@ func (sp *StateProcessor[
 //
 //nolint:unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processSlash(
 	st BeaconStateT,

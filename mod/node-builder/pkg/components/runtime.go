@@ -144,6 +144,7 @@ func ProvideRuntime(
 
 	stateProcessor := core.NewStateProcessor[
 		types.BeaconBlock,
+		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
 		*transition.Context,
