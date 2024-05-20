@@ -36,8 +36,8 @@ import (
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	_ "cosmossdk.io/x/consensus"      // import for side-effects
 	consensustypes "cosmossdk.io/x/consensus/types"
-	"github.com/berachain/beacon-kit/beacond/x/beacon"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
+	beacon "github.com/berachain/beacon-kit/mod/runtime/pkg/module"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )
