@@ -40,18 +40,22 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
-]) updateSyncCommittee(
+]) processSyncCommitteeUpdates(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
+
+	var (
+		idx                  math.U64
+		val                  *types.Validator
+		validatorUpdates     = make([]*transition.ValidatorUpdate, 0)
+		aboveEjectionBalance = make([]crypto.BLSPubkey, 0)
+	)
+
 	syncCommittee, err := st.GetSyncCommittee()
 	if err != nil {
 		return nil, err
 	}
 
-	var idx math.U64
-	var val *types.Validator
-	validatorUpdates := make([]*transition.ValidatorUpdate, 0)
-	aboveEjectionBlance := make([]crypto.BLSPubkey, 0)
 	for _, pubkey := range syncCommittee {
 		idx, err = st.ValidatorIndexByPubkey(pubkey)
 		if err != nil {
@@ -67,21 +71,21 @@ func (sp *StateProcessor[
 		// then they get to stay in the committee.
 		if val.EffectiveBalance >= math.U64(sp.cs.EjectionBalance()) &&
 			!val.Slashed {
-			aboveEjectionBlance = append(aboveEjectionBlance, pubkey)
+			aboveEjectionBalance = append(aboveEjectionBalance, pubkey)
 		} else {
 			// If the validator is in the committee but below the ejection
 			// balance
 			// then they get ejected.
 			validatorUpdates = append(validatorUpdates, &transition.ValidatorUpdate{
 				Pubkey: pubkey,
-				Exit:   true,
+				Event:  transition.Activate,
 			})
 		}
 	}
 
 	// If no validators were ejected / we are at the max committee size we can
 	// return early.
-	if len(aboveEjectionBlance) == int(sp.cs.SyncCommitteeSize()) {
+	if len(aboveEjectionBalance) == int(sp.cs.SyncCommitteeSize()) {
 		return nil, nil
 	}
 
@@ -92,28 +96,28 @@ func (sp *StateProcessor[
 
 	for _, val := range allValidators {
 		// We want to stop once we have the max committee size.
-		if len(aboveEjectionBlance) == int(sp.cs.SyncCommitteeSize()) {
+		if len(aboveEjectionBalance) == int(sp.cs.SyncCommitteeSize()) {
 			break
 		}
 
 		// If the validator is not already in the committee and above the
 		// ejection balance we can add it to the committee.
-		if !slices.Contains(aboveEjectionBlance, val.Pubkey) &&
+		if !slices.Contains(aboveEjectionBalance, val.Pubkey) &&
 			val.EffectiveBalance >= math.U64(sp.cs.MaxEffectiveBalance()) &&
 			!val.Slashed {
-			aboveEjectionBlance = append(aboveEjectionBlance, val.Pubkey)
+			aboveEjectionBalance = append(aboveEjectionBalance, val.Pubkey)
 			validatorUpdates = append(
 				validatorUpdates,
 				&transition.ValidatorUpdate{
 					Pubkey: val.Pubkey,
-					Exit:   false,
+					Event:  transition.Deactivate,
 				},
 			)
 		}
 	}
 
 	// Set the new sync committee.
-	if err = st.SetSyncCommittee(aboveEjectionBlance); err != nil {
+	if err = st.SetSyncCommittee(aboveEjectionBalance); err != nil {
 		return nil, err
 	}
 

@@ -23,20 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package runtime
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-)
+import "errors"
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
-
-	// Event is the event of the validator update.
-	Event string
-}
-
-const Activate = "activate"
-const Deactivate = "deactivate"
+// ErrUndefinedValidatorUpdate is returned when an undefined validator update is
+// encountered.
+var ErrUndefinedValidatorUpdate = errors.New("undefined validator update")

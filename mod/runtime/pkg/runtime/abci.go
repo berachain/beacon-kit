@@ -30,11 +30,9 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -59,11 +57,10 @@ func (r BeaconKitRuntime[
 
 	// Build ValidatorUpdates for CometBFT.
 	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	blsType := "bls12_381"
 	for _, validator := range data.Validators {
 		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
-			PubKeyType: blsType,
+			PubKeyType: crypto.CometBLSType,
 			//#nosec:G701 // will not realistically cause a problem.
 			Power: int64(validator.EffectiveBalance),
 		},
@@ -80,20 +77,9 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	var (
-		chainService *blockchain.Service[
-			AvailabilityStoreT,
-			state.BeaconState,
-			BlobSidecarsT,
-			DepositStoreT,
-		]
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	// Process the state transition.
-	updates, err := chainService.ProcessStateTransition(
+	// Process the state transition and produce the required delta from
+	// the sync committee.
+	updates, err := r.chainService.ProcessStateTransition(
 		ctx,
 		// TODO: improve the robustness of these types to ensure we
 		// don't run into any nil ptr issues.
@@ -104,16 +90,26 @@ func (r BeaconKitRuntime[
 		return nil, err
 	}
 
+	// Convert the delta into the appmodule ValidatorUpdate format to
+	// pass onto CometBFT.
 	return iter.MapErr(
 		updates,
 		func(
-			validator **transition.ValidatorUpdate,
+			u **transition.ValidatorUpdate,
 		) (appmodulev2.ValidatorUpdate, error) {
-			return appmodulev2.ValidatorUpdate{
-				PubKey:     (*validator).Pubkey[:],
+			update := *u
+			res := appmodulev2.ValidatorUpdate{
+				PubKey:     update.Pubkey[:],
 				PubKeyType: crypto.CometBLSType,
-				Power:      crypto.CometBLSPower,
-			}, nil
+			}
+			if update.Event == transition.Activate {
+				res.Power = crypto.CometBLSPower
+			} else if update.Event == transition.Deactivate {
+				res.Power = 0
+			} else {
+				return res, ErrUndefinedValidatorUpdate
+			}
+			return res, nil
 		},
 	)
 }
