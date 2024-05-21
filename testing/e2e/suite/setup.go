@@ -52,12 +52,14 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
-// BeforeTest executes before specific tests in the suite.
-func (s *KurtosisE2ESuite) BeforeTest(_, testName string) {
-	if testName == "TestDepositContract" {
-		s.SetupSuite()
-	}
-}
+// // BeforeTest executes before specific tests in the suite.
+// func (s *KurtosisE2ESuite) BeforeTest(_, testName string) {
+// 	if testName == "TestDepositContract" {
+// 		s.SetupSuite()
+// 	} else if testName == "TestDepositRobustness" {
+// 		s.SetupSuite()
+// 	}
+// }
 
 // Option is a function that sets a field on the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
@@ -161,6 +163,54 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 // SetupExecutionClients sets up the execution clients for the test suite.
 func (s *KurtosisE2ESuite) SetupExecutionClients() error {
+	s.executionClients = make(map[string]*types.ExecutionClient)
+	sCtx, err := s.Enclave().GetServiceContext("el-validator-nethermind-0")
+	if err != nil {
+		return err
+	}
+	s.executionClients["el-validator-nethermind-0"] = types.NewExecutionClientFromServiceCtx(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+		s.logger,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("el-validator-reth-2")
+	if err != nil {
+		return err
+	}
+	s.executionClients["el-validator-reth-2"] = types.NewExecutionClientFromServiceCtx(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+		s.logger,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("el-validator-reth-3")
+	if err != nil {
+		return err
+	}
+	s.executionClients["el-validator-reth-3"] = types.NewExecutionClientFromServiceCtx(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+		s.logger,
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("el-validator-geth-1")
+	if err != nil {
+		return err
+	}
+	s.executionClients["el-validator-geth-1"] = types.NewExecutionClientFromServiceCtx(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+		s.logger,
+	)
 	return nil
 }
 
@@ -177,18 +227,34 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 			s.Enclave().RunStarlarkScriptBlocking,
 		),
 	)
-	ports := s.consensusClients["cl-validator-beaconkit-0"].GetPublicPorts()
-	s.logger.Info(
-		"consensus client ports",
-		"ports",
-		ports["cometbft-rpc"].GetNumber(),
-	)
 
 	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
 	if err != nil {
 		return err
 	}
 	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-2")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-2"] = types.NewConsensusClient(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-3")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-3"] = types.NewConsensusClient(
 		types.NewWrappedServiceContext(
 			sCtx,
 			s.Enclave().RunStarlarkScriptBlocking,
@@ -245,7 +311,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			gasFeeCap := new(big.Int).Add(
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
-			value := big.NewInt(Ether)
+			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
@@ -362,6 +428,17 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	)
 
 	return nil
+}
+
+// WaitForNBlockNumber waits for a specified amount of blocks into the future from now.
+func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
+	n uint64,
+) error {
+	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+	if err != nil {
+		return err
+	}
+	return s.WaitForFinalizedBlockNumber(current + n)
 }
 
 // TearDownSuite cleans up resources after all tests have been executed.

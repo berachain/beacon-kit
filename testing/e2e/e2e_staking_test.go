@@ -26,7 +26,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -41,6 +40,7 @@ const (
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress = "0x00000000219ab540356cbb839cbe05303d7705fa"
 	DefaultClient          = "cl-validator-beaconkit-0"
+	AlternateClient        = "cl-validator-beaconkit-1"
 	NumDepositsLoad        = 500
 )
 
@@ -83,8 +83,16 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	)
 	s.Require().NoError(err)
 
+	// Bind the deposit contract.
+	dc, err := deposit.NewBeaconDepositContract(
+		common.HexToAddress(DepositContractAddress),
+		s.JSONRPCBalancer(),
+	)
+	s.Require().NoError(err)
+
 	// Create a deposit transaction.
 	tx, err := s.generateNewDepositTx(
+		dc,
 		s.GenesisAccount().Address(),
 		s.GenesisAccount().SignerFunc(chainID),
 		big.NewInt(int64(nonce)),
@@ -122,6 +130,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	client := s.ConsensusClients()[DefaultClient]
 	s.Require().NotNil(client)
 
+	client2 := s.ConsensusClients()[AlternateClient]
+	s.Require().NotNil(client2)
+
+	// Sender account
+	sender := s.TestAccounts()[1]
+
 	// Get the public key.
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
@@ -138,70 +152,96 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Get original evm balance
 	balance, err := s.JSONRPCBalancer().BalanceAt(
 		s.Ctx(),
-		s.GenesisAccount().Address(),
+		sender.Address(),
 		big.NewInt(int64(blkNum)),
 	)
 	s.Require().NoError(err)
 
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(),
-		s.GenesisAccount().Address(),
+		sender.Address(),
 		big.NewInt(int64(blkNum)),
 	)
 	s.Require().NoError(err)
 
-	// TODO: kill a node
+	// Kill node 2
+	_, err = client2.Stop(s.Ctx())
+	s.Require().NoError(err)
+
+	// Bind the deposit contract.
+	dc, err := deposit.NewBeaconDepositContract(
+		common.HexToAddress(DepositContractAddress),
+		s.JSONRPCBalancer(),
+	)
+	s.Require().NoError(err)
 
 	for i := 0; i < NumDepositsLoad; i++ {
+		var receipt *coretypes.Receipt
 		// Create a deposit transaction.
-		_, err := s.generateNewDepositTx(
-			s.GenesisAccount().Address(),
-			s.GenesisAccount().SignerFunc(chainID),
+		tx, err := s.generateNewDepositTx(
+			dc,
+			sender.Address(),
+			sender.SignerFunc(chainID),
 			big.NewInt(int64(nonce+uint64(i))),
 		)
 		s.Require().NoError(err)
+		if i == NumDepositsLoad-1 {
+			s.WaitForFinalizedBlockNumber(blkNum + 5)
+			// Wait for the transaction to be mined.
+			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+			s.Require().NoError(err)
+			s.Require().Equal(uint64(1), receipt.Status)
+			s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+		}
 	}
 
 	// wait blocks
 	targetBlkNum := blkNum + 10
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	err = s.WaitForNBlockNumbers(8)
 	s.Require().NoError(err)
 
 	// Check to see if evm balance decreased.
 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
 		s.Ctx(),
-		s.GenesisAccount().Address(),
+		sender.Address(),
 		big.NewInt(int64(targetBlkNum)),
 	)
 	s.Require().NoError(err)
-	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
 
-	fmt.Println("Balance before deposit: ", balance)
-	fmt.Println("Balance after deposit: ", postDepositBalance)
+	// Check that the eth spent is somewhere~ (gas) between
+	// upper bound: 32ether * 500 + 1ether
+	// lower bound: 32ether * 500
+	oneEther := big.NewInt(1e18)
+	totalAmt := new(big.Int).Mul(oneEther, big.NewInt(NumDepositsLoad*32))
+	upperBound := new(big.Int).Add(totalAmt, oneEther)
+	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
-	// Chekc that the balance is somewhere between og - 32e * 500 > 0 < 32e
-	// TODO: revive node
+	s.Require().Equal(amtSpent.Cmp(totalAmt), 1)
+	s.Require().Equal(amtSpent.Cmp(upperBound), -1)
 
-	// // Wait for some txs to be processed.
+	// Start node 2 again
+	_, err = client2.Start(s.Ctx(), s.Enclave())
+	s.Require().NoError(err)
 
-	// // Check to make sure the balance has decreased by the correct amount.
-	// newBalance, err := s.JSONRPCBalancer().BalanceAt(
-	// 	s.Ctx()
-	// 	s.GenesisAccount().Address(),
-	// 	big.NewInt(int64(blkNum)),
-	// )
-	// s.Require().NoError(err)
+	// Update client2's reference
+	s.SetupConsensusClients()
+	client2 = s.ConsensusClients()[AlternateClient]
+	s.Require().NotNil(client2)
 
-	// totalAmountDeposited := new(big.Int).Mul(big.NewInt(32*suite.OneGwei), big.NewInt(NumDepositsLoad))
+	// Give time for the node to catch up
+	err = s.WaitForNBlockNumbers(3)
+	s.Require().NoError(err)
 
-	// expectedBalance := new(big.Int).Sub(balance, totalAmountDeposited)
-
-	// // Wait for the log to be processed.
-	// // Check that the total power is less than total amount by X time.
-	// // Check that the total power adds up to the total amount by X time.
+	// Compare height of node 1 and 2
+	height, err := client.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	height2, err := client2.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Equal(height.Response.LastBlockHeight, height2.Response.LastBlockHeight)
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
+	dc *deposit.BeaconDepositContract,
 	sender common.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
@@ -213,13 +253,6 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Len(pubkey, 48)
-
-	// Bind the deposit contract.
-	dc, err := deposit.NewBeaconDepositContract(
-		common.HexToAddress(DepositContractAddress),
-		s.JSONRPCBalancer(),
-	)
-	s.Require().NoError(err)
 
 	// Generate the credentials.
 	credentials := byteslib.PrependExtendToSize(

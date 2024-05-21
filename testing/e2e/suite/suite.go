@@ -53,8 +53,8 @@ type KurtosisE2ESuite struct {
 
 	// TODO: Figure out what these may be useful for.
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
-	nginxBalancer *types.LoadBalancer
+	executionClients map[string]*types.ExecutionClient
+	nginxBalancer    *types.LoadBalancer
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
@@ -97,7 +97,7 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 //
 //nolint:lll
 func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
-	return nil
+	return s.executionClients
 }
 
 // JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
