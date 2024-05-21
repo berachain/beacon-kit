@@ -8,6 +8,7 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
+blutgang = import_module("./src/services/blutgang/blutgang_launcher.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
 goomy_blob = import_module("./src/services/goomy/launcher.star")
@@ -132,26 +133,33 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
-
-    if "tx-fuzz" in additional_services:
-        plan.print("Launching tx-fuzz")
-        fuzzing_node = validator_node_el_clients[0]["service"]
-        if len(full_nodes) > 0:
-            fuzzing_node = full_node_el_clients[0]["service"]
-        tx_fuzz.launch_tx_fuzz(
-            plan,
-            constants.PRE_FUNDED_ACCOUNTS[1].private_key,
-            "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
-            [],
-        )
-
-    if "prometheus" in additional_services:
-        prometheus_url = prometheus.start(plan, metrics_enabled_services)
-
-        if "grafana" in additional_services:
-            grafana.start(plan, prometheus_url)
-
-        if "pyroscope" in additional_services:
-            pyroscope.run(plan)
+        elif s == "blutgang":
+            plan.print("Launghing blutgang")
+            blutgang_config_template = read_file(
+                constants.BLUTGANG_CONFIG_TEMPLATE_PATH
+            )
+            blutgang.launch_blutgang(
+                plan,
+                blutgang_config_template,
+                constants.PRE_FUNDED_ACCOUNTS[0],
+                plan.get_service("nginx").ports["http"].url,
+            )
+        elif s == "tx-fuzz":
+            plan.print("Launching tx-fuzz")
+            fuzzing_node = validator_node_el_clients[0]["service"]
+            if len(full_nodes) > 0:
+                fuzzing_node = full_node_el_clients[0]["service"]
+            tx_fuzz.launch_tx_fuzz(
+                plan,
+                constants.PRE_FUNDED_ACCOUNTS[1].private_key,
+                "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
+                [],
+            )
+        elif s == "prometheus":
+            prometheus_url = prometheus.start(plan, metrics_enabled_services)
+            if "grafana" in additional_services:
+                grafana.start(plan, prometheus_url)
+            if "pyroscope" in additional_services:
+                pyroscope.run(plan)
 
     plan.print("Successfully launched development network")
