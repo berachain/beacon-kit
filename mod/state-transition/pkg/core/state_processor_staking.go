@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -118,6 +119,12 @@ func (sp *StateProcessor[
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
 			math.Gwei(sp.cs.MaxEffectiveBalance()))
+
+		// Mark the validator set as needing update.
+		sp.validatorUpdatesCache = append(sp.validatorUpdatesCache, &transition.ValidatorUpdate{
+			Pubkey:           dep.Pubkey,
+			EffectiveBalance: val.EffectiveBalance,
+		})
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
 	// If the validator does not exist, we add the validator.

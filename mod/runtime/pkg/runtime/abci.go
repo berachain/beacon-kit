@@ -32,8 +32,9 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	transition "github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/sourcegraph/conc/iter"
 )
 
 func (r BeaconKitRuntime[
@@ -103,46 +104,39 @@ func (r BeaconKitRuntime[
 		return nil, err
 	}
 
-	_ = updates
-
-	// TODO: move all this logic below here into the state transition function.
-	// It should be responsible for building the validator change set.
-	store := r.storageBackend.StateFromContext(ctx)
-
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		panic(err)
-	}
-
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range val {
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx math.ValidatorIndex
-			idx, err = store.
-				ValidatorIndexByPubkey(validator.Pubkey)
-			if err != nil {
-				return nil, err
-			} else if err = store.RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
+	return iter.MapErr(updates, func(validator **transition.ValidatorUpdate) (appmodulev2.ValidatorUpdate, error) {
+		return appmodulev2.ValidatorUpdate{
+			PubKey:     (*validator).Pubkey[:],
 			PubKeyType: "bls12_381",
 			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
-	}
-
-	// Save the store.
-	store.Save()
-	return validatorUpdates, nil
+			Power: int64((*validator).EffectiveBalance),
+		}, nil
+	})
 }
+
+// validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+// for _, validator := range updates {
+// 	// // TODO: Config
+// 	// // Max 100 validators in the active set.
+// 	// // TODO: this is kinda hood.
+// 	// if validator.EffectiveBalance == 0 {
+// 	// 	var idx math.ValidatorIndex
+// 	// 	idx, err = store.
+// 	// 		ValidatorIndexByPubkey(validator.Pubkey)
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	} else if err = store.RemoveValidatorAtIndex(idx); err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// }
+
+// 	// TODO: this works, but there is a bug where if we send a validator to
+// 	// 0 voting power, it can somehow still propose the next block? This
+// 	// feels big bad.
+// 	// validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+// 	// 	PubKey:     validator.Pubkey[:],
+// 	// 	PubKeyType: "bls12_381",
+// 	// 	//#nosec:G701 // will not realistically cause a problem.
+// 	// 	Power: int64(validator.EffectiveBalance),
+// 	// })
+// }

@@ -51,6 +51,9 @@ type StateProcessor[
 	signer          crypto.BLSSigner
 	logger          log.Logger[any]
 	executionEngine ExecutionEngine
+
+	// used to cache validator updates during the transition.
+	validatorUpdatesCache []*transition.ValidatorUpdate
 }
 
 // NewStateProcessor creates a new state processor.
@@ -92,6 +95,14 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) ([]*transition.ValidatorUpdate, error) {
+
+	// Reset the validator updates cache, every Transition, make sure
+	// we nil it out after we are done to prevent oopsie-daisies.
+	sp.validatorUpdatesCache = make([]*transition.ValidatorUpdate, 0)
+	defer func() {
+		sp.validatorUpdatesCache = nil
+	}()
+
 	blkSlot := blk.GetSlot()
 	stateSlot, err := st.GetSlot()
 	if err != nil {
@@ -160,7 +171,7 @@ func (sp *StateProcessor[
 	// We only want to persist state changes if we successfully
 	// processed the block.
 	st.Save()
-	return nil, nil
+	return sp.validatorUpdatesCache, nil
 }
 
 // ProcessSlot is run when a slot is missed.
