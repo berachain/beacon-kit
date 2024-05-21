@@ -31,9 +31,55 @@ import (
 	"fmt"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/cosmos/cosmos-sdk/types/module"
 )
+
+const (
+	// ConsensusVersion defines the current x/beacon module consensus version.
+	ConsensusVersion = 1
+	// ModuleName is the module name constant used in many places.
+	ModuleName = "beacon"
+)
+
+var (
+	_ appmodulev2.AppModule  = AppModule{}
+	_ module.HasABCIGenesis  = AppModule{}
+	_ module.HasABCIEndBlock = AppModule{}
+)
+
+// AppModule implements an application module for the evm module.
+type AppModule struct {
+	*components.BeaconKitRuntime
+}
+
+// NewAppModule creates a new AppModule object.
+func NewAppModule(
+	runtime *components.BeaconKitRuntime,
+) AppModule {
+	return AppModule{
+		BeaconKitRuntime: runtime,
+	}
+}
+
+// Name is the name of this module.
+func (am AppModule) Name() string {
+	return ModuleName
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+
+// RegisterInterfaces registers the module's interface types.
+func (am AppModule) RegisterInterfaces(registry.InterfaceRegistrar) {}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
 
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
@@ -54,6 +100,7 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 func (AppModule) ValidateGenesis(
 	bz json.RawMessage,
 ) error {
+	// TODO: this is bad
 	data := new(deneb.BeaconState)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return err
@@ -70,38 +117,6 @@ func (AppModule) ValidateGenesis(
 		seenValidators[validator.Pubkey] = struct{}{}
 	}
 	return nil
-}
-
-// InitGenesis performs genesis initialization for the beacon module.
-func (am AppModule) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(deneb.BeaconState)
-	if err := json.Unmarshal(bz, data); err != nil {
-		return nil, err
-	}
-
-	// Load the store.
-	store := am.keeper.BeaconStore().WithContext(ctx)
-	sdb := state.NewBeaconStateFromDB(store, am.chainSpec)
-	if err := sdb.WriteGenesisStateDeneb(data); err != nil {
-		return nil, err
-	}
-
-	// Build ValidatorUpdates for CometBFT.
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	blsType := "bls12_381"
-	for _, validator := range data.Validators {
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: blsType,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		},
-		)
-	}
-	return validatorUpdates, nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the evm

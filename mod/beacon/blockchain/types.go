@@ -166,11 +166,11 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[ReadOnlyBeaconStateT any] interface {
+type LocalBuilder[BeaconStateT any] interface {
 	// RequestPayload requests a new payload for the given slot.
 	RequestPayload(
 		ctx context.Context,
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -181,9 +181,14 @@ type LocalBuilder[ReadOnlyBeaconStateT any] interface {
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor[
-	BeaconStateT, BlobSidecarsT, ContextT any,
+	BeaconBlockT,
+	BeaconStateT,
+	BlobSidecarsT,
+	ContextT any,
 ] interface {
 	// ProcessSlot processes the state transition for a single slot.
+	//
+	// TODO: This eventually needs to be deprecated.
 	ProcessSlot(
 		st BeaconStateT,
 	) error
@@ -192,6 +197,6 @@ type StateProcessor[
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
-		blk types.BeaconBlock,
+		blk BeaconBlockT,
 	) error
 }

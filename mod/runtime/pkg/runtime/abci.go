@@ -26,102 +26,93 @@
 package runtime
 
 import (
-	"time"
+	"context"
+	"encoding/json"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// PrepareProposal is called by the consensus engine to prepare a proposal for
-// the next block.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	BeaconBlockBodyT,
-	StorageBackendT,
-]) PrepareProposal(
-	req *abci.PrepareProposalRequest,
-	// TODO: This nextPrepareProposal function is temporary.
-	nextPrepareProposal func(
-		*abci.PrepareProposalRequest,
-	) (*abci.PrepareProposalResponse, error),
-) (*abci.PrepareProposalResponse, error) {
-	start := time.Now()
-	defer func() {
-		r.logger.
-			Info("prepare-proposal executed",
-				"duration", time.Since(start).String())
-	}()
-	return nextPrepareProposal(req)
+func (r BeaconKitRuntime[
+	AvailabilityStoreT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT,
+	DepositStoreT, StorageBackendT],
+) InitGenesis(
+	ctx context.Context,
+	bz json.RawMessage,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	data := new(deneb.BeaconState)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return nil, err
+	}
+
+	// Load the store.
+	store := r.storageBackend.StateFromContext(ctx)
+	if err := store.WriteGenesisStateDeneb(data); err != nil {
+		return nil, err
+	}
+
+	// Build ValidatorUpdates for CometBFT.
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+	blsType := "bls12_381"
+	for _, validator := range data.Validators {
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: blsType,
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		},
+		)
+	}
+	return validatorUpdates, nil
 }
 
-// ProcessProposal is called by the consensus engine when a new proposal block
-// is received.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	BeaconBlockBodyT,
+// EndBlock returns the validator set updates from the beacon state.
+func (r BeaconKitRuntime[
+	AvailabilityStoreT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, DepositStoreT,
 	StorageBackendT,
-]) ProcessProposal(
-	req *abci.ProcessProposalRequest,
-	// TODO: This nextProcessProposal function is temporary.
-	nextProcessProposal func(
-		*abci.ProcessProposalRequest,
-	) (*abci.ProcessProposalResponse, error),
-) (*abci.ProcessProposalResponse, error) {
-	start := time.Now()
-	defer func() {
-		r.logger.
-			Info("process-proposal executed",
-				"duration", time.Since(start).String())
-	}()
-	return nextProcessProposal(req)
-}
+]) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	// store := r.keeper.BeaconStore().WithContext(ctx)
+	store := r.storageBackend.StateFromContext(ctx)
 
-// but before committing it to the consensus state.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	BeaconBlockBodyT,
-	StorageBackendT,
-]) FinalizeBlock(
-	req *abci.FinalizeBlockRequest,
-	// TODO: This nextFinalizeBlock function is temporary.
-	nextFinalizeBlock func(
-		*abci.FinalizeBlockRequest,
-	) (*abci.FinalizeBlockResponse, error),
-) (*abci.FinalizeBlockResponse, error) {
-	start := time.Now()
-	defer func() {
-		r.logger.
-			Info("finalized-block executed",
-				"duration", time.Since(start).String())
-	}()
-	return nextFinalizeBlock(req)
-}
+	// Get the public key of the validator
+	val, err := store.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		panic(err)
+	}
 
-// Commit is our custom implementation of the ABCI method Commit.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	BeaconBlockBodyT,
-	StorageBackendT,
-	// TODO: This nextCommit function is temporary.
-]) Commit(nextCommit func() (
-	*abci.CommitResponse, error,
-)) (*abci.CommitResponse, error) {
-	start := time.Now()
-	defer func() {
-		r.logger.
-			Info("commit executed",
-				"duration", time.Since(start).String())
-	}()
-	return nextCommit()
+	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+	for _, validator := range val {
+		// TODO: Config
+		// Max 100 validators in the active set.
+		// TODO: this is kinda hood.
+		if validator.EffectiveBalance == 0 {
+			var idx math.ValidatorIndex
+			idx, err = store.
+				ValidatorIndexByPubkey(validator.Pubkey)
+			if err != nil {
+				return nil, err
+			} else if err = store.RemoveValidatorAtIndex(idx); err != nil {
+				return nil, err
+			}
+		}
+
+		// TODO: this works, but there is a bug where if we send a validator to
+		// 0 voting power, it can somehow still propose the next block? This
+		// feels big bad.
+		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+			PubKey:     validator.Pubkey[:],
+			PubKeyType: "bls12_381",
+			//#nosec:G701 // will not realistically cause a problem.
+			Power: int64(validator.EffectiveBalance),
+		})
+	}
+
+	// Save the store.
+	store.Save()
+	return validatorUpdates, nil
 }
