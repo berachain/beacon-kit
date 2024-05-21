@@ -118,21 +118,22 @@ func ProvideRuntime(
 	)
 
 	// Build the Blobs Verifier
-	blobProofVerifier, err := kzg.NewBlobProofVerifier(
+	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
 
-	// TODO: we need to handle this in the depinject case when the trusted setup
-	// is not ready yet nicer.
-	if err != nil {
-		// logger.Warn("failed to load blob verifier", "err", err)
-	}
+	// // TODO: we need to handle this in the depinject case when the trusted
+	// setup
+	// // is not ready yet nicer.
+	// if err != nil {
+	// 	logger.Warn("failed to load blob verifier", "err", err)
+	// }
 
-	logger.Info(
-		"successfully loaded blob verifier",
-		"impl",
-		cfg.KZG.Implementation,
-	)
+	// logger.Info(
+	// 	"successfully loaded blob verifier",
+	// 	"impl",
+	// 	cfg.KZG.Implementation,
+	// )
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
