@@ -36,7 +36,7 @@ func (kv *KVStore[
 	index uint64,
 	mix primitives.Bytes32,
 ) error {
-	return kv.randaoMix.Set(kv.ctx, index, mix)
+	return kv.randaoMix.Set(kv.ctx, index, mix[:])
 }
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
@@ -45,5 +45,9 @@ func (kv *KVStore[
 ]) GetRandaoMixAtIndex(
 	index uint64,
 ) (primitives.Bytes32, error) {
-	return kv.randaoMix.Get(kv.ctx, index)
+	bz, err := kv.randaoMix.Get(kv.ctx, index)
+	if err != nil {
+		return primitives.Bytes32{}, err
+	}
+	return primitives.Bytes32(bz), nil
 }

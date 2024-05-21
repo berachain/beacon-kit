@@ -26,8 +26,6 @@
 package beacon
 
 import (
-	"os"
-
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
@@ -44,11 +42,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/cast"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -64,14 +59,18 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts         servertypes.AppOptions
-	Environment     appmodule.Environment
-	ChainSpec       primitives.ChainSpec
-	DepositStore    *depositdb.KVStore
-	Cfg             *config.Config
-	Signer          crypto.BLSSigner
-	EngineClient    *engineclient.EngineClient[*types.ExecutableDataDeneb]
-	KzgTrustedSetup *gokzg4844.JSONTrustedSetup
+	// Cosmos components
+	AppOpts     servertypes.AppOptions
+	Environment appmodule.Environment
+
+	// BeaconKit components
+	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
+	BeaconConfig      *config.Config
+	ChainSpec         primitives.ChainSpec
+	DepositStore      *depositdb.KVStore
+	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
+	Signer            crypto.BLSSigner
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -86,21 +85,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
 	](
 		in.ChainSpec,
-		dastore.New[types.BeaconBlockBody](
-			filedb.NewRangeDB(filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(in.Environment.Logger),
-			),
-			),
-			in.Environment.Logger.With("service", "beacon-kit.da.store"),
-			in.ChainSpec,
-		),
+		in.AvailabilityStore,
 		beacondb.New[
 			*types.Fork,
 			*types.BeaconBlockHeader,
@@ -112,12 +97,12 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	)
 
 	// TODO: this is hood as fuck.
-	if in.Cfg.KZG.Implementation == "" {
-		in.Cfg.KZG.Implementation = "crate-crypto/go-kzg-4844"
+	if in.BeaconConfig.KZG.Implementation == "" {
+		in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
 	}
 
 	runtime, err := components.ProvideRuntime(
-		in.Cfg,
+		in.BeaconConfig,
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,
