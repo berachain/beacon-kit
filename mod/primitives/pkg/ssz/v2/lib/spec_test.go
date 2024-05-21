@@ -454,6 +454,12 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 		prInRes,
 		"local output and fastssz output doesnt match",
 	)
+
+	// test deserialization - todo / may not be possible as field vals are missing
+	// d := sszv2.Deserializer{}
+	// elem := reflect.New(reflect.TypeOf(sszState.StateRoots))
+	// iface, err := d.UnmarshalSSZ(elem.Interface(), exp)
+	// require.Equal(t, sszState.StateRoots, iface, defaultErrMsg)
 }
 
 func BenchmarkNativeByteArrayLarge(b *testing.B) {
@@ -524,4 +530,27 @@ func TestParityU64Array(t *testing.T) {
 	elem := reflect.New(reflect.TypeOf(slashings))
 	iface, err := d.UnmarshalSSZ(elem.Interface(), exp)
 	require.Equal(t, slashings, iface, defaultErrMsg)
+}
+
+func TestParityBool(t *testing.T) {
+	sszState, err := getSszState()
+	require.NoError(t, err)
+
+	testBool := sszState.Validators[0].Slashed
+
+	s := sszv2.NewSerializer()
+	o2, err3 := s.MarshalSSZ(testBool)
+	require.NoError(t, err3)
+	debugPrint(debug, t, "Local Serializer output:", o2, err)
+
+	res := make([]byte, 0)
+	res = ssz.MarshalBool(res, testBool)
+	debugPrint(debug, t, "FastSSZ Output:", res)
+	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
+
+	// test deserialization
+	d := sszv2.Deserializer{}
+	elem := reflect.New(reflect.TypeOf(testBool))
+	iface, err := d.UnmarshalSSZ(elem.Interface(), o2)
+	require.Equal(t, testBool, iface, "local output and fastssz output doesnt match")
 }
