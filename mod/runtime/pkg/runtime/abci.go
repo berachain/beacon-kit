@@ -112,8 +112,9 @@ func (r BeaconKitRuntime[
 			return appmodulev2.ValidatorUpdate{
 				PubKey:     (*validator).Pubkey[:],
 				PubKeyType: "bls12_381",
-				//#nosec:G701 // will not realistically cause a problem.
-				Power: int64((*validator).EffectiveBalance),
+				// all validators have equal power in beacon kit.
+				//nolint:mnd // this is a constant todo fix.
+				Power: 100,
 			}, nil
 		},
 	)

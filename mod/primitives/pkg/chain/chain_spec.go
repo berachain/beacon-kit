@@ -32,6 +32,8 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
+	SyncCommitteeSize() uint64
+
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -170,6 +172,13 @@ func NewChainSpec[
 	]{
 		Data: data,
 	}
+}
+
+// SyncComi
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) SyncCommitteeSize() uint64 {
+	return c.Data.SyncCommitteeSize
 }
 
 // MinDepositAmount returns the minimum deposit amount required.

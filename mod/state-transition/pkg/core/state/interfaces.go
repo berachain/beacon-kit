@@ -68,6 +68,7 @@ type ReadOnlyBeaconState interface {
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
+	GetSyncCommittee() ([]crypto.BLSPubkey, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -89,6 +90,7 @@ type WriteOnlyBeaconState interface {
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	RemoveValidatorAtIndex(math.ValidatorIndex) error
+	SetSyncCommittee([]crypto.BLSPubkey) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -218,4 +220,6 @@ type KVStore[KVStoreT any] interface {
 	) error
 	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
+	GetSyncCommitteeAtIdx(idx uint64) (crypto.BLSPubkey, error)
+	SetSyncCommitteeIdx(idx uint64, pubKey crypto.BLSPubkey) error
 }

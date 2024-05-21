@@ -23,18 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
+// SetFork sets the fork version for the given epoch.
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) SetSyncCommitteeIdx(
+	idx uint64,
+	pubKey crypto.BLSPubkey,
+) error {
+	return kv.syncCommittee.Set(kv.ctx, idx, pubKey)
+}
 
-	// Exit is a flag that indicates if the validator is being
-	// added to the validator set or removed.
-	Exit bool
+// GetFork gets the fork version for the given epoch.
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) GetSyncCommitteeAtIdx(idx uint64) (crypto.BLSPubkey, error) {
+	return kv.syncCommittee.Get(kv.ctx, idx)
 }

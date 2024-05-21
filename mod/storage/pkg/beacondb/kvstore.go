@@ -124,6 +124,9 @@ type KVStore[
 	slashings sdkcollections.Map[uint64, uint64]
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
+
+	// Sync
+	syncCommittee sdkcollections.Map[uint64, [48]byte]
 }
 
 // Store creates a new instance of Store.
@@ -260,6 +263,13 @@ func New[
 			sdkcollections.NewPrefix(keys.LatestBeaconBlockHeaderPrefix),
 			keys.LatestBeaconBlockHeaderPrefix,
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
+		),
+		syncCommittee: sdkcollections.NewMap(
+			schemaBuilder,
+			sdkcollections.NewPrefix(keys.SyncCommitteePrefix),
+			keys.SyncCommitteePrefix,
+			sdkcollections.Uint64Key,
+			encoding.Bytes48ValueCodec{},
 		),
 	}
 }

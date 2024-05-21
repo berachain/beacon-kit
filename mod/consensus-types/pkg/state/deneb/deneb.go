@@ -34,6 +34,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
@@ -184,4 +185,7 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []uint64  `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing math.Gwei `json:"totalSlashing"`
+
+	// Sync Committee
+	CurrentSyncCommittee []crypto.BLSPubkey `json:"currentSyncCommittee" ssz-max:"1099511627776"`
 }

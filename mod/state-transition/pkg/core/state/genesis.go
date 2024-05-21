@@ -26,7 +26,10 @@
 package state
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -120,5 +123,20 @@ func (s *StateDB[KVStoreT]) WriteGenesisStateDeneb(
 		}
 	}
 
-	return s.SetTotalSlashing(totalSlashing)
+	if err := s.SetTotalSlashing(totalSlashing); err != nil {
+		return err
+	}
+
+	validators, err := s.GetValidators()
+	if err != nil {
+		return err
+	}
+
+	sc := make([]crypto.BLSPubkey, 0)
+	for _, val := range validators {
+		sc = append(sc, val.Pubkey)
+	}
+
+	fmt.Println("VALIDATORS SYNC COMMITEEE", sc)
+	return s.SetSyncCommittee(sc)
 }

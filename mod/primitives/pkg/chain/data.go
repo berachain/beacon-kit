@@ -34,6 +34,9 @@ type SpecData[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] struct {
+	// SyncCommiteeSize is the size of the sync committee.
+	SyncCommitteeSize uint64 `mapstructure:"sync-committee-size"`
+
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
