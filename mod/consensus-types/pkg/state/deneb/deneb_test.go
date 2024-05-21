@@ -44,8 +44,13 @@ func TestParityDenebLocal(t *testing.T) {
 	// the block can be serialized
 	// and deserialized back to the same object using fastssz
 	block := deneb.BeaconState{}
-	genesis, _ := deneb.DefaultBeaconState()
-	data, _ := genesis.MarshalSSZ()
+	genesis, getBlockErr := deneb.DefaultBeaconState()
+	require.NoError(t, getBlockErr)
+	data, fastSSZMarshalErr := genesis.MarshalSSZ()
+	require.NoError(t, fastSSZMarshalErr)
+	if data == nil {
+		panic("Data is nil")
+	}
 
 	if err := block.UnmarshalSSZ(data); err != nil {
 		panic(err)
