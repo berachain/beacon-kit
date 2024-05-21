@@ -121,6 +121,9 @@ func ProvideRuntime(
 	blobProofVerifier, err := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
+
+	// TODO: we need to handle this in the depinject case when the trusted setup
+	// is not ready yet nicer.
 	if err != nil {
 		logger.Warn("failed to load blob verifier", "err", err)
 	}
