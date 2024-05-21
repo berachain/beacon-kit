@@ -40,7 +40,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
-]) getNextSyncCommittee(
+]) updateSyncCommittee(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
 	syncCommittee, err := st.GetSyncCommittee()

@@ -313,7 +313,7 @@ func (sp *StateProcessor[
 	} else if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.getNextSyncCommittee(st)
+	return sp.updateSyncCommittee(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
