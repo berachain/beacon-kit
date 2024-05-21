@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,14 +61,17 @@ type Service[
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
 
 	// bsb is the beacon state backend.
-	bsb BeaconStorageBackend[BeaconStateT]
+	bsb StorageBackend[BeaconStateT]
 
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor[BeaconStateT]
 
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[BeaconStateT]
+	stateProcessor StateProcessor[
+		BeaconStateT,
+		*transition.Context,
+	]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
@@ -92,8 +96,8 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb BeaconStorageBackend[BeaconStateT],
-	stateProcessor StateProcessor[BeaconStateT],
+	bsb StorageBackend[BeaconStateT],
+	stateProcessor StateProcessor[BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],

@@ -40,14 +40,17 @@ import (
 //
 //nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processExecutionPayload(
-	_ Context,
+	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	body := blk.GetBody()
-	payload := body.GetExecutionPayload()
+	var (
+		body    = blk.GetBody()
+		payload = body.GetExecutionPayload()
+	)
 
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	g, _ := errgroup.WithContext(context.Background())
@@ -125,10 +128,25 @@ func (sp *StateProcessor[
 	blobKzgCommitments := body.GetBlobKzgCommitments()
 	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
 		return errors.Wrapf(
-			ErrExceedBlockBlobLimit,
+			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
+			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
 		)
+	}
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+		ctx.Unwrap(), engineprimitives.BuildNewPayloadRequest(
+			payload,
+			blobKzgCommitments.ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			ctx.GetSkipPayloadIfExists(),
+			ctx.GetOptimisticEngine(),
+		),
+	); err != nil {
+		sp.logger.
+			Error("failed to notify engine of new payload", "error", err)
+		return err
 	}
 
 	// Verify the number of withdrawals.

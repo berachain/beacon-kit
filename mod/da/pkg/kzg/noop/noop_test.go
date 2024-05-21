@@ -23,23 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package core
+package noop_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
-]) ProcessBlobs(
-	st BeaconStateT,
-	avs AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-	sidecars BlobSidecarsT,
-) error {
-	slot, err := st.GetSlot()
+func TestVerifyBlobProof(t *testing.T) {
+	verifier := noop.NewVerifier()
+	err := verifier.VerifyBlobProof(
+		&eip4844.Blob{},
+		eip4844.KZGProof{},
+		eip4844.KZGCommitment{},
+	)
 	if err != nil {
-		return err
+		t.Fatalf("expected no error, got %v", err)
 	}
-	return sp.bp.ProcessBlobs(slot, avs, sidecars)
+}
+
+func TestVerifyBlobProofBatch(t *testing.T) {
+	verifier := noop.NewVerifier()
+	args := &types.BlobProofArgs{
+		Blobs:       []*eip4844.Blob{{}},
+		Proofs:      []eip4844.KZGProof{{}},
+		Commitments: []eip4844.KZGCommitment{{}},
+	}
+	err := verifier.VerifyBlobProofBatch(args)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 }

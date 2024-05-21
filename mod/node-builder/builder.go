@@ -31,6 +31,8 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
@@ -42,6 +44,7 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -105,6 +108,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				viper.GetViper(),
 				nb.chainSpec,
 				&depositdb.KVStore{},
+				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
+				&gokzg4844.JSONTrustedSetup{},
 			),
 			depinject.Provide(
 				components.ProvideClientContext,

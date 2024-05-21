@@ -39,65 +39,133 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
+	ContextT Context,
 ] struct {
-	cs     primitives.ChainSpec
-	bp     BlobProcessor[BlobSidecarsT]
-	rp     RandaoProcessor[BeaconBlockT, BeaconStateT]
-	signer crypto.BLSSigner
-	logger log.Logger[any]
-
-	// DepositProcessor
-	// WithdrawalProcessor
+	cs              primitives.ChainSpec
+	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
+	signer          crypto.BLSSigner
+	logger          log.Logger[any]
+	executionEngine ExecutionEngine
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody,
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT interface{ Len() int },
+	ContextT Context,
 ](
 	cs primitives.ChainSpec,
-	bp BlobProcessor[BlobSidecarsT],
-	rp RandaoProcessor[BeaconBlockT, BeaconStateT],
+	rp RandaoProcessor[
+		BeaconBlockT, BeaconStateT,
+	],
+	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
-) *StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
-	return &StateProcessor[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		cs:     cs,
-		bp:     bp,
-		rp:     rp,
-		signer: signer,
-		logger: logger,
+) *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, ContextT] {
+	return &StateProcessor[
+		BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, ContextT,
+	]{
+		cs:              cs,
+		rp:              rp,
+		executionEngine: executionEngine,
+		signer:          signer,
+		logger:          logger,
 	}
 }
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) Transition(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Process the slot.
-	if err := sp.ProcessSlot(st); err != nil {
+	blkSlot := blk.GetSlot()
+	stateSlot, err := st.GetSlot()
+	if err != nil {
 		return err
+	}
+
+	// We perform some initial logic to ensure the BeaconState is in the correct
+	// state before we process the block.
+	//
+	//            +-------------------------------+
+	//            |  Is state slot equal to the   |
+	//            |  block slot minus one?        |
+	//            +-------------------------------+
+	//                           |
+	//                           |
+	//              +------------+------------+
+	//              |                         |
+	//           Yes, it is               No, it isn't
+	//              |                         |
+	//              |                         |
+	//       Process the slot                 |
+	//                                        |
+	//                           +------------+
+	//                           |
+	//          Is state slot equal to the block slot?
+	//                           |
+	//              +------------+------------+
+	//              |                         |
+	//           Yes, it is               No, it isn't
+	//              |                         |
+	//     Skip slot processing          Return error:
+	//                                   "out of sync"
+	//
+	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
+	// behind.
+	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
+	//
+	// TODO: We should probably not assume this to make our Transition
+	// function more generalizable, since right now it makes an
+	// assumption about the finalization properties of the cosnensus
+	// engine.
+	switch stateSlot {
+	case blkSlot - 1:
+		if err = sp.ProcessSlot(st); err != nil {
+			return err
+		}
+	case blkSlot:
+		// skip slot processing.
+	default:
+		return errors.Wrapf(
+			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
+			stateSlot, blkSlot,
+		)
 	}
 
 	// Process the block.
-	if err := sp.ProcessBlock(ctx, st, blk); err != nil {
+	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
+		sp.logger.Error(
+			"failed to process block",
+			"slot", blkSlot,
+			"error", err,
+		)
 		return err
 	}
 
+	// We only want to persist state changes if we successfully
+	// processed the block.
+	st.Save()
 	return nil
 }
 
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) ProcessSlot(
 	st BeaconStateT,
 ) error {
@@ -165,10 +233,13 @@ func (sp *StateProcessor[
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
+//
+//nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) ProcessBlock(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -186,7 +257,7 @@ func (sp *StateProcessor[
 
 	// process the withdrawals.
 	if err := sp.processWithdrawals(
-		st, blk.GetBody().GetExecutionPayload(),
+		st, blk.GetBody(),
 	); err != nil {
 		return err
 	}
@@ -226,7 +297,8 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processEpoch(
 	st BeaconStateT,
 ) error {
@@ -241,7 +313,8 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -259,8 +332,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Newf(
-			"slot does not match, expected: %d, got: %d",
+		return errors.Wrapf(ErrSlotMismatch,
+			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
 	}
@@ -269,15 +342,15 @@ func (sp *StateProcessor[
 	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
 		return err
 	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
-		return errors.Newf(
-			"block slot is too low, expected: > %d, got: %d",
+		return errors.Wrapf(
+			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
 	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
-		return errors.Newf(
-			"parent root does not match, expected: %x, got: %x",
+		return errors.Wrapf(ErrParentRootMismatch,
+			"expected: %x, got: %x",
 			parentBlockRoot, blk.GetParentBlockRoot(),
 		)
 	}
@@ -286,8 +359,8 @@ func (sp *StateProcessor[
 	// TODO: move this is in the wrong spot.
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Newf(
-			"too many deposits, expected: %d, got: %d",
+		return errors.Wrapf(ErrExceedsBlockDepositLimit,
+			"expected: %d, got: %d",
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
@@ -325,7 +398,8 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -343,7 +417,8 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {
@@ -366,10 +441,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if len(validators) != len(rewards) || len(validators) != len(penalties) {
-		return errors.Newf(
-			"mismatched rewards and penalties lengths: %d, %d, %d",
-			len(validators), len(rewards), len(penalties),
+	if len(validators) != len(rewards) {
+		return errors.Wrapf(
+			ErrRewardsLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(rewards),
+		)
+	} else if len(validators) != len(penalties) {
+		return errors.Wrapf(
+			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
+			len(validators), len(penalties),
 		)
 	}
 

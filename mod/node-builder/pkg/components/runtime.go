@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -43,24 +44,25 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	stda "github.com/berachain/beacon-kit/mod/state-transition/pkg/da"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/verification"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
+	*dastore.Store[types.BeaconBlockBody],
 	types.BeaconBlockBody,
 	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
-	runtime.BeaconStorageBackend[
+	runtime.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -78,7 +80,8 @@ func ProvideRuntime(
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	storageBackend runtime.BeaconStorageBackend[
+	storageBackend runtime.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -115,18 +118,23 @@ func ProvideRuntime(
 	)
 
 	// Build the Blobs Verifier
-	blobProofVerifier, err := kzg.NewBlobProofVerifier(
+	//#nosec:G703 // todo fix depinject stuff.
+	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
-	if err != nil {
-		return nil, err
-	}
 
-	logger.Info(
-		"successfully loaded blob verifier",
-		"impl",
-		cfg.KZG.Implementation,
-	)
+	// // TODO: we need to handle this in the depinject case when the trusted
+	// setup
+	// // is not ready yet nicer.
+	// if err != nil {
+	// 	logger.Warn("failed to load blob verifier", "err", err)
+	// }
+
+	// logger.Info(
+	// 	"successfully loaded blob verifier",
+	// 	"impl",
+	// 	cfg.KZG.Implementation,
+	// )
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
@@ -141,18 +149,14 @@ func ProvideRuntime(
 
 	stateProcessor := core.NewStateProcessor[
 		types.BeaconBlock,
+		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
+		*transition.Context,
 	](
 		chainSpec,
-		stda.NewBlobProcessor[
-			types.BeaconBlockBody, *datypes.BlobSidecars,
-		](
-			logger.With("service", "blob-processor"),
-			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
-		),
 		randaoProcessor,
+		executionEngine,
 		signer,
 		logger.With("service", "state-processor"),
 	)
@@ -182,6 +186,7 @@ func ProvideRuntime(
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
+		*dastore.Store[types.BeaconBlockBody],
 		state.BeaconState, *datypes.BlobSidecars,
 	](
 		storageBackend,
@@ -189,9 +194,15 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		verification.NewBlockVerifier[state.BeaconState](chainSpec),
+		dablob.NewProcessor[
+			*dastore.Store[types.BeaconBlockBody],
+			types.BeaconBlockBody](
+			logger.With("service", "blob-processor"),
+			chainSpec,
+			dablob.NewVerifier(blobProofVerifier),
+			types.BlockBodyKZGOffset,
+		),
 		stateProcessor,
-		verification.NewPayloadVerifier(chainSpec, logger),
 		beaconDepositContract,
 	)
 
@@ -201,11 +212,11 @@ func ProvideRuntime(
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
-		// service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
+		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
