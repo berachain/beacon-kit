@@ -95,7 +95,6 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) ([]*transition.ValidatorUpdate, error) {
-
 	// Reset the validator updates cache, every Transition, make sure
 	// we nil it out after we are done to prevent oopsie-daisies.
 	sp.validatorUpdatesCache = make([]*transition.ValidatorUpdate, 0)

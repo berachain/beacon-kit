@@ -121,10 +121,13 @@ func (sp *StateProcessor[
 			math.Gwei(sp.cs.MaxEffectiveBalance()))
 
 		// Mark the validator set as needing update.
-		sp.validatorUpdatesCache = append(sp.validatorUpdatesCache, &transition.ValidatorUpdate{
-			Pubkey:           dep.Pubkey,
-			EffectiveBalance: val.EffectiveBalance,
-		})
+		sp.validatorUpdatesCache = append(
+			sp.validatorUpdatesCache,
+			&transition.ValidatorUpdate{
+				Pubkey:           dep.Pubkey,
+				EffectiveBalance: val.EffectiveBalance,
+			},
+		)
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
 	// If the validator does not exist, we add the validator.

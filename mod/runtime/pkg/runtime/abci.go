@@ -104,14 +104,19 @@ func (r BeaconKitRuntime[
 		return nil, err
 	}
 
-	return iter.MapErr(updates, func(validator **transition.ValidatorUpdate) (appmodulev2.ValidatorUpdate, error) {
-		return appmodulev2.ValidatorUpdate{
-			PubKey:     (*validator).Pubkey[:],
-			PubKeyType: "bls12_381",
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64((*validator).EffectiveBalance),
-		}, nil
-	})
+	return iter.MapErr(
+		updates,
+		func(
+			validator **transition.ValidatorUpdate,
+		) (appmodulev2.ValidatorUpdate, error) {
+			return appmodulev2.ValidatorUpdate{
+				PubKey:     (*validator).Pubkey[:],
+				PubKeyType: "bls12_381",
+				//#nosec:G701 // will not realistically cause a problem.
+				Power: int64((*validator).EffectiveBalance),
+			}, nil
+		},
+	)
 }
 
 // validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
