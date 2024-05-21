@@ -32,7 +32,7 @@ import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,7 +76,7 @@ type KVStore[
 
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
-	genesisValidatorsRoot sdkcollections.Item[[32]byte]
+	genesisValidatorsRoot sdkcollections.Item[[]byte]
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
@@ -86,9 +86,9 @@ type KVStore[
 	// latestBlockHeader stores the latest beacon block header.
 	latestBlockHeader sdkcollections.Item[BeaconBlockHeaderT]
 	// blockRoots stores the block roots for the current epoch.
-	blockRoots sdkcollections.Map[uint64, [32]byte]
+	blockRoots sdkcollections.Map[uint64, []byte]
 	// stateRoots stores the state roots for the current epoch.
-	stateRoots sdkcollections.Map[uint64, [32]byte]
+	stateRoots sdkcollections.Map[uint64, []byte]
 
 	// Eth1
 	// eth1Data stores the latest eth1 data.
@@ -117,7 +117,7 @@ type KVStore[
 
 	// Randomness
 	// randaoMix stores the randao mix for the current epoch.
-	randaoMix sdkcollections.Map[uint64, [32]byte]
+	randaoMix sdkcollections.Map[uint64, []byte]
 
 	// Slashings
 	// slashings stores the slashings for the current epoch.
@@ -147,11 +147,11 @@ func New[
 		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 	]{
 		ctx: nil,
-		genesisValidatorsRoot: sdkcollections.NewItem[[32]byte](
+		genesisValidatorsRoot: sdkcollections.NewItem[[]byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.GenesisValidatorsRootPrefix),
 			keys.GenesisValidatorsRootPrefix,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.BytesValue,
 		),
 		slot: sdkcollections.NewItem[uint64](
 			schemaBuilder,
@@ -165,19 +165,19 @@ func New[
 			keys.ForkPrefix,
 			encoding.SSZValueCodec[ForkT]{},
 		),
-		blockRoots: sdkcollections.NewMap[uint64, [32]byte](
+		blockRoots: sdkcollections.NewMap[uint64, []byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.BlockRootsPrefix),
 			keys.BlockRootsPrefix,
 			sdkcollections.Uint64Key,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.BytesValue,
 		),
-		stateRoots: sdkcollections.NewMap[uint64, [32]byte](
+		stateRoots: sdkcollections.NewMap[uint64, []byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.StateRootsPrefix),
 			keys.StateRootsPrefix,
 			sdkcollections.Uint64Key,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.BytesValue,
 		),
 		eth1Data: sdkcollections.NewItem[Eth1DataT](
 			schemaBuilder,
@@ -221,12 +221,12 @@ func New[
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		randaoMix: sdkcollections.NewMap[uint64, [32]byte](
+		randaoMix: sdkcollections.NewMap[uint64, []byte](
 			schemaBuilder,
 			sdkcollections.NewPrefix(keys.RandaoMixPrefix),
 			keys.RandaoMixPrefix,
 			sdkcollections.Uint64Key,
-			encoding.Bytes32ValueCodec{},
+			sdkcollections.BytesValue,
 		),
 		slashings: sdkcollections.NewMap[uint64, uint64](
 			schemaBuilder,
