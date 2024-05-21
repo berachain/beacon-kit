@@ -30,11 +30,9 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -53,22 +51,14 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	keeper *storage.Backend[
-		*dastore.Store[types.BeaconBlockBody],
-		state.BeaconState,
-	]
 	runtime *components.BeaconKitRuntime
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	keeper *storage.Backend[
-		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
-	],
 	runtime *components.BeaconKitRuntime,
 ) AppModule {
 	return AppModule{
-		keeper:  keeper,
 		runtime: runtime,
 	}
 }
@@ -95,4 +85,14 @@ func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	return am.runtime.EndBlock(ctx)
+}
+
+func (am AppModule) StartServices(
+	ctx context.Context,
+) error {
+	return am.runtime.StartServices(ctx)
+}
+
+func (am AppModule) ABCIHandler() *abci.Handler[*datypes.BlobSidecars] {
+	return am.runtime.ABCIHandler()
 }

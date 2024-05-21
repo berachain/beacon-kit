@@ -75,10 +75,6 @@ type DepInjectInput struct {
 // DepInjectOutput is the output for the dep inject framework.
 type DepInjectOutput struct {
 	depinject.Out
-
-	Keeper *storage.Backend[
-		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
-	]
 	Module appmodule.AppModule
 }
 
@@ -131,8 +127,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 	}
 
 	return DepInjectOutput{
-		Keeper: k,
-		Module: NewAppModule(k, runtime),
+		Module: NewAppModule(runtime),
 	}
 }
 

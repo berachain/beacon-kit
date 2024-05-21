@@ -34,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (am BeaconKitRuntime[
+func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
 	DepositStoreT, StorageBackendT],
@@ -48,7 +48,7 @@ func (am BeaconKitRuntime[
 	}
 
 	// Load the store.
-	store := am.storageBackend.StateFromContext(ctx)
+	store := r.storageBackend.StateFromContext(ctx)
 	if err := store.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}
@@ -69,15 +69,15 @@ func (am BeaconKitRuntime[
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (am BeaconKitRuntime[
+func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 	StorageBackendT,
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// store := am.keeper.BeaconStore().WithContext(ctx)
-	store := am.storageBackend.StateFromContext(ctx)
+	// store := r.keeper.BeaconStore().WithContext(ctx)
+	store := r.storageBackend.StateFromContext(ctx)
 
 	// Get the public key of the validator
 	val, err := store.GetValidatorsByEffectiveBalance()
