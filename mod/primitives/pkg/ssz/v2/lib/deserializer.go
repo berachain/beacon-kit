@@ -104,12 +104,16 @@ func (d *Deserializer) unmarshalArrayOrSlice(
 
 	// TODO: Code below will not function as expected due to unknown size
 
-	lenData := len(data) / int(typ.Elem().Size())
+	//#nosec:G701 // if lenData is greater than int limit,
+	// we cant call makeslice, which will panic with -ve nums.
+	lenData := len(data) / int(DetermineSize(val.Elem()))
 	slice := reflect.MakeSlice(typ, lenData, lenData)
 
 	if IsNDimensionalArrayLike(typ) {
 		prevDataIndex := uint64(0)
 		for i := range val.Len() {
+			// This doesnt work as we are not passing the struct field extras
+			// like ssz-size
 			size := DetermineSize(val.Index(i))
 			cur := data[prevDataIndex:size]
 			prevDataIndex += size
@@ -125,19 +129,19 @@ func (d *Deserializer) unmarshalArrayOrSlice(
 		}
 		return slice, nil
 	}
+	// This also wont work for the same reason as the above
+	// for i := range lenData {
+	// 	item := slice.Index(i)
+	// 	size := DetermineSize(item)
+	// 	elem, err := d.Unmarshal(
+	// 		typ.Elem(),
+	// 		data[i*int(size):(i+1)*int(size)])
 
-	for i := range lenData {
-		item := slice.Index(i)
-		size := DetermineSize(item)
-		elem, err := d.Unmarshal(
-			typ.Elem(),
-			data[i*int(size):(i+1)*int(size)])
-
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		slice.Index(i).Set(elem)
-	}
+	// 	if err != nil {
+	// 		return reflect.Value{}, err
+	// 	}
+	// 	slice.Index(i).Set(elem)
+	// }
 	return slice, nil
 }
 
