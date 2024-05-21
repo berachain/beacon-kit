@@ -25,46 +25,25 @@
 
 package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
+// SetFork sets the fork version for the given epoch.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetGenesisValidatorsRoot(
-	root primitives.Root,
+]) SetSyncCommitteeIdx(
+	idx uint64,
+	pubKey crypto.BLSPubkey,
 ) error {
-	return kv.genesisValidatorsRoot.Set(kv.ctx, root[:])
+	return kv.syncCommittee.Set(kv.ctx, idx, pubKey[:])
 }
 
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
+// GetFork gets the fork version for the given epoch.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
+]) GetSyncCommitteeAtIdx(idx uint64) (crypto.BLSPubkey, error) {
+	bz, err := kv.syncCommittee.Get(kv.ctx, idx)
 	if err != nil {
-		return primitives.Root{}, err
+		return crypto.BLSPubkey{}, err
 	}
-	return primitives.Root(bz), nil
-}
-
-// GetSlot returns the current slot.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetSlot() (math.Slot, error) {
-	slot, err := kv.slot.Get(kv.ctx)
-	return math.Slot(slot), err
-}
-
-// SetSlot sets the current slot.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) SetSlot(
-	slot math.Slot,
-) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+	return crypto.BLSPubkey(bz), nil
 }
