@@ -78,7 +78,6 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-
 	var (
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
@@ -91,13 +90,23 @@ func (r BeaconKitRuntime[
 		panic(err)
 	}
 
-	if err := chainService.ProcessStateTransition(
-		ctx, r.abciHandler.LatestBeaconBlock, r.abciHandler.LatestSidecars,
-	); err != nil {
+	// Process the state transition.
+	updates, err := chainService.ProcessStateTransition(
+		ctx,
+		// TODO: improve the robustness of these types to ensure we
+		// don't run into any nil ptr issues.
+		r.abciHandler.LatestBeaconBlock,
+		r.abciHandler.LatestSidecars,
+	)
+
+	if err != nil {
 		return nil, err
 	}
 
-	// store := r.keeper.BeaconStore().WithContext(ctx)
+	_ = updates
+
+	// TODO: move all this logic below here into the state transition function.
+	// It should be responsible for building the validator change set.
 	store := r.storageBackend.StateFromContext(ctx)
 
 	// Get the public key of the validator

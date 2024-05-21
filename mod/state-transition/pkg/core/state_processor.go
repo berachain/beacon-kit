@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
@@ -90,11 +91,11 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	blkSlot := blk.GetSlot()
 	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We perform some initial logic to ensure the BeaconState is in the correct
@@ -135,12 +136,12 @@ func (sp *StateProcessor[
 	switch stateSlot {
 	case blkSlot - 1:
 		if err = sp.ProcessSlot(st); err != nil {
-			return err
+			return nil, err
 		}
 	case blkSlot:
 		// skip slot processing.
 	default:
-		return errors.Wrapf(
+		return nil, errors.Wrapf(
 			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
 			stateSlot, blkSlot,
 		)
@@ -153,13 +154,13 @@ func (sp *StateProcessor[
 			"slot", blkSlot,
 			"error", err,
 		)
-		return err
+		return nil, err
 	}
 
 	// We only want to persist state changes if we successfully
 	// processed the block.
 	st.Save()
-	return nil
+	return nil, nil
 }
 
 // ProcessSlot is run when a slot is missed.

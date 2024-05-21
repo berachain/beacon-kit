@@ -67,7 +67,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 		types.BeaconBlock,
 	]
 
-	// Hack to get around cosmos bs.
+	// TODO: this is really hacky here.
 	LatestBeaconBlock types.BeaconBlock
 	LatestSidecars    BlobsSidecarsT
 }
