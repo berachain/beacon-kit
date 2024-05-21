@@ -32,14 +32,9 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	consensuskeeper "cosmossdk.io/x/consensus/keeper"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	beaconkitruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -57,20 +52,8 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	BeaconKitRuntime *beaconkitruntime.BeaconKitRuntime[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
-		state.BeaconState,
-		*datypes.BlobSidecars,
-		*deposit.KVStore,
-		beaconkitruntime.StorageBackend[
-			*dastore.Store[types.BeaconBlockBody],
-			types.BeaconBlockBody,
-			state.BeaconState,
-			*datypes.BlobSidecars,
-			*deposit.KVStore,
-		],
-	]
+
+	// TODO: Deprecate.
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
@@ -91,7 +74,6 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			dCfg,
 			depinject.Provide(
-				bkcomponents.ProvideRuntime,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideDepositStore,
@@ -109,7 +91,6 @@ func NewBeaconKitApp(
 		),
 		&appBuilder,
 		&app.ConsensusParamsKeeper,
-		&app.BeaconKitRuntime,
 	); err != nil {
 		panic(err)
 	}
@@ -117,15 +98,17 @@ func NewBeaconKitApp(
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// Build all the ABCI Components.
-	prepare, process, preBlocker := app.BeaconKitRuntime.BuildABCIComponents()
+	// Get the beacon module.
+	// TODO: Cleanup.
+	beaconModule, ok := app.ModuleManager.
+		Modules[beacon.ModuleName].(beacon.AppModule)
+	if !ok {
+		panic("beacon module not found")
+	}
 
-	// Set all the newly built ABCI Components on the App.
-	app.SetPrepareProposal(prepare)
-	app.SetProcessProposal(process)
-	app.SetPreBlocker(preBlocker)
-
-	/**** End of BeaconKit Configuration ****/
+	app.SetPrepareProposal(beaconModule.ABCIHandler().PrepareProposalHandler)
+	app.SetProcessProposal(beaconModule.ABCIHandler().ProcessProposalHandler)
+	app.SetPreBlocker(beaconModule.ABCIHandler().FinalizeBlock)
 
 	// Check for goleveldb cause bad project.
 	if appOpts.Get("app-db-backend") == "goleveldb" {
@@ -138,7 +121,7 @@ func NewBeaconKitApp(
 	}
 
 	// TODO: this needs to be made un-hood.
-	if err := app.BeaconKitRuntime.StartServices(
+	if err := beaconModule.StartServices(
 		context.Background(),
 	); err != nil {
 		panic(err)

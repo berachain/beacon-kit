@@ -23,56 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//go:build ckzg
-
-package ckzg
+package noop_test
 
 import (
-	"unsafe"
+	"testing"
 
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
-// VerifyProof verifies the KZG proof that the polynomial represented by the
-// blob evaluated at the given point is the claimed value.
-func (v Verifier) VerifyBlobProof(
-	blob *eip4844.Blob,
-	proof eip4844.KZGProof,
-	commitment eip4844.KZGCommitment,
-) error {
-	if valid, err := ckzg4844.VerifyBlobKZGProof(
-		(*ckzg4844.Blob)(blob),
-		(ckzg4844.Bytes48)(commitment),
-		(ckzg4844.Bytes48)(proof),
-	); err != nil {
-		return err
-	} else if !valid {
-		return ErrInvalidProof
+func TestVerifyBlobProof(t *testing.T) {
+	verifier := noop.NewVerifier()
+	err := verifier.VerifyBlobProof(
+		&eip4844.Blob{},
+		eip4844.KZGProof{},
+		eip4844.KZGCommitment{},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	return nil
 }
 
-// VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
-// by the blob evaluated at the given point is the claimed value.
-// It is more efficient than VerifyBlobProof when verifying multiple proofs.
-func (v Verifier) VerifyBlobProofBatch(
-	args *types.BlobProofArgs,
-) error {
-	blobs := make([]ckzg4844.Blob, len(args.Blobs))
-	for i := range args.Blobs {
-		blobs[i] = *(*ckzg4844.Blob)(args.Blobs[i])
+func TestVerifyBlobProofBatch(t *testing.T) {
+	verifier := noop.NewVerifier()
+	args := &types.BlobProofArgs{
+		Blobs:       []*eip4844.Blob{{}},
+		Proofs:      []eip4844.KZGProof{{}},
+		Commitments: []eip4844.KZGCommitment{{}},
 	}
-
-	ok, err := ckzg4844.VerifyBlobKZGProofBatch(blobs,
-		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Commitments)),
-		*(*[]ckzg4844.Bytes48)(unsafe.Pointer(&args.Proofs)))
+	err := verifier.VerifyBlobProofBatch(args)
 	if err != nil {
-		return err
+		t.Fatalf("expected no error, got %v", err)
 	}
-	if !ok {
-		return ErrInvalidProof
-	}
-	return nil
 }

@@ -31,7 +31,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
@@ -106,7 +106,7 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Convert the data to the types expected by VerifyBlobProofBatch
-	args := &prooftypes.BlobProofArgs{
+	args := &types.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(data.Blobs)),
 		Proofs:      make([]eip4844.KZGProof, len(data.Proofs)),
 		Commitments: make([]eip4844.KZGCommitment, len(data.Commitments)),

@@ -31,5 +31,5 @@ import "cosmos/app/v1alpha1/module.proto";
 
 // Module is the config object of the evm module.
 message Module {
-  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/beacond/x/beacon"};
+  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"};
 }
