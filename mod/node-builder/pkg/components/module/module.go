@@ -27,12 +27,13 @@ package beacon
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -51,7 +52,7 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	runtime *components.BeaconKitRuntime
+	*components.BeaconKitRuntime
 }
 
 // NewAppModule creates a new AppModule object.
@@ -59,7 +60,7 @@ func NewAppModule(
 	runtime *components.BeaconKitRuntime,
 ) AppModule {
 	return AppModule{
-		runtime: runtime,
+		BeaconKitRuntime: runtime,
 	}
 }
 
@@ -80,19 +81,47 @@ func (am AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
 
-// EndBlock returns the validator set updates from the beacon state.
-func (am AppModule) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.runtime.EndBlock(ctx)
+// DefaultGenesis returns default genesis state as raw bytes
+// for the beacon module.
+func (AppModule) DefaultGenesis() json.RawMessage {
+	defaultGenesis, err := deneb.DefaultBeaconState()
+	if err != nil {
+		panic(err)
+	}
+
+	bz, err := json.Marshal(defaultGenesis)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
-func (am AppModule) StartServices(
-	ctx context.Context,
+// ValidateGenesis performs genesis state validation for the evm module.
+func (AppModule) ValidateGenesis(
+	bz json.RawMessage,
 ) error {
-	return am.runtime.StartServices(ctx)
+	data := new(deneb.BeaconState)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return err
+	}
+
+	seenValidators := make(map[[48]byte]struct{})
+	for _, validator := range data.Validators {
+		if _, ok := seenValidators[validator.Pubkey]; ok {
+			return fmt.Errorf(
+				"duplicate pubkey in genesis state: %x",
+				validator.Pubkey,
+			)
+		}
+		seenValidators[validator.Pubkey] = struct{}{}
+	}
+	return nil
 }
 
-func (am AppModule) ABCIHandler() *abci.Handler[*datypes.BlobSidecars] {
-	return am.runtime.ABCIHandler()
+// ExportGenesis returns the exported genesis state as raw bytes for the evm
+// module.
+func (am AppModule) ExportGenesis(
+	_ context.Context,
+) (json.RawMessage, error) {
+	return json.Marshal(&deneb.BeaconState{})
 }
