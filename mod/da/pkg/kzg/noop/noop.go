@@ -23,29 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verification
+package noop
 
-import "github.com/berachain/beacon-kit/mod/errors"
-
-var (
-	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
-	ErrStateRootMismatch = errors.New("state root mismatch")
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
-
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
+import (
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
+
+// Verifier is a no-op KZG proof verifier.
+type Verifier struct{}
+
+// NewVerifier creates a new GoKZGVerifier.
+func NewVerifier() *Verifier {
+	return &Verifier{}
+}
+
+// VerifyProof is a no-op.
+func (v Verifier) VerifyBlobProof(
+	*eip4844.Blob,
+	eip4844.KZGProof,
+	eip4844.KZGCommitment,
+) error {
+	return nil
+}
+
+// VerifyBlobProofBatch is a no-op.
+func (v Verifier) VerifyBlobProofBatch(
+	*types.BlobProofArgs,
+) error {
+	return nil
+}

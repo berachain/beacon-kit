@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -61,7 +60,7 @@ type BeaconState interface {
 	HashTreeRoot() ([32]byte, error)
 }
 
-type BeaconStorageBackend[BeaconStateT BeaconState] interface {
+type StorageBackend[BeaconStateT BeaconState] interface {
 	StateFromContext(context.Context) BeaconStateT
 }
 
@@ -118,11 +117,12 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconStateT BeaconState,
+	ContextT any,
 ] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
+	// ProcessBlock processes a given beacon block and updates the state
+	// accordingly.
 	ProcessBlock(
-		ctx core.Context,
+		ctx ContextT,
 		st BeaconStateT,
 		blk types.BeaconBlock,
 	) error

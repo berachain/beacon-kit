@@ -30,7 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // computeStateRoot computes the state root of an outgoing block.
@@ -40,7 +40,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
 	if err := s.stateProcessor.ProcessBlock(
-		core.NewContext(ctx, false, false, false),
+		// TODO: We should think about how having optimistic
+		// engine enabled here would affect the proposer when
+		// the payload in their block has come from a remote builder.
+		transition.NewContext(ctx, false, true, true),
 		st, blk,
 	); err != nil {
 		return primitives.Root{}, err

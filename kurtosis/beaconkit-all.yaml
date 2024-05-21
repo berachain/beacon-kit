@@ -41,7 +41,7 @@ validators:
     cl_image: beacond:kurtosis-local
   - el_type: ethereumjs
     cl_type: beaconkit
-    cl_image: beacond:kurtosis-local  
+    cl_image: beacond:kurtosis-local
 full_nodes:
   - el_type: reth
     cl_type: beaconkit
@@ -63,7 +63,9 @@ full_nodes:
   - el_type: ethereumjs
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
-    replicas: 1 
+    replicas: 1
+boot_sequence:
+  type: parallel
 rpc_endpoints:
   - type: nginx
     services:

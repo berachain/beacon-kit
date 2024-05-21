@@ -23,42 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package app
+syntax = "proto3";
 
-import (
-	abci "github.com/cometbft/cometbft/abci/types"
-)
+package beacon.module.v1alpha1;
 
-// PrepareProposal is called by the consensus engine to prepare a proposal for
-// the next block.
-func (app BeaconApp) PrepareProposal(
-	req *abci.PrepareProposalRequest,
-) (*abci.PrepareProposalResponse, error) {
-	return app.BeaconKitRuntime.PrepareProposal(
-		req,
-		app.BaseApp.PrepareProposal,
-	)
-}
+import "cosmos/app/v1alpha1/module.proto";
 
-// ProcessProposal is called by the consensus engine when a new proposal block
-// is received.
-func (app BeaconApp) ProcessProposal(
-	req *abci.ProcessProposalRequest,
-) (*abci.ProcessProposalResponse, error) {
-	return app.BeaconKitRuntime.ProcessProposal(
-		req,
-		app.BaseApp.ProcessProposal,
-	)
-}
-
-// but before committing it to the consensus state.
-func (app BeaconApp) FinalizeBlock(
-	req *abci.FinalizeBlockRequest,
-) (*abci.FinalizeBlockResponse, error) {
-	return app.BeaconKitRuntime.FinalizeBlock(req, app.BaseApp.FinalizeBlock)
-}
-
-// Commit is our custom implementation of the ABCI method Commit.
-func (app BeaconApp) Commit() (*abci.CommitResponse, error) {
-	return app.BeaconKitRuntime.Commit(app.BaseApp.Commit)
+// Module is the config object of the evm module.
+message Module {
+  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"};
 }

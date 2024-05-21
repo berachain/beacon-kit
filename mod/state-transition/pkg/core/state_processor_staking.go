@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
@@ -38,14 +37,15 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processOperations(
 	st BeaconStateT,
-	body types.BeaconBlockBody,
+	blk BeaconBlockT,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
 	// of deposits.
-	deposits := body.GetDeposits()
+	deposits := blk.GetBody().GetDeposits()
 	index, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -69,7 +69,8 @@ func (sp *StateProcessor[
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []*types.Deposit,
@@ -89,7 +90,8 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -125,7 +127,8 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) createValidator(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -174,7 +177,8 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep *types.Deposit,
@@ -202,21 +206,28 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
 ]) processWithdrawals(
 	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
+	body BeaconBlockBodyT,
 ) error {
 	// Dequeue and verify the logs.
-	var nextValidatorIndex math.ValidatorIndex
-	payloadWithdrawals := payload.GetWithdrawals()
+	var (
+		nextValidatorIndex math.ValidatorIndex
+		payload            = body.GetExecutionPayload()
+		payloadWithdrawals = payload.GetWithdrawals()
+	)
+
+	// Get the expected withdrawals.
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		return err
 	}
+	numWithdrawals := len(expectedWithdrawals)
 
 	// Ensure the withdrawals have the same length
-	if len(expectedWithdrawals) != len(payloadWithdrawals) {
+	if numWithdrawals != len(payloadWithdrawals) {
 		return errors.Newf(
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
@@ -240,11 +251,10 @@ func (sp *StateProcessor[
 	}
 
 	// Update the next withdrawal index if this block contained withdrawals
-	numWithdrawals := len(expectedWithdrawals)
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1).Unwrap(),
+			(expectedWithdrawals[numWithdrawals-1].Index + 1).Unwrap(),
 		); err != nil {
 			return err
 		}

@@ -16,7 +16,7 @@ grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 
-def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {"type": "sequential"}, additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -49,7 +49,10 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], additional_servic
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
 
     # 3. Perform genesis ceremony
-    beacond.perform_genesis_ceremony(plan, validators, jwt_file)
+    if boot_sequence["type"] == "sequential":
+        beacond.perform_genesis_ceremony(plan, validators, jwt_file)
+    else:
+        beacond.perform_genesis_ceremony_parallel(plan, validators, jwt_file)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]

@@ -28,7 +28,7 @@ package kzg
 import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	kzgtypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -51,7 +51,7 @@ type BlobProofVerifier interface {
 	// For most implementations it is more efficient than VerifyBlobProof when
 	// verifying multiple proofs.
 	VerifyBlobProofBatch(
-		*prooftypes.BlobProofArgs,
+		*kzgtypes.BlobProofArgs,
 	) error
 }
 
@@ -85,8 +85,8 @@ func NewBlobProofVerifier(
 // ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
 func ArgsFromSidecars(
 	scs *types.BlobSidecars,
-) *prooftypes.BlobProofArgs {
-	proofArgs := &prooftypes.BlobProofArgs{
+) *kzgtypes.BlobProofArgs {
+	proofArgs := &kzgtypes.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(scs.Sidecars)),
 		Proofs:      make([]eip4844.KZGProof, len(scs.Sidecars)),
 		Commitments: make([]eip4844.KZGCommitment, len(scs.Sidecars)),

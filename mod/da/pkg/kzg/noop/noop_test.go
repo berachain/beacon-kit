@@ -23,13 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
+package noop_test
 
-package beacon.module.v1alpha1;
+import (
+	"testing"
 
-import "cosmos/app/v1alpha1/module.proto";
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+)
 
-// Module is the config object of the evm module.
-message Module {
-  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/beacond/x/beacon"};
+func TestVerifyBlobProof(t *testing.T) {
+	verifier := noop.NewVerifier()
+	err := verifier.VerifyBlobProof(
+		&eip4844.Blob{},
+		eip4844.KZGProof{},
+		eip4844.KZGCommitment{},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestVerifyBlobProofBatch(t *testing.T) {
+	verifier := noop.NewVerifier()
+	args := &types.BlobProofArgs{
+		Blobs:       []*eip4844.Blob{{}},
+		Proofs:      []eip4844.KZGProof{{}},
+		Commitments: []eip4844.KZGCommitment{{}},
+	}
+	err := verifier.VerifyBlobProofBatch(args)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 }
