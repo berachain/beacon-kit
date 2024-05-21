@@ -33,18 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-func TestNewVerifier(t *testing.T) {
-	verifier, err := noop.NewVerifier()
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-	if verifier == nil {
-		t.Fatalf("expected verifier, got nil")
-	}
-}
-
 func TestVerifyBlobProof(t *testing.T) {
-	verifier, _ := noop.NewVerifier()
+	verifier := noop.NewVerifier()
 	err := verifier.VerifyBlobProof(
 		&eip4844.Blob{},
 		eip4844.KZGProof{},
@@ -56,7 +46,7 @@ func TestVerifyBlobProof(t *testing.T) {
 }
 
 func TestVerifyBlobProofBatch(t *testing.T) {
-	verifier, _ := noop.NewVerifier()
+	verifier := noop.NewVerifier()
 	args := &types.BlobProofArgs{
 		Blobs:       []*eip4844.Blob{{}},
 		Proofs:      []eip4844.KZGProof{{}},

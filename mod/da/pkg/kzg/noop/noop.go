@@ -34,8 +34,8 @@ import (
 type Verifier struct{}
 
 // NewVerifier creates a new GoKZGVerifier.
-func NewVerifier() (*Verifier, error) {
-	return &Verifier{}, nil
+func NewVerifier() *Verifier {
+	return &Verifier{}
 }
 
 // VerifyProof is a no-op.
