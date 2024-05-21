@@ -163,17 +163,18 @@ func (s *Serializer) MarshalToDefaultBuffer(
 ) ([]byte, error) {
 	aLen := 0
 	err := errors.New("MarshalToDefaultBuffer Failure")
-	// switch {
-	// case IsStruct(typ, val):
-	// 	aLen, err = CalculateBufferSizeForStruct(val)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
-	// 	aLen = GetNestedArrayLength(val)
-	// default:
-	// 	aLen = val.Len()
-	// }
+	switch {
+	case IsStruct(typ, val):
+		aLen, err = CalculateBufferSizeForStruct(val)
+		if err != nil {
+			return nil, err
+		}
+	case val.Kind() == reflect.Array || val.Kind() == reflect.Slice:
+		aLen = GetNestedArrayLength(val)
+	default:
+		aLen = val.Len()
+	}
+  
 	buf := make([]byte, aLen)
 	_, err = cb(val, typ, &buf, 0)
 	return buf, err
