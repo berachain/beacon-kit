@@ -30,7 +30,6 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -103,11 +102,12 @@ func (r BeaconKitRuntime[
 				PubKey:     update.Pubkey[:],
 				PubKeyType: crypto.CometBLSType,
 			}
-			if update.Event == transition.Activate {
+			switch update.Event {
+			case transition.Activate:
 				res.Power = crypto.CometBLSPower
-			} else if update.Event == transition.Deactivate {
+			case transition.Deactivate:
 				res.Power = 0
-			} else {
+			default:
 				return res, ErrUndefinedValidatorUpdate
 			}
 			return res, nil
