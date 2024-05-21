@@ -26,9 +26,9 @@
 package core
 
 import (
-	"fmt"
 	"slices"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	crypto "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -48,23 +48,23 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	var idx math.U64
+	var val *types.Validator
 	validatorUpdates := make([]*transition.ValidatorUpdate, 0)
 	aboveEjectionBlance := make([]crypto.BLSPubkey, 0)
 	for _, pubkey := range syncCommittee {
-		idx, err := st.ValidatorIndexByPubkey(pubkey)
+		idx, err = st.ValidatorIndexByPubkey(pubkey)
 		if err != nil {
 			return nil, err
 		}
 
-		val, err := st.ValidatorByIndex(idx)
+		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return nil, err
 		}
 
 		// If the validator is in the committee and above the ejection balance
 		// then they get to stay in the committee.
-		fmt.Println("VALIDATOR", val)
-		fmt.Println("EJECTION BALANCE", sp.cs.EjectionBalance())
 		if val.EffectiveBalance >= math.U64(sp.cs.EjectionBalance()) &&
 			!val.Slashed {
 			aboveEjectionBlance = append(aboveEjectionBlance, pubkey)
@@ -90,7 +90,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fmt.Println("ABOVE EJECTION BALANCE", aboveEjectionBlance)
 	for _, val := range allValidators {
 		// We want to stop once we have the max committee size.
 		if len(aboveEjectionBlance) == int(sp.cs.SyncCommitteeSize()) {
@@ -114,7 +113,7 @@ func (sp *StateProcessor[
 	}
 
 	// Set the new sync committee.
-	if err := st.SetSyncCommittee(aboveEjectionBlance); err != nil {
+	if err = st.SetSyncCommittee(aboveEjectionBlance); err != nil {
 		return nil, err
 	}
 

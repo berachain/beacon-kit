@@ -34,12 +34,16 @@ func (kv *KVStore[
 	idx uint64,
 	pubKey crypto.BLSPubkey,
 ) error {
-	return kv.syncCommittee.Set(kv.ctx, idx, pubKey)
+	return kv.syncCommittee.Set(kv.ctx, idx, pubKey[:])
 }
 
 // GetFork gets the fork version for the given epoch.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetSyncCommitteeAtIdx(idx uint64) (crypto.BLSPubkey, error) {
-	return kv.syncCommittee.Get(kv.ctx, idx)
+	bz, err := kv.syncCommittee.Get(kv.ctx, idx)
+	if err != nil {
+		return crypto.BLSPubkey{}, err
+	}
+	return crypto.BLSPubkey(bz), nil
 }

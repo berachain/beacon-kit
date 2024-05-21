@@ -174,7 +174,7 @@ func NewChainSpec[
 	}
 }
 
-// SyncComi
+// SyncComi.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) SyncCommitteeSize() uint64 {

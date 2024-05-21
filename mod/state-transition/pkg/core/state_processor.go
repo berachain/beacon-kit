@@ -310,7 +310,7 @@ func (sp *StateProcessor[
 		return nil, err
 	} else if err = sp.processSlashingsReset(st); err != nil {
 		return nil, err
-	} else if err := sp.processRandaoMixesReset(st); err != nil {
+	} else if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 	return sp.getNextSyncCommittee(st)
