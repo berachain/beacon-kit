@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
@@ -57,7 +57,7 @@ func TestVerifyBlobProof(t *testing.T) {
 
 func TestVerifyBlobProofBatch(t *testing.T) {
 	verifier, _ := noop.NewVerifier(nil)
-	args := &prooftypes.BlobProofArgs{
+	args := &types.BlobProofArgs{
 		Blobs:       []*eip4844.Blob{{}},
 		Proofs:      []eip4844.KZGProof{{}},
 		Commitments: []eip4844.KZGCommitment{{}},
