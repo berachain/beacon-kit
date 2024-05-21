@@ -43,7 +43,6 @@ func (sp *StateProcessor[
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
-
 	var (
 		idx                  math.U64
 		val                  *types.Validator
