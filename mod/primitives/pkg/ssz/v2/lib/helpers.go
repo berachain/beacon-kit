@@ -29,7 +29,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
@@ -66,14 +65,6 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 	case reflect.Uint32:
 		return ssz.MarshalU32(val.Interface().(uint32))
 	case reflect.Uint64:
-		// handle native
-		if data, ok := val.Interface().(math.U64); ok {
-			serialized, serializationErr := data.MarshalSSZ()
-			if serializationErr != nil {
-				panic(serializationErr)
-			}
-			return serialized
-		}
 		return ssz.MarshalU64(val.Interface().(uint64))
 	// TODO(Chibera): Handle numbers over 64bit?
 	// case reflect.Uint128:
@@ -122,31 +113,17 @@ func IterStructFields(
 	}
 
 	// Deref the pointer
-	subtyp := typ
-	numFields := 0
-	subval := val
 	if typ.Kind() == reflect.Ptr {
-		subtyp = reflect.TypeOf(val.Interface()).Elem()
-		subval = val.Elem()
-		numFields = subval.NumField()
-	}
-	if typ.Kind() == reflect.Struct {
-		numFields = val.NumField()
+		subtyp := reflect.TypeOf(val.Interface()).Elem()
+		vf = reflect.VisibleFields(subtyp)
 	}
 
-	vf = reflect.VisibleFields(subtyp)
-	// Double check field count for rare nested cases
-	iterLen := len(vf)
-	if numFields < len(vf) {
-		iterLen = numFields
-	}
-
-	for i := range iterLen {
+	for i := range len(vf) {
 		sf := vf[i]
 		// Note: You can get the name this way for deserialization
 		// name := sf.Name
 		sft := sf.Type
-		sfv := subval.Field(i)
+		sfv := val.Elem().Field(i)
 		cb(sft, sfv, sf, nil)
 	}
 }
@@ -230,9 +207,7 @@ func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
 }
 
 func IsStruct(typ reflect.Type, val reflect.Value) bool {
-	return typ.Kind() == reflect.Struct ||
-		(typ.Kind() == reflect.Ptr &&
-			val.Elem().Kind() == reflect.Struct)
+	return typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct
 }
 
 func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) {
