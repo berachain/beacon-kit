@@ -83,9 +83,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideJWTSecret,
 			),
 			depinject.Supply(
-				// supply the application options
 				appOpts,
-				// supply the logger
 				logger,
 				chainSpec,
 			),
@@ -100,6 +98,7 @@ func NewBeaconKitApp(
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Get the beacon module.
+	//
 	// TODO: Cleanup.
 	beaconModule, ok := app.ModuleManager.
 		Modules[beacon.ModuleName].(beacon.AppModule)
