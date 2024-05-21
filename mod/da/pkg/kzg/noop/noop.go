@@ -28,14 +28,13 @@ package noop
 import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // Verifier is a no-op KZG proof verifier.
 type Verifier struct{}
 
 // NewVerifier creates a new GoKZGVerifier.
-func NewVerifier(_ *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
+func NewVerifier() (*Verifier, error) {
 	return &Verifier{}, nil
 }
 

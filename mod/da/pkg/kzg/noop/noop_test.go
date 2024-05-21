@@ -31,11 +31,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 func TestNewVerifier(t *testing.T) {
-	verifier, err := noop.NewVerifier(&gokzg4844.JSONTrustedSetup{})
+	verifier, err := noop.NewVerifier()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -45,7 +44,7 @@ func TestNewVerifier(t *testing.T) {
 }
 
 func TestVerifyBlobProof(t *testing.T) {
-	verifier, _ := noop.NewVerifier(&gokzg4844.JSONTrustedSetup{})
+	verifier, _ := noop.NewVerifier()
 	err := verifier.VerifyBlobProof(
 		&eip4844.Blob{},
 		eip4844.KZGProof{},
@@ -57,7 +56,7 @@ func TestVerifyBlobProof(t *testing.T) {
 }
 
 func TestVerifyBlobProofBatch(t *testing.T) {
-	verifier, _ := noop.NewVerifier(&gokzg4844.JSONTrustedSetup{})
+	verifier, _ := noop.NewVerifier()
 	args := &types.BlobProofArgs{
 		Blobs:       []*eip4844.Blob{{}},
 		Proofs:      []eip4844.KZGProof{{}},
