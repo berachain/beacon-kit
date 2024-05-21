@@ -51,7 +51,7 @@ func NewBLSSigner(
 	}, nil
 }
 
-// NewSignerFromFile creates a new Signer instance given a
+// NewFromCometBFTNodeKey creates a new Signer instance given a
 // file path to a CometBFT node key.
 //
 // TODO: In order to make RANDAO signing compatible with the BLS12-381

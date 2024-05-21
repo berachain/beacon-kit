@@ -27,7 +27,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer/privval"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -41,12 +41,19 @@ type BlsSignerInput struct {
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
+// func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
+// 	// TODO: Fix
+// 	//#nosec:G703 // temp.
+// 	s, _ := signer.NewFromCometBFTNodeKey(
+// 		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
+// 			"/config/priv_validator_key.json",
+// 	)
+// 	return s, nil
+// }
+
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
-	// TODO: Fix
-	//#nosec:G703 // temp.
-	s, _ := signer.NewFromCometBFTNodeKey(
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
-			"/config/priv_validator_key.json",
-	)
+	keyFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/config/priv_validator_key.json"
+	stateFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/config/priv_validator_state.json"
+	s := privval.NewFileBLSSigner(keyFilePath, stateFilePath)
 	return s, nil
 }
