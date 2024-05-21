@@ -55,7 +55,7 @@ func AddPubkeyCmd() *cobra.Command {
 			config := serverCtx.Config
 
 			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
-				config, "bls12_381",
+				config, crypto.CometBLSType,
 			)
 			if err != nil {
 				return errors.Wrap(
