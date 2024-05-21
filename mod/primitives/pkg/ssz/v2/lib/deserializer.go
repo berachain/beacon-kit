@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package ssz
 
 import (
@@ -13,8 +38,12 @@ func NewDeserializer() Deserializer {
 	return Deserializer{}
 }
 
-// UnmarshalSSZ is the top-level function to unmarshal an SSZ encoded buffer into the provided interface.
-func (d *Deserializer) UnmarshalSSZ(val interface{}, data []byte) (interface{}, error) {
+// UnmarshalSSZ is the top-level function to unmarshal an SSZ encoded buffer
+// into the provided interface.
+func (d *Deserializer) UnmarshalSSZ(
+	val interface{},
+	data []byte,
+) (interface{}, error) {
 	v := reflect.ValueOf(val)
 	if v.Kind() == reflect.Ptr && !v.IsNil() {
 		v = v.Elem()
@@ -27,8 +56,12 @@ func (d *Deserializer) UnmarshalSSZ(val interface{}, data []byte) (interface{}, 
 	return decodedValue.Interface(), nil
 }
 
-// Unmarshal is a recursive function that determines the type of the value and unmarshals the data accordingly.
-func (d *Deserializer) Unmarshal(c interface{}, data []byte) (reflect.Value, error) {
+// Unmarshal is a recursive function that determines the type of the value and
+// unmarshals the data accordingly.
+func (d *Deserializer) Unmarshal(
+	c interface{},
+	data []byte,
+) (reflect.Value, error) {
 	typ := reflect.TypeOf(c)
 	val := reflect.ValueOf(c)
 	k := typ.Kind()
@@ -60,7 +93,11 @@ func (d *Deserializer) Unmarshal(c interface{}, data []byte) (reflect.Value, err
 }
 
 // unmarshalArrayOrSlice unmarshals an array or slice type.
-func (d *Deserializer) unmarshalArrayOrSlice(typ reflect.Type, val reflect.Value, data []byte) (reflect.Value, error) {
+func (d *Deserializer) unmarshalArrayOrSlice(
+	typ reflect.Type,
+	val reflect.Value,
+	data []byte,
+) (reflect.Value, error) {
 	if typ.Elem().Kind() == reflect.Uint8 {
 		return d.UnmarshalByteArray(typ, data), nil
 	}
@@ -113,7 +150,8 @@ func (d *Deserializer) UnmarshalByteArray(
 
 // todo
 // // unmarshalStruct unmarshals a struct type.
-// func (d *Deserializer) unmarshalStruct(typ reflect.Type, data []byte) (reflect.Value, error) {
+// func (d *Deserializer) unmarshalStruct(typ reflect.Type, data []byte)
+// (reflect.Value, error) {
 // 	v := reflect.New(typ).Elem()
 // 	offset := uint64(0)
 

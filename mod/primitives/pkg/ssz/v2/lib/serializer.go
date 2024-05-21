@@ -174,7 +174,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	default:
 		aLen = val.Len()
 	}
-  
+
 	buf := make([]byte, aLen)
 	_, err = cb(val, typ, &buf, 0)
 	return buf, err

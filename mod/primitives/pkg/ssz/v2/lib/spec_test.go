@@ -31,7 +31,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
@@ -322,8 +321,13 @@ func TestParityUint64(t *testing.T) {
 	// test deserialization
 	d := sszv2.Deserializer{}
 	elem := reflect.New(reflect.TypeOf(testU64))
-	iface, err := d.UnmarshalSSZ(elem.Interface(), o2)
-	require.Equal(t, testU64, iface, "local output and fastssz output doesnt match")
+	iface, _ := d.UnmarshalSSZ(elem.Interface(), o2)
+	require.Equal(
+		t,
+		testU64,
+		iface,
+		"local output and fastssz output doesnt match",
+	)
 }
 
 func BenchmarkNativeUint64(b *testing.B) {
@@ -369,7 +373,7 @@ func TestParityByteArray(t *testing.T) {
 	// test deserialization
 	d := sszv2.Deserializer{}
 	elem := reflect.New(reflect.TypeOf(testByteArr))
-	iface, err := d.UnmarshalSSZ(elem.Interface(), res)
+	iface, _ := d.UnmarshalSSZ(elem.Interface(), res)
 	require.Equal(t, testByteArr, iface, defaultErrMsg)
 }
 
@@ -420,7 +424,8 @@ func TestParityByteArrayLarge2D(t *testing.T) {
 		"local output and fastssz output doesnt match",
 	)
 
-	// test deserialization - todo / may not be possible as field vals are missing
+	// test deserialization - todo / may not be possible as field vals are
+	// missing
 	// d := sszv2.Deserializer{}
 	// elem := reflect.New(reflect.TypeOf(sszState.StateRoots))
 	// iface, err := d.UnmarshalSSZ(elem.Interface(), exp)
@@ -493,7 +498,7 @@ func TestParityU64Array(t *testing.T) {
 	// Test deserialization
 	d := sszv2.Deserializer{}
 	elem := reflect.New(reflect.TypeOf(slashings))
-	iface, err := d.UnmarshalSSZ(elem.Interface(), exp)
+	iface, _ := d.UnmarshalSSZ(elem.Interface(), exp)
 	require.Equal(t, slashings, iface, defaultErrMsg)
 }
 
@@ -516,6 +521,11 @@ func TestParityBool(t *testing.T) {
 	// test deserialization
 	d := sszv2.Deserializer{}
 	elem := reflect.New(reflect.TypeOf(testBool))
-	iface, err := d.UnmarshalSSZ(elem.Interface(), o2)
-	require.Equal(t, testBool, iface, "local output and fastssz output doesnt match")
+	iface, _ := d.UnmarshalSSZ(elem.Interface(), o2)
+	require.Equal(
+		t,
+		testBool,
+		iface,
+		"local output and fastssz output doesnt match",
+	)
 }
