@@ -51,6 +51,7 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	}()
 	homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 	return signer.NewBLSSigner(
-		homeDir+"/config/priv_validator_key.json", homeDir+"/data/priv_validator_state.json",
+		homeDir+"/config/priv_validator_key.json",
+		homeDir+"/data/priv_validator_state.json",
 	), nil
 }

@@ -34,8 +34,8 @@ import (
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// BLSSigner utilize an underlying PrivValidator signer using data persisted to disk to prevent
-// double signing.
+// BLSSigner utilize an underlying PrivValidator signer using data persisted to
+// disk to prevent double signing.
 type BLSSigner struct {
 	types.PrivValidator
 }
