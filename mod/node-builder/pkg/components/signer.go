@@ -52,8 +52,10 @@ type BlsSignerInput struct {
 // }
 
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
-	keyFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/config/priv_validator_key.json"
-	stateFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/config/priv_validator_state.json"
+	keyFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
+		"/config/priv_validator_key.json"
+	stateFilePath := cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
+		"/config/priv_validator_state.json"
 	s := privval.NewFileBLSSigner(keyFilePath, stateFilePath)
 	return s, nil
 }
