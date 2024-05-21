@@ -35,10 +35,6 @@ on:
       - "vercel.json"
       - "docs/**"
 
-env:
-  GOPRIVATE: github.com/berachain
-  DEV_PAT: ${{ secrets.DEV_PAT }}
-
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -71,9 +67,6 @@ jobs:
     runs-on:
       labels: ${{ matrix.os }}
     steps:
-      - name: Configure git to use env.DEV_PAT
-        run: |
-          git config --global url."https://${DEV_PAT}:x-oauth-basic@github.com/".insteadOf "https://github.com/"     
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Foundry
