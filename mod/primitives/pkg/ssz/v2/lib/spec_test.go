@@ -28,7 +28,6 @@ package ssz_test
 
 import (
 	"os"
-	"reflect"
 	"testing"
 
 	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
@@ -155,8 +154,7 @@ func checkDeserialize(t *testing.T, data []byte, c interface{}) {
 	}
 
 	d := sszv2.Deserializer{}
-	elem := reflect.New(reflect.TypeOf(c))
-	iface, err := d.UnmarshalSSZ(elem.Interface(), data)
+	iface, err := d.UnmarshalSSZ(c, data)
 	require.NoError(t, err)
 
 	require.Equal(
