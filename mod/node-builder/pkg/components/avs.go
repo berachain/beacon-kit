@@ -45,16 +45,17 @@ func ProvideAvailibilityStore(
 	logger log.Logger,
 ) (*dastore.Store[types.BeaconBlockBody], error) {
 	return dastore.New[types.BeaconBlockBody](
-		filedb.NewRangeDB(filedb.NewDB(
-			filedb.WithRootDirectory(
-				cast.ToString(
-					appOpts.Get(flags.FlagHome),
-				)+"/data/blobs",
+		filedb.NewRangeDB(
+			filedb.NewDB(
+				filedb.WithRootDirectory(
+					cast.ToString(
+						appOpts.Get(flags.FlagHome),
+					)+"/data/blobs",
+				),
+				filedb.WithFileExtension("ssz"),
+				filedb.WithDirectoryPermissions(os.ModePerm),
+				filedb.WithLogger(logger),
 			),
-			filedb.WithFileExtension("ssz"),
-			filedb.WithDirectoryPermissions(os.ModePerm),
-			filedb.WithLogger(logger),
-		),
 		),
 		logger.With("service", "beacon-kit.da.store"),
 		chainSpec,
