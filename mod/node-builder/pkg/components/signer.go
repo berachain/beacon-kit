@@ -26,8 +26,6 @@
 package components
 
 import (
-	"fmt"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -46,7 +44,8 @@ type BlsSignerInput struct {
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("TODO handle this", r)
+			// TODO: handle this better
+			// flaghome not set in app options
 			return
 		}
 	}()
