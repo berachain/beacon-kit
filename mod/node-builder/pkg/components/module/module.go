@@ -100,6 +100,7 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 func (AppModule) ValidateGenesis(
 	bz json.RawMessage,
 ) error {
+	// TODO: this is bad
 	data := new(deneb.BeaconState)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return err

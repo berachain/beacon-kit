@@ -51,6 +51,8 @@ import (
 	"github.com/spf13/cast"
 )
 
+// TODO: we don't allow generics here? Why? Is it fixable?
+//
 //nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
@@ -79,8 +81,8 @@ type DepInjectOutput struct {
 }
 
 // ProvideModule is a function that provides the module to the application.
-func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := storage.NewBackend[
+func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
+	storageBackend := storage.NewBackend[
 		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
 	](
 		in.ChainSpec,
@@ -109,6 +111,7 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		in.DepositStore,
 	)
 
+	// TODO: this is hood as fuck.
 	if in.Cfg.KZG.Implementation == "" {
 		in.Cfg.KZG.Implementation = "crate-crypto/go-kzg-4844"
 	}
@@ -119,16 +122,16 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		in.Signer,
 		in.EngineClient,
 		in.KzgTrustedSetup,
-		k,
+		storageBackend,
 		in.Environment.Logger,
 	)
 	if err != nil {
-		panic(err)
+		return DepInjectOutput{}, err
 	}
 
 	return DepInjectOutput{
 		Module: NewAppModule(runtime),
-	}
+	}, nil
 }
 
 // TODO: move this.

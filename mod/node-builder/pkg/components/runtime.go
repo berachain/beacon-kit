@@ -207,7 +207,6 @@ func ProvideRuntime(
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
-		// service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
