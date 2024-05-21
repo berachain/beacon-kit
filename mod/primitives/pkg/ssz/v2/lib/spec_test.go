@@ -479,7 +479,6 @@ func TestParityU64Array(t *testing.T) {
 	exp, err3 := s.MarshalSSZ(u64Arr)
 	require.NoError(t, err3)
 	debugPrint(debug, t, "Local Serializer output len:", len(exp), err)
-	// slashings := make([]byte, (8192 * 8))
 	res, err3 := sszState.MarshalSSZ()
 	// See bellatrix.ssz.go generated file in unmarshalSSZ
 	slashings := make([]byte, 0)
