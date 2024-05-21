@@ -125,7 +125,7 @@ func ProvideRuntime(
 	// TODO: we need to handle this in the depinject case when the trusted setup
 	// is not ready yet nicer.
 	if err != nil {
-		logger.Warn("failed to load blob verifier", "err", err)
+		// logger.Warn("failed to load blob verifier", "err", err)
 	}
 
 	logger.Info(
