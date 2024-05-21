@@ -32,7 +32,8 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	transition "github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -99,7 +100,6 @@ func (r BeaconKitRuntime[
 		r.abciHandler.LatestBeaconBlock,
 		r.abciHandler.LatestSidecars,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -111,14 +111,14 @@ func (r BeaconKitRuntime[
 		) (appmodulev2.ValidatorUpdate, error) {
 			return appmodulev2.ValidatorUpdate{
 				PubKey:     (*validator).Pubkey[:],
-				PubKeyType: "bls12_381",
-				// all validators have equal power in beacon kit.
-				//nolint:mnd // this is a constant todo fix.
-				Power: 100,
+				PubKeyType: crypto.CometBLSType,
+				Power:      crypto.CometBLSPower,
 			}, nil
 		},
 	)
 }
+
+// TODO: Bring back actually removing validators from the index.
 
 // validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
 // for _, validator := range updates {
