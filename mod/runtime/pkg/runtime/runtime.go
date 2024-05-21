@@ -114,7 +114,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		abciHandler: abci.NewHandler[BlobSidecarsT](
+		abciHandler: abci.NewHandler(
 			chainSpec,
 			builderService,
 			chainService,

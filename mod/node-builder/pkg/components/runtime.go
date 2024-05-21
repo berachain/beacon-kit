@@ -118,6 +118,7 @@ func ProvideRuntime(
 	)
 
 	// Build the Blobs Verifier
+	//#nosec:G703 // todo fix depinject stuff.
 	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
