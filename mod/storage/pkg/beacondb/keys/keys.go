@@ -49,5 +49,4 @@ const (
 	NextWithdrawalIndexPrefix              = "next_withdrawal_index"
 	NextWithdrawalValidatorIndexPrefix     = "next_withdrawal_val_idx"
 	ForkPrefix                             = "fork"
-	SyncCommitteePrefix                    = "sync_committee"
 )
