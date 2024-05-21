@@ -85,10 +85,6 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 	}
 }
 
-// func coerceNumber[v ~uint | ~math.U64, t any](v, t) v {
-// 	return v.Interface().(t)
-// }
-
 func IsUintLike(kind reflect.Kind) bool {
 	switch kind {
 	case reflect.Uint8,
