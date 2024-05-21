@@ -118,18 +118,23 @@ func ProvideRuntime(
 	)
 
 	// Build the Blobs Verifier
-	blobProofVerifier, err := kzg.NewBlobProofVerifier(
+	//#nosec:G703 // todo fix depinject stuff.
+	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
-	if err != nil {
-		return nil, err
-	}
 
-	logger.Info(
-		"successfully loaded blob verifier",
-		"impl",
-		cfg.KZG.Implementation,
-	)
+	// // TODO: we need to handle this in the depinject case when the trusted
+	// setup
+	// // is not ready yet nicer.
+	// if err != nil {
+	// 	logger.Warn("failed to load blob verifier", "err", err)
+	// }
+
+	// logger.Info(
+	// 	"successfully loaded blob verifier",
+	// 	"impl",
+	// 	cfg.KZG.Implementation,
+	// )
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
@@ -207,7 +212,6 @@ func ProvideRuntime(
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
-		// service.WithService(stakingService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

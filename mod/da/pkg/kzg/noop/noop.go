@@ -23,42 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package app
+package noop
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
-// PrepareProposal is called by the consensus engine to prepare a proposal for
-// the next block.
-func (app BeaconApp) PrepareProposal(
-	req *abci.PrepareProposalRequest,
-) (*abci.PrepareProposalResponse, error) {
-	return app.BeaconKitRuntime.PrepareProposal(
-		req,
-		app.BaseApp.PrepareProposal,
-	)
+// Verifier is a no-op KZG proof verifier.
+type Verifier struct{}
+
+// NewVerifier creates a new GoKZGVerifier.
+func NewVerifier() *Verifier {
+	return &Verifier{}
 }
 
-// ProcessProposal is called by the consensus engine when a new proposal block
-// is received.
-func (app BeaconApp) ProcessProposal(
-	req *abci.ProcessProposalRequest,
-) (*abci.ProcessProposalResponse, error) {
-	return app.BeaconKitRuntime.ProcessProposal(
-		req,
-		app.BaseApp.ProcessProposal,
-	)
+// VerifyProof is a no-op.
+func (v Verifier) VerifyBlobProof(
+	*eip4844.Blob,
+	eip4844.KZGProof,
+	eip4844.KZGCommitment,
+) error {
+	return nil
 }
 
-// but before committing it to the consensus state.
-func (app BeaconApp) FinalizeBlock(
-	req *abci.FinalizeBlockRequest,
-) (*abci.FinalizeBlockResponse, error) {
-	return app.BeaconKitRuntime.FinalizeBlock(req, app.BaseApp.FinalizeBlock)
-}
-
-// Commit is our custom implementation of the ABCI method Commit.
-func (app BeaconApp) Commit() (*abci.CommitResponse, error) {
-	return app.BeaconKitRuntime.Commit(app.BaseApp.Commit)
+// VerifyBlobProofBatch is a no-op.
+func (v Verifier) VerifyBlobProofBatch(
+	*types.BlobProofArgs,
+) error {
+	return nil
 }
