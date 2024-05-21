@@ -149,6 +149,24 @@ func debugDiff(o2 []byte, res []byte) {
 	}
 }
 
+func checkDeserialize(t *testing.T, data []byte, c interface{}) {
+	if len(data) == 0 {
+		panic("Buffer is empty")
+	}
+
+	d := sszv2.Deserializer{}
+	elem := reflect.New(reflect.TypeOf(c))
+	iface, err := d.UnmarshalSSZ(elem.Interface(), data)
+	require.NoError(t, err)
+
+	require.Equal(
+		t,
+		c,
+		iface,
+		defaultErrMsg,
+	)
+}
+
 // TESTS
 // Test using local deneb genesis beaconstate.
 // func TestParityDenebLocal(t *testing.T) {
@@ -303,6 +321,8 @@ func BenchmarkFastSSZStruct(b *testing.B) {
 }
 
 func TestParityUint64(t *testing.T) {
+	t.Parallel()
+
 	sszState, err := getSszState()
 	require.NoError(t, err)
 
@@ -319,15 +339,7 @@ func TestParityUint64(t *testing.T) {
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
 
 	// test deserialization
-	d := sszv2.Deserializer{}
-	elem := reflect.New(reflect.TypeOf(testU64))
-	iface, _ := d.UnmarshalSSZ(elem.Interface(), o2)
-	require.Equal(
-		t,
-		testU64,
-		iface,
-		"local output and fastssz output doesnt match",
-	)
+	checkDeserialize(t, o2, testU64)
 }
 
 func BenchmarkNativeUint64(b *testing.B) {
@@ -371,10 +383,7 @@ func TestParityByteArray(t *testing.T) {
 	require.Equal(t, exp, res, "local output and fastssz output doesnt match")
 
 	// test deserialization
-	d := sszv2.Deserializer{}
-	elem := reflect.New(reflect.TypeOf(testByteArr))
-	iface, _ := d.UnmarshalSSZ(elem.Interface(), res)
-	require.Equal(t, testByteArr, iface, defaultErrMsg)
+	checkDeserialize(t, res, testByteArr)
 }
 
 func BenchmarkNativeByteArray(b *testing.B) {
@@ -496,10 +505,7 @@ func TestParityU64Array(t *testing.T) {
 	)
 
 	// Test deserialization
-	d := sszv2.Deserializer{}
-	elem := reflect.New(reflect.TypeOf(slashings))
-	iface, _ := d.UnmarshalSSZ(elem.Interface(), exp)
-	require.Equal(t, slashings, iface, defaultErrMsg)
+	checkDeserialize(t, exp, slashings)
 }
 
 func TestParityBool(t *testing.T) {
@@ -519,13 +525,5 @@ func TestParityBool(t *testing.T) {
 	require.Equal(t, o2, res, "local output and fastssz output doesnt match")
 
 	// test deserialization
-	d := sszv2.Deserializer{}
-	elem := reflect.New(reflect.TypeOf(testBool))
-	iface, _ := d.UnmarshalSSZ(elem.Interface(), o2)
-	require.Equal(
-		t,
-		testBool,
-		iface,
-		"local output and fastssz output doesnt match",
-	)
+	checkDeserialize(t, o2, testBool)
 }
