@@ -59,6 +59,8 @@ func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 		return err
 	}
 
-	// Processing the incoming beacon block and blobs.
-	return h.chainService.ProcessStateTransition(ctx, blk, blobSideCars)
+	h.LatestBeaconBlock = blk
+	h.LatestSidecars = blobSideCars
+	return nil
+
 }

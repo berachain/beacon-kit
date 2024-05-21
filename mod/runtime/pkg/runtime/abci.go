@@ -30,8 +30,10 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 func (r BeaconKitRuntime[
@@ -76,6 +78,25 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
+
+	var (
+		chainService *blockchain.Service[
+			AvailabilityStoreT,
+			state.BeaconState,
+			BlobSidecarsT,
+			DepositStoreT,
+		]
+	)
+	if err := r.services.FetchService(&chainService); err != nil {
+		panic(err)
+	}
+
+	if err := chainService.ProcessStateTransition(
+		ctx, r.abciHandler.LatestBeaconBlock, r.abciHandler.LatestSidecars,
+	); err != nil {
+		return nil, err
+	}
+
 	// store := r.keeper.BeaconStore().WithContext(ctx)
 	store := r.storageBackend.StateFromContext(ctx)
 

@@ -66,6 +66,10 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 		encoding.ABCIRequest,
 		types.BeaconBlock,
 	]
+
+	// Hack to get around cosmos bs.
+	LatestBeaconBlock types.BeaconBlock
+	LatestSidecars    BlobsSidecarsT
 }
 
 // NewHandler creates a new instance of the Handler struct.
