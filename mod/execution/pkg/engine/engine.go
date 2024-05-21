@@ -260,6 +260,15 @@ func (ee *Engine[
 			return nil
 		}
 		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+	case errors.IsAny(err, context.Canceled, context.DeadlineExceeded):
+		if req.Optimistic {
+			ee.logger.Warn(
+				"context error during optimistic payload verification",
+				"error", err,
+			)
+			return nil
+		}
+		return err
 	}
 
 	// If we get any other error, we will just return it.
