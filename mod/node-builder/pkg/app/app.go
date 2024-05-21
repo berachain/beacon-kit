@@ -74,6 +74,7 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			dCfg,
 			depinject.Provide(
+				bkcomponents.ProvideAvailibilityStore,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
 				bkcomponents.ProvideDepositStore,
