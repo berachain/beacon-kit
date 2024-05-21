@@ -83,6 +83,7 @@ type WriteOnlyBeaconBlockBody interface {
 	SetExecutionData(ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
+	SetGraffiti([32]byte)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
@@ -92,7 +93,7 @@ type ReadOnlyBeaconBlockBody interface {
 	ssz.Unmarshaler
 	ssz.HashRoot
 	IsNil() bool
-
+	IsGraffitiEmpty() bool
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data

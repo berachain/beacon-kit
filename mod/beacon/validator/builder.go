@@ -32,9 +32,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/cometbft/cometbft/config"
 )
 
-// GetEmptyBlock creates a new empty block.
+// graffitiSize is a constant for size of Graffiti.
+const graffitiSize = 32
+
+// GetEmptyBeaconBlock creates a new empty block.
 func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
@@ -62,14 +66,40 @@ func (s *Service[
 			err,
 		)
 	}
-
 	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock(
+	block, err := types.EmptyBeaconBlock(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// log the warning if graffiti is empty
+	if block.GetBody().IsGraffitiEmpty() {
+		s.logger.Warn("graffiti is empty")
+		moniker := config.DefaultConfig().BaseConfig.Moniker
+		s.logger.Debug("moniker", "moniker", moniker)
+		monikerInByte := stringToByteArray32(moniker)
+		block.GetBody().SetGraffiti(monikerInByte)
+	}
+
+	return block, nil
+}
+
+func stringToByteArray32(str string) [32]byte {
+	var ret [32]byte
+	// Convert the string to a byte slice.
+	byteSlice := []byte(str)
+	// If the byte slice is longer than 32 bytes, truncate it.
+	if len(byteSlice) > graffitiSize {
+		byteSlice = byteSlice[:graffitiSize]
+	}
+	// Copy the bytes to the fixed-size array.
+	copy(ret[:], byteSlice)
+	return ret
 }
 
 func (s *Service[

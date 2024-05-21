@@ -26,8 +26,6 @@
 package types
 
 import (
-	"log"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -82,6 +80,11 @@ type BeaconBlockBodyBase struct {
 // IsGraffitiEmpty checks if the Graffiti is empty.
 func (b *BeaconBlockBodyBase) IsGraffitiEmpty() bool {
 	return b.Graffiti == [32]byte{}
+}
+
+// SetGraffiti sets the Graffiti of the Body.
+func (b *BeaconBlockBodyBase) SetGraffiti(graffiti [32]byte) {
+	b.Graffiti = graffiti
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
@@ -186,12 +189,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 
 	// graffiti
 	layer[2] = b.GetGraffiti()
-
-	// log the warning if graffiti is empty
-	// TODO: Replace with cometBFT moniker
-	if b.IsGraffitiEmpty() {
-		log.Println("WARNING: Graffiti is not set")
-	}
 
 	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
 	if err != nil {
