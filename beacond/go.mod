@@ -36,6 +36,7 @@ require (
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
@@ -43,6 +44,7 @@ require (
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
+	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/spf13/cast v1.6.0
 	go.uber.org/automaxprocs v1.5.3
 	google.golang.org/protobuf v1.34.1
@@ -75,7 +77,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
@@ -106,7 +107,6 @@ require (
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20231025140028-3c0104f4b233 // indirect
-	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
 	github.com/creachadair/atomicfile v0.3.1 // indirect
 	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect

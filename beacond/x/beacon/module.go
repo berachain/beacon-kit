@@ -32,9 +32,8 @@ import (
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -58,7 +57,7 @@ type AppModule struct {
 		*dastore.Store[types.BeaconBlockBody],
 		state.BeaconState,
 	]
-	chainSpec primitives.ChainSpec
+	runtime *components.BeaconKitRuntime
 }
 
 // NewAppModule creates a new AppModule object.
@@ -66,11 +65,11 @@ func NewAppModule(
 	keeper *storage.Backend[
 		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
 	],
-	chainSpec primitives.ChainSpec,
+	runtime *components.BeaconKitRuntime,
 ) AppModule {
 	return AppModule{
-		keeper:    keeper,
-		chainSpec: chainSpec,
+		keeper:  keeper,
+		runtime: runtime,
 	}
 }
 
@@ -95,44 +94,5 @@ func (am AppModule) IsAppModule() {}
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	store := am.keeper.BeaconStore().WithContext(ctx)
-
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		panic(err)
-	}
-
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range val {
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx math.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey)
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: "bls12_381",
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
-	}
-
-	// Save the store.
-	store.Save()
-	return validatorUpdates, nil
+	return am.runtime.EndBlock(ctx)
 }

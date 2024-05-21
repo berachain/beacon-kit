@@ -122,7 +122,7 @@ func ProvideRuntime(
 		cfg.KZG.Implementation, kzgTrustedSetup,
 	)
 	if err != nil {
-		return nil, err
+		logger.Warn("failed to load blob verifier", "err", err)
 	}
 
 	logger.Info(

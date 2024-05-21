@@ -34,15 +34,20 @@ import (
 	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
 
@@ -57,10 +62,14 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts      servertypes.AppOptions
-	Environment  appmodule.Environment
-	ChainSpec    primitives.ChainSpec
-	DepositStore *depositdb.KVStore
+	AppOpts         servertypes.AppOptions
+	Environment     appmodule.Environment
+	ChainSpec       primitives.ChainSpec
+	DepositStore    *depositdb.KVStore
+	Cfg             *config.Config
+	Signer          crypto.BLSSigner
+	EngineClient    *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	KzgTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -103,9 +112,27 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		](in.Environment.KVStoreService, DenebPayloadFactory),
 		in.DepositStore,
 	)
+
+	if in.Cfg.KZG.Implementation == "" {
+		in.Cfg.KZG.Implementation = "crate-crypto/go-kzg-4844"
+	}
+
+	runtime, err := components.ProvideRuntime(
+		in.Cfg,
+		in.ChainSpec,
+		in.Signer,
+		in.EngineClient,
+		in.KzgTrustedSetup,
+		k,
+		in.Environment.Logger,
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	return DepInjectOutput{
 		Keeper: k,
-		Module: NewAppModule(k, in.ChainSpec),
+		Module: NewAppModule(k, runtime),
 	}
 }
 
