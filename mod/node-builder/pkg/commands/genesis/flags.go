@@ -26,9 +26,7 @@
 package genesis
 
 const (
-	depositAmountFlag = "deposit-amount"
-
+	depositAmountFlag    = "deposit-amount"
 	defaultDepositAmount = "32000000000" // 32e9
-
 	depositAmountFlagMsg = "The amount of deposit to be made"
 )
