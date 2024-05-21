@@ -93,5 +93,6 @@ USED_PORTS_TEMPLATE = {
     METRICS_PORT_ID: port_spec_lib.get_port_spec_template(
         METRICS_PORT_NUM,
         shared_utils.TCP_PROTOCOL,
+        wait = "30s",
     ),
 }

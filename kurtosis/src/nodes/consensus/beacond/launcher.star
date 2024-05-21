@@ -3,10 +3,23 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
-DEFAULT_MAX_CPU = 1000
-DEFAULT_MAX_MEMORY = 4096
-DEFAULT_MIN_CPU = 500
-DEFAULT_MIN_MEMORY = 1024
+# 1x resources
+# DEFAULT_MAX_CPU = 1000
+# DEFAULT_MAX_MEMORY = 4096
+# DEFAULT_MIN_CPU = 500
+# DEFAULT_MIN_MEMORY = 1024
+
+# 2x resources
+# DEFAULT_MAX_CPU = 2000
+# DEFAULT_MAX_MEMORY = 8192
+# DEFAULT_MIN_CPU = 1000
+# DEFAULT_MIN_MEMORY = 4096
+
+# 4x resources
+DEFAULT_MAX_CPU = 4000
+DEFAULT_MAX_MEMORY = 16384
+DEFAULT_MIN_CPU = 2000
+DEFAULT_MIN_MEMORY = 8196
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656

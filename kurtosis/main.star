@@ -262,14 +262,14 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], rpc_endpoints = [], 
             configs = full_node_configs,
         )
 
-        for name, service in services.items():
-            # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
-            if name != cl_service_name:
-                metrics_enabled_services.append({
-                    "name": name,
-                    "service": service,
-                    "metrics_path": beacond.METRICS_PATH,
-                })
+    for name, service in services.items():
+        # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
+        if name != cl_service_name:
+            metrics_enabled_services.append({
+                "name": name,
+                "service": service,
+                "metrics_path": beacond.METRICS_PATH,
+            })
 
     # 6. Start RPCs
     for n, rpc in enumerate(rpc_endpoints):
