@@ -26,67 +26,51 @@
 package signer
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cometbft/cometbft/p2p"
-	bls "github.com/itsdevbear/comet-bls12-381/bls"
+	"github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/types"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// BLSSigner holds the secret key used for signing operations.
+// BLSSigner utilize an underlying PrivValidator signer using data persisted to disk to prevent
+// double signing.
 type BLSSigner struct {
-	bls.SecretKey
+	types.PrivValidator
 }
 
-// NewBLSSigner creates a new Signer instance given a secret key.
-func NewBLSSigner(
-	keyBz [constants.BLSSecretKeyLength]byte,
-) (*BLSSigner, error) {
-	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
-	if err != nil {
-		return nil, err
-	}
-	return &BLSSigner{
-		SecretKey: secretKey,
-	}, nil
+func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
+	filePV := privval.LoadOrGenFilePV(keyFilePath, stateFilePath)
+	return &BLSSigner{PrivValidator: filePV}
 }
 
-// NewFromCometBFTNodeKey creates a new Signer instance given a
-// file path to a CometBFT node key.
-//
-// TODO: In order to make RANDAO signing compatible with the BLS12-381
-// we need to extend the PrivVal interface to allow signing arbitrary things.
-// @tac0turtle.
-func NewFromCometBFTNodeKey(filePath string) (*BLSSigner, error) {
-	key, err := p2p.LoadNodeKey(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewBLSSigner(
-		[constants.BLSSecretKeyLength]byte(key.PrivKey.Bytes()))
-}
+// ========================== Implements BLS Signer ==========================
 
 // PublicKey returns the public key of the signer.
-func (b *BLSSigner) PublicKey() crypto.BLSPubkey {
-	return crypto.BLSPubkey(b.SecretKey.PublicKey().Marshal())
+func (f BLSSigner) PublicKey() crypto.BLSPubkey {
+	key, err := f.PrivValidator.GetPubKey()
+	if err != nil {
+		return crypto.BLSPubkey{}
+	}
+	return crypto.BLSPubkey(key.Bytes())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
-// It returns the signature and any error encountered during the signing
-// process.
-func (b *BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
-	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
+func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
+	sig, err := f.PrivValidator.SignBytes(msg)
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return crypto.BLSSignature(sig), nil
 }
 
-// VerifySignature verifies a signature for a given message using the signer's
-// public key.
-func (BLSSigner) VerifySignature(
-	pubKey crypto.BLSPubkey,
+// VerifySignature verifies a signature against a message and a public key.
+func (f BLSSigner) VerifySignature(
+	blsPk crypto.BLSPubkey,
 	msg []byte,
-	signature crypto.BLSSignature,
-) error {
-	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
+	signature crypto.BLSSignature) error {
+	pk, err := blst.PublicKeyFromBytes(blsPk[:])
 	if err != nil {
 		return err
 	}
@@ -96,8 +80,8 @@ func (BLSSigner) VerifySignature(
 		return err
 	}
 
-	if !sig.Verify(pubkey, msg) {
-		return ErrInvalidSignature
+	if !sig.Verify(pk, msg) {
+		return errors.New("signature verification failed")
 	}
 	return nil
 }
