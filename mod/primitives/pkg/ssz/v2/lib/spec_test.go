@@ -140,6 +140,7 @@ func debugDiff(o2 []byte, res []byte) {
 
 // TESTS
 
+<<<<<<< HEAD
 // Full block object serialization
 // func TestParityBellatrix(t *testing.T) {
 // 	sszState, err := getSszState()
@@ -168,6 +169,12 @@ func debugDiff(o2 []byte, res []byte) {
 // func BenchmarkFastSSZFull(b *testing.B) {
 // 	sszState, err := getSszState()
 // 	require.NoError(b, err)
+=======
+// Test using local deneb genesis beaconstate.
+// func TestParityDenebLocal(t *testing.T) {
+// // see deneb_test.go at mod/consensus-types/pkg/state/deneb/deneb_test.go
+// }
+>>>>>>> e36c7133 (remove cyclic dep, move deneb test closer to block def)
 
 // 	runBench(b, func() {
 // 		sszState.MarshalSSZ()
