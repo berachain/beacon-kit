@@ -40,17 +40,15 @@ import (
 //
 //nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processExecutionPayload(
 	ctx Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
 
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	g, _ := errgroup.WithContext(context.Background())
@@ -130,7 +128,7 @@ func (sp *StateProcessor[
 		return errors.Wrapf(
 			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
+			sp.cs.MaxBlobsPerBlock(), len(body.GetBlobKzgCommitments()),
 		)
 	}
 

@@ -28,7 +28,7 @@
 package ckzg
 
 import (
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
@@ -43,7 +43,7 @@ func (v Verifier) VerifyBlobProof(
 
 // VerifyBlobProofBatch will error since cgo is not enabled.
 func (v Verifier) VerifyBlobProofBatch(
-	*types.BlobProofArgs,
+	*prooftypes.BlobProofArgs,
 ) error {
 	return ErrCGONotEnabled
 }

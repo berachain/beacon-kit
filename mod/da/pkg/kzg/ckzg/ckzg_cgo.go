@@ -30,7 +30,7 @@ package ckzg
 import (
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
@@ -58,7 +58,7 @@ func (v Verifier) VerifyBlobProof(
 // by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
-	args *types.BlobProofArgs,
+	args *prooftypes.BlobProofArgs,
 ) error {
 	blobs := make([]ckzg4844.Blob, len(args.Blobs))
 	for i := range args.Blobs {

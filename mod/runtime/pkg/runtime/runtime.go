@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -58,7 +59,6 @@ type BeaconKitRuntime[
 	services       *service.Registry
 	storageBackend StorageBackendT
 	chainSpec      primitives.ChainSpec
-	abciHandler    *abci.Handler[BlobSidecarsT]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -89,23 +89,6 @@ func NewBeaconKitRuntime[
 	DepositStoreT,
 	StorageBackendT,
 ], error) {
-	var (
-		chainService *blockchain.Service[
-			AvailabilityStoreT,
-			state.BeaconState,
-			BlobSidecarsT,
-			DepositStoreT,
-		]
-		builderService *validator.Service[BeaconStateT, BlobSidecarsT]
-	)
-	if err := services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	if err := services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
-
 	return &BeaconKitRuntime[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
@@ -114,11 +97,7 @@ func NewBeaconKitRuntime[
 		DepositStoreT,
 		StorageBackendT,
 	]{
-		abciHandler: abci.NewHandler(
-			chainSpec,
-			builderService,
-			chainService,
-		),
+		// engineClient:   engineClient,
 		chainSpec:      chainSpec,
 		logger:         logger,
 		services:       services,
@@ -141,7 +120,7 @@ func (r *BeaconKitRuntime[
 	return nil
 }
 
-// ABCIHandler returns the ABCI handler.
+// BuildABCIComponents returns the ABCI components for the beacon runtime.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT,
 	BeaconBlockBodyT,
@@ -149,6 +128,38 @@ func (r *BeaconKitRuntime[
 	BlobSidecarsT,
 	DepositStoreT,
 	StorageBackendT,
-]) ABCIHandler() *abci.Handler[BlobSidecarsT] {
-	return r.abciHandler
+]) BuildABCIComponents() (
+	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
+	sdk.PreBlocker,
+) {
+	var (
+		chainService *blockchain.Service[
+			AvailabilityStoreT,
+			state.BeaconState,
+			BlobSidecarsT,
+			DepositStoreT,
+		]
+		builderService *validator.Service[BeaconStateT, BlobSidecarsT]
+	)
+	if err := r.services.FetchService(&chainService); err != nil {
+		panic(err)
+	}
+
+	if err := r.services.FetchService(&builderService); err != nil {
+		panic(err)
+	}
+
+	if chainService == nil || builderService == nil {
+		panic("missing services")
+	}
+
+	handler := abci.NewHandler[BlobSidecarsT](
+		r.chainSpec,
+		builderService,
+		chainService,
+	)
+
+	return handler.PrepareProposalHandler,
+		handler.ProcessProposalHandler,
+		handler.FinalizeBlock
 }
