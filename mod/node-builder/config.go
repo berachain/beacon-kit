@@ -79,7 +79,9 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.DBBackend = "pebbledb"
 
-	// Indexer is disabled to enhance performance.
+	// These settings are set by default for performance reasons.
 	cfg.TxIndex.Indexer = "null"
+	cfg.Mempool.Type = "nop"
+	cfg.Storage.DiscardABCIResponses = true
 	return cfg
 }
