@@ -2,7 +2,7 @@
 
 protoImageName    := "ghcr.io/cosmos/proto-builder"
 protoImageVersion := "0.14.0"
-modulesProtoDir := "beacond/x/beacon/proto"
+modulesProtoDir := "mod/node-builder/pkg/components/module/proto"
 
 ## Protobuf:
 proto: ## run all the proto tasks
