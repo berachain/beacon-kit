@@ -121,6 +121,8 @@ func (ee *Engine[
 		req.ForkVersion,
 	)
 	switch {
+	// We do not bubble the error up, since we want to handle it
+	// in the same way as the other cases.
 	case errors.IsAny(
 		err,
 		engineerrors.ErrAcceptedPayloadStatus,
@@ -148,9 +150,13 @@ func (ee *Engine[
 			return nil, nil, err
 		}
 		return payloadID, latestValidHash, ErrBadBlockProduced
+
+	// JSON-RPC errors are predefined and should be handled as such.
 	case jsonrpc.IsPreDefinedError(err):
 		ee.metrics.MarkForkchoiceUpdateJSONRPCError(err)
 		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+
+	// All other errors are handled as undefined errors.
 	case err != nil:
 		ee.metrics.MarkForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err

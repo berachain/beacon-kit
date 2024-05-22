@@ -25,7 +25,12 @@
 
 package metrics
 
-import "github.com/cosmos/cosmos-sdk/telemetry"
+import (
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/hashicorp/go-metrics"
+)
 
 type TelemetrySink struct{}
 
@@ -36,12 +41,36 @@ func NewTelemetrySink() TelemetrySink {
 
 // IncrementCounter increments a counter metric identified by the provided
 // keys.
-func (TelemetrySink) IncrementCounter(keys ...string) {
-	telemetry.IncrCounter(1, keys...)
+//
+//nolint:mnd // trivial.
+func (TelemetrySink) IncrementCounter(key string, args ...string) {
+	labels := make([]metrics.Label, len(args)/2)
+	for i := 0; i < len(args); i += 2 {
+		labels[i/2] = metrics.Label{
+			Name:  args[i],
+			Value: args[i+1],
+		}
+	}
+	telemetry.IncrCounterWithLabels([]string{key}, 1, labels)
 }
 
 // SetGauge sets a gauge metric to the specified value, identified by the
 // provided keys.
-func (TelemetrySink) SetGauge(value int64, keys ...string) {
-	telemetry.SetGauge(float32(value), keys...)
+//
+//nolint:mnd // trivial.
+func (TelemetrySink) SetGauge(key string, value int64, args ...string) {
+	labels := make([]metrics.Label, len(args)/2)
+	for i := 0; i < len(args); i += 2 {
+		labels[i/2] = metrics.Label{
+			Name:  args[i],
+			Value: args[i+1],
+		}
+	}
+	telemetry.SetGaugeWithLabels([]string{key}, float32(value), labels)
+}
+
+// MeasureSince measures the time since the provided start time and records
+// the duration in a metric identified by the provided key.
+func (TelemetrySink) MeasureSince(key string, start time.Time) {
+	telemetry.MeasureSince(start, key)
 }

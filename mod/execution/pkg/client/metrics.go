@@ -25,58 +25,56 @@
 
 package client
 
-const (
-	// MetricBaseKey is the base key for all metrics.
-	MetricBaseKey = "beacon-kit.engine.client."
+import (
+	"time"
 
-	// MetricKeyParseErrorCount represents the metric key
-	// for counting parse errors.
-	MetricKeyParseErrorCount = MetricBaseKey + "parse_error_count"
-
-	// MetricKeyInvalidRequestCount represents the metric key
-	// for counting invalid requests.
-	MetricKeyInvalidRequestCount = MetricBaseKey +
-		"invalid_request_count"
-
-	// MetricKeyMethodNotFoundCount represents the metric key
-	// for counting instances
-	// where a method is not found.
-	MetricKeyMethodNotFoundCount = MetricBaseKey +
-		"method_not_found_count"
-
-	// MetricKeyInvalidParamsCount represents the metric key
-	// for counting instances of
-	// invalid parameters.
-	MetricKeyInvalidParamsCount = MetricBaseKey +
-		"invalid_params_count"
-
-	// MetricKeyInternalErrorCount represents the metric key
-	// for counting internal errors.
-	MetricKeyInternalErrorCount = MetricBaseKey +
-		"internal_error_count"
-
-	// MetricKeyUnknownPayloadErrorCount represents the metric key
-	// for counting unknown payload errors.
-	MetricKeyUnknownPayloadErrorCount = MetricBaseKey +
-		"unknown_payload_error_count"
-
-	// MetricKeyInvalidForkchoiceStateCount represents the metric key
-	// for counting invalid fork choice state errors.
-	MetricKeyInvalidForkchoiceStateCount = MetricBaseKey +
-		"invalid_forkchoice_state_count"
-
-	// MetricKeyInvalidPayloadAttributesCount represents the metric key
-	// for counting invalid payload attribute errors.
-	MetricKeyInvalidPayloadAttributesCount = MetricBaseKey +
-		"invalid_payload_attributes_count"
-
-	// MetricKeyRequestTooLargeCount represents the metric key
-	// for counting instances where a request is too large.
-	MetricKeyRequestTooLargeCount = MetricBaseKey +
-		"request_too_large_count"
-
-	// MetricKeyInternalServerErrorCount represents the metric key
-	// for counting internal server errors.
-	MetricKeyInternalServerErrorCount = MetricBaseKey +
-		"internal_server_error_count"
+	"github.com/berachain/beacon-kit/mod/log"
 )
+
+// clientMetrics is a struct that contains metrics for the engine.
+type clientMetrics struct {
+	// TelemetrySink is the sink for the metrics.
+	sink TelemetrySink
+
+	// logger is the logger for the engineMetrics.
+	logger log.Logger[any]
+}
+
+// newClientMetrics creates a new engineMetrics.
+func newClientMetrics(
+	sink TelemetrySink,
+	logger log.Logger[any],
+) *clientMetrics {
+	return &clientMetrics{
+		sink:   sink,
+		logger: logger,
+	}
+}
+
+// MeasureForkchoiceUpdateDuration measures the duration of the forkchoice
+// update.
+func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
+	// TODO: Add Labels.
+	cm.sink.MeasureSince(
+		"beacon-kit.execution.client.forkchoice_update_duration",
+		startTime,
+	)
+}
+
+// MeasureNewPayloadDuration measures the duration of the new payload.
+func (cm *clientMetrics) MeasureNewPayloadDuration(startTime time.Time) {
+	// TODO: Add Labels.
+	cm.sink.MeasureSince(
+		"beacon-kit.execution.client.new_payload_duration",
+		startTime,
+	)
+}
+
+// MeasureGetPayloadDuration measures the duration of the get payload.
+func (cm *clientMetrics) MeasureGetPayloadDuration(startTime time.Time) {
+	// TODO: Add Labels.
+	cm.sink.MeasureSince(
+		"beacon-kit.execution.client.get_payload_duration",
+		startTime,
+	)
+}

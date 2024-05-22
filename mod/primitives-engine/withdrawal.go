@@ -36,10 +36,18 @@ import (
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../primitives/pkg/math,../primitives/pkg/common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
-	Index     math.U64                `json:"index"`
-	Validator math.ValidatorIndex     `json:"validatorIndex"`
-	Address   common.ExecutionAddress `json:"address"        ssz-size:"20"`
-	Amount    math.Gwei               `json:"amount"`
+	// Index is the unique identifier for the withdrawal.
+	Index math.U64 `json:"index"`
+
+	// Validator is the index of the validator initiating the withdrawal.
+	Validator math.ValidatorIndex `json:"validatorIndex"`
+
+	// Address is the execution address where the withdrawal will be sent.
+	// It has a fixed size of 20 bytes.
+	Address common.ExecutionAddress `json:"address" ssz-size:"20"`
+
+	// Amount is the amount of Gwei to be withdrawn.
+	Amount math.Gwei `json:"amount"`
 }
 
 // Equals returns true if the Withdrawal is equal to the other.

@@ -37,4 +37,14 @@ var (
 	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
 	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
 	ErrEmptyPrevRandao = errors.New("empty randao")
+	// ErrFailedToUnmarshalTx indicates that the transaction could not be
+	// unmarshaled.
+	ErrFailedToUnmarshalTx = errors.New("failed to unmarshal transaction")
+	// ErrInvalidVersionedHash indicates that the versioned hash is invalid.
+	ErrInvalidVersionedHash = errors.New("invalid versioned hash")
+	// ErrMismatchedNumVersionedHashes indicates that the number of blobs in the
+	// payload does not match the expected number.
+	ErrMismatchedNumVersionedHashes = errors.New(
+		"mismatch in number of versioned hashes",
+	)
 )
