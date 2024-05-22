@@ -53,7 +53,7 @@ func newEngineMetrics(
 	}
 }
 
-// MarkAcceptedSyncingPayloadStatus increments
+// MarkNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
@@ -75,7 +75,7 @@ func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 	)
 }
 
-// MarkInvalidPayloadStatus increments the counter
+// MarkNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
 func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 	payloadHash common.ExecutionHash,
@@ -95,7 +95,7 @@ func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 	)
 }
 
-// MarkJSONRPCError increments the counter for JSON-RPC errors.
+// MarkNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
 func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
@@ -106,7 +106,7 @@ func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 		"received JSON-RPC error during new payload call",
 		"payload-block-hash", payloadHash,
 		"parent-hash", payloadHash,
-		"last-valid-has", lastValidHash,
+		"last-valid-hash", lastValidHash,
 		"is-optimistic", isOptimistic,
 		"error", err,
 	)
@@ -170,7 +170,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
 func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
 	state *engineprimitives.ForkchoiceStateV1,
 ) {
-	em.errorLoggerFn(false)(
+	em.logger.Error(
 		"received invalid payload status during forkchoice update call",
 		"head-block-hash", state.HeadBlockHash,
 		"safe-block-hash", state.SafeBlockHash,
