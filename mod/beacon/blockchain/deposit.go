@@ -62,5 +62,5 @@ func (s *Service[
 	ctx context.Context,
 	idx uint64,
 ) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+	return s.sb.DepositStore(ctx).Prune(idx)
 }

@@ -23,8 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package pruner
+package manager
 
-type Config struct {
-	// TODO - Add fields
+import "github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+
+type DBManagerOption func(*DBManager) error
+
+func WithPruner(p *pruner.Pruner) DBManagerOption {
+	return func(m *DBManager) error {
+		m.Pruners = append(m.Pruners, p)
+		return nil
+	}
 }

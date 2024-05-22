@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
 
 // Service is the blockchain service.
@@ -77,6 +78,9 @@ type Service[
 		BlobSidecarsT,
 		*transition.Context,
 	]
+
+	// dbm is the database manager.
+	dbm *manager.DBManager
 }
 
 // NewService creates a new validator service.
@@ -104,6 +108,7 @@ func NewService[
 		BlobSidecarsT, *transition.Context,
 	],
 	dc DepositContract,
+	dbm *manager.DBManager,
 ) *Service[
 	AvailabilityStoreT, ReadOnlyBeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -120,6 +125,7 @@ func NewService[
 		bp:     bp,
 		sp:     sp,
 		dc:     dc,
+		dbm:    dbm,
 	}
 }
 

@@ -25,14 +25,54 @@
 
 package manager
 
-import "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
+import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+)
 
 // TODO - Make DBManager implement Service interface and register it with the
 // registry.
 type DBManager struct {
-	Pruners []interfaces.Pruner
+	Pruners []*pruner.Pruner
 }
 
-func NewDBManager(pruners []interfaces.Pruner) *DBManager {
-	return &DBManager{Pruners: pruners}
+func NewDBManager(opts ...DBManagerOption) *DBManager {
+	m := &DBManager{}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
 }
+
+func (m *DBManager) Name() string {
+	return "DBManager"
+}
+
+// TODO: fr implementation
+func (m *DBManager) Status() error {
+	return nil
+}
+
+// TODO: fr implementation
+func (m *DBManager) WaitForHealthy(ctx context.Context) {
+
+}
+
+func (m *DBManager) Start(ctx context.Context) error {
+	for _, pruner := range m.Pruners {
+		pruner.Start(ctx)
+	}
+
+	return nil
+}
+
+func (m *DBManager) Notify(index uint64) {
+	for _, pruner := range m.Pruners {
+		pruner.Notify(index)
+	}
+}
+
+// func NewDBManager(pruners []interfaces.Pruner) *DBManager {
+// 	return &DBManager{Pruners: pruners}
+// }

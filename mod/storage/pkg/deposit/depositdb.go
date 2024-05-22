@@ -32,11 +32,15 @@ import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 const (
 	KeyDepositPrefix = "deposit"
 )
+
+// Compile-time assertion that KVStore implements the Prunable interface.
+var _ interfaces.Prunable = (*KVStore)(nil)
 
 type KVStoreProvider struct {
 	store.KVStoreWithBatch
@@ -88,8 +92,8 @@ func (kv *KVStore) DequeueDeposits(
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
 
-// PruneToIndex removes all deposits up to the given index.
-func (kv *KVStore) PruneToIndex(
+// Prune removes all deposits up to the given index.
+func (kv *KVStore) Prune(
 	index uint64,
 ) error {
 	length, err := kv.depositQueue.Len(context.TODO())

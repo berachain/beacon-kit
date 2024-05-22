@@ -26,6 +26,8 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -51,6 +53,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
@@ -184,6 +188,16 @@ func ProvideRuntime(
 		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
 	)
 
+	dbManagerService := manager.NewDBManager(
+		manager.WithPruner(
+			pruner.NewPruner(storageBackend.DepositStore(context.Background())),
+		),
+		// TODO: THIS DOESN'T WORK CAUSE AVS IS NIL WHEN WE GET HERE ??????
+		// manager.WithPruner(
+		// 	pruner.NewPruner(storageBackend.AvailabilityStore(context.Background()).IndexDB.(*filedb.RangeDB)), // TODO: hehe haha
+		// ),
+	)
+
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
@@ -204,6 +218,7 @@ func ProvideRuntime(
 		),
 		stateProcessor,
 		beaconDepositContract,
+		dbManagerService,
 	)
 
 	// Build the service registry.
@@ -212,6 +227,7 @@ func ProvideRuntime(
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
+		service.WithService(dbManagerService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

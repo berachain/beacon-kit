@@ -25,10 +25,34 @@
 
 package pruner
 
-import "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
+import (
+	"context"
 
-// might be unneccessary.
-type BasePruner struct {
-	cfg      *Config
+	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
+)
+
+type Pruner struct {
+	notifier chan uint64
 	prunable interfaces.Prunable
+}
+
+func NewPruner(prunable interfaces.Prunable) *Pruner {
+	return &Pruner{prunable: prunable}
+}
+
+func (p *Pruner) Start(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case index := <-p.notifier:
+				p.prunable.Prune(index)
+			}
+		}
+	}()
+}
+
+func (p *Pruner) Notify(index uint64) {
+	p.notifier <- index
 }

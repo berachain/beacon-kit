@@ -38,16 +38,22 @@ import (
 // two is a constant for the number 2.
 const two = 2
 
+// Compile-time assertion of prunable interface
+var _ db.Prunable = (*RangeDB)(nil)
+
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
 type RangeDB struct {
 	db.DB
+
+	pruneWindow uint64
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB(db db.DB) *RangeDB {
+func NewRangeDB(db db.DB, pruneWindow uint64) *RangeDB {
 	return &RangeDB{
-		DB: db,
+		DB:          db,
+		pruneWindow: pruneWindow,
 	}
 }
 
@@ -93,6 +99,14 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 		}
 	}
 	return nil
+}
+
+func (db *RangeDB) Prune(index uint64) error {
+	if db.pruneWindow > index {
+		return nil
+	}
+
+	return db.DeleteRange(0, index-db.pruneWindow)
 }
 
 // prefix prefixes the given key with the index and a slash.

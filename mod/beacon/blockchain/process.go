@@ -125,10 +125,8 @@ func (s *Service[
 		return err
 	}
 
-	// TODO: pruner shouldn't be in main block processing thread.
-	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		return err
-	}
+	// Notify Pruning Events
+	s.dbm.Notify(idx)
 
 	var lph engineprimitives.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()

@@ -101,7 +101,7 @@ func TestRangeDBPruner(t *testing.T) {
 				file.WithLogger(log.NewNopLogger()),
 				file.WithAferoFS(fs),
 			)
-			rdb := file.NewRangeDB(db)
+			rdb := file.NewRangeDB(db, tt.pruneWindow)
 			pruner := file.NewRangeDBPruner(rdb, tt.pruneWindow, notifyCh)
 
 			ctx, cancel := context.WithCancel(context.Background())

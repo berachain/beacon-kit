@@ -135,8 +135,8 @@ type DepositContract interface {
 
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	// PruneToIndex prunes the deposit store up to the specified index.
-	PruneToIndex(index uint64) error
+	// Prune prunes the deposit store up to the specified index.
+	Prune(index uint64) error
 
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error

@@ -137,7 +137,7 @@ func TestRangeDB(t *testing.T) {
 				file.WithLogger(log.NewNopLogger()),
 				file.WithAferoFS(fs),
 			)
-			rdb := file.NewRangeDB(db)
+			rdb := file.NewRangeDB(db, 1)
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -212,7 +212,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
 				Return(errors.New("rangedb: delete range not supported for this db"))
 
-			rdb := file.NewRangeDB(tt.db)
+			rdb := file.NewRangeDB(tt.db, 1)
 
 			err := rdb.DeleteRange(1, 4)
 			require.Error(t, err)
