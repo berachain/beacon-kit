@@ -84,7 +84,7 @@ func (sp *StateProcessor[
 
 	// If no validators were ejected / we are at the max committee size we can
 	// return early.
-	if len(aboveEjectionBalance) == int(sp.cs.SyncCommitteeSize()) {
+	if uint64(len(aboveEjectionBalance)) == sp.cs.SyncCommitteeSize() {
 		return nil, nil
 	}
 
@@ -95,7 +95,7 @@ func (sp *StateProcessor[
 
 	for _, val := range allValidators {
 		// We want to stop once we have the max committee size.
-		if len(aboveEjectionBalance) == int(sp.cs.SyncCommitteeSize()) {
+		if uint64(len(aboveEjectionBalance)) == sp.cs.SyncCommitteeSize() {
 			break
 		}
 
