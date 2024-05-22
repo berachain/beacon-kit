@@ -34,6 +34,8 @@ type SpecData[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] struct {
+	// Eth1ChainID is the chain ID.
+	Eth1ChainID uint64 `mapstructure:"eth1-chain-id"`
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
