@@ -47,5 +47,5 @@ type TelemetrySink interface {
 
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
-	MeasureSince(start time.Time, keys ...string)
+	MeasureSince(key string, start time.Time)
 }
