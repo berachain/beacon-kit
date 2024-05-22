@@ -122,6 +122,7 @@ func (ee *Engine[
 		req.PayloadAttributes,
 		req.ForkVersion,
 	)
+
 	switch {
 	// We do not bubble the error up, since we want to handle it
 	// in the same way as the other cases.

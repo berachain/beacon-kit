@@ -134,12 +134,12 @@ github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwP
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd h1:4fglDBqfWzNar+otzanZy1qhJOOVpzBojCokTz4OtII=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd/go.mod h1:uk3NWAl4SUh0DV05gm8/Dmktp5HnPCRHmnHN7eYuG7I=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240522140013-7d3cf13035f0 h1:HFO5pUf5rpftRrZNUDzr1hn2AsmpP1OutO9FFTXc3gI=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240522140013-7d3cf13035f0/go.mod h1:ulYpRaKkjXGfxwmUmMTlNnh5oObL6ojiQ92Xgbz8Aqw=
 github.com/cometbft/cometbft-db v0.12.0 h1:v77/z0VyfSU7k682IzZeZPFZrQAKiQwkqGN0QzAjMi0=
 github.com/cometbft/cometbft-db v0.12.0/go.mod h1:aX2NbCrjNVd2ZajYxt1BsiFf/Z+TQ2MN0VxdicheYuw=
-github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd h1:ZKJjwo3gJ7HSo/Q53zuPR6pOuOONKMzuSBnDRpXFCPg=
-github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240515102804-eff98c0b34fd/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
+github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240522140013-7d3cf13035f0 h1:RC3UKIY9WUGJcV38+Ivbj56Db5DGcBwMDr+1ydsOUn0=
+github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240522140013-7d3cf13035f0/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/consensys/bavard v0.1.13 h1:oLhMLOFGTLdlda/kma4VOJazblc7IM5y5QPd2A/YjhQ=
 github.com/consensys/bavard v0.1.13/go.mod h1:9ItSMtA/dXMAiL7BG6bqW2m3NdSEObYWoH223nGHukI=
 github.com/consensys/gnark-crypto v0.12.1 h1:lHH39WuuFgVHONRl3J0LRBtuYdQTumFSDtJF7HpyG8M=
