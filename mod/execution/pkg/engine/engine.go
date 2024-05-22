@@ -44,8 +44,9 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
 ] struct {
-	ec     *client.EngineClient[ExecutionPayloadDenebT]
-	logger log.Logger[any]
+	ec      *client.EngineClient[ExecutionPayloadDenebT]
+	logger  log.Logger[any]
+	metrics *engineMetrics
 }
 
 // New creates a new Engine.
@@ -55,10 +56,12 @@ func New[
 ](
 	ec *client.EngineClient[ExecutionPayloadDenebT],
 	logger log.Logger[any],
+	ts TelemetrySink,
 ) *Engine[ExecutionPayloadT, ExecutionPayloadDenebT] {
 	return &Engine[ExecutionPayloadT, ExecutionPayloadDenebT]{
-		ec:     ec,
-		logger: logger,
+		ec:      ec,
+		logger:  logger,
+		metrics: newEngineMetrics(ts),
 	}
 }
 
@@ -124,16 +127,19 @@ func (ee *Engine[
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.logger.Info("forkchoice updated with optimistic block",
+		ee.metrics.MarkForkchoiceUpdateAcceptedSyncing()
+		ee.logger.Info(
+			"forkchoice updated with optimistic block",
 			"head_eth1_hash", req.State.HeadBlockHash,
 		)
-		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
 		return payloadID, nil, nil
 	case errors.IsAny(
 		err,
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
+		ee.metrics.MarkForkchoiceUpdateInvalid()
+
 		// Attempt to get the chain back into a valid state, by
 		// getting finding an ancestor block with a valid payload and
 		// forcing a recovery.
@@ -146,6 +152,8 @@ func (ee *Engine[
 		}
 		return payloadID, latestValidHash, ErrBadBlockProduced
 	case jsonrpc.IsPreDefinedError(err):
+		ee.metrics.MarkForkchoiceUpdateJSONRPCError()
+
 		// If we get a predefined JSON-RPC error, we will log it and
 		// return it.
 		ee.logger.Error("json-rpc execution error during forkchoice update",
@@ -153,6 +161,7 @@ func (ee *Engine[
 		)
 		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	case err != nil:
+		ee.metrics.MarkForkchoiceUpdateUndefinedError()
 		ee.logger.Error("undefined execution engine error", "error", err)
 		return nil, nil, err
 	}

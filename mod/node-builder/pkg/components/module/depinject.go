@@ -33,6 +33,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
@@ -71,6 +72,7 @@ type DepInjectInput struct {
 	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -108,6 +110,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.EngineClient,
 		in.KzgTrustedSetup,
 		storageBackend,
+		in.TelemetrySink,
 		in.Environment.Logger,
 	)
 	if err != nil {
