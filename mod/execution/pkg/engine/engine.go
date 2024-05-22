@@ -110,11 +110,9 @@ func (ee *Engine[
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	ee.logger.Info("notifying forkchoice update",
-		"head_eth1_hash", req.State.HeadBlockHash,
-		"safe_eth1_hash", req.State.SafeBlockHash,
-		"finalized_eth1_hash", req.State.FinalizedBlockHash,
-		"has_attributes", req.PayloadAttributes != nil,
+	// Log the forkchoice update attempt.
+	ee.metrics.MarkNotifyForkchoiceUpdateCalled(
+		req.State, req.PayloadAttributes != nil,
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -177,6 +175,12 @@ func (ee *Engine[
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 ) error {
+	// Log the new payload attempt.
+	ee.metrics.MarkNewPayloadCalled(
+		req.ExecutionPayload,
+		req.Optimistic,
+	)
+
 	// First we verify the block hash and versioned hashes are valid.
 	//
 	// TODO: is this required? Or will the EL handle this for us during
@@ -203,13 +207,6 @@ func (ee *Engine[
 			return nil
 		}
 	}
-
-	ee.logger.Info(
-		"calling new payload",
-		"payload-block-hash", req.ExecutionPayload.GetBlockHash(),
-		"payload-parent-block-hash", req.ExecutionPayload.GetParentHash(),
-		"is-optimistic", req.Optimistic,
-	)
 
 	// Otherwise we will send the payload to the execution client.
 	lastValidHash, err := ee.ec.NewPayload(
