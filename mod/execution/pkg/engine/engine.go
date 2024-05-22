@@ -197,7 +197,7 @@ func (ee *Engine[
 	ee.logger.Info(
 		"calling new payload",
 		"payload-block-hash", req.ExecutionPayload.GetBlockHash(),
-		"payload-parent-block-hash", req.ExecutionPayload.GetBlockHash(),
+		"payload-parent-block-hash", req.ExecutionPayload.GetParentHash(),
 		"is-optimistic", req.Optimistic,
 	)
 
