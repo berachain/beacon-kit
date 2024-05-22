@@ -52,6 +52,26 @@ func newEngineMetrics(
 	}
 }
 
+// MarkNewPayloadCalled increments the counter for new payload calls.
+func (em *engineMetrics) MarkNewPayloadCalled(
+	payload ExecutionPayload,
+	isOptimistic bool,
+) {
+	em.logger.Info(
+		"calling new payload",
+		"payload-block-hash", payload.GetBlockHash(),
+		"payload-parent-block-hash", payload.GetParentHash(),
+		"is-optimistic", isOptimistic,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon-kit.execution.engine.new_payload",
+		"payload_block_hash", payload.GetBlockHash().Hex(),
+		"payload_parent_block_hash", payload.GetParentHash().Hex(),
+		"is_optimistic", strconv.FormatBool(isOptimistic),
+	)
+}
+
 // MarkNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
@@ -138,6 +158,28 @@ func (em *engineMetrics) MarkNewPayloadUndefinedError(
 		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
+	)
+}
+
+// MarkNotifyForkchoiceUpdateCalled increments the counter for
+// notify forkchoice update calls.
+func (em *engineMetrics) MarkNotifyForkchoiceUpdateCalled(
+	state *engineprimitives.ForkchoiceStateV1,
+	hasPayloadAttributes bool,
+) {
+	em.logger.Info("notifying forkchoice update",
+		"head_eth1_hash", state.HeadBlockHash,
+		"safe_eth1_hash", state.SafeBlockHash,
+		"finalized_eth1_hash", state.FinalizedBlockHash,
+		"has_attributes", hasPayloadAttributes,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon-kit.execution.engine.forkchoice_update",
+		"head_block_hash", state.HeadBlockHash.Hex(),
+		"safe_block_hash", state.SafeBlockHash.Hex(),
+		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
+		"has_payload_attributes", strconv.FormatBool(hasPayloadAttributes),
 	)
 }
 
