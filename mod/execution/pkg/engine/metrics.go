@@ -114,7 +114,7 @@ func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 	)
 }
 
-// MarkNewPayloadJSONRPCError increments the counter for JSON_RPC errors.
+// MarkNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
 func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
@@ -122,7 +122,7 @@ func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received JSON_RPC error during new payload call",
+		"received JSON-RPC error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -226,7 +226,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
 	)
 }
 
-// MarkForkchoiceUpdateJSONRPCError increments the counter for JSON_RPC errors
+// MarkForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
 // during forkchoice updates.
 func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
