@@ -179,7 +179,8 @@ func (ee *Engine[
 		)
 
 		// If we find the header and there is no error, we can
-		// skip any payloa verification.
+		// skip any payload verification, since this block must've
+		// been validated at some point in the past.
 		if header != nil && err == nil {
 			ee.logger.Info("skipping new payload, block already available",
 				"block_hash", req.ExecutionPayload.GetBlockHash(),
