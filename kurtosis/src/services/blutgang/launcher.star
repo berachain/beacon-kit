@@ -39,9 +39,7 @@ def launch_blutgang(
         network_params):
     all_el_client_info = []
     for full_node_el_client in full_node_el_clients:
-        plan.print("full_node_el_client: ", str(full_node_el_client))
         rpc_port = full_node_el_client["service"].ports["eth-json-rpc"].number
-        plan.print("rpc_port: ", str(rpc_port))
         ws_port = full_node_el_client["service"].ports["eth-json-rpc-ws"].number
         name = full_node_el_client["name"]
         ip_address = full_node_el_client["service"].ip_address

@@ -121,32 +121,45 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
                 })
 
     # 6. Start RPCs
-    for n, rpc in enumerate(rpc_endpoints):
-        nginx.get_config(plan, rpc["services"])
+    #  check the "type" value inside of rpc_endpoints to determine which rpc endpoint to launch
+    rpc_endpoint_goomy_blob = ""
+
+    # Get only the first rpc endpoint
+    rpc_endpoint = rpc_endpoints[0]
+    endpoint_type = rpc_endpoint["type"]
+    plan.print("RPC Endpoint Type:", endpoint_type)
+    if endpoint_type == "nginx":
+        plan.print("Launching RPCs for ", rpc_endpoint["type"])
+        nginx.get_config(plan, rpc_endpoint["services"])
+        rpc_endpoint_goomy_blob = plan.get_service("nginx").ports["http"].url
+    elif endpoint_type == "blutgang":
+        plan.print("Launching blutgang")
+        blutgang_config_template = read_file(
+            constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH,
+        )
+        blutgang.launch_blutgang(
+            plan,
+            blutgang_config_template,
+            full_node_el_clients,
+            "kurtosis",
+        )
+        rpc_endpoint_goomy_blob = plan.get_service("blutgang").ports["http"].url
+    else:
+        plan.print("Invalid type for rpc_endpoints")
 
     # 7. Start additional services
     for s in additional_services:
         if s == "goomy_blob":
             plan.print("Launching Goomy the Blob Spammer")
+            plan.print("Launching goomy blob for rpc endpoint: ", rpc_endpoint_goomy_blob)
             goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx").ports["http"].url,
+                rpc_endpoint_goomy_blob,
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
-        elif s == "blutgang":
-            plan.print("Launching blutgang")
-            blutgang_config_template = read_file(
-                constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH,
-            )
-            blutgang.launch_blutgang(
-                plan,
-                blutgang_config_template,
-                full_node_el_clients,
-                "kurtosis",
-            )
 
     if "tx-fuzz" in additional_services:
         plan.print("Launching tx-fuzz")
