@@ -177,12 +177,15 @@ func (ee *Engine[
 			ctx,
 			req.ExecutionPayload.GetBlockHash(),
 		)
-		if header != nil && err != nil {
+
+		// If we find the header and there is no error, we can
+		// skip any payloa verification.
+		if header != nil && err == nil {
 			ee.logger.Info("skipping new payload, block already available",
 				"block_hash", req.ExecutionPayload.GetBlockHash(),
 			)
+			return nil
 		}
-		return nil
 	}
 
 	// Otherwise we will send the payload to the execution client.
