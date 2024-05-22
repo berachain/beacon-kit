@@ -98,7 +98,7 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	logger := ctx.Logger().With("module", "prepare-proposal")
+	logger := ctx.Logger().With("service", "prepare-proposal")
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.builderService.RequestBestBlock(
@@ -140,7 +140,7 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
-		logger = ctx.Logger().With("module", "process-proposal")
+		logger = ctx.Logger().With("service", "process-proposal")
 		blk    types.BeaconBlock
 		err    error
 	)

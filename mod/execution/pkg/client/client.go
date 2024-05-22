@@ -194,8 +194,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		chainID *big.Int
 	)
 	for {
-		s.logger.Info("waiting for execution client to start 🍺🕔",
-			"dial-url", s.cfg.RPCDialURL)
+		s.logger.Info(
+			"waiting for execution client to start 🍺🕔",
+			"dial_url", s.cfg.RPCDialURL,
+		)
 		if err = s.setupExecutionClientConnection(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
@@ -215,11 +217,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	// Log the chain ID.
 	s.logger.Info(
 		"connected to execution client 🔌",
-		"dial-url",
+		"dial_url",
 		s.cfg.RPCDialURL.String(),
-		"chain-id",
+		"chain_id",
 		chainID.Uint64(),
-		"required-chain-id",
+		"required_chain_id",
 		s.eth1ChainID,
 	)
 
