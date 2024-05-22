@@ -254,7 +254,7 @@ func (ee *Engine[
 		)
 
 		err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
-	default:
+	case err != nil:
 		ee.metrics.MarkNewPayloadUndefinedError(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
