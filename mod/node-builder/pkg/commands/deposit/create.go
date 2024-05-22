@@ -189,13 +189,13 @@ func getBLSSigner(
 			return nil, ErrInvalidValidatorPrivateKeyLength
 		}
 
-		// blsSigner, err = signer.NewBLSSigner(
-		// 	[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
-		// )
-		// if err != nil {
-		// 	return nil, err
-		// }
-
+		// creates a bls signer that signs with the specified private key
+		blsSigner, err = signer.NewGuestSigner(
+			[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
+		)
+		if err != nil {
+			return nil, err
+		}
 		return blsSigner, nil
 	}
 

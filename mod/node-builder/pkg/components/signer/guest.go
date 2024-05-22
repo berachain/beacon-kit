@@ -26,49 +26,49 @@
 package signer
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cometbft/cometbft/privval"
-	"github.com/cometbft/cometbft/types"
+	"github.com/itsdevbear/comet-bls12-381/bls"
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-// BLSSigner utilize an underlying PrivValidator signer using data persisted to
-// disk to prevent double signing.
-type BLSSigner struct {
-	types.PrivValidator
+type GuestSigner struct {
+	bls.SecretKey
 }
 
-func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
-	filePV := privval.LoadOrGenFilePV(keyFilePath, stateFilePath)
-	return &BLSSigner{PrivValidator: filePV}
+// NewGuestSigner creates a new Signer instance given a secret key.
+func NewGuestSigner(
+	keyBz [constants.BLSSecretKeyLength]byte,
+) (*GuestSigner, error) {
+	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
+	if err != nil {
+		return nil, err
+	}
+	return &GuestSigner{
+		SecretKey: secretKey,
+	}, nil
 }
-
-// ========================== Implements BLS Signer ==========================
 
 // PublicKey returns the public key of the signer.
-func (f BLSSigner) PublicKey() crypto.BLSPubkey {
-	key, err := f.PrivValidator.GetPubKey()
-	if err != nil {
-		return crypto.BLSPubkey{}
-	}
-	return crypto.BLSPubkey(key.Bytes())
+func (b *GuestSigner) PublicKey() crypto.BLSPubkey {
+	return crypto.BLSPubkey(b.SecretKey.PublicKey().Marshal())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
-func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
-	sig, err := f.PrivValidator.SignBytes(msg)
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
-	return crypto.BLSSignature(sig), nil
+// It returns the signature and any error encountered during the signing
+// process.
+func (b *GuestSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
+	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }
 
-// VerifySignature verifies a signature against a message and a public key.
-func (f BLSSigner) VerifySignature(
-	blsPk crypto.BLSPubkey,
+// VerifySignature verifies a signature for a given message using the signer's
+// public key.
+func (GuestSigner) VerifySignature(
+	pubKey crypto.BLSPubkey,
 	msg []byte,
-	signature crypto.BLSSignature) error {
-	pk, err := blst.PublicKeyFromBytes(blsPk[:])
+	signature crypto.BLSSignature,
+) error {
+	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (f BLSSigner) VerifySignature(
 		return err
 	}
 
-	if !sig.Verify(pk, msg) {
+	if !sig.Verify(pubkey, msg) {
 		return ErrInvalidSignature
 	}
 	return nil
