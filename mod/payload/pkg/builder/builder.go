@@ -41,10 +41,8 @@ type PayloadBuilder[
 	cfg       *Config
 	chainSpec primitives.ChainSpec
 	logger    log.Logger[any]
-
 	// ee is the execution engine.
 	ee ExecutionEngine
-
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.

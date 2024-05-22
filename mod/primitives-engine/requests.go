@@ -26,8 +26,7 @@
 package engineprimitives
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -87,35 +86,37 @@ func BuildNewPayloadRequest[
 //
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
-	payload := n.ExecutionPayload
-
-	txs := payload.GetTransactions()
-	versionedHashes := n.VersionedHashes
-
-	var blobHashes []common.ExecutionHash
-	for _, txBz := range txs {
+	// Extracts and validates the blob hashes from the transactions in the
+	// execution payload.
+	blobHashes := make([]common.ExecutionHash, 0)
+	for _, txBz := range n.ExecutionPayload.GetTransactions() {
 		tx := new(coretypes.Transaction)
 		if err := tx.UnmarshalBinary(txBz); err != nil {
-			return err
+			return errors.Join(err, ErrFailedToUnmarshalTx)
 		}
 		blobHashes = append(blobHashes, tx.BlobHashes()...)
 	}
 
-	if len(blobHashes) != len(versionedHashes) {
-		return fmt.Errorf(
-			"invalid number of versionedHashes: %v blobHashes: %v",
-			versionedHashes,
-			blobHashes,
+	// Check if the number of blob hashes matches the number of versioned
+	// hashes.
+	if len(blobHashes) != len(n.VersionedHashes) {
+		return errors.Wrapf(
+			ErrMismatchedNumVersionedHashes,
+			"expected %d, got %d",
+			len(n.VersionedHashes),
+			len(blobHashes),
 		)
 	}
 
-	for i := range blobHashes {
-		if blobHashes[i] != versionedHashes[i] {
-			return fmt.Errorf(
-				"invalid versionedHash at %v: %v blobHashes: %v",
+	// Validate each blob hash against the corresponding versioned hash.
+	for i, blobHash := range blobHashes {
+		if blobHash != n.VersionedHashes[i] {
+			return errors.Wrapf(
+				ErrInvalidVersionedHash,
+				"index %d: expected %v, got %v",
 				i,
-				versionedHashes,
-				blobHashes,
+				n.VersionedHashes[i],
+				blobHash,
 			)
 		}
 	}

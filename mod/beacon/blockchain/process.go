@@ -31,25 +31,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
 )
-
-// ProcessSlot processes the incoming beacon slot.
-func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessSlot(
-	st ReadOnlyBeaconStateT,
-) error {
-	return s.sp.ProcessSlot(st)
-}
 
 // ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
 //
 //nolint:funlen // todo cleanup.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) ProcessStateTransition(
 	ctx context.Context,
 	blk types.BeaconBlock,
@@ -75,7 +69,7 @@ func (s *Service[
 			//
 			// TODO: Figure out why SkipPayloadIfExists being `true`
 			// causes nodes to create gaps in their chain.
-			core.NewContext(gCtx, true, false, true),
+			transition.NewContext(gCtx, true, false, true),
 			st,
 			blk,
 		)
@@ -158,7 +152,10 @@ func (s *Service[
 
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[
-	ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.BeaconBlock,

@@ -42,8 +42,11 @@ type BlsSignerInput struct {
 
 // ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
-	return signer.NewFromCometBFTNodeKey(
+	// TODO: Fix
+	//#nosec:G703 // temp.
+	s, _ := signer.NewFromCometBFTNodeKey(
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)) +
 			"/config/priv_validator_key.json",
 	)
+	return s, nil
 }

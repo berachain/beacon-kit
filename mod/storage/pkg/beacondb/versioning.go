@@ -37,7 +37,7 @@ func (kv *KVStore[
 ]) SetGenesisValidatorsRoot(
 	root primitives.Root,
 ) error {
-	return kv.genesisValidatorsRoot.Set(kv.ctx, root)
+	return kv.genesisValidatorsRoot.Set(kv.ctx, root[:])
 }
 
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
@@ -45,7 +45,11 @@ func (kv *KVStore[
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetGenesisValidatorsRoot() (primitives.Root, error) {
-	return kv.genesisValidatorsRoot.Get(kv.ctx)
+	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
+	if err != nil {
+		return primitives.Root{}, err
+	}
+	return primitives.Root(bz), nil
 }
 
 // GetSlot returns the current slot.

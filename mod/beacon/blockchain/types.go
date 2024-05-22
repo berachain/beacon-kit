@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -86,17 +85,19 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
 type StorageBackend[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconStateT any,
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] interface {
-	AvailabilityStore(
-		context.Context,
-	) core.AvailabilityStore[
-		types.BeaconBlockBody, BlobSidecarsT,
-	]
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
 	DepositStore(context.Context) DepositStoreT
 }
 
@@ -132,25 +133,23 @@ type DepositContract interface {
 type DepositStore interface {
 	// PruneToIndex prunes the deposit store up to the specified index.
 	PruneToIndex(index uint64) error
-
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
 }
 
+// ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
@@ -160,11 +159,11 @@ type ExecutionEngine interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[ReadOnlyBeaconStateT any] interface {
+type LocalBuilder[BeaconStateT any] interface {
 	// RequestPayload requests a new payload for the given slot.
 	RequestPayload(
 		ctx context.Context,
-		st ReadOnlyBeaconStateT,
+		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
@@ -172,48 +171,18 @@ type LocalBuilder[ReadOnlyBeaconStateT any] interface {
 	) (*engineprimitives.PayloadID, error)
 }
 
-// PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier[ReadOnlyBeaconStateT any] interface {
-	VerifyPayload(
-		st ReadOnlyBeaconStateT,
-		payload engineprimitives.ExecutionPayload,
-	) error
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[ReadOnlyBeaconStateT any] interface {
-	// BuildReveal generates a new RANDAO reveal for the given state.
-	BuildReveal(
-		st ReadOnlyBeaconStateT,
-	) (crypto.BLSSignature, error)
-
-	// MixinNewReveal mixes a new RANDAO reveal into the given state.
-	MixinNewReveal(
-		st ReadOnlyBeaconStateT,
-		reveal crypto.BLSSignature,
-	) error
-
-	// VerifyReveal verifies the provided RANDAO reveal against the
-	// given state and proposer public key.
-	VerifyReveal(
-		st ReadOnlyBeaconStateT,
-		proposerPubkey crypto.BLSPubkey,
-		reveal crypto.BLSSignature,
-	) error
-}
-
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[ReadOnlyBeaconStateT, BlobSidecarsT any] interface {
+type StateProcessor[
+	BeaconBlockT,
+	BeaconStateT,
+	BlobSidecarsT,
+	ContextT any,
+] interface {
 	// ProcessSlot processes the state transition for a single slot.
-	ProcessSlot(
-		st ReadOnlyBeaconStateT,
-	) error
-
+	//
+	// TODO: This eventually needs to be deprecated.
+	ProcessSlot(st BeaconStateT) error
 	// Transition processes the state transition for a given block.
-	Transition(
-		ctx core.Context,
-		st ReadOnlyBeaconStateT,
-		blk types.BeaconBlock,
-	) error
+	Transition(ctx ContextT, st BeaconStateT, blk BeaconBlockT) error
 }

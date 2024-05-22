@@ -95,14 +95,11 @@ type ExecutionPayloadHeader interface {
 type PayloadAttributer interface {
 	// IsNil returns true if the PayloadAttributer is nil.
 	IsNil() bool
-
 	// Version returns the version of the PayloadAttributer.
 	Version() uint32
-
 	// Validate checks if the PayloadAttributer is valid and returns an error if
 	// it is not.
 	Validate() error
-
 	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
 	// block.
 	GetSuggestedFeeRecipient() common.ExecutionAddress

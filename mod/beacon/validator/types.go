@@ -34,31 +34,26 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	ssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
 type BeaconState interface {
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
-
 	// GetBlockRootAtIndex fetches the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader,
-		error,
+		engineprimitives.ExecutionPayloadHeader, error,
 	)
-
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+	// HashTreeRoot returns the hash tree root of the beacon state.
+	HashTreeRoot() ([32]byte, error)
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
-
-	HashTreeRoot() ([32]byte, error)
 }
 
 type StorageBackend[BeaconStateT BeaconState] interface {
@@ -118,15 +113,15 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconStateT BeaconState,
+	ContextT any,
 ] interface {
 	// ProcessBlock processes a given beacon block and updates the state
 	// accordingly.
 	ProcessBlock(
-		ctx core.Context,
+		ctx ContextT,
 		st BeaconStateT,
 		blk types.BeaconBlock,
 	) error
-
 	// ProcessSlot processes the slot.
 	ProcessSlot(
 		st BeaconStateT,

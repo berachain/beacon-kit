@@ -50,9 +50,6 @@ rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
-# Required chain id for the execution client.
-required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
-
 [beacon-kit.kzg]
 # Path to the trusted setup path.
 trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"

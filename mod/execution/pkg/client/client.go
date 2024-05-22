@@ -52,32 +52,27 @@ type EngineClient[
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
 	*ethclient.Eth1Client[ExecutionPayloadDenebT]
-
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
-
 	// logger is the logger for the engine client.
 	logger log.Logger[any]
-
+	// jwtSecret is the JWT secret for the execution client.
+	jwtSecret *jwt.Secret
+	// eth1ChainID is the chain ID of the execution client.
+	eth1ChainID *big.Int
+	// clientMetrics is the metrics for the engine client.
+	metrics *clientMetrics
+	// capabilities is a map of capabilities that the execution client has.
+	capabilities map[string]struct{}
 	// engineCache is an all-in-one cache for data
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
-
-	// jwtSecret is the JWT secret for the execution client.
-	jwtSecret *jwt.Secret
-
-	// capabilities is a map of capabilities that the execution client has.
-	capabilities map[string]struct{}
-
 	// statusErrCond is a condition variable for the status error.
 	statusErrCond *sync.Cond
-
 	// statusErrMu is a mutex for the status error.
 	statusErrMu *sync.RWMutex
-
 	// statusErr is the status error of the engine client.
 	statusErr error
-
 	// IPC
 	ipcListener net.Listener
 }
@@ -89,6 +84,8 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
+	telemetrySink TelemetrySink,
+	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadDenebT] {
 	statusErrMu := new(sync.RWMutex)
 	return &EngineClient[ExecutionPayloadDenebT]{
@@ -100,6 +97,8 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 		statusErrMu:   statusErrMu,
 		statusErrCond: sync.NewCond(statusErrMu),
 		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
+		eth1ChainID:   eth1ChainID,
+		metrics:       newClientMetrics(telemetrySink, logger),
 	}
 }
 
@@ -173,10 +172,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 		return err
 	}
 
-	if chainID.Uint64() != s.cfg.RequiredChainID {
+	if chainID.Uint64() != s.eth1ChainID.Uint64() {
 		return errors.Newf(
 			"wanted chain ID %d, got %d",
-			s.cfg.RequiredChainID,
+			s.eth1ChainID,
 			chainID.Uint64(),
 		)
 	}
@@ -185,8 +184,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 }
 
 // ============================== HELPERS ==============================
-
-// ================================ Setup ==============================
 
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
@@ -197,8 +194,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		chainID *big.Int
 	)
 	for {
-		s.logger.Info("waiting for execution client to start 🍺🕔",
-			"dial-url", s.cfg.RPCDialURL)
+		s.logger.Info(
+			"waiting for execution client to start 🍺🕔",
+			"dial_url", s.cfg.RPCDialURL,
+		)
 		if err = s.setupExecutionClientConnection(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
@@ -218,12 +217,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	// Log the chain ID.
 	s.logger.Info(
 		"connected to execution client 🔌",
-		"dial-url",
+		"dial_url",
 		s.cfg.RPCDialURL.String(),
-		"chain-id",
+		"chain_id",
 		chainID.Uint64(),
-		"required-chain-id",
-		s.cfg.RequiredChainID,
+		"required_chain_id",
+		s.eth1ChainID,
 	)
 
 	// Exchange capabilities with the execution client.
@@ -427,7 +426,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	}()
 }
 
-// ================================ info ================================
+// ================================ Info ================================
 
 // status returns the status of the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) status(
