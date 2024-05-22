@@ -238,6 +238,10 @@ func (ee *Engine[
 			req.Optimistic,
 		)
 
+		// We want to return bad block irrespective of
+		// if we are running in optimistic mode or not.
+		//
+		// TODO: should we still nillify the error in optimistic mode?
 		return ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
