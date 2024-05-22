@@ -121,7 +121,6 @@ func (ee *Engine[
 		req.ForkVersion,
 	)
 	switch {
-
 	case errors.IsAny(
 		err,
 		engineerrors.ErrAcceptedPayloadStatus,

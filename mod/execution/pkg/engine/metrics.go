@@ -68,8 +68,10 @@ func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 
 	em.TelemetrySink.IncrementCounter(
 		"beacon-kit.execution.engine.new_payload_accepted_syncing_payload_status",
-		"payload_block_hash", payloadHash.Hex(),
-		"is_optimistic", strconv.FormatBool(isOptimistic),
+		"payload_block_hash",
+		payloadHash.Hex(),
+		"is_optimistic",
+		strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -147,9 +149,12 @@ func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
 ) {
 	em.errorLoggerFn(true)(
 		"received accepted syncing payload status during forkchoice update call",
-		"head-block-hash", state.HeadBlockHash,
-		"safe-block-hash", state.SafeBlockHash,
-		"finalized-block-hash", state.FinalizedBlockHash,
+		"head-block-hash",
+		state.HeadBlockHash,
+		"safe-block-hash",
+		state.SafeBlockHash,
+		"finalized-block-hash",
+		state.FinalizedBlockHash,
 	)
 
 	em.TelemetrySink.IncrementCounter(
@@ -199,7 +204,8 @@ func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
 func (em *engineMetrics) MarkForkchoiceUpdateUndefinedError(err error) {
 	em.logger.Error(
 		"received undefined execution engine error during forkchoice update call",
-		"error", err,
+		"error",
+		err,
 	)
 
 	em.TelemetrySink.IncrementCounter(
