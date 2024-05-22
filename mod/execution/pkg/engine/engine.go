@@ -112,7 +112,9 @@ func (ee *Engine[
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	ee.metrics.MarkNotifyForkchoiceUpdateCalled(
-		req.State, !req.PayloadAttributes.IsNil(),
+		req.State,
+		req.PayloadAttributes != nil &&
+			!req.PayloadAttributes.IsNil(),
 	)
 
 	// Notify the execution engine of the forkchoice update.
