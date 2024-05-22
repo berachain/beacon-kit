@@ -111,7 +111,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.KzgTrustedSetup,
 		storageBackend,
 		in.TelemetrySink,
-		in.Environment.Logger,
+		in.Environment.Logger.With("module", "beacon-kit"),
 	)
 	if err != nil {
 		return DepInjectOutput{}, err
