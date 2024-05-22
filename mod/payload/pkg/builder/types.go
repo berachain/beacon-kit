@@ -40,20 +40,16 @@ import (
 type BeaconState interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
-
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
 	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
-
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
 	)
-
 	// ValidatorIndexByPubkey finds the validator index associated with a given
 	// BLS public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
-
 	// GetBlockRootAtIndex retrieves the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 }
@@ -65,7 +61,6 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(

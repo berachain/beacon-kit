@@ -30,18 +30,24 @@ import "github.com/berachain/beacon-kit/mod/errors"
 var (
 	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
 	ErrInvalidTimestamp = errors.New("invalid timestamp")
+
 	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
 	ErrInvalidRandao = errors.New("invalid randao")
+
 	// ErrNilWithdrawals indicates that the withdrawals are in a
 	// Capella versioned payload.
 	ErrNilWithdrawals = errors.New("nil withdrawals post capella")
+
 	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
 	ErrEmptyPrevRandao = errors.New("empty randao")
+
 	// ErrFailedToUnmarshalTx indicates that the transaction could not be
 	// unmarshaled.
 	ErrFailedToUnmarshalTx = errors.New("failed to unmarshal transaction")
+
 	// ErrInvalidVersionedHash indicates that the versioned hash is invalid.
 	ErrInvalidVersionedHash = errors.New("invalid versioned hash")
+
 	// ErrMismatchedNumVersionedHashes indicates that the number of blobs in the
 	// payload does not match the expected number.
 	ErrMismatchedNumVersionedHashes = errors.New(

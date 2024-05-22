@@ -41,19 +41,14 @@ import (
 // EngineClientInputs is the input for the EngineClient.
 type EngineClientInputs struct {
 	depinject.In
-
 	// ChainSpec is the chain spec.
 	ChainSpec primitives.ChainSpec
-
 	// Config is the BeaconKit configuration.
 	Config *config.Config
-
 	// Logger is the logger.
 	Logger log.Logger
-
 	// TelemetrySink is the telemetry sink.
 	TelemetrySink *metrics.TelemetrySink
-
 	// JWTSecret is the jwt secret. It is optional, since
 	// it is not required when connecting to the execution client
 	// over IPC.
@@ -69,6 +64,6 @@ func ProvideEngineClient(
 		in.Logger.With("module", "beacon-kit.engine.client"),
 		in.JWTSecret,
 		in.TelemetrySink,
-		new(big.Int).SetUint64(in.ChainSpec.Eth1ChainID()),
+		new(big.Int).SetUint64(in.ChainSpec.DepositEth1ChainID()),
 	)
 }

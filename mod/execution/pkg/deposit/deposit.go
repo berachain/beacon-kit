@@ -57,7 +57,6 @@ type WrappedBeaconDepositContract[
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
 	BeaconDepositContract
-
 	// newDepositFn is a function that creates a new deposit.
 	newDepositFn NewDepositFn[DepositT, WithdrawalCredentialsT]
 }
