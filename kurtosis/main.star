@@ -15,6 +15,7 @@ prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
+blutgang = import_module("./src/services/blutgang/launcher.star")
 
 def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {"type": "sequential"}, additional_services = [], metrics_enabled_services = []):
     """
@@ -135,6 +136,17 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
                 goomy_blob_args,
             )
             plan.print("Successfully launched goomy the blob spammer")
+        elif s == "blutgang":
+            plan.print("Launching blutgang")
+            blutgang_config_template = read_file(
+                constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH
+            )
+            blutgang.launch_blutgang(
+                plan,
+                blutgang_config_template,
+                full_node_el_clients,
+                "kurtosis",
+            )    
 
     if "tx-fuzz" in additional_services:
         plan.print("Launching tx-fuzz")
