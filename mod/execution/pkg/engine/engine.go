@@ -35,7 +35,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
 
@@ -207,6 +206,22 @@ func (ee *Engine[
 	// We abstract away some of the complexity and categorize status codes
 	// to make it easier to reason about.
 	switch {
+	// If we get invalid payload status, we will need to find a valid
+	// ancestor block and force a recovery.
+	//
+	// These two cases are semantically the same:
+	// https://github.com/ethereum/execution-apis/issues/270
+	case errors.IsAny(
+		err,
+		engineerrors.ErrInvalidPayloadStatus,
+		engineerrors.ErrInvalidBlockHashPayloadStatus,
+	):
+		ee.logger.Error(
+			"invalid payload status",
+			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
+		)
+		return ErrBadBlockProduced
+
 	// If we get accepted or syncing, we are going to optimistically
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
@@ -228,22 +243,6 @@ func (ee *Engine[
 			return nil
 		}
 		return err
-
-	// If we get invalid payload status, we will need to find a valid
-	// ancestor block and force a recovery.
-	//
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
-		ee.logger.Error(
-			"invalid payload status",
-			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
-		)
-		return ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		var (
@@ -277,19 +276,16 @@ func (ee *Engine[
 			return nil
 		}
 		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
-	case errors.IsAny(
-		err, context.Canceled, context.DeadlineExceeded, http.ErrTimeout,
-	):
-		if req.Optimistic {
-			ee.logger.Warn(
-				"error during optimistic payload verification",
-				"error", err,
-			)
-			return nil
-		}
-		return err
 	}
 
-	// If we get any other error, we will just return it.
+	// If we see an error that we don't recognize we just simply forward
+	// it to the caller.
+	if req.Optimistic {
+		ee.logger.Warn(
+			"error during optimistic payload verification",
+			"error", err,
+		)
+		return nil
+	}
 	return err
 }
