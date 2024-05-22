@@ -23,32 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package engine
+package metrics
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import "github.com/cosmos/cosmos-sdk/telemetry"
 
-// ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload interface {
-	// GetTransactions returns the transactions included in the payload.
-	GetTransactions() [][]byte
+type TelemetrySink struct{}
 
-	// GetBlockHash returns the hash of the block.
-	GetBlockHash() common.ExecutionHash
-
-	// GetParentHash returns the hash of the parent block.
-	GetParentHash() common.ExecutionHash
-
-	// Version returns the version of the payload.
-	Version() uint32
+// NewTelemetrySink creates a new TelemetrySink.
+func NewTelemetrySink() TelemetrySink {
+	return TelemetrySink{}
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(keys ...string)
+// IncrementCounter increments a counter metric identified by the provided
+// keys.
+func (TelemetrySink) IncrementCounter(keys ...string) {
+	telemetry.IncrCounter(1, keys...)
+}
 
-	// SetGauge sets a gauge metric to the specified value, identified by the
-	// provided keys.
-	SetGauge(value int64, keys ...string)
+// SetGauge sets a gauge metric to the specified value, identified by the
+// provided keys.
+func (TelemetrySink) SetGauge(value int64, keys ...string) {
+	telemetry.SetGauge(float32(value), keys...)
 }
