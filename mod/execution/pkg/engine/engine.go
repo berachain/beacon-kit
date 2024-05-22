@@ -35,6 +35,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
 
@@ -264,10 +265,12 @@ func (ee *Engine[
 			return nil
 		}
 		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
-	case errors.IsAny(err, context.Canceled, context.DeadlineExceeded):
+	case errors.IsAny(
+		err, context.Canceled, context.DeadlineExceeded, http.ErrTimeout,
+	):
 		if req.Optimistic {
 			ee.logger.Warn(
-				"context error during optimistic payload verification",
+				"error during optimistic payload verification",
 				"error", err,
 			)
 			return nil
