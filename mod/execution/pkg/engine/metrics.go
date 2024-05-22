@@ -1,4 +1,4 @@
-// SPDX_License_Identifier: MIT
+// SPDX-License-Identifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
