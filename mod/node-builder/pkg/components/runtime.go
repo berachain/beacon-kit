@@ -37,6 +37,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
@@ -87,12 +88,14 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
+	ts *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
+		ts,
 	)
 
 	// Build the deposit contract.

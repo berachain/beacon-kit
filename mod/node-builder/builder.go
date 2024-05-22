@@ -118,6 +118,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideKeyring,
 				components.ProvideConfig,
 				components.ProvideBlsSigner,
+				components.ProvideTelemetrySink,
 			),
 		),
 		&autoCliOpts,
