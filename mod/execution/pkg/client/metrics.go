@@ -51,7 +51,8 @@ func newClientMetrics(
 	}
 }
 
-// MeasureForkchoiceUpdateDuration measures the duration of the forkchoice update.
+// MeasureForkchoiceUpdateDuration measures the duration of the forkchoice
+// update.
 func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(

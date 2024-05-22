@@ -71,5 +71,4 @@ func ProvideEngineClient(
 		in.TelemetrySink,
 		new(big.Int).SetUint64(in.ChainSpec.Eth1ChainID()),
 	)
-
 }
