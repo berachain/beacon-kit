@@ -26,11 +26,14 @@
 package components
 
 import (
+	"math/big"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
@@ -48,6 +51,7 @@ type EngineClientInputs struct {
 	// it is not required when connecting to the execution client
 	// over IPC.
 	JWTSecret *jwt.Secret `optional:"true"`
+	ChainSpec primitives.ChainSpec
 }
 
 // ProvideEngineClient creates a new EngineClient.
@@ -58,5 +62,6 @@ func ProvideEngineClient(
 		&in.Config.Engine,
 		in.Logger.With("module", "beacon-kit.engine.client"),
 		in.JWTSecret,
+		new(big.Int).SetUint64(in.ChainSpec.Eth1ChainID()),
 	)
 }

@@ -132,9 +132,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
-	startCmd.Flags().Uint64(
-		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
-		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",

@@ -35,10 +35,9 @@ def start(persistent_peers):
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.accept-tos --beacon-kit.engine.rpc-dial-url {} \
-    --beacon-kit.engine.required-chain-id {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option)
+    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
