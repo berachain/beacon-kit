@@ -74,7 +74,7 @@ type BeaconBlockBodyBase struct {
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `ssz-max:"16"`
+	Deposits []*Deposit `              ssz-max:"16"`
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.

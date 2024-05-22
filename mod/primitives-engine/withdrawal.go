@@ -42,7 +42,7 @@ type Withdrawal struct {
 	Validator math.ValidatorIndex `json:"validatorIndex"`
 	// Address is the execution address where the withdrawal will be sent.
 	// It has a fixed size of 20 bytes.
-	Address common.ExecutionAddress `json:"address" ssz-size:"20"`
+	Address common.ExecutionAddress `json:"address"        ssz-size:"20"`
 	// Amount is the amount of Gwei to be withdrawn.
 	Amount math.Gwei `json:"amount"`
 }

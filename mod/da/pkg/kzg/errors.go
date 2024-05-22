@@ -28,7 +28,6 @@ package kzg
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-
 	// ErrUnsupportedKzgImplementation is returned when an unsupported KZG
 	// implementation is requested.
 	ErrUnsupportedKzgImplementation = errors.New(

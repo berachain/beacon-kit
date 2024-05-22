@@ -43,8 +43,12 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
 ] struct {
-	ec      *client.EngineClient[ExecutionPayloadDenebT]
-	logger  log.Logger[any]
+	// ec is the engine client that the engine will use to
+	// interact with the execution layer.
+	ec *client.EngineClient[ExecutionPayloadDenebT]
+	// logger is the logger for the engine.
+	logger log.Logger[any]
+	// metrics is the metrics for the engine.
 	metrics *engineMetrics
 }
 
