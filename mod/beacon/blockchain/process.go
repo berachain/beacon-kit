@@ -191,5 +191,26 @@ func (s *Service[
 		"payload-block-number", payload.GetNumber(),
 		"num-txs", len(payload.GetTransactions()),
 	)
+
+	if blk != nil {
+		fork := s.cs.ActiveForkVersionForSlot(
+			blk.GetSlot(),
+		)
+
+		if payload != nil {
+			if _, _, err := s.ee.NotifyForkchoiceUpdate(ctx,
+				engineprimitives.BuildForkchoiceUpdateRequest(
+					&engineprimitives.ForkchoiceStateV1{
+						HeadBlockHash:      payload.GetBlockHash(),
+						SafeBlockHash:      payload.GetParentHash(),
+						FinalizedBlockHash: payload.GetParentHash(),
+					},
+					nil,
+					fork,
+				)); err != nil {
+				return nil
+			}
+		}
+	}
 	return nil
 }
