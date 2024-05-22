@@ -26,11 +26,15 @@ def start(persistent_peers, is_seed):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^prometheus_listen_addr = \\":26660\\"$/prometheus_listen_addr = \\"0.0.0.0:26660\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"2.5s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^flush_throttle_timeout = \\".*\\"$/flush_throttle_timeout = \\"1ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"2s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_vote = \\".*\\"$/timeout_vote = \\"3s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"1s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^unsafe = false$/unsafe = true/" "{}/config/config.toml"'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^type = \\".*\\"$/type = \\"nop\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^discard_abci_responses = false$/discard_abci_responses = true/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^payload-timeout = \\".*\\"$/payload-timeout = \\"1.5s\\"/" {}/config/app.toml'.format("$BEACOND_HOME")
     persistent_peers_option = ""
     seed_option = ""
@@ -45,10 +49,9 @@ def start(persistent_peers, is_seed):
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.accept-tos --beacon-kit.engine.rpc-dial-url {} \
-    --beacon-kit.engine.required-chain-id {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {} {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option, seed_option)
+    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
