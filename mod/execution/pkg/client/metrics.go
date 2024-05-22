@@ -55,7 +55,8 @@ func newClientMetrics(
 func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
-		startTime, "beacon-kit.execution.client.forkchoice_update_duration",
+		"beacon-kit.execution.client.forkchoice_update_duration",
+		startTime,
 	)
 }
 
@@ -63,7 +64,8 @@ func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
 func (cm *clientMetrics) MeasureNewPayloadDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
-		startTime, "beacon-kit.execution.client.new_payload_duration",
+		"beacon-kit.execution.client.new_payload_duration",
+		startTime,
 	)
 }
 
@@ -71,6 +73,7 @@ func (cm *clientMetrics) MeasureNewPayloadDuration(startTime time.Time) {
 func (cm *clientMetrics) MeasureGetPayloadDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
-		startTime, "beacon-kit.execution.client.get_payload_duration",
+		"beacon-kit.execution.client.get_payload_duration",
+		startTime,
 	)
 }
