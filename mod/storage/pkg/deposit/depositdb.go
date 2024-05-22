@@ -31,7 +31,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/collections/encoding"
+	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
 
 const (
