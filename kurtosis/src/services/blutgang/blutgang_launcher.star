@@ -12,7 +12,6 @@ BLUTGANG_CONFIG_FILENAME = "config.toml"
 BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE = "/config"
 
 IMAGE_NAME = "makemake1337/blutgang:latest"
-# IMAGE_NAME = "busybox:latest"
 
 # The min/max CPU/memory that blutgang can use
 MIN_CPU = 100
@@ -37,37 +36,24 @@ USED_PORTS = {
 def launch_blutgang(
     plan,
     config_template,
-    rpc_endpoints,
+    full_node_el_clients,
     network_params,
 ):
     all_el_client_info = []
-    # for index, participant in enumerate(participant_contexts):
-    #     plan.print("index: ", index)
-    # # plan.print("participant_contexts: ", participant_contexts)
-    # # plan.print("participant: ", participant)
-    #     full_name, _, el_client, _ = shared_utils.get_client_names(
-    #         participant, index, participant_contexts, participant_configs
-    #     )
-    #     all_el_client_info.append(
-    #         new_el_client_info(
-    #             el_client.ip_addr,
-    #             el_client.rpc_port_num,
-    #             el_client.ws_port_num,
-    #             full_name,
-    #         )
-    #     )
+    for full_node_el_client in full_node_el_clients:
+        plan.print("full_node_el_client: ", str(full_node_el_client))   
+        rpc_port = full_node_el_client['service'].ports["eth-json-rpc"].number
+        plan.print("rpc_port: ", str(rpc_port))
+        ws_port = full_node_el_client['service'].ports['eth-json-rpc-ws'].number
+        name = full_node_el_client['name']
+        ip_address = full_node_el_client['service'].ip_address
 
-
-    for rpc_endpoint in rpc_endpoints:
-        plan.print("rpc_endpoint: ", str(rpc_endpoint))
-        for service in rpc_endpoint["services"]:
-            ip_address, port_number = service.split(":")
-            all_el_client_info.append(
-                new_el_client_info(
-                    ip_address,
-                    port_number,
-                    port_number,
-                    ip_address,
+        all_el_client_info.append(
+            new_el_client_info(
+                ip_address,
+                rpc_port,
+                ws_port,
+                name,
             )
         )
 
@@ -75,15 +61,6 @@ def launch_blutgang(
         network_params, HTTP_PORT_NUMBER, all_el_client_info
     )
 
-    # template_and_data = shared_utils.new_template_and_data(
-    #     config_template, template_data
-    # )
-    # template_and_data_by_rel_dest_filepath = {}
-    # template_and_data_by_rel_dest_filepath[BLUTGANG_CONFIG_FILENAME] = template_and_data
-
-    # config_files_artifact_name = plan.render_templates(
-    #     template_and_data_by_rel_dest_filepath, "blutgang-config"
-    # )
     config_files_artifact_name = plan.render_templates(
         config = {
             BLUTGANG_CONFIG_FILENAME: struct(

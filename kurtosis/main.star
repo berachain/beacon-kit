@@ -141,11 +141,10 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
             blutgang_config_template = read_file(
                 constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH
             )
-            plan.print("full_node_el_clients: {}".format(full_node_el_clients))
             blutgang.launch_blutgang(
                 plan,
                 blutgang_config_template,
-                rpc_endpoints,
+                full_node_el_clients,
                 "kurtosis",
             )
         elif s == "tx-fuzz":
