@@ -38,8 +38,7 @@ const (
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
-	defaultJWTSecretPath   = "./jwt.hex"
-	defaultRequiredChainID = 80087
+	defaultJWTSecretPath = "./jwt.hex"
 )
 
 // DefaultConfig is the default configuration for the engine client.
@@ -53,7 +52,6 @@ func DefaultConfig() Config {
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
-		RequiredChainID:         defaultRequiredChainID,
 	}
 }
 
@@ -74,7 +72,4 @@ type Config struct {
 	RPCJWTRefreshInterval time.Duration `mapstructure:"rpc-jwt-refresh-interval"`
 	// JWTSecretPath is the path to the JWT secret.
 	JWTSecretPath string `mapstructure:"jwt-secret-path"`
-	// RequiredChainID is the chain id that the consensus client must be
-	// connected to.
-	RequiredChainID uint64 `mapstructure:"required-chain-id"`
 }

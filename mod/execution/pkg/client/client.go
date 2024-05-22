@@ -80,6 +80,8 @@ type EngineClient[
 
 	// IPC
 	ipcListener net.Listener
+
+	eth1ChainID *big.Int
 }
 
 // New creates a new engine client EngineClient.
@@ -89,6 +91,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
+	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadDenebT] {
 	statusErrMu := new(sync.RWMutex)
 	return &EngineClient[ExecutionPayloadDenebT]{
@@ -100,6 +103,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 		statusErrMu:   statusErrMu,
 		statusErrCond: sync.NewCond(statusErrMu),
 		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
+		eth1ChainID:   eth1ChainID,
 	}
 }
 
@@ -173,10 +177,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 		return err
 	}
 
-	if chainID.Uint64() != s.cfg.RequiredChainID {
+	if chainID.Uint64() != s.eth1ChainID.Uint64() {
 		return errors.Newf(
 			"wanted chain ID %d, got %d",
-			s.cfg.RequiredChainID,
+			s.eth1ChainID,
 			chainID.Uint64(),
 		)
 	}
@@ -223,7 +227,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		"chain-id",
 		chainID.Uint64(),
 		"required-chain-id",
-		s.cfg.RequiredChainID,
+		s.eth1ChainID,
 	)
 
 	// Exchange capabilities with the execution client.
