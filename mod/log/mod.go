@@ -31,17 +31,14 @@ type Logger[KeyValT any] interface {
 	// INFO.
 	// The key of the tuple must be a string.
 	Info(msg string, keyVals ...KeyValT)
-
 	// Warn takes a message and a set of key/value pairs and logs with level
 	// WARN.
 	// The key of the tuple must be a string.
 	Warn(msg string, keyVals ...KeyValT)
-
 	// Error takes a message and a set of key/value pairs and logs with level
 	// ERR.
 	// The key of the tuple must be a string.
 	Error(msg string, keyVals ...KeyValT)
-
 	// Debug takes a message and a set of key/value pairs and logs with level
 	// DEBUG.
 	// The key of the tuple must be a string.
@@ -56,7 +53,6 @@ type AdvancedLogger[KeyValT, LoggerT any] interface {
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
 	With(keyVals ...KeyValT) LoggerT
-
 	// Impl returns the underlying logger implementation.
 	// It is used to access the full functionalities of the underlying logger.
 	// Advanced users can type cast the returned value to the actual logger.

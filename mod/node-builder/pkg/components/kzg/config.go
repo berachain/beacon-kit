@@ -35,7 +35,6 @@ import (
 const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
 	defaultTrustedSetupPath = "./testing/files/kzg-trusted-setup.json"
-
 	// defaultImplementation is the default KZG implementation to use.
 	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
 	defaultImplementation = "crate-crypto/go-kzg-4844"
@@ -44,7 +43,6 @@ const (
 type Config struct {
 	// TrustedSetupPath is the path to the trusted setup.
 	TrustedSetupPath string `mapstructure:"trusted-setup-path"`
-
 	// Implementation is the KZG implementation to use.
 	Implementation string `mapstructure:"implementation"`
 }

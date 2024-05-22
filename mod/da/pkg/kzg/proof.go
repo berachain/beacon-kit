@@ -44,15 +44,12 @@ type BlobProofVerifier interface {
 		proof eip4844.KZGProof,
 		commitment eip4844.KZGCommitment,
 	) error
-
 	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
 	// represented
 	// by the blob evaluated at the given point is the claimed value.
 	// For most implementations it is more efficient than VerifyBlobProof when
 	// verifying multiple proofs.
-	VerifyBlobProofBatch(
-		*kzgtypes.BlobProofArgs,
-	) error
+	VerifyBlobProofBatch(*kzgtypes.BlobProofArgs) error
 }
 
 const (

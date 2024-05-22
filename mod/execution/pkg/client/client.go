@@ -52,36 +52,29 @@ type EngineClient[
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
 	*ethclient.Eth1Client[ExecutionPayloadDenebT]
-
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
-
 	// logger is the logger for the engine client.
 	logger log.Logger[any]
-
+	// jwtSecret is the JWT secret for the execution client.
+	jwtSecret *jwt.Secret
+	// eth1ChainID is the chain ID of the execution client.
+	eth1ChainID *big.Int
+	// clientMetrics is the metrics for the engine client.
+	metrics *clientMetrics
+	// capabilities is a map of capabilities that the execution client has.
+	capabilities map[string]struct{}
 	// engineCache is an all-in-one cache for data
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
-
-	// jwtSecret is the JWT secret for the execution client.
-	jwtSecret *jwt.Secret
-
-	// capabilities is a map of capabilities that the execution client has.
-	capabilities map[string]struct{}
-
 	// statusErrCond is a condition variable for the status error.
 	statusErrCond *sync.Cond
-
 	// statusErrMu is a mutex for the status error.
 	statusErrMu *sync.RWMutex
-
 	// statusErr is the status error of the engine client.
 	statusErr error
-
 	// IPC
 	ipcListener net.Listener
-
-	eth1ChainID *big.Int
 }
 
 // New creates a new engine client EngineClient.
@@ -91,6 +84,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
+	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadDenebT] {
 	statusErrMu := new(sync.RWMutex)
@@ -104,6 +98,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 		statusErrCond: sync.NewCond(statusErrMu),
 		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:   eth1ChainID,
+		metrics:       newClientMetrics(telemetrySink, logger),
 	}
 }
 
@@ -189,8 +184,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 }
 
 // ============================== HELPERS ==============================
-
-// ================================ Setup ==============================
 
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
@@ -431,7 +424,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	}()
 }
 
-// ================================ info ================================
+// ================================ Info ================================
 
 // status returns the status of the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) status(

@@ -51,25 +51,18 @@ type Service[
 		BlobSidecarsT,
 		DepositStoreT,
 	]
-
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-
 	// cs holds the chain specifications.
 	cs primitives.ChainSpec
-
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
-
 	// dc is a connection to the deposit contract.
 	dc DepositContract
-
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[ReadOnlyBeaconStateT]
-
 	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
-
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		types.BeaconBlock,

@@ -32,7 +32,7 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
-	Eth1ChainID() uint64
+
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -77,6 +77,8 @@ type Spec[
 	//
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() ExecutionAddressT
+	// DepositEth1ChainID returns the chain ID of the deposit contract.
+	DepositEth1ChainID() uint64
 
 	// Fork-related values.
 	//
@@ -176,7 +178,7 @@ func NewChainSpec[
 // Eth1ChainID returns the chain ID.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-]) Eth1ChainID() uint64 {
+]) DepositEth1ChainID() uint64 {
 	return c.Data.Eth1ChainID
 }
 

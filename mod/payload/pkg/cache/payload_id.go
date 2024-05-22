@@ -42,7 +42,6 @@ type PayloadIDCache[
 ] struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
-
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
 	slotToStateRootToPayloadID map[SlotT]map[RootT]PayloadIDT
 }

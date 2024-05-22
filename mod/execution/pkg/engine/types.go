@@ -25,19 +25,18 @@
 
 package engine
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload interface {
 	// GetTransactions returns the transactions included in the payload.
 	GetTransactions() [][]byte
-
 	// GetBlockHash returns the hash of the block.
 	GetBlockHash() common.ExecutionHash
-
 	// GetParentHash returns the hash of the parent block.
 	GetParentHash() common.ExecutionHash
-
 	// Version returns the version of the payload.
 	Version() uint32
 }
@@ -46,9 +45,8 @@ type ExecutionPayload interface {
 type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
 	// keys.
-	IncrementCounter(keys ...string)
-
+	IncrementCounter(key string, args ...string)
 	// SetGauge sets a gauge metric to the specified value, identified by the
 	// provided keys.
-	SetGauge(value int64, keys ...string)
+	SetGauge(key string, value int64, args ...string)
 }
