@@ -55,6 +55,13 @@ func NewEth1Client[
 	return c, nil
 }
 
+// NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
+func NewFromRPCClient[
+	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadDenebT], error) {
+	return NewEth1Client[ExecutionPayloadDenebT](ethclient.NewClient(rpcClient))
+}
+
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadDenebT]) NewPayloadV3(
 	ctx context.Context,

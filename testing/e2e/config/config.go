@@ -40,6 +40,8 @@ type E2ETestConfig struct {
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
 	FullNodes []Node `json:"full_nodes"`
+	// BootSequence specifies the methodology for how the network boots.
+	BootSequence map[string]string `json:"boot_sequence"`
 	// RPCEndpoints specifies the RPC endpoints to include in the test.
 	RPCEndpoints []RPCEndpoint `json:"rpc_endpoints"`
 }
@@ -135,6 +137,9 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 			// 	ClType:   "beaconkit",
 			// 	Replicas: 1,
 			// },
+		},
+		BootSequence: map[string]string{
+			"type": "parallel",
 		},
 		RPCEndpoints: []RPCEndpoint{
 			{

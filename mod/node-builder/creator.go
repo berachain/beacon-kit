@@ -23,16 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package nodebuilder
 
-const (
-	// MetricReceivedInvalidPayload is used to count the number of times an
-	// invalid payload is received.
-	MetricReceivedInvalidPayload = "beaconkit.blockchain.received_invalid_payload"
+import (
+	"io"
+	"reflect"
 
-	// MetricFailedToRequestPayload is used to count the number of times the
-	// local builder fails to build a payload when triggered via
-	// the chain service.
-	//nolint:lll
-	MetricFailedToRequestPayload = "beaconkit.blockchain.failed_to_build_local_payload"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
+
+// NodeBuilder is a struct that holds the.
+func (nb *NodeBuilder[T]) AppCreator(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) T {
+	app := *app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		appOpts,
+		nb.appInfo.DepInjectConfig,
+		nb.chainSpec,
+		server.DefaultBaseappOptions(appOpts)...,
+	)
+	return reflect.ValueOf(app).Convert(
+		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+}

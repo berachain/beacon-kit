@@ -27,13 +27,13 @@ package beacon
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -52,18 +52,15 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	keeper    *storage.Backend[state.BeaconState]
-	chainSpec primitives.ChainSpec
+	*components.BeaconKitRuntime
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	keeper *storage.Backend[state.BeaconState],
-	chainSpec primitives.ChainSpec,
+	runtime *components.BeaconKitRuntime,
 ) AppModule {
 	return AppModule{
-		keeper:    keeper,
-		chainSpec: chainSpec,
+		BeaconKitRuntime: runtime,
 	}
 }
 
@@ -84,48 +81,48 @@ func (am AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
 
-// EndBlock returns the validator set updates from the beacon state.
-func (am AppModule) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	store := am.keeper.BeaconStore().WithContext(ctx)
-
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
+// DefaultGenesis returns default genesis state as raw bytes
+// for the beacon module.
+func (AppModule) DefaultGenesis() json.RawMessage {
+	defaultGenesis, err := deneb.DefaultBeaconState()
 	if err != nil {
 		panic(err)
 	}
 
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range val {
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx math.ValidatorIndex
-			idx, err = store.WithContext(ctx).
-				ValidatorIndexByPubkey(validator.Pubkey)
-			if err != nil {
-				return nil, err
-			}
-			if err = store.WithContext(ctx).
-				RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
+	bz, err := json.Marshal(defaultGenesis)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
 
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: "bls12_381",
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
+// ValidateGenesis performs genesis state validation for the evm module.
+func (AppModule) ValidateGenesis(
+	bz json.RawMessage,
+) error {
+	// TODO: this is bad
+	data := new(deneb.BeaconState)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return err
 	}
 
-	// Save the store.
-	store.Save()
-	return validatorUpdates, nil
+	seenValidators := make(map[[48]byte]struct{})
+	for _, validator := range data.Validators {
+		if _, ok := seenValidators[validator.Pubkey]; ok {
+			return fmt.Errorf(
+				"duplicate pubkey in genesis state: %x",
+				validator.Pubkey,
+			)
+		}
+		seenValidators[validator.Pubkey] = struct{}{}
+	}
+	return nil
+}
+
+// ExportGenesis returns the exported genesis state as raw bytes for the evm
+// module.
+func (am AppModule) ExportGenesis(
+	_ context.Context,
+) (json.RawMessage, error) {
+	return json.Marshal(&deneb.BeaconState{})
 }

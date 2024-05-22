@@ -29,121 +29,93 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessSlot processes the incoming beacon slot.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessSlot(
-	st BeaconStateT,
-) error {
-	return s.sp.ProcessSlot(st)
-}
-
-// ProcessBeaconBlock receives an incoming beacon block, it first validates
+// ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
+//
+//nolint:funlen // todo cleanup.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ProcessBeaconBlock(
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) ProcessStateTransition(
 	ctx context.Context,
-	st BeaconStateT,
 	blk types.BeaconBlock,
-	blobs BlobSidecarsT,
+	sidecars BlobSidecarsT,
 ) error {
-	var (
-		g, _ = errgroup.WithContext(ctx)
-		err  error
-	)
-
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return ErrNilBlk
 	}
 
-	// Validate payload in Parallel.
+	// Create a new errgroup with the provided context.
+	g, gCtx := errgroup.WithContext(ctx)
+	st := s.sb.StateFromContext(ctx)
+
+	// Launch a goroutine to process the state transition.
 	g.Go(func() error {
-		body := blk.GetBody()
-		if body == nil || body.IsNil() {
-			return ErrNilBlkBody
-		}
-		return s.pv.VerifyPayload(st, body.GetExecutionPayload())
-	})
-
-	// Validate block in Parallel.
-	g.Go(func() error {
-		return s.bv.ValidateBlock(st, blk)
-	})
-
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
-		return err
-	}
-
-	// We want to get a headstart on blob processing since it
-	// is a relatively expensive operation.
-	g.Go(func() error {
-		return s.sp.ProcessBlobs(
-			st,
-			s.bsb.AvailabilityStore(ctx),
-			blobs,
-		)
-	})
-
-	body := blk.GetBody()
-
-	// We can also parallelize the call to the execution layer.
-	g.Go(func() error {
-		// Then we notify the engine of the new payload.
-		parentBeaconBlockRoot := blk.GetParentBlockRoot()
-		if err = s.ee.VerifyAndNotifyNewPayload(
-			ctx, engineprimitives.BuildNewPayloadRequest(
-				body.GetExecutionPayload(),
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				false,
-				// Since this is called during FinalizeBlock, we want to assume
-				// the payload is valid, if it ends up not being valid later the
-				// node will simply AppHash which is completely fine, since this
-				// means we were syncing from a bad peer, and we would likely
-				// AppHash anyways.
-				true,
-			),
-		); err != nil {
-			s.logger.
-				Error("failed to notify engine of new payload", "error", err)
-			return err
-		}
-
-		// We also want to verify the payload on the block.
-		return s.sp.ProcessBlock(
+		return s.sp.Transition(
+			// We set `OptimisticEngine` to true since this is called during
+			// FinalizeBlock. We want to assume the payload is valid. If it
+			// ends up not being valid later, the node will simply AppHash,
+			// which is completely fine. This means we were syncing from a
+			// bad peer, and we would likely AppHash anyways.
+			//
+			// TODO: Figure out why SkipPayloadIfExists being `true`
+			// causes nodes to create gaps in their chain.
+			transition.NewContext(gCtx, true, false, true),
 			st,
 			blk,
 		)
 	})
 
-	// We ask for the slot before waiting as a minor optimization.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
+	// Launch a goroutine to process the blob sidecars.
+	g.Go(func() error {
+		return s.bp.ProcessBlobs(
+			blk.GetSlot(),
+			s.sb.AvailabilityStore(ctx),
+			sidecars,
+		)
+	})
 
-	// Wait for the errgroup to finish, the error will be non-nil if any
-	// of the goroutines returned an error.
-	if err = g.Wait(); err != nil {
-		// If we fail any checks we process the slot and move on.
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
 	// If the blobs needed to process the block are not available, we
-	// return an error.
-	if !s.bsb.AvailabilityStore(ctx).IsDataAvailable(ctx, slot, body) {
+	// return an error. It is safe to use the slot off of the beacon block
+	// since it has been verified as correct already.
+	if !s.sb.AvailabilityStore(ctx).IsDataAvailable(
+		ctx, blk.GetSlot(), blk.GetBody(),
+	) {
 		return ErrDataNotAvailable
 	}
+
+	// No matter what happens we always want to forkchoice at the end of post
+	// block processing.
+	defer func() {
+		go s.sendPostBlockFCU(ctx, st, blk)
+	}()
+
+	//
+	//
+	//
+	//
+	//
+	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
+	//  MAIN BLOCK PROCESSING THREAD.
+	//
+	//
+	//
+	//
+	//
+	//
 
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
@@ -154,24 +126,36 @@ func (s *Service[
 	}
 
 	// TODO: pruner shouldn't be in main block processing thread.
-	return s.PruneDepositEvents(ctx, idx)
-}
+	if err = s.PruneDepositEvents(ctx, idx); err != nil {
+		return err
+	}
 
-// ValidateBlock validates the incoming beacon block.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) ValidateBlock(
-	ctx context.Context,
-	blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-) error {
-	return s.bv.ValidateBlock(
-		s.bsb.StateFromContext(ctx), blk,
-	)
+	var lph engineprimitives.ExecutionPayloadHeader
+	lph, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	// Process the logs from the previous blocks execution payload.
+	// TODO: This should be moved out of the main block processing flow.
+	// TODO: eth1FollowDistance should be done actually proper
+	eth1FollowDistance := math.U64(1)
+	if err = s.retrieveDepositsFromBlock(
+		ctx, lph.GetNumber()-eth1FollowDistance,
+	); err != nil {
+		s.logger.Error("failed to process logs", "error", err)
+		return err
+	}
+
+	return nil
 }
 
 // VerifyPayload validates the execution payload on the block.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) VerifyPayloadOnBlk(
 	ctx context.Context,
 	blk types.BeaconBlock,
@@ -180,142 +164,32 @@ func (s *Service[
 		return ErrNilBlk
 	}
 
-	body := blk.GetBody()
-	if body.IsNil() {
-		return ErrNilBlkBody
-	}
-
-	// Call the standard payload validator.
-	if err := s.pv.VerifyPayload(
-		s.bsb.StateFromContext(ctx),
-		body.GetExecutionPayload(),
-	); err != nil {
-		return err
-	}
-
 	// We notify the engine of the new payload.
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	return s.ee.VerifyAndNotifyNewPayload(
+	var (
+		parentBeaconBlockRoot = blk.GetParentBlockRoot()
+		body                  = blk.GetBody()
+		payload               = body.GetExecutionPayload()
+	)
+
+	if err := s.ee.VerifyAndNotifyNewPayload(
 		ctx,
 		engineprimitives.BuildNewPayloadRequest(
-			body.GetExecutionPayload(),
+			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			false,
-			// We do not want to optimistically assume truth here.
+			// We do not want to optimistically assume truth here, since
+			// this is being called in process proposal.
 			false,
 		),
-	)
-}
-
-// PostBlockProcess is called after a block has been processed.
-// It is responsible for processing logs and other post block tasks.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) PostBlockProcess(
-	ctx context.Context,
-	st BeaconStateT,
-	blk types.BeaconBlock,
-) error {
-	var (
-		payload engineprimitives.ExecutionPayload
-	)
-
-	// No matter what happens we always want to forkchoice at the end of post
-	// block processing.
-	defer func(payloadPtr *engineprimitives.ExecutionPayload) {
-		s.sendPostBlockFCU(ctx, st, *payloadPtr)
-	}(&payload)
-
-	// If the block is nil, exit early.
-	if blk == nil || blk.IsNil() {
-		return nil
-	}
-
-	body := blk.GetBody()
-	if body.IsNil() {
-		return nil
-	}
-	// Update the forkchoice.
-	payload = blk.GetBody().GetExecutionPayload()
-	if payload.IsNil() {
-		return nil
-	}
-
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	// Process the logs from the previous blocks execution payload.
-	// TODO: This should be moved out of the main block processing flow.
-	if err = s.retrieveDepositsFromBlock(
-		ctx, latestExecutionPayloadHeader.GetNumber(),
 	); err != nil {
-		s.logger.Error("failed to process logs", "error", err)
 		return err
 	}
 
-	// Update the latest execution payload header.
-	return s.updateLatestExecutionPayload(ctx, st, payload)
-}
-
-// updateLatestExecutionPayload.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) updateLatestExecutionPayload(
-	ctx context.Context,
-	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
-) error {
-	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, _ := errgroup.WithContext(ctx)
-	var (
-		txsRoot         primitives.Root
-		withdrawalsRoot primitives.Root
+	s.logger.Info(
+		"successfully verified execution payload 💸",
+		"payload-block-number", payload.GetNumber(),
+		"num-txs", len(payload.GetTransactions()),
 	)
-
-	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
-		return withdrawalsRootErr
-	})
-
-	// If deriving either of the roots fails, return the error.
-	if err := g.Wait(); err != nil {
-		return err
-	}
-
-	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	return nil
 }

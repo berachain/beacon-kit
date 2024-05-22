@@ -23,13 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-syntax = "proto3";
+package noop
 
-package beacon.module.v1alpha1;
+import (
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+)
 
-import "cosmos/app/v1alpha1/module.proto";
+// Verifier is a no-op KZG proof verifier.
+type Verifier struct{}
 
-// Module is the config object of the evm module.
-message Module {
-  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/beacond/x/beacon"};
+// NewVerifier creates a new GoKZGVerifier.
+func NewVerifier() *Verifier {
+	return &Verifier{}
+}
+
+// VerifyProof is a no-op.
+func (v Verifier) VerifyBlobProof(
+	*eip4844.Blob,
+	eip4844.KZGProof,
+	eip4844.KZGCommitment,
+) error {
+	return nil
+}
+
+// VerifyBlobProofBatch is a no-op.
+func (v Verifier) VerifyBlobProofBatch(
+	*types.BlobProofArgs,
+) error {
+	return nil
 }

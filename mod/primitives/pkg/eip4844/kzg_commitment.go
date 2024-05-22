@@ -43,11 +43,11 @@ type KZGCommitment [48]byte
 //
 //nolint:lll
 func (c KZGCommitment) ToVersionedHash() [32]byte {
-	hash := sha256.Sum256(c[:])
+	sum := sha256.Sum256(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
-	hash[0] = constants.BlobCommitmentVersion
-	return hash
+	sum[0] = constants.BlobCommitmentVersion
+	return sum
 }
 
 // ToHashChunks converts this KZG commitment into a set of hash chunks.

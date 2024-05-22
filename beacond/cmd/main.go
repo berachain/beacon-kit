@@ -29,8 +29,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/berachain/beacon-kit/beacond/app"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -45,8 +46,9 @@ func run() error {
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
 		WithAppName("beacond").
 		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithAppCreator(app.NewBeaconKitAppWithDefaultBaseAppOptions).
-		WithDepInjectConfig(app.Config())
+		WithDepInjectConfig(Config()).
+		// TODO: Don't hardcode the default chain spec.
+		WithChainSpec(spec.LocalnetChainSpec())
 
 	return nb.RunNode()
 }

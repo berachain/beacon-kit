@@ -23,32 +23,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package verification
+package noop_test
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"testing"
 
-var (
-	// ErrStateRootMismatch is returned when the state root in a block header
-	// does.
-	ErrStateRootMismatch = errors.New("state root mismatch")
-	// ErrInvalidExecutionValue is an error for when the
-	// execution value is invalid.
-	ErrInvalidExecutionValue = errors.New("invalid execution value")
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilBlk is an error for when the beacon block is nil.
-	ErrNilBlk = errors.New("nil beacon block")
-
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
+
+func TestVerifyBlobProof(t *testing.T) {
+	verifier := noop.NewVerifier()
+	err := verifier.VerifyBlobProof(
+		&eip4844.Blob{},
+		eip4844.KZGProof{},
+		eip4844.KZGCommitment{},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestVerifyBlobProofBatch(t *testing.T) {
+	verifier := noop.NewVerifier()
+	args := &types.BlobProofArgs{
+		Blobs:       []*eip4844.Blob{{}},
+		Proofs:      []eip4844.KZGProof{{}},
+		Commitments: []eip4844.KZGCommitment{{}},
+	}
+	err := verifier.VerifyBlobProofBatch(args)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}

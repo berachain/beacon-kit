@@ -23,11 +23,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package components
 
-const (
-	// MetricKeyPrepareProposalTime is the metric key for prepare proposal time.
-	MetricKeyPrepareProposalTime = "beaconkit.prepare_proposal_time"
-	// MetricKeyProcessProposalTime is the metric key for process proposal time.
-	MetricKeyProcessProposalTime = "beaconkit.process_proposal_time"
+import (
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
+
+// EngineClientInputs is the input for the EngineClient.
+type EngineClientInputs struct {
+	depinject.In
+
+	// Config is the BeaconKit configuration.
+	Config *config.Config
+
+	// Logger is the logger.
+	Logger log.Logger
+
+	// JWTSecret is the jwt secret. It is optional, since
+	// it is not required when connecting to the execution client
+	// over IPC.
+	JWTSecret *jwt.Secret `optional:"true"`
+}
+
+// ProvideEngineClient creates a new EngineClient.
+func ProvideEngineClient(
+	in EngineClientInputs,
+) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
+	return engineclient.New[*types.ExecutableDataDeneb](
+		&in.Config.Engine,
+		in.Logger.With("module", "beacon-kit.engine.client"),
+		in.JWTSecret,
+	)
+}

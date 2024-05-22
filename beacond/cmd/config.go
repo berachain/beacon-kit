@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package app
+package main
 
 import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
@@ -36,8 +36,8 @@ import (
 	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
 	_ "cosmossdk.io/x/consensus"      // import for side-effects
 	consensustypes "cosmossdk.io/x/consensus/types"
-	"github.com/berachain/beacon-kit/beacond/x/beacon"
-	beaconv1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
+	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
+	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )

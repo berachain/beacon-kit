@@ -26,8 +26,6 @@
 package abci
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
@@ -39,7 +37,6 @@ import (
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -101,7 +98,6 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	defer telemetry.MeasureSince(time.Now(), MetricKeyPrepareProposalTime, "ms")
 	logger := ctx.Logger().With("module", "prepare-proposal")
 
 	// Get the best block and blobs.
@@ -143,8 +139,6 @@ func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	defer telemetry.MeasureSince(time.Now(), MetricKeyProcessProposalTime, "ms")
-
 	var (
 		logger = ctx.Logger().With("module", "process-proposal")
 		blk    types.BeaconBlock

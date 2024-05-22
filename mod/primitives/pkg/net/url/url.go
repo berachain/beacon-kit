@@ -23,42 +23,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package app
+package url
 
-import (
-	abci "github.com/cometbft/cometbft/abci/types"
-)
+import "net/url"
 
-// PrepareProposal is called by the consensus engine to prepare a proposal for
-// the next block.
-func (app BeaconApp) PrepareProposal(
-	req *abci.PrepareProposalRequest,
-) (*abci.PrepareProposalResponse, error) {
-	return app.BeaconKitRuntime.PrepareProposal(
-		req,
-		app.BaseApp.PrepareProposal,
-	)
+// ConnectionURL is a URL struct that is used to dial the execution client.
+type ConnectionURL struct {
+	*url.URL
 }
 
-// ProcessProposal is called by the consensus engine when a new proposal block
-// is received.
-func (app BeaconApp) ProcessProposal(
-	req *abci.ProcessProposalRequest,
-) (*abci.ProcessProposalResponse, error) {
-	return app.BeaconKitRuntime.ProcessProposal(
-		req,
-		app.BaseApp.ProcessProposal,
-	)
+// NewDialURL creates a new DialURL.
+func NewDialURL(u *url.URL) *ConnectionURL {
+	return &ConnectionURL{u}
 }
 
-// but before committing it to the consensus state.
-func (app BeaconApp) FinalizeBlock(
-	req *abci.FinalizeBlockRequest,
-) (*abci.FinalizeBlockResponse, error) {
-	return app.BeaconKitRuntime.FinalizeBlock(req, app.BaseApp.FinalizeBlock)
+func NewFromRaw(raw string) (*ConnectionURL, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	return NewDialURL(u), nil
 }
 
-// Commit is our custom implementation of the ABCI method Commit.
-func (app BeaconApp) Commit() (*abci.CommitResponse, error) {
-	return app.BeaconKitRuntime.Commit(app.BaseApp.Commit)
+// IsHTTP checks if the DialURL scheme is HTTP.
+func (d *ConnectionURL) IsHTTP() bool {
+	return d.Scheme == "http"
+}
+
+// IsHTTPS checks if the DialURL scheme is HTTPS.
+func (d *ConnectionURL) IsHTTPS() bool {
+	return d.Scheme == "https"
+}
+
+// IsIPC checks if the DialURL scheme is IPC.
+func (d *ConnectionURL) IsIPC() bool {
+	return d.Scheme == "ipc"
 }

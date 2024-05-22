@@ -26,26 +26,28 @@
 package beacon
 
 import (
-	"os"
-
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	modulev1alpha1 "github.com/berachain/beacon-kit/beacond/x/beacon/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
+// TODO: we don't allow generics here? Why? Is it fixable?
+//
 //nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
@@ -57,37 +59,33 @@ func init() {
 type DepInjectInput struct {
 	depinject.In
 
-	AppOpts      servertypes.AppOptions
-	Environment  appmodule.Environment
-	ChainSpec    primitives.ChainSpec
-	DepositStore *depositdb.KVStore
+	// Cosmos components
+	AppOpts     servertypes.AppOptions
+	Environment appmodule.Environment
+
+	// BeaconKit components
+	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
+	BeaconConfig      *config.Config
+	ChainSpec         primitives.ChainSpec
+	DepositStore      *depositdb.KVStore
+	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
+	Signer            crypto.BLSSigner
 }
 
 // DepInjectOutput is the output for the dep inject framework.
 type DepInjectOutput struct {
 	depinject.Out
-
-	Keeper *storage.Backend[state.BeaconState]
 	Module appmodule.AppModule
 }
 
 // ProvideModule is a function that provides the module to the application.
-func ProvideModule(in DepInjectInput) DepInjectOutput {
-	k := storage.NewBackend[state.BeaconState](
+func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
+	storageBackend := storage.NewBackend[
+		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+	](
 		in.ChainSpec,
-		dastore.New[types.BeaconBlockBody](
-			in.ChainSpec, filedb.NewRangeDB(filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(in.Environment.Logger),
-			),
-			),
-		),
+		in.AvailabilityStore,
 		beacondb.New[
 			*types.Fork,
 			*types.BeaconBlockHeader,
@@ -97,10 +95,28 @@ func ProvideModule(in DepInjectInput) DepInjectOutput {
 		](in.Environment.KVStoreService, DenebPayloadFactory),
 		in.DepositStore,
 	)
-	return DepInjectOutput{
-		Keeper: k,
-		Module: NewAppModule(k, in.ChainSpec),
+
+	// TODO: this is hood as fuck.
+	if in.BeaconConfig.KZG.Implementation == "" {
+		in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
 	}
+
+	runtime, err := components.ProvideRuntime(
+		in.BeaconConfig,
+		in.ChainSpec,
+		in.Signer,
+		in.EngineClient,
+		in.KzgTrustedSetup,
+		storageBackend,
+		in.Environment.Logger,
+	)
+	if err != nil {
+		return DepInjectOutput{}, err
+	}
+
+	return DepInjectOutput{
+		Module: NewAppModule(runtime),
+	}, nil
 }
 
 // TODO: move this.

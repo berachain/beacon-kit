@@ -67,8 +67,14 @@ func (ee *Engine[
 	ExecutionPayloadT, ExecutionPayloadDenebT,
 ]) Start(
 	ctx context.Context,
-) {
-	go ee.ec.Start(ctx)
+) error {
+	go func() {
+		// TODO: handle better
+		if err := ee.ec.Start(ctx); err != nil {
+			panic(err)
+		}
+	}()
+	return nil
 }
 
 // Status returns error if the service is not considered healthy.
@@ -133,6 +139,13 @@ func (ee *Engine[
 			return nil, nil, err
 		}
 		return payloadID, latestValidHash, ErrBadBlockProduced
+	case jsonrpc.IsPreDefinedError(err):
+		// If we get a predefined JSON-RPC error, we will log it and
+		// return it.
+		ee.logger.Error("json-rpc execution error during forkchoice update",
+			"error", err,
+		)
+		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	case err != nil:
 		ee.logger.Error("undefined execution engine error", "error", err)
 		return nil, nil, err
@@ -247,6 +260,15 @@ func (ee *Engine[
 			return nil
 		}
 		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+	case errors.IsAny(err, context.Canceled, context.DeadlineExceeded):
+		if req.Optimistic {
+			ee.logger.Warn(
+				"context error during optimistic payload verification",
+				"error", err,
+			)
+			return nil
+		}
+		return err
 	}
 
 	// If we get any other error, we will just return it.
