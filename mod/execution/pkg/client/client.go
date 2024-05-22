@@ -59,15 +59,21 @@ type EngineClient[
 	// logger is the logger for the engine client.
 	logger log.Logger[any]
 
-	// engineCache is an all-in-one cache for data
-	// that are retrieved by the EngineClient.
-	engineCache *cache.EngineCache
-
 	// jwtSecret is the JWT secret for the execution client.
 	jwtSecret *jwt.Secret
 
+	// eth1ChainID is the chain ID of the execution client.
+	eth1ChainID *big.Int
+
+	// clientMetrics is the metrics for the engine client.
+	metrics *clientMetrics
+
 	// capabilities is a map of capabilities that the execution client has.
 	capabilities map[string]struct{}
+
+	// engineCache is an all-in-one cache for data
+	// that are retrieved by the EngineClient.
+	engineCache *cache.EngineCache
 
 	// statusErrCond is a condition variable for the status error.
 	statusErrCond *sync.Cond
@@ -80,8 +86,6 @@ type EngineClient[
 
 	// IPC
 	ipcListener net.Listener
-
-	eth1ChainID *big.Int
 }
 
 // New creates a new engine client EngineClient.
@@ -91,6 +95,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
+	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadDenebT] {
 	statusErrMu := new(sync.RWMutex)
@@ -104,6 +109,7 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 		statusErrCond: sync.NewCond(statusErrMu),
 		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:   eth1ChainID,
+		metrics:       newClientMetrics(telemetrySink, logger),
 	}
 }
 
@@ -189,8 +195,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 }
 
 // ============================== HELPERS ==============================
-
-// ================================ Setup ==============================
 
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
@@ -431,7 +435,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	}()
 }
 
-// ================================ info ================================
+// ================================ Info ================================
 
 // status returns the status of the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) status(

@@ -36,7 +36,7 @@ import (
 // engineMetrics is a struct that contains metrics for the engine.
 type engineMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	TelemetrySink
+	sink TelemetrySink
 
 	// logger is the logger for the engineMetrics.
 	logger log.Logger[any]
@@ -44,12 +44,12 @@ type engineMetrics struct {
 
 // newEngineMetrics creates a new engineMetrics.
 func newEngineMetrics(
-	ts TelemetrySink,
+	sink TelemetrySink,
 	logger log.Logger[any],
 ) *engineMetrics {
 	return &engineMetrics{
-		TelemetrySink: ts,
-		logger:        logger,
+		sink:   sink,
+		logger: logger,
 	}
 }
 
@@ -66,7 +66,7 @@ func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 		"is-optimistic", isOptimistic,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.new_payload_accepted_syncing_payload_status",
 		"payload_block_hash",
 		payloadHash.Hex(),
@@ -88,7 +88,7 @@ func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 		"is-optimistic", isOptimistic,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.new_payload_invalid_payload_status",
 		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
@@ -111,7 +111,7 @@ func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 		"error", err,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.new_payload_json_rpc_error",
 		"payload_block_hash", payloadHash.Hex(),
 		"last_valid_hash", lastValidHash.Hex(),
@@ -134,7 +134,7 @@ func (em *engineMetrics) MarkNewPayloadUndefinedError(
 		"error", err,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.new_payload_undefined_error",
 		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
@@ -157,7 +157,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
 		state.FinalizedBlockHash,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.forkchoice_update_accepted_syncing",
 		"head_block_hash", state.HeadBlockHash.Hex(),
 		"safe_block_hash", state.SafeBlockHash.Hex(),
@@ -177,7 +177,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
 		"finalized-block-hash", state.FinalizedBlockHash,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.forkchoice_update_invalid",
 		"head_block_hash", state.HeadBlockHash.Hex(),
 		"safe_block_hash", state.SafeBlockHash.Hex(),
@@ -193,7 +193,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
 		"error", err,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.forkchoice_update_json_rpc_error",
 		"error", err.Error(),
 	)
@@ -208,7 +208,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateUndefinedError(err error) {
 		err,
 	)
 
-	em.TelemetrySink.IncrementCounter(
+	em.sink.IncrementCounter(
 		"beacon-kit.execution.engine.forkchoice_update_undefined_error",
 		"error", err.Error(),
 	)
