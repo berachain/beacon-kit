@@ -121,7 +121,6 @@ func (ee *Engine[
 		req.ForkVersion,
 	)
 	switch {
-
 	// We do not bubble the error up, since we want to handle it
 	// in the same way as the other cases.
 	case errors.IsAny(
@@ -219,7 +218,6 @@ func (ee *Engine[
 	// We abstract away some of the complexity and categorize status codes
 	// to make it easier to reason about.
 	switch {
-
 	// If we get accepted or syncing, we are going to optimistically
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
