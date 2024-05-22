@@ -36,8 +36,6 @@ type SpecData[
 ] struct {
 	// Eth1ChainID is the chain ID.
 	Eth1ChainID uint64 `mapstructure:"eth1-chain-id"`
-	// Eth1NetworkID is the network ID.
-	Eth1NetworkID uint64 `mapstructure:"eth1-network-id"`
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit

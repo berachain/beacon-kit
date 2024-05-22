@@ -51,7 +51,7 @@ type EngineClientInputs struct {
 	// it is not required when connecting to the execution client
 	// over IPC.
 	JWTSecret *jwt.Secret `optional:"true"`
-	primitives.ChainSpec
+	ChainSpec primitives.ChainSpec
 }
 
 // ProvideEngineClient creates a new EngineClient.
