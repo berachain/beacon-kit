@@ -37,43 +37,64 @@ USED_PORTS = {
 def launch_blutgang(
     plan,
     config_template,
-    participant_contexts,
-    participant_configs,
+    rpc_endpoints,
     network_params,
-    global_node_selectors,
 ):
     all_el_client_info = []
-    for index, participant in enumerate(participant_contexts):
-        full_name, _, el_client, _ = shared_utils.get_client_names(
-            participant, index, participant_contexts, participant_configs
-        )
-        all_el_client_info.append(
-            new_el_client_info(
-                el_client.ip_addr,
-                el_client.rpc_port_num,
-                el_client.ws_port_num,
-                full_name,
+    # for index, participant in enumerate(participant_contexts):
+    #     plan.print("index: ", index)
+    # # plan.print("participant_contexts: ", participant_contexts)
+    # # plan.print("participant: ", participant)
+    #     full_name, _, el_client, _ = shared_utils.get_client_names(
+    #         participant, index, participant_contexts, participant_configs
+    #     )
+    #     all_el_client_info.append(
+    #         new_el_client_info(
+    #             el_client.ip_addr,
+    #             el_client.rpc_port_num,
+    #             el_client.ws_port_num,
+    #             full_name,
+    #         )
+    #     )
+
+
+    for rpc_endpoint in rpc_endpoints:
+        plan.print("rpc_endpoint: ", str(rpc_endpoint))
+        for service in rpc_endpoint["services"]:
+            ip_address, port_number = service.split(":")
+            all_el_client_info.append(
+                new_el_client_info(
+                    ip_address,
+                    port_number,
+                    port_number,
+                    ip_address,
             )
         )
 
     template_data = new_config_template_data(
-        network_params.network, HTTP_PORT_NUMBER, all_el_client_info
+        network_params, HTTP_PORT_NUMBER, all_el_client_info
     )
 
-    template_and_data = shared_utils.new_template_and_data(
-        config_template, template_data
-    )
-    template_and_data_by_rel_dest_filepath = {}
-    template_and_data_by_rel_dest_filepath[BLUTGANG_CONFIG_FILENAME] = template_and_data
+    # template_and_data = shared_utils.new_template_and_data(
+    #     config_template, template_data
+    # )
+    # template_and_data_by_rel_dest_filepath = {}
+    # template_and_data_by_rel_dest_filepath[BLUTGANG_CONFIG_FILENAME] = template_and_data
 
+    # config_files_artifact_name = plan.render_templates(
+    #     template_and_data_by_rel_dest_filepath, "blutgang-config"
+    # )
     config_files_artifact_name = plan.render_templates(
-        template_and_data_by_rel_dest_filepath, "blutgang-config"
+        config = {
+            BLUTGANG_CONFIG_FILENAME: struct(
+                template = config_template,
+                data = template_data,
+            ),
+        },
     )
-
     config = get_config(
         config_files_artifact_name,
         network_params,
-        global_node_selectors,
     )
 
     plan.add_service(SERVICE_NAME, config)
@@ -82,7 +103,6 @@ def launch_blutgang(
 def get_config(
     config_files_artifact_name,
     network_params,
-    node_selectors,
 ):
     config_file_path = shared_utils.path_join(
         BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE,
@@ -100,7 +120,6 @@ def get_config(
         max_cpu=MAX_CPU,
         min_memory=MIN_MEMORY,
         max_memory=MAX_MEMORY,
-        node_selectors=node_selectors,
         ready_conditions=ReadyCondition(
             recipe=GetHttpRequestRecipe(
                 port_id="admin",

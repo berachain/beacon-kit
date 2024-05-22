@@ -43,6 +43,9 @@ validators:
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
 full_nodes:
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
   - el_type: reth
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
@@ -51,9 +54,6 @@ full_nodes:
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
     replicas: 1
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
   - el_type: besu
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
@@ -82,3 +82,4 @@ additional_services:
   - "prometheus"
   - "grafana"
   - "pyroscope"
+  - "blutgang"

@@ -137,15 +137,16 @@ def run(plan, validators, full_nodes = [], rpc_endpoints = [], boot_sequence = {
             )
             plan.print("Successfully launched goomy the blob spammer")
         elif s == "blutgang":
-            plan.print("Launghing blutgang")
+            plan.print("Launching blutgang")
             blutgang_config_template = read_file(
-                constants.BLUTGANG_CONFIG_TEMPLATE_PATH
+                constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH
             )
+            plan.print("full_node_el_clients: {}".format(full_node_el_clients))
             blutgang.launch_blutgang(
                 plan,
                 blutgang_config_template,
-                constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx").ports["http"].url,
+                rpc_endpoints,
+                "kurtosis",
             )
         elif s == "tx-fuzz":
             plan.print("Launching tx-fuzz")
