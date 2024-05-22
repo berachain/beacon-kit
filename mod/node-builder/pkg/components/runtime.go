@@ -211,7 +211,7 @@ func ProvideRuntime(
 
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
-		service.WithLogger(logger.With("module", "service-registry")),
+		service.WithLogger(logger.With("service", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
@@ -226,10 +226,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	](
 		chainSpec,
-		logger.With(
-			"module",
-			"beacon-kit.runtime",
-		),
+		logger,
 		svcRegistry,
 		storageBackend,
 	)
