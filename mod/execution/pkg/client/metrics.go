@@ -35,7 +35,6 @@ import (
 type clientMetrics struct {
 	// TelemetrySink is the sink for the metrics.
 	sink TelemetrySink
-
 	// logger is the logger for the engineMetrics.
 	logger log.Logger[any]
 }

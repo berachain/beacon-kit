@@ -53,13 +53,10 @@ func DefaultConfig() *Config {
 type Config struct {
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
-
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
-
 	// PayloadBuilder is the configuration for the local build payload timeout.
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
-
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
 }

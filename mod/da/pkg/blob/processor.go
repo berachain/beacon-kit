@@ -42,13 +42,10 @@ type Processor[
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
-
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec primitives.ChainSpec
-
 	// verifier is responsible for verifying the blobs.
 	verifier *Verifier
-
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64

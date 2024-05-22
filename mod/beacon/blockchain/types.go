@@ -94,13 +94,9 @@ type StorageBackend[
 	DepositStoreT DepositStore,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(
-		context.Context,
-	) AvailabilityStoreT
-
+	AvailabilityStore(context.Context) AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
-
 	// DepositStore returns the deposit store for the given context.
 	DepositStore(context.Context) DepositStoreT
 }
@@ -137,7 +133,6 @@ type DepositContract interface {
 type DepositStore interface {
 	// PruneToIndex prunes the deposit store up to the specified index.
 	PruneToIndex(index uint64) error
-
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
 }
@@ -149,14 +144,12 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
@@ -189,14 +182,7 @@ type StateProcessor[
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.
-	ProcessSlot(
-		st BeaconStateT,
-	) error
-
+	ProcessSlot(st BeaconStateT) error
 	// Transition processes the state transition for a given block.
-	Transition(
-		ctx ContextT,
-		st BeaconStateT,
-		blk BeaconBlockT,
-	) error
+	Transition(ctx ContextT, st BeaconStateT, blk BeaconBlockT) error
 }
