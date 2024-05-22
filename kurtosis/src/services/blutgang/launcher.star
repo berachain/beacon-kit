@@ -32,21 +32,19 @@ USED_PORTS = {
     ),
 }
 
-
 def launch_blutgang(
-    plan,
-    config_template,
-    full_node_el_clients,
-    network_params,
-):
+        plan,
+        config_template,
+        full_node_el_clients,
+        network_params):
     all_el_client_info = []
     for full_node_el_client in full_node_el_clients:
-        plan.print("full_node_el_client: ", str(full_node_el_client))   
-        rpc_port = full_node_el_client['service'].ports["eth-json-rpc"].number
+        plan.print("full_node_el_client: ", str(full_node_el_client))
+        rpc_port = full_node_el_client["service"].ports["eth-json-rpc"].number
         plan.print("rpc_port: ", str(rpc_port))
-        ws_port = full_node_el_client['service'].ports['eth-json-rpc-ws'].number
-        name = full_node_el_client['name']
-        ip_address = full_node_el_client['service'].ip_address
+        ws_port = full_node_el_client["service"].ports["eth-json-rpc-ws"].number
+        name = full_node_el_client["name"]
+        ip_address = full_node_el_client["service"].ip_address
 
         all_el_client_info.append(
             new_el_client_info(
@@ -54,11 +52,13 @@ def launch_blutgang(
                 rpc_port,
                 ws_port,
                 name,
-            )
+            ),
         )
 
     template_data = new_config_template_data(
-        network_params, HTTP_PORT_NUMBER, all_el_client_info
+        network_params,
+        HTTP_PORT_NUMBER,
+        all_el_client_info,
     )
 
     config_files_artifact_name = plan.render_templates(
@@ -76,38 +76,35 @@ def launch_blutgang(
 
     plan.add_service(SERVICE_NAME, config)
 
-
 def get_config(
-    config_files_artifact_name,
-    network_params,
-):
+        config_files_artifact_name,
+        network_params):
     config_file_path = shared_utils.path_join(
         BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE,
         BLUTGANG_CONFIG_FILENAME,
     )
 
     return ServiceConfig(
-        image=IMAGE_NAME,
-        ports=USED_PORTS,
-        files={
+        image = IMAGE_NAME,
+        ports = USED_PORTS,
+        files = {
             BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE: config_files_artifact_name,
         },
-        cmd=["/app/blutgang", "-c", config_file_path],
-        min_cpu=MIN_CPU,
-        max_cpu=MAX_CPU,
-        min_memory=MIN_MEMORY,
-        max_memory=MAX_MEMORY,
-        ready_conditions=ReadyCondition(
-            recipe=GetHttpRequestRecipe(
-                port_id="admin",
-                endpoint="/ready",
+        cmd = ["/app/blutgang", "-c", config_file_path],
+        min_cpu = MIN_CPU,
+        max_cpu = MAX_CPU,
+        min_memory = MIN_MEMORY,
+        max_memory = MAX_MEMORY,
+        ready_conditions = ReadyCondition(
+            recipe = GetHttpRequestRecipe(
+                port_id = "admin",
+                endpoint = "/ready",
             ),
-            field="code",
-            assertion="==",
-            target_value=200,
+            field = "code",
+            assertion = "==",
+            target_value = 200,
         ),
     )
-
 
 def new_config_template_data(network, listen_port_num, el_client_info):
     return {
@@ -115,7 +112,6 @@ def new_config_template_data(network, listen_port_num, el_client_info):
         "ListenPortNum": listen_port_num,
         "ELClientInfo": el_client_info,
     }
-
 
 def new_el_client_info(ip_addr, rpc_port_num, ws_port_num, full_name):
     return {
