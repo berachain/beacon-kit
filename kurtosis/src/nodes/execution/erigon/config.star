@@ -89,7 +89,7 @@ CMD = [
     "--metrics.port",
     "{}".format(METRICS_PORT_NUM),
     "--networkid",
-    "80087",
+    "80086",
     "--db.size.limit={}MB".format(3000),
 ]
 BOOTNODE_CMD = "--bootnodes"
