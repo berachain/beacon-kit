@@ -206,22 +206,6 @@ func (ee *Engine[
 	// We abstract away some of the complexity and categorize status codes
 	// to make it easier to reason about.
 	switch {
-	// If we get invalid payload status, we will need to find a valid
-	// ancestor block and force a recovery.
-	//
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
-		ee.logger.Error(
-			"invalid payload status",
-			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
-		)
-		return ErrBadBlockProduced
-
 	// If we get accepted or syncing, we are going to optimistically
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
@@ -243,6 +227,22 @@ func (ee *Engine[
 			return nil
 		}
 		return err
+
+	// If we get invalid payload status, we will need to find a valid
+	// ancestor block and force a recovery.
+	//
+	// These two cases are semantically the same:
+	// https://github.com/ethereum/execution-apis/issues/270
+	case errors.IsAny(
+		err,
+		engineerrors.ErrInvalidPayloadStatus,
+		engineerrors.ErrInvalidBlockHashPayloadStatus,
+	):
+		ee.logger.Error(
+			"invalid payload status",
+			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
+		)
+		return ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		var (
