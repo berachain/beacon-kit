@@ -47,7 +47,7 @@ func LocalnetChainSpec() chain.Spec[
 			common.ExecutionAddress,
 			math.Slot,
 		]{
-			Eth1ChainID: uint64(80087),
+			Eth1ChainID: uint64(80086),
 			// // Gwei value constants.
 			MinDepositAmount:          uint64(1e9),
 			MaxEffectiveBalance:       uint64(32e9),
