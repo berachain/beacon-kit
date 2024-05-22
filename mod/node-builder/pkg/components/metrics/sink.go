@@ -42,9 +42,8 @@ func NewTelemetrySink() TelemetrySink {
 // IncrementCounter increments a counter metric identified by the provided
 // keys.
 //
-//nolint:mnd
+//nolint:mnd // trivial.
 func (TelemetrySink) IncrementCounter(key string, args ...string) {
-
 	labels := make([]metrics.Label, len(args)/2)
 	for i := 0; i < len(args); i += 2 {
 		labels[i/2] = metrics.Label{
@@ -58,7 +57,7 @@ func (TelemetrySink) IncrementCounter(key string, args ...string) {
 // SetGauge sets a gauge metric to the specified value, identified by the
 // provided keys.
 //
-//nolint:mnd
+//nolint:mnd // trivial.
 func (TelemetrySink) SetGauge(key string, value int64, args ...string) {
 	labels := make([]metrics.Label, len(args)/2)
 	for i := 0; i < len(args); i += 2 {
