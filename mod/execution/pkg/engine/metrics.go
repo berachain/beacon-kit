@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX_License_Identifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -59,13 +59,13 @@ func (em *engineMetrics) MarkNewPayloadCalled(
 ) {
 	em.logger.Info(
 		"calling new payload",
-		"payload-block-hash", payload.GetBlockHash(),
-		"payload-parent-block-hash", payload.GetParentHash(),
-		"is-optimistic", isOptimistic,
+		"payload_block_hash", payload.GetBlockHash(),
+		"payload_parent_block_hash", payload.GetParentHash(),
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.new_payload",
+		"beacon_kit.execution.engine.new_payload",
 		"payload_block_hash", payload.GetBlockHash().Hex(),
 		"payload_parent_block_hash", payload.GetParentHash().Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
@@ -80,13 +80,13 @@ func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 ) {
 	em.errorLoggerFn(isOptimistic)(
 		"received accepted syncing payload status",
-		"payload-block-hash", payloadHash,
-		"parent-hash", payloadHash,
-		"is-optimistic", isOptimistic,
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.new_payload_accepted_syncing_payload_status",
+		"beacon_kit.execution.engine.new_payload_accepted_syncing_payload_status",
 		"payload_block_hash",
 		payloadHash.Hex(),
 		"is_optimistic",
@@ -102,19 +102,19 @@ func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 ) {
 	em.errorLoggerFn(isOptimistic)(
 		"received invalid payload status during new payload call",
-		"payload-block-hash", payloadHash,
-		"parent-hash", payloadHash,
-		"is-optimistic", isOptimistic,
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.new_payload_invalid_payload_status",
+		"beacon_kit.execution.engine.new_payload_invalid_payload_status",
 		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
 
-// MarkNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
+// MarkNewPayloadJSONRPCError increments the counter for JSON_RPC errors.
 func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
@@ -122,16 +122,16 @@ func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received JSON-RPC error during new payload call",
-		"payload-block-hash", payloadHash,
-		"parent-hash", payloadHash,
-		"last-valid-hash", lastValidHash,
-		"is-optimistic", isOptimistic,
+		"received JSON_RPC error during new payload call",
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"last_valid_hash", lastValidHash,
+		"is_optimistic", isOptimistic,
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.new_payload_json_rpc_error",
+		"beacon_kit.execution.engine.new_payload_json_rpc_error",
 		"payload_block_hash", payloadHash.Hex(),
 		"last_valid_hash", lastValidHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
@@ -147,14 +147,14 @@ func (em *engineMetrics) MarkNewPayloadUndefinedError(
 ) {
 	em.errorLoggerFn(isOptimistic)(
 		"received undefined error during new payload call",
-		"payload-block-hash", payloadHash,
-		"parent-hash", payloadHash,
-		"is-optimistic", isOptimistic,
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"is_optimistic", isOptimistic,
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.new_payload_undefined_error",
+		"beacon_kit.execution.engine.new_payload_undefined_error",
 		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
@@ -175,7 +175,7 @@ func (em *engineMetrics) MarkNotifyForkchoiceUpdateCalled(
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.forkchoice_update",
+		"beacon_kit.execution.engine.forkchoice_update",
 		"head_block_hash", state.HeadBlockHash.Hex(),
 		"safe_block_hash", state.SafeBlockHash.Hex(),
 		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
@@ -190,16 +190,16 @@ func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
 ) {
 	em.errorLoggerFn(true)(
 		"received accepted syncing payload status during forkchoice update call",
-		"head-block-hash",
+		"head_block_hash",
 		state.HeadBlockHash,
-		"safe-block-hash",
+		"safe_block_hash",
 		state.SafeBlockHash,
-		"finalized-block-hash",
+		"finalized_block_hash",
 		state.FinalizedBlockHash,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.forkchoice_update_accepted_syncing",
+		"beacon_kit.execution.engine.forkchoice_update_accepted_syncing",
 		"head_block_hash", state.HeadBlockHash.Hex(),
 		"safe_block_hash", state.SafeBlockHash.Hex(),
 		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
@@ -213,29 +213,29 @@ func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
 ) {
 	em.logger.Error(
 		"received invalid payload status during forkchoice update call",
-		"head-block-hash", state.HeadBlockHash,
-		"safe-block-hash", state.SafeBlockHash,
-		"finalized-block-hash", state.FinalizedBlockHash,
+		"head_block_hash", state.HeadBlockHash,
+		"safe_block_hash", state.SafeBlockHash,
+		"finalized_block_hash", state.FinalizedBlockHash,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.forkchoice_update_invalid",
+		"beacon_kit.execution.engine.forkchoice_update_invalid",
 		"head_block_hash", state.HeadBlockHash.Hex(),
 		"safe_block_hash", state.SafeBlockHash.Hex(),
 		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
 	)
 }
 
-// MarkForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
+// MarkForkchoiceUpdateJSONRPCError increments the counter for JSON_RPC errors
 // during forkchoice updates.
 func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
-		"received json-rpc error during forkchoice update call",
+		"received json_rpc error during forkchoice update call",
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.forkchoice_update_json_rpc_error",
+		"beacon_kit.execution.engine.forkchoice_update_json_rpc_error",
 		"error", err.Error(),
 	)
 }
@@ -250,7 +250,7 @@ func (em *engineMetrics) MarkForkchoiceUpdateUndefinedError(err error) {
 	)
 
 	em.sink.IncrementCounter(
-		"beacon-kit.execution.engine.forkchoice_update_undefined_error",
+		"beacon_kit.execution.engine.forkchoice_update_undefined_error",
 		"error", err.Error(),
 	)
 }
