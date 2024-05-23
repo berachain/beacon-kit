@@ -263,12 +263,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	}
 
 	s.logger.Info("beacon block assembled 🎉",
-		"slot",
-		requestedSlot,
-		"state-root",
-		blk.GetStateRoot(),
-		"duration",
-		time.Since(startTime).String(),
+		"slot", requestedSlot,
+		"state-root", blk.GetStateRoot(),
+		"duration", time.Since(startTime).String(),
 	)
 
 	return blk, sidecars, nil
