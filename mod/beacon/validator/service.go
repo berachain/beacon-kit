@@ -149,7 +149,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	var (
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
-		g, gCtx   = errgroup.WithContext(ctx)
+		g, _      = errgroup.WithContext(ctx)
 	)
 
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
@@ -238,16 +238,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel.
-	reveal, err := s.randaoProcessor.BuildReveal(st)
-	if err != nil {
-		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
-	}
-
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
-
 	// Dequeue deposits from the state.
 	deposits, err := s.ds.ExpectedDeposits(
 		s.chainSpec.MaxDepositsPerBlock(),
@@ -279,16 +269,32 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Produce block sidecars.
 	g.Go(func() error {
 		var sidecarErr error
-		sidecars, sidecarErr = s.BuildSidecars(
+		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
 			blk,
 			envelope.GetBlobsBundle(),
 		)
 		return sidecarErr
 	})
 
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel.
+	reveal, err := s.randaoProcessor.BuildReveal(st)
+	if err != nil {
+		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
 	// Set the state root on the BeaconBlock.
 	g.Go(func() error {
-		return s.SetBlockStateRoot(gCtx, st, blk)
+		// Compute the state root for the block.
+		stateRoot, err := s.computeStateRoot(ctx, st, blk)
+		if err != nil {
+			return err
+		}
+		blk.SetStateRoot(stateRoot)
+		return nil
 	})
 
 	if err = g.Wait(); err != nil {
@@ -298,9 +304,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	s.logger.Info("beacon block assembled 🎉",
 		"slot",
 		requestedSlot,
-		"duration",
 		"state-root",
 		blk.GetStateRoot(),
+		"duration",
 		time.Since(startTime).String(),
 	)
 

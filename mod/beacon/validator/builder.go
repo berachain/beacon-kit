@@ -88,16 +88,6 @@ func (s *Service[
 	return nil
 }
 
-// BuildBlockBody assembles a fully formed block body.
-func (s *Service[
-	BeaconStateT,
-	BlobSidecarsT,
-]) BuildSidecars(
-	blk types.BeaconBlock, blobsBundle engineprimitives.BlobsBundle,
-) (BlobSidecarsT, error) {
-	return s.blobFactory.BuildSidecars(blk, blobsBundle)
-}
-
 func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
