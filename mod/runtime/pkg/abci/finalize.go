@@ -38,27 +38,17 @@ import (
 func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
-	// Extract the beacon block from the ABCI request.
-	blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		req,
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
 		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
 			math.Slot(req.Height),
-		),
-	)
-	if err != nil {
-		return err
-	}
-
-	blobSideCars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](
-		req,
-		BlobSidecarsTxIndex,
-	)
+		))
 	if err != nil {
 		return err
 	}
 
 	// Processing the incoming beacon block and blobs.
-	return h.chainService.ProcessStateTransition(ctx, blk, blobSideCars)
+	return h.chainService.ProcessStateTransition(ctx, blk, blobs)
 }
