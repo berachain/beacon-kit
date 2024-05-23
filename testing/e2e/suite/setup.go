@@ -330,7 +330,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	var finalBlockNum uint64
 	for finalBlockNum < target {
 		var finalBlockInHex hexutil.Uint64
-		err := s.loadBalancer.Client.Client().CallContext(
+		err := s.JSONRPCBalancer().Client.Client().CallContext(
 			cctx, &finalBlockInHex, "eth_blockNumber")
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
