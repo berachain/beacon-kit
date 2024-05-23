@@ -82,7 +82,7 @@ type SpecData[
 	//
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
-	// DepositEth1ChainID is the chain ID.
+	// DepositEth1ChainID is the chain ID of the execution client.
 	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
 
 	// Fork-related values.

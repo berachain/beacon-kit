@@ -177,13 +177,6 @@ func NewChainSpec[
 	}
 }
 
-// DepositEth1ChainID returns the chain ID.
-func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-]) DepositEth1ChainID() uint64 {
-	return c.Data.DepositEth1ChainID
-}
-
 // MinDepositAmount returns the minimum deposit amount required.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
@@ -295,6 +288,13 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DepositContractAddress() ExecutionAddressT {
 	return c.Data.DepositContractAddress
+}
+
+// DepositEth1ChainID returns the chain ID of the execution chain.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DepositEth1ChainID() uint64 {
+	return c.Data.DepositEth1ChainID
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.
