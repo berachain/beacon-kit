@@ -126,4 +126,10 @@ type StateProcessor[
 	ProcessSlot(
 		st BeaconStateT,
 	) error
+
+	Transition(
+		ctx ContextT,
+		st BeaconStateT,
+		blk types.BeaconBlock,
+	) error
 }
