@@ -45,9 +45,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
 			Context:             ctx,
+			OptimisticEngine:    true,
 			SkipPayloadIfExists: true,
 			SkipValidateResult:  true,
-			OptimisticEngine:    true,
+			SkipValidateRandao:  true,
 		},
 		st, blk,
 	); err != nil {

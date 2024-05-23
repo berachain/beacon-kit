@@ -266,7 +266,9 @@ func (sp *StateProcessor[
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(st, blk, false); err != nil {
+	if err := sp.processRandaoReveal(
+		st, blk, ctx.GetSkipValidateRandao(),
+	); err != nil {
 		return err
 	}
 
