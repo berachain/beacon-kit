@@ -55,6 +55,5 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 		return primitives.Root{}, err
 	}
 
-	// TODO: we are doing this within state_transition rn, optimize.
 	return st.HashTreeRoot()
 }
