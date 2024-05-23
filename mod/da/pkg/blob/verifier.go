@@ -35,10 +35,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Verifier is a verifier for blobs.
+// Verifier is responsible for verifying blobs, including their
+// inclusion and KZG proofs.
 type Verifier struct {
+	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
-
+	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 }
 
