@@ -51,7 +51,6 @@ func (pm *processorMetrics) measureProcessBlobsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 ) {
-	// TODO: Add NumBlobs
 	pm.sink.MeasureSince(
 		"beacon_kit.da.blob.processor.process_blob_duration",
 		startTime,
