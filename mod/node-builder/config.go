@@ -83,5 +83,6 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	cfg.TxIndex.Indexer = "null"
 	cfg.Mempool.Type = "nop"
 	cfg.Storage.DiscardABCIResponses = true
+	cfg.Instrumentation.Prometheus = true
 	return cfg
 }

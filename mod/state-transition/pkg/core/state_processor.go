@@ -266,7 +266,9 @@ func (sp *StateProcessor[
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(st, blk); err != nil {
+	if err := sp.processRandaoReveal(
+		st, blk, ctx.GetSkipVerifyRandao(),
+	); err != nil {
 		return err
 	}
 
@@ -279,7 +281,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if ctx.GetValidateResult() {
+	if !ctx.GetSkipValidateResult() {
 		// Ensure the state root matches the block.
 		//
 		// TODO: We need to validate this in ProcessProposal as well.

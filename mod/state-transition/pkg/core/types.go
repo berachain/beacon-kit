@@ -92,9 +92,9 @@ type BeaconBlockBody interface {
 type Context interface {
 	context.Context
 
-	// GetValidateResult returns whether to validate the result of the state
+	// GetValidGetSkipValidateResultateResult returns whether to validate the result of the state
 	// transition.
-	GetValidateResult() bool
+	GetSkipValidateResult() bool
 
 	// GetSkipPayloadIfExists returns whether to skip verifying the payload if
 	// it already exists on the execution client.
@@ -104,6 +104,9 @@ type Context interface {
 	// execution client has the correct state when certain errors are returned
 	// by the execution engine.
 	GetOptimisticEngine() bool
+
+	// GetSkipVerifyRandao returns whether to skip verifying the RANDAO reveal.
+	GetSkipVerifyRandao() bool
 
 	// Unwrap returns the underlying golang standard library context.
 	Unwrap() context.Context
@@ -124,8 +127,9 @@ type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	// ProcessRandao processes the RANDAO reveal and ensures it
 	// matches the local state.
 	ProcessRandao(
-		BeaconStateT,
-		BeaconBlockT,
+		st BeaconStateT,
+		blk BeaconBlockT,
+		skipVerification bool,
 	) error
 
 	// ProcessRandaoMixesReset resets the RANDAO mixes as defined

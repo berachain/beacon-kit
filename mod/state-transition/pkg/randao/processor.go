@@ -74,6 +74,7 @@ func (p *Processor[
 ]) ProcessRandao(
 	st BeaconStateT,
 	blk BeaconBlockT,
+	skipVerification bool,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -92,18 +93,21 @@ func (p *Processor[
 	}
 
 	epoch := p.chainSpec.SlotToEpoch(slot)
-	signingRoot, err := p.computeSigningRoot(epoch, root)
-	if err != nil {
-		return err
-	}
-
 	body := blk.GetBody()
-	reveal := body.GetRandaoReveal()
-	if err = p.signer.VerifySignature(
-		proposer.Pubkey,
-		signingRoot[:],
-		reveal,
-	); err != nil {
+	if !skipVerification {
+		signingRoot, err := p.computeSigningRoot(epoch, root)
+		if err != nil {
+			return err
+		}
+
+		reveal := body.GetRandaoReveal()
+		if err = p.signer.VerifySignature(
+			proposer.Pubkey,
+			signingRoot[:],
+			reveal,
+		); err != nil {
+
+		}
 		return err
 	}
 
