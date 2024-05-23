@@ -279,19 +279,22 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if ctx.GetValidateResult() {
-		// Ensure the state root matches the block.
-		//
-		// TODO: We need to validate this in ProcessProposal as well.
-		if stateRoot, err := st.HashTreeRoot(); err != nil {
-			return err
-		} else if blk.GetStateRoot() != stateRoot {
-			return errors.Wrapf(
-				ErrStateRootMismatch, "expected %s, got %s",
-				primitives.Root(stateRoot), blk.GetStateRoot(),
-			)
-		}
+	if ctx.GetSkipValidateResult() {
+		return nil
 	}
+
+	// Ensure the state root matches the block.
+	//
+	// TODO: We need to validate this in ProcessProposal as well.
+	if stateRoot, err := st.HashTreeRoot(); err != nil {
+		return err
+	} else if blk.GetStateRoot() != stateRoot {
+		return errors.Wrapf(
+			ErrStateRootMismatch, "expected %s, got %s",
+			primitives.Root(stateRoot), blk.GetStateRoot(),
+		)
+	}
+
 	return nil
 }
 

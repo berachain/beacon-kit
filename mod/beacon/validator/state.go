@@ -46,6 +46,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 		&transition.Context{
 			Context:             ctx,
 			SkipPayloadIfExists: true,
+			SkipValidateResult:  true,
 			OptimisticEngine:    true,
 		},
 		st, blk,

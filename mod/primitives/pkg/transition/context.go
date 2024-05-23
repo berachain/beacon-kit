@@ -31,9 +31,9 @@ import "context"
 type Context struct {
 	context.Context
 
-	// ValidateResult indicates whether to validate the result of
+	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
-	ValidateResult bool
+	SkipValidateResult bool
 
 	// SkipPayloadIfExists indicates whether to skip verifying
 	// the payload if it already exists on the execution client.
@@ -45,10 +45,10 @@ type Context struct {
 	OptimisticEngine bool
 }
 
-// GetValidateResult returns whether to validate the result of the state
+// GetSkipValidateResult returns whether to validate the result of the state
 // transition.
-func (c *Context) GetValidateResult() bool {
-	return c.ValidateResult
+func (c *Context) GetSkipValidateResult() bool {
+	return c.SkipValidateResult
 }
 
 // GetSkipPayloadIfExists returns whether to skip verifying the payload if it

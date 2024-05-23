@@ -92,9 +92,9 @@ type BeaconBlockBody interface {
 type Context interface {
 	context.Context
 
-	// GetValidateResult returns whether to validate the result of the state
+	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
-	GetValidateResult() bool
+	GetSkipValidateResult() bool
 
 	// GetSkipPayloadIfExists returns whether to skip verifying the payload if
 	// it already exists on the execution client.
