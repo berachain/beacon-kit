@@ -55,5 +55,4 @@ const (
 	// Validator Config.
 	validatorRoot = beaconKitRoot + "validator."
 	SignerType    = validatorRoot + "signer-type"
-	privKey       = validatorRoot + "priv-key" // for legacy signer
 )

@@ -30,8 +30,6 @@ const (
 	defaultGraffiti = ""
 	// defaultSignerType is the default signer type.
 	defaultSignerType = "bls"
-	// defaultPrivKey is the default private key for the legacy signer.
-	defaultPrivKey = ""
 )
 
 // Config is the validator configuration.
@@ -43,9 +41,6 @@ type Config struct {
 	// SignerType is the type of the signer to use.
 	// It can be either "bls" or "legacy" (or "remote" in the future).
 	SignerType string `mapstructure:"signer-type"`
-
-	// privKey is the private key for the legacy signer.
-	PrivKey string
 }
 
 // DefaultConfig returns the default fork configuration.
@@ -53,6 +48,5 @@ func DefaultConfig() Config {
 	return Config{
 		Graffiti:   defaultGraffiti,
 		SignerType: defaultSignerType,
-		PrivKey:    defaultPrivKey,
 	}
 }
