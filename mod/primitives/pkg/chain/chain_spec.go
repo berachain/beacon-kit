@@ -32,8 +32,6 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
-	SyncCommitteeSize() uint64
-
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -54,6 +52,9 @@ type Spec[
 	SlotsPerEpoch() uint64
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
+
+	// ValidatorSet parameters.
+	SyncCommitteeSize() uint64
 
 	// Signature Domains
 	//
@@ -176,13 +177,6 @@ func NewChainSpec[
 	}
 }
 
-// SyncCommittee returns the size of the sync committee.
-func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-]) SyncCommitteeSize() uint64 {
-	return c.Data.SyncCommitteeSize
-}
-
 // DepositEth1ChainID returns the chain ID.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
@@ -287,6 +281,13 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DomainTypeApplicationMask() DomainTypeT {
 	return c.Data.DomainTypeApplicationMask
+}
+
+// SyncCommittee returns the size of the sync committee.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) SyncCommitteeSize() uint64 {
+	return c.Data.SyncCommitteeSize
 }
 
 // DepositContractAddress returns the address of the deposit contract.
