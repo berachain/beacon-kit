@@ -24,10 +24,16 @@ METRICS_PORT_ID = "metrics"
 # DEFAULT_MIN_MEMORY = 4096
 
 # 2x resources
-DEFAULT_MAX_CPU = 4000
-DEFAULT_MAX_MEMORY = 16384
-DEFAULT_MIN_CPU = 4000
-DEFAULT_MIN_MEMORY = 16384
+# DEFAULT_MAX_CPU = 4000
+# DEFAULT_MAX_MEMORY = 16384
+# DEFAULT_MIN_CPU = 4000
+# DEFAULT_MIN_MEMORY = 16384
+
+# 4x resources
+DEFAULT_MAX_CPU = 8000
+DEFAULT_MAX_MEMORY = 32768
+DEFAULT_MIN_CPU = 8000
+DEFAULT_MIN_MEMORY = 32768
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
