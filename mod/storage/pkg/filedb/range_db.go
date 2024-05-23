@@ -38,7 +38,7 @@ import (
 // two is a constant for the number 2.
 const two = 2
 
-// Compile-time assertion of prunable interface
+// Compile-time assertion of prunable interface.
 var _ db.Prunable = (*RangeDB)(nil)
 
 // RangeDB is a database that stores versioned data.

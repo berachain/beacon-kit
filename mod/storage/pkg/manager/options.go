@@ -25,13 +25,23 @@
 
 package manager
 
-import "github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+import (
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+)
 
 type DBManagerOption func(*DBManager) error
 
 func WithPruner(p *pruner.Pruner) DBManagerOption {
 	return func(m *DBManager) error {
 		m.Pruners = append(m.Pruners, p)
+		return nil
+	}
+}
+
+func WithLogger(l log.Logger[any]) DBManagerOption {
+	return func(m *DBManager) error {
+		m.logger = l
 		return nil
 	}
 }

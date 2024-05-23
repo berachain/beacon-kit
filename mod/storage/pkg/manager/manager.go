@@ -28,6 +28,7 @@ package manager
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
@@ -35,14 +36,17 @@ import (
 // registry.
 type DBManager struct {
 	Pruners []*pruner.Pruner
+	logger  log.Logger[any]
 }
 
-func NewDBManager(opts ...DBManagerOption) *DBManager {
+func NewDBManager(opts ...DBManagerOption) (*DBManager, error) {
 	m := &DBManager{}
 	for _, opt := range opts {
-		opt(m)
+		if err := opt(m); err != nil {
+			return nil, err
+		}
 	}
-	return m
+	return m, nil
 }
 
 func (m *DBManager) Name() string {
@@ -55,8 +59,7 @@ func (m *DBManager) Status() error {
 }
 
 // TODO: fr implementation
-func (m *DBManager) WaitForHealthy(ctx context.Context) {
-
+func (m *DBManager) WaitForHealthy(_ context.Context) {
 }
 
 func (m *DBManager) Start(ctx context.Context) error {
@@ -72,7 +75,3 @@ func (m *DBManager) Notify(index uint64) {
 		pruner.Notify(index)
 	}
 }
-
-// func NewDBManager(pruners []interfaces.Pruner) *DBManager {
-// 	return &DBManager{Pruners: pruners}
-// }

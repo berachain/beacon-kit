@@ -28,16 +28,21 @@ package pruner
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 type Pruner struct {
 	notifier chan uint64
 	prunable interfaces.Prunable
+	logger   log.Logger[any]
 }
 
-func NewPruner(prunable interfaces.Prunable) *Pruner {
-	return &Pruner{prunable: prunable}
+func NewPruner(logger log.Logger[any], prunable interfaces.Prunable) *Pruner {
+	return &Pruner{
+		logger:   logger,
+		prunable: prunable,
+	}
 }
 
 func (p *Pruner) Start(ctx context.Context) {
@@ -47,7 +52,9 @@ func (p *Pruner) Start(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case index := <-p.notifier:
-				p.prunable.Prune(index)
+				if err := p.prunable.Prune(index); err != nil {
+					p.logger.Error("Error pruning", "error", err)
+				}
 			}
 		}
 	}()
@@ -55,4 +62,8 @@ func (p *Pruner) Start(ctx context.Context) {
 
 func (p *Pruner) Notify(index uint64) {
 	p.notifier <- index
+}
+
+func (p *Pruner) WithLogger(l log.Logger[any]) {
+	p.logger = l
 }

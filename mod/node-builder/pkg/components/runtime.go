@@ -192,15 +192,23 @@ func ProvideRuntime(
 		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
 	)
 
-	dbManagerService := manager.NewDBManager(
-		manager.WithPruner(
-			pruner.NewPruner(storageBackend.DepositStore(context.Background())),
-		),
+	depositPruner := pruner.NewPruner(
+		logger.With("service", "deposit-db-pruner"),
+		storageBackend.DepositStore(context.Background()),
+	)
+
+	dbManagerService, err := manager.NewDBManager(
+		manager.WithLogger(logger.With("service", "db-manager")),
+		manager.WithPruner(depositPruner),
 		// TODO: THIS DOESN'T WORK CAUSE AVS IS NIL WHEN WE GET HERE ??????
 		// manager.WithPruner(
-		// 	pruner.NewPruner(storageBackend.AvailabilityStore(context.Background()).IndexDB.(*filedb.RangeDB)), // TODO: hehe haha
+		// 	pruner.NewPruner(storageBackend.AvailabilityStore(
+		// 		context.Background()).IndexDB.(*filedb.RangeDB)),
 		// ),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
