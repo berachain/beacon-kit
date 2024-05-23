@@ -51,4 +51,9 @@ const (
 	kzgRoot             = beaconKitRoot + "kzg."
 	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
 	KZGImplementation   = kzgRoot + "implementation"
+
+	// Validator Config.
+	validatorRoot = beaconKitRoot + "validator."
+	SignerType    = validatorRoot + "signer-type"
+	privKey       = validatorRoot + "priv-key" // for legacy signer
 )

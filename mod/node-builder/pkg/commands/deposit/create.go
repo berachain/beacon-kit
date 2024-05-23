@@ -26,7 +26,6 @@
 package deposit
 
 import (
-	"encoding/hex"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -36,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -159,6 +157,7 @@ func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
+	supplies := []interface{}{viper.GetViper()}
 	// If the override node key flag is set, a validator private key must be
 	// provided.
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
@@ -169,41 +168,17 @@ func getBLSSigner(
 	// Build the BLS signer.
 	//nolint:nestif // complexity comes from parsing values
 	if overrideFlag {
-		var (
-			validatorPrivKey   string
-			validatorPrivKeyBz []byte
-		)
+		var validatorPrivKey string
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
 			return nil, err
 		}
-		if validatorPrivKey == "" {
-			return nil, ErrValidatorPrivateKeyRequired
-		}
-
-		validatorPrivKeyBz, err = hex.DecodeString(validatorPrivKey)
-		if err != nil {
-			return nil, err
-		}
-		if len(validatorPrivKeyBz) != constants.BLSSecretKeyLength {
-			return nil, ErrInvalidValidatorPrivateKeyLength
-		}
-
-		// creates a bls signer that signs with the specified private key
-		blsSigner, err = signer.NewGuestSigner(
-			[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
-		)
-		if err != nil {
-			return nil, err
-		}
-		return blsSigner, nil
+		supplies = append(supplies, validatorPrivKey)
 	}
 
 	if err = depinject.Inject(
 		depinject.Configs(
-			depinject.Supply(
-				viper.GetViper(),
-			),
+			depinject.Supply(supplies...),
 			depinject.Provide(
 				components.ProvideBlsSigner,
 			),

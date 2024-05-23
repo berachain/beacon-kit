@@ -25,16 +25,34 @@
 
 package validator
 
+const (
+	// defaultGraffiti is the default graffiti string.
+	defaultGraffiti = ""
+	// defaultSignerType is the default signer type.
+	defaultSignerType = "bls"
+	// defaultPrivKey is the default private key for the legacy signer.
+	defaultPrivKey = ""
+)
+
 // Config is the validator configuration.
 type Config struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
 	Graffiti string `mapstructure:"graffiti"`
+
+	// SignerType is the type of the signer to use.
+	// It can be either "bls" or "legacy" (or "remote" in the future).
+	SignerType string `mapstructure:"signer-type"`
+
+	// privKey is the private key for the legacy signer.
+	PrivKey string
 }
 
 // DefaultConfig returns the default fork configuration.
 func DefaultConfig() Config {
 	return Config{
-		Graffiti: "",
+		Graffiti:   defaultGraffiti,
+		SignerType: defaultSignerType,
+		PrivKey:    defaultPrivKey,
 	}
 }

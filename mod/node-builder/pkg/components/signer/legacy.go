@@ -32,38 +32,39 @@ import (
 	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
-type GuestSigner struct {
+// LegacySigner is a BLS12-381 signer that uses a bls.SecretKey for signing.
+type LegacySigner struct {
 	bls.SecretKey
 }
 
-// NewGuestSigner creates a new Signer instance given a secret key.
-func NewGuestSigner(
+// NewLegacySigner creates a new Signer instance given a secret key.
+func NewLegacySigner(
 	keyBz [constants.BLSSecretKeyLength]byte,
-) (*GuestSigner, error) {
+) (*LegacySigner, error) {
 	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
 	if err != nil {
 		return nil, err
 	}
-	return &GuestSigner{
+	return &LegacySigner{
 		SecretKey: secretKey,
 	}, nil
 }
 
 // PublicKey returns the public key of the signer.
-func (b *GuestSigner) PublicKey() crypto.BLSPubkey {
+func (b *LegacySigner) PublicKey() crypto.BLSPubkey {
 	return crypto.BLSPubkey(b.SecretKey.PublicKey().Marshal())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
-func (b *GuestSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
+func (b *LegacySigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }
 
 // VerifySignature verifies a signature for a given message using the signer's
 // public key.
-func (GuestSigner) VerifySignature(
+func (LegacySigner) VerifySignature(
 	pubKey crypto.BLSPubkey,
 	msg []byte,
 	signature crypto.BLSSignature,

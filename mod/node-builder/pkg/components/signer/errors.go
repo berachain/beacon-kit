@@ -28,4 +28,19 @@ package signer
 import "errors"
 
 // ErrInvalidSignature is returned when a signature is invalid.
-var ErrInvalidSignature = errors.New("invalid signature")
+var (
+	ErrInvalidSignature   = errors.New("invalid signature")
+	ErrInvalidSigningType = errors.New("invalid signing type")
+	ErrMissingPrivKey     = errors.New("missing private key for legacy signer")
+
+	// ErrValidatorPrivateKeyRequired is returned when the validator private key
+	// is required but not provided.
+	ErrValidatorPrivateKeyRequired = errors.New(
+		"validator private key required",
+	)
+	// ErrInvalidValidatorPrivateKeyLength is returned when the validator
+	// private key has an invalid length.
+	ErrInvalidValidatorPrivateKeyLength = errors.New(
+		"invalid validator private key length",
+	)
+)
