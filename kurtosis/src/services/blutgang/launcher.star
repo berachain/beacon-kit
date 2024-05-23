@@ -36,9 +36,14 @@ def launch_blutgang(
         plan,
         config_template,
         full_node_el_clients,
+        clients_from_user,
         network_params):
     all_el_client_info = []
+
+    # proceed with adding to all_el_client_info only if full_node_el_clients matches with clients_from_user
     for full_node_el_client in full_node_el_clients:
+        if full_node_el_client["name"] not in clients_from_user:
+            continue
         rpc_port = full_node_el_client["service"].ports["eth-json-rpc"].number
         ws_port = full_node_el_client["service"].ports["eth-json-rpc-ws"].number
         name = full_node_el_client["name"]
