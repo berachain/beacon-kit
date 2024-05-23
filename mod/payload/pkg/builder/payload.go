@@ -50,7 +50,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
 	// We first attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root. If we have, and we are able
 	// to retrieve it from our execution client, we can return it immediately.
-	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); !found {
+	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
 		if envelope, err := pb.getPayload(
 			ctx,
 			slot,

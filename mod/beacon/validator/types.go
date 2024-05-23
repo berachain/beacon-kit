@@ -115,18 +115,12 @@ type StateProcessor[
 	BeaconStateT BeaconState,
 	ContextT any,
 ] interface {
-	// ProcessBlock processes a given beacon block and updates the state
-	// accordingly.
-	ProcessBlock(
-		ctx ContextT,
-		st BeaconStateT,
-		blk types.BeaconBlock,
-	) error
 	// ProcessSlot processes the slot.
 	ProcessSlot(
 		st BeaconStateT,
 	) error
 
+	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
