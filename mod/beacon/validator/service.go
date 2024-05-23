@@ -289,7 +289,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// Set the state root on the BeaconBlock.
 	g.Go(func() error {
 		// Compute the state root for the block.
-		stateRoot, err := s.computeStateRoot(ctx, st, blk)
+		var stateRoot primitives.Root
+		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			return err
 		}

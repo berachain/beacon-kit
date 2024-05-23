@@ -45,19 +45,6 @@ type Context struct {
 	OptimisticEngine bool
 }
 
-// NewContext creates a new context for the state transition.
-func NewContext(
-	stdctx context.Context,
-	validateResult, skipIfPayloadIfExists, optimisticEngine bool,
-) *Context {
-	return &Context{
-		Context:             stdctx,
-		ValidateResult:      validateResult,
-		SkipPayloadIfExists: skipIfPayloadIfExists,
-		OptimisticEngine:    optimisticEngine,
-	}
-}
-
 // GetValidateResult returns whether to validate the result of the state
 // transition.
 func (c *Context) GetValidateResult() bool {
