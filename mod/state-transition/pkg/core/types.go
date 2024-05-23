@@ -55,16 +55,12 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BeaconBlock[BeaconBlockBodyT any] interface {
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
-
 	// GetSlot returns the slot number of the block.
 	GetSlot() math.Slot
-
 	// GetBody returns the body of the block.
 	GetBody() BeaconBlockBodyT
-
 	// GetParentBlockRoot returns the root of the parent block.
 	GetParentBlockRoot() common.Root
-
 	// GetStateRoot returns the state root of the block.
 	GetStateRoot() common.Root
 }
@@ -74,16 +70,12 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 type BeaconBlockBody interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
-
 	// GetExecutionPayload returns the execution payload.
 	GetExecutionPayload() types.ExecutionPayload
-
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []*types.Deposit
-
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() ([32]byte, error)
-
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
@@ -91,20 +83,19 @@ type BeaconBlockBody interface {
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
-
-	// GetValidateResult returns whether to validate the result of the state
-	// transition.
-	GetValidateResult() bool
-
-	// GetSkipPayloadIfExists returns whether to skip verifying the payload if
-	// it already exists on the execution client.
-	GetSkipPayloadIfExists() bool
-
 	// GetOptimisticEngine returns whether to optimistically assume the
 	// execution client has the correct state when certain errors are returned
 	// by the execution engine.
 	GetOptimisticEngine() bool
-
+	// GetSkipValidateRandao returns whether to skip validating the RANDAO
+	// reveal.
+	GetSkipValidateRandao() bool
+	// GetSkipValidateResult returns whether to validate the result of the state
+	// transition.
+	GetSkipValidateResult() bool
+	// GetSkipPayloadIfExists returns whether to skip verifying the payload if
+	// it already exists on the execution client.
+	GetSkipPayloadIfExists() bool
 	// Unwrap returns the underlying golang standard library context.
 	Unwrap() context.Context
 }
@@ -123,14 +114,8 @@ type ExecutionEngine interface {
 type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	// ProcessRandao processes the RANDAO reveal and ensures it
 	// matches the local state.
-	ProcessRandao(
-		BeaconStateT,
-		BeaconBlockT,
-	) error
-
+	ProcessRandao(BeaconStateT, BeaconBlockT, bool) error
 	// ProcessRandaoMixesReset resets the RANDAO mixes as defined
 	// in the Ethereum 2.0 specification.
-	ProcessRandaoMixesReset(
-		BeaconStateT,
-	) error
+	ProcessRandaoMixesReset(BeaconStateT) error
 }
