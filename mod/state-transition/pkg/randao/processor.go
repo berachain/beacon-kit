@@ -95,7 +95,8 @@ func (p *Processor[
 	epoch := p.chainSpec.SlotToEpoch(slot)
 	body := blk.GetBody()
 	if !skipVerification {
-		signingRoot, err := p.computeSigningRoot(epoch, root)
+		var signingRoot primitives.Root
+		signingRoot, err = p.computeSigningRoot(epoch, root)
 		if err != nil {
 			return err
 		}
@@ -106,9 +107,8 @@ func (p *Processor[
 			signingRoot[:],
 			reveal,
 		); err != nil {
-
+			return err
 		}
-		return err
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(

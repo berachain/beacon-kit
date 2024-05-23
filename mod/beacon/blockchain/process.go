@@ -72,6 +72,7 @@ func (s *Service[
 			&transition.Context{
 				Context:          gCtx,
 				OptimisticEngine: true,
+				ValidateResult:   true,
 			},
 			st,
 			blk,

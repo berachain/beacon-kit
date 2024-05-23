@@ -49,6 +49,7 @@ type Context struct {
 	SkipValidateResult bool
 }
 
+
 // GetValidateResult returns whether to validate the result of the state
 // transition.
 func (c *Context) GetSkipValidateResult() bool {

@@ -48,13 +48,13 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 			OptimisticEngine:       true,
 			SkipRandaoVerification: true,
 			SkipPayloadIfExists:    true,
-			SkipValidateResult:     true,
+			OptimisticEngine:       true,
 		},
 		st, blk,
 	); err != nil {
 		return primitives.Root{}, err
 	}
 
-	// TODO: we are doing this also in process slot rn, optimize.
+	// TODO: we are doing this within state_transition rn, optimize.
 	return st.HashTreeRoot()
 }
