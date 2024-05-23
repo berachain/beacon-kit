@@ -92,7 +92,11 @@ type BeaconBlockBody interface {
 type Context interface {
 	context.Context
 
+<<<<<<< HEAD
 	// GetValidGetSkipValidateResultateResult returns whether to validate the result of the state
+=======
+	// GetSkipValidateResult returns whether to validate the result of the state
+>>>>>>> fix-builder
 	// transition.
 	GetSkipValidateResult() bool
 

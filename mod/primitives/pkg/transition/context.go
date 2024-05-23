@@ -49,14 +49,11 @@ type Context struct {
 	SkipValidateResult bool
 }
 
-
-// GetValidateResult returns whether to validate the result of the state
-// transition.
+// GetSkipValidateResult returns whether to validate the result of the state
 func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
 }
 
-// GetSkipPayloadIfExists returns whether to skip verifying the payload if it
 // already exists on the execution client.
 func (c *Context) GetSkipPayloadIfExists() bool {
 	return c.SkipPayloadIfExists
