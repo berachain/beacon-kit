@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -52,8 +51,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	// TODO: Deprecate.
-	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -89,7 +86,6 @@ func NewBeaconKitApp(
 			),
 		),
 		&appBuilder,
-		&app.ConsensusParamsKeeper,
 	); err != nil {
 		panic(err)
 	}
