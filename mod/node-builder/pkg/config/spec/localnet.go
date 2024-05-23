@@ -47,7 +47,6 @@ func LocalnetChainSpec() chain.Spec[
 			common.ExecutionAddress,
 			math.Slot,
 		]{
-			Eth1ChainID: uint64(80086),
 			// // Gwei value constants.
 			MinDepositAmount:          uint64(1e9),
 			MaxEffectiveBalance:       uint64(32e9),
@@ -85,6 +84,7 @@ func LocalnetChainSpec() chain.Spec[
 			DepositContractAddress: common.HexToAddress(
 				"0x00000000219ab540356cbb839cbe05303d7705fa",
 			),
+			DepositEth1ChainID: uint64(80086),
 			// Fork-related values.
 			ElectraForkEpoch: 9999999999999999,
 			// State list length constants.
