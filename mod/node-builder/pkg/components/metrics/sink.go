@@ -75,6 +75,8 @@ func (TelemetrySink) MeasureSince(key string, start time.Time, args ...string) {
 }
 
 // argsToLabels converts a list of key-value pairs to a list of metrics labels.
+//
+//nolint:mnd // its okay.
 func argsToLabels(args ...string) []metrics.Label {
 	labels := make([]metrics.Label, len(args)/2)
 	for i := 0; i < len(args); i += 2 {

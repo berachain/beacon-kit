@@ -56,6 +56,6 @@ func (pm *processorMetrics) measureProcessBlobsDuration(
 		"beacon_kit.da.blob.processor.process_blob_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars),
+		string(numSidecars.String()),
 	)
 }
