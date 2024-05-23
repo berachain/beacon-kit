@@ -39,16 +39,21 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
-	if err := s.stateProcessor.ProcessBlock(
+	if err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
-		transition.NewContext(ctx, false, true, true),
+		&transition.Context{
+			Context:             ctx,
+			OptimisticEngine:    true,
+			SkipPayloadIfExists: true,
+			SkipValidateResult:  true,
+			SkipValidateRandao:  true,
+		},
 		st, blk,
 	); err != nil {
 		return primitives.Root{}, err
 	}
 
-	// TODO: we are doing this also in process slot rn, optimize.
 	return st.HashTreeRoot()
 }

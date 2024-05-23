@@ -31,37 +31,28 @@ import "context"
 type Context struct {
 	context.Context
 
-	// ValidateResult indicates whether to validate the result of
-	// the state transition.
-	ValidateResult bool
+	// OptimisticEngine indicates whether to optimistically assume
+	// the execution client has the correct state certain errors
+	// are returned by the execution engine.
+	OptimisticEngine bool
 
 	// SkipPayloadIfExists indicates whether to skip verifying
 	// the payload if it already exists on the execution client.
 	SkipPayloadIfExists bool
 
-	// OptimisticEngine indicates whether to optimistically assume
-	// the execution client has the correct state certain errors
-	// are returned by the execution engine.
-	OptimisticEngine bool
+	// SkipValidateRandao indicates whether to skip validating the Randao mix.
+	SkipValidateRandao bool
+
+	// SkipValidateResult indicates whether to validate the result of
+	// the state transition.
+	SkipValidateResult bool
 }
 
-// NewContext creates a new context for the state transition.
-func NewContext(
-	stdctx context.Context,
-	validateResult, skipIfPayloadIfExists, optimisticEngine bool,
-) *Context {
-	return &Context{
-		Context:             stdctx,
-		ValidateResult:      validateResult,
-		SkipPayloadIfExists: skipIfPayloadIfExists,
-		OptimisticEngine:    optimisticEngine,
-	}
-}
-
-// GetValidateResult returns whether to validate the result of the state
-// transition.
-func (c *Context) GetValidateResult() bool {
-	return c.ValidateResult
+// GetOptimisticEngine returns whether to optimistically assume the execution
+// client has the correct state when certain errors are returned by the
+// execution engine.
+func (c *Context) GetOptimisticEngine() bool {
+	return c.OptimisticEngine
 }
 
 // GetSkipPayloadIfExists returns whether to skip verifying the payload if it
@@ -70,11 +61,15 @@ func (c *Context) GetSkipPayloadIfExists() bool {
 	return c.SkipPayloadIfExists
 }
 
-// GetOptimisticEngine returns whether to optimistically assume the execution
-// client has the correct state when certain errors are returned by the
-// execution engine.
-func (c *Context) GetOptimisticEngine() bool {
-	return c.OptimisticEngine
+// GetSkipValidateRandao returns whether to skip validating the Randao mix.
+func (c *Context) GetSkipValidateRandao() bool {
+	return c.SkipValidateRandao
+}
+
+// GetSkipValidateResult returns whether to validate the result of the state
+// transition.
+func (c *Context) GetSkipValidateResult() bool {
+	return c.SkipValidateResult
 }
 
 // Unwrap returns the underlying standard context.
