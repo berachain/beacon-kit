@@ -111,7 +111,7 @@ func (ee *Engine[
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
-	ee.metrics.MarkNotifyForkchoiceUpdateCalled(
+	ee.metrics.markNotifyForkchoiceUpdateCalled(
 		req.State,
 		req.PayloadAttributes != nil &&
 			!req.PayloadAttributes.IsNil(),
@@ -133,7 +133,7 @@ func (ee *Engine[
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.metrics.MarkForkchoiceUpdateAcceptedSyncing(req.State)
+		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State)
 		return payloadID, nil, nil
 
 	// If we get invalid payload status, we will need to find a valid
@@ -146,7 +146,7 @@ func (ee *Engine[
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.metrics.MarkForkchoiceUpdateInvalid(req.State)
+		ee.metrics.markForkchoiceUpdateInvalid(req.State)
 		req.State.HeadBlockHash = req.State.SafeBlockHash
 		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
 		if err != nil {
@@ -158,12 +158,12 @@ func (ee *Engine[
 
 	// JSON-RPC errors are predefined and should be handled as such.
 	case jsonrpc.IsPreDefinedError(err):
-		ee.metrics.MarkForkchoiceUpdateJSONRPCError(err)
+		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
 		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 
 	// All other errors are handled as undefined errors.
 	case err != nil:
-		ee.metrics.MarkForkchoiceUpdateUndefinedError(err)
+		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
 	}
 
@@ -179,7 +179,7 @@ func (ee *Engine[
 	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 ) error {
 	// Log the new payload attempt.
-	ee.metrics.MarkNewPayloadCalled(
+	ee.metrics.markNewPayloadCalled(
 		req.ExecutionPayload,
 		req.Optimistic,
 	)
@@ -231,7 +231,7 @@ func (ee *Engine[
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.metrics.MarkNewPayloadAcceptedSyncingPayloadStatus(
+		ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 		)
@@ -243,7 +243,7 @@ func (ee *Engine[
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.metrics.MarkNewPayloadInvalidPayloadStatus(
+		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 		)
@@ -260,7 +260,7 @@ func (ee *Engine[
 			lastValidHash = &common.ExecutionHash{}
 		}
 
-		ee.metrics.MarkNewPayloadJSONRPCError(
+		ee.metrics.markNewPayloadJSONRPCError(
 			req.ExecutionPayload.GetBlockHash(),
 			*lastValidHash,
 			req.Optimistic,
@@ -269,7 +269,7 @@ func (ee *Engine[
 
 		err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 	case err != nil:
-		ee.metrics.MarkNewPayloadUndefinedError(
+		ee.metrics.markNewPayloadUndefinedError(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 			err,

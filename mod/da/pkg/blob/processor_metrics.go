@@ -23,27 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package client
+package blob
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ExecutionPayload is an interface that defines the Version method.
-type ExecutionPayload interface {
-	// Version returns the version of the payload.
-	Version() uint32
+// processorMetrics is a struct that contains metrics for the processor.
+type processorMetrics struct {
+	// TelemetrySink is the sink for the metrics.
+	sink TelemetrySink
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
-	// SetGauge sets a gauge metric to the specified value, identified by the
-	// provided keys.
-	SetGauge(key string, value int64, args ...string)
-	// MeasureSince measures the time since the provided start time,
-	// identified by the provided keys.
-	MeasureSince(key string, start time.Time, args ...string)
+// newProcessorMetrics creates a new processorMetrics.
+func newProcessorMetrics(
+	sink TelemetrySink,
+) *processorMetrics {
+	return &processorMetrics{
+		sink: sink,
+	}
+}
+
+// MeasureProcessBlobDuration measures the duration of the blob processing.
+func (pm *processorMetrics) measureProcessBlobsDuration(
+	startTime time.Time,
+	numSidecars math.U64,
+) {
+	pm.sink.MeasureSince(
+		"beacon_kit.da.blob.processor.process_blob_duration",
+		startTime,
+		"num_sidecars",
+		string(numSidecars.String()),
+	)
 }

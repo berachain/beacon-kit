@@ -33,6 +33,8 @@ import (
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
+const Implementation = "crate-crypto/go-kzg-4844"
+
 // Verifier is a KZG verifier that uses the Go implementation of KZG.
 type Verifier struct {
 	*gokzg4844.Context
@@ -45,6 +47,11 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 		return nil, err
 	}
 	return &Verifier{ctx}, nil
+}
+
+// GetImplementation returns the implementation of the verifier.
+func (v Verifier) GetImplementation() string {
+	return Implementation
 }
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the

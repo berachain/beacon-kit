@@ -52,8 +52,8 @@ func newEngineMetrics(
 	}
 }
 
-// MarkNewPayloadCalled increments the counter for new payload calls.
-func (em *engineMetrics) MarkNewPayloadCalled(
+// markNewPayloadCalled increments the counter for new payload calls.
+func (em *engineMetrics) markNewPayloadCalled(
 	payload ExecutionPayload,
 	isOptimistic bool,
 ) {
@@ -72,9 +72,9 @@ func (em *engineMetrics) MarkNewPayloadCalled(
 	)
 }
 
-// MarkNewPayloadAcceptedSyncingPayloadStatus increments
+// markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
+func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
@@ -94,9 +94,9 @@ func (em *engineMetrics) MarkNewPayloadAcceptedSyncingPayloadStatus(
 	)
 }
 
-// MarkNewPayloadInvalidPayloadStatus increments the counter
+// markNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
-func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
+func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
@@ -114,8 +114,8 @@ func (em *engineMetrics) MarkNewPayloadInvalidPayloadStatus(
 	)
 }
 
-// MarkNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) MarkNewPayloadJSONRPCError(
+// markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
+func (em *engineMetrics) markNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	isOptimistic bool,
@@ -139,8 +139,8 @@ func (em *engineMetrics) MarkNewPayloadJSONRPCError(
 	)
 }
 
-// MarkNewPayloadUndefinedError increments the counter for undefined errors.
-func (em *engineMetrics) MarkNewPayloadUndefinedError(
+// markNewPayloadUndefinedError increments the counter for undefined errors.
+func (em *engineMetrics) markNewPayloadUndefinedError(
 	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 	err error,
@@ -161,9 +161,9 @@ func (em *engineMetrics) MarkNewPayloadUndefinedError(
 	)
 }
 
-// MarkNotifyForkchoiceUpdateCalled increments the counter for
+// markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
-func (em *engineMetrics) MarkNotifyForkchoiceUpdateCalled(
+func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
@@ -183,9 +183,9 @@ func (em *engineMetrics) MarkNotifyForkchoiceUpdateCalled(
 	)
 }
 
-// MarkForkchoiceUpdateAcceptedSyncing increments
+// markForkchoiceUpdateAcceptedSyncing increments
 // the counter for accepted syncing forkchoice updates.
-func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
+func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 ) {
 	em.errorLoggerFn(true)(
@@ -206,9 +206,9 @@ func (em *engineMetrics) MarkForkchoiceUpdateAcceptedSyncing(
 	)
 }
 
-// MarkForkchoiceUpdateInvalid increments the counter
+// markForkchoiceUpdateInvalid increments the counter
 // for invalid forkchoice updates.
-func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
+func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	state *engineprimitives.ForkchoiceStateV1,
 ) {
 	em.logger.Error(
@@ -226,9 +226,9 @@ func (em *engineMetrics) MarkForkchoiceUpdateInvalid(
 	)
 }
 
-// MarkForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
+// markForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
 // during forkchoice updates.
-func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
+func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
 		"received json-rpc error during forkchoice update call",
 		"error", err,
@@ -240,9 +240,9 @@ func (em *engineMetrics) MarkForkchoiceUpdateJSONRPCError(err error) {
 	)
 }
 
-// MarkForkchoiceUpdateUndefinedError increments the counter for undefined
+// markForkchoiceUpdateUndefinedError increments the counter for undefined
 // errors during forkchoice updates.
-func (em *engineMetrics) MarkForkchoiceUpdateUndefinedError(err error) {
+func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 	em.logger.Error(
 		"received undefined execution engine error during forkchoice update call",
 		"error",

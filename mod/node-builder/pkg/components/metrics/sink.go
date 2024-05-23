@@ -44,14 +44,7 @@ func NewTelemetrySink() TelemetrySink {
 //
 //nolint:mnd // trivial.
 func (TelemetrySink) IncrementCounter(key string, args ...string) {
-	labels := make([]metrics.Label, len(args)/2)
-	for i := 0; i < len(args); i += 2 {
-		labels[i/2] = metrics.Label{
-			Name:  args[i],
-			Value: args[i+1],
-		}
-	}
-	telemetry.IncrCounterWithLabels([]string{key}, 1, labels)
+	telemetry.IncrCounterWithLabels([]string{key}, 1, argsToLabels(args...))
 }
 
 // SetGauge sets a gauge metric to the specified value, identified by the
@@ -59,6 +52,32 @@ func (TelemetrySink) IncrementCounter(key string, args ...string) {
 //
 //nolint:mnd // trivial.
 func (TelemetrySink) SetGauge(key string, value int64, args ...string) {
+	telemetry.SetGaugeWithLabels(
+		[]string{key},
+		float32(value),
+		argsToLabels(args...),
+	)
+}
+
+// MeasureSince measures the time since the provided start time and records
+// the duration in a metric identified by the provided key.
+func (TelemetrySink) MeasureSince(key string, start time.Time, args ...string) {
+	if !telemetry.IsTelemetryEnabled() {
+		return
+	}
+
+	// TODO: Make PR to SDK, currently this will not have any globalLabels.
+	metrics.MeasureSinceWithLabels(
+		[]string{key},
+		start.UTC(),
+		argsToLabels(args...),
+	)
+}
+
+// argsToLabels converts a list of key-value pairs to a list of metrics labels.
+//
+//nolint:mnd // its okay.
+func argsToLabels(args ...string) []metrics.Label {
 	labels := make([]metrics.Label, len(args)/2)
 	for i := 0; i < len(args); i += 2 {
 		labels[i/2] = metrics.Label{
@@ -66,11 +85,5 @@ func (TelemetrySink) SetGauge(key string, value int64, args ...string) {
 			Value: args[i+1],
 		}
 	}
-	telemetry.SetGaugeWithLabels([]string{key}, float32(value), labels)
-}
-
-// MeasureSince measures the time since the provided start time and records
-// the duration in a metric identified by the provided key.
-func (TelemetrySink) MeasureSince(key string, start time.Time) {
-	telemetry.MeasureSince(start, key)
+	return labels
 }
