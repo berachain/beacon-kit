@@ -180,6 +180,7 @@ func ProvideRuntime(
 		](
 			chainSpec,
 			types.KZGPositionDeneb,
+			ts,
 		),
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
@@ -204,6 +205,7 @@ func ProvideRuntime(
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier),
 			types.BlockBodyKZGOffset,
+			ts,
 		),
 		stateProcessor,
 		beaconDepositContract,
