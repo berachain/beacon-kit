@@ -203,7 +203,7 @@ func ProvideRuntime(
 			types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
+			dablob.NewVerifier(blobProofVerifier, ts),
 			types.BlockBodyKZGOffset,
 			ts,
 		),

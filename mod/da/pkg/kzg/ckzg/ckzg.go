@@ -31,8 +31,16 @@ import (
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
+// Implementation is the ethereum/c-kzg-4844 implementation.
+const Implementation = "ethereum/c-kzg-4844"
+
 // Verifier is a verifier that utilizies the CKZG library.
 type Verifier struct{}
+
+// Implementation returns the implementation of the verifier.
+func (v Verifier) GetImplementation() string {
+	return Implementation
+}
 
 // NewVerifier creates a new CKZG verifier.
 //

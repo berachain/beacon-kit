@@ -37,6 +37,9 @@ import (
 
 // BlobProofVerifier is a verifier for blobs.
 type BlobProofVerifier interface {
+	// GetImplementation returns the implementation of the verifier.
+	GetImplementation() string
+
 	// VerifyBlobProof verifies that the blob data corresponds to the provided
 	// commitment.
 	VerifyBlobProof(
@@ -52,13 +55,6 @@ type BlobProofVerifier interface {
 	VerifyBlobProofBatch(*kzgtypes.BlobProofArgs) error
 }
 
-const (
-	// crateCryptoGoKzg4844 is the crate-crypto/go-kzg-4844 implementation.
-	crateCryptoGoKzg4844 = "crate-crypto/go-kzg-4844"
-	// ethereumCKzg4844 is the ethereum/c-kzg-4844 implementation.
-	ethereumCKzg4844 = "ethereum/c-kzg-4844"
-)
-
 // NewBlobProofVerifier creates a new BlobVerifier with the given
 // implementation.
 func NewBlobProofVerifier(
@@ -66,15 +62,15 @@ func NewBlobProofVerifier(
 	ts *gokzg4844.JSONTrustedSetup,
 ) (BlobProofVerifier, error) {
 	switch impl {
-	case crateCryptoGoKzg4844:
+	case gokzg.Implementation:
 		return gokzg.NewVerifier(ts)
-	case ethereumCKzg4844:
+	case ckzg.Implementation:
 		return ckzg.NewVerifier(ts)
 	default:
 		return nil, errors.Wrapf(
 			ErrUnsupportedKzgImplementation,
 			"supplied: %s, supported: %s, %s",
-			impl, crateCryptoGoKzg4844, ethereumCKzg4844,
+			impl, gokzg.Implementation, ckzg.Implementation,
 		)
 	}
 }
