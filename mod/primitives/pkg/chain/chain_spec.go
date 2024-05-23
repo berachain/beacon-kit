@@ -183,11 +183,11 @@ func (c chainSpec[
 	return c.Data.SyncCommitteeSize
 }
 
-// Eth1ChainID returns the chain ID.
+// DepositEth1ChainID returns the chain ID.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DepositEth1ChainID() uint64 {
-	return c.Data.Eth1ChainID
+	return c.Data.DepositEth1ChainID
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
