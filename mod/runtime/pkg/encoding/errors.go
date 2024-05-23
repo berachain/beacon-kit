@@ -49,5 +49,7 @@ var (
 
 	// ErrNilBlobSidecarsInRequest is an error for when
 	// the blob sidecars in an abci request is nil.
-	ErrNilBlobSidecarsInRequest = errors.New("nil blob sidecars in abci request")
+	ErrNilBlobSidecarsInRequest = errors.New(
+		"nil blob sidecars in abci request",
+	)
 )

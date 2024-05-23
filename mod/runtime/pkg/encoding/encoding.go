@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package encoding
 
 import (
@@ -7,7 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI request.
+// ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
+// request.
 func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
 	req ABCIRequest,
 	beaconBlkIndex uint,
@@ -19,12 +45,19 @@ func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
 		return nil, blobs, ErrNilABCIRequest
 	}
 
-	blk, err := UnmarshalBeaconBlockFromABCIRequest(req, beaconBlkIndex, forkVersion)
+	blk, err := UnmarshalBeaconBlockFromABCIRequest(
+		req,
+		beaconBlkIndex,
+		forkVersion,
+	)
 	if err != nil {
 		return nil, blobs, err
 	}
 
-	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](req, blobSidecarsIndex)
+	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](
+		req,
+		blobSidecarsIndex,
+	)
 	if err != nil {
 		return nil, blobs, err
 	}
@@ -32,7 +65,8 @@ func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
 	return blk, blobs, nil
 }
 
-// UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI request.
+// UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
+// request.
 func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
@@ -45,7 +79,8 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	txs := req.GetTxs()
 	lenTxs := uint(len(txs))
 
-	// Ensure there are transactions in the request and that the request is valid.
+	// Ensure there are transactions in the request and that the request is
+	// valid.
 	if txs == nil || lenTxs == 0 {
 		return nil, ErrNoBeaconBlockInRequest
 	}
@@ -61,7 +96,8 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	return types.BeaconBlockFromSSZ(blkBz, forkVersion)
 }
 
-// UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI request.
+// UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
+// request.
 func UnmarshalBlobSidecarsFromABCIRequest[
 	T interface{ UnmarshalSSZ([]byte) error },
 ](
@@ -82,7 +118,8 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 	txs := req.GetTxs()
 	lenTxs := uint(len(txs))
 
-	// Ensure there are transactions in the request and that the request is valid.
+	// Ensure there are transactions in the request and that the request is
+	// valid.
 	if txs == nil || lenTxs == 0 {
 		return sidecars, ErrNoBeaconBlockInRequest
 	}
