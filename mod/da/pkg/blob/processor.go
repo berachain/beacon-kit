@@ -51,7 +51,7 @@ type Processor[
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
-	// metrics is the metrics for the processor.
+	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
@@ -84,11 +84,11 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	sidecars *types.BlobSidecars,
 ) error {
 	var (
-		numSidecars = sidecars.Len()
+		numSidecars = math.U64(sidecars.Len())
 		startTime   = time.Now()
 	)
 
-	defer sp.metrics.measureProcessBlobsDuration(startTime, uint64(numSidecars))
+	defer sp.metrics.measureProcessBlobsDuration(startTime, numSidecars)
 
 	// If there are no blobs to verify, return early.
 	if numSidecars == 0 {

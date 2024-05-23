@@ -27,6 +27,8 @@ package blob
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // processorMetrics is a struct that contains metrics for the processor.
@@ -45,7 +47,10 @@ func newProcessorMetrics(
 }
 
 // MeasureProcessBlobDuration measures the duration of the blob processing.
-func (pm *processorMetrics) measureProcessBlobsDuration(startTime time.Time, numSidecars uint64) {
+func (pm *processorMetrics) measureProcessBlobsDuration(
+	startTime time.Time,
+	numSidecars math.U64,
+) {
 	// TODO: Add NumBlobs
 	pm.sink.MeasureSince(
 		"beacon_kit.da.blob.processor.process_blob_duration",

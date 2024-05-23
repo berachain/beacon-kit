@@ -52,7 +52,11 @@ func (TelemetrySink) IncrementCounter(key string, args ...string) {
 //
 //nolint:mnd // trivial.
 func (TelemetrySink) SetGauge(key string, value int64, args ...string) {
-	telemetry.SetGaugeWithLabels([]string{key}, float32(value), argsToLabels(args...))
+	telemetry.SetGaugeWithLabels(
+		[]string{key},
+		float32(value),
+		argsToLabels(args...),
+	)
 }
 
 // MeasureSince measures the time since the provided start time and records
@@ -63,7 +67,11 @@ func (TelemetrySink) MeasureSince(key string, start time.Time, args ...string) {
 	}
 
 	// TODO: Make PR to SDK, currently this will not have any globalLabels.
-	metrics.MeasureSinceWithLabels([]string{key}, start.UTC(), argsToLabels(args...))
+	metrics.MeasureSinceWithLabels(
+		[]string{key},
+		start.UTC(),
+		argsToLabels(args...),
+	)
 }
 
 // argsToLabels converts a list of key-value pairs to a list of metrics labels.

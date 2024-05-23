@@ -27,6 +27,8 @@ package blob
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // factoryMetrics is a struct that contains metrics for the factory.
@@ -46,9 +48,8 @@ func newFactoryMetrics(
 
 // measureBuildSidecarDuration measures the duration of the build sidecar.
 func (fm *factoryMetrics) measureBuildSidecarsDuration(
-	startTime time.Time, numSidecars uint64,
+	startTime time.Time, numSidecars math.U64,
 ) {
-	// TODO: Add Labels.
 	fm.sink.MeasureSince(
 		"beacon_kit.da.blob.factory.build_sidecar_duration",
 		startTime,
@@ -62,7 +63,6 @@ func (fm *factoryMetrics) measureBuildSidecarsDuration(
 func (fm *factoryMetrics) measureBuildKZGInclusionProofDuration(
 	startTime time.Time,
 ) {
-	// TODO: Add Labels.
 	fm.sink.MeasureSince(
 		"beacon_kit.da.blob.factory.build_kzg_inclusion_proof_duration",
 		startTime,
@@ -74,7 +74,6 @@ func (fm *factoryMetrics) measureBuildKZGInclusionProofDuration(
 func (fm *factoryMetrics) measureBuildBlockBodyProofDuration(
 	startTime time.Time,
 ) {
-	// TODO: Add Labels.
 	fm.sink.MeasureSince(
 		"beacon_kit.da.blob.factory.build_block_body_proof_duration",
 		startTime,
@@ -86,7 +85,6 @@ func (fm *factoryMetrics) measureBuildBlockBodyProofDuration(
 func (fm *factoryMetrics) measureBuildCommitmentProofDuration(
 	startTime time.Time,
 ) {
-	// TODO: Add Labels.
 	fm.sink.MeasureSince(
 		"beacon_kit.da.blob.factory.build_commitment_proof_duration",
 		startTime,
