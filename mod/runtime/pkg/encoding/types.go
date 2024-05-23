@@ -25,44 +25,14 @@
 
 package encoding
 
-import "reflect"
+import "time"
 
-func UnmarshalBlobSidecarsFromABCIRequest[
-	T interface{ UnmarshalSSZ([]byte) error },
-](
-	req ABCIRequest,
-	bzIndex uint,
-) (T, error) {
-	var (
-		sidecars T
-		ok       bool
-	)
-
-	sidecars, ok = reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
-	if !ok {
-		return sidecars, ErrInvalidType
-	}
-
-	if req == nil {
-		return sidecars, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return sidecars, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return sidecars, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return sidecars, ErrNilBeaconBlockInRequest
-	}
-
-	err := sidecars.UnmarshalSSZ(sidecarBz)
-	return sidecars, err
+// ABCIRequest represents the interface for an ABCI request.
+type ABCIRequest interface {
+	// GetHeight returns the height of the request.
+	GetHeight() int64
+	// GetTime returns the time of the request.
+	GetTime() time.Time
+	// GetTxs returns the transactions included in the request.
+	GetTxs() [][]byte
 }
