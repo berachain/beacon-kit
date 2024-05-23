@@ -23,23 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package deposit
 
-const (
-	// defaultGraffiti is the default graffiti string.
-	defaultGraffiti = ""
+import "errors"
+
+var (
+	// ErrValidatorPrivateKeyRequired is returned when the validator private key
+	// is required but not provided.
+	ErrValidatorPrivateKeyRequired = errors.New(
+		"validator private key required",
+	)
 )
-
-// Config is the validator configuration.
-type Config struct {
-	// Graffiti is the string that will be included in the
-	// graffiti field of the beacon block.
-	Graffiti string `mapstructure:"graffiti"`
-}
-
-// DefaultConfig returns the default fork configuration.
-func DefaultConfig() Config {
-	return Config{
-		Graffiti: defaultGraffiti,
-	}
-}

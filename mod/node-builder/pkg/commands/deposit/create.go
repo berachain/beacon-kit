@@ -158,8 +158,6 @@ func getBLSSigner(
 ) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
 	supplies := []interface{}{viper.GetViper()}
-	// If the override node key flag is set, a validator private key must be
-	// provided.
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
@@ -172,6 +170,9 @@ func getBLSSigner(
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
 			return nil, err
+		}
+		if validatorPrivKey == "" {
+			return nil, ErrValidatorPrivateKeyRequired
 		}
 		supplies = append(supplies, validatorPrivKey)
 	}

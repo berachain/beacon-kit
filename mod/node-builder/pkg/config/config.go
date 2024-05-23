@@ -137,8 +137,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		defaultCfg.KZG.TrustedSetupPath,
 		"kzg trusted setup path",
 	)
-	startCmd.Flags().String(flags.SignerType, defaultCfg.Validator.SignerType,
-		"signer type")
 }
 
 // AddToSFlag adds the terms of service flag to the given command.
