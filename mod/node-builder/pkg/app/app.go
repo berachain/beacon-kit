@@ -108,6 +108,7 @@ func NewBeaconKitApp(
 
 	app.SetPrepareProposal(beaconModule.ABCIHandler().PrepareProposalHandler)
 	app.SetProcessProposal(beaconModule.ABCIHandler().ProcessProposalHandler)
+	app.SetPreBlocker(beaconModule.ABCIHandler().FinalizeBlock)
 
 	// Check for goleveldb cause bad project.
 	if appOpts.Get("app-db-backend") == "goleveldb" {
