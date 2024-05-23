@@ -83,11 +83,14 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
-	startTime := time.Now()
-	defer sp.metrics.measureProcessBlobsDuration(startTime)
+	var (
+		numSidecars = sidecars.Len()
+		startTime   = time.Now()
+	)
+
+	defer sp.metrics.measureProcessBlobsDuration(startTime, uint64(numSidecars))
 
 	// If there are no blobs to verify, return early.
-	numSidecars := sidecars.Len()
 	if numSidecars == 0 {
 		sp.logger.Info(
 			"no blob sidecars to verify, skipping verifier 🧢",

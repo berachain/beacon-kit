@@ -45,11 +45,15 @@ func newFactoryMetrics(
 }
 
 // measureBuildSidecarDuration measures the duration of the build sidecar.
-func (fm *factoryMetrics) measureBuildSidecarDuration(startTime time.Time) {
+func (fm *factoryMetrics) measureBuildSidecarsDuration(
+	startTime time.Time, numSidecars uint64,
+) {
 	// TODO: Add Labels.
 	fm.sink.MeasureSince(
 		"beacon_kit.da.blob.factory.build_sidecar_duration",
 		startTime,
+		"num_sidecars",
+		string(numSidecars),
 	)
 }
 
