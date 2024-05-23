@@ -145,7 +145,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
         )
 
     else:
-        plan.print("Invalid type for rpc_endpoints")
+        plan.print("Invalid type for eth_json_rpc_endpoint")
 
     # 7. Start additional services
     for s in additional_services:

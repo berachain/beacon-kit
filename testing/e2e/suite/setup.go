@@ -190,14 +190,19 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	return nil
 }
 
-// SetupNGINXBalancer sets up the NGINX balancer for the test suite.
+// SetupJSONRPCBalancer sets up the load balancer for the test suite.
 func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
-	sCtx, err := s.Enclave().GetServiceContext("nginx")
+	// get the type for EthJSONRPCEndpoint
+	typeRPCEndpoint := s.JSONRPCBalancerType()
+
+	s.logger.Info("setting up JSON-RPC balancer: ", "type", typeRPCEndpoint)
+
+	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
 		return err
 	}
 
-	if s.nginxBalancer, err = types.NewLoadBalancer(
+	if s.loadBalancer, err = types.NewLoadBalancer(
 		sCtx,
 	); err != nil {
 		return err
