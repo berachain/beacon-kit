@@ -145,10 +145,8 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 			{
 				Type: "blutgang",
 				Clients: []string{
-					//"el-full-nethermind-0",
-					//"el-full-reth-1",
-					// with blutgang only geth client works.
-					// Not sure what is the reason.
+					"el-full-nethermind-0",
+					"el-full-reth-1",
 					"el-full-geth-2",
 					// "el-full-erigon-3",
 					// Besu causing flakey tests.

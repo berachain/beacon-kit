@@ -39,6 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -195,7 +196,7 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 	// get the type for EthJSONRPCEndpoint
 	typeRPCEndpoint := s.JSONRPCBalancerType()
 
-	s.logger.Info("setting up JSON-RPC balancer: ", "type", typeRPCEndpoint)
+	s.logger.Info("setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
 
 	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
@@ -328,13 +329,14 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	ticker := time.NewTicker(time.Second)
 	var finalBlockNum uint64
 	for finalBlockNum < target {
-		finalBlock, err := s.JSONRPCBalancer().BlockByNumber(cctx, nil)
+		var finalBlockInHex hexutil.Uint64
+		err := s.loadBalancer.Client.Client().CallContext(
+			cctx, &finalBlockInHex, "eth_blockNumber")
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
 		}
-		finalBlockNum = finalBlock.NumberU64()
-
+		finalBlockNum = uint64(finalBlockInHex)
 		s.logger.Info(
 			"waiting for finalized block number to reach target",
 			"target",
