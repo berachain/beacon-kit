@@ -36,7 +36,7 @@ import (
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
-	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
+	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
