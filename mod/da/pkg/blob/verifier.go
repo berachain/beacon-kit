@@ -27,23 +27,31 @@ package blob
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
-// Verifier is a verifier for blobs.
+// Verifier is responsible for verifying blobs, including their
+// inclusion and KZG proofs.
 type Verifier struct {
+	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
+	// metrics collects and reports metrics related to the verification process.
+	metrics *verifierMetrics
 }
 
 // NewVerifier creates a new Verifier with the given proof verifier.
 func NewVerifier(
 	proofVerifier kzg.BlobProofVerifier,
+	telemetrySink TelemetrySink,
 ) *Verifier {
 	return &Verifier{
 		proofVerifier: proofVerifier,
+		metrics:       newVerifierMetrics(telemetrySink),
 	}
 }
 
@@ -52,7 +60,15 @@ func NewVerifier(
 func (bv *Verifier) VerifyBlobs(
 	sidecars *types.BlobSidecars, kzgOffset uint64,
 ) error {
-	g, _ := errgroup.WithContext(context.Background())
+	var (
+		g, _      = errgroup.WithContext(context.Background())
+		startTime = time.Now()
+	)
+
+	defer bv.metrics.measureVerifyBlobsDuration(
+		startTime, math.U64(len(sidecars.Sidecars)),
+		bv.proofVerifier.GetImplementation(),
+	)
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
@@ -69,7 +85,6 @@ func (bv *Verifier) VerifyBlobs(
 	})
 
 	g.Go(func() error {
-		// Ensure that all sidecars have the same block root.
 		return sidecars.ValidateBlockRoots()
 	})
 
@@ -81,6 +96,10 @@ func (bv *Verifier) VerifyInclusionProofs(
 	scs *types.BlobSidecars,
 	kzgOffset uint64,
 ) error {
+	startTime := time.Now()
+	defer bv.metrics.measureVerifyInclusionProofsDuration(
+		startTime, math.U64(len(scs.Sidecars)),
+	)
 	return scs.VerifyInclusionProofs(kzgOffset)
 }
 
@@ -88,6 +107,12 @@ func (bv *Verifier) VerifyInclusionProofs(
 func (bv *Verifier) VerifyKZGProofs(
 	scs *types.BlobSidecars,
 ) error {
+	start := time.Now()
+	defer bv.metrics.measureVerifyKZGProofsDuration(
+		start, math.U64(len(scs.Sidecars)),
+		bv.proofVerifier.GetImplementation(),
+	)
+
 	switch len(scs.Sidecars) {
 	case 0:
 		return nil

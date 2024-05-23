@@ -46,7 +46,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
 	startTime := time.Now()
-	defer s.metrics.MeasureNewPayloadDuration(startTime)
+	defer s.metrics.measureNewPayloadDuration(startTime)
 
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -107,7 +107,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	startTime := time.Now()
-	defer s.metrics.MeasureForkchoiceUpdateDuration(startTime)
+	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
 
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
@@ -162,7 +162,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	forkVersion uint32,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	startTime := time.Now()
-	defer s.metrics.MeasureGetPayloadDuration(startTime)
+	defer s.metrics.measureGetPayloadDuration(startTime)
 
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()

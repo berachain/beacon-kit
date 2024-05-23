@@ -25,45 +25,14 @@
 
 package encoding
 
-import (
-	"time"
+import "time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-)
-
-// ABCIRequest is the interface for an ABCI request.
+// ABCIRequest represents the interface for an ABCI request.
 type ABCIRequest interface {
+	// GetHeight returns the height of the request.
 	GetHeight() int64
+	// GetTime returns the time of the request.
 	GetTime() time.Time
+	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
-}
-
-// ReadOnlyBeaconBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func UnmarshalBeaconBlockFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-	forkVersion uint32,
-) (types.BeaconBlock, error) {
-	if req == nil {
-		return nil, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	blkBz := txs[bzIndex]
-	if blkBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
-	}
-	return types.BeaconBlockFromSSZ(blkBz, forkVersion)
 }

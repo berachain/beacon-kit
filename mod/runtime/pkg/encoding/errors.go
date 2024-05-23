@@ -46,4 +46,10 @@ var (
 
 	// ErrInvalidType is an error for when the type is invalid.
 	ErrInvalidType = errors.New("invalid type")
+
+	// ErrNilBlobSidecarsInRequest is an error for when
+	// the blob sidecars in an abci request is nil.
+	ErrNilBlobSidecarsInRequest = errors.New(
+		"nil blob sidecars in abci request",
+	)
 )

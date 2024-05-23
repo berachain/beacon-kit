@@ -45,5 +45,5 @@ type TelemetrySink interface {
 	SetGauge(key string, value int64, args ...string)
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
-	MeasureSince(key string, start time.Time)
+	MeasureSince(key string, start time.Time, args ...string)
 }

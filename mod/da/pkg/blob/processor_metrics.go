@@ -23,46 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package encoding
+package blob
 
-import "reflect"
+import (
+	"time"
 
-func UnmarshalBlobSidecarsFromABCIRequest[
-	T interface{ UnmarshalSSZ([]byte) error },
-](
-	req ABCIRequest,
-	bzIndex uint,
-) (T, error) {
-	var (
-		sidecars T
-		ok       bool
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
+// processorMetrics is a struct that contains metrics for the processor.
+type processorMetrics struct {
+	// TelemetrySink is the sink for the metrics.
+	sink TelemetrySink
+}
+
+// newProcessorMetrics creates a new processorMetrics.
+func newProcessorMetrics(
+	sink TelemetrySink,
+) *processorMetrics {
+	return &processorMetrics{
+		sink: sink,
+	}
+}
+
+// MeasureProcessBlobDuration measures the duration of the blob processing.
+func (pm *processorMetrics) measureProcessBlobsDuration(
+	startTime time.Time,
+	numSidecars math.U64,
+) {
+	pm.sink.MeasureSince(
+		"beacon_kit.da.blob.processor.process_blob_duration",
+		startTime,
+		"num_sidecars",
+		string(numSidecars.String()),
 	)
-
-	sidecars, ok = reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
-	if !ok {
-		return sidecars, ErrInvalidType
-	}
-
-	if req == nil {
-		return sidecars, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return sidecars, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return sidecars, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return sidecars, ErrNilBeaconBlockInRequest
-	}
-
-	err := sidecars.UnmarshalSSZ(sidecarBz)
-	return sidecars, err
 }
