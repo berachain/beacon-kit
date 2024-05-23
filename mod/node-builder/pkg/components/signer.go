@@ -27,7 +27,6 @@ package components
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
@@ -55,7 +54,6 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		}
 	}()
 	signerType := cast.ToString(in.AppOpts.Get(flags.SignerType))
-	fmt.Println(signerType)
 	if signerType == "bls" {
 		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
 		return signer.NewBLSSigner(
