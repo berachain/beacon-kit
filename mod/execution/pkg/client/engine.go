@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
@@ -44,6 +45,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
+	startTime := time.Now()
+	defer s.metrics.measureNewPayloadDuration(startTime)
+
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -102,6 +106,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+	startTime := time.Now()
+	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
+
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
@@ -154,6 +161,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	startTime := time.Now()
+	defer s.metrics.measureGetPayloadDuration(startTime)
+
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 

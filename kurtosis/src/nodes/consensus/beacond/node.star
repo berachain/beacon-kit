@@ -35,10 +35,9 @@ def start(persistent_peers):
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.accept-tos --beacon-kit.engine.rpc-dial-url {} \
-    --beacon-kit.engine.required-chain-id {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option)
+    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
@@ -66,11 +65,11 @@ def get_genesis_env_vars(cl_service_name):
         "BEACOND_MONIKER": cl_service_name,
         "BEACOND_NET": "VALUE_2",
         "BEACOND_HOME": "/root/.beacond",
-        "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+        "BEACOND_CHAIN_ID": "beacon-kurtosis-80086",
         "BEACOND_DEBUG": "false",
         "BEACOND_KEYRING_BACKEND": "test",
         "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
-        "BEACOND_ETH_CHAIN_ID": "80087",
+        "BEACOND_ETH_CHAIN_ID": "80086",
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",

@@ -36,6 +36,45 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// RetrieveOrBuildPayload attempts to pull a previously built payload
+// by reading a payloadID from the builder's cache. If it fails to
+// retrieve a payload, it will build a new payload and wait for the
+// execution client to return the payload.
+func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	slot math.Slot,
+	parentBlockRoot primitives.Root,
+	parentEth1Hash common.ExecutionHash,
+) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	// We first attempt to see if we previously fired off a payload built for
+	// this particular slot and parent block root. If we have, and we are able
+	// to retrieve it from our execution client, we can return it immediately.
+	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
+		if envelope, err := pb.getPayload(
+			ctx,
+			slot,
+			payloadID,
+		); err == nil {
+			// If there was no error we can simply return the payload that we
+			// just retrieved.
+			return envelope, nil
+		}
+	}
+
+	// Otherwise we will fall back to triggering a payload build.
+	return pb.RequestPayloadAndWait(
+		ctx,
+		st,
+		slot,
+		// TODO: we need to do the proper timestamp math here for EIP4788.
+		//#nosec:G701 // won't realistically overflow.
+		uint64(time.Now().Unix()),
+		parentBlockRoot,
+		parentEth1Hash,
+	)
+}
+
 // RequestPayload builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
@@ -131,59 +170,5 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAndWait(
 			PayloadID:   *payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
-	)
-}
-
-// RetrieveOrBuildPayload attempts to pull a previously built payload
-// by reading a payloadID from the builder's cache. If it fails to
-// retrieve a payload, it will build a new payload and wait for the
-// execution client to return the payload.
-func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
-	// We first attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root. If we have, and we are able
-	// to
-	// retrieve it from our execution client, we can return it immediately.
-	// If a payload is found, we can retrieve it from the execution client.
-	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
-	if !found {
-		return pb.RequestPayloadAndWait(
-			ctx,
-			st,
-			slot,
-			// TODO: we need to do the proper timestamp math here for EIP4788.
-			//#nosec:G701 // won't realistically overflow.
-			uint64(time.Now().Unix()),
-			parentBlockRoot,
-			parentEth1Hash,
-		)
-	}
-
-	// Attempt to retrieve the payload from the execution client.
-	if envelope, err := pb.getPayload(
-		ctx,
-		slot,
-		payloadID,
-	); err == nil {
-		// If there was no error we can simply return the payload that we
-		// just retrieved.
-		return envelope, nil
-	}
-
-	// Otherwise we will fall back to triggering a payload build.
-	return pb.RequestPayloadAndWait(
-		ctx,
-		st,
-		slot,
-		// TODO: we need to do the proper timestamp math here for EIP4788.
-		//#nosec:G701 // won't realistically overflow.
-		uint64(time.Now().Unix()),
-		parentBlockRoot,
-		parentEth1Hash,
 	)
 }

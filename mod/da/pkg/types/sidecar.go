@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
@@ -56,7 +57,7 @@ type BlobSidecar struct {
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
 func BuildBlobSidecar(
-	index uint64,
+	index math.U64,
 	header *types.BeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
@@ -64,7 +65,7 @@ func BuildBlobSidecar(
 	inclusionProof [][32]byte,
 ) *BlobSidecar {
 	return &BlobSidecar{
-		Index:             index,
+		Index:             index.Unwrap(),
 		Blob:              *blob,
 		KzgCommitment:     commitment,
 		KzgProof:          proof,

@@ -38,8 +38,11 @@ import (
 
 // Store is the default implementation of the AvailabilityStore.
 type Store[BeaconBlockBodyT BeaconBlockBody] struct {
+	// IndexDB is a basic database interface.
 	IndexDB
-	logger    log.Logger[any]
+	// logger is used for logging.
+	logger log.Logger[any]
+	// chainSpec contains the chain specification.
 	chainSpec primitives.ChainSpec
 }
 

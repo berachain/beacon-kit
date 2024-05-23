@@ -37,6 +37,8 @@ type SpecData[
 	// SyncCommiteeSize is the size of the sync committee.
 	SyncCommitteeSize uint64 `mapstructure:"sync-committee-size"`
 
+	// Eth1ChainID is the chain ID.
+	Eth1ChainID uint64 `mapstructure:"eth1-chain-id"`
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit

@@ -78,6 +78,8 @@ type Spec[
 	//
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() ExecutionAddressT
+	// DepositEth1ChainID returns the chain ID of the deposit contract.
+	DepositEth1ChainID() uint64
 
 	// Fork-related values.
 	//
@@ -179,6 +181,13 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) SyncCommitteeSize() uint64 {
 	return c.Data.SyncCommitteeSize
+}
+
+// Eth1ChainID returns the chain ID.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) DepositEth1ChainID() uint64 {
+	return c.Data.Eth1ChainID
 }
 
 // MinDepositAmount returns the minimum deposit amount required.

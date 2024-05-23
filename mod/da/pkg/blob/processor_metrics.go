@@ -23,47 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package encoding
+package blob
 
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ABCIRequest is the interface for an ABCI request.
-type ABCIRequest interface {
-	GetHeight() int64
-	GetTime() time.Time
-	GetTxs() [][]byte
+// processorMetrics is a struct that contains metrics for the processor.
+type processorMetrics struct {
+	// TelemetrySink is the sink for the metrics.
+	sink TelemetrySink
 }
 
-// ReadOnlyBeaconBlockFromABCIRequest assembles a
-// new read-only beacon block by extracting a marshalled
-// block out of an ABCI request.
-func UnmarshalBeaconBlockFromABCIRequest(
-	req ABCIRequest,
-	bzIndex uint,
-	forkVersion uint32,
-) (types.BeaconBlock, error) {
-	if req == nil {
-		return nil, ErrNilABCIRequest
+// newProcessorMetrics creates a new processorMetrics.
+func newProcessorMetrics(
+	sink TelemetrySink,
+) *processorMetrics {
+	return &processorMetrics{
+		sink: sink,
 	}
+}
 
-	txs := req.GetTxs()
-
-	// Ensure there are transactions in the request and
-	// that the request is valid.
-	if lenTxs := uint(len(txs)); txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
-	} else if bzIndex >= uint(len(txs)) {
-		return nil, ErrBzIndexOutOfBounds
-	}
-
-	// Extract the beacon block from the ABCI request.
-	blkBz := txs[bzIndex]
-	if blkBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
-	}
-	return types.BeaconBlockFromSSZ(blkBz, forkVersion)
+// MeasureProcessBlobDuration measures the duration of the blob processing.
+func (pm *processorMetrics) measureProcessBlobsDuration(
+	startTime time.Time,
+	numSidecars math.U64,
+) {
+	pm.sink.MeasureSince(
+		"beacon_kit.da.blob.processor.process_blob_duration",
+		startTime,
+		"num_sidecars",
+		string(numSidecars.String()),
+	)
 }
