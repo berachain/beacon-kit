@@ -348,6 +348,7 @@ func (s *StateDB[KVStoreT]) SetSyncCommittee(sc []crypto.BLSPubkey) error {
 
 	// Set all the elements.
 	for i, pubKey := range sc {
+		//#nosec:G701 will not overflow in practice.
 		if err := s.SetSyncCommitteeIdx(uint64(i), pubKey); err != nil {
 			return err
 		}
