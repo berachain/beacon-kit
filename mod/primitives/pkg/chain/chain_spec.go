@@ -176,7 +176,7 @@ func NewChainSpec[
 	}
 }
 
-// SyncComi.
+// SyncCommittee returns the size of the sync committee.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) SyncCommitteeSize() uint64 {
