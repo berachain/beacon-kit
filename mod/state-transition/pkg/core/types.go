@@ -126,6 +126,7 @@ type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	ProcessRandao(
 		BeaconStateT,
 		BeaconBlockT,
+		bool,
 	) error
 
 	// ProcessRandaoMixesReset resets the RANDAO mixes as defined
