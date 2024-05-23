@@ -26,6 +26,8 @@
 package blob
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -49,6 +51,8 @@ type Processor[
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
+	// metrics is the metrics for the processor.
+	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
@@ -62,12 +66,14 @@ func NewProcessor[
 	chainSpec primitives.ChainSpec,
 	verifier *Verifier,
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
+	telemetrySink TelemetrySink,
 ) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
 	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
 		blockBodyOffsetFn: blockBodyOffsetFn,
+		metrics:           newProcessorMetrics(telemetrySink),
 	}
 }
 
@@ -77,6 +83,9 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
+	startTime := time.Now()
+	defer sp.metrics.measureProcessBlobsDuration(startTime)
+
 	// If there are no blobs to verify, return early.
 	numSidecars := sidecars.Len()
 	if numSidecars == 0 {

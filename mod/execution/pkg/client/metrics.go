@@ -50,9 +50,9 @@ func newClientMetrics(
 	}
 }
 
-// MeasureForkchoiceUpdateDuration measures the duration of the forkchoice
+// measureForkchoiceUpdateDuration measures the duration of the forkchoice
 // update.
-func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
+func (cm *clientMetrics) measureForkchoiceUpdateDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
 		"beacon_kit.execution.client.forkchoice_update_duration",
@@ -60,8 +60,8 @@ func (cm *clientMetrics) MeasureForkchoiceUpdateDuration(startTime time.Time) {
 	)
 }
 
-// MeasureNewPayloadDuration measures the duration of the new payload.
-func (cm *clientMetrics) MeasureNewPayloadDuration(startTime time.Time) {
+// measureNewPayloadDuration measures the duration of the new payload.
+func (cm *clientMetrics) measureNewPayloadDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
 		"beacon_kit.execution.client.new_payload_duration",
@@ -69,8 +69,8 @@ func (cm *clientMetrics) MeasureNewPayloadDuration(startTime time.Time) {
 	)
 }
 
-// MeasureGetPayloadDuration measures the duration of the get payload.
-func (cm *clientMetrics) MeasureGetPayloadDuration(startTime time.Time) {
+// measureGetPayloadDuration measures the duration of the get payload.
+func (cm *clientMetrics) measureGetPayloadDuration(startTime time.Time) {
 	// TODO: Add Labels.
 	cm.sink.MeasureSince(
 		"beacon_kit.execution.client.get_payload_duration",
