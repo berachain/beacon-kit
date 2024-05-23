@@ -33,8 +33,9 @@ func (sp *StateProcessor[
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
+	skipVerification bool,
 ) error {
-	return sp.rp.ProcessRandao(st, blk)
+	return sp.rp.ProcessRandao(st, blk, skipVerification)
 }
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.

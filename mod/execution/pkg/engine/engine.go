@@ -27,7 +27,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -44,8 +43,13 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
 ] struct {
-	ec     *client.EngineClient[ExecutionPayloadDenebT]
+	// ec is the engine client that the engine will use to
+	// interact with the execution layer.
+	ec *client.EngineClient[ExecutionPayloadDenebT]
+	// logger is the logger for the engine.
 	logger log.Logger[any]
+	// metrics is the metrics for the engine.
+	metrics *engineMetrics
 }
 
 // New creates a new Engine.
@@ -55,10 +59,12 @@ func New[
 ](
 	ec *client.EngineClient[ExecutionPayloadDenebT],
 	logger log.Logger[any],
+	ts TelemetrySink,
 ) *Engine[ExecutionPayloadT, ExecutionPayloadDenebT] {
 	return &Engine[ExecutionPayloadT, ExecutionPayloadDenebT]{
-		ec:     ec,
-		logger: logger,
+		ec:      ec,
+		logger:  logger,
+		metrics: newEngineMetrics(ts, logger),
 	}
 }
 
@@ -104,11 +110,11 @@ func (ee *Engine[
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	ee.logger.Info("notifying forkchoice update",
-		"head_eth1_hash", req.State.HeadBlockHash,
-		"safe_eth1_hash", req.State.SafeBlockHash,
-		"finalized_eth1_hash", req.State.FinalizedBlockHash,
-		"has_attributes", req.PayloadAttributes != nil,
+	// Log the forkchoice update attempt.
+	ee.metrics.markNotifyForkchoiceUpdateCalled(
+		req.State,
+		req.PayloadAttributes != nil &&
+			!req.PayloadAttributes.IsNil(),
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -118,25 +124,29 @@ func (ee *Engine[
 		req.PayloadAttributes,
 		req.ForkVersion,
 	)
+
 	switch {
+	// We do not bubble the error up, since we want to handle it
+	// in the same way as the other cases.
 	case errors.IsAny(
 		err,
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.logger.Info("forkchoice updated with optimistic block",
-			"head_eth1_hash", req.State.HeadBlockHash,
-		)
-		// telemetry.IncrCounter(1, MetricsKeyAcceptedSyncingPayloadStatus)
+		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State)
 		return payloadID, nil, nil
+
+	// If we get invalid payload status, we will need to find a valid
+	// ancestor block and force a recovery.
+	//
+	// These two cases are semantically the same:
+	// https://github.com/ethereum/execution-apis/issues/270
 	case errors.IsAny(
 		err,
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		// Attempt to get the chain back into a valid state, by
-		// getting finding an ancestor block with a valid payload and
-		// forcing a recovery.
+		ee.metrics.markForkchoiceUpdateInvalid(req.State)
 		req.State.HeadBlockHash = req.State.SafeBlockHash
 		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
 		if err != nil {
@@ -145,15 +155,15 @@ func (ee *Engine[
 			return nil, nil, err
 		}
 		return payloadID, latestValidHash, ErrBadBlockProduced
+
+	// JSON-RPC errors are predefined and should be handled as such.
 	case jsonrpc.IsPreDefinedError(err):
-		// If we get a predefined JSON-RPC error, we will log it and
-		// return it.
-		ee.logger.Error("json-rpc execution error during forkchoice update",
-			"error", err,
-		)
+		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
 		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+
+	// All other errors are handled as undefined errors.
 	case err != nil:
-		ee.logger.Error("undefined execution engine error", "error", err)
+		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
 	}
 
@@ -168,6 +178,12 @@ func (ee *Engine[
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 ) error {
+	// Log the new payload attempt.
+	ee.metrics.markNewPayloadCalled(
+		req.ExecutionPayload,
+		req.Optimistic,
+	)
+
 	// First we verify the block hash and versioned hashes are valid.
 	//
 	// TODO: is this required? Or will the EL handle this for us during
@@ -215,22 +231,11 @@ func (ee *Engine[
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.logger.Info("new payload called with optimistic block",
-			"payload_block_hash", (req.ExecutionPayload.GetBlockHash()),
-			"parent_hash", (req.ExecutionPayload.GetParentHash()),
+		ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
+			req.ExecutionPayload.GetBlockHash(),
+			req.Optimistic,
 		)
 
-		// Under the optimistic condition, we will not return an error
-		// for this case, otherwise, we will pass the error onto the caller
-		// to allow them to choose how to handle it.
-		if req.Optimistic {
-			return nil
-		}
-		return err
-
-	// If we get invalid payload status, we will need to find a valid
-	// ancestor block and force a recovery.
-	//
 	// These two cases are semantically the same:
 	// https://github.com/ethereum/execution-apis/issues/270
 	case errors.IsAny(
@@ -238,53 +243,55 @@ func (ee *Engine[
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.logger.Error(
-			"invalid payload status",
-			"last_valid_hash", fmt.Sprintf("%#x", lastValidHash),
+		ee.metrics.markNewPayloadInvalidPayloadStatus(
+			req.ExecutionPayload.GetBlockHash(),
+			req.Optimistic,
 		)
+
+		// We want to return bad block irrespective of
+		// if we are running in optimistic mode or not.
+		//
+		// TODO: should we still nillify the error in optimistic mode?
 		return ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
-		var (
-			loggerFn = ee.logger.Error
-			logMsg   = "json-rpc execution error during payload verification"
-			logErr   = err
+		// Protect against possible nil value.
+		if lastValidHash == nil {
+			lastValidHash = &common.ExecutionHash{}
+		}
+
+		ee.metrics.markNewPayloadJSONRPCError(
+			req.ExecutionPayload.GetBlockHash(),
+			*lastValidHash,
+			req.Optimistic,
+			err,
 		)
 
-		defer func() {
-			loggerFn(logMsg, "is-optimistic", req.Optimistic, "error", logErr)
-		}()
-
-		// Under the optimistic condition, we are fine ignoring the error. This
-		// is mainly to allow us to safely call the execution client
-		// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
-		// we get an error here, we make the assumption that
-		// abci.ProcessProposal
-		// has deemed that the BeaconBlock containing the given ExecutionPayload
-		// was marked as valid by an honest majority of validators, and we
-		// don't want to halt the chain because of an error here.
-		//
-		// The pratical reason we want to handle this edge case
-		// is to protect against an awkward shutdown condition in which an
-		// execution client dies between the end of abci.ProcessProposal
-		// and the beginning of abci.FinalizeBlock. Without handling this case
-		// it would cause a failure of abci.FinalizeBlock and a
-		// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
-		if req.Optimistic {
-			loggerFn = ee.logger.Warn
-			logMsg += " - please monitor"
-			return nil
-		}
-		return errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+	case err != nil:
+		ee.metrics.markNewPayloadUndefinedError(
+			req.ExecutionPayload.GetBlockHash(),
+			req.Optimistic,
+			err,
+		)
 	}
 
-	// If we see an error that we don't recognize we just simply forward
-	// it to the caller.
+	// Under the optimistic condition, we are fine ignoring the error. This
+	// is mainly to allow us to safely call the execution client
+	// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
+	// we get an error here, we make the assumption that
+	// abci.ProcessProposal
+	// has deemed that the BeaconBlock containing the given ExecutionPayload
+	// was marked as valid by an honest majority of validators, and we
+	// don't want to halt the chain because of an error here.
+	//
+	// The pratical reason we want to handle this edge case
+	// is to protect against an awkward shutdown condition in which an
+	// execution client dies between the end of abci.ProcessProposal
+	// and the beginning of abci.FinalizeBlock. Without handling this case
+	// it would cause a failure of abci.FinalizeBlock and a
+	// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
 	if req.Optimistic {
-		ee.logger.Warn(
-			"error during optimistic payload verification",
-			"error", err,
-		)
 		return nil
 	}
 	return err

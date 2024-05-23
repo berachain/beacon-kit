@@ -32,11 +32,13 @@ import (
 
 // IndexDB is a database that allows prefixing by index.
 type IndexDB interface {
+	// Has
 	Has(index uint64, key []byte) (bool, error)
 	Set(index uint64, key []byte, value []byte) error
 }
 
 // BeaconBlockBody is the body of a beacon block.
 type BeaconBlockBody interface {
+	// GetBlobKzgCommitments returns the KZG commitments for the blob.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }

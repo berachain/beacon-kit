@@ -52,7 +52,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-
 	// TODO: Deprecate.
 	ConsensusParamsKeeper consensuskeeper.Keeper
 }
@@ -81,6 +80,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideConfig,
 				bkcomponents.ProvideEngineClient,
 				bkcomponents.ProvideJWTSecret,
+				bkcomponents.ProvideTelemetrySink,
 			),
 			depinject.Supply(
 				appOpts,

@@ -23,37 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package validator
+package encoding
 
-import (
-	"context"
+import "time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-)
-
-// computeStateRoot computes the state root of an outgoing block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
-	ctx context.Context,
-	st BeaconStateT,
-	blk types.BeaconBlock,
-) (primitives.Root, error) {
-	if err := s.stateProcessor.Transition(
-		// TODO: We should think about how having optimistic
-		// engine enabled here would affect the proposer when
-		// the payload in their block has come from a remote builder.
-		&transition.Context{
-			Context:             ctx,
-			OptimisticEngine:    true,
-			SkipPayloadIfExists: true,
-			SkipValidateResult:  true,
-			SkipValidateRandao:  true,
-		},
-		st, blk,
-	); err != nil {
-		return primitives.Root{}, err
-	}
-
-	return st.HashTreeRoot()
+// ABCIRequest represents the interface for an ABCI request.
+type ABCIRequest interface {
+	// GetHeight returns the height of the request.
+	GetHeight() int64
+	// GetTime returns the time of the request.
+	GetTime() time.Time
+	// GetTxs returns the transactions included in the request.
+	GetTxs() [][]byte
 }

@@ -35,14 +35,11 @@ type BeaconBlockHeaderBase struct {
 	// Slot represents the position of the block in the chain.
 	// TODO: Put back to math.Slot after fastssz fixes.
 	Slot uint64
-
 	// ProposerIndex is the index of the validator who proposed the block.
 	// TODO: Put back to math.ProposerIndex after fastssz fixes.
 	ProposerIndex uint64
-
 	// ParentBlockRoot is the hash of the parent block
 	ParentBlockRoot common.Root
-
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root
 }

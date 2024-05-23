@@ -69,7 +69,10 @@ func (s *Service[
 			//
 			// TODO: Figure out why SkipPayloadIfExists being `true`
 			// causes nodes to create gaps in their chain.
-			transition.NewContext(gCtx, true, false, true),
+			&transition.Context{
+				Context:          gCtx,
+				OptimisticEngine: true,
+			},
 			st,
 			blk,
 		)

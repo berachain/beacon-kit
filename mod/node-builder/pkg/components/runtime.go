@@ -39,6 +39,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
@@ -91,12 +92,14 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
+	ts *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
 	executionEngine := execution.New[types.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
+		ts,
 	)
 
 	// Build the deposit contract.
@@ -181,6 +184,7 @@ func ProvideRuntime(
 		](
 			chainSpec,
 			types.KZGPositionDeneb,
+			ts,
 		),
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
@@ -213,8 +217,9 @@ func ProvideRuntime(
 			types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier),
+			dablob.NewVerifier(blobProofVerifier, ts),
 			types.BlockBodyKZGOffset,
+			ts,
 		),
 		stateProcessor,
 		beaconDepositContract,
@@ -223,7 +228,7 @@ func ProvideRuntime(
 
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
-		service.WithLogger(logger.With("module", "service-registry")),
+		service.WithLogger(logger.With("service", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),
@@ -239,10 +244,7 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 	](
 		chainSpec,
-		logger.With(
-			"module",
-			"beacon-kit.runtime",
-		),
+		logger,
 		svcRegistry,
 		storageBackend,
 	)

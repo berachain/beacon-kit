@@ -26,8 +26,11 @@
 package blob
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
 )
@@ -37,8 +40,14 @@ type SidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
 ] struct {
-	cs          ChainSpec
+	// chainSpec defines the specifications of the blockchain.
+	chainSpec ChainSpec
+	// kzgPosition is the position of the KZG commitment in the block.
+	//
+	// TODO: This needs to be made configurable / modular.
 	kzgPosition uint64
+	// metrics is used to collect and report factory metrics.
+	metrics *factoryMetrics
 }
 
 // NewSidecarFactory creates a new sidecar factory.
@@ -46,14 +55,16 @@ func NewSidecarFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
 ](
-	cs ChainSpec,
+	chainSpec ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
+	telemetrySink TelemetrySink,
 ) *SidecarFactory[BeaconBlockT, BeaconBlockBodyT] {
 	return &SidecarFactory[BeaconBlockT, BeaconBlockBodyT]{
-		cs: cs,
+		chainSpec: chainSpec,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
+		metrics:     newFactoryMetrics(telemetrySink),
 	}
 }
 
@@ -66,12 +77,14 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
 		proofs      = bundle.GetProofs()
-		numBlobs    = uint64(len(blobs))
+		numBlobs    = math.U64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
 	)
 
+	startTime := time.Now()
+	defer f.metrics.measureBuildSidecarsDuration(startTime, numBlobs)
 	for i := range numBlobs {
 		g.Go(func() error {
 			inclusionProof, err := f.BuildKZGInclusionProof(
@@ -97,8 +110,11 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 // BuildKZGInclusionProof builds a KZG inclusion proof.
 func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
 	body BeaconBlockBodyT,
-	index uint64,
+	index math.U64,
 ) ([][32]byte, error) {
+	startTime := time.Now()
+	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
+
 	// Build the merkle proof to the commitment within the
 	// list of commitments.
 	commitmentsProof, err := f.BuildCommitmentProof(body, index)
@@ -121,6 +137,8 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
 func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 	body BeaconBlockBodyT,
 ) ([][32]byte, error) {
+	startTime := time.Now()
+	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
 	membersRoots, err := body.GetTopLevelRoots()
 	if err != nil {
 		return nil, err
@@ -139,17 +157,20 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 // BuildCommitmentProof builds a commitment proof.
 func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
 	body BeaconBlockBodyT,
-	index uint64,
+	index math.U64,
 ) ([][32]byte, error) {
+	startTime := time.Now()
+	defer f.metrics.measureBuildCommitmentProofDuration(startTime)
+
 	bodyTree, err := merkle.NewTreeWithMaxLeaves[
 		[32]byte, [32]byte,
 	](
 		body.GetBlobKzgCommitments().Leafify(),
-		f.cs.MaxBlobCommitmentsPerBlock(),
+		f.chainSpec.MaxBlobCommitmentsPerBlock(),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return bodyTree.MerkleProofWithMixin(index)
+	return bodyTree.MerkleProofWithMixin(index.Unwrap())
 }

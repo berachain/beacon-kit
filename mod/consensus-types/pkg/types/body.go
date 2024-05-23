@@ -69,15 +69,12 @@ func BlockBodyKZGOffset(
 type BeaconBlockBodyBase struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature `ssz-size:"96"`
-
 	// Eth1Data is the data from the Eth1 chain.
 	Eth1Data *Eth1Data
-
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
-
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `ssz-max:"16"`
+	Deposits []*Deposit `              ssz-max:"16"`
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
@@ -122,10 +119,8 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 //go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../primitives-engine/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
-
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutableDataDeneb
-
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment `ssz-size:"?,48" ssz-max:"16"`
 }
