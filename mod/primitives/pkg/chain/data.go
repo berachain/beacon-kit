@@ -34,8 +34,6 @@ type SpecData[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] struct {
-	// Eth1ChainID is the chain ID.
-	Eth1ChainID uint64 `mapstructure:"eth1-chain-id"`
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
@@ -81,6 +79,8 @@ type SpecData[
 	//
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
+	// DepositEth1ChainID is the chain ID of the execution client.
+	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
 
 	// Fork-related values.
 	//
