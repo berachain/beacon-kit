@@ -67,7 +67,6 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,
 ) (*types.BlobSidecars, error) {
-
 	var (
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
