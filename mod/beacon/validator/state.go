@@ -48,7 +48,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 			OptimisticEngine:       true,
 			SkipRandaoVerification: true,
 			SkipPayloadIfExists:    true,
-			OptimisticEngine:       true,
 		},
 		st, blk,
 	); err != nil {
