@@ -72,22 +72,6 @@ func (s *Service[
 	)
 }
 
-// BuildBlock assembles a fully formed block.
-func (s *Service[
-	BeaconStateT,
-	BlobSidecarsT,
-]) SetBlockStateRoot(
-	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
-) error {
-	// Compute the state root for the block.
-	stateRoot, err := s.computeStateRoot(ctx, st, blk)
-	if err != nil {
-		return err
-	}
-	blk.SetStateRoot(stateRoot)
-	return nil
-}
-
 func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
