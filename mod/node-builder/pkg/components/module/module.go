@@ -108,6 +108,8 @@ func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
 	return json.Marshal(
-		&genesis.Genesis[*types.ExecutionPayloadHeaderDeneb]{},
+		&genesis.Genesis[
+			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+		]{},
 	)
 }

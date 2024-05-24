@@ -42,6 +42,7 @@ import (
 // Genesis is a struct that contains the genesis information
 // need to start the beacon chain.
 type Genesis[
+	DepositT any,
 	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
@@ -49,7 +50,7 @@ type Genesis[
 
 	// Deposits represents the deposits in the genesis. Deposits are
 	// used to initialize the validator set.
-	Deposits []*types.Deposit `json:"deposits"`
+	Deposits []DepositT `json:"deposits"`
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
@@ -57,14 +58,16 @@ type Genesis[
 }
 
 // DefaultGenesis returns a the default genesis.
-func DefaultGenesisDeneb() *Genesis[*types.ExecutionPayloadHeaderDeneb] {
+func DefaultGenesisDeneb() *Genesis[
+	*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+] {
 	defaultHeader, err :=
 		DefaultGenesisExecutionPayloadHeaderDeneb()
 	if err != nil {
 		panic(err)
 	}
 
-	return &Genesis[*types.ExecutionPayloadHeaderDeneb]{
+	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),

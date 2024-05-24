@@ -76,7 +76,10 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &genesis.Genesis[*types.ExecutionPayloadHeaderDeneb]{}
+			genesisInfo := &genesis.Genesis[
+				*types.Deposit,
+				*types.ExecutionPayloadHeaderDeneb,
+			]{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,

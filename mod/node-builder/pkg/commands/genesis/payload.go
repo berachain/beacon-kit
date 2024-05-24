@@ -91,16 +91,18 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				return err
 			}
 
-			beaconState := &genesis.Genesis[*types.ExecutionPayloadHeaderDeneb]{}
-
+			genesisInfo := &genesis.Genesis[
+				*types.Deposit,
+				*types.ExecutionPayloadHeaderDeneb,
+			]{}
 			if err = json.Unmarshal(
-				appGenesisState["beacon"], beaconState,
+				appGenesisState["beacon"], genesisInfo,
 			); err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon state")
 			}
 
 			// Inject the execution payload.
-			beaconState.ExecutionPayloadHeader, err =
+			genesisInfo.ExecutionPayloadHeader, err =
 				executableDataToExecutionPayloadHeader(payload)
 			if err != nil {
 				return errors.Wrap(
@@ -109,7 +111,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				)
 			}
 
-			appGenesisState["beacon"], err = json.Marshal(beaconState)
+			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
 			}
