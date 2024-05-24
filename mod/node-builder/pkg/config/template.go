@@ -23,9 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:lll // it's a template file.
 package config
 
+//nolint:lll // template.
 const Template = `
 ###############################################################################
 ###                                BeaconKit                                ###

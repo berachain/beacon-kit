@@ -50,6 +50,7 @@ func TestRangeDB(t *testing.T) {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
 				gotValue, err := rdb.Get(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.Equal(t, []byte("testValue"), gotValue)
@@ -61,6 +62,7 @@ func TestRangeDB(t *testing.T) {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
 				exists, err := rdb.Has(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.True(t, exists)
@@ -72,6 +74,7 @@ func TestRangeDB(t *testing.T) {
 				return nil // No setup required
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
 				err := rdb.Set(1, []byte("testKey"), []byte("testValue"))
 				require.NoError(t, err)
 
@@ -86,6 +89,7 @@ func TestRangeDB(t *testing.T) {
 				return rdb.Set(1, []byte("testKey"), []byte("testValue"))
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
 				err := rdb.Delete(1, []byte("testKey"))
 				require.NoError(t, err)
 
@@ -107,6 +111,7 @@ func TestRangeDB(t *testing.T) {
 				return nil
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
 				err := rdb.DeleteRange(1, 4)
 				require.NoError(t, err)
 
@@ -187,6 +192,7 @@ func TestExtractIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Helper()
 			idx, err := file.ExtractIndex(tt.prefixedKey)
 			require.Equal(t, tt.expectedIdx, idx)
 			if tt.expectedErr != nil {
@@ -209,6 +215,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Helper()
 			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
 				Return(errors.New("rangedb: delete range not supported for this db"))
 

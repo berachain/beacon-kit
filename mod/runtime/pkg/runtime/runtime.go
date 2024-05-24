@@ -58,7 +58,13 @@ type BeaconKitRuntime[
 	services       *service.Registry
 	storageBackend StorageBackendT
 	chainSpec      primitives.ChainSpec
-	abciHandler    *abci.Handler[BlobSidecarsT]
+	chainService   *blockchain.Service[
+		AvailabilityStoreT,
+		state.BeaconState,
+		BlobSidecarsT,
+		DepositStoreT,
+	]
+	abciHandler *abci.Handler[BlobSidecarsT]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -120,6 +126,7 @@ func NewBeaconKitRuntime[
 			chainService,
 		),
 		chainSpec:      chainSpec,
+		chainService:   chainService,
 		logger:         logger,
 		services:       services,
 		storageBackend: storageBackend,

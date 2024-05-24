@@ -39,7 +39,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) (primitives.Root, error) {
-	if err := s.stateProcessor.Transition(
+	if _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.

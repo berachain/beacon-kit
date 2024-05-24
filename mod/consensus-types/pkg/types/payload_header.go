@@ -34,7 +34,7 @@ import (
 )
 
 //
-//nolint:lll // long variable names.
+
 var _ engineprimitives.ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(
 	nil,
 )

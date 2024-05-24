@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:ineffassign,wastedassign,mnd // experimental
+//nolint:wastedassign // experimental
 package ssz
 
 import (
@@ -162,6 +162,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	cb func(reflect.Value, reflect.Type, *[]byte, uint64) (uint64, error),
 ) ([]byte, error) {
 	aLen := 0
+	//nolint:ineffassign // wtf lol.
 	err := errors.New("MarshalToDefaultBuffer Failure")
 	switch {
 	case IsStruct(typ, val):

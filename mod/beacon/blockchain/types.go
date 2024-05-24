@@ -28,12 +28,14 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -179,10 +181,24 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT any,
 ] interface {
+	// ProcessGenesisState processes the genesis state.
+	// TODO: move to an actual genesis type.
+	ProcessGenesisState(
+		ctx ContextT,
+		st BeaconStateT,
+		data *deneb.BeaconState,
+	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.
-	ProcessSlot(st BeaconStateT) error
+	ProcessSlot(
+		st BeaconStateT,
+	) ([]*transition.ValidatorUpdate, error)
+
 	// Transition processes the state transition for a given block.
-	Transition(ctx ContextT, st BeaconStateT, blk BeaconBlockT) error
+	Transition(
+		ctx ContextT,
+		st BeaconStateT,
+		blk BeaconBlockT,
+	) ([]*transition.ValidatorUpdate, error)
 }
