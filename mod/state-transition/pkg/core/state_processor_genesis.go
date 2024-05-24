@@ -38,6 +38,8 @@ import (
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
+//
+//nolint:gocognit // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
@@ -76,7 +78,9 @@ func (sp *StateProcessor[
 	bodyRoot, err := (&types.BeaconBlockBodyDeneb{
 		BeaconBlockBodyBase: types.BeaconBlockBodyBase{},
 		ExecutionPayload: &types.ExecutableDataDeneb{
+			//nolint:mnd // todo fix.
 			LogsBloom: make([]byte, 256),
+			//nolint:mnd // todo fix.
 			ExtraData: make([]byte, 32),
 		},
 	}).HashTreeRoot()
@@ -84,14 +88,14 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err := st.SetLatestBlockHeader(&types.BeaconBlockHeader{
+	if err = st.SetLatestBlockHeader(&types.BeaconBlockHeader{
 		BodyRoot: bodyRoot,
 	}); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err := st.UpdateRandaoMixAtIndex(
+		if err = st.UpdateRandaoMixAtIndex(
 			i,
 			bytes.B32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
@@ -100,7 +104,7 @@ func (sp *StateProcessor[
 	}
 
 	// Prime the db so that processDeposit doesn't fail.
-	if err := st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
+	if err = st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
 		return nil, err
 	}
 
@@ -112,12 +116,14 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: process activations.
-	validators, err := st.GetValidators()
+	var validators []*types.Validator
+	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	validatorsRoot, err := ssz.MerkleizeListComposite[
+	var validatorsRoot primitives.Root
+	validatorsRoot, err = ssz.MerkleizeListComposite[
 		common.ChainSpec, math.U64, [32]byte,
 	](validators, uint64(len(validators)))
 	if err != nil {

@@ -252,7 +252,6 @@ func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
 
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
 	if err != nil {
-
 		return [32]byte{}, err
 	}
 

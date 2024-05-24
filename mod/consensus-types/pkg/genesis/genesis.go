@@ -40,6 +40,8 @@ import (
 )
 
 // Genesis is a struct that contains the genesis.
+//
+//nolint:lll // struct tags.
 type Genesis struct {
 	ForkVersion            primitives.Version                 `json:"fork_version"`
 	Deposits               []*types.Deposit                   `json:"deposits"`
