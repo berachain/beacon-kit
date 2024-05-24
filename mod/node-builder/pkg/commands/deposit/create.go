@@ -164,7 +164,6 @@ func getBLSSigner(
 	}
 
 	// Build the BLS signer.
-	//nolint:nestif // complexity comes from parsing values
 	if overrideFlag {
 		var validatorPrivKey string
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
