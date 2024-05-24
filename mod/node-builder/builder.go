@@ -35,7 +35,6 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -142,12 +141,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				cmd.Flags(),
 			)
 			if err != nil {
-				return err
-			}
-
-			if err = tos.VerifyTosAcceptedOrPrompt(
-				nb.appInfo.Name, components.TermsOfServiceURL, clientCtx, cmd,
-			); err != nil {
 				return err
 			}
 

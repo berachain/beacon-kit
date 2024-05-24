@@ -80,6 +80,11 @@ type BeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
+// BlobSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	Len() int
+}
+
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context

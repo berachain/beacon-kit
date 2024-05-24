@@ -31,24 +31,29 @@ import (
 	"os"
 	"path/filepath"
 
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions.
-func AddPubkeyCmd() *cobra.Command {
+func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-validator",
+		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -64,43 +69,63 @@ func AddPubkeyCmd() *cobra.Command {
 				)
 			}
 
-			genesis, err := genutiltypes.AppGenesisFromFile(
-				config.GenesisFile(),
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to read genesis doc from file")
-			}
-
-			// create the app state
-			_, err = genutiltypes.GenesisStateFromAppGenesis(genesis)
-			if err != nil {
-				return err
-			}
-
 			var (
 				depositAmountString string
 				depositAmount       math.Gwei
 			)
+
+			// Get the BLS signer.
+			blsSigner, err := getBLSSigner()
+			if err != nil {
+				return err
+			}
+
 			// Get the deposit amount.
 			depositAmountString, err = cmd.Flags().GetString(depositAmountFlag)
 			if err != nil {
 				return err
 			}
+
 			depositAmount, err = parser.ConvertAmount(depositAmountString)
 			if err != nil {
 				return err
 			}
 
-			// TODO: Should we do deposits here?
-			validator := types.NewValidatorFromDeposit(
-				crypto.BLSPubkey(valPubKey.Bytes()),
+			// TODO: configurable.
+			currentVersion := version.FromUint32[primitives.Version](
+				version.Deneb,
+			)
+
+			depositMsg, signature, err := types.CreateAndSignDepositMessage(
+				types.NewForkData(currentVersion, common.Root{}),
+				cs.DomainTypeDeposit(),
+				blsSigner,
+				// TODO: configurable.
 				types.NewCredentialsFromExecutionAddress(
-					common.Address{},
+					common.ExecutionAddress{},
 				),
 				depositAmount,
-				depositAmount,
-				32e9, //nolint:mnd // temp.
 			)
+			if err != nil {
+				return err
+			}
+
+			// Verify the deposit message.
+			if err = depositMsg.VerifyCreateValidator(
+				types.NewForkData(currentVersion, common.Root{}),
+				signature,
+				signer.BLSSigner{}.VerifySignature,
+				cs.DomainTypeDeposit(),
+			); err != nil {
+				return err
+			}
+
+			deposit := types.Deposit{
+				Pubkey:      depositMsg.Pubkey,
+				Amount:      depositMsg.Amount,
+				Signature:   signature,
+				Credentials: depositMsg.Credentials,
+			}
 
 			//#nosec:G703 // Ignore errors on this line.
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
@@ -111,7 +136,8 @@ func AddPubkeyCmd() *cobra.Command {
 					return errors.Wrap(err, "failed to create output file path")
 				}
 			}
-			if err = writeValidatorStruct(outputDocument, validator); err != nil {
+
+			if err = writeDepositToFile(outputDocument, &deposit); err != nil {
 				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
@@ -138,9 +164,9 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", pubkey)), nil
 }
 
-func writeValidatorStruct(
+func writeDepositToFile(
 	outputDocument string,
-	validator *types.Validator,
+	depositMessage *types.Deposit,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := afero.NewOsFs().OpenFile(
@@ -155,11 +181,31 @@ func writeValidatorStruct(
 	//#nosec:G307 // Ignore errors on this line.
 	defer outputFile.Close()
 
-	bz, err := json.Marshal(validator)
+	bz, err := json.Marshal(depositMessage)
 	if err != nil {
 		return err
 	}
 	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 
 	return err
+}
+
+// getBLSSigner returns a BLS signer based on the override node key flag.
+func getBLSSigner() (crypto.BLSSigner, error) {
+	var blsSigner crypto.BLSSigner
+	if err := depinject.Inject(
+		depinject.Configs(
+			depinject.Supply(
+				viper.GetViper(),
+			),
+			depinject.Provide(
+				components.ProvideBlsSigner,
+			),
+		),
+		&blsSigner,
+	); err != nil {
+		return nil, err
+	}
+
+	return blsSigner, nil
 }
