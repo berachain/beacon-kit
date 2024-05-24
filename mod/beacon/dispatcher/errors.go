@@ -28,5 +28,6 @@ package dispatcher
 import "errors"
 
 var (
-	ErrHandlerNotFound = errors.New("handler not found")
+	ErrHandlerNotFound      = errors.New("handler not found")
+	ErrHandlerAlreadyExists = errors.New("handler already exists")
 )

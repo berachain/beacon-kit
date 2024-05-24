@@ -30,23 +30,29 @@ import (
 	"sync"
 )
 
+const Name = "dispatcher"
+
 type Dispatcher struct {
 	mu sync.RWMutex
 
 	registry map[EventType]Handler
 }
 
-func NewDispatcher() *Dispatcher {
-	return &Dispatcher{
+func New(opts ...DispatcherOption) *Dispatcher {
+	dispatcher := &Dispatcher{
+		mu:       sync.RWMutex{},
 		registry: make(map[EventType]Handler),
 	}
+
+	for _, opt := range opts {
+		opt(dispatcher)
+	}
+
+	return dispatcher
 }
 
-func (d *Dispatcher) Start(ctx context.Context, event EventType) error {
-	return d.registry[event].Start(ctx)
-}
-
-func (d *Dispatcher) StartAll(ctx context.Context) error {
+// Default behavior is to start all handlers
+func (d *Dispatcher) Start(ctx context.Context) error {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
@@ -59,11 +65,16 @@ func (d *Dispatcher) StartAll(ctx context.Context) error {
 	return nil
 }
 
-func (d *Dispatcher) RegisterHandler(eventType EventType, handler Handler) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
+// StartEventHandler starts the handler for a specific event type
+// TODO: maybe unneeded with the current service architecture
+func (d *Dispatcher) StartEventHandler(
+	ctx context.Context, event EventType,
+) error {
+	if handler := d.registry[event]; handler != nil {
+		return handler.Start(ctx)
+	}
 
-	d.registry[eventType] = handler
+	return ErrHandlerNotFound
 }
 
 func (d *Dispatcher) Notify(event Event) error {
@@ -78,3 +89,15 @@ func (d *Dispatcher) Notify(event Event) error {
 	handler.Notify(event)
 	return nil
 }
+
+func (d *Dispatcher) Name() string {
+	return Name
+}
+
+// TODO: implement the following maybe with checks for each
+// handler?
+func (d *Dispatcher) Status() error {
+	return nil
+}
+
+func (d *Dispatcher) WaitForHealthy(ctx context.Context) {}

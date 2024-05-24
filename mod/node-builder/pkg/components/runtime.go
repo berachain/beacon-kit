@@ -28,6 +28,7 @@ package components
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/dispatcher"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -164,6 +165,16 @@ func ProvideRuntime(
 		logger.With("service", "state-processor"),
 	)
 
+	depositHandler := deposit.NewHandler[state.BeaconState](
+		chainSpec,
+		signer,
+	)
+
+	// Build the dispatcher service.
+	dispatcherServce := dispatcher.New(
+		dispatcher.WithHandler(deposit.EventType, depositHandler),
+	)
+
 	// Build the builder service.
 	validatorService := validator.NewService[
 		state.BeaconState, *datypes.BlobSidecars,
@@ -214,6 +225,7 @@ func ProvideRuntime(
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger.With("service", "service-registry")),
+		service.WithService(dispatcherServce),
 		service.WithService(validatorService),
 		service.WithService(chainService),
 		service.WithService(engineClient),

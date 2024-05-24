@@ -25,6 +25,8 @@
 
 package dispatcher
 
+// TOOD: would be nice if this was a uint8/16 or something
+// but enums are hard to keep decoupled
 type EventType string
 
 type Event interface {

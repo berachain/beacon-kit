@@ -33,6 +33,8 @@ import (
 
 // var _ dispatcher.Event = (*Event)(nil)
 
+const EventType = "deposit"
+
 type Event[BeaconStateT state.BeaconState] struct {
 	st       state.BeaconState
 	deposits []*types.Deposit
@@ -48,5 +50,5 @@ func NewDeposit[BeaconStateT state.BeaconState](
 }
 
 func (e *Event[BeaconStateT]) Type() dispatcher.EventType {
-	return "deposit"
+	return EventType
 }
