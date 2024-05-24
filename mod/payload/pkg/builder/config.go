@@ -39,7 +39,7 @@ const (
 
 // Builder is the configuration for the payload builder.
 //
-//nolint:lll // struct tags.
+
 type Config struct {
 	// Enabled determines if the local builder is enabled.
 	Enabled bool `mapstructure:"enabled"`

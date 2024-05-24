@@ -63,7 +63,7 @@ type KurtosisE2ESuite struct {
 // ConsensusClients returns the consensus clients associated with the
 // KurtosisE2ESuite.
 //
-//nolint:lll
+
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
 	return s.consensusClients
 }
@@ -95,7 +95,7 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 // ExecutionClients returns the execution clients associated with the
 // KurtosisE2ESuite.
 //
-//nolint:lll
+
 func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
 	return nil
 }
