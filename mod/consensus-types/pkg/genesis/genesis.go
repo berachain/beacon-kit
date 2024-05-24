@@ -39,7 +39,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Genesis is a struct that contains the genesis.
+// Genesis is a struct that contains the genesis information
+// need to start the beacon chain.
 type Genesis[
 	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
 ] struct {
