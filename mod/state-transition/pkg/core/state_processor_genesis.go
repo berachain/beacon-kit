@@ -39,7 +39,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit // todo fix.
+//nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
@@ -110,7 +110,7 @@ func (sp *StateProcessor[
 
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
-		if err := sp.processDeposit(st, deposit); err != nil {
+		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
@@ -134,17 +134,19 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(executionPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(
+		executionPayloadHeader,
+	); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err := st.UpdateBlockRootAtIndex(i, primitives.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, primitives.Root{}); err != nil {
 			return nil, err
 		}
-		if err := st.UpdateStateRootAtIndex(i, primitives.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, primitives.Root{}); err != nil {
 			return nil, err
 		}
 	}
