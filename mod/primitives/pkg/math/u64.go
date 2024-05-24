@@ -45,6 +45,7 @@ const (
 //nolint:gochecknoglobals // stores the reflect type of U64.
 var uint64T = reflect.TypeOf(U64(0))
 
+//nolint:lll
 type (
 	// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 	// marshallable. We marshal U64 as hex strings in JSON in order to keep the

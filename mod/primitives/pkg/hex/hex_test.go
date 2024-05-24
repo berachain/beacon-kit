@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// # Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2024 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -22,6 +22,8 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+
+//nolint:lll // long strings
 package hex_test
 
 import (
@@ -78,7 +80,7 @@ func TestNewStringStrictInvariants(t *testing.T) {
 					test.expectErr,
 				)
 			} else if err == nil {
-				verifyInvariants("NewStringStrict()", t, str)
+				verifyInvariants(t, "NewStringStrict()", str)
 			}
 		})
 	}
@@ -116,7 +118,7 @@ func TestNewStringInvariants(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			str := hex.NewString(test.input)
-			verifyInvariants("NewString()", t, str)
+			verifyInvariants(t, "NewString()", str)
 		})
 	}
 }
@@ -166,7 +168,7 @@ func TestFromBytes(t *testing.T) {
 				)
 			}
 
-			verifyInvariants("FromBytes()", t, result)
+			verifyInvariants(t, "FromBytes()", result)
 
 			decoded, err := result.ToBytes()
 			if err != nil {
@@ -216,7 +218,7 @@ func TestUint64RoundTrip(t *testing.T) {
 					tt.expected,
 				)
 			}
-			verifyInvariants("FromUint64()", t, result)
+			verifyInvariants(t, "FromUint64()", result)
 			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
 			if err != nil {
 				t.Errorf("ParseUint() error = %v", err)
@@ -265,7 +267,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 				)
 			}
 
-			verifyInvariants("FromBigInt()", t, result)
+			verifyInvariants(t, "FromBigInt()", result)
 
 			var dec *big.Int
 			var err error
@@ -289,7 +291,8 @@ func TestBigIntRoundTrip(t *testing.T) {
 
 // ====================== Helpers ===========================.
 
-func verifyInvariants(invoker string, t *testing.T, s hex.String) {
+func verifyInvariants(t *testing.T, invoker string, s hex.String) {
+	t.Helper()
 	if !s.Has0xPrefix() {
 		t.Errorf(invoker+"result does not have 0x prefix: %v", s)
 	}

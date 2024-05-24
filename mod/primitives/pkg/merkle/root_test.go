@@ -177,6 +177,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
+	t.Helper()
 	expectedOutput := make([][32]byte, len(inputList)/2)
 	var output [][32]byte
 

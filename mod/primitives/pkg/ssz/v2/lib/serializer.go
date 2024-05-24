@@ -162,6 +162,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	cb func(reflect.Value, reflect.Type, *[]byte, uint64) (uint64, error),
 ) ([]byte, error) {
 	aLen := 0
+	//nolint:ineffassign // wtf lol.
 	err := errors.New("MarshalToDefaultBuffer Failure")
 	switch {
 	case IsStruct(typ, val):
