@@ -48,7 +48,7 @@ func Commands(
 	// Adding subcommands for genesis-related operations.
 	cmd.AddCommand(
 		AddGenesisDepositCmd(cs),
-		CollectValidatorsCmd(),
+		CollectGenesisDepositsCmd(),
 		AddExecutionPayloadCmd(),
 	)
 

@@ -59,7 +59,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--beacon-kit.accept-tos \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
 	./build/bin/beacond genesis add-genesis-deposit --home $HOMEDIR
-	./build/bin/beacond genesis collect-validators --home $HOMEDIR 
+	./build/bin/beacond genesis collect-genesis-deposits --home $HOMEDIR 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 

@@ -42,9 +42,9 @@ import (
 )
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions.
-func CollectValidatorsCmd() *cobra.Command {
+func CollectGenesisDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "collect-validators",
+		Use:   "collect-genesis-deposits",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
