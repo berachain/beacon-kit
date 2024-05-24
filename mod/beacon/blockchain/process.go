@@ -122,9 +122,6 @@ func (s *Service[
 	//
 	//
 	//
-	
-
-	
 
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
@@ -148,13 +145,9 @@ func (s *Service[
 	// Process the logs from the previous blocks execution payload.
 	// TODO: This should be moved out of the main block processing flow.
 	// TODO: eth1FollowDistance should be done actually proper
+	// TODO: Is this the right block number to use for all cases?
 	eth1FollowDistance := math.U64(1)
-	if err = s.retrieveDepositsFromBlock(
-		ctx, lph.GetNumber()-eth1FollowDistance,
-	); err != nil {
-		s.logger.Error("failed to process logs", "error", err)
-		return nil, err
-	}
+	s.dispatcher.Notify(NewEvent(ctx, lph.GetNumber()-eth1FollowDistance))
 
 	return valUpdates, nil
 }

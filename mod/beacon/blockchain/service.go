@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/beacon/dispatcher"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -70,6 +71,9 @@ type Service[
 		BlobSidecarsT,
 		*transition.Context,
 	]
+
+	// dispatcher service for receiving and broadcasting events.
+	dispatcher *dispatcher.Service
 }
 
 // NewService creates a new validator service.
@@ -97,6 +101,7 @@ func NewService[
 		BlobSidecarsT, *transition.Context,
 	],
 	dc DepositContract,
+	dispatcher *dispatcher.Service,
 ) *Service[
 	AvailabilityStoreT, ReadOnlyBeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -105,14 +110,15 @@ func NewService[
 		AvailabilityStoreT, ReadOnlyBeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:     sb,
-		logger: logger,
-		cs:     cs,
-		ee:     ee,
-		lb:     lb,
-		bp:     bp,
-		sp:     sp,
-		dc:     dc,
+		sb:         sb,
+		logger:     logger,
+		cs:         cs,
+		ee:         ee,
+		lb:         lb,
+		bp:         bp,
+		sp:         sp,
+		dc:         dc,
+		dispatcher: dispatcher,
 	}
 }
 

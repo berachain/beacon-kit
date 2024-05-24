@@ -27,87 +27,64 @@ package deposit
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/dispatcher"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
-
-// Compile time assertion to ensure Handler implements dispatcher.Handler
-// var _ dispatcher.Handler = (*Handler)(nil)
 
 const ServiceName = "deposit_handler"
 
-type Handler[BeaconStateT state.BeaconState] struct {
-	ch     <-chan dispatcher.Event
+type Handler[
+	DepositStoreT DepositStore,
+] struct {
+	ch <-chan dispatcher.Event
+
 	cs     primitives.ChainSpec
 	signer crypto.BLSSigner
+	sb     StorageBackend[
+		any, any, any, DepositStoreT,
+	]
+	dc     DepositContract
 	logger log.Logger[any]
 }
 
-func NewHandler[BeaconStateT state.BeaconState](
-	cs primitives.ChainSpec,
-	signer crypto.BLSSigner,
-	logger log.Logger[any],
+func NewHandler[
+	DepositStoreT DepositStore,
+](
+	sb StorageBackend[
+		any, any, any, DepositStoreT,
+	],
+	dc DepositContract,
 	ch <-chan dispatcher.Event,
-) *Handler[BeaconStateT] {
-	return &Handler[BeaconStateT]{
+	logger log.Logger[any],
+) *Handler[DepositStoreT] {
+	return &Handler[DepositStoreT]{
 		ch:     ch,
-		cs:     cs,
-		signer: signer,
+		sb:     sb,
+		dc:     dc,
 		logger: logger,
 	}
 }
 
-func (h *Handler[BeaconStateT]) Start(ctx context.Context) error {
+func (h *Handler[DepositStoreT]) Start(ctx context.Context) error {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case event := <-h.ch:
-				depositEvent, ok := event.(*Event[BeaconStateT])
+			case e := <-h.ch:
+				event, ok := e.(*blockchain.Event)
 				if !ok {
 					panic(ErrInvalidEventType)
 				}
 
-				st := depositEvent.st
-
-				// Prune deposits.
-				// TODO: This should be moved into a go-routine in the background.
-				// Watching for logs should be completely decoupled as well.
-				idx, err := st.GetEth1DepositIndex()
-				if err != nil {
-					return
+				if err := h.Process(event.Ctx, event.Slot); err != nil {
+					panic(err)
 				}
-
-				fmt.Println(idx)
-
-				// // TODO: pruner shouldn't be in main block processing thread.
-				// if err = s.PruneDepositEvents(ctx, idx); err != nil {
-				// 	return err
-				// }
-
-				// var lph engineprimitives.ExecutionPayloadHeader
-				// lph, err = st.GetLatestExecutionPayloadHeader()
-				// if err != nil {
-				// 	return  err
-				// }
-
-				// // Process the logs from the previous blocks execution payload.
-				// // TODO: This should be moved out of the main block processing flow.
-				// // TODO: eth1FollowDistance should be done actually proper
-				// eth1FollowDistance := math.U64(1)
-				// if err = s.retrieveDepositsFromBlock(
-				// 	ctx, lph.GetNumber()-eth1FollowDistance,
-				// ); err != nil {
-				// 	// s.logger.Error("failed to process logs", "error", err)
-				// 	return err
-				// } 
-
 			}
 		}
 	}()
@@ -115,12 +92,30 @@ func (h *Handler[BeaconStateT]) Start(ctx context.Context) error {
 	return nil
 }
 
-func (h *Handler[BeaconStateT]) Name() string {
+func (h *Handler[DepositStoreT]) Name() string {
 	return ServiceName
 }
 
-func (h *Handler[BeaconStateT]) Status() error {
+func (h *Handler[DepositStoreT]) Status() error {
 	return nil
 }
 
-func (h *Handler[BeaconStateT]) WaitForHealthy(ctx context.Context) {}
+func (h *Handler[DepositStoreT]) WaitForHealthy(ctx context.Context) {}
+
+func (h *Handler[DepositStoreT]) Process(
+	ctx context.Context,
+	slot math.U64,
+) error {
+	h.logger.Info("💵 processing deposits 💵", "slot", slot)
+	deposits, err := h.dc.GetDeposits(ctx, slot.Unwrap())
+	if err != nil {
+		return err
+	}
+
+	if err := h.sb.DepositStore(ctx).EnqueueDeposits(
+		deposits,
+	); err != nil {
+		return err
+	}
+	return nil
+}

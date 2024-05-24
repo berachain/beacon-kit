@@ -44,12 +44,6 @@ func NewService() (*Service, error) {
 		registry: make(map[EventType][]chan (Event)),
 	}
 
-	// for _, opt := range opts {
-	// 	if err := opt(dispatcher); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	return dispatcher, nil
 }
 
