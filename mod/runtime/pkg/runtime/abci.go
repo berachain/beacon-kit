@@ -31,6 +31,7 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -43,7 +44,7 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(genesis.GenesisDeneb)
+	data := new(genesis.Genesis[*types.ExecutionPayloadHeaderDeneb])
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}

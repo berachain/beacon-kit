@@ -91,7 +91,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				return err
 			}
 
-			beaconState := &genesis.GenesisDeneb{}
+			beaconState := &genesis.Genesis[*types.ExecutionPayloadHeaderDeneb]{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,

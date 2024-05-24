@@ -32,6 +32,7 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -85,7 +86,9 @@ func (am AppModule) IsAppModule() {}
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(genesis.DefaultGenesisDeneb())
+	bz, err := json.Marshal(
+		genesis.DefaultGenesis[*types.ExecutionPayloadHeaderDeneb](),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -104,5 +107,7 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
-	return json.Marshal(&genesis.GenesisDeneb{})
+	return json.Marshal(
+		&genesis.Genesis[*types.ExecutionPayloadHeaderDeneb]{},
+	)
 }

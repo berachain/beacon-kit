@@ -41,8 +41,10 @@ import (
 
 // GenesisDeneb is a struct that contains the genesis.
 //
-//nolint:lll // struct tags.
-type GenesisDeneb struct {
+
+type Genesis[
+	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
+] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
 
@@ -52,28 +54,30 @@ type GenesisDeneb struct {
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
-	ExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"execution_payload_header"`
+	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
 }
 
 // DefaultGenesis returns a the default genesis.
-func DefaultGenesisDeneb() *GenesisDeneb {
+func DefaultGenesis[
+	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
+]() *Genesis[ExecutonPayloadHeaderT] {
 	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		panic(err)
 	}
 
-	return &GenesisDeneb{
+	return &Genesis[ExecutonPayloadHeaderT]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),
 		Deposits:               make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: defaultHeader,
+		ExecutionPayloadHeader: defaultHeader.(ExecutonPayloadHeaderT),
 	}
 }
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
 func DefaultGenesisExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeaderDeneb, error,
+	engineprimitives.ExecutionPayloadHeader, error,
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
