@@ -53,7 +53,7 @@ import (
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions.
 func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-genesis-deposit",
+		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)

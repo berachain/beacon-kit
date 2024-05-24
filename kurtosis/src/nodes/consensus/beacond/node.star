@@ -15,11 +15,11 @@ def create_beacond_config_directory(plan, cl_service_name):
     TMP_GENESIS = "{}/config/tmp_genesis.json".format("$BEACOND_HOME")
 
 def add_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis add-genesis-deposit --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis add-premined-deposit --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
 def collect_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis collect-genesis-deposits --home {}".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
 def start(persistent_peers):
@@ -49,11 +49,11 @@ def get_init_sh():
     return command
 
 def get_add_validator_sh():
-    command = "/usr/bin/beacond genesis add-genesis-deposit --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis add-premined-deposit --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
     return command
 
 def get_collect_validator_sh():
-    command = "/usr/bin/beacond genesis collect-genesis-deposits --home {}".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return command
 
 def get_execution_payload_sh():
