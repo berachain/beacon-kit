@@ -27,9 +27,10 @@ package filedb
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"strconv"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
@@ -111,7 +112,7 @@ func (db *RangeDB) Prune(index uint64) error {
 
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf("%d/%s", index, Encode(key)))
+	return []byte(fmt.Sprintf("%d/%s", index, hex.FromBytes(key).Unwrap()))
 }
 
 // ExtractIndex extracts the index from a prefixed key.
@@ -129,13 +130,4 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 
 	//#nosec:g
 	return index, nil
-}
-
-// Encode encodes b as a hex string with 0x prefix.
-func Encode(b []byte) string {
-	//nolint:mnd // its okay.
-	enc := make([]byte, len(b)*2+2)
-	copy(enc, "0x")
-	hex.Encode(enc[2:], b)
-	return string(enc)
 }
