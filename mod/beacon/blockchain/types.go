@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -182,7 +183,14 @@ type StateProcessor[
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.
-	ProcessSlot(st BeaconStateT) error
+	ProcessSlot(
+		st BeaconStateT,
+	) ([]*transition.ValidatorUpdate, error)
+
 	// Transition processes the state transition for a given block.
-	Transition(ctx ContextT, st BeaconStateT, blk BeaconBlockT) error
+	Transition(
+		ctx ContextT,
+		st BeaconStateT,
+		blk BeaconBlockT,
+	) ([]*transition.ValidatorUpdate, error)
 }
