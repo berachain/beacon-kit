@@ -30,9 +30,6 @@ import (
 	"testing"
 )
 
-// nolint:gochecknoglobals // test debug default err msg
-// var defaultErrMsg = "local output & fastssz output doesnt match"
-
 // Test using local deneb genesis beaconstate.
 func TestParityDenebLocal(_ *testing.T) {
 	// Demonstrate the block is valid by proving
