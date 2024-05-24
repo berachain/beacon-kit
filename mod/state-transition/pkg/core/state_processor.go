@@ -43,7 +43,7 @@ type StateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
 	BeaconStateT state.BeaconState,
-	BlobSidecarsT interface{ Len() int },
+	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 ] struct {
 	cs              primitives.ChainSpec
@@ -58,7 +58,7 @@ func NewStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
 	BeaconStateT state.BeaconState,
-	BlobSidecarsT interface{ Len() int },
+	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 ](
 	cs primitives.ChainSpec,

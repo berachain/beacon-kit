@@ -30,7 +30,8 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -43,11 +44,12 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(deneb.BeaconState)
+	data := new(
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
+	)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-
 	updates, err := r.chainService.ProcessGenesisState(
 		ctx,
 		data,

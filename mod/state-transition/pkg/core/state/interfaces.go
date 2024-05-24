@@ -28,7 +28,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -77,7 +76,6 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyStateRoots
 	WriteOnlyValidators
 
-	WriteGenesisStateDeneb(*deneb.BeaconState) error
 	SetGenesisValidatorsRoot(root primitives.Root) error
 	SetFork(*types.Fork) error
 	SetSlot(math.Slot) error
@@ -89,6 +87,7 @@ type WriteOnlyBeaconState interface {
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	RemoveValidatorAtIndex(math.ValidatorIndex) error
+	SetTotalSlashing(math.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state

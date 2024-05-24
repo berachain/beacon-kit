@@ -27,16 +27,13 @@ package genesis
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gentypes "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -45,15 +42,15 @@ import (
 )
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions.
-func CollectValidatorsCmd() *cobra.Command {
+func CollectGenesisDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "collect-validators",
+		Use:   "collect-premined-deposits",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			genesis, err := genutiltypes.AppGenesisFromFile(
+			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),
 			)
 			if err != nil {
@@ -62,16 +59,16 @@ func CollectValidatorsCmd() *cobra.Command {
 
 			// create the app state
 			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				genesis,
+				appGenesis,
 			)
 			if err != nil {
 				return err
 			}
 
-			var validators []*types.Validator
-			if validators, err = CollectValidatorJSONFiles(
+			var deposits []*types.Deposit
+			if deposits, err = CollectValidatorJSONFiles(
 				filepath.Join(config.RootDir, "config", "gentx"),
-				genesis,
+				appGenesis,
 			); err != nil {
 				return errors.Wrap(
 					err,
@@ -79,45 +76,35 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			beaconState := &deneb.BeaconState{}
+			genesisInfo := &genesis.Genesis[
+				*types.Deposit,
+				*types.ExecutionPayloadHeaderDeneb,
+			]{}
 
 			if err = json.Unmarshal(
-				appGenesisState["beacon"], beaconState,
+				appGenesisState["beacon"], genesisInfo,
 			); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
+				return errors.Wrap(err, "failed to unmarshal beacon genesis")
 			}
 
-			beaconState.Validators = validators
+			for i, deposit := range deposits {
+				//#nosec:G701 // won't realistically overflow.
+				deposit.Index = uint64(i)
+				genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
+			}
 
-			beaconState.GenesisValidatorsRoot, err = (&gentypes.ValidatorsMarshaling{
-				Validators: validators,
-			}).HashTreeRoot()
+			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
-				return errors.Wrap(
-					err,
-					"failed to calculate genesis validators root",
-				)
+				return errors.Wrap(err, "failed to marshal beacon genesis")
 			}
 
-			for _, val := range validators {
-				beaconState.Balances = append(
-					beaconState.Balances,
-					uint64(val.EffectiveBalance),
-				)
-			}
-
-			appGenesisState["beacon"], err = json.Marshal(beaconState)
-			if err != nil {
-				return errors.Wrap(err, "failed to marshal beacon state")
-			}
-
-			if genesis.AppState, err = json.MarshalIndent(
+			if appGenesis.AppState, err = json.MarshalIndent(
 				appGenesisState, "", "  ",
 			); err != nil {
 				return err
 			}
 
-			return genutil.ExportGenesisFile(genesis, config.GenesisFile())
+			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 		},
 	}
 
@@ -128,7 +115,7 @@ func CollectValidatorsCmd() *cobra.Command {
 func CollectValidatorJSONFiles(
 	genTxsDir string,
 	genesis *genutiltypes.AppGenesis,
-) ([]*types.Validator, error) {
+) ([]*types.Deposit, error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
@@ -143,8 +130,7 @@ func CollectValidatorJSONFiles(
 	}
 
 	// prepare the list of validators
-	validators := make([]*types.Validator, 0)
-	seenPubKeys := make(map[crypto.BLSPubkey]struct{})
+	deposits := make([]*types.Deposit, 0)
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -162,21 +148,13 @@ func CollectValidatorJSONFiles(
 			return nil, err
 		}
 
-		val := &types.Validator{}
+		val := &types.Deposit{}
 		if err = json.Unmarshal(bz, val); err != nil {
 			return nil, err
 		}
 
-		pubKey := val.GetPubkey()
-		if _, found := seenPubKeys[pubKey]; found {
-			return nil, fmt.Errorf(
-				"duplicate pubkey in genesis state: %x",
-				pubKey.String(),
-			)
-		}
-		seenPubKeys[pubKey] = struct{}{}
-		validators = append(validators, val)
+		deposits = append(deposits, val)
 	}
 
-	return validators, nil
+	return deposits, nil
 }
