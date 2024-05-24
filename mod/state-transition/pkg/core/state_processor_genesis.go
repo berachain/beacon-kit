@@ -27,7 +27,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -44,17 +43,12 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Save the genesis state.
-	st.Save()
-
-	// Create the validator updates.
-	updates := make([]*transition.ValidatorUpdate, 0)
-	for _, validator := range data.Validators {
-		updates = append(updates, &transition.ValidatorUpdate{
-			Pubkey:           validator.Pubkey,
-			EffectiveBalance: crypto.CometBLSPower,
-		},
-		)
+	updates, err := sp.processSyncCommitteeUpdates(st)
+	if err != nil {
+		return nil, err
 	}
+
+	st.Save()
 	return updates, nil
+
 }

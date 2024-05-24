@@ -36,7 +36,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessGenesisState processes the genesis state and initializes the beacon state.
+// ProcessGenesisState processes the genesis state and initializes the beacon
+// state.
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
