@@ -42,13 +42,13 @@ type E2ETestConfig struct {
 	FullNodes []Node `json:"full_nodes"`
 	// BootSequence specifies the methodology for how the network boots.
 	BootSequence map[string]string `json:"boot_sequence"`
-	// RPCEndpoints specifies the RPC endpoints to include in the test.
-	RPCEndpoints []RPCEndpoint `json:"rpc_endpoints"`
+	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
+	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 }
 
-type RPCEndpoint struct {
-	Type     string   `json:"type"`
-	Services []string `json:"services"`
+type EthJSONRPCEndpoint struct {
+	Type    string   `json:"type"`
+	Clients []string `json:"clients"`
 }
 
 // Validator holds the configuration for a single validator in the test,
@@ -141,16 +141,16 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		BootSequence: map[string]string{
 			"type": "parallel",
 		},
-		RPCEndpoints: []RPCEndpoint{
+		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
 			{
-				Type: "nginx",
-				Services: []string{
-					"el-full-nethermind-0:8545",
-					"el-full-reth-1:8545",
-					"el-full-geth-2:8545",
-					// "el-full-erigon-3:8545",
+				Type: "blutgang",
+				Clients: []string{
+					"el-full-nethermind-0",
+					"el-full-reth-1",
+					"el-full-geth-2",
+					// "el-full-erigon-3",
 					// Besu causing flakey tests.
-					// "el-full-besu-4:8545",
+					// "el-full-besu-4",
 				},
 			},
 		},

@@ -54,7 +54,7 @@ type KurtosisE2ESuite struct {
 	// TODO: Figure out what these may be useful for.
 	consensusClients map[string]*types.ConsensusClient
 	// executionClients map[string]*types.ExecutionClient
-	nginxBalancer *types.LoadBalancer
+	loadBalancer *types.LoadBalancer
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
@@ -102,7 +102,13 @@ func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient 
 
 // JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
 func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.nginxBalancer
+	return s.loadBalancer
+}
+
+// JSONRPCBalancerType returns the type of the JSON-RPC balancer
+// for the test suite.
+func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
+	return s.cfg.EthJSONRPCEndpoints[0].Type
 }
 
 // Logger returns the logger for the test suite.

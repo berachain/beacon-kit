@@ -67,15 +67,15 @@ full_nodes:
     cl_type: beaconkit
     cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
     replicas: 1 
-rpc_endpoints:
-  - type: nginx
-    services:
-      - el-full-besu-0:8545
-      - el-full-nethermind-1:8545
-      - el-full-reth-2:8545
-      - el-full-reth-3:8545
-      - el-full-geth-4:8545
-      - el-full-erigon-5:8545
-      - el-full-ethereumjs-6:8545
+eth_json_rpc_endpoints:
+  - type: blutgang
+    clients:
+      - el-full-besu-0
+      - el-full-nethermind-1
+      - el-full-reth-2
+      - el-full-reth-3
+      - el-full-geth-4
+      - el-full-erigon-5
+      - el-full-ethereumjs-6
 additional_services: 
   - "goomy_blob"
