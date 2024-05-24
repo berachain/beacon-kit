@@ -32,9 +32,11 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/sourcegraph/conc/iter"
 )
 
+// TODO: InitGenesis should be calling into the StateProcessor.
 func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
@@ -55,18 +57,16 @@ func (r BeaconKitRuntime[
 	}
 
 	// Build ValidatorUpdates for CometBFT.
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-
+	updates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+		updates = append(updates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: crypto.CometBLSType,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
+			Power:      crypto.CometBLSPower,
 		},
 		)
 	}
-	return validatorUpdates, nil
+	return updates, nil
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -77,43 +77,33 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// store := r.keeper.BeaconStore().WithContext(ctx)
-	store := r.storageBackend.StateFromContext(ctx)
-
-	// Get the public key of the validator
-	val, err := store.GetValidatorsByEffectiveBalance()
+	// Process the state transition and produce the required delta from
+	// the sync committee.
+	updates, err := r.chainService.ProcessStateTransition(
+		ctx,
+		// TODO: improve the robustness of these types to ensure we
+		// don't run into any nil ptr issues.
+		r.abciHandler.LatestBeaconBlock,
+		r.abciHandler.LatestSidecars,
+	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range val {
-		// TODO: Config
-		// Max 100 validators in the active set.
-		// TODO: this is kinda hood.
-		if validator.EffectiveBalance == 0 {
-			var idx math.ValidatorIndex
-			idx, err = store.
-				ValidatorIndexByPubkey(validator.Pubkey)
-			if err != nil {
-				return nil, err
-			} else if err = store.RemoveValidatorAtIndex(idx); err != nil {
-				return nil, err
-			}
-		}
-
-		// TODO: this works, but there is a bug where if we send a validator to
-		// 0 voting power, it can somehow still propose the next block? This
-		// feels big bad.
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: crypto.CometBLSType,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
-		})
-	}
-
-	// Save the store.
-	store.Save()
-	return validatorUpdates, nil
+	// Convert the delta into the appmodule ValidatorUpdate format to
+	// pass onto CometBFT.
+	return iter.MapErr(
+		updates,
+		func(
+			u **transition.ValidatorUpdate,
+		) (appmodulev2.ValidatorUpdate, error) {
+			update := *u
+			return appmodulev2.ValidatorUpdate{
+				PubKey:     update.Pubkey[:],
+				PubKeyType: crypto.CometBLSType,
+				//#nosec:G701 // this is safe.
+				Power: int64(update.EffectiveBalance.Unwrap()),
+			}, nil
+		},
+	)
 }

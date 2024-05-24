@@ -23,35 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	cometabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// FinalizeBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
-) error {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
+]) processSyncCommitteeUpdates(
+	st BeaconStateT,
+) ([]*transition.ValidatorUpdate, error) {
+	vals, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
-	return nil
+	// Create a list of validator updates.
+	//
+	// TODO: This is a trivial implementation that is to improved upon later.
+	updates := make([]*transition.ValidatorUpdate, 0)
+	for _, val := range vals {
+		updates = append(updates, &transition.ValidatorUpdate{
+			Pubkey:           val.Pubkey,
+			EffectiveBalance: val.EffectiveBalance,
+		})
+	}
+
+	return updates, nil
 }

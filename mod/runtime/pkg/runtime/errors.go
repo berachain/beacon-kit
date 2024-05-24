@@ -23,35 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package runtime
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	cometabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import "errors"
 
-// FinalizeBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
-) error {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
-	if err != nil {
-		return err
-	}
-
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
-	return nil
-}
+// ErrUndefinedValidatorUpdate is returned when an undefined validator update is
+// encountered.
+var ErrUndefinedValidatorUpdate = errors.New("undefined validator update")

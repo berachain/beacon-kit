@@ -48,10 +48,10 @@ func (s *Service[
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
-		return ErrNilBlk
+		return nil, ErrNilBlk
 	}
 
 	// Create a new errgroup with the provided context.
@@ -59,8 +59,10 @@ func (s *Service[
 	st := s.sb.StateFromContext(ctx)
 
 	// Launch a goroutine to process the state transition.
+	var valUpdates []*transition.ValidatorUpdate
 	g.Go(func() error {
-		return s.sp.Transition(
+		var err error
+		valUpdates, err = s.sp.Transition(
 			// We set `OptimisticEngine` to true since this is called during
 			// FinalizeBlock. We want to assume the payload is valid. If it
 			// ends up not being valid later, the node will simply AppHash,
@@ -76,6 +78,7 @@ func (s *Service[
 			st,
 			blk,
 		)
+		return err
 	})
 
 	// Launch a goroutine to process the blob sidecars.
@@ -88,7 +91,7 @@ func (s *Service[
 	})
 
 	if err := g.Wait(); err != nil {
-		return err
+		return nil, err
 	}
 
 	// If the blobs needed to process the block are not available, we
@@ -97,7 +100,7 @@ func (s *Service[
 	if !s.sb.AvailabilityStore(ctx).IsDataAvailable(
 		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
-		return ErrDataNotAvailable
+		return nil, ErrDataNotAvailable
 	}
 
 	// No matter what happens we always want to forkchoice at the end of post
@@ -125,18 +128,18 @@ func (s *Service[
 	// Watching for logs should be completely decoupled as well.
 	idx, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO: pruner shouldn't be in main block processing thread.
 	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		return err
+		return nil, err
 	}
 
 	var lph engineprimitives.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Process the logs from the previous blocks execution payload.
@@ -147,10 +150,10 @@ func (s *Service[
 		ctx, lph.GetNumber()-eth1FollowDistance,
 	); err != nil {
 		s.logger.Error("failed to process logs", "error", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return valUpdates, nil
 }
 
 // VerifyPayload validates the execution payload on the block.

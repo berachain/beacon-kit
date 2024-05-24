@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
@@ -90,11 +91,15 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) error {
-	blkSlot := blk.GetSlot()
+) ([]*transition.ValidatorUpdate, error) {
+	var (
+		validatorUpdates []*transition.ValidatorUpdate
+		blkSlot          = blk.GetSlot()
+	)
+
 	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We perform some initial logic to ensure the BeaconState is in the correct
@@ -134,13 +139,13 @@ func (sp *StateProcessor[
 	// engine.
 	switch stateSlot {
 	case blkSlot - 1:
-		if err = sp.ProcessSlot(st); err != nil {
-			return err
+		if validatorUpdates, err = sp.ProcessSlot(st); err != nil {
+			return nil, err
 		}
 	case blkSlot:
 		// skip slot processing.
 	default:
-		return errors.Wrapf(
+		return nil, errors.Wrapf(
 			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
 			stateSlot, blkSlot,
 		)
@@ -153,13 +158,13 @@ func (sp *StateProcessor[
 			"slot", blkSlot,
 			"error", err,
 		)
-		return err
+		return nil, err
 	}
 
 	// We only want to persist state changes if we successfully
 	// processed the block.
 	st.Save()
-	return nil
+	return validatorUpdates, nil
 }
 
 // ProcessSlot is run when a slot is missed.
@@ -168,16 +173,16 @@ func (sp *StateProcessor[
 	BlobSidecarsT, ContextT,
 ]) ProcessSlot(
 	st BeaconStateT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We update our state roots and block roots.
@@ -185,14 +190,14 @@ func (sp *StateProcessor[
 		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
 		prevStateRoot,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
@@ -200,7 +205,7 @@ func (sp *StateProcessor[
 	if (latestHeader.StateRoot == primitives.Root{}) {
 		latestHeader.StateRoot = prevStateRoot
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -208,19 +213,20 @@ func (sp *StateProcessor[
 	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
 		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Process the Epoch Boundary.
+	var validatorUpdates []*transition.ValidatorUpdate
 	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
-		if err = sp.processEpoch(st); err != nil {
-			return err
+		if validatorUpdates, err = sp.processEpoch(st); err != nil {
+			return nil, err
 		}
 		sp.logger.Info(
 			"processed epoch transition 🔃",
@@ -229,7 +235,7 @@ func (sp *StateProcessor[
 		)
 	}
 
-	return st.SetSlot(slot + 1)
+	return validatorUpdates, st.SetSlot(slot + 1)
 }
 
 // ProcessBlock processes the block and ensures it matches the local state.
@@ -306,13 +312,15 @@ func (sp *StateProcessor[
 	BlobSidecarsT, ContextT,
 ]) processEpoch(
 	st BeaconStateT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
-		return err
+		return nil, err
 	} else if err = sp.processSlashingsReset(st); err != nil {
-		return err
+		return nil, err
+	} else if err = sp.processRandaoMixesReset(st); err != nil {
+		return nil, err
 	}
-	return sp.processRandaoMixesReset(st)
+	return sp.processSyncCommitteeUpdates(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local

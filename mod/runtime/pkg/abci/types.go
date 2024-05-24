@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
@@ -61,7 +62,7 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		context.Context,
 		types.BeaconBlock,
 		BlobsSidecarsT,
-	) error
+	) ([]*transition.ValidatorUpdate, error)
 
 	// VerifyPayloadOnBlk verifies the payload on the given beacon block.
 	VerifyPayloadOnBlk(
