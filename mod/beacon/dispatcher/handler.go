@@ -25,9 +25,9 @@
 
 package dispatcher
 
-import "context"
+import "github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 
 type Handler interface {
-	Start(ctx context.Context) error
+	service.Basic
 	Notify(event Event)
 }

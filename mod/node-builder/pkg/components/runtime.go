@@ -26,6 +26,8 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/dispatcher"
@@ -140,15 +142,21 @@ func ProvideRuntime(
 	// 	cfg.KZG.Implementation,
 	// )
 
+	// Build the dispatcher service.
+	dispatcherServce, err := dispatcher.NewService()
+	if err != nil {
+		return nil, err
+	}
+
+	ch := dispatcherServce.RegisterHandler(deposit.EventType)
 	depositHandler := deposit.NewHandler[state.BeaconState](
 		chainSpec,
 		signer,
+		logger.With("service", "deposit-handler"),
+		ch,
 	)
 
-	// Build the dispatcher service.
-	dispatcherServce := dispatcher.New(
-		dispatcher.WithHandler(deposit.EventType, depositHandler),
-	)
+	depositHandler.Start(context.Background())
 
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
@@ -173,7 +181,6 @@ func ProvideRuntime(
 		executionEngine,
 		signer,
 		logger.With("service", "state-processor"),
-		dispatcherServce,
 	)
 
 	// Build the builder service.

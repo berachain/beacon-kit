@@ -28,7 +28,6 @@ package deposit
 import "errors"
 
 var (
-	ErrInvalidEventType = errors.New("invalid event type")
-
+	ErrInvalidEventType    = errors.New("invalid event type")
 	ErrInvalidDepositEvent = errors.New("invalid deposit event")
 )

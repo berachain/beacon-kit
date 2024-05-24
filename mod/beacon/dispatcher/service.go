@@ -32,72 +32,65 @@ import (
 
 const Name = "dispatcher"
 
-type Dispatcher struct {
+type Service struct {
 	mu sync.RWMutex
 
-	registry map[EventType]Handler
+	registry map[EventType][]chan (Event)
 }
 
-func New(opts ...DispatcherOption) *Dispatcher {
-	dispatcher := &Dispatcher{
+func NewService() (*Service, error) {
+	dispatcher := &Service{
 		mu:       sync.RWMutex{},
-		registry: make(map[EventType]Handler),
+		registry: make(map[EventType][]chan (Event)),
 	}
 
-	for _, opt := range opts {
-		opt(dispatcher)
-	}
+	// for _, opt := range opts {
+	// 	if err := opt(dispatcher); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	return dispatcher
+	return dispatcher, nil
 }
 
-// Default behavior is to start all handlers
-func (d *Dispatcher) Start(ctx context.Context) error {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	for _, handler := range d.registry {
-		if err := handler.Start(ctx); err != nil {
-			return err
-		}
-	}
-
+func (s *Service) Start(ctx context.Context) error {
 	return nil
 }
 
-// StartEventHandler starts the handler for a specific event type
-// TODO: maybe unneeded with the current service architecture
-func (d *Dispatcher) StartEventHandler(
-	ctx context.Context, event EventType,
-) error {
-	if handler := d.registry[event]; handler != nil {
-		return handler.Start(ctx)
-	}
+// RegisterHandler registers a handler for a given event type
+func (s *Service) RegisterHandler(eventType EventType) chan (Event) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	return ErrHandlerNotFound
+	handler := make(chan (Event), 1)
+	s.registry[eventType] = append(s.registry[eventType], handler)
+
+	return handler
 }
 
-func (d *Dispatcher) Notify(event Event) error {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+// Notify sends an event to all handlers registered for the event type
+func (s *Service) Notify(event Event) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-	handler, ok := d.registry[event.Type()]
+	handlers, ok := s.registry[event.Type()]
 	if !ok {
 		return ErrHandlerNotFound
 	}
 
-	handler.Notify(event)
+	for _, handler := range handlers {
+		handler <- event
+	}
+
 	return nil
 }
 
-func (d *Dispatcher) Name() string {
+func (s *Service) Name() string {
 	return Name
 }
 
-// TODO: implement the following maybe with checks for each
-// handler?
-func (d *Dispatcher) Status() error {
+func (s *Service) Status() error {
 	return nil
 }
 
-func (d *Dispatcher) WaitForHealthy(ctx context.Context) {}
+func (s *Service) WaitForHealthy(ctx context.Context) {}
