@@ -200,8 +200,15 @@ func ProvideRuntime(
 
 	availabilityPruner := pruner.NewPruner(
 		logger.With("service", "availability-db-pruner"),
-		storageBackend.AvailabilityStore(context.Background()).IndexDB.(*filedb.RangeDB),
+		storageBackend.AvailabilityStore(
+			context.Background()).IndexDB.(*filedb.RangeDB),
 	)
+
+	// TODO: DepositStore and AVS is nil here, so casting AVS to RangeDB panics.
+	// we love depinject
+	defer func() {
+		recover()
+	}()
 
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
