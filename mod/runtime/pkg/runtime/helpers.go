@@ -31,14 +31,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// convertValidatorUpdate abstracts the conversion of
-// a transition.ValidatorUpdate  to an appmodulev2.ValidatorUpdate
-//
-//	format.
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
 func convertValidatorUpdate(
 	u **transition.ValidatorUpdate,
 ) (appmodulev2.ValidatorUpdate, error) {
 	update := *u
+	if update == nil {
+		return appmodulev2.ValidatorUpdate{},
+			ErrUndefinedValidatorUpdate
+	}
 	return appmodulev2.ValidatorUpdate{
 		PubKey:     update.Pubkey[:],
 		PubKeyType: crypto.CometBLSType,

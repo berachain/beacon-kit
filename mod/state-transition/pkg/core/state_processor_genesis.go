@@ -39,6 +39,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	data *deneb.BeaconState,
 ) ([]*transition.ValidatorUpdate, error) {
+	// TODO: this should not just dumb a beaconstate object.
 	if err := st.WriteGenesisStateDeneb(data); err != nil {
 		return nil, err
 	}
