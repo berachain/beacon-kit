@@ -140,6 +140,16 @@ func ProvideRuntime(
 	// 	cfg.KZG.Implementation,
 	// )
 
+	depositHandler := deposit.NewHandler[state.BeaconState](
+		chainSpec,
+		signer,
+	)
+
+	// Build the dispatcher service.
+	dispatcherServce := dispatcher.New(
+		dispatcher.WithHandler(deposit.EventType, depositHandler),
+	)
+
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
@@ -163,16 +173,7 @@ func ProvideRuntime(
 		executionEngine,
 		signer,
 		logger.With("service", "state-processor"),
-	)
-
-	depositHandler := deposit.NewHandler[state.BeaconState](
-		chainSpec,
-		signer,
-	)
-
-	// Build the dispatcher service.
-	dispatcherServce := dispatcher.New(
-		dispatcher.WithHandler(deposit.EventType, depositHandler),
+		dispatcherServce,
 	)
 
 	// Build the builder service.

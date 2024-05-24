@@ -40,7 +40,7 @@ type Event[BeaconStateT state.BeaconState] struct {
 	deposits []*types.Deposit
 }
 
-func NewDeposit[BeaconStateT state.BeaconState](
+func NewEvent[BeaconStateT state.BeaconState](
 	st BeaconStateT, deposits []*types.Deposit,
 ) dispatcher.Event {
 	return &Event[BeaconStateT]{

@@ -26,6 +26,7 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/beacon/dispatcher"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -51,6 +52,7 @@ type StateProcessor[
 	signer          crypto.BLSSigner
 	logger          log.Logger[any]
 	executionEngine ExecutionEngine
+	dispatcher      *dispatcher.Dispatcher
 }
 
 // NewStateProcessor creates a new state processor.
@@ -68,6 +70,7 @@ func NewStateProcessor[
 	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
 	logger log.Logger[any],
+	dispatcher *dispatcher.Dispatcher,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT] {
@@ -80,6 +83,7 @@ func NewStateProcessor[
 		executionEngine: executionEngine,
 		signer:          signer,
 		logger:          logger,
+		dispatcher:      dispatcher,
 	}
 }
 
