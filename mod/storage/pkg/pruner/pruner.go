@@ -42,6 +42,7 @@ func NewPruner(logger log.Logger[any], prunable interfaces.Prunable) *Pruner {
 	return &Pruner{
 		logger:   logger,
 		prunable: prunable,
+		notifier: make(chan uint64),
 	}
 }
 

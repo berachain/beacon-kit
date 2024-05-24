@@ -26,8 +26,6 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -194,13 +192,13 @@ func ProvideRuntime(
 
 	depositPruner := pruner.NewPruner(
 		logger.With("service", "deposit-db-pruner"),
-		storageBackend.DepositStore(context.Background()),
+		storageBackend.DepositStore(nil),
 	)
 
 	availabilityPruner := pruner.NewPruner(
 		logger.With("service", "availability-db-pruner"),
 		storageBackend.AvailabilityStore(
-			context.Background()).RangeDB,
+			nil).RangeDB,
 	)
 
 	dbManagerService, err := manager.NewDBManager(
