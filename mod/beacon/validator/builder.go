@@ -149,5 +149,6 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) prepareStateForBuilding(
 			stateSlot,
 		)
 	}
+
 	return nil
 }

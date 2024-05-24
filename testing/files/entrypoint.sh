@@ -58,8 +58,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--home $HOMEDIR \
 		--beacon-kit.accept-tos \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	./build/bin/beacond genesis add-validator --home $HOMEDIR
-	./build/bin/beacond genesis collect-validators --home $HOMEDIR 
+	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
