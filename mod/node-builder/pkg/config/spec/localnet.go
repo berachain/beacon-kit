@@ -47,7 +47,6 @@ func LocalnetChainSpec() chain.Spec[
 			common.ExecutionAddress,
 			math.Slot,
 		]{
-			SyncCommitteeSize: 128,
 			// // Gwei value constants.
 			MinDepositAmount:          uint64(1e9),
 			MaxEffectiveBalance:       uint64(32e9),

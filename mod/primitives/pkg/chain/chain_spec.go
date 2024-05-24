@@ -53,9 +53,6 @@ type Spec[
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
 
-	// ValidatorSet parameters.
-	SyncCommitteeSize() uint64
-
 	// Signature Domains
 	//
 	// DomainTypeProposer returns the domain for proposer signatures.
@@ -274,13 +271,6 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DomainTypeApplicationMask() DomainTypeT {
 	return c.Data.DomainTypeApplicationMask
-}
-
-// SyncCommittee returns the size of the sync committee.
-func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
-]) SyncCommitteeSize() uint64 {
-	return c.Data.SyncCommitteeSize
 }
 
 // DepositContractAddress returns the address of the deposit contract.

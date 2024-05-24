@@ -29,9 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// TODO: THIS FUNCTION NEEDS TO BE INTEGRATED BETTER WITH WITHDRAWALS AND
-// SLASHING, IT IS A HACKY TEMPORARY WAY TO GET THE VALIDATOR SET UPDATING
-// NICELY.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,

@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -324,34 +323,4 @@ func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
 	default:
 		return [32]byte{}, errors.New("unknown fork version")
 	}
-}
-
-// GetSyncCommittee returns the sync committee.
-func (s *StateDB[KVStoreT]) GetSyncCommittee() ([]crypto.BLSPubkey, error) {
-	sc := make([]crypto.BLSPubkey, 0)
-	for i := range s.cs.SyncCommitteeSize() {
-		x, err := s.KVStore.GetSyncCommitteeAtIdx(i)
-		if err != nil {
-			// TODO: FIX HACK.
-			continue
-		}
-		sc = append(sc, x)
-	}
-	return sc, nil
-}
-
-// SetSyncCommittee sets the sync committee.
-func (s *StateDB[KVStoreT]) SetSyncCommittee(sc []crypto.BLSPubkey) error {
-	if uint64(len(sc)) >= s.cs.SyncCommitteeSize() {
-		return errors.New("sync committee size is too large")
-	}
-
-	// Set all the elements.
-	for i, pubKey := range sc {
-		//#nosec:G701 will not overflow in practice.
-		if err := s.SetSyncCommitteeIdx(uint64(i), pubKey); err != nil {
-			return err
-		}
-	}
-	return nil
 }
