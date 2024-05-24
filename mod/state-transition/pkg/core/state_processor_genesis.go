@@ -36,7 +36,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) ProcessGenesisState(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	data *deneb.BeaconState,
 ) ([]*transition.ValidatorUpdate, error) {
