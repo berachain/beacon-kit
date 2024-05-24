@@ -54,6 +54,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -197,14 +198,15 @@ func ProvideRuntime(
 		storageBackend.DepositStore(context.Background()),
 	)
 
+	availabilityPruner := pruner.NewPruner(
+		logger.With("service", "availability-db-pruner"),
+		storageBackend.AvailabilityStore(context.Background()).IndexDB.(*filedb.RangeDB),
+	)
+
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
 		manager.WithPruner(depositPruner),
-		// TODO: THIS DOESN'T WORK CAUSE AVS IS NIL WHEN WE GET HERE ??????
-		// manager.WithPruner(
-		// 	pruner.NewPruner(storageBackend.AvailabilityStore(
-		// 		context.Background()).IndexDB.(*filedb.RangeDB)),
-		// ),
+		manager.WithPruner(availabilityPruner),
 	)
 	if err != nil {
 		return nil, err
