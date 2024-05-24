@@ -13,7 +13,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/segmentio/golines v0.12.2
 	github.com/vektra/mockery/v2 v2.42.2
-	go.uber.org/nilaway v0.0.0-20240429194925-f3f320c587e3
+	go.uber.org/nilaway v0.0.0-20240521003701-a27654d193af
 )
 
 require (
