@@ -36,6 +36,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+// TODO: InitGenesis should be calling into the StateProcessor.
 func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
@@ -56,17 +57,16 @@ func (r BeaconKitRuntime[
 	}
 
 	// Build ValidatorUpdates for CometBFT.
-	validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
+	updates := make([]appmodulev2.ValidatorUpdate, 0)
 	for _, validator := range data.Validators {
-		validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
+		updates = append(updates, appmodulev2.ValidatorUpdate{
 			PubKey:     validator.Pubkey[:],
 			PubKeyType: crypto.CometBLSType,
-			//#nosec:G701 // will not realistically cause a problem.
-			Power: int64(validator.EffectiveBalance),
+			Power:      crypto.CometBLSPower,
 		},
 		)
 	}
-	return validatorUpdates, nil
+	return updates, nil
 }
 
 // EndBlock returns the validator set updates from the beacon state.

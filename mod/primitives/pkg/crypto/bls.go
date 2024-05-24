@@ -36,7 +36,7 @@ const (
 	//
 	// CometBLSPower is the voting power given to a validator when they
 	// are in the active set.
-	CometBLSPower = 100
+	CometBLSPower = 1e10
 )
 
 //nolint:lll // links.

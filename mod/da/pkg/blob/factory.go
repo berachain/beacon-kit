@@ -77,24 +77,26 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
 		proofs      = bundle.GetProofs()
-		numBlobs    = math.U64(len(blobs))
+		numBlobs    = uint64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
 	)
 
 	startTime := time.Now()
-	defer f.metrics.measureBuildSidecarsDuration(startTime, numBlobs)
+	defer f.metrics.measureBuildSidecarsDuration(
+		startTime, math.U64(numBlobs),
+	)
 	for i := range numBlobs {
 		g.Go(func() error {
 			inclusionProof, err := f.BuildKZGInclusionProof(
-				body, i,
+				body, math.U64(i),
 			)
 			if err != nil {
 				return err
 			}
 			sidecars[i] = types.BuildBlobSidecar(
-				i, blk.GetHeader(),
+				math.U64(i), blk.GetHeader(),
 				blobs[i],
 				commitments[i],
 				proofs[i],
