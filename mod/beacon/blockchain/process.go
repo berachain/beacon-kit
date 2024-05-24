@@ -65,7 +65,7 @@ func (s *Service[
 // ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
 //
-//nolint:funlen // todo cleanup.
+
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,

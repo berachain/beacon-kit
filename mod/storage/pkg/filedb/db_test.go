@@ -45,6 +45,7 @@ func TestDB(t *testing.T) {
 		{
 			name: "NewDB",
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				require.NotNil(t, db)
 			},
 		},
@@ -54,6 +55,7 @@ func TestDB(t *testing.T) {
 				return db.Set([]byte("key"), []byte("value"))
 			},
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				retrievedValue, err := db.Get([]byte("key"))
 				require.NoError(t, err)
 				require.Equal(t, []byte("value"), retrievedValue)
@@ -65,6 +67,7 @@ func TestDB(t *testing.T) {
 				return db.Set([]byte("key"), []byte("value"))
 			},
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				exists, err := db.Has([]byte("key"))
 				require.NoError(t, err)
 				require.True(t, exists)
@@ -76,6 +79,7 @@ func TestDB(t *testing.T) {
 				return db.Set([]byte("key"), []byte("value"))
 			},
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				exists, err := db.Has([]byte("key"))
 				require.NoError(t, err)
 				require.True(t, exists)
@@ -97,6 +101,7 @@ func TestDB(t *testing.T) {
 				return db.Set([]byte("key"), []byte("value2"))
 			},
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				retrievedValue, err := db.Get([]byte("key"))
 				require.NoError(t, err)
 				require.Equal(t, []byte("value2"), retrievedValue)
@@ -105,6 +110,7 @@ func TestDB(t *testing.T) {
 		{
 			name: "GetNonExistingKey",
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				_, err := db.Get([]byte("non-existing"))
 				require.Error(t, err)
 			},
@@ -114,6 +120,7 @@ func TestDB(t *testing.T) {
 		{
 			name: "HasNonExistingKey",
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				exists, err := db.Has([]byte("non-existing"))
 				require.NoError(t, err)
 				require.False(t, exists)
@@ -167,6 +174,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 	}{
 		name: "SetExistingKeyWithCreateError",
 		testFunc: func(t *testing.T, db *file.DB) {
+			t.Helper()
 			err := db.Set([]byte("key"), []byte("value"))
 			require.Error(t, err)
 			require.ErrorContains(t, err, "failed to create file")
@@ -207,6 +215,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 		{
 			name: "HasWithError",
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				value, err := db.Has([]byte("key"))
 				require.Error(t, err)
 				require.False(t, value)
@@ -217,6 +226,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 		{
 			name: "SetWithError",
 			testFunc: func(t *testing.T, db *file.DB) {
+				t.Helper()
 				err := db.Set([]byte("key"), []byte("value"))
 				require.Error(t, err)
 				require.ErrorContains(t, err, "not a directory")
@@ -260,6 +270,7 @@ func TestDB_Set_MkDirError(t *testing.T) {
 	}{
 		name: "SetWithMkdirAllError",
 		testFunc: func(t *testing.T, db *file.DB) {
+			t.Helper()
 			err := db.Set([]byte("key"), []byte("value"))
 			require.Error(t, err)
 		},

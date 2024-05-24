@@ -240,7 +240,7 @@ func (sp *StateProcessor[
 
 // ProcessBlock processes the block and ensures it matches the local state.
 //
-//nolint:funlen // todo fix.
+
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,

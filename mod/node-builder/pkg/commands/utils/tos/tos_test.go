@@ -135,6 +135,7 @@ func TestDeclineWithNonInteractiveCLI(t *testing.T) {
 // }
 
 func makeTempDir(t *testing.T) string {
+	t.Helper()
 	homeDir, err := os.MkdirTemp("", "beacond-test-*")
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)

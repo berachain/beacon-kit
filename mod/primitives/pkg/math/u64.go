@@ -45,14 +45,15 @@ const (
 //nolint:gochecknoglobals // stores the reflect type of U64.
 var uint64T = reflect.TypeOf(U64(0))
 
-// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
-// marshallable. We marshal U64 as hex strings in JSON in order to keep the
-// execution client apis happy, and we marshal U64 as little-endian in SSZ to be
-// compatible with the spec.
-type U64 uint64
-
-//nolint:lll // links.
+//nolint:lll
 type (
+	// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
+	// marshallable. We marshal U64 as hex strings in JSON in order to keep the
+	// execution client apis happy, and we marshal U64 as little-endian in SSZ
+	// to be
+	// compatible with the spec.
+	U64 uint64
+
 	// Gwei is a denomination of 1e9 Wei represented as a U64.
 	Gwei = U64
 

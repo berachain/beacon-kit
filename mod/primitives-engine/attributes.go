@@ -92,9 +92,9 @@ func (p *PayloadAttributes[Withdrawal]) IsNil() bool {
 }
 
 // GetSuggestionsFeeRecipient returns the suggested fee recipient.
-//
-//nolint:lll // formatter being annoying.
-func (p *PayloadAttributes[Withdrawal]) GetSuggestedFeeRecipient() common.ExecutionAddress {
+func (
+	p *PayloadAttributes[Withdrawal],
+) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
