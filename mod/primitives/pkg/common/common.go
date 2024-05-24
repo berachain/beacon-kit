@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+//nolint:lll // link.
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
 	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]

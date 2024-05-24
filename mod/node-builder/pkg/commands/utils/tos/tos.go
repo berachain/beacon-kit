@@ -39,6 +39,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint:lll
 const (
 	// acceptTosFilename is the name of the file that stores the accepted terms
 	// of use.

@@ -25,7 +25,7 @@
 
 // fixture from fast ssz
 //
-//nolint:godot,tagliatelle,mnd,wastedassign,ineffassign,lll // imported test
+//nolint:tagliatelle,lll // imported test
 package ssz
 
 type BeaconBlockHeader struct {

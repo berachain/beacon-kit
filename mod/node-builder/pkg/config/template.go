@@ -25,6 +25,7 @@
 
 package config
 
+//nolint:lll // template.
 const Template = `
 ###############################################################################
 ###                                BeaconKit                                ###

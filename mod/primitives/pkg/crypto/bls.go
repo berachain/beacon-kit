@@ -39,8 +39,8 @@ const (
 	CometBLSPower = 1e10
 )
 
+//nolint:lll // link.
 type (
-
 	// BLSPubkey as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	BLSPubkey = bytes.B48

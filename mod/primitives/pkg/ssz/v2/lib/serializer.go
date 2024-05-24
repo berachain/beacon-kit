@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:ineffassign,wastedassign,mnd // experimental
+//nolint:wastedassign // experimental
 package ssz
 
 import (

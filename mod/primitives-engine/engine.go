@@ -60,7 +60,7 @@ var (
 // ForkchoiceResponseV1 as per the EngineAPI Specification:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#response-2
 //
-
+//nolint:lll // link.
 type ForkchoiceResponseV1 struct {
 	// PayloadStatus is the payload status.
 	PayloadStatus PayloadStatusV1 `json:"payloadStatus"`
@@ -73,7 +73,7 @@ type ForkchoiceResponseV1 struct {
 // ForkchoicStateV1 as per the EngineAPI Specification:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#forkchoicestatev1
 //
-
+//nolint:lll // link.
 type ForkchoiceStateV1 struct {
 	// HeadBlockHash is the desired block hash of the head of the canonical
 	// chain.
@@ -94,7 +94,7 @@ type ForkchoiceStateV1 struct {
 // Specification. For more details, see:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#payloadstatusv1
 //
-
+//nolint:lll // link.
 type PayloadStatusV1 struct {
 	// Status string of the payload.
 	Status string `json:"status"`
