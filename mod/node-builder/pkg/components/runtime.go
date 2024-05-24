@@ -54,7 +54,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -62,13 +61,13 @@ import (
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
-	*dastore.Store[types.BeaconBlockBody],
+	*dastore.RangeStore[types.BeaconBlockBody],
 	types.BeaconBlockBody,
 	state.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
 	runtime.StorageBackend[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.RangeStore[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -87,7 +86,7 @@ func ProvideRuntime(
 	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend runtime.StorageBackend[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.RangeStore[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,
@@ -201,14 +200,8 @@ func ProvideRuntime(
 	availabilityPruner := pruner.NewPruner(
 		logger.With("service", "availability-db-pruner"),
 		storageBackend.AvailabilityStore(
-			context.Background()).IndexDB.(*filedb.RangeDB),
+			context.Background()).RangeDB,
 	)
-
-	// TODO: DepositStore and AVS is nil here, so casting AVS to RangeDB panics.
-	// we love depinject
-	defer func() {
-		recover()
-	}()
 
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
@@ -221,7 +214,7 @@ func ProvideRuntime(
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.RangeStore[types.BeaconBlockBody],
 		state.BeaconState, *datypes.BlobSidecars,
 	](
 		storageBackend,
@@ -230,7 +223,7 @@ func ProvideRuntime(
 		executionEngine,
 		localBuilder,
 		dablob.NewProcessor[
-			*dastore.Store[types.BeaconBlockBody],
+			*dastore.RangeStore[types.BeaconBlockBody],
 			types.BeaconBlockBody](
 			logger.With("service", "blob-processor"),
 			chainSpec,
@@ -254,7 +247,7 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.RangeStore[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		state.BeaconState,
 		*datypes.BlobSidecars,

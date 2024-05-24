@@ -159,7 +159,7 @@ func (s *Service[
 	}
 
 	// Notify Pruning Events
-  // TODO: pruner shouldn't be in main block processing thread.
+	// TODO: pruner shouldn't be in main block processing thread.
 	s.dbm.Notify(idx)
 
 	var lph engineprimitives.ExecutionPayloadHeader

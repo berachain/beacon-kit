@@ -23,42 +23,29 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package store
 
 import (
-	"os"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
 )
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
-	appOpts servertypes.AppOptions,
+// RangeStore is a wrapper around Store with explicit RangeDB access.
+// Hacky but depinject provides nil.
+type RangeStore[BeaconBlockBodyT BeaconBlockBody] struct {
+	*Store[BeaconBlockBodyT]
+	RangeDB *filedb.RangeDB
+}
+
+// NewRangeStore creates a new instance of the RangeStore.
+func NewRangeStore[BeaconBlockT BeaconBlockBody](
+	db *filedb.RangeDB,
+	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	logger log.Logger,
-) (*dastore.RangeStore[types.BeaconBlockBody], error) {
-	return dastore.NewRangeStore[types.BeaconBlockBody](
-		filedb.NewRangeDB(
-			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						appOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(logger),
-			),
-			chainSpec.MinEpochsForBlobsSidecarsRequest()*chainSpec.SlotsPerEpoch(),
-		),
-		logger.With("service", "beacon-kit.da.store"),
-		chainSpec,
-	), nil
+) *RangeStore[BeaconBlockT] {
+	return &RangeStore[BeaconBlockT]{
+		Store:   New[BeaconBlockT](db, logger, chainSpec),
+		RangeDB: db,
+	}
 }
