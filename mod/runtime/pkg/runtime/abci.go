@@ -50,23 +50,11 @@ func (r BeaconKitRuntime[
 		return nil, err
 	}
 
-	// Load the store.
-	store := r.storageBackend.StateFromContext(ctx)
-	if err := store.WriteGenesisStateDeneb(data); err != nil {
-		return nil, err
-	}
-
-	// Build ValidatorUpdates for CometBFT.
-	updates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range data.Validators {
-		updates = append(updates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: crypto.CometBLSType,
-			Power:      crypto.CometBLSPower,
-		},
-		)
-	}
-	return updates, nil
+	return r.chainService.ProcessGenesisState(
+		ctx,
+		r.storageBackend.StateFromContext(ctx),
+		data,
+	)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
