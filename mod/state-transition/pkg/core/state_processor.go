@@ -92,9 +92,11 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) ([]*transition.ValidatorUpdate, error) {
-	validatorUpdates := make([]*transition.ValidatorUpdate, 0)
+	var (
+		validatorUpdates []*transition.ValidatorUpdate
+		blkSlot          = blk.GetSlot()
+	)
 
-	blkSlot := blk.GetSlot()
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err

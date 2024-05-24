@@ -35,24 +35,20 @@ func (sp *StateProcessor[
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
-	var (
-		validatorUpdates = make([]*transition.ValidatorUpdate, 0)
-	)
-
-	// Get the public key of the validator
 	vals, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
+	// Create a list of validator updates.
+	//
+	// TODO: This is a trivial implementation that is to improved upon later.
+	updates := make([]*transition.ValidatorUpdate, 0)
 	for _, val := range vals {
-		// If the validator is in the committee but below the ejection
-		// balance
-		// then they get ejected.
-		validatorUpdates = append(validatorUpdates, &transition.ValidatorUpdate{
+		updates = append(updates, &transition.ValidatorUpdate{
 			Pubkey: val.Pubkey,
 		})
 	}
 
-	return validatorUpdates, nil
+	return updates, nil
 }
