@@ -101,7 +101,8 @@ func (r BeaconKitRuntime[
 			return appmodulev2.ValidatorUpdate{
 				PubKey:     update.Pubkey[:],
 				PubKeyType: crypto.CometBLSType,
-				Power:      crypto.CometBLSPower,
+				//#nosec:G701 // this is safe.
+				Power: int64(update.EffectiveBalance.Unwrap()),
 			}, nil
 		},
 	)

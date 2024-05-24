@@ -27,10 +27,14 @@ package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ValidatorUpdate is a struct that holds the validator update.
 type ValidatorUpdate struct {
 	// Pubkey is the public key of the validator.
 	Pubkey crypto.BLSPubkey
+
+	// EffectiveBalance
+	EffectiveBalance math.Gwei
 }

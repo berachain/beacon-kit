@@ -46,7 +46,8 @@ func (sp *StateProcessor[
 	updates := make([]*transition.ValidatorUpdate, 0)
 	for _, val := range vals {
 		updates = append(updates, &transition.ValidatorUpdate{
-			Pubkey: val.Pubkey,
+			Pubkey:           val.Pubkey,
+			EffectiveBalance: val.EffectiveBalance,
 		})
 	}
 
