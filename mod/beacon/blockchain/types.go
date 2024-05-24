@@ -184,8 +184,6 @@ type StateProcessor[
 	// TODO: move to an actual genesis type.
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
-		eth1BlockHash common.ExecutionHash,
-		eth1Timestamp math.U64,
 		deposits []*types.Deposit,
 		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,

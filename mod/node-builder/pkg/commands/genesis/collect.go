@@ -27,7 +27,6 @@ package genesis
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,31 +76,23 @@ func CollectValidatorsCmd() *cobra.Command {
 				)
 			}
 
-			fmt.Println("DEPOSITS FOUND", deposits)
-
 			genesisInfo := &genesis.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
 			); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
-			}
-
-			if err != nil {
-				return errors.Wrap(
-					err,
-					"failed to calculate genesis validators root",
-				)
+				return errors.Wrap(err, "failed to unmarshal beacon genesis")
 			}
 
 			for i, deposit := range deposits {
+				//#nosec:G701 // won't realistically overflow.
 				deposit.Index = uint64(i)
 				genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
 			}
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
-				return errors.Wrap(err, "failed to marshal beacon state")
+				return errors.Wrap(err, "failed to marshal beacon genesis")
 			}
 
 			if appGenesis.AppState, err = json.MarshalIndent(
@@ -109,8 +100,6 @@ func CollectValidatorsCmd() *cobra.Command {
 			); err != nil {
 				return err
 			}
-
-			fmt.Println("GENESIS STATE", genesisInfo.Deposits)
 
 			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 		},

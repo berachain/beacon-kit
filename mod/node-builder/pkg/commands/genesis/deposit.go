@@ -75,7 +75,7 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			)
 
 			// Get the BLS signer.
-			blsSigner, err := getBLSSigner(cmd)
+			blsSigner, err := getBLSSigner()
 			if err != nil {
 				return err
 			}
@@ -190,9 +190,7 @@ func writeValidatorStruct(
 }
 
 // getBLSSigner returns a BLS signer based on the override node key flag.
-func getBLSSigner(
-	cmd *cobra.Command,
-) (crypto.BLSSigner, error) {
+func getBLSSigner() (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
 	if err := depinject.Inject(
 		depinject.Configs(

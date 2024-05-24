@@ -47,12 +47,8 @@ func (s *Service[
 	ctx context.Context,
 	genesisData *genesis.Genesis,
 ) ([]*transition.ValidatorUpdate, error) {
-	// Process the genesis state using the state processor.
-	st := s.sb.StateFromContext(ctx)
 	return s.sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genesisData.ExecutionPayloadHeader.GetBlockHash(),
-		genesisData.ExecutionPayloadHeader.GetTimestamp(),
+		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
 		genesisData.ExecutionPayloadHeader,
 		genesisData.ForkVersion,

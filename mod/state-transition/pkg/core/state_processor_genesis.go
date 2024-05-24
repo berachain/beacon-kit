@@ -31,20 +31,18 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// InitializePreminedBeaconStateFromEth1 initializes the beacon state from the
-// eth1 block hash.
+// InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	eth1BlockHash common.ExecutionHash,
-	eth1Timestamp math.U64,
 	deposits []*types.Deposit,
 	executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
 	genesisVersion primitives.Version,
@@ -52,7 +50,7 @@ func (sp *StateProcessor[
 	fork := &types.Fork{
 		PreviousVersion: genesisVersion,
 		CurrentVersion:  genesisVersion,
-		Epoch:           0,
+		Epoch:           math.U64(constants.GenesisEpoch),
 	}
 
 	if err := st.SetSlot(0); err != nil {
@@ -70,7 +68,7 @@ func (sp *StateProcessor[
 	if err := st.SetEth1Data(&types.Eth1Data{
 		DepositRoot:  bytes.B32(common.ZeroHash),
 		DepositCount: 0,
-		BlockHash:    eth1BlockHash,
+		BlockHash:    executionPayloadHeader.GetBlockHash(),
 	}); err != nil {
 		return nil, err
 	}
@@ -93,7 +91,10 @@ func (sp *StateProcessor[
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err := st.UpdateRandaoMixAtIndex(uint64(i), bytes.B32(eth1BlockHash)); err != nil {
+		if err := st.UpdateRandaoMixAtIndex(
+			i,
+			bytes.B32(executionPayloadHeader.GetBlockHash()),
+		); err != nil {
 			return nil, err
 		}
 	}
@@ -130,6 +131,7 @@ func (sp *StateProcessor[
 	if err = st.SetLatestExecutionPayloadHeader(executionPayloadHeader); err != nil {
 		return nil, err
 	}
+
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
