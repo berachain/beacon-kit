@@ -29,9 +29,8 @@ import "errors"
 
 // ErrInvalidSignature is returned when a signature is invalid.
 var (
-	ErrInvalidSignature   = errors.New("invalid signature")
-	ErrInvalidSigningType = errors.New("invalid signing type")
-	ErrMissingPrivKey     = errors.New("missing private key for legacy signer")
+	// ErrInvalidSignature is returned when a signature is invalid.
+	ErrInvalidSignature = errors.New("invalid BLS signature")
 
 	// ErrValidatorPrivateKeyRequired is returned when the validator private key
 	// is required but not provided.

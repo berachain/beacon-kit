@@ -165,7 +165,10 @@ func getBLSSigner(
 
 	// Build the BLS signer.
 	if overrideFlag {
-		var validatorPrivKey string
+		var (
+			validatorPrivKey string
+			legacyInput      components.LegacyKey
+		)
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
 			return nil, err
@@ -173,7 +176,11 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-		supplies = append(supplies, validatorPrivKey)
+		legacyInput, err = components.GetLegacyKey(validatorPrivKey)
+		if err != nil {
+			return nil, err
+		}
+		supplies = append(supplies, legacyInput)
 	}
 
 	if err = depinject.Inject(

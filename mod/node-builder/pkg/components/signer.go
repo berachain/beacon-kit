@@ -26,8 +26,6 @@
 package components
 
 import (
-	"encoding/hex"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -41,35 +39,25 @@ import (
 type BlsSignerInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
-	PrivKey string `optional:"true"`
+	PrivKey signer.LegacyKey `optional:"true"`
 }
+
+// type alias to LegacyKey used for LegacySinger construction.
+type LegacyKey = signer.LegacyKey
 
 // ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
-	if in.PrivKey == "" {
-		// if no private key is provided, use the one in the config file
+	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
+		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
 		return signer.NewBLSSigner(
 			homeDir+"/config/priv_validator_key.json",
 			homeDir+"/data/priv_validator_state.json",
 		), nil
 	}
-	return provideLegacy(in.PrivKey)
+	return signer.NewLegacySigner(in.PrivKey)
 }
 
-// provideLegacy creates a legacy signer that signs with the specified private
-// key.
-func provideLegacy(privKey string) (crypto.BLSSigner, error) {
-	privKeyBz, err := hex.DecodeString(privKey)
-	if err != nil {
-		return nil, err
-	}
-	if len(privKeyBz) != constants.BLSSecretKeyLength {
-		return nil, signer.ErrInvalidValidatorPrivateKeyLength
-	}
-
-	// creates bls signer that signs with the specified private key
-	return signer.NewLegacySigner(
-		[constants.BLSSecretKeyLength]byte(privKeyBz),
-	)
+func GetLegacyKey(privKey string) (signer.LegacyKey, error) {
+	return signer.LegacyKeyFromString(privKey)
 }

@@ -26,6 +26,8 @@
 package signer
 
 import (
+	"encoding/hex"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/itsdevbear/comet-bls12-381/bls"
@@ -39,7 +41,7 @@ type LegacySigner struct {
 
 // NewLegacySigner creates a new Signer instance given a secret key.
 func NewLegacySigner(
-	keyBz [constants.BLSSecretKeyLength]byte,
+	keyBz LegacyKey,
 ) (*LegacySigner, error) {
 	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
 	if err != nil {
@@ -62,8 +64,7 @@ func (b *LegacySigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
 }
 
-// VerifySignature verifies a signature for a given message using the signer's
-// public key.
+// VerifySignature verifies a signature against a message and public key.
 func (LegacySigner) VerifySignature(
 	pubKey crypto.BLSPubkey,
 	msg []byte,
@@ -83,4 +84,19 @@ func (LegacySigner) VerifySignature(
 		return ErrInvalidSignature
 	}
 	return nil
+}
+
+// LegacyKey is a byte array that represents a BLS12-381 secret key.
+type LegacyKey [constants.BLSSecretKeyLength]byte
+
+// GetLegacyInput returns a LegacyInput from a hex-encoded string.
+func LegacyKeyFromString(privKey string) (LegacyKey, error) {
+	privKeyBz, err := hex.DecodeString(privKey)
+	if err != nil {
+		return LegacyKey{}, err
+	}
+	if len(privKeyBz) != constants.BLSSecretKeyLength {
+		return LegacyKey{}, ErrInvalidValidatorPrivateKeyLength
+	}
+	return LegacyKey(privKeyBz), nil
 }
