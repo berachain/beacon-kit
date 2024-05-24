@@ -23,35 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	cometabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// PreBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) PreBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
-) error {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
-	if err != nil {
-		return err
+// TODO: properly create a genesis type and use the FromEth1 ideaology.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
+]) ProcessGenesisState(
+	_ ContextT,
+	st BeaconStateT,
+	data *deneb.BeaconState,
+) ([]*transition.ValidatorUpdate, error) {
+	// TODO: this should not just dumb a beaconstate object.
+	if err := st.WriteGenesisStateDeneb(data); err != nil {
+		return nil, err
 	}
 
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
-	return nil
+	updates, err := sp.processSyncCommitteeUpdates(st)
+	if err != nil {
+		return nil, err
+	}
+
+	st.Save()
+	return updates, nil
 }
