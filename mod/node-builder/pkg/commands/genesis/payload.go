@@ -30,7 +30,7 @@ import (
 	"encoding/json"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -76,7 +76,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			genesis, err := genutiltypes.AppGenesisFromFile(
+			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),
 			)
 			if err != nil {
@@ -85,13 +85,13 @@ func AddExecutionPayloadCmd() *cobra.Command {
 
 			// create the app state
 			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				genesis,
+				appGenesis,
 			)
 			if err != nil {
 				return err
 			}
 
-			beaconState := &deneb.BeaconState{}
+			beaconState := &genesis.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], beaconState,
@@ -100,7 +100,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			beaconState.LatestExecutionPayloadHeader, err =
+			beaconState.ExecutionPayloadHeader, err =
 				executableDataToExecutionPayloadHeader(payload)
 			if err != nil {
 				return errors.Wrap(
@@ -114,13 +114,13 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to marshal beacon state")
 			}
 
-			if genesis.AppState, err = json.MarshalIndent(
+			if appGenesis.AppState, err = json.MarshalIndent(
 				appGenesisState, "", "  ",
 			); err != nil {
 				return err
 			}
 
-			return genutil.ExportGenesisFile(genesis, config.GenesisFile())
+			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 		},
 	}
 

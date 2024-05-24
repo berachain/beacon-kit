@@ -28,11 +28,10 @@ package beacon
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -70,7 +69,9 @@ func (am AppModule) Name() string {
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
+func (AppModule) ConsensusVersion() uint64 {
+	return ConsensusVersion
+}
 
 // RegisterInterfaces registers the module's interface types.
 func (am AppModule) RegisterInterfaces(registry.InterfaceRegistrar) {}
@@ -84,10 +85,7 @@ func (am AppModule) IsAppModule() {}
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	defaultGenesis, err := deneb.DefaultBeaconState()
-	if err != nil {
-		panic(err)
-	}
+	defaultGenesis := genesis.DefaultGenesis()
 
 	bz, err := json.Marshal(defaultGenesis)
 	if err != nil {
@@ -100,22 +98,6 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 func (AppModule) ValidateGenesis(
 	bz json.RawMessage,
 ) error {
-	// TODO: this is bad
-	data := new(deneb.BeaconState)
-	if err := json.Unmarshal(bz, data); err != nil {
-		return err
-	}
-
-	seenValidators := make(map[[48]byte]struct{})
-	for _, validator := range data.Validators {
-		if _, ok := seenValidators[validator.Pubkey]; ok {
-			return fmt.Errorf(
-				"duplicate pubkey in genesis state: %x",
-				validator.Pubkey,
-			)
-		}
-		seenValidators[validator.Pubkey] = struct{}{}
-	}
 	return nil
 }
 
@@ -124,5 +106,5 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
-	return json.Marshal(&deneb.BeaconState{})
+	return json.Marshal(&genesis.Genesis{})
 }

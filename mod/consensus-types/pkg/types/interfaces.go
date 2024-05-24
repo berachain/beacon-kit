@@ -69,6 +69,12 @@ type ExecutionPayload interface {
 	GetWithdrawals() []*engineprimitives.Withdrawal
 }
 
+// ExecutionPayloadHeader is the interface for the header of an execution
+// payload.
+type ExecutionPayloadHeader interface {
+	ExecutionPayloadBody
+}
+
 // BeaconBlockBody is the interface for a beacon block body.
 type BeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
