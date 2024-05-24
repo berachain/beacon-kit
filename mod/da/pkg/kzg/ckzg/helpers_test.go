@@ -101,7 +101,9 @@ func setupTestData(t *testing.T, fileName string) (
 	require.NoError(t, errBlob)
 
 	var commitment eip4844.KZGCommitment
-	errCommitment := commitment.UnmarshalJSON([]byte(`"` + test.Input.Commitment + `"`))
+	errCommitment := commitment.UnmarshalJSON(
+		[]byte(`"` + test.Input.Commitment + `"`),
+	)
 	require.NoError(t, errCommitment)
 
 	var proof eip4844.KZGProof
