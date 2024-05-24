@@ -115,7 +115,7 @@ func (app *BeaconApp) setupBeaconModule() {
 
 	app.SetPrepareProposal(beaconModule.ABCIHandler().PrepareProposalHandler)
 	app.SetProcessProposal(beaconModule.ABCIHandler().ProcessProposalHandler)
-	app.SetPreBlocker(beaconModule.ABCIHandler().FinalizeBlock)
+	app.SetPreBlocker(beaconModule.ABCIHandler().PreBlock)
 
 	// TODO: this needs to be made un-hood.
 	if err := beaconModule.StartServices(

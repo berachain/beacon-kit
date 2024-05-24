@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
@@ -180,6 +181,13 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT any,
 ] interface {
+	// ProcessGenesisState processes the genesis state.
+	// TODO: move to an actual genesis type.
+	ProcessGenesisState(
+		ctx ContextT,
+		st BeaconStateT,
+		data *deneb.BeaconState,
+	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.

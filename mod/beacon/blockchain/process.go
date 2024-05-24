@@ -28,12 +28,39 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
 )
+
+// ProcessGenesisState processes the genesis state and initializes the beacon
+// state.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) ProcessGenesisState(
+	ctx context.Context,
+	genesisData *deneb.BeaconState,
+) ([]*transition.ValidatorUpdate, error) {
+	// Process the genesis state using the state processor.
+	valUpdates, err := s.sp.ProcessGenesisState(
+		&transition.Context{
+			Context: ctx,
+		},
+		s.sb.StateFromContext(ctx),
+		genesisData,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return valUpdates, nil
+}
 
 // ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.

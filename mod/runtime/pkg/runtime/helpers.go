@@ -23,35 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package runtime
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	cometabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// PreBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) PreBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
-) error {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
-	if err != nil {
-		return err
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+func convertValidatorUpdate(
+	u **transition.ValidatorUpdate,
+) (appmodulev2.ValidatorUpdate, error) {
+	update := *u
+	if update == nil {
+		return appmodulev2.ValidatorUpdate{},
+			ErrUndefinedValidatorUpdate
 	}
-
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
-	return nil
+	return appmodulev2.ValidatorUpdate{
+		PubKey:     update.Pubkey[:],
+		PubKeyType: crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}, nil
 }
