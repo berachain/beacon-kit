@@ -87,7 +87,7 @@ func (am AppModule) IsAppModule() {}
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
 	bz, err := json.Marshal(
-		genesis.DefaultGenesis[*types.ExecutionPayloadHeaderDeneb](),
+		genesis.DefaultGenesisDeneb(),
 	)
 	if err != nil {
 		panic(err)

@@ -39,9 +39,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// GenesisDeneb is a struct that contains the genesis.
-//
-
+// Genesis is a struct that contains the genesis.
 type Genesis[
 	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
 ] struct {
@@ -58,26 +56,26 @@ type Genesis[
 }
 
 // DefaultGenesis returns a the default genesis.
-func DefaultGenesis[
-	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
-]() *Genesis[ExecutonPayloadHeaderT] {
-	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
+func DefaultGenesisDeneb() *Genesis[*types.ExecutionPayloadHeaderDeneb] {
+	defaultHeader, err :=
+		DefaultGenesisExecutionPayloadHeaderDeneb()
 	if err != nil {
 		panic(err)
 	}
 
-	return &Genesis[ExecutonPayloadHeaderT]{
+	return &Genesis[*types.ExecutionPayloadHeaderDeneb]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),
 		Deposits:               make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: defaultHeader.(ExecutonPayloadHeaderT),
+		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
-// DefaultGenesisExecutionPayloadHeader returns a default ExecutableHeaderDeneb.
-func DefaultGenesisExecutionPayloadHeader() (
-	engineprimitives.ExecutionPayloadHeader, error,
+// DefaultGenesisExecutionPayloadHeaderDeneb returns a default
+// ExecutionPayloadHeaderDeneb.
+func DefaultGenesisExecutionPayloadHeaderDeneb() (
+	*types.ExecutionPayloadHeaderDeneb, error,
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
