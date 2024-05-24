@@ -117,7 +117,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) prepareStateForBuilding(
 	case slotDifference == 1:
 		// If our BeaconState is not up to date, we need to process
 		// a slot to get it up to date.
-		if err = s.stateProcessor.ProcessSlot(st); err != nil {
+		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
 			return err
 		}
 

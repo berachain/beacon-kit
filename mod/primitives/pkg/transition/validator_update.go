@@ -23,17 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package transition
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll // link.
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// ValidatorUpdate is a struct that holds the validator update.
+type ValidatorUpdate struct {
+	// Pubkey is the public key of the validator.
+	Pubkey crypto.BLSPubkey
+
+	// EffectiveBalance
+	EffectiveBalance math.Gwei
+}

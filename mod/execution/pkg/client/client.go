@@ -361,7 +361,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
 // ================================ IPC ================================
 
 //
-//nolint:lll // long line length due to struct tags.
+
 func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	ctx context.Context,
 ) {

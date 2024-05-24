@@ -146,7 +146,7 @@ func (s *Service[
 		}
 
 		stCopy := st.Copy()
-		if err = s.sp.ProcessSlot(
+		if _, err = s.sp.ProcessSlot(
 			stCopy,
 		); err != nil {
 			return

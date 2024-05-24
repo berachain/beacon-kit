@@ -56,6 +56,7 @@ func run() error {
 // main is the entry point.
 func main() {
 	if err := run(); err != nil {
+		//nolint:sloglint // todo fix.
 		slog.Error("startup failure", "error", err)
 		os.Exit(1)
 	}

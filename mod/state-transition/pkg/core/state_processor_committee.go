@@ -23,17 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package core
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll // link.
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
+]) processSyncCommitteeUpdates(
+	st BeaconStateT,
+) ([]*transition.ValidatorUpdate, error) {
+	vals, err := st.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a list of validator updates.
+	//
+	// TODO: This is a trivial implementation that is to improved upon later.
+	updates := make([]*transition.ValidatorUpdate, 0)
+	for _, val := range vals {
+		updates = append(updates, &transition.ValidatorUpdate{
+			Pubkey:           val.Pubkey,
+			EffectiveBalance: val.EffectiveBalance,
+		})
+	}
+
+	return updates, nil
+}

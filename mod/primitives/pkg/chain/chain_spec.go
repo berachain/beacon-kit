@@ -32,7 +32,6 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
-
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a

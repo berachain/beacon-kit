@@ -156,7 +156,10 @@ func setupVerifier() (*gokzg.Verifier, error) {
 }
 
 func setupTestData(t *testing.T, fileName string) (
-	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
+	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment,
+) {
+	t.Helper()
+
 	filePath := filepath.Join(baseDir, fileName)
 	data, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	require.NoError(t, err)

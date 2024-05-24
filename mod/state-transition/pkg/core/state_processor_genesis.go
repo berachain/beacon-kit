@@ -23,17 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package core
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll // link.
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// TODO: properly create a genesis type and use the FromEth1 ideaology.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
+]) ProcessGenesisState(
+	_ ContextT,
+	st BeaconStateT,
+	data *deneb.BeaconState,
+) ([]*transition.ValidatorUpdate, error) {
+	// TODO: this should not just dumb a beaconstate object.
+	if err := st.WriteGenesisStateDeneb(data); err != nil {
+		return nil, err
+	}
+
+	updates, err := sp.processSyncCommitteeUpdates(st)
+	if err != nil {
+		return nil, err
+	}
+
+	st.Save()
+	return updates, nil
+}

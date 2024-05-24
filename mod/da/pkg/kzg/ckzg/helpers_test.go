@@ -78,9 +78,12 @@ func setupVerifier() (*ckzg.Verifier, error) {
 
 func setupTestData(t *testing.T, fileName string) (
 	*eip4844.Blob, eip4844.KZGProof, eip4844.KZGCommitment) {
+	t.Helper()
+
 	filePath := filepath.Join(baseDir, fileName)
 	data, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	require.NoError(t, err)
+
 	type Test struct {
 		Input struct {
 			Blob       string `json:"blob"`
@@ -98,13 +101,12 @@ func setupTestData(t *testing.T, fileName string) (
 	require.NoError(t, errBlob)
 
 	var commitment eip4844.KZGCommitment
-
-	errCommitment := commitment.UnmarshalJSON([]byte(
-		`"` + test.Input.Commitment + `"`))
+	errCommitment := commitment.UnmarshalJSON(
+		[]byte(`"` + test.Input.Commitment + `"`),
+	)
 	require.NoError(t, errCommitment)
 
 	var proof eip4844.KZGProof
-
 	errProof := proof.UnmarshalJSON([]byte(`"` + test.Input.Proof + `"`))
 	require.NoError(t, errProof)
 
