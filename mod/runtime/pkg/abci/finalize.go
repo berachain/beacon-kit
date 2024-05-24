@@ -32,10 +32,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// FinalizeBlock is called by the base app before the block is finalized. It
+// PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) FinalizeBlock(
+func (h *Handler[BlobsSidecarsT]) PreBlock(
 	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	blk, blobs, err := encoding.
