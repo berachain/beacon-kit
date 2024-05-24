@@ -28,7 +28,6 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -44,30 +43,27 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// // Verify that outstanding deposits are processed up to the maximum number
-	// // of deposits.
+	// Verify that outstanding deposits are processed up to the maximum number
+	// of deposits.
 	deposits := blk.GetBody().GetDeposits()
-	// index, err := st.GetEth1DepositIndex()
-	// if err != nil {
-	// 	return err
-	// }
-	// eth1Data, err := st.GetEth1Data()
-	// if err != nil {
-	// 	return err
-	// }
-	// depositCount := min(
-	// 	sp.cs.MaxDepositsPerBlock(),
-	// 	eth1Data.DepositCount-index,
-	// )
-	// _ = depositCount
-	// // TODO: Update eth1data count and check this.
-	// // if uint64(len(deposits)) != depositCount {
-	// // 	return errors.New("deposit count mismatch")
-	// // }
-	// return sp.processDeposits(st, deposits)
-	return sp.dispatcher.Notify(
-		deposit.NewEvent(st, deposits),
+	index, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
+		return err
+	}
+	depositCount := min(
+		sp.cs.MaxDepositsPerBlock(),
+		eth1Data.DepositCount-index,
 	)
+	_ = depositCount
+	// TODO: Update eth1data count and check this.
+	// if uint64(len(deposits)) != depositCount {
+	// 	return errors.New("deposit count mismatch")
+	// }
+	return sp.processDeposits(st, deposits)
 }
 
 // ProcessDeposits processes the deposits and ensures they match the
