@@ -136,7 +136,8 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 					return errors.Wrap(err, "failed to create output file path")
 				}
 			}
-			if err = writeValidatorStruct(outputDocument, &deposit); err != nil {
+
+			if err = writeDepositToFile(outputDocument, &deposit); err != nil {
 				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
@@ -163,7 +164,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", pubkey)), nil
 }
 
-func writeValidatorStruct(
+func writeDepositToFile(
 	outputDocument string,
 	depositMessage *types.Deposit,
 ) error {
