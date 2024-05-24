@@ -98,48 +98,11 @@ func (r BeaconKitRuntime[
 			u **transition.ValidatorUpdate,
 		) (appmodulev2.ValidatorUpdate, error) {
 			update := *u
-			res := appmodulev2.ValidatorUpdate{
+			return appmodulev2.ValidatorUpdate{
 				PubKey:     update.Pubkey[:],
 				PubKeyType: crypto.CometBLSType,
-			}
-			switch update.Event {
-			case transition.Activate:
-				res.Power = crypto.CometBLSPower
-			case transition.Deactivate:
-				res.Power = 0
-			default:
-				return res, ErrUndefinedValidatorUpdate
-			}
-			return res, nil
+				Power:      crypto.CometBLSPower,
+			}, nil
 		},
 	)
 }
-
-// TODO: Bring back actually removing validators from the index.
-
-// validatorUpdates := make([]appmodulev2.ValidatorUpdate, 0)
-// for _, validator := range updates {
-// 	// // TODO: Config
-// 	// // Max 100 validators in the active set.
-// 	// // TODO: this is kinda hood.
-// 	// if validator.EffectiveBalance == 0 {
-// 	// 	var idx math.ValidatorIndex
-// 	// 	idx, err = store.
-// 	// 		ValidatorIndexByPubkey(validator.Pubkey)
-// 	// 	if err != nil {
-// 	// 		return nil, err
-// 	// 	} else if err = store.RemoveValidatorAtIndex(idx); err != nil {
-// 	// 		return nil, err
-// 	// 	}
-// 	// }
-
-// 	// TODO: this works, but there is a bug where if we send a validator to
-// 	// 0 voting power, it can somehow still propose the next block? This
-// 	// feels big bad.
-// 	// validatorUpdates = append(validatorUpdates, appmodulev2.ValidatorUpdate{
-// 	// 	PubKey:     validator.Pubkey[:],
-// 	// 	PubKeyType: "bls12_381",
-// 	// 	//#nosec:G701 // will not realistically cause a problem.
-// 	// 	Power: int64(validator.EffectiveBalance),
-// 	// })
-// }

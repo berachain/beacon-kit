@@ -33,10 +33,4 @@ import (
 type ValidatorUpdate struct {
 	// Pubkey is the public key of the validator.
 	Pubkey crypto.BLSPubkey
-
-	// Event is the event of the validator update.
-	Event string
 }
-
-const Activate = "activate"
-const Deactivate = "deactivate"
