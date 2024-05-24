@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -329,14 +328,12 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	ticker := time.NewTicker(time.Second)
 	var finalBlockNum uint64
 	for finalBlockNum < target {
-		var finalBlockInHex hexutil.Uint64
-		err := s.JSONRPCBalancer().Client.Client().CallContext(
-			cctx, &finalBlockInHex, "eth_blockNumber")
+		var err error
+		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
 		}
-		finalBlockNum = uint64(finalBlockInHex)
 		s.logger.Info(
 			"waiting for finalized block number to reach target",
 			"target",
