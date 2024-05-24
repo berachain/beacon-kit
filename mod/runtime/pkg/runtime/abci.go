@@ -43,7 +43,7 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(genesis.Genesis)
+	data := new(genesis.GenesisDeneb)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}

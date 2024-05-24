@@ -76,7 +76,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &genesis.Genesis{}
+			genesisInfo := &genesis.GenesisDeneb{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,

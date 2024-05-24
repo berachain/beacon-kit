@@ -39,27 +39,35 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Genesis is a struct that contains the genesis.
+// GenesisDeneb is a struct that contains the genesis.
 //
 //nolint:lll // struct tags.
-type Genesis struct {
-	ForkVersion            primitives.Version                 `json:"fork_version"`
-	Deposits               []*types.Deposit                   `json:"deposits"`
+type GenesisDeneb struct {
+	// ForkVersion is the fork version of the genesis slot.
+	ForkVersion primitives.Version `json:"fork_version"`
+
+	// Deposits represents the deposits in the genesis. Deposits are
+	// used to initialize the validator set.
+	Deposits []*types.Deposit `json:"deposits"`
+
+	// ExecutionPayloadHeader is the header of the execution payload
+	// in the genesis.
 	ExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"execution_payload_header"`
 }
 
-func DefaultGenesis() *Genesis {
-	defaultExecPayloadHeader, err := DefaultGenesisExecutionPayloadHeader()
+// DefaultGenesis returns a the default genesis.
+func DefaultGenesisDeneb() *GenesisDeneb {
+	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		panic(err)
 	}
 
-	return &Genesis{
+	return &GenesisDeneb{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),
 		Deposits:               make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: defaultExecPayloadHeader,
+		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
