@@ -31,7 +31,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	consensuskeeper "cosmossdk.io/x/consensus/keeper"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -52,8 +51,6 @@ var (
 // capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
-	// TODO: Deprecate.
-	ConsensusParamsKeeper consensuskeeper.Keeper
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -89,14 +86,24 @@ func NewBeaconKitApp(
 			),
 		),
 		&appBuilder,
-		&app.ConsensusParamsKeeper,
 	); err != nil {
 		panic(err)
 	}
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app.setupBeaconModule()
 
+	// Load the app.
+	if err := app.Load(loadLatest); err != nil {
+		panic(err)
+	}
+
+	return app
+}
+
+// TODO: Unhack this.
+func (app *BeaconApp) setupBeaconModule() {
 	// Get the beacon module.
 	//
 	// TODO: Cleanup.
@@ -110,22 +117,10 @@ func NewBeaconKitApp(
 	app.SetProcessProposal(beaconModule.ABCIHandler().ProcessProposalHandler)
 	app.SetPreBlocker(beaconModule.ABCIHandler().FinalizeBlock)
 
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
-	}
-
-	// Load the app.
-	if err := app.Load(loadLatest); err != nil {
-		panic(err)
-	}
-
 	// TODO: this needs to be made un-hood.
 	if err := beaconModule.StartServices(
 		context.Background(),
 	); err != nil {
 		panic(err)
 	}
-
-	return app
 }

@@ -23,38 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package nodebuilder
+package core
 
 import (
-	"io"
-	"reflect"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// NodeBuilder is a struct that holds the.
-func (nb *NodeBuilder[T]) AppCreator(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) T {
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT,
+]) processSyncCommitteeUpdates(
+	st BeaconStateT,
+) ([]*transition.ValidatorUpdate, error) {
+	vals, err := st.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		return nil, err
 	}
 
-	app := *app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		nb.appInfo.DepInjectConfig,
-		nb.chainSpec,
-		server.DefaultBaseappOptions(appOpts)...,
-	)
-	return reflect.ValueOf(app).Convert(
-		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
+	// Create a list of validator updates.
+	//
+	// TODO: This is a trivial implementation that is to improved upon later.
+	updates := make([]*transition.ValidatorUpdate, 0)
+	for _, val := range vals {
+		updates = append(updates, &transition.ValidatorUpdate{
+			Pubkey:           val.Pubkey,
+			EffectiveBalance: val.EffectiveBalance,
+		})
+	}
+
+	return updates, nil
 }
