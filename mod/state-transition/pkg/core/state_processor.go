@@ -238,9 +238,8 @@ func (sp *StateProcessor[
 	return validatorUpdates, st.SetSlot(slot + 1)
 }
 
-// ProcessBlock processes the block and ensures it matches the local state.
-//
-
+// ProcessBlock processes the block, it optionally verifies the
+// state root.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
@@ -287,6 +286,8 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	// If we are skipping validate, we can skip calculating the state
+	// root to save compute.
 	if ctx.GetSkipValidateResult() {
 		return nil
 	}
