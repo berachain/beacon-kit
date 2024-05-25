@@ -42,10 +42,10 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []*types.Deposit,
+	deposits []DepositT,
 	executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
