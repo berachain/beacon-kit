@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -83,7 +84,11 @@ func (s *Service[
 	// Launch a goroutine to process the state transition.
 	var valUpdates []*transition.ValidatorUpdate
 	g.Go(func() error {
-		var err error
+		var (
+			err       error
+			startTime = time.Now()
+		)
+		defer s.metrics.measureStateTransitionDuration(startTime)
 		valUpdates, err = s.sp.Transition(
 			// We set `OptimisticEngine` to true since this is called during
 			// FinalizeBlock. We want to assume the payload is valid. If it
@@ -105,6 +110,8 @@ func (s *Service[
 
 	// Launch a goroutine to process the blob sidecars.
 	g.Go(func() error {
+		startTime := time.Now()
+		defer s.metrics.measureBlobProcessingDuration(startTime)
 		return s.bp.ProcessBlobs(
 			blk.GetSlot(),
 			s.sb.AvailabilityStore(ctx),
