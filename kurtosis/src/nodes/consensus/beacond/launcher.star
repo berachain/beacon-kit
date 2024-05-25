@@ -4,10 +4,10 @@ node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
 # 1x resources
-# DEFAULT_MAX_CPU = 1000
-# DEFAULT_MAX_MEMORY = 4096
-# DEFAULT_MIN_CPU = 500
-# DEFAULT_MIN_MEMORY = 1024
+DEFAULT_MAX_CPU = 1000
+DEFAULT_MAX_MEMORY = 4096
+DEFAULT_MIN_CPU = 500
+DEFAULT_MIN_MEMORY = 1024
 
 # 2x resources
 # DEFAULT_MAX_CPU = 2000
@@ -22,10 +22,10 @@ bash = import_module("../../../lib/bash.star")
 # DEFAULT_MIN_MEMORY = 16384
 
 # 8x resources
-DEFAULT_MAX_CPU = 8000
-DEFAULT_MAX_MEMORY = 32768
-DEFAULT_MIN_CPU = 8000
-DEFAULT_MIN_MEMORY = 32768
+# DEFAULT_MAX_CPU = 8000
+# DEFAULT_MAX_MEMORY = 32768
+# DEFAULT_MIN_CPU = 8000
+# DEFAULT_MIN_MEMORY = 32768
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -87,6 +87,12 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         },
         ports = exposed_ports,
+        labels={
+            "node_type": "consensus",
+        },
+        node_selectors={
+            "node_preference": "fast",
+        },
     )
 
     return config
