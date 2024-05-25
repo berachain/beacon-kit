@@ -27,6 +27,7 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -72,6 +73,10 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
+
+	// lastFCU tracks the last time a FCU was sent.
+	lastFCU   time.Time
+	maxFCUGap time.Duration
 }
 
 // NewService creates a new validator service.
@@ -108,15 +113,16 @@ func NewService[
 		AvailabilityStoreT, ReadOnlyBeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:      sb,
-		logger:  logger,
-		cs:      cs,
-		ee:      ee,
-		lb:      lb,
-		bp:      bp,
-		sp:      sp,
-		dc:      dc,
-		metrics: newChainMetrics(ts),
+		sb:        sb,
+		logger:    logger,
+		cs:        cs,
+		ee:        ee,
+		lb:        lb,
+		bp:        bp,
+		sp:        sp,
+		dc:        dc,
+		metrics:   newChainMetrics(ts),
+		maxFCUGap: 2 * time.Second,
 	}
 }
 
@@ -136,9 +142,15 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Start(
-	context.Context,
+	ctx context.Context,
 ) error {
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		}
+	}
+
 }
 
 func (s *Service[

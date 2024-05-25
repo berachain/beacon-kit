@@ -142,6 +142,7 @@ func (s *Service[
 			prevBlockRoot,
 			headHash,
 		); err == nil {
+			s.lastFCU = time.Now().Add(time.Second)
 			return
 		}
 
@@ -156,15 +157,20 @@ func (s *Service[
 			)
 	}
 
-	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(), headHash,
-	); err != nil {
-		s.logger.
-			Error(
-				"failed to send forkchoice update in postBlockProcess",
-				"error",
-				err,
-			)
+	// If we haven't sent a forkchoice in a while, send another one.
+	if time.Since(s.lastFCU) > s.maxFCUGap {
+		// Otherwise we send a forkchoice update to the execution client.
+		if err := s.sendFCU(
+			ctx, st, blk.GetSlot(), headHash,
+		); err != nil {
+			s.logger.
+				Error(
+					"failed to send forkchoice update in postBlockProcess",
+					"error",
+					err,
+				)
+		} else {
+			s.lastFCU = time.Now()
+		}
 	}
 }
