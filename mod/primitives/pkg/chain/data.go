@@ -81,6 +81,8 @@ type SpecData[
 	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
 	// DepositEth1ChainID is the chain ID of the execution client.
 	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
+	// TargetSecondsPerEth1Block is the target time between eth1 blocks.
+	TargetSecondsPerEth1Block uint64 `mapstructure:"target-seconds-per-eth1-block"`
 
 	// Fork-related values.
 	//
