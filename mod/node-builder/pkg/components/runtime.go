@@ -240,6 +240,7 @@ func ProvideRuntime(
 		stateProcessor,
 		beaconDepositContract,
 		dbManagerService,
+		ts,
 	)
 
 	// Build the service registry.

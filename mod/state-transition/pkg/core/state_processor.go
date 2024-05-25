@@ -41,10 +41,11 @@ import (
 // main state transition for the beacon chain.
 type StateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
+	DepositT Deposit[types.WithdrawalCredentials],
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
@@ -56,10 +57,11 @@ type StateProcessor[
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
+	DepositT Deposit[types.WithdrawalCredentials],
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[
@@ -70,10 +72,12 @@ func NewStateProcessor[
 	logger log.Logger[any],
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, ContextT] {
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT,
+] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, ContextT,
+		BeaconStateT, BlobSidecarsT, ContextT, DepositT,
 	]{
 		cs:              cs,
 		rp:              rp,
@@ -86,7 +90,7 @@ func NewStateProcessor[
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -170,7 +174,7 @@ func (sp *StateProcessor[
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) ProcessSlot(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -242,7 +246,7 @@ func (sp *StateProcessor[
 // state root.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -310,7 +314,7 @@ func (sp *StateProcessor[
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processEpoch(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -328,7 +332,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -413,7 +417,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -432,7 +436,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {

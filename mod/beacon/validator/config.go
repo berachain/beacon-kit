@@ -25,6 +25,11 @@
 
 package validator
 
+const (
+	// defaultGraffiti is the default graffiti string.
+	defaultGraffiti = ""
+)
+
 // Config is the validator configuration.
 type Config struct {
 	// Graffiti is the string that will be included in the
@@ -35,6 +40,6 @@ type Config struct {
 // DefaultConfig returns the default fork configuration.
 func DefaultConfig() Config {
 	return Config{
-		Graffiti: "",
+		Graffiti: defaultGraffiti,
 	}
 }

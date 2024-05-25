@@ -79,3 +79,28 @@ func (d Deposits) HashTreeRoot() (common.Root, error) {
 		d, constants.MaxDepositsPerBlock,
 	)
 }
+
+// GetAmount returns the deposit amount in gwei.
+func (d *Deposit) GetAmount() math.Gwei {
+	return d.Amount
+}
+
+// GetPubkey returns the public key of the validator specified in the deposit.
+func (d *Deposit) GetPubkey() crypto.BLSPubkey {
+	return d.Pubkey
+}
+
+// GetIndex returns the index of the deposit in the deposit contract.
+func (d *Deposit) GetIndex() uint64 {
+	return d.Index
+}
+
+// GetSignature returns the signature of the deposit data.
+func (d *Deposit) GetSignature() crypto.BLSSignature {
+	return d.Signature
+}
+
+// GetWithdrawalCredentials returns the staking credentials of the deposit.
+func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+	return d.Credentials
+}

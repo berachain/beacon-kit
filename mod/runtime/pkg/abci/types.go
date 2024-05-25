@@ -55,10 +55,10 @@ type BuilderService[
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	// ProcessStateTransition processes the given beacon block and associated
+	// ProcessBlockAndBlobs processes the given beacon block and associated
 	// blobs
 	// sidecars.
-	ProcessStateTransition(
+	ProcessBlockAndBlobs(
 		context.Context,
 		types.BeaconBlock,
 		BlobsSidecarsT,

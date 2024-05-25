@@ -71,9 +71,10 @@ type Service[
 		BlobSidecarsT,
 		*transition.Context,
 	]
-
 	// dbm is the database manager.
 	dbm *manager.DBManager
+	// metrics is the metrics for the service.
+	metrics *chainMetrics
 }
 
 // NewService creates a new validator service.
@@ -102,6 +103,7 @@ func NewService[
 	],
 	dc DepositContract,
 	dbm *manager.DBManager,
+	ts TelemetrySink,
 ) *Service[
 	AvailabilityStoreT, ReadOnlyBeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -110,15 +112,16 @@ func NewService[
 		AvailabilityStoreT, ReadOnlyBeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:     sb,
-		logger: logger,
-		cs:     cs,
-		ee:     ee,
-		lb:     lb,
-		bp:     bp,
-		sp:     sp,
-		dc:     dc,
-		dbm:    dbm,
+		sb:      sb,
+		logger:  logger,
+		cs:      cs,
+		ee:      ee,
+		lb:      lb,
+		bp:      bp,
+		sp:      sp,
+		dc:      dc,
+		metrics: newChainMetrics(ts),
+    dmb:    dbm,
 	}
 }
 
