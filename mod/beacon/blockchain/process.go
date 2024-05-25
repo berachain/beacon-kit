@@ -136,7 +136,7 @@ func (s *Service[
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	defer func() {
-		go s.sendPostBlockFCU(ctx, st, blk)
+		go s.sendPostBlockFCU(ctx, st, blk, optimisticEngine)
 	}()
 
 	//
