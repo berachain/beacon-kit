@@ -165,7 +165,7 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	}
 
 	// TODO: we need to verify the blobs are in the proposal as well to prevent
-	// FinalizeBlock from failing.
+	// FinalizeBlock from failing? Or can blobs be lazy? reee?
 
 	if _, err = h.chainService.ProcessBeaconBlock(
 		ctx, blk,
