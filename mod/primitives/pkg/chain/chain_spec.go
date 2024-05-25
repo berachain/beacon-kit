@@ -78,6 +78,8 @@ type Spec[
 	DepositContractAddress() ExecutionAddressT
 	// DepositEth1ChainID returns the chain ID of the deposit contract.
 	DepositEth1ChainID() uint64
+	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
+	TargetSecondsPerEth1Block() uint64
 
 	// Fork-related values.
 	//
@@ -285,6 +287,13 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DepositEth1ChainID() uint64 {
 	return c.Data.DepositEth1ChainID
+}
+
+// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) TargetSecondsPerEth1Block() uint64 {
+	return c.Data.TargetSecondsPerEth1Block
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.
