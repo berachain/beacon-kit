@@ -39,7 +39,7 @@ import (
 type BlsSignerInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
-	PrivKey signer.LegacyKey `optional:"true"`
+	PrivKey LegacyKey `optional:"true"`
 }
 
 // type alias to LegacyKey used for LegacySinger construction.
@@ -58,6 +58,6 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	return signer.NewLegacySigner(in.PrivKey)
 }
 
-func GetLegacyKey(privKey string) (signer.LegacyKey, error) {
+func GetLegacyKey(privKey string) (LegacyKey, error) {
 	return signer.LegacyKeyFromString(privKey)
 }
