@@ -113,15 +113,16 @@ func NewService[
 		AvailabilityStoreT, ReadOnlyBeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:        sb,
-		logger:    logger,
-		cs:        cs,
-		ee:        ee,
-		lb:        lb,
-		bp:        bp,
-		sp:        sp,
-		dc:        dc,
-		metrics:   newChainMetrics(ts),
+		sb:      sb,
+		logger:  logger,
+		cs:      cs,
+		ee:      ee,
+		lb:      lb,
+		bp:      bp,
+		sp:      sp,
+		dc:      dc,
+		metrics: newChainMetrics(ts),
+		//nolint:mnd // temp.
 		maxFCUGap: 2 * time.Second,
 	}
 }
@@ -142,15 +143,9 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Start(
-	ctx context.Context,
+	_ context.Context,
 ) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		}
-	}
-
+	return nil
 }
 
 func (s *Service[
