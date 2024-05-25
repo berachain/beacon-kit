@@ -121,7 +121,7 @@ func NewService[
 		sp:      sp,
 		dc:      dc,
 		metrics: newChainMetrics(ts),
-    dmb:    dbm,
+		dbm:     dbm,
 	}
 }
 
