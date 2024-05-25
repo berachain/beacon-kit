@@ -56,11 +56,9 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
-	blobGossiper p2p.PublisherReceiver[
+	blobGossiper p2p.Publisher[
 		BlobsSidecarsT,
 		[]byte,
-		encoding.ABCIRequest,
-		BlobsSidecarsT,
 	]
 
 	beaconBlockGossiper p2p.PublisherReceiver[
@@ -93,8 +91,8 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 		chainService:   chainService,
 		// TODO: we will eventually gossipt the blobs separately from
 		// CometBFT.
-		blobGossiper: rp2p.NoopBlobGossipHandler[
-			BlobsSidecarsT, encoding.ABCIRequest,
+		blobGossiper: rp2p.NoopGossipHandler[
+			BlobsSidecarsT, []byte,
 		]{},
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[encoding.ABCIRequest](
@@ -152,7 +150,6 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 	var (
 		logger = ctx.Logger().With("service", "process-proposal")
 		blk    types.BeaconBlock
-		blobs  BlobsSidecarsT
 		err    error
 	)
 
@@ -165,43 +162,18 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
-	} else if blobs, err = h.blobGossiper.Request(ctx, req); err != nil {
-		logger.Error(
-			"failed to retrieve blobs from request",
-			"error",
-			err,
-		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
 	}
 
-	if _, err = h.chainService.ProcessStateTransition(
-		ctx, blk, blobs, false,
+	// TODO: we need to verify the blobs are in the proposal as well to prevent
+	// FinalizeBlock from failing.
+
+	if _, err = h.chainService.ProcessBeaconBlock(
+		ctx, blk,
 	); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
-
-	// // If the block is syncing, we reject the proposal. This is guard against
-	// a // potential attack under the unlikely scenario in which a
-	// supermajority of // validators have their EL's syncing. If nodes were to
-	// accept this proposal
-	// // optmistically when they are syncing, it could potentially allow for a
-	// // malicious validator to push a bad block through.
-	// //
-	// // We also defensively check for a variety of pre-defined JSON-RPC
-	// errors.
-	// if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.IsAny(
-	// 	err,
-	// 	engineerrors.ErrSyncingPayloadStatus,
-	// 	engineerrors.ErrPreDefinedJSONRPC,
-	// ) {
-	// 	return &cmtabci.ProcessProposalResponse{
-	// 		Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-	// 	}, err
-	// }
 
 	return &cmtabci.ProcessProposalResponse{
 		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
