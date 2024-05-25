@@ -67,13 +67,13 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 
 // BeaconBlockBody represents a generic interface for the body of a beacon
 // block.
-type BeaconBlockBody interface {
+type BeaconBlockBody[DepositT any] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
 	GetExecutionPayload() types.ExecutionPayload
 	// GetDeposits returns the list of deposits.
-	GetDeposits() []*types.Deposit
+	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() ([32]byte, error)
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
@@ -103,6 +103,20 @@ type Context interface {
 	GetSkipPayloadIfExists() bool
 	// Unwrap returns the underlying golang standard library context.
 	Unwrap() context.Context
+}
+
+// Deposit is the interface for a deposit.
+type Deposit[WithdrawlCredentialsT ~[32]byte] interface {
+	// GetAmount returns the amount of the deposit.
+	GetAmount() math.Gwei
+	// GetIndex returns the index of the deposit.
+	GetIndex() uint64
+	// GetPubkey returns the public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetSignature returns the signature of the deposit.
+	GetSignature() crypto.BLSSignature
+	// GetWithdrawalCredentials returns the withdrawal credentials.
+	GetWithdrawalCredentials() WithdrawlCredentialsT
 }
 
 // ExecutionEngine is the interface for the execution engine.
