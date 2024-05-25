@@ -163,7 +163,7 @@ func (sp *StateProcessor[
 
 	depositMessage := types.DepositMessage{
 		Pubkey:      dep.GetPubkey(),
-		Credentials: types.WithdrawalCredentials(dep.GetWithdrawalCredentials()),
+		Credentials: dep.GetWithdrawalCredentials(),
 		Amount:      dep.GetAmount(),
 	}
 	if err = depositMessage.VerifyCreateValidator(
