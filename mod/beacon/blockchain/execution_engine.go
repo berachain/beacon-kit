@@ -105,50 +105,24 @@ func (s *Service[
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
-	//nolint:nestif // todo:cleanup
+
 	// TODO: re-enable this flag.
 	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
-		// TODO: This BlockRoot calculation is sound, but very confusing
-		// and hard to explain to someone who is not familiar with the
-		// nuance of our implementation. We should refactor this.
-		h, err := st.GetLatestBlockHeader()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get latest block header in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		stateRoot, err := st.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get state root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		h.StateRoot = stateRoot
-		root, err := h.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block header root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
 		stCopy := st.Copy()
-		if _, err = s.sp.ProcessSlot(
+		if _, err := s.sp.ProcessSlot(
 			stCopy,
 		); err != nil {
+			return
+		}
+
+		prevBlockRoot, err := blk.HashTreeRoot()
+		if err != nil {
+			s.logger.
+				Error(
+					"failed to get block root in postBlockProcess",
+					"error",
+					err,
+				)
 			return
 		}
 
@@ -161,7 +135,7 @@ func (s *Service[
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
 			uint64(time.Now().Unix()+1),
-			root,
+			prevBlockRoot,
 			headHash,
 		); err == nil {
 			return
