@@ -125,11 +125,10 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
-	// No matter what happens we always want to forkchoice at the end of post
-	// block processing.
-	defer func() {
-		go s.sendPostBlockFCU(ctx, st, blk)
-	}()
+	s.validBlockFeed.Send(types.BlockWithState{
+		Block: blk,
+		State: st.Copy(),
+	})
 
 	//
 	//

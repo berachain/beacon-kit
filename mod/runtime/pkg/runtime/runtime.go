@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -87,6 +88,7 @@ func NewBeaconKitRuntime[
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
+	validProposalFeed *event.FeedOf[types.BlockWithState],
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT,
 	BeaconBlockBodyT,

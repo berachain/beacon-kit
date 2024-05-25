@@ -31,6 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
+// BlockWithState is a struct that contains a block with state.
+type BlockWithState struct {
+	State any
+	// Block is the block.
+	Block BeaconBlock
+}
+
 // EmptyBeaconBlock assembles a new beacon block from
 // the given slot, time, execution data, and version. It
 // returns an error if the fork version is not supported.

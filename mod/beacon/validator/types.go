@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -109,6 +110,17 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 		parentBlockRoot primitives.Root,
 		parentEth1Hash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+
+	// RequestPayload builds a payload for the given slot and
+	// returns the payload ID.
+	RequestPayload(
+		ctx context.Context,
+		st state.BeaconState,
+		slot math.Slot,
+		timestamp uint64,
+		parentBlockRoot primitives.Root,
+		parentEth1Hash common.ExecutionHash,
+	) (*engineprimitives.PayloadID, error)
 }
 
 // StateProcessor defines the interface for processing the state.

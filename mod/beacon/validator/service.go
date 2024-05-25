@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -36,6 +37,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/ethereum/go-ethereum/event"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -85,6 +88,9 @@ type Service[
 	// remoteBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remoteBuilders []PayloadBuilder[BeaconStateT]
+
+	// validProposalFeed is used to publish valid proposals.
+	validProposalFeed *event.FeedOf[types.BlockWithState]
 }
 
 // NewService creates a new validator service.
@@ -103,19 +109,21 @@ func NewService[
 	ds DepositStore,
 	localBuilder PayloadBuilder[BeaconStateT],
 	remoteBuilders []PayloadBuilder[BeaconStateT],
+	validProposalFeed *event.FeedOf[types.BlockWithState],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{
-		cfg:             cfg,
-		logger:          logger,
-		bsb:             bsb,
-		chainSpec:       chainSpec,
-		signer:          signer,
-		stateProcessor:  stateProcessor,
-		blobFactory:     blobFactory,
-		randaoProcessor: randaoProcessor,
-		ds:              ds,
-		localBuilder:    localBuilder,
-		remoteBuilders:  remoteBuilders,
+		cfg:               cfg,
+		logger:            logger,
+		bsb:               bsb,
+		chainSpec:         chainSpec,
+		signer:            signer,
+		stateProcessor:    stateProcessor,
+		blobFactory:       blobFactory,
+		randaoProcessor:   randaoProcessor,
+		ds:                ds,
+		localBuilder:      localBuilder,
+		remoteBuilders:    remoteBuilders,
+		validProposalFeed: validProposalFeed,
 	}
 }
 
@@ -125,7 +133,67 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
 }
 
 // Start starts the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) error {
+func (s *Service[BeaconStateT, BlobSidecarsT]) Start(ctx context.Context) error {
+	ch := make(chan types.BlockWithState)
+	validProposal := s.validProposalFeed.Subscribe(ch)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				validProposal.Unsubscribe()
+				return
+			case validBlk := <-ch:
+				blk := validBlk.Block
+				st := validBlk.State.(state.BeaconState)
+				h, err := st.GetLatestBlockHeader()
+				if err != nil {
+					s.logger.
+						Error(
+							"failed to get latest block header in postBlockProcess",
+							"error",
+							err,
+						)
+					return
+				}
+
+				stateRoot, err := st.HashTreeRoot()
+				if err != nil {
+					s.logger.
+						Error(
+							"failed to get state root in postBlockProcess",
+							"error",
+							err,
+						)
+					return
+				}
+
+				fmt.Println("BIG MON")
+				h.StateRoot = stateRoot
+				root, err := h.HashTreeRoot()
+				if err != nil {
+					s.logger.
+						Error(
+							"failed to get block header root in postBlockProcess",
+							"error",
+							err,
+						)
+					return
+				}
+				if _, err := s.localBuilder.RequestPayload(
+					ctx,
+					st,
+					blk.GetSlot()+1,
+					uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
+					root,
+					blk.GetBody().GetExecutionPayload().GetBlockHash(),
+				); err != nil {
+					s.logger.Error("failed to request payload",
+						"error", err,
+					)
+				}
+			}
+		}
+	}()
 	return nil
 }
 
