@@ -58,16 +58,14 @@ func (s *Service[
 	)
 }
 
-// ProcessStateTransition receives an incoming beacon block, it first validates
+// ProcessBlockAndBlobs receives an incoming beacon block, it first validates
 // and then processes the block.
-//
-
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessStateTransition(
+]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
@@ -83,18 +81,27 @@ func (s *Service[
 		return nil, ErrNilBlk
 	}
 
-	// Launch a goroutine to process the state transition.
+	// Launch a goroutine to process the incoming beacon block.
 	g.Go(func() error {
 		var err error
-		valUpdates, err = s.ProcessBeaconBlock(gCtx, st, blk)
+		// We set `OptimisticEngine` to true since this is called during
+		// FinalizeBlock. We want to assume the payload is valid. If it
+		// ends up not being valid later, the node will simply AppHash,
+		// which is completely fine. This means we were syncing from a
+		// bad peer, and we would likely AppHash anyways.
+		//
+		// TODO: Figure out why SkipPayloadIfExists being `true`
+		// causes nodes to create gaps in their chain.
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
 		return err
 	})
 
 	// Launch a goroutine to process the blob sidecars.
 	g.Go(func() error {
-		return s.ProcessBlobSidecars(gCtx, blk.GetSlot(), sidecars)
+		return s.processBlobSidecars(gCtx, blk.GetSlot(), sidecars)
 	})
 
+	// Wait for the goroutines to finish.
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
@@ -169,23 +176,30 @@ func (s *Service[
 	DepositStoreT,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
+	blk types.BeaconBlock,
+) ([]*transition.ValidatorUpdate, error) {
+	st := s.sb.StateFromContext(ctx)
+	return s.processBeaconBlock(ctx, st, blk, false)
+}
+
+// ProcessBeaconBlock processes the beacon block.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) processBeaconBlock(
+	ctx context.Context,
 	st ReadOnlyBeaconStateT,
 	blk types.BeaconBlock,
+	optimisticEngine bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.sp.Transition(
-		// We set `OptimisticEngine` to true since this is called during
-		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the node will simply AppHash,
-		// which is completely fine. This means we were syncing from a
-		// bad peer, and we would likely AppHash anyways.
-		//
-		// TODO: Figure out why SkipPayloadIfExists being `true`
-		// causes nodes to create gaps in their chain.
 		&transition.Context{
 			Context:          ctx,
-			OptimisticEngine: true,
+			OptimisticEngine: optimisticEngine,
 		},
 		st,
 		blk,
@@ -199,7 +213,7 @@ func (s *Service[
 	ReadOnlyBeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessBlobSidecars(
+]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,
 	sidecars BlobSidecarsT,

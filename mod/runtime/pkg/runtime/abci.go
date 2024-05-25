@@ -72,7 +72,7 @@ func (r BeaconKitRuntime[
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Process the state transition and produce the required delta from
 	// the sync committee.
-	updates, err := r.chainService.ProcessStateTransition(
+	updates, err := r.chainService.ProcessBlockAndBlobs(
 		ctx,
 		// TODO: improve the robustness of these types to ensure we
 		// don't run into any nil ptr issues.
