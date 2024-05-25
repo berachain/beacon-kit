@@ -196,18 +196,18 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 	)
 
-	availabilityPruner := pruner.NewPruner(
-		logger.With("service", "availability-db-pruner"),
-		storageBackend.AvailabilityStore(
-			nil).IndexDB.(*filedb.RangeDB),
-	)
-
 	defer func() {
 		// TODO: at this point, Deposit store and Availability store are both
 		// nil.
 		// Recovering from casting nil to *filedb.RangeDB.
 		_ = recover()
 	}()
+
+	availabilityPruner := pruner.NewPruner(
+		logger.With("service", "availability-db-pruner"),
+		storageBackend.AvailabilityStore(
+			nil).IndexDB.(*filedb.RangeDB),
+	)
 
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
