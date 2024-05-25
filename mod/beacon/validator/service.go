@@ -179,6 +179,13 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Start(ctx context.Context) error 
 						)
 					return
 				}
+
+				if _, err = s.stateProcessor.ProcessSlot(st.(BeaconStateT)); err != nil {
+					s.logger.Error("failed to process slot")
+					return
+				}
+
+				s.logger.Info("processed slot", "slot", blk.GetSlot())
 				if _, err := s.localBuilder.RequestPayload(
 					ctx,
 					st,
