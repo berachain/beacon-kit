@@ -71,6 +71,7 @@ func (s *Service[
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
+	optimisticEngine bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
@@ -90,7 +91,7 @@ func (s *Service[
 		)
 		defer s.metrics.measureStateTransitionDuration(startTime)
 		valUpdates, err = s.sp.Transition(
-			// We set `OptimisticEngine` to true since this is called during
+			// We set `OptimisticEngine` when this is called during
 			// FinalizeBlock. We want to assume the payload is valid. If it
 			// ends up not being valid later, the node will simply AppHash,
 			// which is completely fine. This means we were syncing from a
@@ -100,7 +101,7 @@ func (s *Service[
 			// causes nodes to create gaps in their chain.
 			&transition.Context{
 				Context:          gCtx,
-				OptimisticEngine: true,
+				OptimisticEngine: optimisticEngine,
 			},
 			st,
 			blk,

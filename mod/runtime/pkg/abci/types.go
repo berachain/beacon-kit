@@ -62,6 +62,7 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		context.Context,
 		types.BeaconBlock,
 		BlobsSidecarsT,
+		bool,
 	) ([]*transition.ValidatorUpdate, error)
 
 	// VerifyPayloadOnBlk verifies the payload on the given beacon block.

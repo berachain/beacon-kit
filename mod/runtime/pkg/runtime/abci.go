@@ -78,6 +78,8 @@ func (r BeaconKitRuntime[
 		// don't run into any nil ptr issues.
 		r.abciHandler.LatestBeaconBlock,
 		r.abciHandler.LatestSidecars,
+		// Optimistic Engine
+		true,
 	)
 	if err != nil {
 		return nil, err

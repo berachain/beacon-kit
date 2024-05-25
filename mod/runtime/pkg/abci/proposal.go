@@ -44,12 +44,14 @@ import (
 type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	chainSpec primitives.ChainSpec
 
+	// builder seperates the block building logic from the handler.
 	builderService BuilderService[
 		types.BeaconBlock,
 		state.BeaconState,
 		BlobsSidecarsT,
 	]
 
+	// chainService represents the blockchain service.
 	chainService BlockchainService[BlobsSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from
@@ -171,7 +173,7 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 		}, err
 	}
 
-	if _, err = h.chainService.ProcessStateTransition(ctx, blk, blobs); err != nil {
+	if _, err = h.chainService.ProcessStateTransition(ctx, blk, blobs, false); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
