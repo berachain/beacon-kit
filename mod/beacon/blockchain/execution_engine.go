@@ -105,7 +105,7 @@ func (s *Service[
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
-	//nolint:nestif // todo:cleanup
+	
 	// TODO: re-enable this flag.
 	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
 		stCopy := st.Copy()
