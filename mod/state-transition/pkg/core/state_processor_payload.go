@@ -43,7 +43,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT,
 ]) processExecutionPayload(
-	ctx Context,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
