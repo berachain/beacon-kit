@@ -26,7 +26,6 @@
 package deposit
 
 import (
-	"encoding/hex"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -36,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -159,19 +157,17 @@ func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
-	// If the override node key flag is set, a validator private key must be
-	// provided.
+	supplies := []interface{}{viper.GetViper()}
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the BLS signer.
-	//nolint:nestif // complexity comes from parsing values
 	if overrideFlag {
 		var (
-			validatorPrivKey   string
-			validatorPrivKeyBz []byte
+			validatorPrivKey string
+			legacyInput      components.LegacyKey
 		)
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
@@ -180,30 +176,16 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-
-		validatorPrivKeyBz, err = hex.DecodeString(validatorPrivKey)
+		legacyInput, err = components.GetLegacyKey(validatorPrivKey)
 		if err != nil {
 			return nil, err
 		}
-		if len(validatorPrivKeyBz) != constants.BLSSecretKeyLength {
-			return nil, ErrInvalidValidatorPrivateKeyLength
-		}
-
-		blsSigner, err = signer.NewBLSSigner(
-			[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		return blsSigner, nil
+		supplies = append(supplies, legacyInput)
 	}
 
 	if err = depinject.Inject(
 		depinject.Configs(
-			depinject.Supply(
-				viper.GetViper(),
-			),
+			depinject.Supply(supplies...),
 			depinject.Provide(
 				components.ProvideBlsSigner,
 			),
