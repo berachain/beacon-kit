@@ -27,7 +27,6 @@ package validator
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -145,38 +144,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Start(ctx context.Context) error 
 			case validBlk := <-ch:
 				blk := validBlk.Block
 				st := validBlk.State.(state.BeaconState)
-				h, err := st.GetLatestBlockHeader()
+				blockHash, err := blk.HashTreeRoot()
 				if err != nil {
-					s.logger.
-						Error(
-							"failed to get latest block header in postBlockProcess",
-							"error",
-							err,
-						)
-					return
-				}
-
-				stateRoot, err := st.HashTreeRoot()
-				if err != nil {
-					s.logger.
-						Error(
-							"failed to get state root in postBlockProcess",
-							"error",
-							err,
-						)
-					return
-				}
-
-				fmt.Println("BIG MON")
-				h.StateRoot = stateRoot
-				root, err := h.HashTreeRoot()
-				if err != nil {
-					s.logger.
-						Error(
-							"failed to get block header root in postBlockProcess",
-							"error",
-							err,
-						)
 					return
 				}
 
@@ -191,7 +160,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) Start(ctx context.Context) error 
 					st,
 					blk.GetSlot()+1,
 					uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
-					root,
+					blockHash,
 					blk.GetBody().GetExecutionPayload().GetBlockHash(),
 				); err != nil {
 					s.logger.Error("failed to request payload",
