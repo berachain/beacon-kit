@@ -44,7 +44,7 @@ import (
 type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	chainSpec primitives.ChainSpec
 
-	// builder seperates the block building logic from the handler.
+	// builder separates the block building logic from the handler.
 	builderService BuilderService[
 		types.BeaconBlock,
 		state.BeaconState,
@@ -93,8 +93,11 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 		chainService:   chainService,
 		// TODO: we will eventually gossipt the blobs separately from
 		// CometBFT.
-		blobGossiper: rp2p.NoopBlobGossipHandler[BlobsSidecarsT, encoding.ABCIRequest]{},
-		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[encoding.ABCIRequest](
+		blobGossiper: rp2p.NoopBlobGossipHandler[
+			BlobsSidecarsT, encoding.ABCIRequest,
+		]{},
+		beaconBlockGossiper: rp2p.
+			NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainSpec,
 		),
 	}
@@ -173,19 +176,23 @@ func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
 		}, err
 	}
 
-	if _, err = h.chainService.ProcessStateTransition(ctx, blk, blobs, false); err != nil {
+	if _, err = h.chainService.ProcessStateTransition(
+		ctx, blk, blobs, false,
+	); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
 
-	// // If the block is syncing, we reject the proposal. This is guard against a
-	// // potential attack under the unlikely scenario in which a supermajority of
-	// // validators have their EL's syncing. If nodes were to accept this proposal
+	// // If the block is syncing, we reject the proposal. This is guard against
+	// a // potential attack under the unlikely scenario in which a
+	// supermajority of // validators have their EL's syncing. If nodes were to
+	// accept this proposal
 	// // optmistically when they are syncing, it could potentially allow for a
 	// // malicious validator to push a bad block through.
 	// //
-	// // We also defensively check for a variety of pre-defined JSON-RPC errors.
+	// // We also defensively check for a variety of pre-defined JSON-RPC
+	// errors.
 	// if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.IsAny(
 	// 	err,
 	// 	engineerrors.ErrSyncingPayloadStatus,
