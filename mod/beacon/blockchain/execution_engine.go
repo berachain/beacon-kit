@@ -110,7 +110,8 @@ func (s *Service[
 	// TODO: re-enable this flag.
 	// Hack, we only want to run the builder when not in FinalizeBlock
 	// akak when optimistic is false.
-	if !isOptimisic /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
+	/*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/
+	if !isOptimisic {
 		stCopy := st.Copy()
 		if _, err := s.sp.ProcessSlot(
 			stCopy,

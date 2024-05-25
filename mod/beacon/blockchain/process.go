@@ -60,8 +60,6 @@ func (s *Service[
 
 // ProcessStateTransition receives an incoming beacon block, it first validates
 // and then processes the block.
-//
-
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
