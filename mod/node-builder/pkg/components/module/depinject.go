@@ -65,7 +65,7 @@ type DepInjectInput struct {
 	Environment appmodule.Environment
 
 	// BeaconKit components
-	AvailabilityStore *dastore.RangeStore[types.BeaconBlockBody]
+	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
 	BeaconConfig      *config.Config
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore
@@ -84,7 +84,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
-		*dastore.RangeStore[types.BeaconBlockBody], state.BeaconState,
+		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

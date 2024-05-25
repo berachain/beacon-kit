@@ -110,7 +110,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				&depositdb.KVStore{},
 				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
 				&gokzg4844.JSONTrustedSetup{},
-				&dastore.RangeStore[types.BeaconBlockBody]{},
+				&dastore.Store[types.BeaconBlockBody]{},
 			),
 			depinject.Provide(
 				components.ProvideClientContext,

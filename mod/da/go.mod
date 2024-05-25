@@ -16,7 +16,6 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240524140752-0bd5c01de206
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.1
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
