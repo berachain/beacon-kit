@@ -109,12 +109,10 @@ func (p *PayloadAttributes[Withdrawal]) Validate() error {
 		return ErrInvalidTimestamp
 	}
 
-	// TODO: how to handle? PrevRandao is empty on block 1.
-	// TODO: Fix is to seed PrevRandao with Eth1BlockHash
-	// as per spec.
-	// if p.PrevRandao == [32]byte{} {
-	// 	return ErrEmptyPrevRandao
-	// }
+	if p.PrevRandao == [32]byte{} {
+		return ErrEmptyPrevRandao
+	}
+
 	if p.Withdrawals == nil && p.version >= version.Capella {
 		return ErrNilWithdrawals
 	}
