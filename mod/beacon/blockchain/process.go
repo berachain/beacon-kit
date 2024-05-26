@@ -118,7 +118,6 @@ func (s *Service[
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
-	go s.sendPostBlockFCU(ctx, st, blk, true)
 	go s.postBlockProcessTasks(ctx, st)
 
 	return valUpdates, nil
