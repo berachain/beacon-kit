@@ -60,7 +60,7 @@ func (fv *ForkData) New(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 //
 //nolint:lll
-func (fv ForkData) ComputeDomain(
+func (fv *ForkData) ComputeDomain(
 	domainType common.DomainType,
 ) (common.Domain, error) {
 	forkDataRoot, err := fv.HashTreeRoot()
