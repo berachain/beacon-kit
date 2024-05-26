@@ -181,7 +181,8 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT any,
 ] interface {
-	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon state
+	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,

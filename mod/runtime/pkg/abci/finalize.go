@@ -39,7 +39,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// InitGenesis is called by the base app to initialize the state of the
+// InitGenesis is called by the base app to initialize the state of the.
 func (h *Handler[BlobsSidecarsT]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -87,17 +87,17 @@ func (h *Handler[BlobsSidecarsT]) PreBlock(
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (r Handler[BlobsSidecarsT]) EndBlock(
+func (h Handler[BlobsSidecarsT]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Process the state transition and produce the required delta from
 	// the sync committee.
-	updates, err := r.chainService.ProcessBlockAndBlobs(
+	updates, err := h.chainService.ProcessBlockAndBlobs(
 		ctx,
 		// TODO: improve the robustness of these types to ensure we
 		// don't run into any nil ptr issues.
-		r.LatestBeaconBlock,
-		r.LatestSidecars,
+		h.LatestBeaconBlock,
+		h.LatestSidecars,
 	)
 	if err != nil {
 		return nil, err
