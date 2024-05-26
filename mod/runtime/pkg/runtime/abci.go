@@ -30,9 +30,6 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // TODO: InitGenesis should be calling into the StateProcessor.
@@ -44,22 +41,7 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(
-		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
-	)
-	if err := json.Unmarshal(bz, data); err != nil {
-		return nil, err
-	}
-	updates, err := r.chainService.ProcessGenesisState(
-		ctx,
-		data,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return r.abciHandler.InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -70,19 +52,5 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Process the state transition and produce the required delta from
-	// the sync committee.
-	updates, err := r.chainService.ProcessBlockAndBlobs(
-		ctx,
-		// TODO: improve the robustness of these types to ensure we
-		// don't run into any nil ptr issues.
-		r.abciHandler.LatestBeaconBlock,
-		r.abciHandler.LatestSidecars,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return r.abciHandler.EndBlock(ctx)
 }

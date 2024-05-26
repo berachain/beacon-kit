@@ -37,14 +37,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessGenesisState processes the genesis state and initializes the beacon
+// ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessGenesisState(
+]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
 		*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
