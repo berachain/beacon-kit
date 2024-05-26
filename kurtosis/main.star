@@ -82,6 +82,8 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], rpc_endpoints = [], 
 
     for n, seed in enumerate(seed_nodes):
         el_service_name = "el-{}-{}-{}".format("seed", seed.el_type, n)
+        enode_addr = execution.get_enode_addr(plan, el_service_name)
+        el_enode_addrs.append(enode_addr)
         if seed.el_type != "ethereumjs":
             metrics_enabled_services.append({
                 "name": el_service_name,
@@ -143,7 +145,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], rpc_endpoints = [], 
         remaining_validators = validators[bootnode_count:]
         el_client_configs = []
         for n, validator in enumerate(bootnode_validators):
-            el_client_config = execution.generate_node_config(plan, node_modules, validator, "validator", n)
+            el_client_config = execution.generate_node_config(plan, node_modules, validator, "validator", n, el_enode_addrs)
             el_client_configs.append(el_client_config)
         
         el_clients = execution.deploy_nodes(plan, el_client_configs)
@@ -151,9 +153,6 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], rpc_endpoints = [], 
         for n, el_client in enumerate(bootnode_validators):
             el_service_name = "el-{}-{}-{}".format("validator", el_client.el_type, n)
             validator_node_el_clients.append(el_service_name)
-            enode_addr = execution.get_enode_addr(plan, el_service_name)
-            el_enode_addrs.append(enode_addr)
-
             if validators[n].el_type != "ethereumjs":
                 metrics_enabled_services.append({
                     "name": el_service_name,

@@ -4,10 +4,10 @@ node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
 # 1x resources
-DEFAULT_MAX_CPU = 1000
-DEFAULT_MAX_MEMORY = 4096
-DEFAULT_MIN_CPU = 500
-DEFAULT_MIN_MEMORY = 1024
+# DEFAULT_MAX_CPU = 1000
+# DEFAULT_MAX_MEMORY = 4096
+# DEFAULT_MIN_CPU = 500
+# DEFAULT_MIN_MEMORY = 1024
 
 # 2x resources
 # DEFAULT_MAX_CPU = 2000
@@ -22,10 +22,10 @@ DEFAULT_MIN_MEMORY = 1024
 # DEFAULT_MIN_MEMORY = 16384
 
 # 8x resources
-# DEFAULT_MAX_CPU = 8000
-# DEFAULT_MAX_MEMORY = 32768
-# DEFAULT_MIN_CPU = 8000
-# DEFAULT_MIN_MEMORY = 32768
+DEFAULT_MAX_CPU = 8000
+DEFAULT_MAX_MEMORY = 32768
+DEFAULT_MIN_CPU = 8000
+DEFAULT_MIN_MEMORY = 32768
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -219,8 +219,8 @@ def init_consensus_nodes():
 
     # Check if genesis file exists, if not then initialize the beacond
     init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    add_validator = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
-    collect_gentx = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-premined-deposit --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
 def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, jwt_file = None, kzg_trusted_setup_file = None, index = 0):

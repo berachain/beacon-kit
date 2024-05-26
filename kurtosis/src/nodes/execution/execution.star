@@ -18,10 +18,10 @@ ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
 # 1x resources
-DEFAULT_MAX_CPU = 2000
-DEFAULT_MAX_MEMORY = 8192
-DEFAULT_MIN_CPU = 1000
-DEFAULT_MIN_MEMORY = 4096
+# DEFAULT_MAX_CPU = 2000
+# DEFAULT_MAX_MEMORY = 8192
+# DEFAULT_MIN_CPU = 1000
+# DEFAULT_MIN_MEMORY = 4096
 
 # 2x resources
 # DEFAULT_MAX_CPU = 4000
@@ -30,10 +30,10 @@ DEFAULT_MIN_MEMORY = 4096
 # DEFAULT_MIN_MEMORY = 16384
 
 # 4x resources
-# DEFAULT_MAX_CPU = 8000
-# DEFAULT_MAX_MEMORY = 32768
-# DEFAULT_MIN_CPU = 8000
-# DEFAULT_MIN_MEMORY = 32768
+DEFAULT_MAX_CPU = 8000
+DEFAULT_MAX_MEMORY = 32768
+DEFAULT_MIN_CPU = 8000
+DEFAULT_MIN_MEMORY = 32768
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
@@ -102,6 +102,10 @@ def get_enode_addr(plan, el_service_name):
     enode = response["extract.enode"]
     return enode
 
+def set_max_peers(node_module, config, max_peers):
+    node_module.set_max_peers(config, max_peers)
+    return config
+
 def add_bootnodes(node_module, config, bootnodes):
     if type(bootnodes) == builtins.types.list:
         if len(bootnodes) > 0:
@@ -144,7 +148,12 @@ def generate_node_config(plan, node_modules, node, node_type = "validator", inde
 
     # 4a. Launch EL
     el_service_config_dict = get_default_service_config(el_service_name, node_module)
-    el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+    
+    if node_type == "seed":
+        el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")
+    else:
+        el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+
     return el_service_config_dict
 
 

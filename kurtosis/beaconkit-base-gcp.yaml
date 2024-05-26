@@ -29,59 +29,59 @@
 validators:
   - el_type: reth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 32
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 32
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 32
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 32
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+    replicas: 128
+  # - el_type: besu
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+  #   replicas: 32
+  # - el_type: nethermind
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+  #   replicas: 32
+  # - el_type: geth
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+  #   replicas: 32
   # - el_type: erigon
   #   cl_type: beaconkit
-  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
   #   replicas: 32
   # - el_type: ethereumjs
   #   cl_type: beaconkit
-  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main  
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd  
   #   replicas: 2
 full_nodes:
   - el_type: reth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 3
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 2
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+    replicas: 5
+  # - el_type: geth
+  #   cl_type: beaconkit
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
+  #   replicas: 2
   # - el_type: erigon
   #   cl_type: beaconkit
-  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
   # - el_type: ethereumjs
   #   cl_type: beaconkit
-  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+  #   cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
   #   replicas: 1
 seed_nodes:
-  - el_type: geth
+  - el_type: reth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.1-bd
     replicas: 3
 boot_sequence:
   type: parallel
 # rpc_endpoints:
 #   - type: nginx
 #     services:
-#       - el-full-besu-0:8545
-#       - el-full-nethermind-1:8545
+#       - el-full-reth-0:8545
+#       - el-full-reth-1:8545
 #       - el-full-reth-2:8545
 #       - el-full-reth-3:8545
-#       - el-full-geth-4:8545
+#       - el-full-reth-4:8545
       # - el-full-erigon-5:8545
       # - el-full-ethereumjs-6:8545
 additional_services: 
