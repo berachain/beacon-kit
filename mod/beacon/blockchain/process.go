@@ -194,15 +194,20 @@ func (s *Service[
 	blk types.BeaconBlock,
 ) ([]*transition.ValidatorUpdate, error) {
 	st := s.sb.StateFromContext(ctx)
+
+	defer // TODO: move this hack
+	func() {
+		// We always want to forkchoice at the end of post block processing.
+		if blk != nil {
+			go s.sendPostBlockFCU(ctx, st, blk, false)
+		}
+	}()
+
 	updates, err := s.processBeaconBlock(ctx, st, blk, false)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: move this hack
-	go func() {
-		// We always want to forkchoice at the end of post block processing.
-		s.sendPostBlockFCU(ctx, st, blk, false)
-	}()
+
 	return updates, nil
 }
 
