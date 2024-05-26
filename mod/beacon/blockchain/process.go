@@ -37,14 +37,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessGenesisState processes the genesis state and initializes the beacon
+// ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessGenesisState(
+]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
 		*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
@@ -69,7 +69,6 @@ func (s *Service[
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
-	optimisticEngine bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
@@ -119,7 +118,7 @@ func (s *Service[
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
-	go s.sendPostBlockFCU(ctx, st, blk, optimisticEngine)
+	go s.sendPostBlockFCU(ctx, st, blk, true)
 	go s.postBlockProcessTasks(ctx, st)
 
 	return valUpdates, nil
