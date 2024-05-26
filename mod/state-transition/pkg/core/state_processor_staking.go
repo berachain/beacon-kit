@@ -161,11 +161,9 @@ func (sp *StateProcessor[
 		), genesisValidatorsRoot,
 	)
 
-	d := (*types.DepositMessage)(nil).New(
-		dep.GetPubkey(), dep.GetWithdrawalCredentials(), dep.GetAmount(),
-	)
-	if err = d.VerifyCreateValidator(
-		fd, dep.GetSignature(), sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
+	// Verify that the message was signed correctly.
+	if err := dep.VerifySignature(
+		fd, sp.cs.DomainTypeDeposit(), sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}

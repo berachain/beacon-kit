@@ -80,6 +80,24 @@ func (d Deposits) HashTreeRoot() (common.Root, error) {
 	)
 }
 
+// VerifySignature verifies the deposit data and signature.
+func (d *Deposit) VerifySignature(
+	forkData *ForkData,
+	domainType common.DomainType,
+	signatureVerificationFn func(
+		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+	) error,
+) error {
+	return (&DepositMessage{
+		Pubkey:      d.Pubkey,
+		Credentials: d.Credentials,
+		Amount:      d.Amount,
+	}).VerifyCreateValidator(
+		forkData, d.Signature,
+		domainType, signatureVerificationFn,
+	)
+}
+
 // GetAmount returns the deposit amount in gwei.
 func (d *Deposit) GetAmount() math.Gwei {
 	return d.Amount
