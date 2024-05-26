@@ -211,8 +211,8 @@ func ProvideRuntime(
 
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
-		manager.WithPruner(depositPruner),
-		manager.WithPruner(availabilityPruner),
+		manager.WithPruner("deposit", depositPruner),
+		manager.WithPruner("availability", availabilityPruner),
 	)
 	if err != nil {
 		return nil, err

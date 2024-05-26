@@ -32,15 +32,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
-// TODO - Make DBManager implement Service interface and register it with the
-// registry.
+// DBManager is a manager for all pruners.
 type DBManager struct {
-	Pruners []*pruner.Pruner
-	logger  log.Logger[any]
+	Pruners map[string]*pruner.Pruner
+	// Pruners []*pruner.Pruner
+	logger log.Logger[any]
 }
 
 func NewDBManager(opts ...DBManagerOption) (*DBManager, error) {
-	m := &DBManager{}
+	m := &DBManager{
+		Pruners: make(map[string]*pruner.Pruner),
+	}
 	for _, opt := range opts {
 		if err := opt(m); err != nil {
 			return nil, err
@@ -49,6 +51,7 @@ func NewDBManager(opts ...DBManagerOption) (*DBManager, error) {
 	return m, nil
 }
 
+// Name returns the name of the Basic Service.
 func (m *DBManager) Name() string {
 	return "DBManager"
 }
@@ -62,16 +65,22 @@ func (m *DBManager) Status() error {
 func (m *DBManager) WaitForHealthy(_ context.Context) {
 }
 
+// Start starts all pruners.
 func (m *DBManager) Start(ctx context.Context) error {
 	for _, pruner := range m.Pruners {
 		pruner.Start(ctx)
 	}
-
 	return nil
 }
 
-func (m *DBManager) Notify(index uint64) {
+// notifies all pruners to prune with the given index.
+func (m *DBManager) NotifyAll(index uint64) {
 	for _, pruner := range m.Pruners {
 		pruner.Notify(index)
 	}
+}
+
+// notifies the pruner with the given name to prune with the given index.
+func (m *DBManager) Notify(name string, index uint64) {
+	m.Pruners[name].Notify(index)
 }

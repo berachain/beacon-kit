@@ -32,13 +32,15 @@ import (
 
 type DBManagerOption func(*DBManager) error
 
-func WithPruner(p *pruner.Pruner) DBManagerOption {
+// WithPruner returns an option that registers a pruner to the DBManager.
+func WithPruner(name string, p *pruner.Pruner) DBManagerOption {
 	return func(m *DBManager) error {
-		m.Pruners = append(m.Pruners, p)
+		m.Pruners[name] = p
 		return nil
 	}
 }
 
+// WithLogger returns an option that sets the logger for the DBManager.
 func WithLogger(l log.Logger[any]) DBManagerOption {
 	return func(m *DBManager) error {
 		m.logger = l
