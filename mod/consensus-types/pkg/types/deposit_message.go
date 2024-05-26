@@ -86,6 +86,19 @@ func CreateAndSignDepositMessage(
 	return depositMessage, signature, nil
 }
 
+// New creates a new deposit message.
+func (d *DepositMessage) New(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount math.Gwei,
+) *DepositMessage {
+	return &DepositMessage{
+		Pubkey:      pubkey,
+		Credentials: credentials,
+		Amount:      amount,
+	}
+}
+
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
