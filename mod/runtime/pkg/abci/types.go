@@ -68,7 +68,6 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		context.Context,
 		types.BeaconBlock,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// ProcessBlockAndBlobs processes a beacon block and its associated blobs
 	// sidecars.
 	ProcessBlockAndBlobs(
