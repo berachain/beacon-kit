@@ -50,11 +50,19 @@ func (s *Service[
 		*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
-	return s.sp.InitializePreminedBeaconStateFromEth1(
-		s.sb.StateFromContext(ctx),
+	st := s.sb.StateFromContext(ctx)
+	updates, err := s.sp.InitializePreminedBeaconStateFromEth1(
+		st,
 		genesisData.Deposits,
 		genesisData.ExecutionPayloadHeader,
 		genesisData.ForkVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return updates, s.sendFCU(
+		ctx, st, 0, genesisData.ExecutionPayloadHeader.BlockHash,
 	)
 }
 

@@ -81,28 +81,8 @@ func (s *Service[
 	blk types.BeaconBlock,
 	isOptimisic bool,
 ) {
-	var (
-		headHash common.ExecutionHash
-	)
-
-	payload := blk.GetBody().GetExecutionPayload()
-
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	// TODO: clean this up.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-	} else {
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-		headHash = lph.GetBlockHash()
-	}
+	parentHash := blk.GetBody().GetExecutionPayload().GetParentHash()
+	headHash := blk.GetBody().GetExecutionPayload().GetBlockHash()
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
@@ -136,11 +116,10 @@ func (s *Service[
 			ctx,
 			stCopy,
 			blk.GetSlot()+1,
-			//#nosec:G701 // won't realistically overflow.
-			// TODO: clock time properly.
-			uint64(time.Now().Unix()+1),
+			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
 			prevBlockRoot,
 			headHash,
+			parentHash,
 		); err == nil {
 			s.lastFCU = time.Now().Add(time.Second)
 			return

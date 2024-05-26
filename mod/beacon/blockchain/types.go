@@ -169,7 +169,8 @@ type LocalBuilder[BeaconStateT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1Hash common.ExecutionHash,
+		safeEth1Hash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 

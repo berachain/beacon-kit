@@ -83,12 +83,13 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
+	headEth1Hash common.ExecutionHash,
+	safeEth1Hash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
 	pb.logger.Info(
 		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
 		"for_slot", slot,
-		"parent_eth1_hash", parentEth1Hash,
+		"parent_eth1_hash", headEth1Hash,
 		"parent_block_root", parentBlockRoot,
 	)
 
@@ -102,16 +103,16 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	var payloadID *engineprimitives.PayloadID
 	payloadID, _, err = pb.submitForkchoiceUpdate(
 		ctx,
-		st,
 		slot,
 		attrs,
-		parentEth1Hash,
+		headEth1Hash,
+		safeEth1Hash,
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
 		pb.logger.Warn("received nil payload ID on VALID engine response",
-			"head_eth1_hash", parentEth1Hash,
+			"head_eth1_hash", headEth1Hash,
 			"for_slot", slot,
 		)
 
@@ -119,7 +120,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	}
 
 	pb.logger.Info("forkchoice updated with payload attributes",
-		"head_eth1_hash", parentEth1Hash,
+		"head_eth1_hash", headEth1Hash,
 		"for_slot", slot,
 		"payload_id", payloadID,
 	)
@@ -138,10 +139,20 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAndWait(
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return nil, err
+	}
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayload(
-		ctx, st, slot, timestamp, parentBlockRoot, parentEth1Hash,
+		ctx,
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+		parentEth1Hash,
+		lph.GetBlockHash(),
 	)
 	if err != nil {
 		return nil, err
