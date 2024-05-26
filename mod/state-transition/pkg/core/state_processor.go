@@ -45,7 +45,7 @@ type StateProcessor[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.WithdrawalCredentials],
+	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
@@ -61,7 +61,7 @@ func NewStateProcessor[
 	BeaconStateT state.BeaconState,
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.WithdrawalCredentials],
+	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[

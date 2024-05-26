@@ -154,16 +154,15 @@ func (sp *StateProcessor[
 	}
 	epoch = sp.cs.SlotToEpoch(slot)
 
-	// Get the fork data for the current epoch.
-	fd := types.NewForkData(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
 	// Verify that the message was signed correctly.
 	if err := dep.VerifySignature(
-		fd, sp.cs.DomainTypeDeposit(), sp.signer.VerifySignature,
+		(*types.ForkData)(nil).New(
+			version.FromUint32[primitives.Version](
+				sp.cs.ActiveForkVersionForEpoch(epoch),
+			), genesisValidatorsRoot,
+		),
+		sp.cs.DomainTypeDeposit(),
+		sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}

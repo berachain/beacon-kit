@@ -106,7 +106,10 @@ type Context interface {
 }
 
 // Deposit is the interface for a deposit.
-type Deposit[WithdrawlCredentialsT ~[32]byte] interface {
+type Deposit[
+	ForkDataT any,
+	WithdrawlCredentialsT ~[32]byte,
+] interface {
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
 	// GetIndex returns the index of the deposit.
@@ -119,7 +122,7 @@ type Deposit[WithdrawlCredentialsT ~[32]byte] interface {
 	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
-		forkData *types.ForkData,
+		forkData *ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
 			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
