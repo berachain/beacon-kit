@@ -23,34 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package runtime
+package abci
 
-import (
-	"context"
-	"encoding/json"
+import "errors"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-)
-
-// TODO: InitGenesis should be calling into the StateProcessor.
-func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
-	DepositStoreT, StorageBackendT],
-) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciHandler.InitGenesis(ctx, bz)
-}
-
-// EndBlock returns the validator set updates from the beacon state.
-func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-	StorageBackendT,
-]) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciHandler.EndBlock(ctx)
-}
+// ErrUndefinedValidatorUpdate is returned when an undefined validator update is
+// encountered.
+var ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
