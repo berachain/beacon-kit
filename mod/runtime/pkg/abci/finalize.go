@@ -26,11 +26,41 @@
 package abci
 
 import (
+	"context"
+	"encoding/json"
+
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/sourcegraph/conc/iter"
 )
+
+// InitGenesis is called by the base app to initialize the state of the.
+func (h *Handler[BlobsSidecarsT]) InitGenesis(
+	ctx context.Context,
+	bz []byte,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	data := new(
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
+	)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return nil, err
+	}
+	updates, err := h.chainService.ProcessGenesisData(
+		ctx,
+		data,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert updates into the Cosmos SDK format.
+	return iter.MapErr(updates, convertValidatorUpdate)
+}
 
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
@@ -54,4 +84,25 @@ func (h *Handler[BlobsSidecarsT]) PreBlock(
 	h.LatestBeaconBlock = blk
 	h.LatestSidecars = blobs
 	return nil
+}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (h Handler[BlobsSidecarsT]) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	// Process the state transition and produce the required delta from
+	// the sync committee.
+	updates, err := h.chainService.ProcessBlockAndBlobs(
+		ctx,
+		// TODO: improve the robustness of these types to ensure we
+		// don't run into any nil ptr issues.
+		h.LatestBeaconBlock,
+		h.LatestSidecars,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert updates into the Cosmos SDK format.
+	return iter.MapErr(updates, convertValidatorUpdate)
 }

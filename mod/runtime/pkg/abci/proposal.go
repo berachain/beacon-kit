@@ -44,14 +44,17 @@ import (
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
 type Handler[BlobsSidecarsT ssz.Marshallable] struct {
+	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
+	// builderService is the service responsible for building beacon blocks.
 	builderService BuilderService[
 		types.BeaconBlock,
 		state.BeaconState,
 		BlobsSidecarsT,
 	]
 
+	// chainService represents the blockchain service.
 	chainService BlockchainService[BlobsSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from

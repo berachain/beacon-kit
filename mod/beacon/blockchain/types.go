@@ -181,8 +181,9 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT any,
 ] interface {
-	// ProcessGenesisState processes the genesis state.
-	// TODO: move to an actual genesis type.
+	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	// state
+	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
 		deposits []*types.Deposit,
