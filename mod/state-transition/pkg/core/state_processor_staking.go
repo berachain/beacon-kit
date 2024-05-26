@@ -155,7 +155,7 @@ func (sp *StateProcessor[
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
-	if err := dep.VerifySignature(
+	if err = dep.VerifySignature(
 		(*types.ForkData)(nil).New(
 			version.FromUint32[primitives.Version](
 				sp.cs.ActiveForkVersionForEpoch(epoch),
