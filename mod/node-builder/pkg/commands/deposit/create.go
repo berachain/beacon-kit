@@ -128,8 +128,8 @@ func createValidatorCmd(
 		if err = depositMsg.VerifyCreateValidator(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
-			signer.BLSSigner{}.VerifySignature,
 			chainSpec.DomainTypeDeposit(),
+			signer.BLSSigner{}.VerifySignature,
 		); err != nil {
 			return err
 		}

@@ -114,8 +114,8 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			if err = depositMsg.VerifyCreateValidator(
 				types.NewForkData(currentVersion, common.Root{}),
 				signature,
-				signer.BLSSigner{}.VerifySignature,
 				cs.DomainTypeDeposit(),
+				signer.BLSSigner{}.VerifySignature,
 			); err != nil {
 				return err
 			}
