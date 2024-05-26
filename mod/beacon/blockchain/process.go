@@ -125,12 +125,15 @@ func (s *Service[
 
 // postBlockProcessTasks performs post block processing tasks.
 //
-// TODO: Deprecate this function and move it's usage outside of the main block processing thread.
-func (s *Service[AvailabilityStoreT, ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT]) postBlockProcessTasks(
+// TODO: Deprecate this function and move it's usage outside of the main block
+// processing thread.
+func (s *Service[
+	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	BlobSidecarsT, DepositStoreT,
+]) postBlockProcessTasks(
 	ctx context.Context,
 	st ReadOnlyBeaconStateT,
 ) error {
-
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
