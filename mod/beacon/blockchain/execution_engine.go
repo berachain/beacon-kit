@@ -110,13 +110,19 @@ func (s *Service[
 			return
 		}
 
+		// I NEED A DOCTOR, I NEED A DOCTOR DOCTOR, TO BRING ME BACK TO LIFE>
+		ts := max(
+			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
+			uint64(time.Now().Unix()+1),
+		)
+
 		// Ask the builder to send a forkchoice update with attributes.
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
 			ctx,
 			stCopy,
 			blk.GetSlot()+1,
-			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
+			ts,
 			prevBlockRoot,
 			headHash,
 			parentHash,
