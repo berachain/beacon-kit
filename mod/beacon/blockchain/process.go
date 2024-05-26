@@ -117,55 +117,46 @@ func (s *Service[
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
-	defer func() {
-		go s.sendPostBlockFCU(ctx, st, blk)
-	}()
 
-	//
-	//
-	//
-	//
-	//
-	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
-	//  MAIN BLOCK PROCESSING THREAD.
-	//
-	//
-	//
-	//
-	//
-	//
+	go s.sendPostBlockFCU(ctx, st, blk)
+
+	return valUpdates, s.postBlockProcessTasks(ctx, st)
+}
+
+// postBlockProcessTasks performs post block processing tasks.
+//
+// TODO: Deprecate this function and move it's usage outside of the main block processing thread.
+func (s *Service[AvailabilityStoreT, ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT]) postBlockProcessTasks(
+	ctx context.Context,
+	st ReadOnlyBeaconStateT,
+) error {
 
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
 	idx, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// TODO: pruner shouldn't be in main block processing thread.
 	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		return nil, err
+		return err
 	}
 
 	var lph engineprimitives.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Process the logs from the previous blocks execution payload.
 	// TODO: This should be moved out of the main block processing flow.
 	// TODO: eth1FollowDistance should be done actually proper
 	eth1FollowDistance := math.U64(1)
-	if err = s.retrieveDepositsFromBlock(
+	return s.retrieveDepositsFromBlock(
 		ctx, lph.GetNumber()-eth1FollowDistance,
-	); err != nil {
-		s.logger.Error("failed to process logs", "error", err)
-		return nil, err
-	}
-
-	return valUpdates, nil
+	)
 }
 
 // ProcessBeaconBlock processes the beacon block.
