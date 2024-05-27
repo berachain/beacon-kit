@@ -45,9 +45,7 @@ type StateProcessor[
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
-	ForkDataT interface {
-		New(primitives.Version, primitives.Root) ForkDataT
-	},
+	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
@@ -66,9 +64,7 @@ func NewStateProcessor[
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
-	ForkDataT interface {
-		New(primitives.Version, primitives.Root) ForkDataT
-	},
+	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
