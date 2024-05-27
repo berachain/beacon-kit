@@ -28,7 +28,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -71,7 +70,7 @@ type BeaconBlockBody[DepositT any] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() types.ExecutionPayload
+	GetExecutionPayload() engineprimitives.ExecutionPayload
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
@@ -136,7 +135,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
 	) error
 }
 

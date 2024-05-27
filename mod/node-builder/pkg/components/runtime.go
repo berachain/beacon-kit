@@ -92,7 +92,7 @@ func ProvideRuntime(
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
-	executionEngine := execution.New[types.ExecutionPayload](
+	executionEngine := execution.New[engineprimitives.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
 		ts,
