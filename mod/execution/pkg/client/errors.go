@@ -52,6 +52,9 @@ const (
 var (
 	// ErrNotStarted indicates that the execution client is not started.
 	ErrNotStarted = errors.New("engine client is not started")
+
+	// ErrExecutionClientIsSyncing indicates that the execution client is syncing.
+	ErrExecutionClientIsSyncing = errors.New("execution client is syncing")
 )
 
 // Handles errors received from the RPC server according to the specification.

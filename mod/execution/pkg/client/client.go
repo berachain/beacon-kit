@@ -132,6 +132,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
+	go s.syncCheck(ctx)
 	return s.initializeConnection(ctx)
 }
 
@@ -184,6 +185,35 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 }
 
 // ============================== HELPERS ==============================
+
+// syncCheck checks the sync status of the execution client.
+func (s *EngineClient[ExecutionPayloadDenebT]) syncCheck(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.SyncCheckInterval)
+	defer ticker.Stop()
+	for {
+		s.logger.Info("starting sync check rountine", "interval", s.cfg.SyncCheckInterval)
+		select {
+		case <-ticker.C:
+			syncProgress, err := s.SyncProgress(ctx)
+			if err != nil {
+				s.logger.Error("failed to get sync progress", "err", err)
+				continue
+			}
+
+			s.statusErrMu.Lock()
+			if syncProgress == nil || syncProgress.Done() {
+				s.logger.Info("execution client is in sync 🍻")
+				s.statusErr = nil
+			} else {
+				s.logger.Warn("execution client is syncing", "sync_progress", syncProgress)
+				s.statusErr = ErrExecutionClientIsSyncing
+			}
+			s.statusErrMu.Unlock()
+		case <-ctx.Done():
+			return
+		}
+	}
+}
 
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
