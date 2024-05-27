@@ -377,6 +377,8 @@ func (s *StateDB[
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
 		}
+
+		// TODO: Use New() on BeaconState to prevent reflection usage.
 		return (&deneb.BeaconState{
 			Slot:                  slot,
 			GenesisValidatorsRoot: genesisValidatorsRoot,
