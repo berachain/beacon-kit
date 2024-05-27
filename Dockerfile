@@ -50,6 +50,7 @@ COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
+COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
@@ -57,7 +58,6 @@ COPY ./mod/node-builder/go.mod ./mod/node-builder/go.sum ./mod/node-builder/
 COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
-COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
 COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
