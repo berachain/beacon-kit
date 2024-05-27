@@ -23,30 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package manager
+package pruner
 
-import (
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+const (
+	// DepositName is the name of the deposit store pruner.
+	DepositName = "deposit-store-pruner"
+	// AvailabilityName is the name of the availability store pruner.
+	AvailabilityName = "availability-store-pruner"
 )
-
-type DBManagerOption func(*DBManager) error
-
-// WithPruner returns an option that registers a pruner to the DBManager.
-func WithPruner(name string, p *pruner.Pruner) DBManagerOption {
-	return func(m *DBManager) error {
-		if m.Pruners == nil {
-			m.Pruners = make(map[string]*pruner.Pruner)
-		}
-		m.Pruners[name] = p
-		return nil
-	}
-}
-
-// WithLogger returns an option that sets the logger for the DBManager.
-func WithLogger(l log.Logger[any]) DBManagerOption {
-	return func(m *DBManager) error {
-		m.logger = l
-		return nil
-	}
-}

@@ -32,27 +32,30 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
+// Pruner is a struct that holds the prunable interface and a notifier channel.
 type Pruner struct {
-	notifier chan uint64
-	prunable interfaces.Prunable
-	logger   log.Logger[any]
+	prunable      interfaces.Prunable
+	pruneRequests chan uint64
+	logger        log.Logger[any]
+	name          string
 }
 
 func NewPruner(logger log.Logger[any], prunable interfaces.Prunable) *Pruner {
 	return &Pruner{
-		logger:   logger,
-		prunable: prunable,
-		notifier: make(chan uint64),
+		logger:        logger,
+		prunable:      prunable,
+		pruneRequests: make(chan uint64),
 	}
 }
 
+// Start starts the pruner by listening for new indexes to prune.
 func (p *Pruner) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case index := <-p.notifier:
+			case index := <-p.pruneRequests:
 				if err := p.prunable.Prune(index); err != nil {
 					p.logger.Error("Error pruning", "error", err)
 				}
@@ -61,10 +64,17 @@ func (p *Pruner) Start(ctx context.Context) {
 	}()
 }
 
+// Notify sends a new index to the pruner through the notifier channel.
 func (p *Pruner) Notify(index uint64) {
-	p.notifier <- index
+	p.pruneRequests <- index
 }
 
+// WithLogger sets the logger for the pruner.
 func (p *Pruner) WithLogger(l log.Logger[any]) {
 	p.logger = l
+}
+
+// Name returns the name of the pruner.
+func (p *Pruner) Name() string {
+	return p.name
 }

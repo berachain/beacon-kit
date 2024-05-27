@@ -82,5 +82,9 @@ func (m *DBManager) NotifyAll(index uint64) {
 
 // notifies the pruner with the given name to prune with the given index.
 func (m *DBManager) Notify(name string, index uint64) {
+	if m.Pruners[name] == nil {
+		m.logger.Error("Pruner not found", "name", name)
+		return
+	}
 	m.Pruners[name].Notify(index)
 }
