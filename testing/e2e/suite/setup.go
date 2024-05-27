@@ -326,7 +326,6 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
-	var finalBlockNum uint64
 	for {
 		allClientsReached := true
 		for _, client := range s.ExecutionClients() {
@@ -339,6 +338,15 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 				allClientsReached = false
 				continue
 			}
+			s.logger.Info(
+				"waiting for finalized block number to reach target",
+				"name",
+				client.GetServiceName(),
+				"target",
+				target,
+				"finalized",
+				finalBlockNum,
+			)
 			if finalBlockNum < target {
 				allClientsReached = false
 			}
@@ -348,14 +356,6 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 			break
 		}
 
-		s.logger.Info(
-			"waiting for all execution clients to reach target finalized block number",
-			"target",
-			target,
-			"finalized",
-			finalBlockNum,
-		)
-
 		select {
 		case <-s.ctx.Done():
 			return s.ctx.Err()
@@ -363,14 +363,6 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 			continue
 		}
 	}
-
-	s.logger.Info(
-		"finalized block number reached target 🎉",
-		"target",
-		target,
-		"finalized",
-		finalBlockNum,
-	)
 
 	return nil
 }
