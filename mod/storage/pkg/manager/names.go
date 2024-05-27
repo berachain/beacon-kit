@@ -23,12 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package pruner
+package manager
 
 // TODO: find better place for these names
 const (
-	// DepositName is the name of the deposit store pruner.
-	DepositName = "deposit-store-pruner"
-	// AvailabilityName is the name of the availability store pruner.
-	AvailabilityName = "availability-store-pruner"
+	// DepositPrunerName is the name of the deposit store pruner.
+	DepositPrunerName = "deposit-store-pruner"
+	// AvailabilityPrunerName is the name of the availability store pruner.
+	AvailabilityPrunerName = "availability-store-pruner"
 )
