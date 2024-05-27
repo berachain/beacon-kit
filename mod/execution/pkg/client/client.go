@@ -192,7 +192,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) syncCheck(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.SyncCheckInterval)
 	defer ticker.Stop()
 	for {
-		s.logger.Info("starting sync check rountine", "interval", s.cfg.SyncCheckInterval)
+		s.logger.Info(
+			"starting sync check rountine",
+			"interval",
+			s.cfg.SyncCheckInterval,
+		)
 		select {
 		case <-ticker.C:
 			syncProgress, err := s.SyncProgress(ctx)
