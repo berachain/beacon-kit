@@ -156,6 +156,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
+		*types.ForkData,
 		*types.Validator,
 		types.WithdrawalCredentials,
 	](

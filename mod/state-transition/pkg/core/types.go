@@ -121,7 +121,7 @@ type Deposit[
 	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
-		forkData *ForkDataT,
+		forkData ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
 			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
