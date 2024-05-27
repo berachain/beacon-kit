@@ -30,7 +30,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
-	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -155,32 +154,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 // SetupExecutionClients sets up the execution clients for the test suite.
 func (s *KurtosisE2ESuite) SetupExecutionClients() error {
-	s.executionClients = make(map[string]*types.ExecutionClient)
-
-	// Get all services matching the regex el-*-*-*
-	serviceContexts, err := s.Enclave().GetServiceContexts()
-	if err != nil {
-		return err
-	}
-
-	for clientName, sCtx := range serviceContexts {
-		if matched, _ := regexp.MatchString(`^el-.*-.*-.*$`, string(clientName)); matched {
-			executionClient := types.NewExecutionClientFromServiceCtx(
-				types.NewWrappedServiceContext(
-					sCtx,
-					s.Enclave().RunStarlarkScriptBlocking,
-				),
-				s.Logger(),
-			)
-			s.executionClients[string(clientName)] = executionClient
-			s.logger.Info(
-				"execution client connected",
-				"client_name", clientName,
-				"public_ports", executionClient.GetPublicPorts(),
-			)
-		}
-	}
-
 	return nil
 }
 
@@ -353,35 +326,21 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
-	for {
-		allClientsReached := true
-		for _, client := range s.ExecutionClients() {
-			finalBlockNum, err := client.BlockNumber(cctx)
-			if err != nil {
-				s.logger.Error(
-					"error getting finalized block number from client",
-					"client", client, "error", err,
-				)
-				allClientsReached = false
-				continue
-			}
-			s.logger.Info(
-				"waiting for finalized block number to reach target",
-				"name",
-				client.GetServiceName(),
-				"target",
-				target,
-				"finalized",
-				finalBlockNum,
-			)
-			if finalBlockNum < target {
-				allClientsReached = false
-			}
+	var finalBlockNum uint64
+	for finalBlockNum < target {
+		var err error
+		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
+		if err != nil {
+			s.logger.Error("error getting finalized block number", "error", err)
+			continue
 		}
-
-		if allClientsReached {
-			break
-		}
+		s.logger.Info(
+			"waiting for finalized block number to reach target",
+			"target",
+			target,
+			"finalized",
+			finalBlockNum,
+		)
 
 		select {
 		case <-s.ctx.Done():
@@ -390,6 +349,14 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 			continue
 		}
 	}
+
+	s.logger.Info(
+		"finalized block number reached target 🎉",
+		"target",
+		target,
+		"finalized",
+		finalBlockNum,
+	)
 
 	return nil
 }
