@@ -112,6 +112,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
 	defer cancel()
 
+	// If the execution client is syncing, sanitize the payload attributes.
+	if errors.Is(s.status(), engineerrors.ErrExecutionClientIsSyncing) {
+		s.logger.Warn("execution client is syncing, sanitizing payload attributes")
+		attrs = nil
+	}
+
 	// If the suggested fee recipient is not set, log a warning.
 	if attrs != nil && !attrs.IsNil() &&
 		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
