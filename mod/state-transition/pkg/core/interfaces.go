@@ -160,7 +160,10 @@ type ReadOnlyWithdrawals interface {
 
 // Validator represents an interface for a validator with generic type
 // ValidatorT.
-type Validator[ValidatorT any] interface {
+type Validator[
+	ValidatorT any,
+	WithdrawalCredentials ~[32]byte,
+] interface {
 	ssz.Marshaler
 	ssz.HashRoot
 	// New creates a new validator with the given parameters.

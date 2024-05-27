@@ -41,7 +41,7 @@ import (
 //nolint:funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
