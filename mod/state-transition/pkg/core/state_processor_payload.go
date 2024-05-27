@@ -95,13 +95,12 @@ func (sp *StateProcessor[
 		return withdrawalsRootErr
 	})
 
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
 
-	if safeHash := latestExecutionPayloadHeader.
-		GetBlockHash(); safeHash != payload.GetParentHash() {
+	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
 			ErrParentRootMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
