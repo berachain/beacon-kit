@@ -29,7 +29,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
