@@ -382,16 +382,16 @@ func (s *StateDB[
 			GenesisValidatorsRoot: genesisValidatorsRoot,
 			Fork: reflect.ValueOf(fork).
 				Interface().(*types.Fork),
-			Slot:                         slot,
-			GenesisValidatorsRoot:        genesisValidatorsRoot,
-			Fork:                         reflect.ValueOf(fork).Interface().(*types.Fork),
-			LatestBlockHeader:            reflect.ValueOf(latestBlockHeader).Interface().(*types.BeaconBlockHeader),
+			LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
+				Interface().(*types.BeaconBlockHeader),
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
 			LatestExecutionPayloadHeader: executionPayloadHeader,
-			Eth1Data:                     reflect.ValueOf(eth1Data).Interface().(*types.Eth1Data),
-			Eth1DepositIndex:             eth1DepositIndex,
-			Validators:                   reflect.ValueOf(validators).Interface().([]*types.Validator),
+			Eth1Data: reflect.ValueOf(eth1Data).
+				Interface().(*types.Eth1Data),
+			Eth1DepositIndex: eth1DepositIndex,
+			Validators: reflect.ValueOf(validators).
+				Interface().([]*types.Validator),
 			Balances:                     balances,
 			RandaoMixes:                  randaoMixes,
 			NextWithdrawalIndex:          nextWithdrawalIndex,
