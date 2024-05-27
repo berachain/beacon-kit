@@ -327,20 +327,33 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
 	var finalBlockNum uint64
-	for finalBlockNum < target {
-		var err error
-		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
-		if err != nil {
-			s.logger.Error("error getting finalized block number", "error", err)
-			continue
+	for {
+		allClientsReached := true
+		for _, client := range s.ExecutionClients() {
+			finalBlockNum, err := client.BlockNumber(cctx)
+			if err != nil {
+				s.logger.Error(
+					"error getting finalized block number from client",
+					"client", client, "error", err,
+				)
+				allClientsReached = false
+				continue
+			}
+			s.logger.Info(
+				"waiting for finalized block number to reach target",
+				"target",
+				target,
+				"finalized",
+				finalBlockNum,
+			)
+			if finalBlockNum < target {
+				allClientsReached = false
+			}
 		}
-		s.logger.Info(
-			"waiting for finalized block number to reach target",
-			"target",
-			target,
-			"finalized",
-			finalBlockNum,
-		)
+
+		if allClientsReached {
+			break
+		}
 
 		select {
 		case <-s.ctx.Done():
