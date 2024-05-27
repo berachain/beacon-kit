@@ -27,6 +27,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -131,13 +132,15 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
-func (b *BeaconBlockBodyDeneb) GetExecutionPayload() ExecutionPayload {
+func (
+	b *BeaconBlockBodyDeneb,
+) GetExecutionPayload() engineprimitives.ExecutionPayload {
 	return b.ExecutionPayload
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
-	executionData ExecutionPayload,
+	executionData engineprimitives.ExecutionPayload,
 ) error {
 	var ok bool
 	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
@@ -148,9 +151,9 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-//
-//nolint:lll // annoying to fix.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
+func (
+	b *BeaconBlockBodyDeneb,
+) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
@@ -201,7 +204,7 @@ func (b *BeaconBlockBodyDeneb) Length() uint64 {
 }
 
 func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData ExecutionPayload,
+	executionData engineprimitives.ExecutionPayload,
 ) error {
 	var ok bool
 	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
