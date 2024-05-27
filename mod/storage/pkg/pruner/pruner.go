@@ -40,7 +40,8 @@ type Pruner struct {
 	name     string
 }
 
-func NewPruner(logger log.Logger[any], prunable interfaces.Prunable, name string) *Pruner {
+func NewPruner(logger log.Logger[any], prunable interfaces.Prunable,
+	name string) *Pruner {
 	return &Pruner{
 		logger:   logger,
 		prunable: prunable,
