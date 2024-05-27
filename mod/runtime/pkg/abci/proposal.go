@@ -27,10 +27,10 @@ package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"

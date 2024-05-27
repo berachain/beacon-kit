@@ -12,11 +12,11 @@ replace (
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
+	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/p2p => ../p2p
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240521141202-4a24795fb4ed
 )
@@ -25,11 +25,11 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240516114011-e03476679912
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240513191314-ce000626be85
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240522140013-7d3cf13035f0
 	github.com/cosmos/cosmos-sdk v0.51.0

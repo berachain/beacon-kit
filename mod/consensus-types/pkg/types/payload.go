@@ -26,7 +26,7 @@
 package types
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -37,7 +37,7 @@ var _ engineprimitives.ExecutionPayload = (*ExecutableDataDeneb)(nil)
 
 // ExecutableDataDeneb is the execution payload for Deneb.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../primitives-engine/withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload.ssz.go
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {

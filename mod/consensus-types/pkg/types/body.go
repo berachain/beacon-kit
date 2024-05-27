@@ -26,8 +26,8 @@
 package types
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -117,7 +117,7 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../primitives-engine/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 	// ExecutionPayload is the execution payload of the body.

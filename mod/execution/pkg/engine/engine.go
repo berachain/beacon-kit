@@ -28,11 +28,11 @@ package engine
 import (
 	"context"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	engineerrors "github.com/berachain/beacon-kit/mod/primitives-engine/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
@@ -75,7 +75,6 @@ func (ee *Engine[
 	ctx context.Context,
 ) error {
 	go func() {
-		// TODO: handle better
 		if err := ee.ec.Start(ctx); err != nil {
 			panic(err)
 		}
@@ -116,7 +115,6 @@ func (ee *Engine[
 		req.PayloadAttributes != nil &&
 			!req.PayloadAttributes.IsNil(),
 	)
-
 	// Notify the execution engine of the forkchoice update.
 	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
 		ctx,

@@ -28,7 +28,7 @@ package builder
 import (
 	"context"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
