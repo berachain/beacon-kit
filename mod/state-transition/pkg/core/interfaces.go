@@ -162,14 +162,14 @@ type ReadOnlyWithdrawals interface {
 // ValidatorT.
 type Validator[
 	ValidatorT any,
-	WithdrawalCredentials ~[32]byte,
+	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	ssz.Marshaler
 	ssz.HashRoot
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
-		withdrawalCredentials types.WithdrawalCredentials,
+		withdrawalCredentials WithdrawalCredentialsT,
 		amount math.Gwei,
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,

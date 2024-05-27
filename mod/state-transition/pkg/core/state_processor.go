@@ -44,7 +44,7 @@ type StateProcessor[
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
+	DepositT Deposit[types.ForkData, WithdrawalCredentialsT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
@@ -62,7 +62,7 @@ func NewStateProcessor[
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
+	DepositT Deposit[types.ForkData, WithdrawalCredentialsT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
