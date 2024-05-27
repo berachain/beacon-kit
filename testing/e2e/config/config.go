@@ -93,18 +93,18 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			// {
-			// 	ElType:   "erigon",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
-			// {
-			// 	ElType:   "besu",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
+			{
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		FullNodes: []Node{
 			{
@@ -125,18 +125,18 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			// {
-			// 	ElType:   "erigon",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
-			// {
-			// 	ElType:   "besu",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
+			{
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		BootSequence: map[string]string{
 			"type": "parallel",
