@@ -154,20 +154,15 @@ func (sp *StateProcessor[
 	}
 	epoch = sp.cs.SlotToEpoch(slot)
 
-	// Get the fork data for the current epoch.
-	fd := types.NewForkData(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	depositMessage := types.DepositMessage{
-		Pubkey:      dep.GetPubkey(),
-		Credentials: dep.GetWithdrawalCredentials(),
-		Amount:      dep.GetAmount(),
-	}
-	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.GetSignature(), sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
+	// Verify that the message was signed correctly.
+	if err = dep.VerifySignature(
+		(*types.ForkData)(nil).New(
+			version.FromUint32[primitives.Version](
+				sp.cs.ActiveForkVersionForEpoch(epoch),
+			), genesisValidatorsRoot,
+		),
+		sp.cs.DomainTypeDeposit(),
+		sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}
