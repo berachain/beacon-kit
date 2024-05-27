@@ -5,10 +5,10 @@ go 1.22.3
 replace (
 	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
 	github.com/berachain/beacon-kit/mod/consensus-types => ../mod/consensus-types
+	github.com/berachain/beacon-kit/mod/engine-primitives => ../mod/engine-primitives
 	github.com/berachain/beacon-kit/mod/errors => ../mod/errors
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
 	github.com/berachain/beacon-kit/mod/primitives => ../mod/primitives
-	github.com/berachain/beacon-kit/mod/primitives-engine => ../mod/primitives-engine
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 )
 
