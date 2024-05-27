@@ -26,7 +26,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -122,7 +121,7 @@ func (sp *StateProcessor[
 
 	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
-		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
+		if val.IsSlashed() && (slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
 			if err = sp.processSlash(
 				st, val,
 				adjustedTotalSlashingBalance,
@@ -143,7 +142,7 @@ func (sp *StateProcessor[
 	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) processSlash(
 	st BeaconStateT,
-	val *types.Validator,
+	val ValidatorT,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {
@@ -154,7 +153,7 @@ func (sp *StateProcessor[
 	penalty := penaltyNumerator / totalBalance * increment
 
 	// Get the val index and decrease the balance of the validator.
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}

@@ -116,7 +116,7 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: process activations.
-	var validators []*types.Validator
+	var validators []ValidatorT
 	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err

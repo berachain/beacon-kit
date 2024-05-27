@@ -202,3 +202,8 @@ func (v Validator) HasMaxEffectiveBalance(
 func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
 	v.EffectiveBalance = balance
 }
+
+// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+func (v Validator) GetWithdrawableEpoch() math.Epoch {
+	return v.WithdrawableEpoch
+}

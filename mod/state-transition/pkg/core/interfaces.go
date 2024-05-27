@@ -33,6 +33,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconState is the interface for the beacon state. It
@@ -60,12 +61,12 @@ type ReadOnlyBeaconState[ValidatorT any] interface {
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() ([]*types.Validator, error)
+	GetValidators() ([]ValidatorT, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
-	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
+	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -157,7 +158,11 @@ type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 }
 
+// Validator represents an interface for a validator with generic type ValidatorT.
 type Validator[ValidatorT any] interface {
+	ssz.Marshaler
+	ssz.HashRoot
+	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
 		withdrawalCredentials types.WithdrawalCredentials,
@@ -165,8 +170,14 @@ type Validator[ValidatorT any] interface {
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,
 	) ValidatorT
+	// IsSlashed returns true if the validator is slashed.
 	IsSlashed() bool
+	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator in Gwei.
 	GetEffectiveBalance() math.Gwei
+	// SetEffectiveBalance sets the effective balance of the validator in Gwei.
 	SetEffectiveBalance(math.Gwei)
+	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+	GetWithdrawableEpoch() math.Epoch
 }
