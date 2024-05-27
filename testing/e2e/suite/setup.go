@@ -339,13 +339,6 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 				allClientsReached = false
 				continue
 			}
-			s.logger.Info(
-				"waiting for finalized block number to reach target",
-				"target",
-				target,
-				"finalized",
-				finalBlockNum,
-			)
 			if finalBlockNum < target {
 				allClientsReached = false
 			}
@@ -354,6 +347,14 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 		if allClientsReached {
 			break
 		}
+
+		s.logger.Info(
+			"waiting for all execution clients to reach target finalized block number",
+			"target",
+			target,
+			"finalized",
+			finalBlockNum,
+		)
 
 		select {
 		case <-s.ctx.Done():
