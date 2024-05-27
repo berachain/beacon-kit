@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -93,8 +94,11 @@ func (k *Backend[AvailabilityStoreT, BeaconStateT]) AvailabilityStore(
 // context and the store key.
 func (k *Backend[AvailabilityStoreT, BeaconStateT]) StateFromContext(
 	ctx context.Context,
-) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cs)
+) core.BeaconState[*types.Validator] {
+	return state.NewBeaconStateFromDB[core.BeaconState[*types.Validator]](
+		k.beaconStore.WithContext(ctx),
+		k.cs,
+	)
 }
 
 // BeaconStore returns the beacon store struct.

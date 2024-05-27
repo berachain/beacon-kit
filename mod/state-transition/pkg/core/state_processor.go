@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -42,10 +41,11 @@ import (
 type StateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT],
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
+	ValidatorT Validator[ValidatorT],
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
@@ -58,10 +58,11 @@ type StateProcessor[
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT],
-	BeaconStateT state.BeaconState,
+	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
+	ValidatorT Validator[ValidatorT],
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[
@@ -73,11 +74,11 @@ func NewStateProcessor[
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT,
+	DepositT, ValidatorT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, ContextT, DepositT,
+		BeaconStateT, BlobSidecarsT, ContextT, DepositT, ValidatorT,
 	]{
 		cs:              cs,
 		rp:              rp,
@@ -90,7 +91,7 @@ func NewStateProcessor[
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -174,7 +175,7 @@ func (sp *StateProcessor[
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) ProcessSlot(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -246,7 +247,7 @@ func (sp *StateProcessor[
 // state root.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -314,7 +315,7 @@ func (sp *StateProcessor[
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) processEpoch(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -332,7 +333,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -343,7 +344,7 @@ func (sp *StateProcessor[
 		latestBlockHeader *types.BeaconBlockHeader
 		parentBlockRoot   primitives.Root
 		bodyRoot          primitives.Root
-		proposer          *types.Validator
+		proposer          ValidatorT
 	)
 
 	// Ensure the block slot matches the state slot.
@@ -403,7 +404,7 @@ func (sp *StateProcessor[
 	// Check to make sure the proposer isn't slashed.
 	if proposer, err = st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
 		return err
-	} else if proposer.Slashed {
+	} else if proposer.IsSlashed() {
 		return errors.Wrapf(
 			ErrSlashedProposer, "index: %d", blk.GetProposerIndex(),
 		)
@@ -417,7 +418,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -436,7 +437,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {

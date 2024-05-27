@@ -42,7 +42,7 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -116,7 +116,7 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: process activations.
-	var validators []*types.Validator
+	var validators []ValidatorT
 	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err

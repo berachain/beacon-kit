@@ -33,13 +33,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // BuilderService is responsible for building beacon blocks.
 type BuilderService[
 	BeaconBlockT types.BeaconBlock,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
 	// RequestBestBlock requests the best beacon block for a given slot.

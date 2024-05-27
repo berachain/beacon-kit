@@ -26,6 +26,8 @@
 package state
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -39,29 +41,86 @@ import (
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
-type StateDB[KVStoreT KVStore[KVStoreT]] struct {
-	KVStore[KVStoreT]
+type StateDB[
+	BeaconStateT any,
+	KVStoreT KVStore[
+		KVStoreT,
+		ForkT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ValidatorT,
+	],
+	ForkT any,
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
+	ValidatorT Validator,
+] struct {
+	KVStore[
+		KVStoreT,
+		ForkT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ValidatorT,
+	]
 	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB[KVStoreT KVStore[KVStoreT]](
-	bdb KVStore[KVStoreT],
+func NewBeaconStateFromDB[
+	BeaconStateT any,
+	KVStoreT KVStore[
+		KVStoreT,
+		ForkT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ValidatorT,
+	],
+	ForkT any,
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
+	ValidatorT Validator,
+](
+	bdb KVStore[
+		KVStoreT,
+		ForkT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ValidatorT,
+	],
 	cs primitives.ChainSpec,
-) *StateDB[KVStoreT] {
-	return &StateDB[KVStoreT]{
+) BeaconStateT {
+	result := &StateDB[
+		BeaconStateT,
+		KVStoreT,
+		ForkT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ValidatorT,
+	]{
 		KVStore: bdb,
 		cs:      cs,
 	}
+
+	// TODO: Fix this is hood as fuck.
+	return reflect.ValueOf(result).Interface().(BeaconStateT)
 }
 
 // Copy returns a copy of the beacon state.
-func (s *StateDB[KVStoreT]) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) Copy() BeaconStateT {
+	return NewBeaconStateFromDB[
+		BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+	](
+		s.KVStore.Copy(),
+		s.cs,
+	)
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB[KVStoreT]) IncreaseBalance(
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -73,7 +132,9 @@ func (s *StateDB[KVStoreT]) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB[KVStoreT]) DecreaseBalance(
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -85,7 +146,9 @@ func (s *StateDB[KVStoreT]) DecreaseBalance(
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
 ) error {
@@ -116,9 +179,11 @@ func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
-		validator         *types.Validator
+		validator         ValidatorT
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
@@ -161,7 +226,7 @@ func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawa
 		}
 
 		withdrawalAddress, err = validator.
-			WithdrawalCredentials.ToExecutionAddress()
+			GetWithdrawalCredentials().ToExecutionAddress()
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +242,9 @@ func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawa
 		// validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawal.Amount = balance
-		} else if validator.IsPartiallyWithdrawable(balance, math.Gwei(s.cs.MaxEffectiveBalance())) {
+		} else if validator.IsPartiallyWithdrawable(
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
+		) {
 			withdrawal.Amount = balance - math.Gwei(s.cs.MaxEffectiveBalance())
 		}
 		withdrawals = append(withdrawals, withdrawal)
@@ -203,7 +270,9 @@ func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawa
 // Store is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
-func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
+func (s *StateDB[
+	BeaconStateT, KVStoreT, ForkT, BeaconBlockHeaderT, Eth1DataT, ValidatorT,
+]) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
@@ -302,17 +371,23 @@ func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")
 		}
+
+		// TODO: Use New() on BeaconState to prevent reflection usage.
 		return (&deneb.BeaconState{
-			Slot:                         slot,
-			GenesisValidatorsRoot:        genesisValidatorsRoot,
-			Fork:                         fork,
-			LatestBlockHeader:            latestBlockHeader,
+			Slot:                  slot,
+			GenesisValidatorsRoot: genesisValidatorsRoot,
+			Fork: reflect.ValueOf(fork).
+				Interface().(*types.Fork),
+			LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
+				Interface().(*types.BeaconBlockHeader),
 			BlockRoots:                   blockRoots,
 			StateRoots:                   stateRoots,
 			LatestExecutionPayloadHeader: executionPayloadHeader,
-			Eth1Data:                     eth1Data,
-			Eth1DepositIndex:             eth1DepositIndex,
-			Validators:                   validators,
+			Eth1Data: reflect.ValueOf(eth1Data).
+				Interface().(*types.Eth1Data),
+			Eth1DepositIndex: eth1DepositIndex,
+			Validators: reflect.ValueOf(validators).
+				Interface().([]*types.Validator),
 			Balances:                     balances,
 			RandaoMixes:                  randaoMixes,
 			NextWithdrawalIndex:          nextWithdrawalIndex,
