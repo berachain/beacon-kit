@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -43,7 +43,7 @@ import (
 type BeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -69,7 +69,7 @@ type BeaconKitRuntime[
 func NewBeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -89,7 +89,7 @@ func NewBeaconKitRuntime[
 	var (
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
-			state.BeaconState,
+			core.BeaconState[*types.Validator],
 			BlobSidecarsT,
 			DepositStoreT,
 		]

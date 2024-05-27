@@ -40,7 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -84,7 +84,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+		*dastore.Store[types.BeaconBlockBody], core.BeaconState[*types.Validator],
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

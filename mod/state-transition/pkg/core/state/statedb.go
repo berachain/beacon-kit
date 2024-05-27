@@ -26,6 +26,8 @@
 package state
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -39,29 +41,32 @@ import (
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
-type StateDB[KVStoreT KVStore[KVStoreT]] struct {
+type StateDB[BeaconStateT any, KVStoreT KVStore[KVStoreT]] struct {
 	KVStore[KVStoreT]
 	cs primitives.ChainSpec
 }
 
 // NewBeaconState creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB[KVStoreT KVStore[KVStoreT]](
+func NewBeaconStateFromDB[BeaconStateT any, KVStoreT KVStore[KVStoreT]](
 	bdb KVStore[KVStoreT],
 	cs primitives.ChainSpec,
-) *StateDB[KVStoreT] {
-	return &StateDB[KVStoreT]{
+) BeaconStateT {
+	result := &StateDB[BeaconStateT, KVStoreT]{
 		KVStore: bdb,
 		cs:      cs,
 	}
+
+	// TODO: Fix this is hood as fuck.
+	return reflect.ValueOf(result).Interface().(BeaconStateT)
 }
 
 // Copy returns a copy of the beacon state.
-func (s *StateDB[KVStoreT]) Copy() BeaconState {
-	return NewBeaconStateFromDB(s.KVStore.Copy(), s.cs)
+func (s *StateDB[BeaconStateT, KVStoreT]) Copy() BeaconStateT {
+	return NewBeaconStateFromDB[BeaconStateT, KVStoreT](s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB[KVStoreT]) IncreaseBalance(
+func (s *StateDB[BeaconStateT, KVStoreT]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -73,7 +78,7 @@ func (s *StateDB[KVStoreT]) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB[KVStoreT]) DecreaseBalance(
+func (s *StateDB[BeaconStateT, KVStoreT]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
@@ -85,7 +90,7 @@ func (s *StateDB[KVStoreT]) DecreaseBalance(
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
+func (s *StateDB[BeaconStateT, KVStoreT]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
 ) error {
@@ -116,7 +121,7 @@ func (s *StateDB[KVStoreT]) UpdateSlashingAtIndex(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
 //nolint:lll
-func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
+func (s *StateDB[BeaconStateT, KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         *types.Validator
 		balance           math.Gwei
@@ -203,7 +208,7 @@ func (s *StateDB[KVStoreT]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawa
 // Store is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
-func (s *StateDB[KVStoreT]) HashTreeRoot() ([32]byte, error) {
+func (s *StateDB[BeaconStateT, KVStoreT]) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err

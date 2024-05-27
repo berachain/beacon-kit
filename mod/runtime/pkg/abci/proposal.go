@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
@@ -50,7 +50,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 	// builderService is the service responsible for building beacon blocks.
 	builderService BuilderService[
 		types.BeaconBlock,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 		BlobsSidecarsT,
 	]
 
@@ -79,7 +79,7 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 func NewHandler[BlobsSidecarsT ssz.Marshallable](
 	chainSpec primitives.ChainSpec,
 	builderService BuilderService[
-		types.BeaconBlock, state.BeaconState, BlobsSidecarsT],
+		types.BeaconBlock, core.BeaconState[*types.Validator], BlobsSidecarsT],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
