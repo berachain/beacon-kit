@@ -39,7 +39,7 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
-	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
+	BeaconState ReadOnlyBeaconState[BeaconState],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
@@ -47,7 +47,7 @@ type Service[
 	// sidecars.
 	sb StorageBackend[
 		AvailabilityStoreT,
-		ReadOnlyBeaconStateT,
+		BeaconState,
 		BlobSidecarsT,
 		DepositStoreT,
 	]
@@ -60,13 +60,13 @@ type Service[
 	// dc is a connection to the deposit contract.
 	dc DepositContract
 	// lb is a local builder for constructing new beacon states.
-	lb LocalBuilder[ReadOnlyBeaconStateT]
+	lb LocalBuilder[BeaconState]
 	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		types.BeaconBlock,
-		ReadOnlyBeaconStateT,
+		BeaconState,
 		BlobSidecarsT,
 		*transition.Context,
 	]
@@ -79,33 +79,33 @@ func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
-	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
+	BeaconState ReadOnlyBeaconState[BeaconState],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
-		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT],
+		BeaconState, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
-	lb LocalBuilder[ReadOnlyBeaconStateT],
+	lb LocalBuilder[BeaconState],
 	bp BlobProcessor[
 		AvailabilityStoreT,
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		types.BeaconBlock, ReadOnlyBeaconStateT,
+		types.BeaconBlock, BeaconState,
 		BlobSidecarsT, *transition.Context,
 	],
 	dc DepositContract,
 	ts TelemetrySink,
 ) *Service[
-	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	AvailabilityStoreT, BeaconState,
 	BlobSidecarsT, DepositStoreT,
 ] {
 	return &Service[
-		AvailabilityStoreT, ReadOnlyBeaconStateT,
+		AvailabilityStoreT, BeaconState,
 		BlobSidecarsT, DepositStoreT,
 	]{
 		sb:      sb,
@@ -123,7 +123,7 @@ func NewService[
 // Name returns the name of the service.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconState,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Name() string {
@@ -132,7 +132,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconState,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Start(
@@ -143,7 +143,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconState,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Status() error {
@@ -152,7 +152,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconState,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) WaitForHealthy(
@@ -163,11 +163,11 @@ func (s *Service[
 // TODO: Remove
 func (s Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconState,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) StateFromContext(
 	ctx context.Context,
-) ReadOnlyBeaconStateT {
+) BeaconState {
 	return s.sb.StateFromContext(ctx)
 }
