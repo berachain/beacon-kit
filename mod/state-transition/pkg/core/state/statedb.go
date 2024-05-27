@@ -38,12 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-type Validator interface {
-	GetWithdrawalCredentials() types.WithdrawalCredentials
-	IsFullyWithdrawable(math.Gwei, math.Epoch) bool
-	IsPartiallyWithdrawable(math.Gwei, math.Gwei) bool
-}
-
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow

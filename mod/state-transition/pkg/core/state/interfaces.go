@@ -28,6 +28,7 @@ package state
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -100,4 +101,10 @@ type KVStore[
 	) error
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
+}
+
+type Validator interface {
+	GetWithdrawalCredentials() types.WithdrawalCredentials
+	IsFullyWithdrawable(math.Gwei, math.Epoch) bool
+	IsPartiallyWithdrawable(math.Gwei, math.Gwei) bool
 }
