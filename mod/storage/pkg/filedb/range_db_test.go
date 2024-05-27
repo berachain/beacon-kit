@@ -134,15 +134,7 @@ func TestRangeDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs := afero.NewMemMapFs()
-			db := file.NewDB(
-				file.WithRootDirectory("/tmp/testdb"),
-				file.WithFileExtension("txt"),
-				file.WithDirectoryPermissions(0700),
-				file.WithLogger(log.NewNopLogger()),
-				file.WithAferoFS(fs),
-			)
-			rdb := file.NewRangeDB(db, 1)
+			rdb := file.NewRangeDB(newTestFDB(), 1)
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -228,4 +220,114 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 				err.Error())
 		})
 	}
+}
+
+func TestRangeDB_Prune(t *testing.T) {
+	tests := []struct {
+		name          string
+		pruneWindow   uint64
+		setupFunc     func(rdb *file.RangeDB) error
+		pruneIndex    uint64
+		expectedError bool
+		testFunc      func(t *testing.T, rdb *file.RangeDB)
+	}{
+		{
+			name:        "PruneNoOp",
+			pruneWindow: 5,
+			setupFunc: func(rdb *file.RangeDB) error {
+				if err := populateTestDB(rdb, 1, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+			pruneIndex:    3, // index less than prune window, should be no-op
+			expectedError: false,
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				checkNotPruned(t, rdb, 1, 5)
+			},
+		},
+		{
+			name:        "PruneWithDeleteRange",
+			pruneWindow: 2,
+			setupFunc: func(rdb *file.RangeDB) error {
+				if err := populateTestDB(rdb, 1, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+			pruneIndex:    6, // index 6 with window 2 means delete from 0 to 3
+			expectedError: false,
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				checkPruned(t, rdb, 0, 3)
+				checkNotPruned(t, rdb, 4, 5)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rdb := file.NewRangeDB(newTestFDB(), tt.pruneWindow)
+
+			if tt.setupFunc != nil {
+				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
+					t.Fatalf("setupFunc() error = %v, expectedError %v", err, tt.expectedError)
+				}
+			}
+
+			err := rdb.Prune(tt.pruneIndex)
+			if (err != nil) != tt.expectedError {
+				t.Fatalf("Prune() error = %v, expectedError %v", err, tt.expectedError)
+			}
+
+			if tt.testFunc != nil {
+				tt.testFunc(t, rdb)
+			}
+		})
+	}
+}
+
+// =============================== HELPERS ==================================
+
+// newTestFDB returns a new file DB instance with an in-memory filesystem.
+func newTestFDB() *file.DB {
+	fs := afero.NewMemMapFs()
+	return file.NewDB(
+		file.WithRootDirectory("/tmp/testdb"),
+		file.WithFileExtension("txt"),
+		file.WithDirectoryPermissions(0700),
+		file.WithLogger(log.NewNopLogger()),
+		file.WithAferoFS(fs),
+	)
+}
+
+// checkPruned requires the indexes from `from` to `to` have been pruned.
+func checkPruned(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+	t.Helper()
+	for i := from; i <= to; i++ {
+		exists, err := rdb.Has(i, []byte("key"))
+		require.NoError(t, err)
+		require.False(t, exists, "Index %d should have been pruned", i)
+	}
+}
+
+// checkNotPruned requires the indexes from `from` to `to` haven't been pruned.
+func checkNotPruned(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+	t.Helper()
+	for i := from; i <= to; i++ {
+		exists, err := rdb.Has(i, []byte("key"))
+		require.NoError(t, err)
+		require.True(t, exists, "Index %d should not have been pruned", i)
+	}
+}
+
+// populateTestDB populates the test DB with indexes from `from` to `to`.
+func populateTestDB(rdb *file.RangeDB, from, to uint64) error {
+	for i := from; i <= to; i++ {
+		if err := rdb.Set(i, []byte("key"), []byte("value")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
