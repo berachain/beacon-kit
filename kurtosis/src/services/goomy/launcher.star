@@ -29,10 +29,10 @@ def get_config(
     goomy_cli_args = []
     goomy_args = " ".join(goomy_blob_args)
     if goomy_args == "":
-        goomy_args = "combined -b 2 -t 2 --max-pending 3"
+        goomy_args = "combined -b 2 -t 1 --max-pending 3"
     goomy_cli_args.append(goomy_args)
 
-    blob_cmd = "./blob-spammer -p {0} combined -b 2 -t 2 --max-pending 3 -h {1}".format(
+    blob_cmd = "./blob-spammer -p {0} combined -b 50 -t 50 --max-pending 50 -h {1}".format(
         funding_account.private_key,
         rpc_endpoint,
     )
