@@ -26,7 +26,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -38,7 +37,8 @@ import (
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -70,7 +70,8 @@ func (sp *StateProcessor[
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -91,7 +92,8 @@ func (sp *StateProcessor[
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -109,16 +111,15 @@ func (sp *StateProcessor[
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *types.Validator
+		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return err
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance = min(val.EffectiveBalance+dep.GetAmount(),
-			math.Gwei(sp.cs.MaxEffectiveBalance()))
-
+		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
+			math.Gwei(sp.cs.MaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
 	// If the validator does not exist, we add the validator.
@@ -129,7 +130,8 @@ func (sp *StateProcessor[
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -154,20 +156,16 @@ func (sp *StateProcessor[
 	}
 	epoch = sp.cs.SlotToEpoch(slot)
 
-	// Get the fork data for the current epoch.
-	fd := types.NewForkData(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	depositMessage := types.DepositMessage{
-		Pubkey:      dep.GetPubkey(),
-		Credentials: dep.GetWithdrawalCredentials(),
-		Amount:      dep.GetAmount(),
-	}
-	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.GetSignature(), sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
+	// Verify that the message was signed correctly.
+	var d ForkDataT
+	if err = dep.VerifySignature(
+		d.New(
+			version.FromUint32[primitives.Version](
+				sp.cs.ActiveForkVersionForEpoch(epoch),
+			), genesisValidatorsRoot,
+		),
+		sp.cs.DomainTypeDeposit(),
+		sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}
@@ -179,23 +177,26 @@ func (sp *StateProcessor[
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	val := types.NewValidatorFromDeposit(
+	var val ValidatorT
+	val = val.New(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
+
 	if err := st.AddValidator(val); err != nil {
 		return err
 	}
 
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}
@@ -208,7 +209,8 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	body BeaconBlockBodyT,

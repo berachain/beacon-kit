@@ -27,8 +27,8 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -42,7 +42,8 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -116,7 +117,7 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: process activations.
-	var validators []*types.Validator
+	var validators []ValidatorT
 	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err

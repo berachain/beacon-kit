@@ -31,7 +31,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -41,7 +41,7 @@ import (
 // state.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessGenesisData(
@@ -70,7 +70,7 @@ func (s *Service[
 // and then processes the block.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
@@ -136,11 +136,11 @@ func (s *Service[
 // TODO: Deprecate this function and move it's usage outside of the main block
 // processing thread.
 func (s *Service[
-	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ]) postBlockProcessTasks(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 ) {
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
@@ -186,7 +186,7 @@ func (s *Service[
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessBeaconBlock(
@@ -214,12 +214,12 @@ func (s *Service[
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) processBeaconBlock(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	blk types.BeaconBlock,
 	optimisticEngine bool,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -239,7 +239,7 @@ func (s *Service[
 // ProcessBlobSidecars processes the blob sidecars.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) processBlobSidecars(

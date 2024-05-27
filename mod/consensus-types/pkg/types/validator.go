@@ -85,6 +85,24 @@ func NewValidatorFromDeposit(
 	}
 }
 
+// New creates a new Validator with the given public key, withdrawal
+// credentials,.
+func (v *Validator) New(
+	pubkey crypto.BLSPubkey,
+	withdrawalCredentials WithdrawalCredentials,
+	amount math.Gwei,
+	effectiveBalanceIncrement math.Gwei,
+	maxEffectiveBalance math.Gwei,
+) *Validator {
+	return NewValidatorFromDeposit(
+		pubkey,
+		withdrawalCredentials,
+		amount,
+		effectiveBalanceIncrement,
+		maxEffectiveBalance,
+	)
+}
+
 // GetPubkey returns the public key of the validator.
 func (v *Validator) GetPubkey() crypto.BLSPubkey {
 	return v.Pubkey
@@ -127,13 +145,18 @@ func (v Validator) IsEligibleForActivationQueue(
 		v.EffectiveBalance == maxEffectiveBalance
 }
 
-// IsSlashed as defined in the Ethereum 2.0 Spec
+// IsSlashable as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
 //
 //nolint:lll
 func (v Validator) IsSlashable(epoch math.Epoch) bool {
 	return !v.Slashed && v.ActivationEpoch <= epoch &&
 		epoch < v.WithdrawableEpoch
+}
+
+// IsSlashed returns whether the validator has been slashed.
+func (v Validator) IsSlashed() bool {
+	return v.Slashed
 }
 
 // IsFullyWithdrawable as defined in the Ethereum 2.0 specfication:
@@ -174,4 +197,19 @@ func (v Validator) HasMaxEffectiveBalance(
 	maxEffectiveBalance math.Gwei,
 ) bool {
 	return v.EffectiveBalance == maxEffectiveBalance
+}
+
+// SetEffectiveBalance sets the effective balance of the validator.
+func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
+	v.EffectiveBalance = balance
+}
+
+// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+func (v Validator) GetWithdrawableEpoch() math.Epoch {
+	return v.WithdrawableEpoch
+}
+
+// GetWithdrawalCredentials returns the withdrawal credentials of the validator.
+func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
+	return v.WithdrawalCredentials
 }

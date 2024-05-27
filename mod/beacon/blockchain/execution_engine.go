@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -39,12 +39,12 @@ import (
 // It sets the head and finalizes the latest.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	slot math.Slot,
 	headEth1Hash common.ExecutionHash,
 ) error {
@@ -72,12 +72,12 @@ func (s *Service[
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	blk types.BeaconBlock,
 	isOptimisic bool,
 ) {
@@ -113,6 +113,7 @@ func (s *Service[
 		// I NEED A DOCTOR, I NEED A DOCTOR DOCTOR, TO BRING ME BACK TO LIFE>
 		ts := max(
 			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp())+1,
+			//#nosec:G701 // vibes are okay.
 			uint64(time.Now().Unix()+1),
 		)
 

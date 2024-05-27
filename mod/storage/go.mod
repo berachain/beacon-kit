@@ -5,10 +5,10 @@ go 1.22.3
 replace (
 	// TODO consensus-types should be decoupleable.
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
+	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/berachain/beacon-kit/mod/primitives-engine => ../primitives-engine
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/primitives-engine v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect

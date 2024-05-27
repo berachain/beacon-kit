@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
@@ -41,14 +41,14 @@ import (
 
 // Handler is a struct that encapsulates the necessary components to handle
 // the proposal processes.
-type Handler[BlobsSidecarsT ssz.Marshallable] struct {
+type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
 	// builderService is the service responsible for building beacon blocks.
 	builderService BuilderService[
 		types.BeaconBlock,
-		state.BeaconState,
+		BeaconStateT,
 		BlobsSidecarsT,
 	]
 
@@ -75,18 +75,18 @@ type Handler[BlobsSidecarsT ssz.Marshallable] struct {
 }
 
 // NewHandler creates a new instance of the Handler struct.
-func NewHandler[BlobsSidecarsT ssz.Marshallable](
+func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
 	chainSpec primitives.ChainSpec,
 	builderService BuilderService[
-		types.BeaconBlock, state.BeaconState, BlobsSidecarsT],
+		types.BeaconBlock, core.BeaconState[*types.Validator], BlobsSidecarsT],
 	chainService BlockchainService[BlobsSidecarsT],
-) *Handler[BlobsSidecarsT] {
+) *Handler[BeaconStateT, BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
 		panic("chain service is nil")
 	}
 
-	return &Handler[BlobsSidecarsT]{
+	return &Handler[BeaconStateT, BlobsSidecarsT]{
 		chainSpec:      chainSpec,
 		builderService: builderService,
 		chainService:   chainService,
@@ -104,7 +104,7 @@ func NewHandler[BlobsSidecarsT ssz.Marshallable](
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
-func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
 	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	logger := ctx.Logger().With("service", "prepare-proposal")
@@ -145,7 +145,7 @@ func (h *Handler[BlobsSidecarsT]) PrepareProposalHandler(
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
-func (h *Handler[BlobsSidecarsT]) ProcessProposalHandler(
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
