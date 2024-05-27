@@ -30,6 +30,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -154,6 +155,32 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 // SetupExecutionClients sets up the execution clients for the test suite.
 func (s *KurtosisE2ESuite) SetupExecutionClients() error {
+	s.executionClients = make(map[string]*types.ExecutionClient)
+
+	// Get all services matching the regex el-*-*-*
+	serviceContexts, err := s.Enclave().GetServiceContexts()
+	if err != nil {
+		return err
+	}
+
+	for clientName, sCtx := range serviceContexts {
+		if matched, _ := regexp.MatchString(`^el-.*-.*-.*$`, string(clientName)); matched {
+			executionClient := types.NewExecutionClientFromServiceCtx(
+				types.NewWrappedServiceContext(
+					sCtx,
+					s.Enclave().RunStarlarkScriptBlocking,
+				),
+				s.Logger(),
+			)
+			s.executionClients[string(clientName)] = executionClient
+			s.logger.Info(
+				"execution client connected",
+				"client_name", clientName,
+				"public_ports", executionClient.GetPublicPorts(),
+			)
+		}
+	}
+
 	return nil
 }
 

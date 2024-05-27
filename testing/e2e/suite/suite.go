@@ -53,8 +53,8 @@ type KurtosisE2ESuite struct {
 
 	// TODO: Figure out what these may be useful for.
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
-	loadBalancer *types.LoadBalancer
+	executionClients map[string]*types.ExecutionClient
+	loadBalancer     *types.LoadBalancer
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
