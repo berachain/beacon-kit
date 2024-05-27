@@ -34,17 +34,18 @@ import (
 
 // Pruner is a struct that holds the prunable interface and a notifier channel.
 type Pruner struct {
-	prunable      interfaces.Prunable
-	pruneRequests chan uint64
-	logger        log.Logger[any]
-	name          string
+	prunable interfaces.Prunable
+	requests chan uint64
+	logger   log.Logger[any]
+	name     string
 }
 
-func NewPruner(logger log.Logger[any], prunable interfaces.Prunable) *Pruner {
+func NewPruner(logger log.Logger[any], prunable interfaces.Prunable, name string) *Pruner {
 	return &Pruner{
-		logger:        logger,
-		prunable:      prunable,
-		pruneRequests: make(chan uint64),
+		logger:   logger,
+		prunable: prunable,
+		requests: make(chan uint64),
+		name:     name,
 	}
 }
 
@@ -55,9 +56,10 @@ func (p *Pruner) Start(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				return
-			case index := <-p.pruneRequests:
+			case index := <-p.requests:
 				if err := p.prunable.Prune(index); err != nil {
-					p.logger.Error("Error pruning", "error", err)
+					p.logger.Error("Error pruning index", "pruner", p.Name(),
+						"index", index, "error", err)
 				}
 			}
 		}
@@ -66,12 +68,7 @@ func (p *Pruner) Start(ctx context.Context) {
 
 // Notify sends a new index to the pruner through the notifier channel.
 func (p *Pruner) Notify(index uint64) {
-	p.pruneRequests <- index
-}
-
-// WithLogger sets the logger for the pruner.
-func (p *Pruner) WithLogger(l log.Logger[any]) {
-	p.logger = l
+	p.requests <- index
 }
 
 // Name returns the name of the pruner.

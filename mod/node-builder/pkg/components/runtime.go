@@ -194,6 +194,7 @@ func ProvideRuntime(
 	depositPruner := pruner.NewPruner(
 		logger.With("service", pruner.DepositName),
 		storageBackend.DepositStore(nil),
+		pruner.DepositName,
 	)
 
 	defer func() {
@@ -207,12 +208,13 @@ func ProvideRuntime(
 		logger.With("service", pruner.AvailabilityName),
 		storageBackend.AvailabilityStore(
 			nil).IndexDB.(*filedb.RangeDB),
+		pruner.AvailabilityName,
 	)
 
 	dbManagerService, err := manager.NewDBManager(
 		manager.WithLogger(logger.With("service", "db-manager")),
-		manager.WithPruner(pruner.DepositName, depositPruner),
-		manager.WithPruner(pruner.AvailabilityName, availabilityPruner),
+		manager.WithPruner(depositPruner),
+		manager.WithPruner(availabilityPruner),
 	)
 	if err != nil {
 		return nil, err

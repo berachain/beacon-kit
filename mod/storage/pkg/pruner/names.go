@@ -25,6 +25,7 @@
 
 package pruner
 
+// TODO: find better place for these names
 const (
 	// DepositName is the name of the deposit store pruner.
 	DepositName = "deposit-store-pruner"
