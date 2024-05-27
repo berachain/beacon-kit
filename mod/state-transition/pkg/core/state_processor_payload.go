@@ -164,7 +164,8 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// If deriving either of the roots or verifying the payload fails, return the error.
+	// If deriving either of the roots or verifying the payload fails, return
+	// the error.
 	if err = g.Wait(); err != nil {
 		return err
 	}
