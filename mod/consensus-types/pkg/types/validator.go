@@ -85,7 +85,8 @@ func NewValidatorFromDeposit(
 	}
 }
 
-// New creates a new Validator with the given public key, withdrawal credentials,
+// New creates a new Validator with the given public key, withdrawal
+// credentials,.
 func (v *Validator) New(
 	pubkey crypto.BLSPubkey,
 	withdrawalCredentials WithdrawalCredentials,

@@ -121,7 +121,8 @@ func (sp *StateProcessor[
 
 	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
-		if val.IsSlashed() && (slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
+		if val.IsSlashed() &&
+			(slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
 			if err = sp.processSlash(
 				st, val,
 				adjustedTotalSlashingBalance,

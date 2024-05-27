@@ -95,7 +95,10 @@ func (k *Backend[AvailabilityStoreT, BeaconStateT]) AvailabilityStore(
 func (k *Backend[AvailabilityStoreT, BeaconStateT]) StateFromContext(
 	ctx context.Context,
 ) core.BeaconState[*types.Validator] {
-	return state.NewBeaconStateFromDB[core.BeaconState[*types.Validator]](k.beaconStore.WithContext(ctx), k.cs)
+	return state.NewBeaconStateFromDB[core.BeaconState[*types.Validator]](
+		k.beaconStore.WithContext(ctx),
+		k.cs,
+	)
 }
 
 // BeaconStore returns the beacon store struct.

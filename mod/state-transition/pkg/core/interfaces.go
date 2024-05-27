@@ -158,7 +158,8 @@ type ReadOnlyWithdrawals interface {
 	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
 }
 
-// Validator represents an interface for a validator with generic type ValidatorT.
+// Validator represents an interface for a validator with generic type
+// ValidatorT.
 type Validator[ValidatorT any] interface {
 	ssz.Marshaler
 	ssz.HashRoot
@@ -174,7 +175,8 @@ type Validator[ValidatorT any] interface {
 	IsSlashed() bool
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
-	// GetEffectiveBalance returns the effective balance of the validator in Gwei.
+	// GetEffectiveBalance returns the effective balance of the validator in
+	// Gwei.
 	GetEffectiveBalance() math.Gwei
 	// SetEffectiveBalance sets the effective balance of the validator in Gwei.
 	SetEffectiveBalance(math.Gwei)

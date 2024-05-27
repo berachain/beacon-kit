@@ -184,7 +184,9 @@ func ProvideRuntime(
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
 		localBuilder,
-		[]validator.PayloadBuilder[core.BeaconState[*types.Validator]]{localBuilder},
+		[]validator.PayloadBuilder[core.BeaconState[*types.Validator]]{
+			localBuilder,
+		},
 	)
 
 	// Build the blockchain service.
