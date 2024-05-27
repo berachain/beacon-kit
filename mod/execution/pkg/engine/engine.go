@@ -27,8 +27,6 @@ package engine
 
 import (
 	"context"
-	"sync/atomic"
-	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -52,10 +50,6 @@ type Engine[
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
-
-	// executionClientHealthy is a boolean that represents the health status
-	// of the execution client.
-	executionClientHealthy atomic.Bool
 }
 
 // New creates a new Engine.
@@ -80,26 +74,9 @@ func (ee *Engine[
 ]) Start(
 	ctx context.Context,
 ) error {
-	t := time.NewTicker(5 * time.Second)
 	go func() {
-
 		if err := ee.ec.Start(ctx); err != nil {
 			panic(err)
-		}
-
-		for {
-			select {
-			case <-t.C:
-				// Check if the execution client is healthy.
-				if err := ee.ec.Status(); err != nil {
-					ee.executionClientHealthy.Store(false)
-				} else {
-					ee.executionClientHealthy.Store(true)
-				}
-			case <-ctx.Done():
-				t.Stop()
-				return
-			}
 		}
 	}()
 	return nil
