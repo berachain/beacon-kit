@@ -28,11 +28,13 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -121,7 +123,7 @@ type Deposit[
 	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
-		forkData *ForkDataT,
+		forkData ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
 			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
@@ -139,6 +141,12 @@ type ExecutionEngine interface {
 	) error
 }
 
+// ForkData is the interface for the fork data.
+type ForkData[ForkDataT any] interface {
+	// New creates a new fork data object.
+	New(primitives.Version, primitives.Root) ForkDataT
+}
+
 // RandaoProcessor is the interface for the randao processor.
 type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	// ProcessRandao processes the RANDAO reveal and ensures it
@@ -147,4 +155,33 @@ type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
 	// ProcessRandaoMixesReset resets the RANDAO mixes as defined
 	// in the Ethereum 2.0 specification.
 	ProcessRandaoMixesReset(BeaconStateT) error
+}
+
+// Validator represents an interface for a validator with generic type
+// ValidatorT.
+type Validator[
+	ValidatorT any,
+	WithdrawalCredentialsT ~[32]byte,
+] interface {
+	ssz.Marshaler
+	ssz.HashRoot
+	// New creates a new validator with the given parameters.
+	New(
+		pubkey crypto.BLSPubkey,
+		withdrawalCredentials WithdrawalCredentialsT,
+		amount math.Gwei,
+		effectiveBalanceIncrement math.Gwei,
+		maxEffectiveBalance math.Gwei,
+	) ValidatorT
+	// IsSlashed returns true if the validator is slashed.
+	IsSlashed() bool
+	// GetPubkey returns the public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator in
+	// Gwei.
+	GetEffectiveBalance() math.Gwei
+	// SetEffectiveBalance sets the effective balance of the validator in Gwei.
+	SetEffectiveBalance(math.Gwei)
+	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+	GetWithdrawableEpoch() math.Epoch
 }

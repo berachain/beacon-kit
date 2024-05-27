@@ -29,7 +29,8 @@ package core
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -44,7 +45,8 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
