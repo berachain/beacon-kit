@@ -28,7 +28,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,7 +35,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type KVStore[KVStoreT any] interface {
+type KVStore[
+	KVStoreT any,
+	ForkT any,
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
+	ValidatorT any,
+] interface {
 	Context() context.Context
 	WithContext(
 		ctx context.Context,
@@ -57,17 +62,17 @@ type KVStore[KVStoreT any] interface {
 	Copy() KVStoreT
 	GetSlot() (math.Slot, error)
 	SetSlot(slot math.Slot) error
-	GetFork() (*types.Fork, error)
-	SetFork(fork *types.Fork) error
+	GetFork() (ForkT, error)
+	SetFork(fork ForkT) error
 	GetGenesisValidatorsRoot() (common.Root, error)
 	SetGenesisValidatorsRoot(root common.Root) error
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
-	SetLatestBlockHeader(header *types.BeaconBlockHeader) error
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	SetLatestBlockHeader(header BeaconBlockHeaderT) error
 	GetBlockRootAtIndex(index uint64) (primitives.Root, error)
 	StateRootAtIndex(index uint64) (primitives.Root, error)
-	GetEth1Data() (*types.Eth1Data, error)
-	SetEth1Data(data *types.Eth1Data) error
-	GetValidators() ([]*types.Validator, error)
+	GetEth1Data() (Eth1DataT, error)
+	SetEth1Data(data Eth1DataT) error
+	GetValidators() ([]ValidatorT, error)
 	GetBalances() ([]uint64, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	SetNextWithdrawalIndex(index uint64) error
@@ -81,18 +86,18 @@ type KVStore[KVStoreT any] interface {
 	GetSlashingAtIndex(index uint64) (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	ValidatorByIndex(index math.ValidatorIndex) (*types.Validator, error)
+	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 	UpdateBlockRootAtIndex(index uint64, root primitives.Root) error
 	UpdateStateRootAtIndex(index uint64, root primitives.Root) error
 	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,
-		validator *types.Validator,
+		validator ValidatorT,
 	) error
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	AddValidator(
-		val *types.Validator,
+		val ValidatorT,
 	) error
-	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
+	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }

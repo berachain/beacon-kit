@@ -116,8 +116,7 @@ func (sp *StateProcessor[
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		eb := val.GetEffectiveBalance()
-		val.SetEffectiveBalance(min(eb+dep.GetAmount(),
+		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
 			math.Gwei(sp.cs.MaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}

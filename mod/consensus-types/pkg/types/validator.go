@@ -208,3 +208,8 @@ func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
 func (v Validator) GetWithdrawableEpoch() math.Epoch {
 	return v.WithdrawableEpoch
 }
+
+// GetWithdrawalCredentials returns the withdrawal credentials of the validator.
+func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
+	return v.WithdrawalCredentials
+}
