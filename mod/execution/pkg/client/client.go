@@ -191,12 +191,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 func (s *EngineClient[ExecutionPayloadDenebT]) syncCheck(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.SyncCheckInterval)
 	defer ticker.Stop()
+	s.logger.Info(
+		"starting sync check routine",
+		"interval",
+		s.cfg.SyncCheckInterval,
+	)
 	for {
-		s.logger.Info(
-			"starting sync check rountine",
-			"interval",
-			s.cfg.SyncCheckInterval,
-		)
 		select {
 		case <-ticker.C:
 			syncProgress, err := s.SyncProgress(ctx)
