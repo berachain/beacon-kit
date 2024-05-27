@@ -54,11 +54,30 @@ func (sp *StateProcessor[
 	)
 
 	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, _ := errgroup.WithContext(context.Background())
+	g, gCtx := errgroup.WithContext(context.Background())
 	var (
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
 	)
+
+	// Verify and notify the new payload early in the function.
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	g.Go(func() error {
+		if err := sp.executionEngine.VerifyAndNotifyNewPayload(
+			gCtx, engineprimitives.BuildNewPayloadRequest(
+				payload,
+				body.GetBlobKzgCommitments().ToVersionedHashes(),
+				&parentBeaconBlockRoot,
+				ctx.GetSkipPayloadIfExists(),
+				ctx.GetOptimisticEngine(),
+			),
+		); err != nil {
+			sp.logger.
+				Error("failed to notify engine of new payload", "error", err)
+			return err
+		}
+		return nil
+	})
 
 	g.Go(func() error {
 		var txsRootErr error
@@ -135,21 +154,6 @@ func (sp *StateProcessor[
 		)
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx.Unwrap(), engineprimitives.BuildNewPayloadRequest(
-			payload,
-			blobKzgCommitments.ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			ctx.GetSkipPayloadIfExists(),
-			ctx.GetOptimisticEngine(),
-		),
-	); err != nil {
-		sp.logger.
-			Error("failed to notify engine of new payload", "error", err)
-		return err
-	}
-
 	// Verify the number of withdrawals.
 	// TODO: This is in the wrong spot I think.
 	if withdrawals := payload.GetWithdrawals(); uint64(
@@ -161,7 +165,7 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// If deriving either of the roots fails, return the error.
+	// If deriving either of the roots or verifying the payload fails, return the error.
 	if err = g.Wait(); err != nil {
 		return err
 	}
