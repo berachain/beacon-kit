@@ -26,7 +26,7 @@
 package cache
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )

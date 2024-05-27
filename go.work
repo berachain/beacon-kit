@@ -6,6 +6,7 @@ use (
 	./mod/beacon
 	./mod/consensus-types
 	./mod/da
+	./mod/engine-primitives
 	./mod/errors
 	./mod/execution
 	./mod/log
@@ -14,7 +15,6 @@ use (
 	./mod/p2p
 	./mod/payload
 	./mod/primitives
-	./mod/primitives-engine
 	./mod/runtime
 	./mod/state-transition
 	./mod/storage
