@@ -52,6 +52,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
@@ -167,6 +168,9 @@ func ProvideRuntime(
 		logger.With("service", "state-processor"),
 	)
 
+	// Build the event feed.
+	blockFeed := event.FeedOf[types.BlockEvent]{}
+
 	// Build the builder service.
 	validatorService := validator.NewService[
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
@@ -215,6 +219,15 @@ func ProvideRuntime(
 		stateProcessor,
 		beaconDepositContract,
 		ts,
+		&blockFeed,
+	)
+
+	// Build the deposit service.
+	depositService := deposit.NewService[*depositdb.KVStore](
+		&blockFeed,
+		logger.With("service", "deposit"),
+		storageBackend,
+		beaconDepositContract,
 	)
 
 	// Build the service registry.
@@ -222,6 +235,7 @@ func ProvideRuntime(
 		service.WithLogger(logger.With("service", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
+		service.WithService(depositService),
 		service.WithService(engineClient),
 	)
 
