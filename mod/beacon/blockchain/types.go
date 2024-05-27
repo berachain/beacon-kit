@@ -156,7 +156,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
 	) error
 }
 

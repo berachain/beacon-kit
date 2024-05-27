@@ -49,7 +49,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -62,13 +61,13 @@ import (
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	*dastore.Store[types.BeaconBlockBody],
 	types.BeaconBlockBody,
-	state.BeaconState,
+	core.BeaconState[*types.Validator],
 	*datypes.BlobSidecars,
 	*depositdb.KVStore,
 	runtime.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
@@ -87,7 +86,7 @@ func ProvideRuntime(
 	storageBackend runtime.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	],
@@ -95,7 +94,7 @@ func ProvideRuntime(
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
-	executionEngine := execution.New[types.ExecutionPayload](
+	executionEngine := execution.New[engineprimitives.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
 		ts,
@@ -115,7 +114,7 @@ func ProvideRuntime(
 	}
 
 	// Build the local builder service.
-	localBuilder := payloadbuilder.New[state.BeaconState](
+	localBuilder := payloadbuilder.New[core.BeaconState[*types.Validator]](
 		&cfg.PayloadBuilder,
 		chainSpec,
 		logger.With("service", "payload-builder"),
@@ -146,7 +145,7 @@ func ProvideRuntime(
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
 		types.BeaconBlock,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 	](
 		chainSpec,
 		signer,
@@ -156,9 +155,13 @@ func ProvideRuntime(
 	stateProcessor := core.NewStateProcessor[
 		types.BeaconBlock,
 		types.BeaconBlockBody,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*transition.Context,
+		*types.Deposit,
+		*types.ForkData,
+		*types.Validator,
+		types.WithdrawalCredentials,
 	](
 		chainSpec,
 		randaoProcessor,
@@ -169,7 +172,7 @@ func ProvideRuntime(
 
 	// Build the builder service.
 	validatorService := validator.NewService[
-		state.BeaconState, *datypes.BlobSidecars,
+		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
 		&cfg.Validator,
 		logger.With("service", "validator"),
@@ -188,7 +191,9 @@ func ProvideRuntime(
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
 		localBuilder,
-		[]validator.PayloadBuilder[state.BeaconState]{localBuilder},
+		[]validator.PayloadBuilder[core.BeaconState[*types.Validator]]{
+			localBuilder,
+		},
 	)
 
 	depositPruner := pruner.NewPruner(
@@ -223,7 +228,7 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
-		state.BeaconState, *datypes.BlobSidecars,
+		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
 		storageBackend,
 		logger.With("service", "blockchain"),
@@ -258,7 +263,7 @@ func ProvideRuntime(
 	return runtime.NewBeaconKitRuntime[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
-		state.BeaconState,
+		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore,
 	](

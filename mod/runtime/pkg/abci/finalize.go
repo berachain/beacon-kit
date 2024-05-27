@@ -40,7 +40,7 @@ import (
 )
 
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *Handler[BlobsSidecarsT]) InitGenesis(
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
@@ -65,7 +65,7 @@ func (h *Handler[BlobsSidecarsT]) InitGenesis(
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *Handler[BlobsSidecarsT]) PreBlock(
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) PreBlock(
 	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	blk, blobs, err := encoding.
@@ -87,7 +87,7 @@ func (h *Handler[BlobsSidecarsT]) PreBlock(
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (h Handler[BlobsSidecarsT]) EndBlock(
+func (h Handler[BeaconStateT, BlobsSidecarsT]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Process the state transition and produce the required delta from

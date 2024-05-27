@@ -37,7 +37,7 @@ import (
 // by other services.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) retrieveDepositsFromBlock(
@@ -55,7 +55,7 @@ func (s *Service[
 // PruneDepositEvents prunes deposit events.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) PruneDepositEvents(

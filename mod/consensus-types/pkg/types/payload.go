@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-var _ ExecutionPayload = (*ExecutableDataDeneb)(nil)
+var _ engineprimitives.ExecutionPayload = (*ExecutableDataDeneb)(nil)
 
 // ExecutableDataDeneb is the execution payload for Deneb.
 //

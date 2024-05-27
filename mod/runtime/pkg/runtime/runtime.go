@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // BeaconKitRuntime is a struct that holds the
@@ -43,7 +43,7 @@ import (
 type BeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -61,7 +61,7 @@ type BeaconKitRuntime[
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
 	// abciHandler handles ABCI interactions for the BeaconKitRuntime.
-	abciHandler *abci.Handler[BlobSidecarsT]
+	abciHandler *abci.Handler[BeaconStateT, BlobSidecarsT]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -69,7 +69,7 @@ type BeaconKitRuntime[
 func NewBeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -89,7 +89,7 @@ func NewBeaconKitRuntime[
 	var (
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
-			state.BeaconState,
+			core.BeaconState[*types.Validator],
 			BlobSidecarsT,
 			DepositStoreT,
 		]
@@ -107,7 +107,7 @@ func NewBeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		abciHandler: abci.NewHandler(
+		abciHandler: abci.NewHandler[BeaconStateT](
 			chainSpec,
 			builderService,
 			chainService,
@@ -134,6 +134,6 @@ func (r *BeaconKitRuntime[
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
-]) ABCIHandler() *abci.Handler[BlobSidecarsT] {
+]) ABCIHandler() *abci.Handler[BeaconStateT, BlobSidecarsT] {
 	return r.abciHandler
 }
