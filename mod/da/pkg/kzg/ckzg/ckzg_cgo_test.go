@@ -106,17 +106,20 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	}
 	for i := range data.Blobs {
 		var blob eip4844.Blob
-		err = blob.UnmarshalJSON([]byte(`"` + data.Blobs[i] + `"`))
+		err = blob.UnmarshalJSON(
+			[]byte(`"` + data.Blobs[i] + `"`))
 		require.NoError(t, err)
 		args.Blobs[i] = &blob
 
 		var proof eip4844.KZGProof
-		err = proof.UnmarshalJSON([]byte(`"` + data.Proofs[i] + `"`))
+		err = proof.UnmarshalJSON(
+			[]byte(`"` + data.Proofs[i] + `"`))
 		require.NoError(t, err)
 		args.Proofs[i] = proof
 
 		var commitment eip4844.KZGCommitment
-		err = commitment.UnmarshalJSON([]byte(`"` + data.Commitments[i] + `"`))
+		err = commitment.UnmarshalJSON(
+			[]byte(`"` + data.Commitments[i] + `"`))
 		require.NoError(t, err)
 		args.Commitments[i] = commitment
 	}

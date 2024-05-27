@@ -132,7 +132,9 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
-func (b *BeaconBlockBodyDeneb) GetExecutionPayload() engineprimitives.ExecutionPayload {
+func (
+	b *BeaconBlockBodyDeneb,
+) GetExecutionPayload() engineprimitives.ExecutionPayload {
 	return b.ExecutionPayload
 }
 
@@ -149,9 +151,9 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
-//
-//nolint:lll // annoying to fix.
-func (b *BeaconBlockBodyDeneb) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
+func (
+	b *BeaconBlockBodyDeneb,
+) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
