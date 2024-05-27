@@ -36,7 +36,7 @@ import (
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -56,7 +56,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
@@ -70,7 +70,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
@@ -87,7 +87,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -140,7 +140,7 @@ func (sp *StateProcessor[
 //nolint:unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processSlash(
 	st BeaconStateT,
 	val *types.Validator,

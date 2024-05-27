@@ -38,7 +38,7 @@ import (
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -70,10 +70,10 @@ func (sp *StateProcessor[
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processDeposits(
 	st BeaconStateT,
-	deposits []*types.Deposit,
+	deposits []DepositT,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
@@ -81,7 +81,7 @@ func (sp *StateProcessor[
 			return err
 		}
 		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.Index); err != nil {
+		if err := st.SetEth1DepositIndex(dep.GetIndex()); err != nil {
 			return err
 		}
 	}
@@ -91,10 +91,10 @@ func (sp *StateProcessor[
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processDeposit(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -106,7 +106,7 @@ func (sp *StateProcessor[
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
-	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
+	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
 		var val *types.Validator
@@ -116,7 +116,7 @@ func (sp *StateProcessor[
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
+		val.EffectiveBalance = min(val.EffectiveBalance+dep.GetAmount(),
 			math.Gwei(sp.cs.MaxEffectiveBalance()))
 
 		return st.UpdateValidatorAtIndex(idx, val)
@@ -129,10 +129,10 @@ func (sp *StateProcessor[
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) createValidator(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -154,20 +154,15 @@ func (sp *StateProcessor[
 	}
 	epoch = sp.cs.SlotToEpoch(slot)
 
-	// Get the fork data for the current epoch.
-	fd := types.NewForkData(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	depositMessage := types.DepositMessage{
-		Pubkey:      dep.Pubkey,
-		Credentials: dep.Credentials,
-		Amount:      dep.Amount,
-	}
-	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.Signature, sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
+	// Verify that the message was signed correctly.
+	if err = dep.VerifySignature(
+		(*types.ForkData)(nil).New(
+			version.FromUint32[primitives.Version](
+				sp.cs.ActiveForkVersionForEpoch(epoch),
+			), genesisValidatorsRoot,
+		),
+		sp.cs.DomainTypeDeposit(),
+		sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}
@@ -179,15 +174,15 @@ func (sp *StateProcessor[
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
 	val := types.NewValidatorFromDeposit(
-		dep.Pubkey,
-		dep.Credentials,
-		dep.Amount,
+		dep.GetPubkey(),
+		dep.GetWithdrawalCredentials(),
+		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
@@ -199,7 +194,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, dep.Amount)
+	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
 // processWithdrawals as per the Ethereum 2.0 specification.
@@ -208,7 +203,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	body BeaconBlockBodyT,

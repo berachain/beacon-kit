@@ -30,10 +30,6 @@ import (
 	"encoding/json"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // TODO: InitGenesis should be calling into the StateProcessor.
@@ -45,28 +41,7 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	data := new(deneb.BeaconState)
-	if err := json.Unmarshal(bz, data); err != nil {
-		return nil, err
-	}
-
-	// Load the store.
-	store := r.storageBackend.StateFromContext(ctx)
-	if err := store.WriteGenesisStateDeneb(data); err != nil {
-		return nil, err
-	}
-
-	// Build ValidatorUpdates for CometBFT.
-	updates := make([]appmodulev2.ValidatorUpdate, 0)
-	for _, validator := range data.Validators {
-		updates = append(updates, appmodulev2.ValidatorUpdate{
-			PubKey:     validator.Pubkey[:],
-			PubKeyType: crypto.CometBLSType,
-			Power:      crypto.CometBLSPower,
-		},
-		)
-	}
-	return updates, nil
+	return r.abciHandler.InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -77,33 +52,5 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Process the state transition and produce the required delta from
-	// the sync committee.
-	updates, err := r.chainService.ProcessStateTransition(
-		ctx,
-		// TODO: improve the robustness of these types to ensure we
-		// don't run into any nil ptr issues.
-		r.abciHandler.LatestBeaconBlock,
-		r.abciHandler.LatestSidecars,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the delta into the appmodule ValidatorUpdate format to
-	// pass onto CometBFT.
-	return iter.MapErr(
-		updates,
-		func(
-			u **transition.ValidatorUpdate,
-		) (appmodulev2.ValidatorUpdate, error) {
-			update := *u
-			return appmodulev2.ValidatorUpdate{
-				PubKey:     update.Pubkey[:],
-				PubKeyType: crypto.CometBLSType,
-				//#nosec:G701 // this is safe.
-				Power: int64(update.EffectiveBalance.Unwrap()),
-			}, nil
-		},
-	)
+	return r.abciHandler.EndBlock(ctx)
 }

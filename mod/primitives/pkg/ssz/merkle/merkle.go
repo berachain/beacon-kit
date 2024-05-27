@@ -33,7 +33,7 @@ import (
 // As defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
-//nolint:lll
+//nolint:lll // link.
 func Tree[LeafT ~[32]byte](
 	leaves []LeafT,
 	hashFn func([]byte) LeafT,

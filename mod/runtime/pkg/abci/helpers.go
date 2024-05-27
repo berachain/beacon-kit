@@ -23,17 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package constants
+package abci
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-//
-//nolint:lll // link.
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+import (
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+func convertValidatorUpdate(
+	u **transition.ValidatorUpdate,
+) (appmodulev2.ValidatorUpdate, error) {
+	update := *u
+	if update == nil {
+		return appmodulev2.ValidatorUpdate{},
+			ErrUndefinedValidatorUpdate
+	}
+	return appmodulev2.ValidatorUpdate{
+		PubKey:     update.Pubkey[:],
+		PubKeyType: crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}, nil
+}

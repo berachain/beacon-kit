@@ -28,6 +28,7 @@ package abci
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -55,15 +56,22 @@ type BuilderService[
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
 type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	// ProcessStateTransition processes the given beacon block and associated
+	// ProcessGenesisData processes the genesis data and initializes the beacon
+	// state.
+	ProcessGenesisData(
+		context.Context,
+		*genesis.Genesis[
+			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+		],
+	) ([]*transition.ValidatorUpdate, error)
+	// ProcessBlockAndBlobs processes the given beacon block and associated
 	// blobs
 	// sidecars.
-	ProcessStateTransition(
+	ProcessBlockAndBlobs(
 		context.Context,
 		types.BeaconBlock,
 		BlobsSidecarsT,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// VerifyPayloadOnBlk verifies the payload on the given beacon block.
 	VerifyPayloadOnBlk(
 		context.Context, types.BeaconBlock,

@@ -33,11 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// SigVerificationFn defines a function type for verifying a signature.
-type SigVerificationFn func(
-	pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
-) error
-
 // DepositMessage represents a deposit message as defined in the Ethereum 2.0
 // specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
@@ -86,13 +81,28 @@ func CreateAndSignDepositMessage(
 	return depositMessage, signature, nil
 }
 
+// New creates a new deposit message.
+func (d *DepositMessage) New(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount math.Gwei,
+) *DepositMessage {
+	return &DepositMessage{
+		Pubkey:      pubkey,
+		Credentials: credentials,
+		Amount:      amount,
+	}
+}
+
 // VerifyDeposit verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature crypto.BLSSignature,
-	signatureVerificationFn SigVerificationFn,
 	domainType common.DomainType,
+	signatureVerificationFn func(
+		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+	) error,
 ) error {
 	domain, err := forkData.ComputeDomain(domainType)
 	if err != nil {

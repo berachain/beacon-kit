@@ -35,7 +35,7 @@ import (
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 //
-//nolint:lll
+//nolint:lll // link.
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path signing_data.go -objs SigningData -include ../bytes,../common -output signing_data.ssz.go
 type SigningData struct {
 	ObjectRoot common.Root   `ssz-size:"32"`
@@ -45,7 +45,7 @@ type SigningData struct {
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 //
-//nolint:lll
+//nolint:lll // link.
 func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() ([32]byte, error) },
 	domain common.Domain,

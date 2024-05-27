@@ -27,7 +27,9 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -35,61 +37,71 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ProcessStateTransition receives an incoming beacon block, it first validates
-// and then processes the block.
-//
-//nolint:funlen // todo cleanup.
+// ProcessGenesisData processes the genesis state and initializes the beacon
+// state.
 func (s *Service[
 	AvailabilityStoreT,
 	ReadOnlyBeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessStateTransition(
+]) ProcessGenesisData(
+	ctx context.Context,
+	genesisData *genesis.Genesis[
+		*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+	],
+) ([]*transition.ValidatorUpdate, error) {
+	return s.sp.InitializePreminedBeaconStateFromEth1(
+		s.sb.StateFromContext(ctx),
+		genesisData.Deposits,
+		genesisData.ExecutionPayloadHeader,
+		genesisData.ForkVersion,
+	)
+}
+
+// ProcessBlockAndBlobs receives an incoming beacon block, it first validates
+// and then processes the block.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
 ) ([]*transition.ValidatorUpdate, error) {
+	var (
+		g, gCtx    = errgroup.WithContext(ctx)
+		st         = s.sb.StateFromContext(ctx)
+		valUpdates []*transition.ValidatorUpdate
+	)
+
 	// If the block is nil, exit early.
 	if blk == nil || blk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
-	// Create a new errgroup with the provided context.
-	g, gCtx := errgroup.WithContext(ctx)
-	st := s.sb.StateFromContext(ctx)
-
-	// Launch a goroutine to process the state transition.
-	var valUpdates []*transition.ValidatorUpdate
+	// Launch a goroutine to process the incoming beacon block.
 	g.Go(func() error {
 		var err error
-		valUpdates, err = s.sp.Transition(
-			// We set `OptimisticEngine` to true since this is called during
-			// FinalizeBlock. We want to assume the payload is valid. If it
-			// ends up not being valid later, the node will simply AppHash,
-			// which is completely fine. This means we were syncing from a
-			// bad peer, and we would likely AppHash anyways.
-			//
-			// TODO: Figure out why SkipPayloadIfExists being `true`
-			// causes nodes to create gaps in their chain.
-			&transition.Context{
-				Context:          gCtx,
-				OptimisticEngine: true,
-			},
-			st,
-			blk,
-		)
+		// We set `OptimisticEngine` to true since this is called during
+		// FinalizeBlock. We want to assume the payload is valid. If it
+		// ends up not being valid later, the node will simply AppHash,
+		// which is completely fine. This means we were syncing from a
+		// bad peer, and we would likely AppHash anyways.
+		//
+		// TODO: Figure out why SkipPayloadIfExists being `true`
+		// causes nodes to create gaps in their chain.
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
 		return err
 	})
 
 	// Launch a goroutine to process the blob sidecars.
 	g.Go(func() error {
-		return s.bp.ProcessBlobs(
-			blk.GetSlot(),
-			s.sb.AvailabilityStore(ctx),
-			sidecars,
-		)
+		return s.processBlobSidecars(gCtx, blk.GetSlot(), sidecars)
 	})
 
+	// Wait for the goroutines to finish.
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
@@ -105,41 +117,50 @@ func (s *Service[
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
-	defer func() {
-		go s.sendPostBlockFCU(ctx, st, blk)
-	}()
+	// TODO: this is hood as fuck.
+	go s.sendPostBlockFCU(ctx, st, blk)
+	go s.postBlockProcessTasks(ctx, st)
 
-	//
-	//
-	//
-	//
-	//
-	// TODO: EVERYTHING BELOW THIS LINE SHOULD NOT PART OF THE
-	//  MAIN BLOCK PROCESSING THREAD.
-	//
-	//
-	//
-	//
-	//
-	//
+	return valUpdates, nil
+}
 
+// postBlockProcessTasks performs post block processing tasks.
+//
+// TODO: Deprecate this function and move it's usage outside of the main block
+// processing thread.
+func (s *Service[
+	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	BlobSidecarsT, DepositStoreT,
+]) postBlockProcessTasks(
+	ctx context.Context,
+	st ReadOnlyBeaconStateT,
+) {
 	// Prune deposits.
 	// TODO: This should be moved into a go-routine in the background.
 	// Watching for logs should be completely decoupled as well.
 	idx, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return nil, err
+		s.logger.Error(
+			"failed to get eth1 deposit index in postBlockProcessTasks",
+			"error", err)
+		return
 	}
 
 	// TODO: pruner shouldn't be in main block processing thread.
 	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		return nil, err
+		s.logger.Error(
+			"failed to prune deposit events in postBlockProcessTasks",
+			"error", err)
+		return
 	}
 
 	var lph engineprimitives.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return nil, err
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcessTasks",
+			"error", err)
+		return
 	}
 
 	// Process the logs from the previous blocks execution payload.
@@ -149,11 +170,69 @@ func (s *Service[
 	if err = s.retrieveDepositsFromBlock(
 		ctx, lph.GetNumber()-eth1FollowDistance,
 	); err != nil {
-		s.logger.Error("failed to process logs", "error", err)
-		return nil, err
+		s.logger.Error(
+			"failed to retrieve deposits from block in postBlockProcessTasks",
+			"error", err)
 	}
+}
 
-	return valUpdates, nil
+// ProcessBeaconBlock processes the beacon block.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) ProcessBeaconBlock(
+	ctx context.Context,
+	blk types.BeaconBlock,
+) ([]*transition.ValidatorUpdate, error) {
+	st := s.sb.StateFromContext(ctx)
+	return s.processBeaconBlock(ctx, st, blk, false)
+}
+
+// ProcessBeaconBlock processes the beacon block.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) processBeaconBlock(
+	ctx context.Context,
+	st ReadOnlyBeaconStateT,
+	blk types.BeaconBlock,
+	optimisticEngine bool,
+) ([]*transition.ValidatorUpdate, error) {
+	startTime := time.Now()
+	defer s.metrics.measureStateTransitionDuration(startTime)
+	valUpdates, err := s.sp.Transition(
+		&transition.Context{
+			Context:          ctx,
+			OptimisticEngine: optimisticEngine,
+		},
+		st,
+		blk,
+	)
+	return valUpdates, err
+}
+
+// ProcessBlobSidecars processes the blob sidecars.
+func (s *Service[
+	AvailabilityStoreT,
+	ReadOnlyBeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) processBlobSidecars(
+	ctx context.Context,
+	slot math.Slot,
+	sidecars BlobSidecarsT,
+) error {
+	startTime := time.Now()
+	defer s.metrics.measureBlobProcessingDuration(startTime)
+	return s.bp.ProcessBlobs(
+		slot,
+		s.sb.AvailabilityStore(ctx),
+		sidecars,
+	)
 }
 
 // VerifyPayload validates the execution payload on the block.
