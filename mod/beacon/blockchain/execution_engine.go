@@ -39,12 +39,12 @@ import (
 // It sets the head and finalizes the latest.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	slot math.Slot,
 	headEth1Hash common.ExecutionHash,
 ) error {
@@ -72,12 +72,12 @@ func (s *Service[
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	blk types.BeaconBlock,
 ) {
 	var (

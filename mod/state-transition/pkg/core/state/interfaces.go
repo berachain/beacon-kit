@@ -28,7 +28,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -103,8 +102,24 @@ type KVStore[
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }
 
-type Validator interface {
-	GetWithdrawalCredentials() types.WithdrawalCredentials
-	IsFullyWithdrawable(math.Gwei, math.Epoch) bool
-	IsPartiallyWithdrawable(math.Gwei, math.Gwei) bool
+// Validator represents an interface for a validator with generic withdrawal
+// credentials. WithdrawalCredentialsT is a type parameter that must implement
+// the WithdrawalCredentials interface.
+type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+	// GetWithdrawalCredentials returns the withdrawal credentials of the
+	// validator.
+	GetWithdrawalCredentials() WithdrawalCredentialsT
+	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
+	// certain Gwei amount and epoch.
+	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
+	// IsPartiallyWithdrawable checks if the validator is partially withdrawable
+	// given two Gwei amounts.
+	IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
+}
+
+// WithdrawalCredentials represents an interface for withdrawal credentials.
+type WithdrawalCredentials interface {
+	// ToExecutionAddress converts the withdrawal credentials to an execution
+	// address.
+	ToExecutionAddress() (common.ExecutionAddress, error)
 }

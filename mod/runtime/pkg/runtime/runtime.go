@@ -61,7 +61,7 @@ type BeaconKitRuntime[
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
 	// abciHandler handles ABCI interactions for the BeaconKitRuntime.
-	abciHandler *abci.Handler[BlobSidecarsT]
+	abciHandler *abci.Handler[BeaconStateT, BlobSidecarsT]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -107,7 +107,7 @@ func NewBeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		abciHandler: abci.NewHandler(
+		abciHandler: abci.NewHandler[BeaconStateT](
 			chainSpec,
 			builderService,
 			chainService,
@@ -134,6 +134,6 @@ func (r *BeaconKitRuntime[
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
-]) ABCIHandler() *abci.Handler[BlobSidecarsT] {
+]) ABCIHandler() *abci.Handler[BeaconStateT, BlobSidecarsT] {
 	return r.abciHandler
 }

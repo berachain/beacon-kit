@@ -44,8 +44,9 @@ type StateProcessor[
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
-	ValidatorT Validator[ValidatorT],
+	DepositT Deposit[types.ForkData, WithdrawalCredentialsT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
@@ -61,8 +62,9 @@ func NewStateProcessor[
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
-	DepositT Deposit[types.ForkData, types.WithdrawalCredentials],
-	ValidatorT Validator[ValidatorT],
+	DepositT Deposit[types.ForkData, WithdrawalCredentialsT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[
@@ -74,11 +76,12 @@ func NewStateProcessor[
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ValidatorT,
+	DepositT, ValidatorT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, ContextT, DepositT, ValidatorT,
+		BeaconStateT, BlobSidecarsT, ContextT,
+		DepositT, ValidatorT, WithdrawalCredentialsT,
 	]{
 		cs:              cs,
 		rp:              rp,
@@ -91,7 +94,7 @@ func NewStateProcessor[
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -175,7 +178,7 @@ func (sp *StateProcessor[
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) ProcessSlot(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -247,7 +250,7 @@ func (sp *StateProcessor[
 // state root.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -315,7 +318,7 @@ func (sp *StateProcessor[
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processEpoch(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -333,7 +336,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -418,7 +421,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -437,7 +440,7 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {

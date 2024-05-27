@@ -35,7 +35,7 @@ import (
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -55,7 +55,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
@@ -69,7 +69,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
@@ -86,7 +86,7 @@ func (sp *StateProcessor[
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -140,7 +140,7 @@ func (sp *StateProcessor[
 //nolint:unused // will be used later
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ValidatorT,
+	BlobSidecarsT, ContextT, DepositT, ValidatorT, WithdrawalCredentialsT,
 ]) processSlash(
 	st BeaconStateT,
 	val ValidatorT,

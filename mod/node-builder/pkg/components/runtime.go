@@ -155,6 +155,9 @@ func ProvideRuntime(
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*transition.Context,
+		*types.Deposit,
+		*types.Validator,
+		types.WithdrawalCredentials,
 	](
 		chainSpec,
 		randaoProcessor,
