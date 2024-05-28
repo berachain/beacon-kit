@@ -32,8 +32,11 @@ import (
 )
 
 const (
-	defaultDialURL                 = "http://localhost:8551"
-	defaultIPCDialURL              = "ipc:///.tmp/geth/geth.ipc" // TODO: Connect to the correct IPC path.
+	defaultDialURL = "http://localhost:8551"
+	// TODO: Remove this from default config. Let user specify absolute path
+	// to the IPC file.
+	// ex ipc:///Users/name/Library/Ethereum/geth.ipc
+	defaultIPCDialURL              = "ipc:///path/to/geth.ipc"
 	defaultRPCRetries              = 3
 	defaultRPCTimeout              = 2 * time.Second
 	defaultRPCStartupCheckInterval = 3 * time.Second

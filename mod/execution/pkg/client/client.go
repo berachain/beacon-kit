@@ -186,6 +186,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 			s.statusErr = err
 			s.statusErrMu.Unlock()
 			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			s.logger.Error("failed to setup execution client", "err", err)
 			continue
 		}
 		break
