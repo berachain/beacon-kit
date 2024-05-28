@@ -44,7 +44,9 @@ import (
 // FinalizeBlockMiddleware is a struct that encapsulates the necessary
 // components to handle
 // the proposal processes.
-type FinalizeBlockMiddleware[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
+type FinalizeBlockMiddleware[
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
@@ -75,7 +77,9 @@ func NewFinalizeBlockMiddleware[
 }
 
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *FinalizeBlockMiddleware[BeaconStateT, BlobsSidecarsT]) InitGenesis(
+func (h *FinalizeBlockMiddleware[
+	BeaconStateT, BlobsSidecarsT,
+]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
