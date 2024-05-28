@@ -146,7 +146,6 @@ func ProvideRuntime(
 	](
 		chainSpec,
 		signer,
-		logger.With("service", "randao"),
 	)
 
 	stateProcessor := core.NewStateProcessor[
