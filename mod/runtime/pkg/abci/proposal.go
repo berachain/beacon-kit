@@ -27,8 +27,6 @@ package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -47,8 +45,8 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
-	// builderService is the service responsible for building beacon blocks.
-	builderService BuilderService[
+	// validatorService is the service responsible for building beacon blocks.
+	validatorService ValidatorService[
 		types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
@@ -78,7 +76,7 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 // NewHandler creates a new instance of the Handler struct.
 func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
 	chainSpec primitives.ChainSpec,
-	builderService BuilderService[
+	validatorService ValidatorService[
 		types.BeaconBlock, core.BeaconState[*types.Validator], BlobsSidecarsT],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BeaconStateT, BlobsSidecarsT] {
@@ -88,9 +86,9 @@ func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
 	}
 
 	return &Handler[BeaconStateT, BlobsSidecarsT]{
-		chainSpec:      chainSpec,
-		builderService: builderService,
-		chainService:   chainService,
+		chainSpec:        chainSpec,
+		validatorService: validatorService,
+		chainService:     chainService,
 		// TODO: we will eventually gossipt the blobs separately from
 		// CometBFT.
 		blobGossiper: rp2p.NoopGossipHandler[BlobsSidecarsT, []byte]{},
@@ -108,7 +106,7 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
 	logger := ctx.Logger().With("service", "prepare-proposal")
 
 	// Get the best block and blobs.
-	blk, blobs, err := h.builderService.RequestBestBlock(
+	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
@@ -146,35 +144,17 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
 func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		logger = ctx.Logger().With("service", "process-proposal")
-		blk    types.BeaconBlock
-		err    error
-	)
+	logger := ctx.Logger().With("service", "process-proposal")
 
-	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		logger.Error(
-			"failed to retrieve beacon block from request",
-			"error",
-			err,
-		)
+	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	if err != nil {
+		logger.Error("failed to retrieve beacon block from request", "error", err)
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
 
-	// If the block is syncing, we reject the proposal. This is guard against a
-	// potential attack under the unlikely scenario in which a supermajority of
-	// validators have their EL's syncing. If nodes were to accept this proposal
-	// optmistically when they are syncing, it could potentially allow for a
-	// malicious validator to push a bad block through.
-	//
-	// We also defensively check for a variety of pre-defined JSON-RPC errors.
-	if err = h.chainService.VerifyPayloadOnBlk(ctx, blk); errors.IsAny(
-		err,
-		engineerrors.ErrSyncingPayloadStatus,
-		engineerrors.ErrPreDefinedJSONRPC,
-	) {
+	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
