@@ -164,3 +164,54 @@ func (s *Service[
 			)
 	}
 }
+
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) SendHackFCU(ctx context.Context) error {
+	st := s.sb.StateFromContext(ctx)
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	lbr, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	lbr.StateRoot, err = st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	br, err := lbr.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	ss, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// Ask the builder to send a forkchoice update with attributes.
+	// This will trigger a new payload to be built.
+	if _, err = s.lb.RequestPayload(
+		ctx,
+		st,
+		ss,
+		//#nosec:G701 // won't realistically overflow.
+		// TODO: clock time properly.
+		uint64(time.Now().Unix()+1),
+		br,
+		lph.GetBlockHash(),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}

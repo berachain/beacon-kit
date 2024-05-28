@@ -75,4 +75,6 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 	VerifyPayloadOnBlk(
 		context.Context, types.BeaconBlock,
 	) error
+
+	SendHackFCU(ctx context.Context) error
 }
