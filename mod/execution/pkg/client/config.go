@@ -33,6 +33,7 @@ import (
 
 const (
 	defaultDialURL                 = "http://localhost:8551"
+	defaultIPCDialURL              = "ipc:///.tmp/geth/geth.ipc" // TODO: Connect to the correct IPC path.
 	defaultRPCRetries              = 3
 	defaultRPCTimeout              = 2 * time.Second
 	defaultRPCStartupCheckInterval = 3 * time.Second
