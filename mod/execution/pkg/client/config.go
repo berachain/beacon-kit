@@ -37,7 +37,6 @@ const (
 	defaultRPCTimeout              = 2 * time.Second
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
-	defaultSyncCheckInterval       = 5 * time.Second
 	//#nosec:G101 // false positive.
 	defaultJWTSecretPath = "./jwt.hex"
 )
@@ -52,7 +51,6 @@ func DefaultConfig() Config {
 		RPCTimeout:              defaultRPCTimeout,
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
-		SyncCheckInterval:       defaultSyncCheckInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
 	}
 }
@@ -72,8 +70,6 @@ type Config struct {
 	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`
 	// JWTRefreshInterval is the Interval for the JWT refresh.
 	RPCJWTRefreshInterval time.Duration `mapstructure:"rpc-jwt-refresh-interval"`
-	// SyncCheckInterval is the Interval for the sync check.
-	SyncCheckInterval time.Duration `mapstructure:"sync-check-interval"`
 	// JWTSecretPath is the path to the JWT secret.
 	JWTSecretPath string `mapstructure:"jwt-secret-path"`
 }

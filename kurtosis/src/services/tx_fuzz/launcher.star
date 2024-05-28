@@ -41,7 +41,7 @@ def get_config(
         "--sk={0}".format(prefunded_private_key),
         "--accounts=100",
         "--txcount=100",
-        "--slot-time=1",
+        "--slot-time=3",
     ])
 
     if len(tx_spammer_extra_args) > 0:

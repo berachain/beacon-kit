@@ -123,7 +123,13 @@ func (s *Service[
 			ctx,
 			stCopy,
 			blk.GetSlot()+1,
-			ts,
+			//#nosec:G701 // won't realistically overflow.
+			// TODO: clock time properly.
+			uint64(max(
+				math.U64(time.Now().Unix()+1),
+				blk.GetBody().GetExecutionPayload().GetTimestamp()+
+					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			)),
 			prevBlockRoot,
 			headHash,
 			parentHash,

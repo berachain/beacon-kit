@@ -128,8 +128,4 @@ var (
 	ErrNilPayloadStatus = errors.New(
 		"nil payload status received from execution client",
 	)
-
-	// ErrExecutionClientIsSyncing indicates that the execution client is
-	// syncing.
-	ErrExecutionClientIsSyncing = errors.New("execution client is syncing")
 )

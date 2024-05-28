@@ -45,15 +45,15 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
-	// builderService is the service responsible for building beacon blocks.
-	builderService BuilderService[
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BlobsSidecarsT]
+
+	// validatorService is the service responsible for building beacon blocks.
+	validatorService ValidatorService[
 		types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
 	]
-
-	// chainService represents the blockchain service.
-	chainService BlockchainService[BlobsSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -61,7 +61,8 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 		BlobsSidecarsT,
 		[]byte,
 	]
-
+	// TODO: we will eventually gossip the blocks separately from
+	// CometBFT, but for now, these are no-op gossipers.
 	beaconBlockGossiper p2p.PublisherReceiver[
 		types.BeaconBlock,
 		[]byte,
@@ -75,10 +76,15 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 }
 
 // NewHandler creates a new instance of the Handler struct.
-func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
+func NewHandler[
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+](
 	chainSpec primitives.ChainSpec,
-	builderService BuilderService[
-		types.BeaconBlock, core.BeaconState[*types.Validator], BlobsSidecarsT],
+	validatorService ValidatorService[
+		types.BeaconBlock,
+		core.BeaconState[*types.Validator],
+		BlobsSidecarsT,
+	],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BeaconStateT, BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
@@ -87,14 +93,11 @@ func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
 	}
 
 	return &Handler[BeaconStateT, BlobsSidecarsT]{
-		chainSpec:      chainSpec,
-		builderService: builderService,
-		chainService:   chainService,
-		// TODO: we will eventually gossipt the blobs separately from
-		// CometBFT.
-		blobGossiper: rp2p.NoopGossipHandler[
-			BlobsSidecarsT, []byte,
-		]{},
+		chainSpec:        chainSpec,
+		validatorService: validatorService,
+		chainService:     chainService,
+		blobGossiper: rp2p.
+			NoopGossipHandler[BlobsSidecarsT, []byte]{},
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainSpec,
@@ -110,7 +113,7 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
 	logger := ctx.Logger().With("service", "prepare-proposal")
 
 	// Get the best block and blobs.
-	blk, blobs, err := h.builderService.RequestBestBlock(
+	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk == nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
@@ -148,13 +151,9 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
 func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
 	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		logger = ctx.Logger().With("service", "process-proposal")
-		blk    types.BeaconBlock
-		err    error
-	)
+	logger := ctx.Logger().With("service", "process-proposal")
 
-	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
+	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
 		logger.Error(
 			"failed to retrieve beacon block from request",
 			"error",
@@ -163,14 +162,8 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
-	}
-
-	// TODO: we need to verify the blobs are in the proposal as well to prevent
-	// FinalizeBlock from failing? Or can blobs be lazy? reee?
-
-	if _, err = h.chainService.ProcessBeaconBlock(
-		ctx, blk,
-	); err != nil {
+	} else if err = h.validatorService.
+		VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
