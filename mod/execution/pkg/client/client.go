@@ -438,13 +438,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) status(
 	}
 
 	if s.statusErr == nil {
-		// If we have an error, we will attempt
-		// to verify the chain ID again.
-		//#nosec:G703 wtf is even this problem here.
-		s.statusErr = s.VerifyChainID(ctx)
-	}
-
-	if s.statusErr == nil {
 		s.statusErrCond.Broadcast()
 	}
 
