@@ -38,109 +38,109 @@ type SpecData[
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
 	// transaction.
-	MinDepositAmount uint64 `mapstructure:"min-deposit-amount"`
+	MinDepositAmount uint64 `mapstructure:"min-deposit-amount" toml:"min-deposit-amount"`
 	// MaxEffectiveBalance is the maximum effective balance allowed for a
 	// validator.
-	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
+	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance" toml:"max-effective-balance"`
 	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
+	EjectionBalance uint64 `mapstructure:"ejection-balance" toml:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
-	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
+	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment" toml:"effective-balance-increment"`
 
 	// Time parameters constants.
 	//
 	// SlotsPerEpoch is the number of slots per epoch.
-	SlotsPerEpoch uint64 `mapstructure:"slots-per-epoch"`
+	SlotsPerEpoch uint64 `mapstructure:"slots-per-epoch" toml:"slots-per-epoch"`
 	// SlotsPerHistoricalRoot is the number of slots per historical root.
-	SlotsPerHistoricalRoot uint64 `mapstructure:"slots-per-historical-root"`
+	SlotsPerHistoricalRoot uint64 `mapstructure:"slots-per-historical-root" toml:"slots-per-historical-root"`
 
 	// Signature domains.
 	//
 	// DomainDomainTypeProposerProposer is the domain for beacon proposer
 	// signatures.
-	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer"`
+	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer" toml:"domain-type-beacon-proposer"`
 	// DomainTypeAttester is the domain for beacon attester signatures.
-	DomainTypeAttester DomainTypeT `mapstructure:"domain-type-beacon-attester"`
+	DomainTypeAttester DomainTypeT `mapstructure:"domain-type-beacon-attester" toml:"domain-type-beacon-attester"`
 	// DomainTypeRandao is the domain for RANDAO reveal signatures.
-	DomainTypeRandao DomainTypeT `mapstructure:"domain-type-randao"`
+	DomainTypeRandao DomainTypeT `mapstructure:"domain-type-randao" toml:"domain-type-randao"`
 	// DomainTypeDeposit is the domain for deposit contract signatures.
-	DomainTypeDeposit DomainTypeT `mapstructure:"domain-type-deposit"`
+	DomainTypeDeposit DomainTypeT `mapstructure:"domain-type-deposit" toml:"domain-type-deposit"`
 	// DomainTypeVoluntaryExit is the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit DomainTypeT `mapstructure:"domain-type-voluntary-exit"`
+	DomainTypeVoluntaryExit DomainTypeT `mapstructure:"domain-type-voluntary-exit" toml:"domain-type-voluntary-exit"`
 	// DomainTypeSelectionProof is the domain for selection proof signatures.
-	DomainTypeSelectionProof DomainTypeT `mapstructure:"domain-type-selection-proof"`
+	DomainTypeSelectionProof DomainTypeT `mapstructure:"domain-type-selection-proof" toml:"domain-type-selection-proof"`
 	// DomainTypeAggregateAndProof is the domain for aggregate and proof
 	// signatures.
-	DomainTypeAggregateAndProof DomainTypeT `mapstructure:"domain-type-aggregate-and-proof"`
+	DomainTypeAggregateAndProof DomainTypeT `mapstructure:"domain-type-aggregate-and-proof" toml:"domain-type-aggregate-and-proof"`
 	// DomainTypeApplicationMask is the domain for the application mask.
-	DomainTypeApplicationMask DomainTypeT `mapstructure:"domain-type-application-mask"`
+	DomainTypeApplicationMask DomainTypeT `mapstructure:"domain-type-application-mask" toml:"domain-type-application-mask"`
 
 	// Eth1-related values.
 	//
 	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
+	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address" toml:"deposit-contract-address"`
 	// DepositEth1ChainID is the chain ID of the execution client.
-	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
+	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id" toml:"deposit-eth1-chain-id"`
 	// Eth1FollowDistance is the distance between the eth1 chain and the beacon
 	// chain with respect to reading deposits.
-	Eth1FollowDistance uint64 `mapstructure:"eth1-follow-distance"`
+	Eth1FollowDistance uint64 `mapstructure:"eth1-follow-distance" toml:"eth1-follow-distance"`
 	// TargetSecondsPerEth1Block is the target time between eth1 blocks.
-	TargetSecondsPerEth1Block uint64 `mapstructure:"target-seconds-per-eth1-block"`
+	TargetSecondsPerEth1Block uint64 `mapstructure:"target-seconds-per-eth1-block" toml:"target-seconds-per-eth1-block"`
 
 	// Fork-related values.
 	//
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch"`
+	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch" toml:"electra-fork-epoch"`
 
 	// State list lengths
 	//
 	// EpochsPerHistoricalVector is the number of epochs in the historical
 	// vector.
-	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector"`
+	EpochsPerHistoricalVector uint64 `mapstructure:"epochs-per-historical-vector" toml:"epochs-per-historical-vector"`
 	// EpochsPerSlashingsVector is the number of epochs in the slashings vector.
-	EpochsPerSlashingsVector uint64 `mapstructure:"epochs-per-slashings-vector"`
+	EpochsPerSlashingsVector uint64 `mapstructure:"epochs-per-slashings-vector" toml:"epochs-per-slashings-vector"`
 	// HistoricalRootsLimit is the maximum number of historical roots.
-	HistoricalRootsLimit uint64 `mapstructure:"historical-roots-limit"`
+	HistoricalRootsLimit uint64 `mapstructure:"historical-roots-limit" toml:"historical-roots-limit"`
 	// ValidatorRegistryLimit is the maximum number of validators in the
 	// registry.
-	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
+	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit" toml:"validator-registry-limit"`
 
 	// Max operations per block constants.
 	//
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
-	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
+	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block" toml:"max-deposits-per-block"`
 
 	// Rewards and penalties constants.
 	//
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
-	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
+	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier" toml:"proportional-slashing-multiplier"`
 
 	// Capella Values
 	//
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
-	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
+	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload" toml:"max-withdrawals-per-payload"`
 	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
 	// validator
 	// withdrawals allowed per sweep.
-	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep" toml:"max-validators-per-withdrawals-sweep"`
 
 	// Deneb Values
 	//
 	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
 	// will keep the blobs for.
-	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
+	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request" toml:"min-epochs-for-blobs-sidecars-request"`
 	// MaxBlobCommitmentsPerBlock specifies the maximum number of blob
 	// commitments allowed per block.
-	MaxBlobCommitmentsPerBlock uint64 `mapstructure:"max-blob-commitments-per-block"`
+	MaxBlobCommitmentsPerBlock uint64 `mapstructure:"max-blob-commitments-per-block" toml:"max-blob-commitments-per-block"`
 	// MaxBlobsPerBlock specifies the maximum number of blobs allowed per block.
-	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block"`
+	MaxBlobsPerBlock uint64 `mapstructure:"max-blobs-per-block" toml:"max-blobs-per-block"`
 	// FieldElementsPerBlob specifies the number of field elements per blob.
-	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
+	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob" toml:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
-	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
+	BytesPerBlob uint64 `mapstructure:"bytes-per-blob" toml:"bytes-per-blob"`
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
-	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
+	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth" toml:"kzg-commitment-inclusion-proof-depth"`
 }
