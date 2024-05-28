@@ -50,12 +50,11 @@ type RootData struct {
 	Root primitives.Root `json:"root"`
 }
 
-type ValidatorStateResponse struct {
-	ExecutionOptimistic bool         `json:"execution_optimistic"`
-	Finalized           bool         `json:"finalized"`
-	Data                any `json:"data"`
+type ValidatorResponse struct {
+	ExecutionOptimistic bool `json:"execution_optimistic"`
+	Finalized           bool `json:"finalized"`
+	Data                any  `json:"data"`
 }
-
 
 type ValidatorData struct {
 	Index     math.U64         `json:"index"`
@@ -63,7 +62,6 @@ type ValidatorData struct {
 	Status    string           `json:"status"`
 	Validator *types.Validator `json:"validator"`
 }
-
 
 type ValidatorBalanceData struct {
 	Index   math.U64 `json:"index"`
@@ -74,4 +72,13 @@ type CommitteeData struct {
 	Index      math.U64   `json:"index"`
 	Slot       math.U64   `json:"slot"`
 	Validators []math.U64 `json:"validators"`
+}
+
+type BlockRewardsData struct {
+	ProposerIndex     math.U64 `json:"proposer_index"`
+	Total             math.U64 `json:"total"`
+	Attestations      math.U64 `json:"attestations"`
+	SyncAggregate     math.U64 `json:"sync_aggregate"`
+	ProposerSlashings math.U64 `json:"proposer_slashings"`
+	AttesterSlashings math.U64 `json:"attester_slashings"`
 }

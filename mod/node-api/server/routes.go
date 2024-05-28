@@ -37,18 +37,7 @@ type Handlers interface {
 	PostStateValidators(c echo.Context) error
 	GetStateValidatorBalances(c echo.Context) error
 	PostStateValidatorBalances(c echo.Context) error
-	GetStateCommittees(c echo.Context) error
-	GetStateSyncCommittees(c echo.Context) error
-	GetBlockHeaders(c echo.Context) error
-	GetBlockHeader(c echo.Context) error
-	GetBlock(c echo.Context) error
-	GetBlobSidecars(c echo.Context) error
-	GetPoolVoluntaryExits(c echo.Context) error
-	PostPoolVoluntaryExits(c echo.Context) error
-	GetPoolSignedBLSExecutionChanges(c echo.Context) error
-	PostPoolSignedBLSExecutionChanges(c echo.Context) error
-	GetBlockProposerDuties(c echo.Context) error
-	GetConfigSpec(c echo.Context) error
+	GetBlockRewards(c echo.Context) error
 }
 
 func UseMiddlewares(e *echo.Echo, middlewares ...echo.MiddlewareFunc) {
@@ -88,15 +77,15 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/states/:state_id/validator_balances",
 		h.PostStateValidatorBalances)
 	e.GET("/eth/v1/beacon/states/:state_id/committees",
-		h.GetStateCommittees)
+		h.NotImplemented)
 	e.GET("/eth/v1/beacon/states/:state_id/sync_committees",
-		h.GetStateSyncCommittees)
+		h.NotImplemented)
 	e.GET("/eth/v1/beacon/states/:state_id/randao",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/headers",
-		h.GetBlockHeaders) 
+		h.NotImplemented) 
 	e.GET("/eth/v1/beacon/headers/:block_id",
-		h.GetBlockHeader) 
+		h.NotImplemented) 
 	e.POST("/eth/v1/beacon/blocks/blinded_blocks",
 		h.NotImplemented) 
 	e.POST("/eth/v2/beacon/blocks/blinded_blocks",
@@ -106,13 +95,13 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v2/beacon/blocks",
 		h.NotImplemented)
 	e.GET("/eth/v2/beacon/blocks/:block_id",
-		h.GetBlock)
+		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blocks/:block_id/root",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blocks/:block_id/attestations",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blob_sidecars/:block_id",
-		h.GetBlobSidecars)
+		h.NotImplemented)
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/deposit_snapshot",
@@ -146,13 +135,13 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/pool/sync_committees",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/pool/voluntary_exits",
-		h.GetPoolVoluntaryExits)
+		h.NotImplemented)
 	e.POST("/eth/v1/beacon/pool/voluntary_exits",
-		h.PostPoolVoluntaryExits)
+		h.NotImplemented)
 	e.GET("/eth/v1/beacon/pool/bls_to_execution_changes",
-		h.GetPoolSignedBLSExecutionChanges)
+		h.NotImplemented)
 	e.POST("/eth/v1/beacon/pool/bls_to_execution_changes",
-		h.PostPoolSignedBLSExecutionChanges)
+		h.NotImplemented)
 }
 
 func assignBuilderRoutes(e *echo.Echo, h Handlers) {
@@ -164,7 +153,7 @@ func assignConfigRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/config/fork_schedule",
 		h.NotImplemented)
 	e.GET("/eth/v1/config/spec",
-		h.GetConfigSpec)
+		h.NotImplemented)
 	e.GET("/eth/v1/config/deposit_contract",
 		h.NotImplemented)
 }
@@ -204,7 +193,7 @@ func assignValidatorRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/validator/duties/attester/:epoch",
 		h.NotImplemented)
 	e.GET("/eth/v1/validator/duties/proposer/:epoch",
-		h.GetBlockProposerDuties)
+		h.NotImplemented)
 	e.POST("/eth/v1/validator/duties/sync/:epoch",
 		h.NotImplemented)
 	e.GET("/eth/v3/validator/blocks/:slot",
@@ -239,7 +228,7 @@ func assignRewardsRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/rewards/blocks/:block_id",
-		h.NotImplemented)
+		h.GetBlockRewards)
 	e.POST("/eth/v1/beacon/rewards/attestations/:epoch",
 		h.NotImplemented)
 }
