@@ -37,7 +37,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
@@ -133,7 +132,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
-	go s.syncCheck(ctx)
 	return s.initializeConnection(ctx)
 }
 
@@ -142,7 +140,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 func (s *EngineClient[ExecutionPayloadDenebT]) Status() error {
 	s.statusErrMu.RLock()
 	defer s.statusErrMu.RUnlock()
-	return s.status()
+	return s.status(context.Background())
 }
 
 // WaitForHealthy waits for the engine client to be healthy.
@@ -152,7 +150,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) WaitForHealthy(
 	s.statusErrMu.Lock()
 	defer s.statusErrMu.Unlock()
 
-	for s.status() != nil {
+	for s.status(ctx) != nil {
 		go s.refreshUntilHealthy(ctx)
 		select {
 		case <-ctx.Done():
@@ -186,39 +184,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 }
 
 // ============================== HELPERS ==============================
-
-// syncCheck checks the sync status of the execution client.
-func (s *EngineClient[ExecutionPayloadDenebT]) syncCheck(ctx context.Context) {
-	ticker := time.NewTicker(s.cfg.SyncCheckInterval)
-	defer ticker.Stop()
-	s.logger.Info(
-		"starting sync check routine",
-		"interval",
-		s.cfg.SyncCheckInterval,
-	)
-	for {
-		select {
-		case <-ticker.C:
-			syncProgress, err := s.SyncProgress(ctx)
-			if err != nil {
-				s.logger.Error("failed to get sync progress", "err", err)
-				continue
-			}
-
-			s.statusErrMu.Lock()
-			if syncProgress == nil || syncProgress.Done() {
-				s.logger.Info("execution client is in sync 🍻")
-				s.statusErr = nil
-			} else {
-				s.logger.Warn("execution client is syncing", "sync_progress", syncProgress)
-				s.statusErr = engineerrors.ErrExecutionClientIsSyncing
-			}
-			s.statusErrMu.Unlock()
-		case <-ctx.Done():
-			return
-		}
-	}
-}
 
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
@@ -464,10 +429,19 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 // ================================ Info ================================
 
 // status returns the status of the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) status() error {
+func (s *EngineClient[ExecutionPayloadDenebT]) status(
+	ctx context.Context,
+) error {
 	// If the client is not started, we return an error.
 	if s.Eth1Client.Client == nil {
 		return ErrNotStarted
+	}
+
+	if s.statusErr == nil {
+		// If we have an error, we will attempt
+		// to verify the chain ID again.
+		//#nosec:G703 wtf is even this problem here.
+		s.statusErr = s.VerifyChainID(ctx)
 	}
 
 	if s.statusErr == nil {
@@ -490,7 +464,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := s.status(); err == nil {
+			if err := s.status(ctx); err == nil {
 				return
 			}
 		}

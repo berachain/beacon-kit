@@ -47,9 +47,6 @@ rpc-startup-check-interval = "{{ .BeaconKit.Engine.RPCStartupCheckInterval }}"
 # Interval for the JWT refresh.
 rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
 
-# Interval for checking client sync status
-sync-check-interval = "{{ .BeaconKit.Engine.SyncCheckInterval }}"
-
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
