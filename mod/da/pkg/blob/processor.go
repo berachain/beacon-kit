@@ -93,7 +93,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	// If there are no blobs to verify, return early.
 	if numSidecars == 0 {
 		sp.logger.Info(
-			"no blob sidecars to verify, skipping verifier 🧢",
+			"no blob sidecars to verify, skipping verifier 🧢 ",
 			"slot",
 			slot,
 		)
@@ -109,7 +109,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	}
 
 	sp.logger.Info(
-		"successfully verified all blob sidecars 💦",
+		"successfully verified all blob sidecars 💦 ",
 		"num-sidecars",
 		numSidecars,
 		"slot",

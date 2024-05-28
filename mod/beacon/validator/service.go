@@ -76,15 +76,15 @@ type Service[
 	// queued up for inclusion in the next block.
 	ds DepositStore
 
-	// localBuilder represents the local block builder, this builder
+	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder[BeaconStateT]
+	localPayloadBuilder PayloadBuilder[BeaconStateT]
 
-	// remoteBuilders represents a list of remote block builders, these
+	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder[BeaconStateT]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 }
 
 // NewService creates a new validator service.
@@ -101,21 +101,21 @@ func NewService[
 	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
-	localBuilder PayloadBuilder[BeaconStateT],
-	remoteBuilders []PayloadBuilder[BeaconStateT],
+	localPayloadBuilder PayloadBuilder[BeaconStateT],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 ) *Service[BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconStateT, BlobSidecarsT]{
-		cfg:             cfg,
-		logger:          logger,
-		bsb:             bsb,
-		chainSpec:       chainSpec,
-		signer:          signer,
-		stateProcessor:  stateProcessor,
-		blobFactory:     blobFactory,
-		randaoProcessor: randaoProcessor,
-		ds:              ds,
-		localBuilder:    localBuilder,
-		remoteBuilders:  remoteBuilders,
+		cfg:                   cfg,
+		logger:                logger,
+		bsb:                   bsb,
+		chainSpec:             chainSpec,
+		signer:                signer,
+		stateProcessor:        stateProcessor,
+		blobFactory:           blobFactory,
+		randaoProcessor:       randaoProcessor,
+		ds:                    ds,
+		localPayloadBuilder:   localPayloadBuilder,
+		remotePayloadBuilders: remotePayloadBuilders,
 	}
 }
 
@@ -191,7 +191,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	body.SetRandaoReveal(reveal)
 
 	// Get the payload for the block.
-	envelope, err := s.RetrievePayload(ctx, st, blk)
+	envelope, err := s.retrievePayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
 	} else if envelope == nil {
@@ -269,4 +269,43 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	)
 
 	return blk, sidecars, nil
+}
+
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
+// logs the process.
+func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
+	ctx context.Context,
+	blk types.BeaconBlock,
+) error {
+	s.logger.Info(
+		"received incoming beacon block 📫 ",
+		"state_root", blk.GetStateRoot(),
+	)
+
+	st := s.bsb.StateFromContext(ctx)
+
+	// Verify the state root of the incoming block.
+	if err := s.verifyStateRoot(
+		ctx, st, blk,
+	); err != nil {
+		// TODO: this is expensive because we are not caching the
+		// previous result of HashTreeRoot().
+		var localStateRoot primitives.Root
+		localStateRoot, err = st.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+
+		s.logger.Error("failed to verify state root, rejecting incoming block",
+			"block_state_root", blk.GetStateRoot(),
+			"local_state_root", localStateRoot,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"block state root verification succeeded",
+		"state_root", blk.GetStateRoot(),
+	)
+	return nil
 }

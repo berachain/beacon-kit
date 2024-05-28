@@ -35,8 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// BuilderService is responsible for building beacon blocks.
-type BuilderService[
+// ValidatorService is responsible for building beacon blocks.
+type ValidatorService[
 	BeaconBlockT types.BeaconBlock,
 	BeaconStateT any,
 	BlobsSidecarsT ssz.Marshallable,
@@ -50,6 +50,12 @@ type BuilderService[
 	) (
 		BeaconBlockT, BlobsSidecarsT, error,
 	)
+	// VerifyIncomingBlock verifies the incoming block and returns an error if
+	// the block is invalid.
+	VerifyIncomingBlock(
+		ctx context.Context,
+		blk BeaconBlockT,
+	) error
 }
 
 // BlockchainService defines the interface for interacting with the blockchain
@@ -71,8 +77,4 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		types.BeaconBlock,
 		BlobsSidecarsT,
 	) ([]*transition.ValidatorUpdate, error)
-	// VerifyPayloadOnBlk verifies the payload on the given beacon block.
-	VerifyPayloadOnBlk(
-		context.Context, types.BeaconBlock,
-	) error
 }
