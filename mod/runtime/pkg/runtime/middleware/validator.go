@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package middleware
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -94,7 +94,8 @@ func NewValidatorMiddleware[
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
-	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
+	ctx sdk.Context,
+	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	logger := ctx.Logger().With("service", "prepare-proposal")
 
@@ -135,7 +136,8 @@ func (h *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandl
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
-	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
+	ctx sdk.Context,
+	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	logger := ctx.Logger().With("service", "process-proposal")
 

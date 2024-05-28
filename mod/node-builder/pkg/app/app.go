@@ -116,7 +116,8 @@ func (app *BeaconApp) setupBeaconModule() {
 	// Set the beacon module's handlers.
 	app.SetPrepareProposal(
 		beaconModule.ABCIValidatorMiddleware().
-			PrepareProposalHandler)
+			PrepareProposalHandler,
+	)
 	app.SetProcessProposal(
 		beaconModule.
 			ABCIValidatorMiddleware().

@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package middleware
 
 import (
 	"context"
@@ -41,7 +41,8 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// FinalizeBlockMiddleware is a struct that encapsulates the necessary components to handle
+// FinalizeBlockMiddleware is a struct that encapsulates the necessary
+// components to handle
 // the proposal processes.
 type FinalizeBlockMiddleware[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
