@@ -113,17 +113,9 @@ func (app *BeaconApp) setupBeaconModule() {
 		panic("beacon module not found")
 	}
 
-	// Set the beacon module's handlers.
-	app.SetPrepareProposal(
-		beaconModule.ABCIValidatorMiddleware().
-			PrepareProposalHandler,
-	)
-	app.SetProcessProposal(
-		beaconModule.
-			ABCIValidatorMiddleware().
-			ProcessProposalHandler,
-	)
-	app.SetPreBlocker(beaconModule.ABCIFinalizeBlockMiddleware().PreBlock)
+	app.SetPrepareProposal(beaconModule.ABCIHandler().PrepareProposalHandler)
+	app.SetProcessProposal(beaconModule.ABCIHandler().ProcessProposalHandler)
+	app.SetPreBlocker(beaconModule.ABCIHandler().PreBlock)
 
 	// TODO: this needs to be made un-hood.
 	if err := beaconModule.StartServices(

@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service/mocks"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRegistry_StartAll(t *testing.T) {
@@ -60,7 +59,7 @@ func TestRegistry_StartAll(t *testing.T) {
 		t.Fatalf("Failed to register Service2: %v", err)
 	}
 
-	require.NoError(t, registry.StartAll(context.Background()))
+	registry.StartAll(context.Background())
 	time.Sleep(25 * time.Millisecond)
 
 	service1.AssertCalled(t, "Start", mock.Anything)
@@ -102,7 +101,7 @@ func TestRegistry_Statuses(t *testing.T) {
 
 	service1.On("Start", mock.Anything).Return(nil).Once()
 	service2.On("Start", mock.Anything).Return(nil).Once()
-	require.NoError(t, registry.StartAll(context.Background()))
+	registry.StartAll(context.Background())
 
 	statuses = registry.Statuses()
 

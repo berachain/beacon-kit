@@ -31,28 +31,44 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
+// NewDepositFn is a function that creates a new deposit from
+// the given parameters.
+type NewDepositFn[
+	DepositT any, WithdrawalCredentialsT ~[32]byte,
+] func(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentialsT,
+	amount math.Gwei,
+	signature crypto.BLSSignature,
+	index uint64,
+) DepositT
+
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 //
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=deposit.abigen.go
 type WrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
 	BeaconDepositContract
+	// newDepositFn is a function that creates a new deposit.
+	newDepositFn NewDepositFn[DepositT, WithdrawalCredentialsT]
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT any,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
 	client bind.ContractBackend,
+	newDepositFn NewDepositFn[DepositT, WithdrawalCredentialsT],
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
@@ -67,19 +83,24 @@ func NewWrappedBeaconDepositContract[
 		return nil, errors.New("contract must not be nil")
 	}
 
+	if newDepositFn == nil {
+		return nil, errors.New("newDepositFn must not be nil")
+	}
+
 	return &WrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
 		BeaconDepositContract: *contract,
+		newDepositFn:          newDepositFn,
 	}, nil
 }
 
-// ReadDeposits reads deposits from the deposit contract.
+// GetDeposits gets deposits from the deposit contract.
 func (dc *WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
-]) ReadDeposits(
+]) GetDeposits(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]DepositT, error) {
@@ -96,8 +117,7 @@ func (dc *WrappedBeaconDepositContract[
 
 	deposits := make([]DepositT, 0)
 	for logs.Next() {
-		var d DepositT
-		deposits = append(deposits, d.New(
+		deposits = append(deposits, dc.newDepositFn(
 			bytes.ToBytes48(logs.Event.Pubkey),
 			WithdrawalCredentialsT(
 				bytes.ToBytes32(logs.Event.Credentials)),

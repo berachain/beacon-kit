@@ -250,26 +250,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	g.Go(func() error {
 		// Compute the state root for the block.
 		var stateRoot primitives.Root
-
-		s.logger.Info(
-			"computing state root for block 🌲",
-			"slot", blk.GetSlot(),
-		)
-
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
-			s.logger.Error(
-				"failed to compute state root for block ❌ ",
-				"slot", requestedSlot,
-				"error", err,
-			)
 			return err
 		}
-
-		s.logger.Info("state root computed for block 💻 ",
-			"slot", requestedSlot,
-			"state_root", stateRoot,
-		)
 		blk.SetStateRoot(stateRoot)
 		return nil
 	})
@@ -278,10 +262,9 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 		return nil, sidecars, err
 	}
 
-	s.logger.Info(
-		"beacon block successfully built 🏎️",
+	s.logger.Info("beacon block assembled 🎉",
 		"slot", requestedSlot,
-		"state_root", blk.GetStateRoot(),
+		"state-root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
 
@@ -313,18 +296,15 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 			return err
 		}
 
-		s.logger.Error(
-			"failed to verify state root - rejecting incoming block ❌ ",
-			"block_state_root",
-			blk.GetStateRoot(),
-			"local_state_root",
-			localStateRoot,
+		s.logger.Error("failed to verify state root, rejecting incoming block",
+			"block_state_root", blk.GetStateRoot(),
+			"local_state_root", localStateRoot,
 		)
 		return err
 	}
 
 	s.logger.Info(
-		"block state root verification succeeded - accepting incoming block ✅ ",
+		"block state root verification succeeded",
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil

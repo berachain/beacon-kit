@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package middleware
+package abci
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -39,18 +39,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ValidatorMiddleware is a middleware between ABCI and the validator logic.
-type ValidatorMiddleware[
-	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
-] struct {
+// Handler is a struct that encapsulates the necessary components to handle
+// the proposal processes.
+type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
+
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BlobsSidecarsT]
+
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
 	]
+
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.Publisher[
@@ -64,12 +68,15 @@ type ValidatorMiddleware[
 		encoding.ABCIRequest,
 		types.BeaconBlock,
 	]
+
+	// TODO: this is really hacky here.
+	LatestBeaconBlock types.BeaconBlock
+	LatestSidecars    BlobsSidecarsT
 }
 
-// NewValidatorMiddleware creates a new instance of the Handler struct.
-func NewValidatorMiddleware[
-	BeaconStateT any,
-	BlobsSidecarsT ssz.Marshallable,
+// NewHandler creates a new instance of the Handler struct.
+func NewHandler[
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -77,10 +84,17 @@ func NewValidatorMiddleware[
 		core.BeaconState[*types.Validator],
 		BlobsSidecarsT,
 	],
-) *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT] {
-	return &ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]{
+	chainService BlockchainService[BlobsSidecarsT],
+) *Handler[BeaconStateT, BlobsSidecarsT] {
+	// This is just for nilaway, TODO: remove later.
+	if chainService == nil {
+		panic("chain service is nil")
+	}
+
+	return &Handler[BeaconStateT, BlobsSidecarsT]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
+		chainService:     chainService,
 		blobGossiper: rp2p.
 			NoopGossipHandler[BlobsSidecarsT, []byte]{},
 		beaconBlockGossiper: rp2p.
@@ -92,11 +106,8 @@ func NewValidatorMiddleware[
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
-func (h *ValidatorMiddleware[
-	BeaconStateT, BlobsSidecarsT,
-]) PrepareProposalHandler(
-	ctx sdk.Context,
-	req *cmtabci.PrepareProposalRequest,
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) PrepareProposalHandler(
+	ctx sdk.Context, req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	logger := ctx.Logger().With("service", "prepare-proposal")
 
@@ -136,11 +147,8 @@ func (h *ValidatorMiddleware[
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
-func (h *ValidatorMiddleware[
-	BeaconStateT, BlobsSidecarsT,
-]) ProcessProposalHandler(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
+func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
+	ctx sdk.Context, req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	logger := ctx.Logger().With("service", "process-proposal")
 

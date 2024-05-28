@@ -28,7 +28,6 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -59,6 +58,8 @@ type Service[
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
+	// dc is a connection to the deposit contract.
+	dc DepositContract
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
@@ -74,8 +75,6 @@ type Service[
 	dbm *manager.DBManager
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[types.BeaconBlock]]
 }
 
 // NewService creates a new validator service.
@@ -102,13 +101,9 @@ func NewService[
 		types.BeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-<<<<<<< services
 	dc DepositContract,
 	dbm *manager.DBManager,
-=======
->>>>>>> main
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -117,7 +112,6 @@ func NewService[
 		AvailabilityStoreT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-<<<<<<< services
 		sb:      sb,
 		logger:  logger,
 		cs:      cs,
@@ -128,17 +122,6 @@ func NewService[
 		dc:      dc,
 		metrics: newChainMetrics(ts),
 		dbm:     dbm,
-=======
-		sb:        sb,
-		logger:    logger,
-		cs:        cs,
-		ee:        ee,
-		lb:        lb,
-		bp:        bp,
-		sp:        sp,
-		metrics:   newChainMetrics(ts),
-		blockFeed: blockFeed,
->>>>>>> main
 	}
 }
 
