@@ -137,7 +137,7 @@ func (s *Service[
 ) error {
 	// slot is the block slot number adjusted by the follow distance.
 	slot := e.Block().GetSlot() - s.eth1FollowDistance
-	s.logger.Info("💵 processing deposit logs 💵", "slot", slot)
+	s.logger.Info("processing deposit logs 💵", "slot", slot)
 	// deposits are retrieved from the deposit contract.
 	deposits, err := s.dc.ReadDeposits(e.Context(), slot.Unwrap())
 	if err != nil {
