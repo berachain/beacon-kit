@@ -123,14 +123,6 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// DepositContract is the ABI for the deposit contract.
-type DepositContract interface {
-	GetDeposits(
-		ctx context.Context,
-		blockNumber uint64,
-	) ([]*types.Deposit, error)
-}
-
 // EventFeed is a generic interface for sending events.
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of

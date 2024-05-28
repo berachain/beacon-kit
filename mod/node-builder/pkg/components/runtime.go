@@ -215,7 +215,6 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-		beaconDepositContract,
 		ts,
 		&blockFeed,
 	)

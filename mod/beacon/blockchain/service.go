@@ -58,8 +58,6 @@ type Service[
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
-	// dc is a connection to the deposit contract.
-	dc DepositContract
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
@@ -101,7 +99,6 @@ func NewService[
 		types.BeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-	dc DepositContract,
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
@@ -119,7 +116,6 @@ func NewService[
 		lb:        lb,
 		bp:        bp,
 		sp:        sp,
-		dc:        dc,
 		metrics:   newChainMetrics(ts),
 		blockFeed: blockFeed,
 	}
