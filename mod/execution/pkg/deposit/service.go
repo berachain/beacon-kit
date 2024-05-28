@@ -75,7 +75,9 @@ func NewService[
 ) *Service[
 	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ] {
-	return &Service[BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT]{
+	return &Service[
+		BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
+	]{
 		feed:   feed,
 		logger: logger,
 		sb:     sb,
