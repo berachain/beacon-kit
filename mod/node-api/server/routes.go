@@ -106,8 +106,6 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/deposit_snapshot",
 		h.NotImplemented)
-	e.GET("/eth/v1/beacon/rewards/block/:block_id",
-		h.NotImplemented)
 	e.POST("/eth/v1/beacon/rewards/attestation/:epoch",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blinded_blocks/:block_id",
