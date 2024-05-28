@@ -124,6 +124,10 @@ func (db *RangeDB) Prune(index uint64) error {
 	return nil
 }
 
+func (db *RangeDB) FirstNonNilIndex() uint64 {
+	return db.firstNonNilIndex
+}
+
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
 	return []byte(fmt.Sprintf("%d/%s", index, hex.FromBytes(key).Unwrap()))

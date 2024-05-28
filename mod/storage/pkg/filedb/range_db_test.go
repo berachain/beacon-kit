@@ -244,7 +244,7 @@ func TestRangeDB_Prune(t *testing.T) {
 			expectedError: false,
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				checkNotPruned(t, rdb, 1, 5)
+				requireExist(t, rdb, 1, 5)
 			},
 		},
 		{
@@ -260,8 +260,8 @@ func TestRangeDB_Prune(t *testing.T) {
 			expectedError: false,
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				checkPruned(t, rdb, 0, 3)
-				checkNotPruned(t, rdb, 4, 5)
+				requireNotExist(t, rdb, 0, 3)
+				requireExist(t, rdb, 4, 5)
 			},
 		},
 	}
@@ -288,6 +288,10 @@ func TestRangeDB_Prune(t *testing.T) {
 	}
 }
 
+// ERMST
+
+// TODO: TEST INVARIANTS!!!
+
 // =============================== HELPERS ==================================
 
 // newTestFDB returns a new file DB instance with an in-memory filesystem.
@@ -302,8 +306,8 @@ func newTestFDB() *file.DB {
 	)
 }
 
-// checkPruned requires the indexes from `from` to `to` have been pruned.
-func checkPruned(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+// requireNotExist requires the indexes from `from` to `to` to be empty.
+func requireNotExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
 	t.Helper()
 	for i := from; i <= to; i++ {
 		exists, err := rdb.Has(i, []byte("key"))
@@ -312,8 +316,8 @@ func checkPruned(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
 	}
 }
 
-// checkNotPruned requires the indexes from `from` to `to` haven't been pruned.
-func checkNotPruned(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+// requireExist requires the indexes from `from` to `to` not be empty
+func requireExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
 	t.Helper()
 	for i := from; i <= to; i++ {
 		exists, err := rdb.Has(i, []byte("key"))
