@@ -122,7 +122,7 @@ func (s *Service[
 	// block processing.
 	// TODO: this is hood as fuck.
 	go s.sendPostBlockFCU(ctx, st, blk)
-	go s.postBlockProcessTasks(ctx, st)
+	go s.postBlockProcessTasks(st)
 
 	return valUpdates, nil
 }
@@ -135,7 +135,6 @@ func (s *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ]) postBlockProcessTasks(
-	ctx context.Context,
 	st BeaconStateT,
 ) {
 	// Prune deposits.
@@ -148,39 +147,7 @@ func (s *Service[
 			"error", err)
 		return
 	}
-
-<<<<<<< services
 	s.dbm.NotifyAll(idx)
-
-	var lph engineprimitives.ExecutionPayloadHeader
-	lph, err = st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcessTasks",
-			"error", err)
-		return
-	}
-
-	// Process the logs from the previous blocks execution payload.
-	// TODO: This should be moved out of the main block processing flow.
-	// TODO: eth1FollowDistance should be done actually proper
-	eth1FollowDistance := math.U64(1)
-	if err = s.retrieveDepositsFromBlock(
-		ctx, lph.GetNumber()-eth1FollowDistance,
-	); err != nil {
-		s.logger.Error(
-			"failed to retrieve deposits from block in postBlockProcessTasks",
-			"error", err)
-	}
-=======
-	// TODO: pruner shouldn't be in main block processing thread.
-	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		s.logger.Error(
-			"failed to prune deposit events in postBlockProcessTasks",
-			"error", err)
-		return
-	}
->>>>>>> main
 }
 
 // ProcessBeaconBlock processes the beacon block.

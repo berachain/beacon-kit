@@ -247,11 +247,7 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-<<<<<<< services
-		beaconDepositContract,
 		dbManagerService,
-=======
->>>>>>> main
 		ts,
 		&blockFeed,
 	)

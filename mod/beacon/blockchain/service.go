@@ -102,11 +102,7 @@ func NewService[
 		types.BeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-<<<<<<< services
-	dc DepositContract,
 	dbm *manager.DBManager,
-=======
->>>>>>> main
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
@@ -117,18 +113,6 @@ func NewService[
 		AvailabilityStoreT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-<<<<<<< services
-		sb:      sb,
-		logger:  logger,
-		cs:      cs,
-		ee:      ee,
-		lb:      lb,
-		bp:      bp,
-		sp:      sp,
-		dc:      dc,
-		metrics: newChainMetrics(ts),
-		dbm:     dbm,
-=======
 		sb:        sb,
 		logger:    logger,
 		cs:        cs,
@@ -138,7 +122,7 @@ func NewService[
 		sp:        sp,
 		metrics:   newChainMetrics(ts),
 		blockFeed: blockFeed,
->>>>>>> main
+		dbm:       dbm,
 	}
 }
 
