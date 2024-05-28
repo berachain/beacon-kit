@@ -303,7 +303,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
-		ctx, st.Copy(), blk,
+		ctx, st, blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
