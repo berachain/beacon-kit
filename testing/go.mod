@@ -31,7 +31,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240528040605-589d2bf8c2d2 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240506203005-b920effebbe8 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
