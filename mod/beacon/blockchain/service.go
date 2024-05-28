@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -72,6 +73,8 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
+	// blockFeed is the event feed for new blocks.
+	blockFeed EventFeed[events.Block[types.BeaconBlock]]
 }
 
 // NewService creates a new validator service.
@@ -100,6 +103,7 @@ func NewService[
 	],
 	dc DepositContract,
 	ts TelemetrySink,
+	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -108,15 +112,16 @@ func NewService[
 		AvailabilityStoreT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:      sb,
-		logger:  logger,
-		cs:      cs,
-		ee:      ee,
-		lb:      lb,
-		bp:      bp,
-		sp:      sp,
-		dc:      dc,
-		metrics: newChainMetrics(ts),
+		sb:        sb,
+		logger:    logger,
+		cs:        cs,
+		ee:        ee,
+		lb:        lb,
+		bp:        bp,
+		sp:        sp,
+		dc:        dc,
+		metrics:   newChainMetrics(ts),
+		blockFeed: blockFeed,
 	}
 }
 

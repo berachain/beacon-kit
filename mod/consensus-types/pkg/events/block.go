@@ -23,21 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package events
 
 import (
 	"context"
+
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+type Block[BeaconBlockT types.BeaconBlock] struct {
+	ctx   context.Context
+	block BeaconBlockT
+}
+
+func NewBlock[
+	BeaconBlockT types.BeaconBlock,
+](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
+	return Block[BeaconBlockT]{
+		ctx:   ctx,
+		block: block,
+	}
+}
+
+func (e Block[BeaconBlockT]) Context() context.Context {
+	return e.ctx
+}
+
+func (e Block[BeaconBlockT]) Block() types.BeaconBlock {
+	return e.block
 }
