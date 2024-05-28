@@ -75,11 +75,11 @@ func NewWrappedBeaconDepositContract[
 	}, nil
 }
 
-// GetDeposits gets deposits from the deposit contract.
+// ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
-]) GetDeposits(
+]) ReadDeposits(
 	ctx context.Context,
 	blkNum uint64,
 ) ([]DepositT, error) {

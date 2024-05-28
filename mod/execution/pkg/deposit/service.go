@@ -139,7 +139,7 @@ func (s *Service[
 	slot := e.Block().GetSlot() - s.eth1FollowDistance
 	s.logger.Info("💵 processing deposit logs 💵", "slot", slot)
 	// deposits are retrieved from the deposit contract.
-	deposits, err := s.dc.GetDeposits(e.Context(), slot.Unwrap())
+	deposits, err := s.dc.ReadDeposits(e.Context(), slot.Unwrap())
 	if err != nil {
 		return err
 	}

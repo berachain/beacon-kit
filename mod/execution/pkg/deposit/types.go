@@ -55,7 +55,8 @@ type BlockFeed[
 
 // Contract is the ABI for the deposit contract.
 type Contract[DepositT any] interface {
-	GetDeposits(
+	// ReadDeposits reads deposits from the deposit contract.
+	ReadDeposits(
 		ctx context.Context,
 		blockNumber uint64,
 	) ([]DepositT, error)
