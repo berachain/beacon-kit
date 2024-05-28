@@ -102,19 +102,12 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
-	ctx context.Context,
-) error {
-	if err := s.initializeConnection(ctx); err != nil {
-		return err
-	}
-	if s.cfg.RPCDialURL.IsIPC() {
-		s.startIPCServer(ctx)
-	}
-	return nil
+// Name returns the name of the engine client.
+func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
+	return "EngineClient"
 }
 
-// StartWithHTTP starts the engine client.
+// Start starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
@@ -132,6 +125,13 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
+
+	// If we are running in IPC mode, we will need start the IPC server
+	// as well.
+	if s.cfg.RPCDialURL.IsIPC() {
+		s.startIPCServer(ctx)
+	}
+
 	return s.initializeConnection(ctx)
 }
 
@@ -180,40 +180,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 		)
 	}
 
-	return nil
-}
-
-// ============================== HELPERS ==============================
-
-func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
-	ctx context.Context,
-) error {
-	// Initialize the connection to the execution client.
-	var (
-		err     error
-		chainID *big.Int
-	)
-	for {
-		s.logger.Info(
-			"waiting for execution client to start 🍺🕔",
-			"dial_url", s.cfg.RPCDialURL,
-		)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
-			s.statusErrMu.Lock()
-			s.statusErr = err
-			s.statusErrMu.Unlock()
-			time.Sleep(s.cfg.RPCStartupCheckInterval)
-			continue
-		}
-		break
-	}
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
-	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
-		return err
-	}
-
 	// Log the chain ID.
 	s.logger.Info(
 		"connected to execution client 🔌",
@@ -225,22 +191,28 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		s.eth1ChainID,
 	)
 
-	// Exchange capabilities with the execution client.
-	if _, err = s.ExchangeCapabilities(ctx); err != nil {
-		s.logger.Error("failed to exchange capabilities", "err", err)
-		return err
-	}
 	return nil
 }
 
-// setupExecutionClientConnections dials the execution client and
-// ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
+// ============================== HELPERS ==============================
+
+func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
 ) error {
-	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		return err
+	// Initialize the connection to the execution client.
+	for {
+		s.logger.Info(
+			"waiting for execution client to start 🍺🕔",
+			"dial_url", s.cfg.RPCDialURL,
+		)
+		if err := s.dialExecutionRPCClient(ctx); err != nil {
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			continue
+		}
+		break
 	}
 
 	// Ensure the execution client is connected to the correct chain.
@@ -250,6 +222,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		}
+		return err
+	}
+
+	// Exchange capabilities with the execution client.
+	if _, err := s.ExchangeCapabilities(ctx); err != nil {
+		s.logger.Error("failed to exchange capabilities", "err", err)
 		return err
 	}
 	return nil
@@ -354,13 +332,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, er
 	return header, nil
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
-	return "EngineClient"
-}
-
 // ================================ IPC ================================
-
-//
 
 func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	ctx context.Context,
