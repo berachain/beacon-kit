@@ -25,44 +25,36 @@
 
 package blockchain
 
-import (
-	"context"
+// // sendFCU sends a forkchoice update to the execution client.
+// // It sets the head and finalizes the latest.
+// func (s *Service[
+// 	AvailabilityStoreT,
+// 	BeaconStateT,
+// 	BlobSidecarsT,
+// 	DepositStoreT,
+// ]) sendFCU(
+// 	ctx context.Context,
+// 	st BeaconStateT,
+// 	slot math.Slot,
+// 	headEth1Hash common.ExecutionHash,
+// ) error {
+// 	lph, err := st.GetLatestExecutionPayloadHeader()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	eth1BlockHash := lph.GetBlockHash()
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// sendFCU sends a forkchoice update to the execution client.
-// It sets the head and finalizes the latest.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) sendFCU(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-	headEth1Hash common.ExecutionHash,
-) error {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-	eth1BlockHash := lph.GetBlockHash()
-
-	_, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1Hash,
-				SafeBlockHash:      eth1BlockHash,
-				FinalizedBlockHash: eth1BlockHash,
-			},
-			nil,
-			s.cs.ActiveForkVersionForSlot(slot),
-		),
-	)
-	return err
-}
+// 	_, _, err = s.ee.NotifyForkchoiceUpdate(
+// 		ctx,
+// 		engineprimitives.BuildForkchoiceUpdateRequest(
+// 			&engineprimitives.ForkchoiceStateV1{
+// 				HeadBlockHash:      headEth1Hash,
+// 				SafeBlockHash:      eth1BlockHash,
+// 				FinalizedBlockHash: eth1BlockHash,
+// 			},
+// 			nil,
+// 			s.cs.ActiveForkVersionForSlot(slot),
+// 		),
+// 	)
+// 	return err
+// }

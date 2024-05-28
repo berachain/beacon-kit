@@ -341,7 +341,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 			return err
 		}
 
-		if _, err := s.localPayloadBuilder.RequestPayload(
+		if _, err = s.localPayloadBuilder.RequestPayload(
 			ctx,
 			st,
 			blk.GetSlot()+1,
