@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package mocks
 
 import (
@@ -24,7 +49,7 @@ func NewMockBackend() *backend.Backend {
 
 func setReturnValues(sdb *StateDB) {
 	sdb.EXPECT().GetGenesisValidatorsRoot().Return(primitives.Root{0x01}, nil)
-	sdb.EXPECT().GetSlot().Return(1234, nil)
+	sdb.EXPECT().GetSlot().Return(1, nil)
 	sdb.EXPECT().GetLatestExecutionPayloadHeader().Return(nil, nil)
 	sdb.EXPECT().SetLatestExecutionPayloadHeader(mock.Anything).Return(nil)
 	sdb.EXPECT().GetEth1DepositIndex().Return(0, nil)
@@ -36,8 +61,12 @@ func setReturnValues(sdb *StateDB) {
 	sdb.EXPECT().SetFork(mock.Anything).Return(nil)
 	sdb.EXPECT().GetLatestBlockHeader().Return(nil, nil)
 	sdb.EXPECT().SetLatestBlockHeader(mock.Anything).Return(nil)
-	sdb.EXPECT().GetBlockRootAtIndex(mock.Anything).Return(primitives.Root{0x01}, nil)
-	sdb.EXPECT().StateRootAtIndex(mock.Anything).Return(primitives.Root{0x01}, nil)
+	sdb.EXPECT().
+		GetBlockRootAtIndex(mock.Anything).
+		Return(primitives.Root{0x01}, nil)
+	sdb.EXPECT().
+		StateRootAtIndex(mock.Anything).
+		Return(primitives.Root{0x01}, nil)
 	sdb.EXPECT().GetEth1Data().Return(nil, nil)
 	sdb.EXPECT().SetEth1Data(mock.Anything).Return(nil)
 	sdb.EXPECT().GetValidators().Return(nil, nil)
@@ -48,7 +77,9 @@ func setReturnValues(sdb *StateDB) {
 	sdb.EXPECT().SetNextWithdrawalValidatorIndex(mock.Anything).Return(nil)
 	sdb.EXPECT().GetTotalSlashing().Return(0, nil)
 	sdb.EXPECT().SetTotalSlashing(mock.Anything).Return(nil)
-	sdb.EXPECT().GetRandaoMixAtIndex(mock.Anything).Return(primitives.Bytes32{0x01}, nil)
+	sdb.EXPECT().
+		GetRandaoMixAtIndex(mock.Anything).
+		Return(primitives.Bytes32{0x01}, nil)
 	sdb.EXPECT().GetSlashings().Return(nil, nil)
 	sdb.EXPECT().SetSlashingAtIndex(mock.Anything, mock.Anything).Return(nil)
 	sdb.EXPECT().GetSlashingAtIndex(mock.Anything).Return(0, nil)
@@ -64,12 +95,19 @@ func setReturnValues(sdb *StateDB) {
 		ExitEpoch:                  0,
 		WithdrawableEpoch:          0,
 	}, nil)
-	sdb.EXPECT().UpdateBlockRootAtIndex(mock.Anything, mock.Anything).Return(nil)
-	sdb.EXPECT().UpdateStateRootAtIndex(mock.Anything, mock.Anything).Return(nil)
-	sdb.EXPECT().UpdateRandaoMixAtIndex(mock.Anything, mock.Anything).Return(nil)
-	sdb.EXPECT().UpdateValidatorAtIndex(mock.Anything, mock.Anything).Return(nil)
+	sdb.EXPECT().
+		UpdateBlockRootAtIndex(mock.Anything, mock.Anything).
+		Return(nil)
+	sdb.EXPECT().
+		UpdateStateRootAtIndex(mock.Anything, mock.Anything).
+		Return(nil)
+	sdb.EXPECT().
+		UpdateRandaoMixAtIndex(mock.Anything, mock.Anything).
+		Return(nil)
+	sdb.EXPECT().
+		UpdateValidatorAtIndex(mock.Anything, mock.Anything).
+		Return(nil)
 	sdb.EXPECT().ValidatorIndexByPubkey(mock.Anything).Return(0, nil)
 	sdb.EXPECT().AddValidator(mock.Anything).Return(nil)
 	sdb.EXPECT().GetValidatorsByEffectiveBalance().Return(nil, nil)
-
 }

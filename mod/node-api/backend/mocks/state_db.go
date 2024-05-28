@@ -3,7 +3,8 @@
 package mocks
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+
 	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"

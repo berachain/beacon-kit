@@ -37,11 +37,16 @@ func NewServer(corsConfig middleware.CORSConfig,
 	loggingConfig middleware.LoggerConfig) *echo.Echo {
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
-	e.Validator = &handlers.CustomValidator{Validator: server.ConstructValidator()}
+	e.Validator = &handlers.CustomValidator{
+		Validator: server.ConstructValidator(),
+	}
 	server.UseMiddlewares(e,
 		middleware.CORSWithConfig(corsConfig),
 		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(e, handlers.RouteHandlers{Backend: mocks.NewMockBackend()})
+	server.AssignRoutes(
+		e,
+		handlers.RouteHandlers{Backend: mocks.NewMockBackend()},
+	)
 	return e
 }
 

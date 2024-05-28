@@ -41,7 +41,12 @@ type CustomValidator struct {
 
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.Validator.Struct(i); err != nil {
-		firstError := err.(validator.ValidationErrors)[0]
+		var validationErrors validator.ValidationErrors
+		hasValidationErrors := errors.As(err, &validationErrors)
+		if hasValidationErrors {
+			return nil
+		}
+		firstError := validationErrors[0]
 		field := firstError.Field()
 		value := firstError.Value()
 		return echo.NewHTTPError(http.StatusBadRequest,

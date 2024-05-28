@@ -1,3 +1,28 @@
+// SPDX-License-IDentifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package server
 
 import (
@@ -8,38 +33,45 @@ import (
 )
 
 func ConstructValidator() *validator.Validate {
+	validators := map[string](func(fl validator.FieldLevel) bool){
+		"state_id":         ValidateStateID,
+		"block_id":         ValidateBlockID,
+		"validator_id":     ValidateValidatorID,
+		"validator_status": ValidateValidatorStatus,
+		"epoch":            ValidateUint64,
+		"slot":             ValidateUint64,
+		"committee_index":  ValidateUint64,
+		"hex":              ValidateHex,
+	}
 	validate := validator.New()
-	validate.RegisterValidation("state_id", ValidateStateId)
-	validate.RegisterValidation("block_id", ValidateBlockId)
-	validate.RegisterValidation("validator_id", ValidateValidatorId)
-	validate.RegisterValidation("validator_status", ValidateValidatorStatus)
-	validate.RegisterValidation("epoch", ValidateUint64)
-	validate.RegisterValidation("slot", ValidateUint64)
-	validate.RegisterValidation("committee_index", ValidateUint64)
-	validate.RegisterValidation("hex", ValidateHex)
+	for tag, fn := range validators {
+		err := validate.RegisterValidation(tag, fn)
+		if err != nil {
+			panic(err)
+		}
+	}
 	return validate
 }
 
-func ValidateStateId(fl validator.FieldLevel) bool {
+func ValidateStateID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		"head":      true,
 		"genesis":   true,
 		"finalized": true,
 		"justified": true,
 	}
-	return validateStateBlockIds(fl, allowedValues)
+	return validateStateBlockIDs(fl, allowedValues)
 }
 
-func ValidateBlockId(fl validator.FieldLevel) bool {
+func ValidateBlockID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		"head":      true,
 		"genesis":   true,
 		"finalized": true,
 	}
-	return validateStateBlockIds(fl, allowedValues)
+	return validateStateBlockIDs(fl, allowedValues)
 }
 
-// Used to validate slot, validator index,
 func ValidateUint64(fl validator.FieldLevel) bool {
 	value := fl.Field().String()
 	if value == "" {
@@ -51,9 +83,13 @@ func ValidateUint64(fl validator.FieldLevel) bool {
 	return false
 }
 
-// hex encoded public key (any bytes48 with 0x prefix) or validator index (uint64)
-func ValidateValidatorId(fl validator.FieldLevel) bool {
-	if validateRegex(fl, `^0x[0-9a-fA-F]{1,96}$`) {
+// hex encoded public key (any bytes48 with 0x prefix) or validator index.
+func ValidateValidatorID(fl validator.FieldLevel) bool {
+	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]{1,96}$`)
+	if err != nil {
+		return false
+	}
+	if valid {
 		return true
 	}
 	if ValidateUint64(fl) {
@@ -63,7 +99,11 @@ func ValidateValidatorId(fl validator.FieldLevel) bool {
 }
 
 func ValidateHex(fl validator.FieldLevel) bool {
-	return validateRegex(fl, `^0x[0-9a-fA-F]+$`)
+	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]+$`)
+	if err != nil {
+		return false
+	}
+	return valid
 }
 
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
@@ -82,7 +122,10 @@ func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 	return validateAllowedStrings(fl, allowedStatuses)
 }
 
-func validateAllowedStrings(fl validator.FieldLevel, allowedValues map[string]bool) bool {
+func validateAllowedStrings(
+	fl validator.FieldLevel,
+	allowedValues map[string]bool,
+) bool {
 	value := fl.Field().String()
 	if value == "" {
 		return true
@@ -90,13 +133,17 @@ func validateAllowedStrings(fl validator.FieldLevel, allowedValues map[string]bo
 	return allowedValues[value]
 }
 
-func validateRegex(fl validator.FieldLevel, hexPattern string) bool {
+func validateRegex(fl validator.FieldLevel, hexPattern string) (
+	bool, error) {
 	value := fl.Field().String()
 	if value == "" {
-		return true
+		return true, nil
 	}
-	matched, _ := regexp.MatchString(hexPattern, value)
-	return matched
+	matched, err := regexp.MatchString(hexPattern, value)
+	if err != nil {
+		return false, err
+	}
+	return matched, nil
 }
 
 func fieldEmpty(fl validator.FieldLevel) bool {
@@ -106,7 +153,10 @@ func fieldEmpty(fl validator.FieldLevel) bool {
 	return true
 }
 
-func validateStateBlockIds(fl validator.FieldLevel, allowedValues map[string]bool) bool {
+func validateStateBlockIDs(
+	fl validator.FieldLevel,
+	allowedValues map[string]bool,
+) bool {
 	if fieldEmpty(fl) {
 		return true
 	}

@@ -83,15 +83,15 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/beacon/states/:state_id/randao",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/headers",
-		h.NotImplemented) 
+		h.NotImplemented)
 	e.GET("/eth/v1/beacon/headers/:block_id",
-		h.NotImplemented) 
+		h.NotImplemented)
 	e.POST("/eth/v1/beacon/blocks/blinded_blocks",
-		h.NotImplemented) 
+		h.NotImplemented)
 	e.POST("/eth/v2/beacon/blocks/blinded_blocks",
-		h.NotImplemented) 
+		h.NotImplemented)
 	e.POST("/eth/v1/beacon/blocks",
-		h.NotImplemented) 
+		h.NotImplemented)
 	e.POST("/eth/v2/beacon/blocks",
 		h.NotImplemented)
 	e.GET("/eth/v2/beacon/blocks/:block_id",

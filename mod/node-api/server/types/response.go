@@ -28,7 +28,6 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type ErrorResponse struct {
@@ -57,28 +56,28 @@ type ValidatorResponse struct {
 }
 
 type ValidatorData struct {
-	Index     math.U64         `json:"index"`
-	Balance   math.U64         `json:"balance"`
+	Index     uint64           `json:"index,string"`
+	Balance   uint64           `json:"balance,string"`
 	Status    string           `json:"status"`
 	Validator *types.Validator `json:"validator"`
 }
 
 type ValidatorBalanceData struct {
-	Index   math.U64 `json:"index"`
-	Balance math.U64 `json:"balance"`
+	Index   uint64 `json:"index,string"`
+	Balance uint64 `json:"balance,string"`
 }
 
 type CommitteeData struct {
-	Index      math.U64   `json:"index"`
-	Slot       math.U64   `json:"slot"`
-	Validators []math.U64 `json:"validators"`
+	Index      uint64   `json:"index,string"`
+	Slot       uint64   `json:"slot,string"`
+	Validators []uint64 `json:"validators,string"`
 }
 
 type BlockRewardsData struct {
-	ProposerIndex     math.U64 `json:"proposer_index"`
-	Total             math.U64 `json:"total"`
-	Attestations      math.U64 `json:"attestations"`
-	SyncAggregate     math.U64 `json:"sync_aggregate"`
-	ProposerSlashings math.U64 `json:"proposer_slashings"`
-	AttesterSlashings math.U64 `json:"attester_slashings"`
+	ProposerIndex     uint64 `json:"proposer_index,string"`
+	Total             uint64 `json:"total,string"`
+	Attestations      uint64 `json:"attestations,string"`
+	SyncAggregate     uint64 `json:"sync_aggregate,string"`
+	ProposerSlashings uint64 `json:"proposer_slashings,string"`
+	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }
