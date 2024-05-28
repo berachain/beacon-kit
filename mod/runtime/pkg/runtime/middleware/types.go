@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package middleware
 
 import (
 	"context"
@@ -34,6 +34,28 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// BlockchainService defines the interface for interacting with the blockchain
+// state and processing blocks.
+type BlockchainService[
+	BeaconBlockT any, BlobsSidecarsT ssz.Marshallable,
+] interface {
+	// ProcessGenesisData processes the genesis data and initializes the beacon
+	// state.
+	ProcessGenesisData(
+		context.Context,
+		*genesis.Genesis[
+			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+		],
+	) ([]*transition.ValidatorUpdate, error)
+	// ProcessBlockAndBlobs processes the given beacon block and associated
+	// blobs sidecars.
+	ProcessBlockAndBlobs(
+		context.Context,
+		BeaconBlockT,
+		BlobsSidecarsT,
+	) ([]*transition.ValidatorUpdate, error)
+}
 
 // ValidatorService is responsible for building beacon blocks.
 type ValidatorService[
@@ -56,25 +78,4 @@ type ValidatorService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-}
-
-// BlockchainService defines the interface for interacting with the blockchain
-// state and processing blocks.
-type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
-	// ProcessGenesisData processes the genesis data and initializes the beacon
-	// state.
-	ProcessGenesisData(
-		context.Context,
-		*genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
-		],
-	) ([]*transition.ValidatorUpdate, error)
-	// ProcessBlockAndBlobs processes the given beacon block and associated
-	// blobs
-	// sidecars.
-	ProcessBlockAndBlobs(
-		context.Context,
-		types.BeaconBlock,
-		BlobsSidecarsT,
-	) ([]*transition.ValidatorUpdate, error)
 }

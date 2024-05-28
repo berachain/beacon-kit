@@ -6,7 +6,6 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
