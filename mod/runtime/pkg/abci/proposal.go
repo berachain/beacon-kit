@@ -146,15 +146,17 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) ProcessProposalHandler(
 ) (*cmtabci.ProcessProposalResponse, error) {
 	logger := ctx.Logger().With("service", "process-proposal")
 
-	blk, err := h.beaconBlockGossiper.Request(ctx, req)
-	if err != nil {
-		logger.Error("failed to retrieve beacon block from request", "error", err)
+	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
+		logger.Error(
+			"failed to retrieve beacon block from request",
+			"error",
+			err,
+		)
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
-	}
-
-	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
+	} else if err = h.validatorService.
+		VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err

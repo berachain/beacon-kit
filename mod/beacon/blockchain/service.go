@@ -159,15 +159,3 @@ func (s *Service[
 	context.Context,
 ) {
 }
-
-// TODO: Remove
-func (s Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) StateFromContext(
-	ctx context.Context,
-) BeaconStateT {
-	return s.sb.StateFromContext(ctx)
-}

@@ -271,7 +271,8 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	return blk, sidecars, nil
 }
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block and logs the process.
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
+// logs the process.
 func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk types.BeaconBlock,
@@ -285,7 +286,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	if err := s.verifyStateRoot(
 		ctx, st, blk,
 	); err != nil {
-		// TODO: this is expesnive because we are not caching the
+		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
 		htr, err := st.HashTreeRoot()
 		if err != nil {
