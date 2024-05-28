@@ -72,8 +72,6 @@ func (sp *StateProcessor[
 				ctx.GetOptimisticEngine(),
 			),
 		); err != nil {
-			sp.logger.
-				Error("failed to notify engine of new payload", "error", err)
 			return err
 		}
 		return nil

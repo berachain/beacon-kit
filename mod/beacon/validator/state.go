@@ -57,3 +57,28 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 
 	return st.HashTreeRoot()
 }
+
+// verifyStateRoot verifies the state root of an incoming block.
+func (s *Service[BeaconStateT, BlobSidecarsT]) verifyStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk types.BeaconBlock,
+) error {
+	if _, err := s.stateProcessor.Transition(
+		// We run with a non-optimistic engine here to ensure
+		// that the proposer does not try to push through a bad block.
+		&transition.Context{
+			Context:             ctx,
+			OptimisticEngine:    false,
+			SkipPayloadIfExists: false,
+			SkipValidateResult:  false,
+			SkipValidateRandao:  false,
+		},
+		st, blk,
+	); err != nil {
+		// TODO: If we get ACCEPTED, should we roll with it?
+		return err
+	}
+
+	return nil
+}

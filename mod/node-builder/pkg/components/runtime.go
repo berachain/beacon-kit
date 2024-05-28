@@ -167,7 +167,6 @@ func ProvideRuntime(
 		randaoProcessor,
 		executionEngine,
 		signer,
-		logger.With("service", "state-processor"),
 	)
 
 	// Build the builder service.

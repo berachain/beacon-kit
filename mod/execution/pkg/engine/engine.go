@@ -75,6 +75,7 @@ func (ee *Engine[
 	ctx context.Context,
 ) error {
 	go func() {
+		// TODO: handle better
 		if err := ee.ec.Start(ctx); err != nil {
 			panic(err)
 		}
@@ -115,6 +116,7 @@ func (ee *Engine[
 		req.PayloadAttributes != nil &&
 			!req.PayloadAttributes.IsNil(),
 	)
+
 	// Notify the execution engine of the forkchoice update.
 	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
 		ctx,
