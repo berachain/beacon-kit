@@ -180,6 +180,17 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 		)
 	}
 
+	// Log the chain ID.
+	s.logger.Info(
+		"connected to execution client 🔌",
+		"dial_url",
+		s.cfg.RPCDialURL.String(),
+		"chain_id",
+		chainID.Uint64(),
+		"required_chain_id",
+		s.eth1ChainID,
+	)
+
 	return nil
 }
 
@@ -207,23 +218,16 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		}
 		break
 	}
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
-	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
+
+	// Ensure the execution client is connected to the correct chain.
+	if err := s.VerifyChainID(ctx); err != nil {
+		s.Client.Close()
+		if strings.Contains(err.Error(), "401 Unauthorized") {
+			// We always log this error as it is a critical error.
+			s.logger.Error(UnauthenticatedConnectionErrorStr)
+		}
 		return err
 	}
-
-	// Log the chain ID.
-	s.logger.Info(
-		"connected to execution client 🔌",
-		"dial_url",
-		s.cfg.RPCDialURL.String(),
-		"chain_id",
-		chainID.Uint64(),
-		"required_chain_id",
-		s.eth1ChainID,
-	)
 
 	// Exchange capabilities with the execution client.
 	if _, err = s.ExchangeCapabilities(ctx); err != nil {
@@ -243,15 +247,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
 		return err
 	}
 
-	// Ensure the execution client is connected to the correct chain.
-	if err := s.VerifyChainID(ctx); err != nil {
-		s.Client.Close()
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			// We always log this error as it is a critical error.
-			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		}
-		return err
-	}
 	return nil
 }
 
