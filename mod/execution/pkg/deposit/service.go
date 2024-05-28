@@ -36,18 +36,19 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
-	DepositStoreT Store,
+	DepositStoreT Store[DepositT],
 	SubscriptionT interface {
 		Unsubscribe()
 	},
+	DepositT any,
 ] struct {
 	// feed is the block feed that provides block events.
 	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
 	// dc is the contract interface for interacting with the deposit contract.
-	dc Contract
+	dc Contract[DepositT]
 	// sb is the storage backend for managing deposit operations.
 	sb StorageBackend[
-		any, any, any, DepositStoreT,
+		any, any, any, DepositStoreT, DepositT,
 	]
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
@@ -59,21 +60,22 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
-	DepositStoreT Store,
+	DepositStoreT Store[DepositT],
 	SubscriptionT interface {
 		Unsubscribe()
 	},
+	DepositT any,
 ](
 	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
 	logger log.Logger[any],
 	sb StorageBackend[
-		any, any, any, DepositStoreT,
+		any, any, any, DepositStoreT, DepositT,
 	],
-	dc Contract,
+	dc Contract[DepositT],
 ) *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ] {
-	return &Service[BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT]{
+	return &Service[BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT]{
 		feed:   feed,
 		logger: logger,
 		sb:     sb,
@@ -86,7 +88,7 @@ func NewService[
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -111,21 +113,21 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ]) Name() string {
 	return "deposit-handler"
 }
 
 // Status returns the current status of the service.
 func (s *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ]) WaitForHealthy(
 	_ context.Context,
 ) {
@@ -133,7 +135,7 @@ func (s *Service[
 
 // handleDepositEvent processes a deposit event.
 func (s *Service[
-	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT,
+	BeaconBlockT, BlockEventT, DepositStoreT, SubscriptionT, DepositT,
 ]) handleDepositEvent(
 	e BlockEventT,
 ) error {
