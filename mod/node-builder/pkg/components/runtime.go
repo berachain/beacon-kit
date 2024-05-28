@@ -106,7 +106,6 @@ func ProvideRuntime(
 	](
 		chainSpec.DepositContractAddress(),
 		engineClient,
-		types.NewDeposit,
 	)
 	if err != nil {
 		return nil, err
@@ -216,7 +215,6 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-		beaconDepositContract,
 		ts,
 		&blockFeed,
 	)
@@ -228,10 +226,11 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 		event.Subscription,
 	](
-		&blockFeed,
 		logger.With("service", "deposit"),
+		math.U64(chainSpec.Eth1FollowDistance()),
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
+		&blockFeed,
 	)
 
 	// Build the service registry.

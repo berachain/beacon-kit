@@ -78,6 +78,9 @@ type Spec[
 	DepositContractAddress() ExecutionAddressT
 	// DepositEth1ChainID returns the chain ID of the deposit contract.
 	DepositEth1ChainID() uint64
+	// Eth1FollowDistance returns the distance between the eth1 chain and the
+	// beacon chain for eth1 data.
+	Eth1FollowDistance() uint64
 	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 	TargetSecondsPerEth1Block() uint64
 
@@ -287,6 +290,14 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
 ]) DepositEth1ChainID() uint64 {
 	return c.Data.DepositEth1ChainID
+}
+
+// Eth1FollowDistance returns the distance between the eth1 chain and the beacon
+// chain.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) Eth1FollowDistance() uint64 {
+	return c.Data.Eth1FollowDistance
 }
 
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.

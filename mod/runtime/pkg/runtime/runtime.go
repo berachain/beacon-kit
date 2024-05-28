@@ -142,8 +142,7 @@ func (r *BeaconKitRuntime[
 ]) StartServices(
 	ctx context.Context,
 ) error {
-	r.services.StartAll(ctx)
-	return nil
+	return r.services.StartAll(ctx)
 }
 
 // ABCIHandler returns the ABCI handler.

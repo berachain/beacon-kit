@@ -41,16 +41,16 @@ type Service[
 	},
 	DepositT any,
 ] struct {
-	// feed is the block feed that provides block events.
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	// logger is used for logging information and errors.
+	logger log.Logger[any]
+	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
+	eth1FollowDistance math.U64
 	// dc is the contract interface for interacting with the deposit contract.
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
-	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
-	eth1FollowDistance math.U64
-	// logger is used for logging information and errors.
-	logger log.Logger[any]
+	// feed is the block feed that provides block events.
+	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
 }
 
 // NewService creates a new instance of the Service struct.
@@ -63,23 +63,22 @@ func NewService[
 	},
 	DepositT any,
 ](
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
 	logger log.Logger[any],
+	eth1FollowDistance math.U64,
 	ds Store[DepositT],
 	dc Contract[DepositT],
+	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
 ) *Service[
 	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
 ] {
 	return &Service[
 		BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
 	]{
-		feed:   feed,
-		logger: logger,
-		ds:     ds,
-		dc:     dc,
-		// eth1FollowDistance is set to 1 by default. This value should be
-		// configurable.
-		eth1FollowDistance: 1,
+		feed:               feed,
+		logger:             logger,
+		ds:                 ds,
+		dc:                 dc,
+		eth1FollowDistance: eth1FollowDistance,
 	}
 }
 
@@ -138,9 +137,9 @@ func (s *Service[
 ) error {
 	// slot is the block slot number adjusted by the follow distance.
 	slot := e.Block().GetSlot() - s.eth1FollowDistance
-	s.logger.Info("💵 processing deposit logs 💵", "slot", slot)
+	s.logger.Info("processing deposit logs 💵", "slot", slot)
 	// deposits are retrieved from the deposit contract.
-	deposits, err := s.dc.GetDeposits(e.Context(), slot.Unwrap())
+	deposits, err := s.dc.ReadDeposits(e.Context(), slot.Unwrap())
 	if err != nil {
 		return err
 	}
