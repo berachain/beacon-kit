@@ -283,19 +283,22 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	)
 
 	st := s.bsb.StateFromContext(ctx)
+
+	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
 		ctx, st, blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
-		htr, err := st.HashTreeRoot()
+		var localStateRoot primitives.Root
+		localStateRoot, err = st.HashTreeRoot()
 		if err != nil {
 			return err
 		}
 
 		s.logger.Error("failed to verify state root, rejecting incoming block",
 			"block_state_root", blk.GetStateRoot(),
-			"local_state_root", htr,
+			"local_state_root", localStateRoot,
 		)
 		return err
 	}

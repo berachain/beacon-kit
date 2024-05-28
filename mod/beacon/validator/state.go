@@ -76,6 +76,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) verifyStateRoot(
 		},
 		st, blk,
 	); err != nil {
+		// TODO: If we get ACCEPTED, should we roll with it?
 		return err
 	}
 

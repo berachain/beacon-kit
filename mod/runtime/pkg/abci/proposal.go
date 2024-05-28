@@ -45,6 +45,9 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BlobsSidecarsT]
+
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		types.BeaconBlock,
@@ -52,15 +55,13 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 		BlobsSidecarsT,
 	]
 
-	// chainService represents the blockchain service.
-	chainService BlockchainService[BlobsSidecarsT]
-
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.Publisher[
 		BlobsSidecarsT, []byte,
 	]
-
+	// TODO: we will eventually gossip the blocks separately from
+	// CometBFT, but for now, these are no-op gossipers.
 	beaconBlockGossiper p2p.PublisherReceiver[
 		types.BeaconBlock,
 		[]byte,
@@ -74,10 +75,15 @@ type Handler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
 }
 
 // NewHandler creates a new instance of the Handler struct.
-func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
+func NewHandler[
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
-		types.BeaconBlock, core.BeaconState[*types.Validator], BlobsSidecarsT],
+		types.BeaconBlock,
+		core.BeaconState[*types.Validator],
+		BlobsSidecarsT,
+	],
 	chainService BlockchainService[BlobsSidecarsT],
 ) *Handler[BeaconStateT, BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
@@ -89,10 +95,10 @@ func NewHandler[BeaconStateT any, BlobsSidecarsT ssz.Marshallable](
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
 		chainService:     chainService,
-		// TODO: we will eventually gossipt the blobs separately from
-		// CometBFT.
-		blobGossiper: rp2p.NoopGossipHandler[BlobsSidecarsT, []byte]{},
-		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[encoding.ABCIRequest](
+		blobGossiper: rp2p.
+			NoopGossipHandler[BlobsSidecarsT, []byte]{},
+		beaconBlockGossiper: rp2p.
+			NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainSpec,
 		),
 	}
