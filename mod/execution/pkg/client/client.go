@@ -37,6 +37,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
@@ -180,6 +181,84 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 			chainID.Uint64(),
 		)
 	}
+
+	return nil
+}
+
+// ============================== HELPERS ==============================
+
+// syncCheck checks the sync status of the execution client.
+func (s *EngineClient[ExecutionPayloadDenebT]) syncCheck(ctx context.Context) {
+	ticker := time.NewTicker(s.cfg.SyncCheckInterval)
+	defer ticker.Stop()
+	s.logger.Info(
+		"starting sync check routine",
+		"interval",
+		s.cfg.SyncCheckInterval,
+	)
+	for {
+		select {
+		case <-ticker.C:
+			syncProgress, err := s.SyncProgress(ctx)
+			if err != nil {
+				s.logger.Error("failed to get sync progress", "err", err)
+				continue
+			}
+
+			s.statusErrMu.Lock()
+			if syncProgress == nil || syncProgress.Done() {
+				s.logger.Info("execution client is in sync 🍻")
+				s.statusErr = nil
+			} else {
+				s.logger.Warn("execution client is syncing", "sync_progress", syncProgress)
+				s.statusErr = engineerrors.ErrExecutionClientIsSyncing
+			}
+			s.statusErrMu.Unlock()
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
+	ctx context.Context,
+) error {
+	// Initialize the connection to the execution client.
+	var (
+		err     error
+		chainID *big.Int
+	)
+	for {
+		s.logger.Info(
+			"waiting for execution client to start 🍺🕔",
+			"dial_url", s.cfg.RPCDialURL,
+		)
+		if err = s.setupExecutionClientConnection(ctx); err != nil {
+			s.statusErrMu.Lock()
+			s.statusErr = err
+			s.statusErrMu.Unlock()
+			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			continue
+		}
+		break
+	}
+	// Get the chain ID from the execution client.
+	chainID, err = s.ChainID(ctx)
+	if err != nil {
+		s.logger.Error("failed to get chain ID", "err", err)
+		return err
+	}
+
+	// Log the chain ID.
+	s.logger.Info(
+		"connected to execution client 🔌",
+		"dial_url",
+		s.cfg.RPCDialURL.String(),
+		"chain_id",
+		chainID.Uint64(),
+		"required_chain_id",
+		s.eth1ChainID,
+	)
 
 	return nil
 }
