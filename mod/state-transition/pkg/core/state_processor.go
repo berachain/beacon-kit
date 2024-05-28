@@ -28,7 +28,6 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -52,7 +51,6 @@ type StateProcessor[
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
 	signer          crypto.BLSSigner
-	logger          log.Logger[any]
 	executionEngine ExecutionEngine
 }
 
@@ -74,7 +72,6 @@ func NewStateProcessor[
 	],
 	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
-	logger log.Logger[any],
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
@@ -89,7 +86,6 @@ func NewStateProcessor[
 		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
-		logger:          logger,
 	}
 }
 
@@ -164,11 +160,6 @@ func (sp *StateProcessor[
 
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
-		sp.logger.Error(
-			"failed to process block",
-			"slot", blkSlot,
-			"error", err,
-		)
 		return nil, err
 	}
 
@@ -240,11 +231,6 @@ func (sp *StateProcessor[
 		if validatorUpdates, err = sp.processEpoch(st); err != nil {
 			return nil, err
 		}
-		sp.logger.Info(
-			"processed epoch transition 🔃",
-			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
-			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
-		)
 	}
 
 	return validatorUpdates, st.SetSlot(slot + 1)
