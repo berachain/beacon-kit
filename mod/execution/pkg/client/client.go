@@ -200,16 +200,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
 ) error {
 	// Initialize the connection to the execution client.
-	var (
-		err     error
-		chainID *big.Int
-	)
 	for {
 		s.logger.Info(
 			"waiting for execution client to start 🍺🕔",
 			"dial_url", s.cfg.RPCDialURL,
 		)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
+		if err := s.dialExecutionRPCClient(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
 			s.statusErrMu.Unlock()
@@ -230,23 +226,10 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	}
 
 	// Exchange capabilities with the execution client.
-	if _, err = s.ExchangeCapabilities(ctx); err != nil {
+	if _, err := s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
 		return err
 	}
-	return nil
-}
-
-// setupExecutionClientConnections dials the execution client and
-// ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
-	ctx context.Context,
-) error {
-	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 
