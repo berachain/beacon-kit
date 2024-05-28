@@ -102,19 +102,12 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
-	ctx context.Context,
-) error {
-	if err := s.initializeConnection(ctx); err != nil {
-		return err
-	}
-	if s.cfg.RPCDialURL.IsIPC() {
-		s.startIPCServer(ctx)
-	}
-	return nil
+// Name returns the name of the engine client.
+func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
+	return "EngineClient"
 }
 
-// StartWithHTTP starts the engine client.
+// Start starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
@@ -132,6 +125,13 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
+
+	// If we are running in IPC mode, we will need start the IPC server
+	// as well.
+	if s.cfg.RPCDialURL.IsIPC() {
+		s.startIPCServer(ctx)
+	}
+
 	return s.initializeConnection(ctx)
 }
 
@@ -332,13 +332,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, er
 	return header, nil
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
-	return "EngineClient"
-}
-
 // ================================ IPC ================================
-
-//
 
 func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 	ctx context.Context,
