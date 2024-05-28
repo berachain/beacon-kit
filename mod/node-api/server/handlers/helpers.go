@@ -43,7 +43,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.Validator.Struct(i); err != nil {
 		var validationErrors validator.ValidationErrors
 		hasValidationErrors := errors.As(err, &validationErrors)
-		if hasValidationErrors {
+		if !hasValidationErrors || len(validationErrors) == 0 {
 			return nil
 		}
 		firstError := validationErrors[0]
@@ -76,10 +76,10 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 func BindAndValidate[T any](c echo.Context) (*T, error) {
 	t := new(T)
 	if err := c.Bind(t); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return nil, echo.ErrBadRequest
 	}
 	if err := c.Validate(t); err != nil {
-		return nil, err
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return t, nil
 }

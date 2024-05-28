@@ -57,8 +57,11 @@ func (rh RouteHandlers) GetStateRoot(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
 	stateRoot, err := rh.Backend.GetStateRoot(
-		c.(context.Context),
+		context.TODO(),
 		params.StateID,
 	)
 	if err != nil {
@@ -78,6 +81,9 @@ func (rh RouteHandlers) GetStateValidators(c echo.Context) error {
 	params, err := BindAndValidate[types.StateValidatorsGetRequest](c)
 	if err != nil {
 		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
 	}
 	if len(params.Status) > 0 {
 		return echo.ErrNotImplemented
@@ -105,6 +111,9 @@ func (rh RouteHandlers) PostStateValidators(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
 	validators, err := rh.Backend.GetStateValidators(
 		context.TODO(),
 		params.StateID,
@@ -124,6 +133,9 @@ func (rh RouteHandlers) GetStateValidatorBalances(c echo.Context) error {
 	params, err := BindAndValidate[types.ValidatorBalancesGetRequest](c)
 	if err != nil {
 		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
 	}
 	balances, err := rh.Backend.GetStateValidatorBalances(
 		context.TODO(),
@@ -173,6 +185,9 @@ func (rh RouteHandlers) GetBlockRewards(c echo.Context) error {
 	params, err := BindAndValidate[types.BlockIDRequest](c)
 	if err != nil {
 		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
 	}
 	rewards, err := rh.Backend.GetBlockRewards(context.TODO(), params.BlockID)
 	if err != nil {
