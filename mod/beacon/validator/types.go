@@ -107,7 +107,8 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 	// RetrieveOrBuildPayload retrieves or builds the payload for the given
 	// slot.
@@ -116,7 +117,8 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		st BeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }
 

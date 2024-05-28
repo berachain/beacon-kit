@@ -348,6 +348,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
 			parentRoot,
 			blk.GetBody().GetExecutionPayload().GetBlockHash(),
+			blk.GetBody().GetExecutionPayload().GetParentHash(),
 		); err != nil {
 			return err
 		}

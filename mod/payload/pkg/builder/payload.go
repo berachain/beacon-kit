@@ -46,6 +46,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
+	finalBlockHash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// We first attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root. If we have, and we are able
@@ -72,6 +73,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrieveOrBuildPayload(
 		uint64(time.Now().Unix()),
 		parentBlockRoot,
 		parentEth1Hash,
+		finalBlockHash,
 	)
 }
 
@@ -83,7 +85,8 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
-	parentEth1Hash common.ExecutionHash,
+	headEth1BlockHash common.ExecutionHash,
+	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
@@ -95,17 +98,17 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	var payloadID *engineprimitives.PayloadID
 	payloadID, _, err = pb.submitForkchoiceUpdate(
 		ctx,
-		st,
 		slot,
 		attrs,
-		parentEth1Hash,
+		headEth1BlockHash,
+		finalEth1BlockHash,
 	)
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
 		pb.logger.Warn(
 			"received nil payload ID on VALID engine response",
-			"head_eth1_hash", parentEth1Hash,
+			"head_eth1_hash", headEth1BlockHash,
 			"for_slot", slot,
 		)
 
@@ -113,11 +116,16 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	}
 
 	pb.logger.Info(
-		"bob the builder; can we forkchoice update it?; bob the builder; yes we can 🚧",
-		"head_eth1_hash", parentEth1Hash,
-		"for_slot", slot,
-		"parent_block_root", parentBlockRoot,
-		"payload_id", payloadID,
+		"bob the builder; can we forkchoice update it?;"+
+			" bob the builder; yes we can 🚧",
+		"head_eth1_hash",
+		headEth1BlockHash,
+		"for_slot",
+		slot,
+		"parent_block_root",
+		parentBlockRoot,
+		"payload_id",
+		payloadID,
 	)
 
 	pb.pc.Set(slot, parentBlockRoot, *payloadID)
@@ -133,11 +141,18 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAndWait(
 	timestamp uint64,
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
+	finalBlockHash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// Build the payload and wait for the execution client to return the payload
 	// ID.
 	payloadID, err := pb.RequestPayload(
-		ctx, st, slot, timestamp, parentBlockRoot, parentEth1Hash,
+		ctx,
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+		parentEth1Hash,
+		finalBlockHash,
 	)
 	if err != nil {
 		return nil, err
