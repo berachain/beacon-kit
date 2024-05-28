@@ -40,7 +40,8 @@ import (
 
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
-type BeaconState interface {
+type BeaconState[BeaconStateT any] interface {
+	Copy() BeaconStateT
 	// GetBlockRootAtIndex fetches the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
@@ -57,7 +58,7 @@ type BeaconState interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type StorageBackend[BeaconStateT BeaconState] interface {
+type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
 	StateFromContext(context.Context) BeaconStateT
 }
 
@@ -90,7 +91,7 @@ type DepositStore interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
@@ -99,7 +100,15 @@ type RandaoProcessor[
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT BeaconState] interface {
+type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
+	RequestPayload(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+		timestamp uint64,
+		parentBlockRoot primitives.Root,
+		parentEth1Hash common.ExecutionHash,
+	) (*engineprimitives.PayloadID, error)
 	// RetrieveOrBuildPayload retrieves or builds the payload for the given
 	// slot.
 	RetrieveOrBuildPayload(
@@ -113,7 +122,7 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.

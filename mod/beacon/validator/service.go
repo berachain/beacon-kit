@@ -41,7 +41,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -89,7 +89,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
@@ -279,7 +279,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	}
 
 	s.logger.Info(
-		"beacon block successfully built 🏎️",
+		"beacon block successfully built 🛠️ ",
 		"slot", requestedSlot,
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
@@ -303,7 +303,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
-		ctx, st, blk,
+		ctx, st.Copy(), blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
@@ -314,7 +314,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 		}
 
 		s.logger.Error(
-			"failed to verify state root - rejecting incoming block ❌ ",
+			"state root verification failed - rejecting incoming block ❌ ",
 			"block_state_root",
 			blk.GetStateRoot(),
 			"local_state_root",
@@ -324,8 +324,33 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	}
 
 	s.logger.Info(
-		"block state root verification succeeded - accepting incoming block ✅ ",
+		"state root verification succeeded - accepting incoming block 🏎️ ",
 		"state_root", blk.GetStateRoot(),
 	)
+
+	if true {
+		st = st.Copy()
+		if _, err := s.stateProcessor.ProcessSlot(
+			st,
+		); err != nil {
+			return err
+		}
+
+		parentRoot, err := blk.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+
+		if _, err := s.localPayloadBuilder.RequestPayload(
+			ctx,
+			st,
+			blk.GetSlot()+1,
+			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+			parentRoot,
+			blk.GetBody().GetExecutionPayload().GetBlockHash(),
+		); err != nil {
+			return err
+		}
+	}
 	return nil
 }
