@@ -61,7 +61,7 @@ func ProvideEngineClient(
 ) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
 	return engineclient.New[*types.ExecutableDataDeneb](
 		&in.Config.Engine,
-		in.Logger.With("service", "engine.client").With("module", "beacon-kit"),
+		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
 		in.TelemetrySink,
 		new(big.Int).SetUint64(in.ChainSpec.DepositEth1ChainID()),
