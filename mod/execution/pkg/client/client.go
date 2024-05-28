@@ -32,7 +32,6 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -118,20 +117,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
-	// This is not required for IPC connections.
-	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
-		// If we are in a JWT mode, we will start the JWT refresh loop.
-		defer func() {
-			if s.jwtSecret == nil {
-				s.logger.Warn(
-					"JWT secret not provided for http(s) connection" +
-						" - please verify your configuration settings",
-				)
-				return
-			}
-			go s.jwtRefreshLoop(ctx)
-		}()
-	}
 	return s.initializeConnection(ctx)
 }
 
@@ -140,7 +125,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 func (s *EngineClient[ExecutionPayloadDenebT]) Status() error {
 	s.statusErrMu.RLock()
 	defer s.statusErrMu.RUnlock()
-	return s.status(context.Background())
+	return s.status()
 }
 
 // WaitForHealthy waits for the engine client to be healthy.
@@ -150,7 +135,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) WaitForHealthy(
 	s.statusErrMu.Lock()
 	defer s.statusErrMu.Unlock()
 
-	for s.status(ctx) != nil {
+	for s.status() != nil {
 		go s.refreshUntilHealthy(ctx)
 		select {
 		case <-ctx.Done():
@@ -188,17 +173,46 @@ func (s *EngineClient[ExecutionPayloadDenebT]) VerifyChainID(
 func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 	ctx context.Context,
 ) error {
-	// Initialize the connection to the execution client.
-	var (
-		err     error
-		chainID *big.Int
-	)
+	// Wait for the initial connection to the execution client.
+	if err := s.waitForInitialConnection(ctx); err != nil {
+		return err
+	}
+
+	// Then exchange capabilities with the execution client.
+	if _, err := s.ExchangeCapabilities(ctx); err != nil {
+		s.logger.Error("failed to exchange capabilities", "err", err)
+		return err
+	}
+
+	// If we are running over HTTP we need to trigger the
+	// JWT refresh loop to begin.
+	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
+		if s.jwtSecret == nil {
+			s.logger.Warn(
+				"JWT secret not provided for http(s) connection" +
+					" - please verify your configuration settings",
+			)
+			return nil
+		}
+		go s.jwtRefreshLoop(ctx)
+	}
+	return nil
+}
+
+// waitForInitialConnection waits for the initial connection to the execution client.
+func (s *EngineClient[ExecutionPayloadDenebT]) waitForInitialConnection(
+	ctx context.Context,
+) error {
 	for {
 		s.logger.Info(
-			"waiting for execution client to start 🍺🕔",
+			"waiting for initial connection to execution client 🍺🕔",
 			"dial_url", s.cfg.RPCDialURL,
 		)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
+
+		// Dial the execution client.
+		if err := s.dialExecutionRPCClient(ctx); err != nil {
+			continue
+		} else if err = s.VerifyChainID(ctx); err != nil {
 			s.statusErrMu.Lock()
 			s.statusErr = err
 			s.statusErrMu.Unlock()
@@ -207,51 +221,14 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 		}
 		break
 	}
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
-	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
-		return err
-	}
 
-	// Log the chain ID.
 	s.logger.Info(
-		"connected to execution client 🔌",
+		"successfully connected to execution client 🔌",
 		"dial_url",
 		s.cfg.RPCDialURL.String(),
 		"chain_id",
-		chainID.Uint64(),
-		"required_chain_id",
 		s.eth1ChainID,
 	)
-
-	// Exchange capabilities with the execution client.
-	if _, err = s.ExchangeCapabilities(ctx); err != nil {
-		s.logger.Error("failed to exchange capabilities", "err", err)
-		return err
-	}
-	return nil
-}
-
-// setupExecutionClientConnections dials the execution client and
-// ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadDenebT]) setupExecutionClientConnection(
-	ctx context.Context,
-) error {
-	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		return err
-	}
-
-	// Ensure the execution client is connected to the correct chain.
-	if err := s.VerifyChainID(ctx); err != nil {
-		s.Client.Close()
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			// We always log this error as it is a critical error.
-			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		}
-		return err
-	}
 	return nil
 }
 
@@ -429,9 +406,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
 // ================================ Info ================================
 
 // status returns the status of the engine client.
-func (s *EngineClient[ExecutionPayloadDenebT]) status(
-	ctx context.Context,
-) error {
+func (s *EngineClient[ExecutionPayloadDenebT]) status() error {
 	// If the client is not started, we return an error.
 	if s.Eth1Client.Client == nil {
 		return ErrNotStarted
@@ -457,7 +432,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) refreshUntilHealthy(
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := s.status(ctx); err == nil {
+			if err := s.status(); err == nil {
 				return
 			}
 		}
