@@ -231,7 +231,7 @@ func ProvideRuntime(
 	](
 		&blockFeed,
 		logger.With("service", "deposit"),
-		storageBackend,
+		storageBackend.DepositStore(nil),
 		beaconDepositContract,
 	)
 
