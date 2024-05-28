@@ -45,32 +45,35 @@ import (
 // components to handle
 // the proposal processes.
 type FinalizeBlockMiddleware[
-	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+	BeaconBlockT ssz.Marshallable,
+	BeaconStateT any,
+	BlobsSidecarsT ssz.Marshallable,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
 	// chainService represents the blockchain service.
-	chainService BlockchainService[BlobsSidecarsT]
+	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT]
 
 	// TODO: this is really hacky here.
-	LatestBeaconBlock types.BeaconBlock
+	LatestBeaconBlock BeaconBlockT
 	LatestSidecars    BlobsSidecarsT
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
 func NewFinalizeBlockMiddleware[
+	BeaconBlockT ssz.Marshallable,
 	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
 ](
 	chainSpec primitives.ChainSpec,
-	chainService BlockchainService[BlobsSidecarsT],
-) *FinalizeBlockMiddleware[BeaconStateT, BlobsSidecarsT] {
+	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT],
+) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
 		panic("chain service is nil")
 	}
 
-	return &FinalizeBlockMiddleware[BeaconStateT, BlobsSidecarsT]{
+	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
 	}
@@ -78,7 +81,7 @@ func NewFinalizeBlockMiddleware[
 
 // InitGenesis is called by the base app to initialize the state of the.
 func (h *FinalizeBlockMiddleware[
-	BeaconStateT, BlobsSidecarsT,
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -105,12 +108,12 @@ func (h *FinalizeBlockMiddleware[
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *FinalizeBlockMiddleware[
-	BeaconStateT, BlobsSidecarsT,
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) PreBlock(
 	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobsSidecarsT](req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
@@ -128,7 +131,9 @@ func (h *FinalizeBlockMiddleware[
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (h FinalizeBlockMiddleware[BeaconStateT, BlobsSidecarsT]) EndBlock(
+func (h FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
+]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Process the state transition and produce the required delta from

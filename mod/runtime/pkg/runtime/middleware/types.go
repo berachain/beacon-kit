@@ -37,7 +37,9 @@ import (
 
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
-type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
+type BlockchainService[
+	BeaconBlockT any, BlobsSidecarsT ssz.Marshallable,
+] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
 	ProcessGenesisData(
@@ -47,11 +49,10 @@ type BlockchainService[BlobsSidecarsT ssz.Marshallable] interface {
 		],
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated
-	// blobs
-	// sidecars.
+	// blobs sidecars.
 	ProcessBlockAndBlobs(
 		context.Context,
-		types.BeaconBlock,
+		BeaconBlockT,
 		BlobsSidecarsT,
 	) ([]*transition.ValidatorUpdate, error)
 }

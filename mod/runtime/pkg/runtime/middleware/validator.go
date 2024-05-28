@@ -40,7 +40,9 @@ import (
 )
 
 // ValidatorMiddleware is a middleware between ABCI and the validator logic.
-type ValidatorMiddleware[BeaconStateT any, BlobsSidecarsT ssz.Marshallable] struct {
+type ValidatorMiddleware[
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 
