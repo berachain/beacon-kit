@@ -43,17 +43,19 @@ var _ db.Prunable = (*RangeDB)(nil)
 
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
+// Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	db.DB
-
-	pruneWindow uint64
+	pruneWindow      uint64
+	firstNonNilIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
 func NewRangeDB(db db.DB, pruneWindow uint64) *RangeDB {
 	return &RangeDB{
-		DB:          db,
-		pruneWindow: pruneWindow,
+		DB:               db,
+		pruneWindow:      pruneWindow,
+		firstNonNilIndex: 0,
 	}
 }
 
@@ -75,6 +77,10 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
+	// enforce invariant
+	if index < db.firstNonNilIndex {
+		db.firstNonNilIndex = index
+	}
 	return db.DB.Set(db.prefix(index, key), value)
 }
 
@@ -105,8 +111,17 @@ func (db *RangeDB) Prune(index uint64) error {
 	if db.pruneWindow > index {
 		return nil
 	}
-
-	return db.DeleteRange(0, index-db.pruneWindow)
+	err := db.DeleteRange(db.firstNonNilIndex, index-db.pruneWindow)
+	if err != nil {
+		// Resets last pruned index in case Delete somehow populates indices on
+		// err. This will cause the next prune operation is O(n), but next
+		// successful prune will set it to the correct value, so runtime is
+		// ammortized
+		db.firstNonNilIndex = 0
+		return err
+	}
+	db.firstNonNilIndex = index - db.pruneWindow
+	return nil
 }
 
 // prefix prefixes the given key with the index and a slash.
