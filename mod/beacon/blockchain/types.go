@@ -212,3 +212,7 @@ type TelemetrySink interface {
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
 }
+
+type EventFeed[EventT any] interface {
+	Send(EventT) int
+}

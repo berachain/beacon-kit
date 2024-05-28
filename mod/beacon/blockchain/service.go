@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // Service is the blockchain service.
@@ -74,7 +73,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed *event.FeedOf[types.BlockEvent]
+	blockFeed EventFeed[types.BlockEvent]
 }
 
 // NewService creates a new validator service.
@@ -103,7 +102,7 @@ func NewService[
 	],
 	dc DepositContract,
 	ts TelemetrySink,
-	blockFeed *event.FeedOf[types.BlockEvent],
+	blockFeed EventFeed[types.BlockEvent],
 ) *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,

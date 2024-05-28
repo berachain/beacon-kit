@@ -39,10 +39,10 @@ func NewBlockEvent(ctx context.Context, block BeaconBlock) BlockEvent {
 	}
 }
 
-func (e BlockEvent) Context() context.Context {
+func (e *BlockEvent) Context() context.Context {
 	return e.ctx
 }
 
-func (e BlockEvent) Block() BeaconBlock {
+func (e *BlockEvent) Block() BeaconBlock {
 	return e.block
 }
