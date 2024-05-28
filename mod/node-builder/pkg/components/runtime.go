@@ -227,10 +227,11 @@ func ProvideRuntime(
 		*depositdb.KVStore,
 		event.Subscription,
 	](
-		&blockFeed,
 		logger.With("service", "deposit"),
+		math.U64(chainSpec.Eth1FollowDistance()),
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
+		&blockFeed,
 	)
 
 	// Build the service registry.
