@@ -29,9 +29,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -115,6 +115,9 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
+	// emit new block event
+	s.blockFeed.Send(events.NewBlock(ctx, blk))
+
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
@@ -152,27 +155,6 @@ func (s *Service[
 			"failed to prune deposit events in postBlockProcessTasks",
 			"error", err)
 		return
-	}
-
-	var lph engineprimitives.ExecutionPayloadHeader
-	lph, err = st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcessTasks",
-			"error", err)
-		return
-	}
-
-	// Process the logs from the previous blocks execution payload.
-	// TODO: This should be moved out of the main block processing flow.
-	// TODO: eth1FollowDistance should be done actually proper
-	eth1FollowDistance := math.U64(1)
-	if err = s.retrieveDepositsFromBlock(
-		ctx, lph.GetNumber()-eth1FollowDistance,
-	); err != nil {
-		s.logger.Error(
-			"failed to retrieve deposits from block in postBlockProcessTasks",
-			"error", err)
 	}
 }
 
@@ -233,48 +215,4 @@ func (s *Service[
 		s.sb.AvailabilityStore(ctx),
 		sidecars,
 	)
-}
-
-// VerifyPayload validates the execution payload on the block.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) VerifyPayloadOnBlk(
-	ctx context.Context,
-	blk types.BeaconBlock,
-) error {
-	if blk == nil || blk.IsNil() {
-		return ErrNilBlk
-	}
-
-	// We notify the engine of the new payload.
-	var (
-		parentBeaconBlockRoot = blk.GetParentBlockRoot()
-		body                  = blk.GetBody()
-		payload               = body.GetExecutionPayload()
-	)
-
-	if err := s.ee.VerifyAndNotifyNewPayload(
-		ctx,
-		engineprimitives.BuildNewPayloadRequest(
-			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			false,
-			// We do not want to optimistically assume truth here, since
-			// this is being called in process proposal.
-			false,
-		),
-	); err != nil {
-		return err
-	}
-
-	s.logger.Info(
-		"successfully verified execution payload 💸",
-		"payload-block-number", payload.GetNumber(),
-		"num-txs", len(payload.GetTransactions()),
-	)
-	return nil
 }

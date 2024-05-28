@@ -69,6 +69,19 @@ func NewDeposit(
 	}
 }
 
+// New creates a new Deposit instance.
+func (d *Deposit) New(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount math.Gwei,
+	signature crypto.BLSSignature,
+	index uint64,
+) *Deposit {
+	return NewDeposit(
+		pubkey, credentials, amount, signature, index,
+	)
+}
+
 // Deposits is a typealias for a list of Deposits.
 type Deposits []*Deposit
 

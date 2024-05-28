@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/build/tools
 go 1.22.3
 
 require (
-	github.com/bazelbuild/buildtools v0.0.0-20240412153002-c7c6e84e71a1
+	github.com/bazelbuild/buildtools v0.0.0-20240422193413-1429e15ae755
 	github.com/bufbuild/buf v1.32.1
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/ethereum/go-ethereum v1.14.3
@@ -13,7 +13,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/segmentio/golines v0.12.2
 	github.com/vektra/mockery/v2 v2.42.3
-	go.uber.org/nilaway v0.0.0-20240521003701-a27654d193af
+	go.uber.org/nilaway v0.0.0-20240524204351-885be9df8ef4
 )
 
 require (

@@ -75,7 +75,7 @@ func (s *Service[
 func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
-]) RetrievePayload(
+]) retrievePayload(
 	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// The latest execution payload header, will be from the previous block
@@ -86,13 +86,14 @@ func (s *Service[
 	}
 
 	// Get the payload for the block.
-	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
-		ctx,
-		st,
-		blk.GetSlot(),
-		blk.GetParentBlockRoot(),
-		parentExecutionPayload.GetBlockHash(),
-	)
+	envelope, err := s.localPayloadBuilder.
+		RetrieveOrBuildPayload(
+			ctx,
+			st,
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+			parentExecutionPayload.GetBlockHash(),
+		)
 	if err != nil {
 		return nil, err
 	} else if envelope == nil {

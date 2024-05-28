@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -52,6 +53,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
@@ -104,7 +106,6 @@ func ProvideRuntime(
 	](
 		chainSpec.DepositContractAddress(),
 		engineClient,
-		types.NewDeposit,
 	)
 	if err != nil {
 		return nil, err
@@ -146,7 +147,6 @@ func ProvideRuntime(
 	](
 		chainSpec,
 		signer,
-		logger.With("service", "randao"),
 	)
 
 	stateProcessor := core.NewStateProcessor[
@@ -164,8 +164,10 @@ func ProvideRuntime(
 		randaoProcessor,
 		executionEngine,
 		signer,
-		logger.With("service", "state-processor"),
 	)
+
+	// Build the event feed.
+	blockFeed := event.FeedOf[events.Block[types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
@@ -213,8 +215,22 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-		beaconDepositContract,
 		ts,
+		&blockFeed,
+	)
+
+	// Build the deposit service.
+	depositService := deposit.NewService[
+		types.BeaconBlock,
+		events.Block[types.BeaconBlock],
+		*depositdb.KVStore,
+		event.Subscription,
+	](
+		logger.With("service", "deposit"),
+		math.U64(chainSpec.Eth1FollowDistance()),
+		storageBackend.DepositStore(nil),
+		beaconDepositContract,
+		&blockFeed,
 	)
 
 	// Build the service registry.
@@ -222,6 +238,7 @@ func ProvideRuntime(
 		service.WithLogger(logger.With("service", "service-registry")),
 		service.WithService(validatorService),
 		service.WithService(chainService),
+		service.WithService(depositService),
 		service.WithService(engineClient),
 	)
 

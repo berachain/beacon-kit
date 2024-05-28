@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package abci
+package middleware
 
 import (
 	"context"
@@ -32,15 +32,57 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
+// FinalizeBlockMiddleware is a struct that encapsulates the necessary
+// components to handle
+// the proposal processes.
+type FinalizeBlockMiddleware[
+	BeaconBlockT ssz.Marshallable,
+	BeaconStateT any,
+	BlobsSidecarsT ssz.Marshallable,
+] struct {
+	// chainSpec is the chain specification.
+	chainSpec primitives.ChainSpec
+
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT]
+
+	// TODO: this is really hacky here.
+	LatestBeaconBlock BeaconBlockT
+	LatestSidecars    BlobsSidecarsT
+}
+
+// NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
+func NewFinalizeBlockMiddleware[
+	BeaconBlockT ssz.Marshallable,
+	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+](
+	chainSpec primitives.ChainSpec,
+	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT],
+) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT] {
+	// This is just for nilaway, TODO: remove later.
+	if chainService == nil {
+		panic("chain service is nil")
+	}
+
+	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT]{
+		chainSpec:    chainSpec,
+		chainService: chainService,
+	}
+}
+
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *Handler[BeaconStateT, BlobsSidecarsT]) InitGenesis(
+func (h *FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
+]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
@@ -65,11 +107,13 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) InitGenesis(
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *Handler[BeaconStateT, BlobsSidecarsT]) PreBlock(
+func (h *FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
+]) PreBlock(
 	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BlobsSidecarsT](req,
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobsSidecarsT](req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
@@ -87,7 +131,9 @@ func (h *Handler[BeaconStateT, BlobsSidecarsT]) PreBlock(
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (h Handler[BeaconStateT, BlobsSidecarsT]) EndBlock(
+func (h FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
+]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Process the state transition and produce the required delta from
