@@ -45,20 +45,17 @@ type ValidatorMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
-
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
 	]
-
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.Publisher[
 		BlobsSidecarsT, []byte,
 	]
-
 	// TODO: we will eventually gossip the blocks separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	beaconBlockGossiper p2p.PublisherReceiver[

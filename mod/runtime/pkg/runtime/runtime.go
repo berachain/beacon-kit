@@ -60,13 +60,11 @@ type BeaconKitRuntime[
 	storageBackend StorageBackendT
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
-
 	// abciFinalizeBlockMiddleware handles ABCI interactions for the
 	// BeaconKitRuntime.
 	abciFinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
 		types.BeaconBlock, BeaconStateT, BlobSidecarsT,
 	]
-
 	// abciValidatorMiddleware is responsible for forward ABCI requests to the
 	// validator service.
 	abciValidatorMiddleware *middleware.ValidatorMiddleware[
