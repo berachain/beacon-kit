@@ -23,28 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package types
+package events
 
-import "context"
+import (
+	"context"
 
-type BlockEvent[BeaconBlockT BeaconBlock] struct {
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+)
+
+type Block[BeaconBlockT types.BeaconBlock] struct {
 	ctx   context.Context
 	block BeaconBlockT
 }
 
-func NewBlockEvent[
-	BeaconBlockT BeaconBlock,
-](ctx context.Context, block BeaconBlockT) BlockEvent[BeaconBlockT] {
-	return BlockEvent[BeaconBlockT]{
+func NewBlock[
+	BeaconBlockT types.BeaconBlock,
+](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
+	return Block[BeaconBlockT]{
 		ctx:   ctx,
 		block: block,
 	}
 }
 
-func (e BlockEvent[BeaconBlockT]) Context() context.Context {
+func (e Block[BeaconBlockT]) Context() context.Context {
 	return e.ctx
 }
 
-func (e BlockEvent[BeaconBlockT]) Block() BeaconBlock {
+func (e Block[BeaconBlockT]) Block() types.BeaconBlock {
 	return e.block
 }

@@ -29,6 +29,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -116,7 +117,7 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(types.NewBlockEvent(ctx, blk))
+	s.blockFeed.Send(events.NewBlock(ctx, blk))
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.

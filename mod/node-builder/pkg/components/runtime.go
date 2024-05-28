@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -169,7 +170,7 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[types.BlockEvent[types.BeaconBlock]]{}
+	blockFeed := event.FeedOf[events.Block[types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
@@ -225,7 +226,7 @@ func ProvideRuntime(
 	// Build the deposit service.
 	depositService := deposit.NewService[
 		types.BeaconBlock,
-		types.BlockEvent[types.BeaconBlock],
+		events.Block[types.BeaconBlock],
 		*depositdb.KVStore,
 		event.Subscription,
 	](
