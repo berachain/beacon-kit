@@ -35,9 +35,6 @@ type DBManagerOption func(*DBManager) error
 // WithPruner returns an option that registers a pruner to the DBManager.
 func WithPruner(p *pruner.Pruner) DBManagerOption {
 	return func(m *DBManager) error {
-		if m.Pruners == nil {
-			m.Pruners = make(map[string]*pruner.Pruner)
-		}
 		m.Pruners[p.Name()] = p
 		return nil
 	}
