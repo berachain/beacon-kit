@@ -300,10 +300,10 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	)
 
 	st := s.bsb.StateFromContext(ctx)
-
+	stCopy := st.Copy()
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
-		ctx, st, blk,
+		ctx, stCopy, blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
@@ -320,6 +320,20 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 			"local_state_root",
 			localStateRoot,
 		)
+
+		lph, err := st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
+
+		if err := s.buildPayload(
+			ctx, st, blk.GetSlot(),
+			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+			blk.GetParentBlockRoot(), lph.GetBlockHash(), lph.GetParentHash(),
+		); err != nil {
+			return err
+		}
+
 		return err
 	}
 
@@ -329,29 +343,49 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	)
 
 	if true {
-		st = st.Copy()
-		if _, err := s.stateProcessor.ProcessSlot(
-			st,
-		); err != nil {
-			return err
-		}
-
-		parentRoot, err := blk.HashTreeRoot()
+		blkHash, err := blk.HashTreeRoot()
 		if err != nil {
 			return err
 		}
-
-		if _, err = s.localPayloadBuilder.RequestPayload(
-			ctx,
-			st,
-			blk.GetSlot()+1,
+		if err := s.buildPayload(
+			ctx, stCopy, blk.GetSlot()+1,
 			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			parentRoot,
+			blkHash,
 			blk.GetBody().GetExecutionPayload().GetBlockHash(),
 			blk.GetBody().GetExecutionPayload().GetParentHash(),
 		); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// logs the process.
+func (s *Service[BeaconStateT, BlobSidecarsT]) buildPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	slot math.Slot,
+	time uint64,
+	parentRoot primitives.Root,
+	eth1Head common.ExecutionHash,
+	eth1Final common.ExecutionHash,
+) error {
+	if _, err := s.stateProcessor.ProcessSlot(
+		st,
+	); err != nil {
+		return err
+	}
+
+	if _, err := s.localPayloadBuilder.RequestPayload(
+		ctx,
+		st,
+		slot,
+		time,
+		parentRoot,
+		eth1Head,
+		eth1Final,
+	); err != nil {
+		return err
 	}
 	return nil
 }
