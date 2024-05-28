@@ -27,9 +27,7 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -67,104 +65,4 @@ func (s *Service[
 		),
 	)
 	return err
-}
-
-// sendPostBlockFCU sends a forkchoice update to the execution client.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) sendPostBlockFCU(
-	ctx context.Context,
-	st BeaconStateT,
-	blk types.BeaconBlock,
-) {
-	var (
-		headHash common.ExecutionHash
-	)
-
-	payload := blk.GetBody().GetExecutionPayload()
-
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	// TODO: clean this up.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-	} else {
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-		headHash = lph.GetBlockHash()
-	}
-
-	// If we are the local builder and we are not in init sync
-	// forkchoice update with attributes.
-
-	// TODO: re-enable this flag.
-	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
-		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlot(
-			stCopy,
-		); err != nil {
-			return
-		}
-
-		prevBlockRoot, err := blk.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		// Ask the builder to send a forkchoice update with attributes.
-		// This will trigger a new payload to be built.
-		if _, err = s.lb.RequestPayload(
-			ctx,
-			stCopy,
-			blk.GetSlot()+1,
-			//#nosec:G701 // won't realistically overflow.
-			// TODO: clock time properly.
-			uint64(max(
-				math.U64(time.Now().Unix()+1),
-				blk.GetBody().GetExecutionPayload().GetTimestamp()+
-					math.U64(s.cs.TargetSecondsPerEth1Block()),
-			)),
-			prevBlockRoot,
-			headHash,
-		); err == nil {
-			return
-		}
-
-		// If we error we log and continue, we try again without building a
-		// block
-		// just incase this can help get our execution client back on track.
-		s.logger.
-			Error(
-				"failed to send forkchoice update with attributes",
-				"error",
-				err,
-			)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(), headHash,
-	); err != nil {
-		s.logger.
-			Error(
-				"failed to send forkchoice update in postBlockProcess",
-				"error",
-				err,
-			)
-	}
 }

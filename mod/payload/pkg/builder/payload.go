@@ -85,13 +85,6 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
-	pb.logger.Info(
-		"bob the builder; can we fix it; bob the builder; yes we can 🚧",
-		"for_slot", slot,
-		"parent_eth1_hash", parentEth1Hash,
-		"parent_block_root", parentBlockRoot,
-	)
-
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
@@ -110,7 +103,8 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 	if err != nil {
 		return nil, err
 	} else if payloadID == nil {
-		pb.logger.Warn("received nil payload ID on VALID engine response",
+		pb.logger.Warn(
+			"received nil payload ID on VALID engine response",
 			"head_eth1_hash", parentEth1Hash,
 			"for_slot", slot,
 		)
@@ -118,9 +112,11 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayload(
 		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	pb.logger.Info("forkchoice updated with payload attributes",
+	pb.logger.Info(
+		"bob the builder; can we forkchoice update it?; bob the builder; yes we can 🚧",
 		"head_eth1_hash", parentEth1Hash,
 		"for_slot", slot,
+		"parent_block_root", parentBlockRoot,
 		"payload_id", payloadID,
 	)
 
