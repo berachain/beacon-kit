@@ -169,7 +169,7 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[types.BlockEvent]{}
+	blockFeed := event.FeedOf[types.BlockEvent[types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
@@ -223,7 +223,12 @@ func ProvideRuntime(
 	)
 
 	// Build the deposit service.
-	depositService := deposit.NewService[*depositdb.KVStore](
+	depositService := deposit.NewService[
+		types.BeaconBlock,
+		types.BlockEvent[types.BeaconBlock],
+		*depositdb.KVStore,
+		event.Subscription,
+	](
 		&blockFeed,
 		logger.With("service", "deposit"),
 		storageBackend,

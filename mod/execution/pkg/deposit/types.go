@@ -29,16 +29,28 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type StorageBackend[
-	AvailabilityStoreT any,
-	BeaconStateT any,
-	BlobSidecarsT any,
-	DepositStoreT Store,
-] interface {
-	// DepositStore returns the deposit store for the given context.
-	DepositStore(context.Context) DepositStoreT
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
+}
+
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Context() context.Context
+	Block() BeaconBlockT
+}
+
+// BlockFeed is an interface for subscribing to block events.
+type BlockFeed[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT interface {
+		Unsubscribe()
+	}] interface {
+	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }
 
 // Contract is the ABI for the deposit contract.
@@ -55,4 +67,14 @@ type Store interface {
 	PruneToIndex(index uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
+}
+
+type StorageBackend[
+	AvailabilityStoreT any,
+	BeaconStateT any,
+	BlobSidecarsT any,
+	DepositStoreT Store,
+] interface {
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }

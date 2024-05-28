@@ -74,7 +74,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed *event.FeedOf[types.BlockEvent]
+	blockFeed *event.FeedOf[types.BlockEvent[types.BeaconBlock]]
 }
 
 // NewService creates a new validator service.
@@ -103,7 +103,7 @@ func NewService[
 	],
 	dc DepositContract,
 	ts TelemetrySink,
-	blockFeed *event.FeedOf[types.BlockEvent],
+	blockFeed *event.FeedOf[types.BlockEvent[types.BeaconBlock]],
 ) *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
