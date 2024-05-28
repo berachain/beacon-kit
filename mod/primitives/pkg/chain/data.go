@@ -81,6 +81,9 @@ type SpecData[
 	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
 	// DepositEth1ChainID is the chain ID of the execution client.
 	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
+	// Eth1FollowDistance is the distance between the eth1 chain and the beacon
+	// chain with respect to reading deposits.
+	Eth1FollowDistance uint64 `mapstructure:"eth1-follow-distance"`
 	// TargetSecondsPerEth1Block is the target time between eth1 blocks.
 	TargetSecondsPerEth1Block uint64 `mapstructure:"target-seconds-per-eth1-block"`
 
