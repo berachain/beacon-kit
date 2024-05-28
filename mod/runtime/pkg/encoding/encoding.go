@@ -34,24 +34,30 @@ import (
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
-func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
+func ExtractBlobsAndBlockFromRequest[
+	BeaconBlockT ssz.Marshallable, BlobsSidecarsT ssz.Marshallable,
+](
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
-) (types.BeaconBlock, BlobsSidecarsT, error) {
-	var blobs BlobsSidecarsT
+) (BeaconBlockT, BlobsSidecarsT, error) {
+	var (
+		blobs BlobsSidecarsT
+		blk   BeaconBlockT
+	)
+
 	if req == nil {
-		return nil, blobs, ErrNilABCIRequest
+		return blk, blobs, ErrNilABCIRequest
 	}
 
-	blk, err := UnmarshalBeaconBlockFromABCIRequest(
+	blk, err := UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
 		beaconBlkIndex,
 		forkVersion,
 	)
 	if err != nil {
-		return nil, blobs, err
+		return blk, blobs, err
 	}
 
 	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](
@@ -59,7 +65,7 @@ func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
 		blobSidecarsIndex,
 	)
 	if err != nil {
-		return nil, blobs, err
+		return blk, blobs, err
 	}
 
 	return blk, blobs, nil
@@ -67,13 +73,14 @@ func ExtractBlobsAndBlockFromRequest[BlobsSidecarsT ssz.Marshallable](
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
-func UnmarshalBeaconBlockFromABCIRequest(
+func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT ssz.Marshallable](
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (types.BeaconBlock, error) {
+) (BeaconBlockT, error) {
+	var blk BeaconBlockT
 	if req == nil {
-		return nil, ErrNilABCIRequest
+		return blk, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
@@ -82,18 +89,30 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	// Ensure there are transactions in the request and that the request is
 	// valid.
 	if txs == nil || lenTxs == 0 {
-		return nil, ErrNoBeaconBlockInRequest
+		return blk, ErrNoBeaconBlockInRequest
 	}
 	if bzIndex >= lenTxs {
-		return nil, ErrBzIndexOutOfBounds
+		return blk, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
 	blkBz := txs[bzIndex]
 	if blkBz == nil {
-		return nil, ErrNilBeaconBlockInRequest
+		return blk, ErrNilBeaconBlockInRequest
 	}
-	return types.BeaconBlockFromSSZ(blkBz, forkVersion)
+
+	rawBlk, err := types.BeaconBlockFromSSZ(blkBz, forkVersion)
+	if err != nil {
+		return blk, err
+	}
+
+	// TODO: This is ghetto.
+	blkT, ok := reflect.ValueOf(rawBlk).Interface().(BeaconBlockT)
+	if !ok {
+		return blkT, ErrInvalidType
+	}
+
+	return blkT, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

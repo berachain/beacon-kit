@@ -29,9 +29,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -115,6 +115,9 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
+	// emit new block event
+	s.blockFeed.Send(events.NewBlock(ctx, blk))
+
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
@@ -146,6 +149,7 @@ func (s *Service[
 		return
 	}
 
+<<<<<<< services
 	s.dbm.NotifyAll(idx)
 
 	var lph engineprimitives.ExecutionPayloadHeader
@@ -168,6 +172,15 @@ func (s *Service[
 			"failed to retrieve deposits from block in postBlockProcessTasks",
 			"error", err)
 	}
+=======
+	// TODO: pruner shouldn't be in main block processing thread.
+	if err = s.PruneDepositEvents(ctx, idx); err != nil {
+		s.logger.Error(
+			"failed to prune deposit events in postBlockProcessTasks",
+			"error", err)
+		return
+	}
+>>>>>>> main
 }
 
 // ProcessBeaconBlock processes the beacon block.
