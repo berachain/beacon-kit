@@ -27,22 +27,24 @@ package types
 
 import "context"
 
-type BlockEvent struct {
+type BlockEvent[BeaconBlockT BeaconBlock] struct {
 	ctx   context.Context
-	block BeaconBlock
+	block BeaconBlockT
 }
 
-func NewBlockEvent(ctx context.Context, block BeaconBlock) BlockEvent {
-	return BlockEvent{
+func NewBlockEvent[
+	BeaconBlockT BeaconBlock,
+](ctx context.Context, block BeaconBlockT) BlockEvent[BeaconBlockT] {
+	return BlockEvent[BeaconBlockT]{
 		ctx:   ctx,
 		block: block,
 	}
 }
 
-func (e *BlockEvent) Context() context.Context {
+func (e BlockEvent[BeaconBlockT]) Context() context.Context {
 	return e.ctx
 }
 
-func (e *BlockEvent) Block() BeaconBlock {
+func (e BlockEvent[BeaconBlockT]) Block() BeaconBlock {
 	return e.block
 }
