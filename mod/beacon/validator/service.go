@@ -278,7 +278,7 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
 	blk types.BeaconBlock,
 ) error {
 	s.logger.Info(
-		"received incoming beacon block 📫",
+		"received incoming beacon block 📫 ",
 		"state_root", blk.GetStateRoot(),
 	)
 
