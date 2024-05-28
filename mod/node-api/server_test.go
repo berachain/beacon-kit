@@ -63,12 +63,12 @@ func getTestcases() []testcase {
 		{
 			method:   "GET",
 			endpoint: "/eth/v1/beacon/genesis",
-			expected: http.StatusNotImplemented,
+			expected: http.StatusOK,
 		},
 		{
 			method:   "GET",
 			endpoint: "/eth/v1/beacon/states/:state_id/root",
-			expected: http.StatusNotImplemented,
+			expected: http.StatusOK,
 		},
 		{
 			method:   "GET",
@@ -83,12 +83,12 @@ func getTestcases() []testcase {
 		{
 			method:   "GET",
 			endpoint: "/eth/v1/beacon/states/:state_id/validators",
-			expected: http.StatusNotImplemented,
+			expected: http.StatusNotFound,
 		},
 		{
 			method:   "POST",
 			endpoint: "/eth/v1/beacon/states/:state_id/validators",
-			expected: http.StatusNotImplemented,
+			expected: http.StatusOK,
 		},
 		{
 			method:   "GET",
@@ -97,13 +97,13 @@ func getTestcases() []testcase {
 		},
 		{
 			method:   "GET",
-			endpoint: "/eth/v1/beacon/states/:state_id/validators/validator_balances",
-			expected: http.StatusNotImplemented,
+			endpoint: "/eth/v1/beacon/states/:state_id/validator_balances",
+			expected: http.StatusOK,
 		},
 		{
 			method:   "POST",
-			endpoint: "/eth/v1/beacon/states/:state_id/validators/validator_balances",
-			expected: http.StatusNotImplemented,
+			endpoint: "/eth/v1/beacon/states/:state_id/validator_balances",
+			expected: http.StatusOK,
 		},
 		{
 			method:   "GET",
