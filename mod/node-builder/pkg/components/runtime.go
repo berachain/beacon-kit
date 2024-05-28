@@ -106,7 +106,6 @@ func ProvideRuntime(
 	](
 		chainSpec.DepositContractAddress(),
 		engineClient,
-		types.NewDeposit,
 	)
 	if err != nil {
 		return nil, err

@@ -28,6 +28,7 @@ package deposit
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -58,6 +59,18 @@ type Contract[DepositT any] interface {
 		ctx context.Context,
 		blockNumber uint64,
 	) ([]DepositT, error)
+}
+
+// Deposit is an interface for deposits.
+type Deposit[DepositT, WithdrawalCredentialsT any] interface {
+	// New creates a new deposit.
+	New(
+		crypto.BLSPubkey,
+		WithdrawalCredentialsT,
+		math.U64,
+		crypto.BLSSignature,
+		uint64,
+	) DepositT
 }
 
 // Store defines the interface for managing deposit operations.
