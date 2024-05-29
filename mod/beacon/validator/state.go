@@ -89,6 +89,7 @@ func (s *Service[
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part
 		// of the canonical chain.
+		//
 		// TODO: this is only true because we are assuming SSF.
 		return nil
 	} else if err != nil {

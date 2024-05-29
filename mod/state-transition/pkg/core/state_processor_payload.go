@@ -82,7 +82,7 @@ func (sp *StateProcessor[
 	// Verify and notify the new payload early in the function.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	g.Go(func() error {
-		if err := sp.executionEngine.VerifyAndNotifyNewPayload(
+		if err = sp.executionEngine.VerifyAndNotifyNewPayload(
 			gCtx, engineprimitives.BuildNewPayloadRequest(
 				payload,
 				body.GetBlobKzgCommitments().ToVersionedHashes(),
