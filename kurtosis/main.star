@@ -3,7 +3,7 @@ el_cl_genesis_data_generator = import_module(
 )
 
 execution = import_module("./src/nodes/execution/execution.star")
-
+service_module = import_module("./src/services/service.star")
 beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
@@ -26,6 +26,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
     args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
 
+    next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(validators)
     full_nodes = nodes.parse_nodes_from_dict(full_nodes)
     num_validators = len(validators)
@@ -148,42 +149,39 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
         plan.print("Invalid type for eth_json_rpc_endpoint")
 
     # 7. Start additional services
-    for s in additional_services:
-        if s == "goomy_blob":
+    for s_dict in additional_services:
+        s = service_module.parse_service_from_dict(s_dict)
+        if s.name == "goomy_blob":
             plan.print("Launching Goomy the Blob Spammer")
             rpc_endpoint_goomy_blob = plan.get_service(endpoint_type).ports["http"].url
             plan.print("Launching goomy blob for rpc endpoint: ", rpc_endpoint_goomy_blob)
             goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
-                constants.PRE_FUNDED_ACCOUNTS[0],
+                constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
                 rpc_endpoint_goomy_blob,
                 goomy_blob_args,
             )
+            next_free_prefunded_account += 1
             plan.print("Successfully launched goomy the blob spammer")
-        elif s == "blutgang":
-            plan.print("Launghing blutgang")
-            blutgang_config_template = read_file(
-                constants.BLUTGANG_CONFIG_TEMPLATE_PATH,
-            )
-            blutgang.launch_blutgang(
-                plan,
-                blutgang_config_template,
-                constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx").ports["http"].url,
-            )
-        elif s == "tx-fuzz":
+        elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             fuzzing_node = validator_node_el_clients[0]["service"]
-            if len(full_nodes) > 0:
-                fuzzing_node = full_node_el_clients[0]["service"]
-            tx_fuzz.launch_tx_fuzz(
-                plan,
-                constants.PRE_FUNDED_ACCOUNTS[1].private_key,
-                "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
-                [],
-            )
-        elif s == "prometheus":
+            if "replicas" not in s_dict:
+                s.replicas = 1
+
+            for i in range(s.replicas):
+                if i > 0:
+                    fuzzing_node = full_node_el_clients[i % len(full_node_el_clients)]["service"]
+                tx_fuzz.launch_tx_fuzz(
+                    plan,
+                    i,
+                    constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account].private_key,
+                    "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
+                    [],
+                )
+                next_free_prefunded_account += 1
+        elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
             if "grafana" in additional_services:
                 grafana.start(plan, prometheus_url)
