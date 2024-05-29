@@ -124,32 +124,8 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	go s.sendPostBlockFCU(ctx, st, blk)
-	go s.postBlockProcessTasks(st)
 
 	return valUpdates, nil
-}
-
-// postBlockProcessTasks performs post block processing tasks.
-//
-// TODO: Deprecate this function and move it's usage outside of the main block
-// processing thread.
-func (s *Service[
-	AvailabilityStoreT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
-]) postBlockProcessTasks(
-	st BeaconStateT,
-) {
-	// Prune deposits.
-	// TODO: This should be moved into a go-routine in the background.
-	// Watching for logs should be completely decoupled as well.
-	idx, err := st.GetEth1DepositIndex()
-	if err != nil {
-		s.logger.Error(
-			"failed to get eth1 deposit index in postBlockProcessTasks",
-			"error", err)
-		return
-	}
-	s.dbm.NotifyAll(idx)
 }
 
 // ProcessBeaconBlock processes the beacon block.

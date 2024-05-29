@@ -23,27 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package manager
+package pruner
 
 import (
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type DBManagerOption func(*DBManager) error
-
-// WithPruner returns an option that registers a pruner to the DBManager.
-func WithPruner(p *pruner.Pruner) DBManagerOption {
-	return func(m *DBManager) error {
-		m.Pruners[p.Name()] = p
-		return nil
-	}
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
 }
 
-// WithLogger returns an option that sets the logger for the DBManager.
-func WithLogger(l log.Logger[any]) DBManagerOption {
-	return func(m *DBManager) error {
-		m.logger = l
-		return nil
-	}
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Block() BeaconBlockT
+}
+
+type Subscription interface {
+	Unsubscribe()
+}
+
+// BlockFeed is an interface for subscribing to block events.
+type BlockFeed[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] interface {
+	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }

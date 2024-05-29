@@ -23,21 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package manager
 
-import (
-	"context"
+import "errors"
+
+var (
+	// ErrDuplicatePruner is returned when a pruner with the same name is added
+	// to the manager.
+	ErrDuplicatePruner = errors.New("pruner with the same name already exists")
 )
-
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.sb.DepositStore(ctx).Prune(idx)
-}

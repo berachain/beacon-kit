@@ -31,23 +31,40 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
+	interfaceMocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDBManager_Start(t *testing.T) {
-	mockPrunable := new(mocks.Prunable)
-	logger := log.NewNopLogger()
-	p1 := pruner.NewPruner(logger, mockPrunable, "pruner1")
-	p2 := pruner.NewPruner(logger, mockPrunable, "pruner2")
+	mockPrunable := new(interfaceMocks.Prunable)
+	feed := mocks.BlockFeed[
+		manager.BeaconBlock,
+		manager.BlockEvent[manager.BeaconBlock],
+		manager.Subscription,
+	]{}
+	feed.EXPECT().Subscribe(mock.Anything).Return(&mocks.Subscription{})
 
-	m, err := manager.NewDBManager(
-		manager.WithPruner(p1),
-		manager.WithPruner(p2),
-		manager.WithLogger(logger),
-	)
+	logger := log.NewNopLogger()
+	p1 := pruner.NewPruner[
+		manager.BeaconBlock,
+		manager.BlockEvent[manager.BeaconBlock],
+		manager.Subscription,
+	](logger, mockPrunable, "pruner1", &feed)
+	p2 := pruner.NewPruner[
+		manager.BeaconBlock,
+		manager.BlockEvent[manager.BeaconBlock],
+		manager.Subscription,
+	](logger, mockPrunable, "pruner2", &feed)
+
+	m, err := manager.NewDBManager[
+		manager.BeaconBlock,
+		manager.BlockEvent[manager.BeaconBlock],
+		manager.Subscription,
+	](logger, p1, p2)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -56,65 +73,7 @@ func TestDBManager_Start(t *testing.T) {
 	err = m.Start(ctx)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
+	feed.AssertCalled(t, "Subscribe", mock.Anything)
+	feed.AssertNumberOfCalls(t, "Subscribe", 2)
 	mockPrunable.AssertNotCalled(t, "Prune")
-}
-
-func TestDBManager_NotifyAll(t *testing.T) {
-	mockPruner := new(mocks.Prunable)
-	logger := log.NewNopLogger()
-	p1 := pruner.NewPruner(logger, mockPruner, "pruner1")
-	p2 := pruner.NewPruner(logger, mockPruner, "pruner2")
-
-	// set up the expectation for the Prune method
-	mockPruner.On("Prune", uint64(123)).Return(nil).Twice()
-
-	m, err := manager.NewDBManager(
-		manager.WithPruner(p1),
-		manager.WithPruner(p2),
-		manager.WithLogger(logger),
-	)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	err = m.Start(ctx)
-	require.NoError(t, err)
-	m.NotifyAll(123)
-
-	time.Sleep(100 * time.Millisecond)
-
-	// Assert that both pruners received the Notify call
-	mockPruner.AssertCalled(t, "Prune", uint64(123))
-	mockPruner.AssertNumberOfCalls(t, "Prune", 2)
-}
-
-func TestDBManager_Notify(t *testing.T) {
-	mockPruner := new(mocks.Prunable)
-	logger := log.NewNopLogger()
-	p1 := pruner.NewPruner(logger, mockPruner, "pruner1")
-	p2 := pruner.NewPruner(logger, mockPruner, "pruner2")
-
-	// set up the expectation for the Prune method
-	mockPruner.On("Prune", uint64(123)).Return(nil).Twice()
-
-	m, err := manager.NewDBManager(
-		manager.WithPruner(p1),
-		manager.WithPruner(p2),
-		manager.WithLogger(logger),
-	)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	err = m.Start(ctx)
-	require.NoError(t, err)
-	m.Notify("pruner1", 123)
-
-	time.Sleep(100 * time.Millisecond)
-
-	// Assert that only pruner1 received the Notify call
-	mockPruner.AssertCalled(t, "Prune", uint64(123))
-	mockPruner.AssertNumberOfCalls(t, "Prune", 1)
 }

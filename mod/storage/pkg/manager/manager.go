@@ -33,59 +33,68 @@ import (
 )
 
 // DBManager is a manager for all pruners.
-type DBManager struct {
-	Pruners map[string]*pruner.Pruner
-	// Pruners []*pruner.Pruner
+type DBManager[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] struct {
+	pruners map[string]*pruner.Pruner[
+		BeaconBlockT, BlockEventT, SubscriptionT,
+	]
 	logger log.Logger[any]
 }
 
-func NewDBManager(opts ...DBManagerOption) (*DBManager, error) {
-	m := &DBManager{
-		Pruners: make(map[string]*pruner.Pruner),
+func NewDBManager[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+](
+	logger log.Logger[any],
+	pruners ...*pruner.Pruner[BeaconBlockT, BlockEventT, SubscriptionT],
+) (*DBManager[BeaconBlockT, BlockEventT, SubscriptionT], error) {
+	m := &DBManager[
+		BeaconBlockT, BlockEventT, SubscriptionT,
+	]{
+		logger: logger,
+		pruners: make(map[string]*pruner.Pruner[
+			BeaconBlockT, BlockEventT, SubscriptionT,
+		]),
 	}
-	for _, opt := range opts {
-		if err := opt(m); err != nil {
-			return nil, err
+	for _, p := range pruners {
+		if _, ok := m.pruners[p.Name()]; ok {
+			return nil, ErrDuplicatePruner
 		}
+		m.pruners[p.Name()] = p
 	}
 	return m, nil
 }
 
 // Name returns the name of the Basic Service.
-func (m *DBManager) Name() string {
+func (m *DBManager[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) Name() string {
 	return "DBManager"
 }
 
 // TODO: fr implementation
-func (m *DBManager) Status() error {
+func (m *DBManager[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) Status() error {
 	return nil
 }
 
 // TODO: fr implementation
-func (m *DBManager) WaitForHealthy(_ context.Context) {
+func (m *DBManager[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) WaitForHealthy(_ context.Context) {
 }
 
 // Start starts all pruners.
-func (m *DBManager) Start(ctx context.Context) error {
-	for _, pruner := range m.Pruners {
+func (m *DBManager[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) Start(ctx context.Context) error {
+	for _, pruner := range m.pruners {
 		pruner.Start(ctx)
 	}
 	return nil
-}
-
-// notifies all pruners to prune with the given index.
-func (m *DBManager) NotifyAll(index uint64) {
-	for _, pruner := range m.Pruners {
-		pruner.Notify(index)
-	}
-}
-
-// notifies the pruner with the given name to prune with the given index.
-func (m *DBManager) Notify(name string, index uint64) {
-	pruner, ok := m.Pruners[name]
-	if !ok {
-		m.logger.Error("Pruner not found", "name", name)
-		return
-	}
-	pruner.Notify(index)
 }

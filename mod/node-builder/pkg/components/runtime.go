@@ -201,10 +201,15 @@ func ProvideRuntime(
 		ts,
 	)
 
-	depositPruner := pruner.NewPruner(
+	depositPruner := pruner.NewPruner[
+		types.BeaconBlock,
+		events.Block[types.BeaconBlock],
+		event.Subscription,
+	](
 		logger.With("service", manager.DepositPrunerName),
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
+		&blockFeed,
 	)
 
 	defer func() {
@@ -214,17 +219,26 @@ func ProvideRuntime(
 		_ = recover()
 	}()
 
-	availabilityPruner := pruner.NewPruner(
+	availabilityPruner := pruner.NewPruner[
+		types.BeaconBlock,
+		events.Block[types.BeaconBlock],
+		event.Subscription,
+	](
 		logger.With("service", manager.AvailabilityPrunerName),
 		storageBackend.AvailabilityStore(
 			nil).IndexDB.(*filedb.RangeDB),
 		manager.AvailabilityPrunerName,
+		&blockFeed,
 	)
 
-	dbManagerService, err := manager.NewDBManager(
-		manager.WithLogger(logger.With("service", "db-manager")),
-		manager.WithPruner(depositPruner),
-		manager.WithPruner(availabilityPruner),
+	dbManagerService, err := manager.NewDBManager[
+		types.BeaconBlock,
+		events.Block[types.BeaconBlock],
+		event.Subscription,
+	](
+		logger.With("service", "db-manager"),
+		depositPruner,
+		availabilityPruner,
 	)
 	if err != nil {
 		return nil, err
@@ -251,7 +265,6 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-		dbManagerService,
 		ts,
 		&blockFeed,
 	)

@@ -14,6 +14,7 @@
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
 //
+
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,46 +34,68 @@ import (
 )
 
 // Pruner is a struct that holds the prunable interface and a notifier channel.
-type Pruner struct {
+type Pruner[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] struct {
 	prunable interfaces.Prunable
-	requests chan uint64
 	logger   log.Logger[any]
 	name     string
+	feed     BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
 }
 
-func NewPruner(logger log.Logger[any], prunable interfaces.Prunable,
-	name string) *Pruner {
-	return &Pruner{
+func NewPruner[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+](
+	logger log.Logger[any],
+	prunable interfaces.Prunable,
+	name string,
+	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
+) *Pruner[BeaconBlockT, BlockEventT, SubscriptionT] {
+	return &Pruner[BeaconBlockT, BlockEventT, SubscriptionT]{
 		logger:   logger,
 		prunable: prunable,
-		requests: make(chan uint64),
 		name:     name,
+		feed:     feed,
 	}
 }
 
-// Start starts the pruner by listening for new indexes to prune.
-func (p *Pruner) Start(ctx context.Context) {
+// Start starts the Pruner by listening for new indexes to prune.
+func (p *Pruner[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) Start(ctx context.Context) {
+	ch := make(chan BlockEventT)
+	sub := p.feed.Subscribe(ch)
 	go func() {
+		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case index := <-p.requests:
+			case event := <-ch:
+				index := event.Block().GetSlot().Unwrap()
+				p.logger.Info(
+					"🔪 pruning events 🔪",
+					"index", index,
+				)
 				if err := p.prunable.Prune(index); err != nil {
-					p.logger.Error("Error pruning index", "pruner", p.Name(),
-						"index", index, "error", err)
+					p.logger.Error(
+						"‼️ error pruning index ‼️",
+						"index", index,
+						"error", err,
+					)
 				}
 			}
 		}
 	}()
 }
 
-// Notify sends a new index to the pruner through the notifier channel.
-func (p *Pruner) Notify(index uint64) {
-	p.requests <- index
-}
-
-// Name returns the name of the pruner.
-func (p *Pruner) Name() string {
+// Name returns the name of the Pruner.
+func (p *Pruner[
+	BeaconBlockT, BlockEventT, SubscriptionT,
+]) Name() string {
 	return p.name
 }

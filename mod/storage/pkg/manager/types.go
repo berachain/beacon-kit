@@ -23,51 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package filedb
+package manager
 
-import "context"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
-// RangeDBPruner prunes old indexes from the range DB.
-type RangeDBPruner struct {
-	db             *RangeDB
-	notifyNewIndex chan uint64
-	pruneWindow    uint64
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
 }
 
-func NewRangeDBPruner(
-	db *RangeDB,
-	pruneWindow uint64,
-	notifyNewIndex chan uint64,
-) *RangeDBPruner {
-	return &RangeDBPruner{
-		db:             db,
-		notifyNewIndex: notifyNewIndex,
-		pruneWindow:    pruneWindow,
-	}
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Block() BeaconBlockT
 }
 
-// Start starts a goroutine that listens for new indices to prune.
-func (p *RangeDBPruner) Start(ctx context.Context) {
-	go p.runLoop(ctx)
+type Subscription interface {
+	Unsubscribe()
 }
 
-// NotifyNewIndex notifies the pruner of a new index.
-func (p *RangeDBPruner) runLoop(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case index := <-p.notifyNewIndex:
-			// Do nothing until the prune window is reached.
-			if p.pruneWindow > index {
-				continue
-			}
-
-			// Prune all indexes below the most recently seen
-			// index minus the prune window.
-			if err := p.db.DeleteRange(0, index-p.pruneWindow); err != nil {
-				return
-			}
-		}
-	}
+// BlockFeed is an interface for subscribing to block events.
+type BlockFeed[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] interface {
+	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }

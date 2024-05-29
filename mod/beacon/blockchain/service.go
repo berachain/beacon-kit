@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
 
 // Service is the blockchain service.
@@ -70,8 +69,6 @@ type Service[
 		BlobSidecarsT,
 		*transition.Context,
 	]
-	// dbm is the database manager.
-	dbm *manager.DBManager
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
@@ -102,7 +99,6 @@ func NewService[
 		types.BeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-	dbm *manager.DBManager,
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
@@ -122,7 +118,6 @@ func NewService[
 		sp:        sp,
 		metrics:   newChainMetrics(ts),
 		blockFeed: blockFeed,
-		dbm:       dbm,
 	}
 }
 

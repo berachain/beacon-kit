@@ -276,13 +276,21 @@ func TestRangeDB_Prune(t *testing.T) {
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
-					t.Fatalf("setupFunc() error = %v, expectedError %v", err, tt.expectedError)
+					t.Fatalf(
+						"setupFunc() error = %v, expectedError %v",
+						err,
+						tt.expectedError,
+					)
 				}
 			}
 
 			err := rdb.Prune(tt.pruneIndex)
 			if (err != nil) != tt.expectedError {
-				t.Fatalf("Prune() error = %v, expectedError %v", err, tt.expectedError)
+				t.Fatalf(
+					"Prune() error = %v, expectedError %v",
+					err,
+					tt.expectedError,
+				)
 			}
 
 			if tt.testFunc != nil {
