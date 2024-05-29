@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -191,4 +192,11 @@ type StateProcessor[
 type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
 }
