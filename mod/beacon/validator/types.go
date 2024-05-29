@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
@@ -59,6 +60,22 @@ type ReadOnlyBeaconBlock[BodyT any] interface {
 	GetBody() BodyT
 }
 
+type BeaconBlockBody[
+	DepositT, Eth1DataT any,
+] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+	SetRandaoReveal(crypto.BLSSignature)
+	SetEth1Data(Eth1DataT)
+	GetDeposits() []DepositT
+	SetDeposits([]DepositT)
+	SetExecutionData(engineprimitives.ExecutionPayload) error
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+}
+
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
 type BeaconState interface {
@@ -78,14 +95,10 @@ type BeaconState interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type StorageBackend[BeaconStateT BeaconState] interface {
-	StateFromContext(context.Context) BeaconStateT
-}
-
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
+	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
 	BlobSidecarsT BlobSidecars,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
@@ -150,4 +163,10 @@ type StateProcessor[
 		st BeaconStateT,
 		blk BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
+}
+
+// StorageBackend is the interface for the storage backend.
+type StorageBackend[BeaconStateT BeaconState] interface {
+	// StateFromContext retrieves the beacon state from the context.
+	StateFromContext(context.Context) BeaconStateT
 }
