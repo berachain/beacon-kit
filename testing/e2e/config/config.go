@@ -87,6 +87,10 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Name:     "tx-fuzz",
 				Replicas: 3,
 			},
+			{
+				Name:     "goomy-blob",
+				Replicas: 3,
+			},
 		},
 		Validators: []Node{
 			{

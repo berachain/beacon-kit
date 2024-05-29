@@ -151,7 +151,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
     # 7. Start additional services
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
-        if s.name == "goomy_blob":
+        if s.name == "goomy-blob":
             plan.print("Launching Goomy the Blob Spammer")
             rpc_endpoint_goomy_blob = plan.get_service(endpoint_type).ports["http"].url
             plan.print("Launching goomy blob for rpc endpoint: ", rpc_endpoint_goomy_blob)
