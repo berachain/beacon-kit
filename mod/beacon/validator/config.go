@@ -25,13 +25,9 @@
 
 package validator
 
-import "time"
-
 const (
 	// defaultGraffiti is the default graffiti string.
 	defaultGraffiti = ""
-	// payloadBuilderTimeout is the default timeout for the payload builder.
-
 )
 
 // Config is the validator configuration.
@@ -39,9 +35,6 @@ type Config struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
 	Graffiti string `mapstructure:"graffiti"`
-
-	// PayloadBuildTimeout
-	PayloadBuildTimeout time.Duration `mapstructure:"payload-build-timeout"`
 }
 
 // DefaultConfig returns the default fork configuration.
