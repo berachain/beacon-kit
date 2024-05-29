@@ -330,7 +330,7 @@ func (s *Service[
 	st := s.bsb.StateFromContext(ctx)
 
 	// We purposefully make a copy of the BeaconState in orer
-	// to avoid modifying the underyling state, for the event in which
+	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
 	stCopy := st.Copy()
@@ -383,7 +383,8 @@ func (s *Service[
 
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is unmodified state.
-	// We can safely get the latest block header and then rebuild the previous block
+	// We can safely get the latest block header and then rebuild the previous
+	// block
 	// and it's root.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
