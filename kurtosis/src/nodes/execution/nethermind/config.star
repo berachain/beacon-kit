@@ -23,7 +23,7 @@ GLOBAL_FILES = [
     ("./{}/{}".format(NODE_TYPE, GENESIS_FILENAME), "nether_genesis_file"),
 ]
 
-IMAGE = "nethermind/nethermind:1.25.4"
+IMAGE = "nethermind/nethermind:latest"
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "{}/{}".format(CONFIG_FOLDER, CONFIG_FILENAME)
 FILES = {
