@@ -62,13 +62,13 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	types.BeaconBlockBody,
 	core.BeaconState[*types.Validator],
 	*datypes.BlobSidecars,
-	*depositdb.KVStore,
+	*depositdb.KVStore[*types.Deposit],
 	runtime.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 ]
 
@@ -87,7 +87,7 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 	ts *metrics.TelemetrySink,
 	logger log.Logger,
@@ -227,7 +227,7 @@ func ProvideRuntime(
 	depositService := deposit.NewService[
 		types.BeaconBlock,
 		events.Block[types.BeaconBlock],
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](
 		logger.With("service", "deposit"),
@@ -252,7 +252,7 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		chainSpec,
 		logger,

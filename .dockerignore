@@ -5,6 +5,7 @@ docs/
 networks/
 proto/
 tools/
+kurtosis/
 .github/
 .git/
 .vscode/
