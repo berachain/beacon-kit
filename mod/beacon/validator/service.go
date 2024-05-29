@@ -271,16 +271,14 @@ func (s *Service[
 		return sidecarErr
 	})
 
-	// Set the state root on the BeaconBlock.
+	// Compute and set the state root for the block.
 	g.Go(func() error {
-		// Compute the state root for the block.
-		var stateRoot primitives.Root
-
 		s.logger.Info(
 			"computing state root for block 🌲",
 			"slot", blk.GetSlot(),
 		)
 
+		var stateRoot primitives.Root
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
@@ -313,8 +311,8 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
-// logs the process.
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
@@ -382,9 +380,8 @@ func (s *Service[
 	return nil
 }
 
-// rebuildPayloadForRejectedBlock rebuilds a payload for the current slot, if
-// the
-// incoming block was rejected.
+// rebuildPayloadForRejectedBlock rebuilds a payload for the current
+// slot, if the incoming block was rejected.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) rebuildPayloadForRejectedBlock(
@@ -471,23 +468,24 @@ func (s *Service[
 	}
 
 	// We then trigger a request for the next payload.
+	payload := blk.GetBody().GetExecutionPayload()
 	if _, err = s.localPayloadBuilder.RequestPayload(
 		ctx, st,
 		// We are building for the next slot, so we increment the slot.
 		blk.GetSlot()+1,
 		// TODO: this is hood as fuck, also kind of dangerous if
 		// payload is malicious, we should fix it.
-		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+		uint64(payload.GetTimestamp()+1),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blkRoot,
 		// We set the head of our chain to the block we just processed.
-		blk.GetBody().GetExecutionPayload().GetBlockHash(),
+		payload.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
 		// This is safe to do since this block was accepted and the thus the
 		// parent hash was deemed valid by the state transition function we
 		// just processed.
-		blk.GetBody().GetExecutionPayload().GetParentHash(),
+		payload.GetParentHash(),
 	); err != nil {
 		return err
 	}
