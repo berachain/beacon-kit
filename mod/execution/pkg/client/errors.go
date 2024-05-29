@@ -83,8 +83,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 
 	// Check to see if the error is one of the predefined errors
 	// as per the JSON-RPC 2.0 specification.
-	if err = jsonrpc.GetPredefinedError(e); err != nil {
-		return err
+	if jsonErr := jsonrpc.GetPredefinedError(e); jsonErr != nil {
+		return jsonErr
 	}
 
 	// Otherwise check for our engine errors.
@@ -108,7 +108,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
 		if !ok {
 			return errors.Wrapf(
-				errors.Join(err.Error(), jsonrpc.ErrServer),
+				errors.Join(jsonrpc.ErrServer, err),
 				"got an unexpected data error in JSON-RPC response",
 			)
 		}
