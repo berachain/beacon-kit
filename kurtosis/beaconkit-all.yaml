@@ -87,8 +87,9 @@ eth_json_rpc_endpoints:
       - el-full-erigon-5
       - el-full-ethereumjs-6
 additional_services:
-  - "goomy_blob"
-  - "tx-fuzz"
-  - "prometheus"
-  - "grafana"
-  - "pyroscope"
+  - name: "goomy_blob"
+  - name: "tx-fuzz"
+    replicas: 5
+  - name: "prometheus"
+  - name: "grafana"
+  - name: "pyroscope"

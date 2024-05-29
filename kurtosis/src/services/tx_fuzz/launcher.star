@@ -9,20 +9,26 @@ MAX_MEMORY = 300
 
 def launch_tx_fuzz(
         plan,
+        id,
         prefunded_private_key,
         el_uri,
-        tx_spammer_extra_args):
+        tx_spammer_extra_args,
+    ):
     config = get_config(
         prefunded_private_key,
         el_uri,
         tx_spammer_extra_args,
     )
-    plan.add_service(SERVICE_NAME, config)
+    plan.add_service(
+        SERVICE_NAME + "-"+str(id), 
+        config,
+    )
 
 def get_config(
-        prefunded_private_key,
-        el_uri,
-        tx_spammer_extra_args):
+    prefunded_private_key,
+    el_uri,
+    tx_spammer_extra_args,
+):
     tx_spammer_image = "ethpandaops/tx-fuzz:master"
 
     entrypoint = [
