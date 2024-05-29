@@ -74,7 +74,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		if jsonrpc.IsUnauthorizedError(e) {
 			return http.ErrUnauthorized
 		}
-		return errors.Wrapf(err, "got an unexpected error in JSON-RPC response")
+		return errors.Wrapf(
+			err,
+			"got an unexpected server error in JSON-RPC response"+
+				"failed to convert from jsonrpc.Error",
+		)
 	}
 
 	// Check to see if the error is one of the predefined errors
@@ -105,7 +109,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		if !ok {
 			return errors.Wrapf(
 				errors.Join(jsonrpc.ErrServer, err),
-				"got an unexpected error in JSON-RPC response",
+				"got an unexpected data error in JSON-RPC response",
 			)
 		}
 		return errors.Wrapf(jsonrpc.ErrServer, "%v", errWithData.Error())
