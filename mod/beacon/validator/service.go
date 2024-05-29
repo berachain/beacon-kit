@@ -331,20 +331,10 @@ func (s *Service[
 	if err := s.verifyStateRoot(
 		ctx, stCopy, blk,
 	); err != nil {
-		// TODO: this is expensive because we are not caching the
-		// previous result of HashTreeRoot().
-		var localStateRoot primitives.Root
-		localStateRoot, err = st.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
 		s.logger.Error(
-			"state root verification failed - rejecting incoming block ❌ ",
-			"block_state_root",
-			blk.GetStateRoot(),
-			"local_state_root",
-			localStateRoot,
+			"rejecting incoming block ❌ ",
+			"error",
+			err,
 		)
 
 		lph, err := st.GetLatestExecutionPayloadHeader()
@@ -355,7 +345,9 @@ func (s *Service[
 		if err := s.buildPayload(
 			ctx, st, blk.GetSlot(),
 			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			blk.GetParentBlockRoot(), lph.GetBlockHash(), lph.GetParentHash(),
+			blk.GetParentBlockRoot(),
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
 		); err != nil {
 			return err
 		}
@@ -373,7 +365,7 @@ func (s *Service[
 		if err != nil {
 			return err
 		}
-		if err := s.buildPayload(
+		if err = s.buildPayload(
 			ctx, stCopy, blk.GetSlot()+1,
 			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
 			blkHash,
