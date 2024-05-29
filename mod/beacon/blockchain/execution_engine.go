@@ -31,7 +31,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -46,21 +45,19 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
-	headEth1Hash common.ExecutionHash,
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	eth1BlockHash := lph.GetBlockHash()
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		engineprimitives.BuildForkchoiceUpdateRequest(
 			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1Hash,
-				SafeBlockHash:      eth1BlockHash,
-				FinalizedBlockHash: eth1BlockHash,
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
 			},
 			nil,
 			s.cs.ActiveForkVersionForSlot(slot),
@@ -80,20 +77,6 @@ func (s *Service[
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcess",
-			"error", err,
-		)
-		return
-	}
-	headHash := lph.GetBlockHash()
-	parentHash := lph.GetParentHash()
-
-	// If we are the local builder and we are not in init sync
-	// forkchoice update with attributes.
-
 	// TODO: re-enable this flag.
 	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
 		stCopy := st.Copy()
@@ -114,6 +97,15 @@ func (s *Service[
 			return
 		}
 
+		lph, err := st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			s.logger.Error(
+				"failed to get latest execution payload in postBlockProcess",
+				"error", err,
+			)
+			return
+		}
+
 		// Ask the builder to send a forkchoice update with attributes.
 		// This will trigger a new payload to be built.
 		if _, err = s.lb.RequestPayload(
@@ -128,8 +120,8 @@ func (s *Service[
 					math.U64(s.cs.TargetSecondsPerEth1Block()),
 			)),
 			prevBlockRoot,
-			headHash,
-			parentHash,
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
 		); err == nil {
 			return
 		}
@@ -147,7 +139,7 @@ func (s *Service[
 
 	// Otherwise we send a forkchoice update to the execution client.
 	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(), headHash,
+		ctx, st, blk.GetSlot(),
 	); err != nil {
 		s.logger.
 			Error(
