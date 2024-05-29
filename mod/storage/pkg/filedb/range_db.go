@@ -46,15 +46,15 @@ var _ db.Prunable = (*RangeDB)(nil)
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	db.DB
-	pruneWindow      uint64
+	dataWindow       uint64
 	firstNonNilIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB(db db.DB, pruneWindow uint64) *RangeDB {
+func NewRangeDB(db db.DB, dataWindow uint64) *RangeDB {
 	return &RangeDB{
 		DB:               db,
-		pruneWindow:      pruneWindow,
+		dataWindow:       dataWindow,
 		firstNonNilIndex: 0,
 	}
 }
@@ -108,10 +108,10 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 }
 
 func (db *RangeDB) Prune(index uint64) error {
-	if db.pruneWindow > index {
+	if db.dataWindow > index {
 		return nil
 	}
-	err := db.DeleteRange(db.firstNonNilIndex, index-db.pruneWindow)
+	err := db.DeleteRange(db.firstNonNilIndex, index-db.dataWindow)
 	if err != nil {
 		// Resets last pruned index in case Delete somehow populates indices on
 		// err. This will cause the next prune operation is O(n), but next
@@ -120,7 +120,7 @@ func (db *RangeDB) Prune(index uint64) error {
 		db.firstNonNilIndex = 0
 		return err
 	}
-	db.firstNonNilIndex = index - db.pruneWindow
+	db.firstNonNilIndex = index - db.dataWindow
 	return nil
 }
 
