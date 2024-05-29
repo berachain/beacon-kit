@@ -48,3 +48,8 @@ packages:
       recursive: False
       with-expecter: true
       all: True
+  github.com/berachain/beacon-kit/mod/consensus-types/pkg/types:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True
