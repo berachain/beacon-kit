@@ -248,6 +248,7 @@ func ProvideRuntime(
 		service.WithService(engineClient),
 		service.WithService(version.NewReportingService(
 			logger,
+			ts,
 			sdkversion.Version,
 		)),
 	)
