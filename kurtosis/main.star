@@ -164,17 +164,6 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
             )
             next_free_prefunded_account += 1
             plan.print("Successfully launched goomy the blob spammer")
-        elif s.name == "blutgang":
-            plan.print("Launghing blutgang")
-            blutgang_config_template = read_file(
-                constants.BLUTGANG_CONFIG_TEMPLATE_PATH,
-            )
-            blutgang.launch_blutgang(
-                plan,
-                blutgang_config_template,
-                constants.PRE_FUNDED_ACCOUNTS[0],
-                plan.get_service("nginx").ports["http"].url,
-            )
         elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             fuzzing_node = validator_node_el_clients[0]["service"]
