@@ -148,8 +148,6 @@ type RandaoProcessor[
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
-	// Enabled returns true if the payload builder is enabled.
-	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
