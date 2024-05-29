@@ -49,11 +49,18 @@ func NewForkData(
 	}
 }
 
+// New creates a new ForkData struct.
+func (fv *ForkData) New(
+	currentVersion common.Version, genesisValidatorsRoot common.Root,
+) *ForkData {
+	return NewForkData(currentVersion, genesisValidatorsRoot)
+}
+
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 //
 //nolint:lll
-func (fv ForkData) ComputeDomain(
+func (fv *ForkData) ComputeDomain(
 	domainType common.DomainType,
 ) (common.Domain, error) {
 	forkDataRoot, err := fv.HashTreeRoot()

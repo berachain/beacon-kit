@@ -30,8 +30,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -39,28 +38,26 @@ import (
 // It sets the head and finalizes the latest.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	slot math.Slot,
-	headEth1Hash common.ExecutionHash,
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	eth1BlockHash := lph.GetBlockHash()
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		engineprimitives.BuildForkchoiceUpdateRequest(
 			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1Hash,
-				SafeBlockHash:      eth1BlockHash,
-				FinalizedBlockHash: eth1BlockHash,
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
 			},
 			nil,
 			s.cs.ActiveForkVersionForSlot(slot),
@@ -72,83 +69,40 @@ func (s *Service[
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
-	st ReadOnlyBeaconStateT,
+	st BeaconStateT,
 	blk types.BeaconBlock,
 ) {
-	var (
-		headHash common.ExecutionHash
-	)
+	// TODO: re-enable this flag.
+	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
+		stCopy := st.Copy()
+		if _, err := s.sp.ProcessSlot(
+			stCopy,
+		); err != nil {
+			return
+		}
 
-	payload := blk.GetBody().GetExecutionPayload()
+		prevBlockRoot, err := blk.HashTreeRoot()
+		if err != nil {
+			s.logger.
+				Error(
+					"failed to get block root in postBlockProcess",
+					"error",
+					err,
+				)
+			return
+		}
 
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	// TODO: clean this up.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-	} else {
 		lph, err := st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			s.logger.Error(
 				"failed to get latest execution payload in postBlockProcess",
 				"error", err,
 			)
-			return
-		}
-		headHash = lph.GetBlockHash()
-	}
-
-	// If we are the local builder and we are not in init sync
-	// forkchoice update with attributes.
-	//nolint:nestif // todo:cleanup
-	// TODO: re-enable this flag.
-	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
-		// TODO: This BlockRoot calculation is sound, but very confusing
-		// and hard to explain to someone who is not familiar with the
-		// nuance of our implementation. We should refactor this.
-		h, err := st.GetLatestBlockHeader()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get latest block header in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		stateRoot, err := st.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get state root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		h.StateRoot = stateRoot
-		root, err := h.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block header root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		stCopy := st.Copy()
-		if err = s.sp.ProcessSlot(
-			stCopy,
-		); err != nil {
 			return
 		}
 
@@ -160,9 +114,14 @@ func (s *Service[
 			blk.GetSlot()+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(time.Now().Unix()+1),
-			root,
-			headHash,
+			uint64(max(
+				math.U64(time.Now().Unix()+1),
+				blk.GetBody().GetExecutionPayload().GetTimestamp()+
+					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			)),
+			prevBlockRoot,
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
 		); err == nil {
 			return
 		}
@@ -180,7 +139,7 @@ func (s *Service[
 
 	// Otherwise we send a forkchoice update to the execution client.
 	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(), headHash,
+		ctx, st, blk.GetSlot(),
 	); err != nil {
 		s.logger.
 			Error(

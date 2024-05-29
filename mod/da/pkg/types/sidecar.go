@@ -28,13 +28,14 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
-//nolint:lll
+//nolint:lll // link.
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../../primitives/pkg/bytes,../../../consensus-types/pkg/types,../../../primitives/pkg/math,../../../primitives/mod.go,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
@@ -56,7 +57,7 @@ type BlobSidecar struct {
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
 func BuildBlobSidecar(
-	index uint64,
+	index math.U64,
 	header *types.BeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
@@ -64,7 +65,7 @@ func BuildBlobSidecar(
 	inclusionProof [][32]byte,
 ) *BlobSidecar {
 	return &BlobSidecar{
-		Index:             index,
+		Index:             index.Unwrap(),
 		Blob:              *blob,
 		KzgCommitment:     commitment,
 		KzgProof:          proof,

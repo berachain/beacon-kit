@@ -30,9 +30,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -55,7 +56,7 @@ type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT any,
+	BeaconStateT core.BeaconState[*types.Validator],
 ] struct {
 	cs                primitives.ChainSpec
 	availabilityStore AvailabilityStoreT
@@ -67,7 +68,7 @@ func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT any,
+	BeaconStateT core.BeaconState[*types.Validator],
 ](
 	cs primitives.ChainSpec,
 	availabilityStore AvailabilityStoreT,
@@ -93,8 +94,11 @@ func (k *Backend[AvailabilityStoreT, BeaconStateT]) AvailabilityStore(
 // context and the store key.
 func (k *Backend[AvailabilityStoreT, BeaconStateT]) StateFromContext(
 	ctx context.Context,
-) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cs)
+) BeaconStateT {
+	return state.NewBeaconStateFromDB[BeaconStateT](
+		k.beaconStore.WithContext(ctx),
+		k.cs,
+	)
 }
 
 // BeaconStore returns the beacon store struct.

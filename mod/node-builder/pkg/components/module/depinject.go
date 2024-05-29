@@ -31,15 +31,16 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -71,6 +72,7 @@ type DepInjectInput struct {
 	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -82,7 +84,7 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody], state.BeaconState,
+		*dastore.Store[types.BeaconBlockBody], core.BeaconState[*types.Validator],
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
@@ -108,7 +110,8 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.EngineClient,
 		in.KzgTrustedSetup,
 		storageBackend,
-		in.Environment.Logger,
+		in.TelemetrySink,
+		in.Environment.Logger.With("module", "beacon-kit"),
 	)
 	if err != nil {
 		return DepInjectOutput{}, err

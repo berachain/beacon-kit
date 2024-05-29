@@ -27,13 +27,15 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
 )
 
@@ -94,13 +96,9 @@ type StorageBackend[
 	DepositStoreT DepositStore,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(
-		context.Context,
-	) AvailabilityStoreT
-
+	AvailabilityStore(context.Context) AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
-
 	// DepositStore returns the deposit store for the given context.
 	DepositStore(context.Context) DepositStoreT
 }
@@ -125,19 +123,17 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// DepositContract is the ABI for the deposit contract.
-type DepositContract interface {
-	GetDeposits(
-		ctx context.Context,
-		blockNumber uint64,
-	) ([]*types.Deposit, error)
+// EventFeed is a generic interface for sending events.
+type EventFeed[EventT any] interface {
+	// Send sends an event and returns the number of
+	// subscribers that received it.
+	Send(event EventT) int
 }
 
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
 	// PruneToIndex prunes the deposit store up to the specified index.
 	PruneToIndex(index uint64) error
-
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
 }
@@ -149,19 +145,17 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
 	) error
 }
 
@@ -174,7 +168,8 @@ type LocalBuilder[BeaconStateT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 
@@ -186,17 +181,34 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT any,
 ] interface {
+	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	// state
+	// from the eth1 deposits.
+	InitializePreminedBeaconStateFromEth1(
+		st BeaconStateT,
+		deposits []*types.Deposit,
+		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		genesisVersion primitives.Version,
+	) ([]*transition.ValidatorUpdate, error)
+
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.
 	ProcessSlot(
 		st BeaconStateT,
-	) error
+	) ([]*transition.ValidatorUpdate, error)
 
 	// Transition processes the state transition for a given block.
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
-	) error
+	) ([]*transition.ValidatorUpdate, error)
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
 }

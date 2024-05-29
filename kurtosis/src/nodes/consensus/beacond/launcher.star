@@ -48,12 +48,12 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
             "BEACOND_MONIKER": cl_service_name,
             "BEACOND_NET": "VALUE_2",
             "BEACOND_HOME": "/root/.beacond",
-            "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+            "BEACOND_CHAIN_ID": "beacon-kurtosis-80086",
             "BEACOND_DEBUG": "false",
             "BEACOND_KEYRING_BACKEND": "test",
             "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
             "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
-            "BEACOND_ETH_CHAIN_ID": "80087",
+            "BEACOND_ETH_CHAIN_ID": "80086",
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
@@ -205,9 +205,9 @@ def init_consensus_nodes():
     genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
 
     # Check if genesis file exists, if not then initialize the beacond
-    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    add_validator = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
-    collect_gentx = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
+    collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
 def create_full_node_config(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):

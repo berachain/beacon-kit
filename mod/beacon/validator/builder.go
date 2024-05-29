@@ -29,24 +29,27 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 ]) GetEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
-) (types.BeaconBlock, error) {
+) (BeaconBlockT, error) {
+	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
-		return nil, errors.Newf(
+		return blk, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -57,14 +60,14 @@ func (s *Service[
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return nil, errors.Newf(
+		return blk, errors.Newf(
 			"failed to get validator by pubkey: %w",
 			err,
 		)
 	}
 
 	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock(
+	return types.EmptyBeaconBlock[BeaconBlockT](
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -72,57 +75,90 @@ func (s *Service[
 	)
 }
 
-// BuildBlock assembles a fully formed block.
 func (s *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-]) SetBlockStateRoot(
-	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
-) error {
-	// Compute the state root for the block.
-	stateRoot, err := s.computeStateRoot(ctx, st, blk)
-	if err != nil {
-		return err
-	}
-	blk.SetStateRoot(stateRoot)
-	return nil
-}
-
-// BuildBlockBody assembles a fully formed block body.
-func (s *Service[
-	BeaconStateT,
-	BlobSidecarsT,
-]) BuildSidecars(
-	blk types.BeaconBlock, blobsBundle engineprimitives.BlobsBundle,
-) (BlobSidecarsT, error) {
-	return s.blobFactory.BuildSidecars(blk, blobsBundle)
-}
-
-func (s *Service[
-	BeaconStateT,
-	BlobSidecarsT,
-]) RetrievePayload(
-	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
+]) retrievePayload(
+	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// The latest execution payload header, will be from the previous block
 	// during the block building phase.
-	parentExecutionPayload, err := st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the payload for the block.
-	envelope, err := s.localBuilder.RetrieveOrBuildPayload(
-		ctx,
-		st,
-		blk.GetSlot(),
-		blk.GetParentBlockRoot(),
-		parentExecutionPayload.GetBlockHash(),
-	)
+	envelope, err := s.localPayloadBuilder.
+		RetrieveOrBuildPayload(
+			ctx,
+			st,
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
+		)
 	if err != nil {
 		return nil, err
 	} else if envelope == nil {
 		return nil, ErrNilPayload
 	}
 	return envelope, nil
+}
+
+// prepareStateForBuilding ensures that the state is at the requested slot
+// before building a block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) prepareStateForBuilding(
+	st BeaconStateT,
+	requestedSlot math.Slot,
+) error {
+	// Get the current state slot.
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	slotDifference := requestedSlot - stateSlot
+	switch {
+	case slotDifference == 1:
+		// If our BeaconState is not up to date, we need to process
+		// a slot to get it up to date.
+		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
+			return err
+		}
+
+		// Request the slot again, it should've been incremented by 1.
+		stateSlot, err = st.GetSlot()
+		if err != nil {
+			return err
+		}
+
+		// If after doing so, we aren't exactly at the requested slot,
+		// we should return an error.
+		if requestedSlot != stateSlot {
+			return errors.Newf(
+				"requested slot could not be processed, requested: %d, state: %d",
+				requestedSlot,
+				stateSlot,
+			)
+		}
+	case slotDifference > 1:
+		return errors.Newf(
+			"requested slot is too far ahead, requested: %d, state: %d",
+			requestedSlot,
+			stateSlot,
+		)
+	case slotDifference < 1:
+		return errors.Newf(
+			"requested slot is in the past, requested: %d, state: %d",
+			requestedSlot,
+			stateSlot,
+		)
+	}
+
+	return nil
 }

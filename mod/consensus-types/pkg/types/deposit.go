@@ -37,20 +37,17 @@ import (
 // layer.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../../../primitives/pkg/common,./withdrawal_credentials.go,../../../primitives/pkg/math,../../../primitives/pkg/bytes,../../../primitives/pkg/crypto,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
+//nolint:lll // struct tags.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-max:"48"`
-
+	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
-
+	Credentials WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
-
 	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature" ssz-max:"96"`
-
+	Signature crypto.BLSSignature `json:"signature"   ssz-max:"96"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }
@@ -72,6 +69,19 @@ func NewDeposit(
 	}
 }
 
+// New creates a new Deposit instance.
+func (d *Deposit) New(
+	pubkey crypto.BLSPubkey,
+	credentials WithdrawalCredentials,
+	amount math.Gwei,
+	signature crypto.BLSSignature,
+	index uint64,
+) *Deposit {
+	return NewDeposit(
+		pubkey, credentials, amount, signature, index,
+	)
+}
+
 // Deposits is a typealias for a list of Deposits.
 type Deposits []*Deposit
 
@@ -81,4 +91,47 @@ func (d Deposits) HashTreeRoot() (common.Root, error) {
 	return ssz.MerkleizeListComposite[any, math.U64](
 		d, constants.MaxDepositsPerBlock,
 	)
+}
+
+// VerifySignature verifies the deposit data and signature.
+func (d *Deposit) VerifySignature(
+	forkData *ForkData,
+	domainType common.DomainType,
+	signatureVerificationFn func(
+		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+	) error,
+) error {
+	return (&DepositMessage{
+		Pubkey:      d.Pubkey,
+		Credentials: d.Credentials,
+		Amount:      d.Amount,
+	}).VerifyCreateValidator(
+		forkData, d.Signature,
+		domainType, signatureVerificationFn,
+	)
+}
+
+// GetAmount returns the deposit amount in gwei.
+func (d *Deposit) GetAmount() math.Gwei {
+	return d.Amount
+}
+
+// GetPubkey returns the public key of the validator specified in the deposit.
+func (d *Deposit) GetPubkey() crypto.BLSPubkey {
+	return d.Pubkey
+}
+
+// GetIndex returns the index of the deposit in the deposit contract.
+func (d *Deposit) GetIndex() uint64 {
+	return d.Index
+}
+
+// GetSignature returns the signature of the deposit data.
+func (d *Deposit) GetSignature() crypto.BLSSignature {
+	return d.Signature
+}
+
+// GetWithdrawalCredentials returns the staking credentials of the deposit.
+func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+	return d.Credentials
 }

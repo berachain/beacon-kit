@@ -26,6 +26,8 @@
 package blob
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -42,16 +44,15 @@ type Processor[
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
-
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec primitives.ChainSpec
-
 	// verifier is responsible for verifying the blobs.
 	verifier *Verifier
-
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
+	// metrics is used to collect and report processor metrics.
+	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
@@ -65,12 +66,14 @@ func NewProcessor[
 	chainSpec primitives.ChainSpec,
 	verifier *Verifier,
 	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
+	telemetrySink TelemetrySink,
 ) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
 	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
 		blockBodyOffsetFn: blockBodyOffsetFn,
+		metrics:           newProcessorMetrics(telemetrySink),
 	}
 }
 
@@ -80,11 +83,17 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
+	var (
+		numSidecars = math.U64(sidecars.Len())
+		startTime   = time.Now()
+	)
+
+	defer sp.metrics.measureProcessBlobsDuration(startTime, numSidecars)
+
 	// If there are no blobs to verify, return early.
-	numSidecars := sidecars.Len()
 	if numSidecars == 0 {
 		sp.logger.Info(
-			"no blob sidecars to verify, skipping verifier 🧢",
+			"no blob sidecars to verify, skipping verifier 🧢 ",
 			"slot",
 			slot,
 		)
@@ -100,7 +109,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	}
 
 	sp.logger.Info(
-		"successfully verified all blob sidecars 💦",
+		"successfully verified all blob sidecars 💦 ",
 		"num-sidecars",
 		numSidecars,
 		"slot",

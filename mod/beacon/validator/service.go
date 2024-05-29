@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -42,7 +41,9 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconStateT BeaconState,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -58,7 +59,9 @@ type Service[
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
+	blobFactory BlobFactory[
+		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+	]
 
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT]
@@ -69,72 +72,89 @@ type Service[
 
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
+		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
 	]
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
-	ds DepositStore
+	ds DepositStore[*types.Deposit]
 
-	// localBuilder represents the local block builder, this builder
+	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localBuilder PayloadBuilder[BeaconStateT]
+	localPayloadBuilder PayloadBuilder[BeaconStateT]
 
-	// remoteBuilders represents a list of remote block builders, these
+	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remoteBuilders []PayloadBuilder[BeaconStateT]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT BeaconState,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	bsb StorageBackend[BeaconStateT],
-	stateProcessor StateProcessor[BeaconStateT, *transition.Context],
+	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
+	blobFactory BlobFactory[
+		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+	],
 	randaoProcessor RandaoProcessor[BeaconStateT],
-	ds DepositStore,
-	localBuilder PayloadBuilder[BeaconStateT],
-	remoteBuilders []PayloadBuilder[BeaconStateT],
-) *Service[BeaconStateT, BlobSidecarsT] {
-	return &Service[BeaconStateT, BlobSidecarsT]{
-		cfg:             cfg,
-		logger:          logger,
-		bsb:             bsb,
-		chainSpec:       chainSpec,
-		signer:          signer,
-		stateProcessor:  stateProcessor,
-		blobFactory:     blobFactory,
-		randaoProcessor: randaoProcessor,
-		ds:              ds,
-		localBuilder:    localBuilder,
-		remoteBuilders:  remoteBuilders,
+	ds DepositStore[*types.Deposit],
+	localPayloadBuilder PayloadBuilder[BeaconStateT],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
+) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
+		cfg:                   cfg,
+		logger:                logger,
+		bsb:                   bsb,
+		chainSpec:             chainSpec,
+		signer:                signer,
+		stateProcessor:        stateProcessor,
+		blobFactory:           blobFactory,
+		randaoProcessor:       randaoProcessor,
+		ds:                    ds,
+		localPayloadBuilder:   localPayloadBuilder,
+		remotePayloadBuilders: remotePayloadBuilders,
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Name() string {
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Start(context.Context) error {
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) Start(
+	context.Context,
+) error {
 	return nil
 }
 
 // Status returns the status of the service.
-func (s *Service[BeaconStateT, BlobSidecarsT]) Status() error { return nil }
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) Status() error {
+	return nil
+}
 
 // WaitForHealthy waits for the service to become healthy.
-func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) WaitForHealthy(
 	context.Context,
 ) {
 }
@@ -142,14 +162,17 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
-) (types.BeaconBlock, BlobSidecarsT, error) {
+) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
+		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
-		g, gCtx   = errgroup.WithContext(ctx)
+		g, _      = errgroup.WithContext(ctx)
 	)
 
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
@@ -161,99 +184,60 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
 
-	// Get the current state slot.
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return nil, sidecars, err
+	// Prepare the state such that it is ready to build a block for
+	// the request slot
+	if err := s.prepareStateForBuilding(st, requestedSlot); err != nil {
+		return blk, sidecars, err
 	}
 
-	slotDifference := requestedSlot - stateSlot
-	switch {
-	case slotDifference == 1:
-		// If our BeaconState is not up to date, we need to process
-		// a slot to get it up to date.
-		if err = s.stateProcessor.ProcessSlot(st); err != nil {
-			return nil, sidecars, err
-		}
-
-		// Request the slot again, it should've been incremented by 1.
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return nil, sidecars, err
-		}
-
-		// If after doing so, we aren't exactly at the requested slot,
-		// we should return an error.
-		if requestedSlot != stateSlot {
-			return nil, sidecars, errors.Newf(
-				"requested slot could not be processed, requested: %d, state: %d",
-				requestedSlot,
-				stateSlot,
-			)
-		}
-	case slotDifference > 1:
-		return nil, sidecars, errors.Newf(
-			"requested slot is too far ahead, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	case slotDifference < 1:
-		return nil, sidecars, errors.Newf(
-			"requested slot is in the past, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel.
+	reveal, err := s.randaoProcessor.BuildReveal(st)
+	if err != nil {
+		return blk, sidecars, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.GetEmptyBeaconBlock(
-		st,
-		requestedSlot,
+	blk, err = s.GetEmptyBeaconBlock(
+		st, requestedSlot,
 	)
 	if err != nil {
-		return nil, sidecars, err
-	}
-
-	// Get the payload for the block.
-	envelope, err := s.RetrievePayload(ctx, st, blk)
-	if err != nil {
 		return blk, sidecars, err
-	} else if envelope == nil {
-		return nil, sidecars, ErrNilPayload
 	}
 
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
-		return nil, sidecars, ErrNilBlkBody
+		return blk, sidecars, ErrNilBlkBody
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
+	// Get the payload for the block.
+	envelope, err := s.retrievePayload(ctx, st, blk)
+	if err != nil {
+		return blk, sidecars, err
+	} else if envelope == nil {
+		return blk, sidecars, ErrNilPayload
 	}
 
 	// If we get returned a nil blobs bundle, we should return an error.
 	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
-		return nil, sidecars, ErrNilBlobsBundle
+		return blk, sidecars, ErrNilBlobsBundle
 	}
 
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel.
-	reveal, err := s.randaoProcessor.BuildReveal(st)
-	if err != nil {
-		return nil, sidecars, errors.Newf("failed to build reveal: %w", err)
-	}
-
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
 
 	// Dequeue deposits from the state.
 	deposits, err := s.ds.ExpectedDeposits(
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
-		return nil, sidecars, err
+		return blk, sidecars, err
 	}
 
 	// Set the deposits on the block body.
@@ -273,13 +257,13 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 	if err = body.SetExecutionData(
 		envelope.GetExecutionPayload(),
 	); err != nil {
-		return nil, sidecars, err
+		return blk, sidecars, err
 	}
 
 	// Produce block sidecars.
 	g.Go(func() error {
 		var sidecarErr error
-		sidecars, sidecarErr = s.BuildSidecars(
+		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
 			blk,
 			envelope.GetBlobsBundle(),
 		)
@@ -288,22 +272,88 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 
 	// Set the state root on the BeaconBlock.
 	g.Go(func() error {
-		return s.SetBlockStateRoot(gCtx, st, blk)
+		// Compute the state root for the block.
+		var stateRoot primitives.Root
+
+		s.logger.Info(
+			"computing state root for block 🌲",
+			"slot", blk.GetSlot(),
+		)
+
+		stateRoot, err = s.computeStateRoot(ctx, st, blk)
+		if err != nil {
+			s.logger.Error(
+				"failed to compute state root for block ❌ ",
+				"slot", requestedSlot,
+				"error", err,
+			)
+			return err
+		}
+
+		s.logger.Info("state root computed for block 💻 ",
+			"slot", requestedSlot,
+			"state_root", stateRoot,
+		)
+		blk.SetStateRoot(stateRoot)
+		return nil
 	})
 
 	if err = g.Wait(); err != nil {
-		return nil, sidecars, err
+		return blk, sidecars, err
 	}
 
-	s.logger.Info("beacon block assembled 🎉",
-		"slot",
-		requestedSlot,
-		"duration",
-		"state-root",
-		blk.GetStateRoot(),
-		time.Since(startTime).String(),
+	s.logger.Info(
+		"beacon block successfully built 🛠️ ",
+		"slot", requestedSlot,
+		"state_root", blk.GetStateRoot(),
+		"duration", time.Since(startTime).String(),
 	)
 
-	// Set the execution payload on the block body.
 	return blk, sidecars, nil
+}
+
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
+// logs the process.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) VerifyIncomingBlock(
+	ctx context.Context,
+	blk BeaconBlockT,
+) error {
+	s.logger.Info(
+		"received incoming beacon block 📫 ",
+		"state_root", blk.GetStateRoot(),
+	)
+
+	// Grab a copy of the state to verify the incoming block.
+	st := s.bsb.StateFromContext(ctx)
+
+	// Verify the state root of the incoming block.
+	if err := s.verifyStateRoot(
+		ctx, st, blk,
+	); err != nil {
+		// TODO: this is expensive because we are not caching the
+		// previous result of HashTreeRoot().
+		localStateRoot, htrErr := st.HashTreeRoot()
+		if htrErr != nil {
+			return htrErr
+		}
+
+		s.logger.Error(
+			"rejecting incoming block ❌ ",
+			"block_state_root",
+			blk.GetStateRoot(),
+			"local_state_root",
+			localStateRoot,
+			"error",
+			err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"state root verification succeeded - accepting incoming block ✅ ",
+		"state_root", blk.GetStateRoot(),
+	)
+	return nil
 }

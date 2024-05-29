@@ -131,10 +131,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().Empty(result.ValidationErrors)
 	s.logger.Info("enclave spun up successfully")
 
-	s.logger.Info("setting up execution clients")
-	err = s.SetupExecutionClients()
-	s.Require().NoError(err, "Error setting up execution clients")
-
 	s.logger.Info("setting up consensus clients")
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
@@ -150,59 +146,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	// Fund any requested accounts.
 	s.FundAccounts()
-}
-
-// SetupExecutionClients sets up the execution clients for the test suite.
-func (s *KurtosisE2ESuite) SetupExecutionClients() error {
-	s.executionClients = make(map[string]*types.ExecutionClient)
-	sCtx, err := s.Enclave().GetServiceContext("el-validator-nethermind-0")
-	if err != nil {
-		return err
-	}
-	s.executionClients["el-validator-nethermind-0"] = types.NewExecutionClientFromServiceCtx(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-		s.logger,
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("el-validator-reth-2")
-	if err != nil {
-		return err
-	}
-	s.executionClients["el-validator-reth-2"] = types.NewExecutionClientFromServiceCtx(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-		s.logger,
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("el-validator-reth-3")
-	if err != nil {
-		return err
-	}
-	s.executionClients["el-validator-reth-3"] = types.NewExecutionClientFromServiceCtx(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-		s.logger,
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("el-validator-geth-1")
-	if err != nil {
-		return err
-	}
-	s.executionClients["el-validator-geth-1"] = types.NewExecutionClientFromServiceCtx(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-		s.logger,
-	)
-	return nil
 }
 
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
@@ -254,14 +197,19 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	return nil
 }
 
-// SetupNGINXBalancer sets up the NGINX balancer for the test suite.
+// SetupJSONRPCBalancer sets up the load balancer for the test suite.
 func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
-	sCtx, err := s.Enclave().GetServiceContext("nginx")
+	// get the type for EthJSONRPCEndpoint
+	typeRPCEndpoint := s.JSONRPCBalancerType()
+
+	s.logger.Info("setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+
+	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
 		return err
 	}
 
-	if s.nginxBalancer, err = types.NewLoadBalancer(
+	if s.loadBalancer, err = types.NewLoadBalancer(
 		sCtx,
 	); err != nil {
 		return err
@@ -387,13 +335,12 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	ticker := time.NewTicker(time.Second)
 	var finalBlockNum uint64
 	for finalBlockNum < target {
-		finalBlock, err := s.JSONRPCBalancer().BlockByNumber(cctx, nil)
+		var err error
+		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
 		}
-		finalBlockNum = finalBlock.NumberU64()
-
 		s.logger.Info(
 			"waiting for finalized block number to reach target",
 			"target",

@@ -28,7 +28,6 @@ package randao
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -47,7 +46,6 @@ type Processor[
 ] struct {
 	chainSpec primitives.ChainSpec
 	signer    crypto.BLSSigner
-	logger    log.Logger[any]
 }
 
 // NewProcessor creates a new randao processor.
@@ -58,12 +56,10 @@ func NewProcessor[
 ](
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	logger log.Logger[any],
 ) *Processor[BeaconBlockBodyT, BeaconBlockT, BeaconStateT] {
 	return &Processor[BeaconBlockBodyT, BeaconBlockT, BeaconStateT]{
 		chainSpec: chainSpec,
 		signer:    signer,
-		logger:    logger,
 	}
 }
 
@@ -74,6 +70,7 @@ func (p *Processor[
 ]) ProcessRandao(
 	st BeaconStateT,
 	blk BeaconBlockT,
+	skipVerification bool,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -92,19 +89,22 @@ func (p *Processor[
 	}
 
 	epoch := p.chainSpec.SlotToEpoch(slot)
-	signingRoot, err := p.computeSigningRoot(epoch, root)
-	if err != nil {
-		return err
-	}
-
 	body := blk.GetBody()
-	reveal := body.GetRandaoReveal()
-	if err = p.signer.VerifySignature(
-		proposer.Pubkey,
-		signingRoot[:],
-		reveal,
-	); err != nil {
-		return err
+	if !skipVerification {
+		var signingRoot primitives.Root
+		signingRoot, err = p.computeSigningRoot(epoch, root)
+		if err != nil {
+			return err
+		}
+
+		reveal := body.GetRandaoReveal()
+		if err = p.signer.VerifySignature(
+			proposer.Pubkey,
+			signingRoot[:],
+			reveal,
+		); err != nil {
+			return err
+		}
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
@@ -115,7 +115,6 @@ func (p *Processor[
 	}
 
 	mix := p.buildMix(prevMix, body.GetRandaoReveal())
-	p.logger.Info("randao mix updated 🎲", "new_mix", mix)
 	return st.UpdateRandaoMixAtIndex(
 		uint64(epoch)%p.chainSpec.EpochsPerHistoricalVector(),
 		mix,

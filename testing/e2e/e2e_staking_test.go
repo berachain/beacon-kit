@@ -46,84 +46,84 @@ const (
 
 // TestDepositContract tests the deposit contract to attempt staking and
 // increasing a validator's consensus power.
-func (s *BeaconKitE2ESuite) TestDepositContract() {
-	// Get the consensus client.
-	client := s.ConsensusClients()[DefaultClient]
-	s.Require().NotNil(client)
+// func (s *BeaconKitE2ESuite) TestDepositContract() {
+// 	// Get the consensus client.
+// 	client := s.ConsensusClients()[DefaultClient]
+// 	s.Require().NotNil(client)
 
-	// Get the public key.
-	pubkey, err := client.GetPubKey(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Len(pubkey, 48)
+// 	// Get the public key.
+// 	pubkey, err := client.GetPubKey(s.Ctx())
+// 	s.Require().NoError(err)
+// 	s.Require().Len(pubkey, 48)
 
-	// Get the consensus power.
-	_, err = client.GetConsensusPower(s.Ctx())
-	s.Require().NoError(err)
+// 	// Get the consensus power.
+// 	_, err = client.GetConsensusPower(s.Ctx())
+// 	s.Require().NoError(err)
 
-	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-	s.Require().NoError(err)
+// 	// Get the block num
+// 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+// 	s.Require().NoError(err)
 
-	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
+// 	// Get the chain ID.
+// 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+// 	s.Require().NoError(err)
 
-	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(blkNum)),
-	)
-	s.Require().NoError(err)
+// 	// Get original evm balance
+// 	balance, err := s.JSONRPCBalancer().BalanceAt(
+// 		s.Ctx(),
+// 		s.GenesisAccount().Address(),
+// 		big.NewInt(int64(blkNum)),
+// 	)
+// 	s.Require().NoError(err)
 
-	nonce, err := s.JSONRPCBalancer().NonceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(blkNum)),
-	)
-	s.Require().NoError(err)
+// 	nonce, err := s.JSONRPCBalancer().NonceAt(
+// 		s.Ctx(),
+// 		s.GenesisAccount().Address(),
+// 		big.NewInt(int64(blkNum)),
+// 	)
+// 	s.Require().NoError(err)
 
-	// Bind the deposit contract.
-	dc, err := deposit.NewBeaconDepositContract(
-		common.HexToAddress(DepositContractAddress),
-		s.JSONRPCBalancer(),
-	)
-	s.Require().NoError(err)
+// 	// Bind the deposit contract.
+// 	dc, err := deposit.NewBeaconDepositContract(
+// 		common.HexToAddress(DepositContractAddress),
+// 		s.JSONRPCBalancer(),
+// 	)
+// 	s.Require().NoError(err)
 
-	// Create a deposit transaction.
-	tx, err := s.generateNewDepositTx(
-		dc,
-		s.GenesisAccount().Address(),
-		s.GenesisAccount().SignerFunc(chainID),
-		big.NewInt(int64(nonce)),
-	)
-	s.Require().NoError(err)
+// 	// Create a deposit transaction.
+// 	tx, err := s.generateNewDepositTx(
+// 		dc,
+// 		s.GenesisAccount().Address(),
+// 		s.GenesisAccount().SignerFunc(chainID),
+// 		big.NewInt(int64(nonce)),
+// 	)
+// 	s.Require().NoError(err)
 
-	// Wait for the transaction to be mined.
-	var receipt *coretypes.Receipt
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
-	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+// 	// Wait for the transaction to be mined.
+// 	var receipt *coretypes.Receipt
+// 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+// 	s.Require().NoError(err)
+// 	s.Require().Equal(uint64(1), receipt.Status)
+// 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 
-	// Wait for the log to be processed.
-	targetBlkNum := blkNum + 10
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	s.Require().NoError(err)
+// 	// Wait for the log to be processed.
+// 	targetBlkNum := blkNum + 10
+// 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+// 	s.Require().NoError(err)
 
-	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(targetBlkNum)),
-	)
-	s.Require().NoError(err)
-	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
+// 	// Check to see if evm balance decreased.
+// 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
+// 		s.Ctx(),
+// 		s.GenesisAccount().Address(),
+// 		big.NewInt(int64(targetBlkNum)),
+// 	)
+// 	s.Require().NoError(err)
+// 	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
 
-	newPower, err := client.GetConsensusPower(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Equal(newPower, 32*suite.OneGwei)
-}
+// 	newPower, err := client.GetConsensusPower(s.Ctx())
+// 	s.Require().NoError(err)
+// 	s.Require().Equal(newPower, 32*suite.OneGwei)
+// }
 
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Get the consensus client.

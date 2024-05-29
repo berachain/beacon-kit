@@ -27,6 +27,7 @@ package blob
 
 import (
 	"context"
+	"time"
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -40,9 +41,7 @@ import (
 type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
+	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
@@ -62,4 +61,11 @@ type BeaconBlockBody interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
 }

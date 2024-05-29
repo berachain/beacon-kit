@@ -64,6 +64,7 @@ func TestRangeDBPruner(t *testing.T) {
 			testFunc: func(
 				t *testing.T, rdb *file.RangeDB,
 			) {
+				t.Helper()
 				time.Sleep(
 					100 * time.Millisecond,
 				) // Wait for pruner to catch up

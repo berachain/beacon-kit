@@ -84,6 +84,9 @@ func LocalnetChainSpec() chain.Spec[
 			DepositContractAddress: common.HexToAddress(
 				"0x00000000219ab540356cbb839cbe05303d7705fa",
 			),
+			DepositEth1ChainID:        uint64(80086),
+			Eth1FollowDistance:        1,
+			TargetSecondsPerEth1Block: 2,
 			// Fork-related values.
 			ElectraForkEpoch: 9999999999999999,
 			// State list length constants.

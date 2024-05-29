@@ -56,6 +56,7 @@ func debugPrint(debug bool, t TestLogger, s1 string, s ...any) {
 }
 
 func runBench(b *testing.B, cb func()) {
+	b.Helper()
 	b.ResetTimer()
 	for range b.N {
 		cb()

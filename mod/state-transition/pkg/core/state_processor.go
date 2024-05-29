@@ -28,37 +28,43 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
-	BeaconStateT state.BeaconState,
-	BlobSidecarsT interface{ Len() int },
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconStateT BeaconState[ValidatorT],
+	BlobSidecarsT BlobSidecars,
 	ContextT Context,
+	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	ForkDataT ForkData[ForkDataT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	cs              primitives.ChainSpec
 	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
 	signer          crypto.BLSSigner
-	logger          log.Logger[any]
 	executionEngine ExecutionEngine
 }
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
-	BeaconStateT state.BeaconState,
-	BlobSidecarsT interface{ Len() int },
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconStateT BeaconState[ValidatorT],
+	BlobSidecarsT BlobSidecars,
 	ContextT Context,
+	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	ForkDataT ForkData[ForkDataT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs primitives.ChainSpec,
 	rp RandaoProcessor[
@@ -66,35 +72,41 @@ func NewStateProcessor[
 	],
 	executionEngine ExecutionEngine,
 	signer crypto.BLSSigner,
-	logger log.Logger[any],
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, ContextT] {
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ForkDataT, ValidatorT, WithdrawalCredentialsT,
+] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT, ContextT,
+		DepositT, ForkDataT, ValidatorT, WithdrawalCredentialsT,
 	]{
 		cs:              cs,
 		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
-		logger:          logger,
 	}
 }
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) error {
-	blkSlot := blk.GetSlot()
+) ([]*transition.ValidatorUpdate, error) {
+	var (
+		validatorUpdates []*transition.ValidatorUpdate
+		blkSlot          = blk.GetSlot()
+	)
+
 	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We perform some initial logic to ensure the BeaconState is in the correct
@@ -134,13 +146,13 @@ func (sp *StateProcessor[
 	// engine.
 	switch stateSlot {
 	case blkSlot - 1:
-		if err = sp.ProcessSlot(st); err != nil {
-			return err
+		if validatorUpdates, err = sp.ProcessSlot(st); err != nil {
+			return nil, err
 		}
 	case blkSlot:
 		// skip slot processing.
 	default:
-		return errors.Wrapf(
+		return nil, errors.Wrapf(
 			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
 			stateSlot, blkSlot,
 		)
@@ -148,36 +160,32 @@ func (sp *StateProcessor[
 
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
-		sp.logger.Error(
-			"failed to process block",
-			"slot", blkSlot,
-			"error", err,
-		)
-		return err
+		return nil, err
 	}
 
 	// We only want to persist state changes if we successfully
 	// processed the block.
 	st.Save()
-	return nil
+	return validatorUpdates, nil
 }
 
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) ProcessSlot(
 	st BeaconStateT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We update our state roots and block roots.
@@ -185,14 +193,14 @@ func (sp *StateProcessor[
 		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
 		prevStateRoot,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
@@ -200,7 +208,7 @@ func (sp *StateProcessor[
 	if (latestHeader.StateRoot == primitives.Root{}) {
 		latestHeader.StateRoot = prevStateRoot
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -208,36 +216,32 @@ func (sp *StateProcessor[
 	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
 		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Process the Epoch Boundary.
+	var validatorUpdates []*transition.ValidatorUpdate
 	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
-		if err = sp.processEpoch(st); err != nil {
-			return err
+		if validatorUpdates, err = sp.processEpoch(st); err != nil {
+			return nil, err
 		}
-		sp.logger.Info(
-			"processed epoch transition 🔃",
-			"old", uint64(slot)/sp.cs.SlotsPerEpoch(),
-			"new", uint64(slot+1)/sp.cs.SlotsPerEpoch(),
-		)
 	}
 
-	return st.SetSlot(slot + 1)
+	return validatorUpdates, st.SetSlot(slot + 1)
 }
 
-// ProcessBlock processes the block and ensures it matches the local state.
-//
-//nolint:funlen // todo fix.
+// ProcessBlock processes the block, it optionally verifies the
+// state root.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -266,7 +270,9 @@ func (sp *StateProcessor[
 	// phase0.ProcessAttesterSlashings
 
 	// process the randao reveal.
-	if err := sp.processRandaoReveal(st, blk); err != nil {
+	if err := sp.processRandaoReveal(
+		st, blk, ctx.GetSkipValidateRandao(),
+	); err != nil {
 		return err
 	}
 
@@ -279,42 +285,51 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if ctx.GetValidateResult() {
-		// Ensure the state root matches the block.
-		//
-		// TODO: We need to validate this in ProcessProposal as well.
-		if stateRoot, err := st.HashTreeRoot(); err != nil {
-			return err
-		} else if blk.GetStateRoot() != stateRoot {
-			return errors.Wrapf(
-				ErrStateRootMismatch, "expected %s, got %s",
-				primitives.Root(stateRoot), blk.GetStateRoot(),
-			)
-		}
+	// If we are skipping validate, we can skip calculating the state
+	// root to save compute.
+	if ctx.GetSkipValidateResult() {
+		return nil
 	}
+
+	// Ensure the state root matches the block.
+	//
+	// TODO: We need to validate this in ProcessProposal as well.
+	if stateRoot, err := st.HashTreeRoot(); err != nil {
+		return err
+	} else if blk.GetStateRoot() != stateRoot {
+		return errors.Wrapf(
+			ErrStateRootMismatch, "expected %s, got %s",
+			primitives.Root(stateRoot), blk.GetStateRoot(),
+		)
+	}
+
 	return nil
 }
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processEpoch(
 	st BeaconStateT,
-) error {
+) ([]*transition.ValidatorUpdate, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
-		return err
+		return nil, err
 	} else if err = sp.processSlashingsReset(st); err != nil {
-		return err
+		return nil, err
+	} else if err = sp.processRandaoMixesReset(st); err != nil {
+		return nil, err
 	}
-	return sp.processRandaoMixesReset(st)
+	return sp.processSyncCommitteeUpdates(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -325,7 +340,7 @@ func (sp *StateProcessor[
 		latestBlockHeader *types.BeaconBlockHeader
 		parentBlockRoot   primitives.Root
 		bodyRoot          primitives.Root
-		proposer          *types.Validator
+		proposer          ValidatorT
 	)
 
 	// Ensure the block slot matches the state slot.
@@ -385,7 +400,7 @@ func (sp *StateProcessor[
 	// Check to make sure the proposer isn't slashed.
 	if proposer, err = st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
 		return err
-	} else if proposer.Slashed {
+	} else if proposer.IsSlashed() {
 		return errors.Wrapf(
 			ErrSlashedProposer, "index: %d", blk.GetProposerIndex(),
 		)
@@ -399,7 +414,8 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -418,7 +434,8 @@ func (sp *StateProcessor[
 //nolint:lll
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {

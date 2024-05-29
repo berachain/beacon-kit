@@ -28,6 +28,7 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -39,7 +40,7 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
-	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
@@ -47,36 +48,31 @@ type Service[
 	// sidecars.
 	sb StorageBackend[
 		AvailabilityStoreT,
-		ReadOnlyBeaconStateT,
+		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
 	]
-
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-
 	// cs holds the chain specifications.
 	cs primitives.ChainSpec
-
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
-
-	// dc is a connection to the deposit contract.
-	dc DepositContract
-
 	// lb is a local builder for constructing new beacon states.
-	lb LocalBuilder[ReadOnlyBeaconStateT]
-
+	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
-
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		types.BeaconBlock,
-		ReadOnlyBeaconStateT,
+		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
 	]
+	// metrics is the metrics for the service.
+	metrics *chainMetrics
+	// blockFeed is the event feed for new blocks.
+	blockFeed EventFeed[events.Block[types.BeaconBlock]]
 }
 
 // NewService creates a new validator service.
@@ -84,49 +80,51 @@ func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
-	ReadOnlyBeaconStateT ReadOnlyBeaconState[ReadOnlyBeaconStateT],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
-		ReadOnlyBeaconStateT, BlobSidecarsT, DepositStoreT],
+		BeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
-	lb LocalBuilder[ReadOnlyBeaconStateT],
+	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT,
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		types.BeaconBlock, ReadOnlyBeaconStateT,
+		types.BeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-	dc DepositContract,
+	ts TelemetrySink,
+	blockFeed EventFeed[events.Block[types.BeaconBlock]],
 ) *Service[
-	AvailabilityStoreT, ReadOnlyBeaconStateT,
+	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ] {
 	return &Service[
-		AvailabilityStoreT, ReadOnlyBeaconStateT,
+		AvailabilityStoreT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:     sb,
-		logger: logger,
-		cs:     cs,
-		ee:     ee,
-		lb:     lb,
-		bp:     bp,
-		sp:     sp,
-		dc:     dc,
+		sb:        sb,
+		logger:    logger,
+		cs:        cs,
+		ee:        ee,
+		lb:        lb,
+		bp:        bp,
+		sp:        sp,
+		metrics:   newChainMetrics(ts),
+		blockFeed: blockFeed,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Name() string {
@@ -135,7 +133,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Start(
@@ -146,7 +144,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) Status() error {
@@ -155,22 +153,10 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
+	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
-}
-
-// TODO: Remove
-func (s Service[
-	AvailabilityStoreT,
-	ReadOnlyBeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) StateFromContext(
-	ctx context.Context,
-) ReadOnlyBeaconStateT {
-	return s.sb.StateFromContext(ctx)
 }

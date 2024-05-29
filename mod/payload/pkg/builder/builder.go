@@ -26,25 +26,26 @@
 package builder
 
 import (
+	engineprimitves "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
+// PayloadBuilder is used to build payloads on the
+// execution client.
 type PayloadBuilder[
 	BeaconStateT BeaconState,
 ] struct {
-	cfg       *Config
+	// cfg holds the configuration settings for the PayloadBuilder.
+	cfg *Config
+	// chainSpec holds the chain specifications for the PayloadBuilder.
 	chainSpec primitives.ChainSpec
-	logger    log.Logger[any]
-
+	// logger is used for logging within the PayloadBuilder.
+	logger log.Logger[any]
 	// ee is the execution engine.
 	ee ExecutionEngine
-
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.

@@ -35,8 +35,8 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/tos"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -82,6 +82,8 @@ func (nb *NodeBuilder[T]) RunNode() error {
 	if err := nb.BuildRootCmd(); err != nil {
 		return err
 	}
+	// TODO: build cmds before calling NewNodeBuilder in main.go so that
+	// we can get depinject AppOpts during creation of dependencies.
 
 	// Run the root command.
 	if err := svrcmd.Execute(
@@ -112,12 +114,13 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
 				&gokzg4844.JSONTrustedSetup{},
 				&dastore.Store[types.BeaconBlockBody]{},
+				&signer.BLSSigner{},
 			),
 			depinject.Provide(
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
-				components.ProvideBlsSigner,
+				components.ProvideTelemetrySink,
 			),
 		),
 		&autoCliOpts,
@@ -141,12 +144,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				cmd.Flags(),
 			)
 			if err != nil {
-				return err
-			}
-
-			if err = tos.VerifyTosAcceptedOrPrompt(
-				nb.appInfo.Name, components.TermsOfServiceURL, clientCtx, cmd,
-			); err != nil {
 				return err
 			}
 

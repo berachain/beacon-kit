@@ -40,8 +40,8 @@ def get_config(
         "--rpc={}".format(el_uri),
         "--sk={0}".format(prefunded_private_key),
         "--accounts=100",
-        "--txcount=3",
-        "--slot-time=6",
+        "--txcount=100",
+        "--slot-time=3",
     ])
 
     if len(tx_spammer_extra_args) > 0:
