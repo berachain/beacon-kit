@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis"
-	initutil "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/init"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/jwt"
 	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -42,6 +41,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	genutilcmd "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -69,7 +69,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
-		initutil.Command(mm),
+		genutilcmd.InitCmd(mm),
 		// `genesis`
 		genesis.Commands(
 			chainSpec,

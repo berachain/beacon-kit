@@ -52,7 +52,6 @@ func (nb *NodeBuilder[T]) AppCreator(
 		logger, db, traceStore, true,
 		appOpts,
 		nb.appInfo.DepInjectConfig,
-		nb.chainSpec,
 		server.DefaultBaseappOptions(appOpts)...,
 	)
 	return reflect.ValueOf(app).Convert(

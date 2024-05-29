@@ -29,6 +29,7 @@ import (
 	"net/url"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	beaconurl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/mitchellh/mapstructure"
@@ -40,6 +41,16 @@ func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
 		func(s string) (common.ExecutionAddress, error) {
 			return common.HexToAddress(s), nil
+		},
+	)
+}
+
+// StringToDomainTypeFunc returns a DecodeHookFunc that converts
+// string to a `common.DomainType` by parsing the string.
+func StringToDomainTypeFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (common.DomainType, error) {
+			return bytes.ToBytes4(common.FromHex(s)), nil
 		},
 	)
 }

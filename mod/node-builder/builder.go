@@ -102,7 +102,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
-		chainSpec   primitives.ChainSpec
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -110,7 +109,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				// nb.chainSpec,
 				&depositdb.KVStore{},
 				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
 				&gokzg4844.JSONTrustedSetup{},
@@ -118,9 +116,9 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				&signer.BLSSigner{},
 			),
 			depinject.Provide(
-				components.ProvideChainSpec,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
+				components.ProvideChainSpec,
 				components.ProvideConfig,
 				components.ProvideTelemetrySink,
 			),
@@ -128,13 +126,9 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
-		&chainSpec,
 	); err != nil {
 		return err
 	}
-
-	// TODO: check if we can just inject into the field
-	nb.chainSpec = chainSpec
 
 	nb.rootCmd = &cobra.Command{
 		Use:   nb.appInfo.Name,
