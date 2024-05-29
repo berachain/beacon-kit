@@ -100,7 +100,8 @@ func (s *Service[
 
 		// The latest execution payload header will be from the previous block
 		// during the block building phase.
-		lph, err := st.GetLatestExecutionPayloadHeader()
+		var lph engineprimitives.ExecutionPayloadHeader
+		lph, err = st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return nil, err
 		}

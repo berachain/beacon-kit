@@ -73,7 +73,8 @@ func (cm *validatorMetrics) measureStateRootComputationTime(start time.Time) {
 	)
 }
 
-// failedToRetrieveOptimisticPayload increments the counter for the number of times the
+// failedToRetrieveOptimisticPayload increments the counter for the number of
+// times the
 // validator failed to retrieve payloads.
 func (cm *validatorMetrics) failedToRetrieveOptimisticPayload(
 	slot math.Slot, blkRoot primitives.Root, err error,

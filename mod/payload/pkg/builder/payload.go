@@ -55,12 +55,16 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAsync(
 
 	// Submit the forkchoice update to the execution client.
 	var payloadID *engineprimitives.PayloadID
-	payloadID, _, err = pb.submitForkchoiceUpdate(
-		ctx,
-		slot,
-		attrs,
-		headEth1BlockHash,
-		finalEth1BlockHash,
+	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
+		ctx, &engineprimitives.ForkchoiceUpdateRequest{
+			State: &engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      headEth1BlockHash,
+				SafeBlockHash:      finalEth1BlockHash,
+				FinalizedBlockHash: finalEth1BlockHash,
+			},
+			PayloadAttributes: attrs,
+			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -152,17 +156,45 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrievePayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
-	// We first attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root. If we have, and we are able
-	// to retrieve it from our execution client, we can return it immediately.
+	// Attempt to see if we previously fired off a payload built for
+	// this particular slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
 
-	return pb.getPayload(
+	envelope, err := pb.ee.GetPayload(
 		ctx,
-		slot,
-		payloadID,
+		&engineprimitives.GetPayloadRequest{
+			PayloadID:   payloadID,
+			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
+		},
 	)
+	if err != nil {
+		return nil, err
+	} else if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
+	}
+
+	overrideBuilder := envelope.ShouldOverrideBuilder()
+	args := []any{
+		"for_slot", slot,
+		"override_builder", overrideBuilder,
+	}
+
+	payload := envelope.GetExecutionPayload()
+	if payload != nil && !payload.IsNil() {
+		args = append(args,
+			"payload_block_hash", payload.GetBlockHash(),
+			"parent_hash", payload.GetParentHash(),
+		)
+	}
+
+	blobsBundle := envelope.GetBlobsBundle()
+	if blobsBundle != nil {
+		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
+	}
+
+	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
+	return envelope, err
 }
