@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -147,7 +148,15 @@ type RandaoProcessor[
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
-	RequestPayload(
+	// RetrievePayload retrieves the payload for the given slot.
+	RetrievePayload(
+		ctx context.Context,
+		slot math.Slot,
+		parentBlockRoot primitives.Root,
+	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	// RequestPayloadAsync requests a payload for the given slot and returns
+	// immediately.
+	RequestPayloadAsync(
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
@@ -156,12 +165,13 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-	// RetrieveOrBuildPayload retrieves or builds the payload for the given
-	// slot.
-	RetrieveOrBuildPayload(
+	// RequestPayloadSync requests a payload for the given slot and
+	// blocks until the payload is delivered.
+	RequestPayloadSync(
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
+		timestamp uint64,
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
@@ -191,4 +201,14 @@ type StateProcessor[
 type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// IncrementCounter increments a counter metric identified by the provided
+	// keys.
+	IncrementCounter(key string, args ...string)
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
 }
