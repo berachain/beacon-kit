@@ -113,6 +113,7 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
+	BeaconBlockT any,
 	BeaconStateT BeaconState,
 	ContextT any,
 ] interface {
@@ -125,6 +126,6 @@ type StateProcessor[
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
-		blk types.BeaconBlock,
+		blk BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
 }

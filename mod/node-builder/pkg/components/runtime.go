@@ -171,6 +171,7 @@ func ProvideRuntime(
 
 	// Build the builder service.
 	validatorService := validator.NewService[
+		types.BeaconBlock,
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
 		&cfg.Validator,
