@@ -90,6 +90,7 @@ func NewBeaconKitRuntime[
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
+	telemetrySink middleware.TelemetrySink,
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
@@ -125,6 +126,7 @@ func NewBeaconKitRuntime[
 			NewFinalizeBlockMiddleware[types.BeaconBlock, BeaconStateT](
 			chainSpec,
 			chainService,
+			telemetrySink,
 		),
 		abciValidatorMiddleware: middleware.
 			NewValidatorMiddleware[
@@ -132,6 +134,7 @@ func NewBeaconKitRuntime[
 		](
 			chainSpec,
 			validatorService,
+			telemetrySink,
 		),
 		chainSpec:      chainSpec,
 		logger:         logger,

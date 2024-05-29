@@ -28,6 +28,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -58,6 +59,8 @@ type FinalizeBlockMiddleware[
 	// TODO: this is really hacky here.
 	LatestBeaconBlock BeaconBlockT
 	LatestSidecars    BlobsSidecarsT
+
+	metrics *finalizeMiddlewareMetrics
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -67,6 +70,7 @@ func NewFinalizeBlockMiddleware[
 ](
 	chainSpec primitives.ChainSpec,
 	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT],
+	telemetrySink TelemetrySink,
 ) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
@@ -76,6 +80,7 @@ func NewFinalizeBlockMiddleware[
 	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobsSidecarsT]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
+		metrics:      newFinalizeMiddlewareMetrics(telemetrySink),
 	}
 }
 
@@ -112,6 +117,9 @@ func (h *FinalizeBlockMiddleware[
 ]) PreBlock(
 	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
+	startTime := time.Now()
+	defer h.metrics.measureEndBlockDuration(startTime)
+
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobsSidecarsT](req,
 		BeaconBlockTxIndex,
