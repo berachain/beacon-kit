@@ -161,6 +161,8 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
+	// Enabled returns true if the local builder is enabled.
+	Enabled() bool
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
