@@ -126,6 +126,7 @@ func NewBeaconKitRuntime[
 			NewFinalizeBlockMiddleware[types.BeaconBlock, BeaconStateT](
 			chainSpec,
 			chainService,
+			telemetrySink,
 		),
 		abciValidatorMiddleware: middleware.
 			NewValidatorMiddleware[
