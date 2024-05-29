@@ -198,6 +198,7 @@ func ProvideRuntime(
 		[]validator.PayloadBuilder[core.BeaconState[*types.Validator]]{
 			localBuilder,
 		},
+		ts,
 	)
 
 	depositPruner := pruner.NewPruner(

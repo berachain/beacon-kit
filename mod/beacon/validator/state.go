@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -40,6 +41,8 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (primitives.Root, error) {
+	startTime := time.Now()
+	defer s.metrics.measureStateRootComputationTime(startTime)
 	if _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
@@ -67,6 +70,8 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	startTime := time.Now()
+	defer s.metrics.measureStateRootVerificationTime(startTime)
 	if _, err := s.stateProcessor.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
