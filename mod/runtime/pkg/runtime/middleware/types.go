@@ -27,6 +27,7 @@ package middleware
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -78,4 +79,10 @@ type ValidatorService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the given time.
+	MeasureSince(key string, start time.Time, args ...string)
 }
