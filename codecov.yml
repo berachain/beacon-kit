@@ -44,7 +44,7 @@ ignore:
   - "**/*.ssz.go"
   - "**/*.rlpgen.go"
   - "**/*.json.go"
-  - "**/mocks"
+  - "**/*.mock.go"
   - "**/proto"
   - "**/build"
   - "**/testing/e2e"
