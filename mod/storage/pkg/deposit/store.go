@@ -55,7 +55,7 @@ type KVStore[DepositT Deposit] struct {
 func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore[DepositT]{
-		depositQueue: NewQueue[DepositT](
+		depositQueue: NewQueue(
 			schemaBuilder,
 			KeyDepositPrefix,
 			encoding.SSZValueCodec[DepositT]{},
