@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -107,7 +108,8 @@ func (s *Service[
 		}
 
 		// If we failed to retrieve the payload, request a synchrnous payload.
-		// NOTE: The state here is properly configured by the prepareStateForBuilding
+		// NOTE: The state here is properly configured by the
+		// prepareStateForBuilding
 		// call that needs to be called before requesting the Payload.
 		// TODO: We should decouple the PayloadBuilder from BeaconState to make
 		// this less confusing.
@@ -116,7 +118,11 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			uint64(lph.GetTimestamp()+1),
+			//nolint:mnd // bet.
+			max(
+				uint64(time.Now().Unix()+1),
+				uint64((lph.GetTimestamp()+2)),
+			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),

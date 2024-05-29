@@ -445,7 +445,11 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		slot,
 		// TODO: this is hood as fuck.
-		uint64(lph.GetTimestamp()+2),
+		//nolint:mnd // bet.
+		max(
+			uint64(time.Now().Unix()+1),
+			uint64((lph.GetTimestamp()+2)),
+		),
 		// We set the parent root to the previous block root.
 		previousBlockRoot,
 		// We set the head of our chain to previous finalized block.
