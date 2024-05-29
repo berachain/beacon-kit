@@ -202,7 +202,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 	targetBlkNum := blkNum + 10
-	err = s.WaitForNBlockNumbers(8)
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 
 	// Check to see if evm balance decreased.
