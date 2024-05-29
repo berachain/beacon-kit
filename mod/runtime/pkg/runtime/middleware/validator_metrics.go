@@ -44,15 +44,19 @@ func newValidatorMiddlewareMetrics(
 	}
 }
 
-// measurePrepareProposalDuration measures the time to prepare
-func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(start time.Time) {
+// measurePrepareProposalDuration measures the time to prepare.
+func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(
+	start time.Time,
+) {
 	cm.sink.MeasureSince(
 		"beacon_kit.runtime.prepare_proposal_duration", start,
 	)
 }
 
-// measureProcessProposalDuration measures the time to process
-func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(start time.Time) {
+// measureProcessProposalDuration measures the time to process.
+func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
 	cm.sink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", start,
 	)
