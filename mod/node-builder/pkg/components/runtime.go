@@ -258,5 +258,6 @@ func ProvideRuntime(
 		logger,
 		svcRegistry,
 		storageBackend,
+		ts,
 	)
 }
