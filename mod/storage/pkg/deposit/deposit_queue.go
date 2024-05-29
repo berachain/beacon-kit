@@ -232,7 +232,7 @@ func (q *Queue[DepositT]) Push(
 ) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if err := q.container.Set(ctx, uint64(value.GetIndex()), value); err != nil {
+	if err := q.container.Set(ctx, value.GetIndex(), value); err != nil {
 		return err
 	}
 	length, err := q.len(ctx)
@@ -254,7 +254,7 @@ func (q *Queue[DepositT]) PushMulti(
 	defer q.mu.Unlock()
 
 	for _, value := range values {
-		if err := q.container.Set(ctx, uint64(value.GetIndex()), value); err != nil {
+		if err := q.container.Set(ctx, value.GetIndex(), value); err != nil {
 			return err
 		}
 	}
