@@ -118,7 +118,7 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			
+
 			max(
 				//#nosec:G701
 				uint64(time.Now().Unix()+1),
