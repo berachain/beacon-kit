@@ -75,35 +75,47 @@ func (s *Service[
 	)
 }
 
+// retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-]) retrievePayload(
+]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
-	// The latest execution payload header, will be from the previous block
-	// during the block building phase.
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
-		RetrieveOrBuildPayload(
+		RetrievePayload(
+			ctx,
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+		)
+	if err != nil {
+		s.metrics.failedToRetrieveOptimisticPayload(
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+			err,
+		)
+
+		// The latest execution payload header will be from the previous block
+		// during the block building phase.
+		var lph engineprimitives.ExecutionPayloadHeader
+		lph, err = st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return nil, err
+		}
+		// If we failed to retrieve the payload, request a synchrnous payload.
+		return s.localPayloadBuilder.RequestPayloadSync(
 			ctx,
 			st,
 			blk.GetSlot(),
+			// TODO: this is hood.
+			uint64(lph.GetTimestamp()+1),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
 		)
-	if err != nil {
-		return nil, err
-	} else if envelope == nil {
-		return nil, ErrNilPayload
 	}
 	return envelope, nil
 }

@@ -91,6 +91,9 @@ type Service[
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
+
+	// metrics is a metrics collector.
+	metrics *validatorMetrics
 }
 
 // NewService creates a new validator service.
@@ -113,6 +116,7 @@ func NewService[
 	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
+	ts TelemetrySink,
 ) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
 		cfg:                   cfg,
@@ -126,6 +130,7 @@ func NewService[
 		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
+		metrics:               newValidatorMetrics(ts),
 	}
 }
 
@@ -175,7 +180,7 @@ func (s *Service[
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
-
+	defer s.metrics.measureRequestBestBlockTime(startTime)
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -216,7 +221,7 @@ func (s *Service[
 	body.SetRandaoReveal(reveal)
 
 	// Get the payload for the block.
-	envelope, err := s.retrievePayload(ctx, st, blk)
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
 	} else if envelope == nil {
@@ -424,7 +429,7 @@ func (s *Service[
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.localPayloadBuilder.RequestPayload(
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
@@ -469,7 +474,7 @@ func (s *Service[
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err = s.localPayloadBuilder.RequestPayload(
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
 		ctx, st,
 		// We are building for the next slot, so we increment the slot.
 		blk.GetSlot()+1,
