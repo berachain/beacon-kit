@@ -107,6 +107,10 @@ func (s *Service[
 		}
 
 		// If we failed to retrieve the payload, request a synchrnous payload.
+		// NOTE: The state here is properly configured by the prepareStateForBuilding
+		// call that needs to be called before requesting the Payload.
+		// TODO: We should decouple the PayloadBuilder from BeaconState to make
+		// this less confusing.
 		return s.localPayloadBuilder.RequestPayloadSync(
 			ctx,
 			st,
