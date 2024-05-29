@@ -41,7 +41,11 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 	if g.ForkVersion != version.FromUint32[primitives.Version](version.Deneb) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			version.FromUint32[primitives.Version](version.Deneb), g.ForkVersion)
+			version.FromUint32[primitives.Version](
+				version.Deneb,
+			),
+			g.ForkVersion,
+		)
 	}
 
 	if len(g.Deposits) != 0 {
