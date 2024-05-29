@@ -56,7 +56,7 @@ type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT any,
+	BeaconStateT core.BeaconState[*types.Validator],
 ] struct {
 	cs                primitives.ChainSpec
 	availabilityStore AvailabilityStoreT
@@ -68,7 +68,7 @@ func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT any,
+	BeaconStateT core.BeaconState[*types.Validator],
 ](
 	cs primitives.ChainSpec,
 	availabilityStore AvailabilityStoreT,
@@ -94,8 +94,8 @@ func (k *Backend[AvailabilityStoreT, BeaconStateT]) AvailabilityStore(
 // context and the store key.
 func (k *Backend[AvailabilityStoreT, BeaconStateT]) StateFromContext(
 	ctx context.Context,
-) core.BeaconState[*types.Validator] {
-	return state.NewBeaconStateFromDB[core.BeaconState[*types.Validator]](
+) BeaconStateT {
+	return state.NewBeaconStateFromDB[BeaconStateT](
 		k.beaconStore.WithContext(ctx),
 		k.cs,
 	)

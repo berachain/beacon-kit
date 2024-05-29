@@ -101,7 +101,12 @@ func NewBeaconKitRuntime[
 			BlobSidecarsT,
 			DepositStoreT,
 		]
-		validatorService *validator.Service[BeaconStateT, BlobSidecarsT]
+		validatorService *validator.Service[
+			types.BeaconBlock,
+			types.BeaconBlockBody,
+			core.BeaconState[*types.Validator],
+			BlobSidecarsT,
+		]
 	)
 
 	if err := services.FetchService(&chainService); err != nil {

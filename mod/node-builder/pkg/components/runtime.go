@@ -174,6 +174,8 @@ func ProvideRuntime(
 
 	// Build the builder service.
 	validatorService := validator.NewService[
+		types.BeaconBlock,
+		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
 		&cfg.Validator,
@@ -183,7 +185,7 @@ func ProvideRuntime(
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
-			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+			types.BeaconBlock,
 			types.BeaconBlockBody,
 		](
 			chainSpec,
@@ -230,7 +232,8 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
-		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
+		core.BeaconState[*types.Validator],
+		*datypes.BlobSidecars,
 	](
 		storageBackend,
 		logger.With("service", "blockchain"),

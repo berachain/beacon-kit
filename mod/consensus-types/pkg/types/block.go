@@ -26,6 +26,8 @@
 package types
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -35,13 +37,14 @@ import (
 // the given slot, time, execution data, and version. It
 // returns an error if the fork version is not supported.
 func EmptyBeaconBlock[
+	ReturnT any,
 	SlotT, ProposerIndexT ~uint64,
 	ParentBlockRootT ~[32]byte](
 	slot SlotT,
 	proposerIndex ProposerIndexT,
 	parentBlockRoot ParentBlockRootT,
 	forkVersion uint32,
-) (BeaconBlock, error) {
+) (ReturnT, error) {
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
@@ -57,9 +60,10 @@ func EmptyBeaconBlock[
 			Body: &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return block, ErrForkVersionNotSupported
+		return reflect.ValueOf(block).Interface().(ReturnT),
+			ErrForkVersionNotSupported
 	}
-	return block, nil
+	return reflect.ValueOf(block).Interface().(ReturnT), nil
 }
 
 // BeaconBlockFromSSZ assembles a new beacon block

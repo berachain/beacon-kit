@@ -38,25 +38,17 @@ import (
 // block hashes.
 func (pb *PayloadBuilder[BeaconStateT]) submitForkchoiceUpdate(
 	ctx context.Context,
-	st BeaconStateT,
 	slot math.Slot,
 	attrs engineprimitives.PayloadAttributer,
 	headEth1Hash common.ExecutionHash,
+	finalBlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Because of single slot finality, this is considered final.
-	parentEth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
-
 	return pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1Hash,
-				SafeBlockHash:      parentEth1BlockHash,
-				FinalizedBlockHash: parentEth1BlockHash,
+				SafeBlockHash:      finalBlockHash,
+				FinalizedBlockHash: finalBlockHash,
 			},
 			PayloadAttributes: attrs,
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
