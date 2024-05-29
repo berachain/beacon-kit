@@ -79,7 +79,7 @@ type Service[
 
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
-	ds DepositStore
+	ds DepositStore[*types.Deposit]
 
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -109,7 +109,7 @@ func NewService[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
 	randaoProcessor RandaoProcessor[BeaconStateT],
-	ds DepositStore,
+	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 ) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {

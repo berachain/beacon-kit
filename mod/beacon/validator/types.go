@@ -103,11 +103,11 @@ type BlobSidecars interface {
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore interface {
+type DepositStore[DepositT any] interface {
 	// ExpectedDeposits returns `numView` expected deposits.
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*types.Deposit, error)
+	) ([]DepositT, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
