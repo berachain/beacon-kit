@@ -90,6 +90,7 @@ func NewBeaconKitRuntime[
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
+	telemetrySink middleware.TelemetrySink,
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
@@ -132,6 +133,7 @@ func NewBeaconKitRuntime[
 		](
 			chainSpec,
 			validatorService,
+			telemetrySink,
 		),
 		chainSpec:      chainSpec,
 		logger:         logger,
