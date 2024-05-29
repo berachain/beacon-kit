@@ -88,8 +88,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Replicas: 3,
 			},
 			{
-				Name:     "goomy-blob",
-				Replicas: 3,
+				Name: "goomy-blob",
 			},
 		},
 		Validators: []Node{
