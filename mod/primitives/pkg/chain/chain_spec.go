@@ -32,6 +32,9 @@ type Spec[
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 ] interface {
+	// GetData returns the underlying chain-specific parameter data.
+	GetData() SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -177,6 +180,15 @@ func NewChainSpec[
 	]{
 		Data: data,
 	}
+}
+
+// Data returns the underlying chain-specific parameter data.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+]) GetData() SpecData[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+] {
+	return c.Data
 }
 
 // MinDepositAmount returns the minimum deposit amount required.

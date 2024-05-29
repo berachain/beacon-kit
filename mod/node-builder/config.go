@@ -52,11 +52,13 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.AppDBBackend = "pebbledb"
 
+	chainSpecData := spec.LocalnetChainSpec().GetData()
+
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
 		BeaconKit: config.DefaultConfig(),
-		ChainSpec: &spec.LocalnetChainSpecData,
+		ChainSpec: &chainSpecData,
 	}
 
 	return customAppConfig

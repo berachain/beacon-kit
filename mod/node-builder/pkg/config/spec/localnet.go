@@ -32,76 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-//nolint:mnd // default config.
-var LocalnetChainSpecData = chain.SpecData[
-	primitives.Bytes4,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-]{
-	// // Gwei value constants.
-	MinDepositAmount:          uint64(1e9),
-	MaxEffectiveBalance:       uint64(32e9),
-	EjectionBalance:           uint64(16e9),
-	EffectiveBalanceIncrement: uint64(1e9),
-	// Time parameters constants.
-	SlotsPerEpoch:          8,
-	SlotsPerHistoricalRoot: 1,
-	// Signature domains.
-	DomainTypeProposer: common.DomainType{
-		0x00, 0x00, 0x00, 0x00,
-	},
-	DomainTypeAttester: common.DomainType{
-		0x01, 0x00, 0x00, 0x00,
-	},
-	DomainTypeRandao: common.DomainType{
-		0x02, 0x00, 0x00, 0x00,
-	},
-	DomainTypeDeposit: common.DomainType{
-		0x03, 0x00, 0x00, 0x00,
-	},
-	DomainTypeVoluntaryExit: common.DomainType{
-		0x04, 0x00, 0x00, 0x00,
-	},
-	DomainTypeSelectionProof: common.DomainType{
-		0x05, 0x00, 0x00, 0x00,
-	},
-	DomainTypeAggregateAndProof: common.DomainType{
-		0x06, 0x00, 0x00, 0x00,
-	},
-	DomainTypeApplicationMask: common.DomainType{
-		0x00, 0x00, 0x00, 0x01,
-	},
-	// Eth1-related values.
-	DepositContractAddress: common.HexToAddress(
-		"0x00000000219ab540356cbb839cbe05303d7705fa",
-	),
-	DepositEth1ChainID:        uint64(80086),
-	Eth1FollowDistance:        1,
-	TargetSecondsPerEth1Block: 2,
-	// Fork-related values.
-	ElectraForkEpoch: 9999999999999999,
-	// State list length constants.
-	EpochsPerHistoricalVector: 8,
-	EpochsPerSlashingsVector:  1,
-	HistoricalRootsLimit:      1,
-	ValidatorRegistryLimit:    1099511627776,
-	// Max operations per block constants.
-	MaxDepositsPerBlock: 16,
-	// Slashing
-	ProportionalSlashingMultiplier: 1,
-	// Capella values.
-	MaxWithdrawalsPerPayload:         16,
-	MaxValidatorsPerWithdrawalsSweep: 1 << 14,
-	// Deneb values.
-	MinEpochsForBlobsSidecarsRequest: 4096,
-	MaxBlobCommitmentsPerBlock:       16,
-	MaxBlobsPerBlock:                 6,
-	FieldElementsPerBlob:             4096,
-	BytesPerBlob:                     131072,
-	KZGCommitmentInclusionProofDepth: 17,
-}
-
 // LocalnetChainSpec is the ChainSpec for the localnet.
 func LocalnetChainSpec() chain.Spec[
 	common.DomainType,
@@ -109,5 +39,75 @@ func LocalnetChainSpec() chain.Spec[
 	common.ExecutionAddress,
 	math.Slot,
 ] {
-	return chain.NewChainSpec(LocalnetChainSpecData)
+	return chain.NewChainSpec(
+		//nolint:mnd // default config.
+		chain.SpecData[
+			primitives.Bytes4,
+			math.Epoch,
+			common.ExecutionAddress,
+			math.Slot,
+		]{
+			// // Gwei value constants.
+			MinDepositAmount:          uint64(1e9),
+			MaxEffectiveBalance:       uint64(32e9),
+			EjectionBalance:           uint64(16e9),
+			EffectiveBalanceIncrement: uint64(1e9),
+			// Time parameters constants.
+			SlotsPerEpoch:          8,
+			SlotsPerHistoricalRoot: 1,
+			// Signature domains.
+			DomainTypeProposer: common.DomainType{
+				0x00, 0x00, 0x00, 0x00,
+			},
+			DomainTypeAttester: common.DomainType{
+				0x01, 0x00, 0x00, 0x00,
+			},
+			DomainTypeRandao: common.DomainType{
+				0x02, 0x00, 0x00, 0x00,
+			},
+			DomainTypeDeposit: common.DomainType{
+				0x03, 0x00, 0x00, 0x00,
+			},
+			DomainTypeVoluntaryExit: common.DomainType{
+				0x04, 0x00, 0x00, 0x00,
+			},
+			DomainTypeSelectionProof: common.DomainType{
+				0x05, 0x00, 0x00, 0x00,
+			},
+			DomainTypeAggregateAndProof: common.DomainType{
+				0x06, 0x00, 0x00, 0x00,
+			},
+			DomainTypeApplicationMask: common.DomainType{
+				0x00, 0x00, 0x00, 0x01,
+			},
+			// Eth1-related values.
+			DepositContractAddress: common.HexToAddress(
+				"0x00000000219ab540356cbb839cbe05303d7705fa",
+			),
+			DepositEth1ChainID:        uint64(80086),
+			Eth1FollowDistance:        1,
+			TargetSecondsPerEth1Block: 2,
+			// Fork-related values.
+			ElectraForkEpoch: 9999999999999999,
+			// State list length constants.
+			EpochsPerHistoricalVector: 8,
+			EpochsPerSlashingsVector:  1,
+			HistoricalRootsLimit:      1,
+			ValidatorRegistryLimit:    1099511627776,
+			// Max operations per block constants.
+			MaxDepositsPerBlock: 16,
+			// Slashing
+			ProportionalSlashingMultiplier: 1,
+			// Capella values.
+			MaxWithdrawalsPerPayload:         16,
+			MaxValidatorsPerWithdrawalsSweep: 1 << 14,
+			// Deneb values.
+			MinEpochsForBlobsSidecarsRequest: 4096,
+			MaxBlobCommitmentsPerBlock:       16,
+			MaxBlobsPerBlock:                 6,
+			FieldElementsPerBlob:             4096,
+			BytesPerBlob:                     131072,
+			KZGCommitmentInclusionProofDepth: 17,
+		},
+	)
 }
