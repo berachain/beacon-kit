@@ -85,7 +85,7 @@ func (s *Service[
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// The latest execution payload header, will be from the previous block
 	// during the block building phase.
-	parentExecutionPayload, err := st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			blk.GetParentBlockRoot(),
-			parentExecutionPayload.GetBlockHash(),
-			parentExecutionPayload.GetParentHash(),
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
 		)
 	if err != nil {
 		return nil, err

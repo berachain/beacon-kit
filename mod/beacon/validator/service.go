@@ -303,7 +303,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"beacon block successfully built 🏎️",
+		"beacon block successfully built 🛠️ ",
 		"slot", requestedSlot,
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
@@ -325,6 +325,7 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
+	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
 
 	// Verify the state root of the incoming block.
