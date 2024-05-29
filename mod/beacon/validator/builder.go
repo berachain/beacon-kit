@@ -27,7 +27,6 @@ package validator
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -67,17 +66,12 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	var blkB types.BeaconBlock
-	blkB, err = types.EmptyBeaconBlock(
+	return types.EmptyBeaconBlock[BeaconBlockT](
 		slot,
 		proposerIndex,
 		parentBlockRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-
-	blkValue := reflect.ValueOf(blkB)
-	blk = blkValue.Interface().(BeaconBlockT)
-	return blk, nil
 }
 
 func (s *Service[
@@ -113,7 +107,9 @@ func (s *Service[
 
 // prepareStateForBuilding ensures that the state is at the requested slot
 // before building a block.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) prepareStateForBuilding(
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) prepareStateForBuilding(
 	st BeaconStateT,
 	requestedSlot math.Slot,
 ) error {

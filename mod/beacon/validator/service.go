@@ -125,22 +125,32 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Name() string {
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Start(
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) Start(
 	context.Context,
 ) error {
 	return nil
 }
 
 // Status returns the status of the service.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Status() error { return nil }
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) Status() error {
+	return nil
+}
 
 // WaitForHealthy waits for the service to become healthy.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) WaitForHealthy(
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) WaitForHealthy(
 	context.Context,
 ) {
 }
@@ -148,7 +158,9 @@ func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) WaitForHealthy(
 // RequestBestBlock builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) RequestBestBlock(
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
@@ -298,7 +310,9 @@ func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) RequestBestBlock(
 
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block and
 // logs the process.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) VerifyIncomingBlock(
+func (s *Service[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
