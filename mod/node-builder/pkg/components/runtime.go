@@ -195,6 +195,7 @@ func ProvideRuntime(
 		[]validator.PayloadBuilder[core.BeaconState[*types.Validator]]{
 			localBuilder,
 		},
+		ts,
 	)
 
 	// Build the blockchain service.

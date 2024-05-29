@@ -161,14 +161,15 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
-	// RequestPayload requests a new payload for the given slot.
-	RequestPayload(
+	// RequestPayloadAsync requests a new payload for the given slot.
+	RequestPayloadAsync(
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 }
 

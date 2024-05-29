@@ -43,7 +43,7 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -90,13 +90,16 @@ type Service[
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
+
+	// metrics is a metrics collector.
+	metrics *validatorMetrics
 }
 
 // NewService creates a new validator service.
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,
@@ -112,6 +115,7 @@ func NewService[
 	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
+	ts TelemetrySink,
 ) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
 	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
 		cfg:                   cfg,
@@ -125,6 +129,7 @@ func NewService[
 		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
+		metrics:               newValidatorMetrics(ts),
 	}
 }
 
@@ -174,7 +179,7 @@ func (s *Service[
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
-
+	defer s.metrics.measureRequestBestBlockTime(startTime)
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -215,7 +220,7 @@ func (s *Service[
 	body.SetRandaoReveal(reveal)
 
 	// Get the payload for the block.
-	envelope, err := s.retrievePayload(ctx, st, blk)
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
 	} else if envelope == nil {
@@ -303,7 +308,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"beacon block successfully built 🏎️",
+		"beacon block successfully built 🛠️ ",
 		"slot", requestedSlot,
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
@@ -325,6 +330,7 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
+	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
 
 	// Verify the state root of the incoming block.
@@ -333,24 +339,25 @@ func (s *Service[
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
-		var localStateRoot primitives.Root
-		localStateRoot, err = st.HashTreeRoot()
-		if err != nil {
-			return err
+		localStateRoot, htrErr := st.HashTreeRoot()
+		if htrErr != nil {
+			return htrErr
 		}
 
 		s.logger.Error(
-			"failed to verify state root - rejecting incoming block ❌ ",
+			"rejecting incoming block ❌ ",
 			"block_state_root",
 			blk.GetStateRoot(),
 			"local_state_root",
 			localStateRoot,
+			"error",
+			err,
 		)
 		return err
 	}
 
 	s.logger.Info(
-		"block state root verification succeeded - accepting incoming block ✅ ",
+		"state root verification succeeded - accepting incoming block ✅ ",
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil
