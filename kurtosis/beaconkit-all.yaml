@@ -86,10 +86,9 @@ eth_json_rpc_endpoints:
       - el-full-besu-4
       - el-full-erigon-5
       - el-full-ethereumjs-6
-additional_services: 
+additional_services:
   - "goomy_blob"
   - "tx-fuzz"
   - "prometheus"
   - "grafana"
   - "pyroscope"
-
