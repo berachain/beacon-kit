@@ -60,7 +60,6 @@ func NewBeaconKitApp(
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	dCfg depinject.Config,
-	// chainSpec primitives.ChainSpec,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}

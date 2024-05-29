@@ -41,7 +41,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutilcmd "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -69,7 +69,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
-		genutilcmd.InitCmd(mm),
+		genutilcli.InitCmd(mm),
 		// `genesis`
 		genesis.Commands(
 			chainSpec,

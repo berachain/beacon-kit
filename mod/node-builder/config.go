@@ -68,7 +68,8 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 // application.
 func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
 	return serverconfig.DefaultConfigTemplate +
-		"\n" + config.Template + "\n" + spec.Template
+		"\n" + config.Template +
+		"\n" + spec.Template
 }
 
 // DefaultCometConfig returns the default configuration for the CometBFT
