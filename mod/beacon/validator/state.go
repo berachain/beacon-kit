@@ -28,16 +28,17 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // computeStateRoot computes the state root of an outgoing block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 ) (primitives.Root, error) {
 	if _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
@@ -59,10 +60,12 @@ func (s *Service[BeaconStateT, BlobSidecarsT]) computeStateRoot(
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) verifyStateRoot(
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 ) error {
 	if _, err := s.stateProcessor.Transition(
 		// We run with a non-optimistic engine here to ensure

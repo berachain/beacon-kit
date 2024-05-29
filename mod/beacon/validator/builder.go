@@ -36,17 +36,20 @@ import (
 
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 ]) GetEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
-) (types.BeaconBlock, error) {
+) (BeaconBlockT, error) {
+	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
-		return nil, errors.Newf(
+		return blk, errors.Newf(
 			"failed to get block root at index: %w",
 			err,
 		)
@@ -57,14 +60,14 @@ func (s *Service[
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return nil, errors.Newf(
+		return blk, errors.Newf(
 			"failed to get validator by pubkey: %w",
 			err,
 		)
 	}
 
 	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock(
+	return types.EmptyBeaconBlock[BeaconBlockT](
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -73,10 +76,12 @@ func (s *Service[
 }
 
 func (s *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 ]) retrievePayload(
-	ctx context.Context, st BeaconStateT, blk types.BeaconBlock,
+	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	// The latest execution payload header, will be from the previous block
 	// during the block building phase.
@@ -104,8 +109,11 @@ func (s *Service[
 
 // prepareStateForBuilding ensures that the state is at the requested slot
 // before building a block.
-func (s *Service[BeaconStateT, BlobSidecarsT]) prepareStateForBuilding(
-	st BeaconStateT, requestedSlot math.Slot,
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) prepareStateForBuilding(
+	st BeaconStateT,
+	requestedSlot math.Slot,
 ) error {
 	// Get the current state slot.
 	stateSlot, err := st.GetSlot()
