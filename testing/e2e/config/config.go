@@ -91,7 +91,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2,
+				Replicas: 2, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "erigon",
@@ -117,7 +117,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2,
+				Replicas: 2, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "geth",

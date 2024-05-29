@@ -164,7 +164,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
         elif s == "blutgang":
             plan.print("Launghing blutgang")
             blutgang_config_template = read_file(
-                constants.BLUTGANG_CONFIG_TEMPLATE_PATH
+                constants.BLUTGANG_CONFIG_TEMPLATE_PATH,
             )
             blutgang.launch_blutgang(
                 plan,

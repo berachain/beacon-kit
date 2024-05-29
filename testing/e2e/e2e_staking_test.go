@@ -175,10 +175,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	for i := 0; i < NumDepositsLoad; i++ {
+	for i := range NumDepositsLoad {
 		var receipt *coretypes.Receipt
+		var tx *coretypes.Transaction
 		// Create a deposit transaction.
-		tx, err := s.generateNewDepositTx(
+		tx, err = s.generateNewDepositTx(
 			dc,
 			sender.Address(),
 			sender.SignerFunc(chainID),
@@ -186,16 +187,20 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		)
 		s.Require().NoError(err)
 		if i == NumDepositsLoad-1 {
-			s.WaitForFinalizedBlockNumber(blkNum + 5)
+			err = s.WaitForFinalizedBlockNumber(blkNum + 5)
+			s.Require().NoError(err)
 			// Wait for the transaction to be mined.
 			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 			s.Require().NoError(err)
 			s.Require().Equal(uint64(1), receipt.Status)
-			s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+			s.Logger().
+				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 		}
 	}
 
 	// wait blocks
+	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
 	targetBlkNum := blkNum + 10
 	err = s.WaitForNBlockNumbers(8)
 	s.Require().NoError(err)
@@ -224,7 +229,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Update client2's reference
-	s.SetupConsensusClients()
+	err = s.SetupConsensusClients()
+	s.Require().NoError(err)
 	client2 = s.ConsensusClients()[AlternateClient]
 	s.Require().NotNil(client2)
 
@@ -237,7 +243,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	height2, err := client2.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().Equal(height.Response.LastBlockHeight, height2.Response.LastBlockHeight)
+	s.Require().
+		Equal(height.Response.LastBlockHeight, height2.Response.LastBlockHeight)
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(

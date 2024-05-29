@@ -250,6 +250,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			gasFeeCap := new(big.Int).Add(
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
+			//nolint:mnd // 20000 Ether
 			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
@@ -368,7 +369,8 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	return nil
 }
 
-// WaitForNBlockNumber waits for a specified amount of blocks into the future from now.
+// WaitForNBlockNumber waits for a specified amount of blocks into the future
+// from now.
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	n uint64,
 ) error {
