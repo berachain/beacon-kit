@@ -39,22 +39,52 @@ import (
 const (
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress = "0x00000000219ab540356cbb839cbe05303d7705fa"
+	DefaultClient          = "cl-validator-beaconkit-0"
+	AlternateClient        = "cl-validator-beaconkit-1"
+	NumDepositsLoad        = 500
 )
 
-// TestDepositContract tests the deposit contract to attempt staking and
-// increasing a validator's consensus power.
-func (s *BeaconKitE2ESuite) TestDepositContract() {
+func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Get the consensus client.
-	client := s.ConsensusClients()["cl-validator-beaconkit-0"]
+	client := s.ConsensusClients()[DefaultClient]
 	s.Require().NotNil(client)
+
+	client2 := s.ConsensusClients()[AlternateClient]
+	s.Require().NotNil(client2)
+
+	// Sender account
+	sender := s.TestAccounts()[1]
 
 	// Get the public key.
 	pubkey, err := client.GetPubKey(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().Len(pubkey, 48)
 
-	// Get the consensus power.
-	_, err = client.GetConsensusPower(s.Ctx())
+	// Get the block num
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get original evm balance
+	balance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		sender.Address(),
+		big.NewInt(int64(blkNum)),
+	)
+	s.Require().NoError(err)
+
+	nonce, err := s.JSONRPCBalancer().NonceAt(
+		s.Ctx(),
+		sender.Address(),
+		big.NewInt(int64(blkNum)),
+	)
+	s.Require().NoError(err)
+
+	// Kill node 2
+	_, err = client2.Stop(s.Ctx())
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
@@ -63,6 +93,92 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 		s.JSONRPCBalancer(),
 	)
 	s.Require().NoError(err)
+
+	for i := range NumDepositsLoad {
+		var receipt *coretypes.Receipt
+		var tx *coretypes.Transaction
+		// Create a deposit transaction.
+		tx, err = s.generateNewDepositTx(
+			dc,
+			sender.Address(),
+			sender.SignerFunc(chainID),
+			big.NewInt(int64(nonce+uint64(i))),
+		)
+		s.Require().NoError(err)
+		if i == NumDepositsLoad-1 {
+			err = s.WaitForFinalizedBlockNumber(blkNum + 5)
+			s.Require().NoError(err)
+			// Wait for the transaction to be mined.
+			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+			s.Require().NoError(err)
+			s.Require().Equal(uint64(1), receipt.Status)
+			s.Logger().
+				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+		}
+	}
+
+	// wait blocks
+	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+	targetBlkNum := blkNum + 10
+	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().NoError(err)
+
+	// Check to see if evm balance decreased.
+	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(),
+		sender.Address(),
+		big.NewInt(int64(targetBlkNum)),
+	)
+	s.Require().NoError(err)
+
+	// Check that the eth spent is somewhere~ (gas) between
+	// upper bound: 32ether * 500 + 1ether
+	// lower bound: 32ether * 500
+	oneEther := big.NewInt(1e18)
+	totalAmt := new(big.Int).Mul(oneEther, big.NewInt(NumDepositsLoad*32))
+	upperBound := new(big.Int).Add(totalAmt, oneEther)
+	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
+
+	s.Require().Equal(amtSpent.Cmp(totalAmt), 1)
+	s.Require().Equal(amtSpent.Cmp(upperBound), -1)
+
+	// Start node 2 again
+	_, err = client2.Start(s.Ctx(), s.Enclave())
+	s.Require().NoError(err)
+
+	// Update client2's reference
+	err = s.SetupConsensusClients()
+	s.Require().NoError(err)
+	client2 = s.ConsensusClients()[AlternateClient]
+	s.Require().NotNil(client2)
+
+	// Give time for the node to catch up
+	err = s.WaitForNBlockNumbers(3)
+	s.Require().NoError(err)
+
+	// Compare height of node 1 and 2
+	height, err := client.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	height2, err := client2.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().
+		Equal(height.Response.LastBlockHeight, height2.Response.LastBlockHeight)
+}
+
+func (s *BeaconKitE2ESuite) generateNewDepositTx(
+	dc *deposit.BeaconDepositContract,
+	sender common.Address,
+	signer bind.SignerFn,
+	nonce *big.Int,
+) (*coretypes.Transaction, error) {
+	// Get the consensus client.
+	client := s.ConsensusClients()[DefaultClient]
+	s.Require().NotNil(client)
+
+	pubkey, err := client.GetPubKey(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().Len(pubkey, 48)
 
 	// Generate the credentials.
 	credentials := byteslib.PrependExtendToSize(
@@ -75,172 +191,11 @@ func (s *BeaconKitE2ESuite) TestDepositContract() {
 	signature := [96]byte{}
 	s.Require().Len(signature[:], 96)
 
-	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
-
-	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-	s.Require().NoError(err)
-
-	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(blkNum)),
-	)
-	s.Require().NoError(err)
-
-	// Create a deposit transaction.
 	val, _ := big.NewFloat(32e18).Int(nil)
-	tx, err := dc.Deposit(&bind.TransactOpts{
-		From:   s.GenesisAccount().Address(),
+	return dc.Deposit(&bind.TransactOpts{
+		From:   sender,
 		Value:  val,
-		Signer: s.GenesisAccount().SignerFunc(chainID),
+		Signer: signer,
+		Nonce:  nonce,
 	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
-	s.Require().NoError(err)
-
-	// Wait for the transaction to be mined.
-	var receipt *coretypes.Receipt
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
-	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
-
-	// Wait for the log to be processed.
-	targetBlkNum := blkNum + 10
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	s.Require().NoError(err)
-
-	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		s.GenesisAccount().Address(),
-		big.NewInt(int64(targetBlkNum)),
-	)
-	s.Require().NoError(err)
-	s.Require().Equal(postDepositBalance.Cmp(balance), -1)
-
-	newPower, err := client.GetConsensusPower(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Equal(newPower, 32*suite.OneGwei)
-
-	// // Submit withdrawal
-	// tx, err = dc.Withdraw(&bind.TransactOpts{
-	// 	From:   s.GenesisAccount().Address(),
-	// 	Signer: s.GenesisAccount().SignerFunc(chainID),
-	// }, pubkey, credentials, 31*suite.OneGwei)
-	// s.Require().NoError(err)
-
-	// receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	// s.Require().NoError(err)
-	// s.Require().Equal(uint64(1), receipt.Status)
-	// s.Logger().
-	// 	Info("Withdraw transaction mined", "txHash", receipt.TxHash.Hex())
-
-	// // Wait for the log to be processed.
-	// targetBlkNum += 4
-	// err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-	// s.Require().NoError(err)
-
-	// // Check to see if new balance is greater than the previous balance
-	// postWithdrawBalance, err := s.JSONRPCBalancer().BalanceAt(
-	// 	s.Ctx(),
-	// 	s.GenesisAccount().Address(),
-	// 	big.NewInt(int64(targetBlkNum)),
-	// )
-	// s.Require().NoError(err)
-	// s.Require().Equal(postWithdrawBalance.Cmp(postDepositBalance), 1)
-
-	// // We are withdrawing all the power, so the power should be 0.
-	// postWithdrawPower, err := client.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// s.Require().Equal(postWithdrawPower, suite.OneGwei)
 }
-
-// TODO: once RPC ready
-// func (s *BeaconKitE2ESuite) TestCreateNewValidator() {
-// 	var nut *types.ConsensusClient
-// 	for _, cl := range s.ConsensusClients() {
-// 		if yes, err := cl.IsActive(s.Ctx()); err != nil && !yes {
-// 			nut = cl
-// 			break
-// 		}
-// 	}
-
-// 	// Generate the credentials.
-// 	credentials := byteslib.PrependExtendToSize(
-// 		s.GenesisAccount().Address().Bytes(),
-// 		32,
-// 	)
-// 	credentials[0] = 0x01
-
-// 	// Bind the deposit contract.
-// 	dc, err := stakingabi.NewBeaconDepositContract(
-// 		common.HexToAddress(DepositContractAddress),
-// 		s.JSONRPCBalancer(),
-// 	)
-// 	s.Require().NoError(err)
-
-// 	// Get the chain ID.
-// 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-// 	s.Require().NoError(err)
-
-// 	// Get the block num
-// 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-// 	s.Require().NoError(err)
-
-// 	nodePubkey, err := nut.GetPubKey(s.Ctx())
-// 	if err != nil {
-// 		s.Require().NoError(err)
-// 	}
-
-// 	// TODO: get private key from the node
-// 	privateKey := [32]byte{}
-// 	signer, err := blst.SecretKeyFromBytes(privateKey[:])
-// 	s.Require().NoError(err)
-
-// 	msg := beacontypes.DepositMessage{
-// 		Pubkey:      crypto.BLSSignaturePubkey(nodePubkey),
-// 		Credentials: beacontypes.WithdrawalCredentials(credentials),
-// 		Amount:      math.Gwei(32 * suite.OneGwei),
-// 	}
-
-// 	// forkData := forks.NewForkData(
-
-// 	// )
-
-// 	domain, err := forkData.ComputeDomain(primitives.DomainTypeDeposit)
-// 	s.Require().NoError(err)
-
-// 	signingRoot, err := primitives.ComputeSigningRoot(&msg, domain)
-// 	s.Require().NoError(err)
-
-// 	// Sign the message.
-// 	sig := signer.Sign(signingRoot[:]).Marshal()
-
-// 	// Create a deposit transaction.
-// 	val, _ := big.NewFloat(32e18).Int(nil)
-// 	tx, err := dc.Deposit(&bind.TransactOpts{
-// 		From:   s.GenesisAccount().Address(),
-// 		Value:  val,
-// 		Signer: s.GenesisAccount().SignerFunc(chainID),
-// 	}, nodePubkey[:], credentials, 32*suite.OneGwei, sig)
-// 	s.Require().NoError(err)
-
-// 	// Wait for the transaction to be mined.
-// 	var receipt *coretypes.Receipt
-// 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-// 	s.Require().NoError(err)
-// 	s.Require().Equal(uint64(1), receipt.Status)
-// 	s.Logger().Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
-
-// 	// Wait for the log to be processed.
-// 	targetBlkNum := blkNum + 5
-// 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
-// 	s.Require().NoError(err)
-
-// 	active, err := nut.IsActive(s.Ctx())
-// 	s.Require().NoError(err)
-// 	s.Require().True(active)
-// }

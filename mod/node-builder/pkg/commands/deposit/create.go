@@ -42,7 +42,7 @@ import (
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:gomnd // lots of magic numbers
+
 func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",

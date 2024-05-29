@@ -60,10 +60,29 @@ func (sp *StateProcessor[
 		withdrawalsRoot primitives.Root
 	)
 
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	// We want to check to ensure the chain is canonical with respect to the
+	// parent hash before we let the execution client know about the payload,
+	// this is to prevent Polygon style re-orgs from being triggered by a
+	// malicious actor who tries to force clients to accept a non-canonical
+	// block that passes block validity checks.
+	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
+		return errors.Wrapf(
+			ErrParentRootMismatch,
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			payload.GetParentHash(),
+			safeHash,
+		)
+	}
+
 	// Verify and notify the new payload early in the function.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	g.Go(func() error {
-		if err := sp.executionEngine.VerifyAndNotifyNewPayload(
+		if err = sp.executionEngine.VerifyAndNotifyNewPayload(
 			gCtx, engineprimitives.BuildNewPayloadRequest(
 				payload,
 				body.GetBlobKzgCommitments().ToVersionedHashes(),
@@ -92,20 +111,6 @@ func (sp *StateProcessor[
 		).HashTreeRoot()
 		return withdrawalsRootErr
 	})
-
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
-		return errors.Wrapf(
-			ErrParentRootMismatch,
-			"parent block with hash %x is not finalized, expected finalized hash %x",
-			payload.GetParentHash(),
-			safeHash,
-		)
-	}
 
 	// Get the current epoch.
 	slot, err := st.GetSlot()
