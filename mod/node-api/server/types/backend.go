@@ -23,38 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func NewServer(corsConfig middleware.CORSConfig,
-	loggingConfig middleware.LoggerConfig) *echo.Echo {
-	e := echo.New()
-	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
-	e.Validator = &handlers.CustomValidator{
-		Validator: server.ConstructValidator(),
-	}
-	server.UseMiddlewares(e,
-		middleware.CORSWithConfig(corsConfig),
-		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(
-		e,
-		handlers.RouteHandlers{Backend: mocks.NewMockBackend()},
-	)
-	return e
-}
-
-func run() {
-	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
-	e.Logger.Fatal(e.Start(":8080"))
-}
-
-func main() {
-	run()
+type BackendHandlers interface {
+	GetGenesis(ctx context.Context) (primitives.Root, error)
+	GetStateRoot(
+		ctx context.Context,
+		stateID string,
+	) (primitives.Bytes32, error)
+	GetStateValidators(
+		ctx context.Context,
+		stateID string,
+		id []string,
+		status []string,
+	) ([]*ValidatorData, error)
+	GetStateValidator(
+		ctx context.Context,
+		stateID string,
+		validatorID string,
+	) (*ValidatorData, error)
+	GetStateValidatorBalances(
+		ctx context.Context,
+		stateID string,
+		id []string,
+	) ([]*ValidatorBalanceData, error)
+	GetBlockRewards(
+		ctx context.Context,
+		blockID string,
+	) (*BlockRewardsData, error)
 }

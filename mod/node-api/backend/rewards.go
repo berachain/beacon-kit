@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-IDentifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -23,38 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package main
+package backend
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/node-api/server/types"
 )
 
-func NewServer(corsConfig middleware.CORSConfig,
-	loggingConfig middleware.LoggerConfig) *echo.Echo {
-	e := echo.New()
-	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
-	e.Validator = &handlers.CustomValidator{
-		Validator: server.ConstructValidator(),
-	}
-	server.UseMiddlewares(e,
-		middleware.CORSWithConfig(corsConfig),
-		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(
-		e,
-		handlers.RouteHandlers{Backend: mocks.NewMockBackend()},
-	)
-	return e
-}
-
-func run() {
-	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
-	e.Logger.Fatal(e.Start(":8080"))
-}
-
-func main() {
-	run()
+func (h Backend) GetBlockRewards(
+	_ context.Context,
+	_ string,
+) (*types.BlockRewardsData, error) {
+	return &types.BlockRewardsData{
+		ProposerIndex:     1,
+		Total:             1,
+		Attestations:      1,
+		SyncAggregate:     1,
+		ProposerSlashings: 1,
+		AttesterSlashings: 1,
+	}, nil
 }
