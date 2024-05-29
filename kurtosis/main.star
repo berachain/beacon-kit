@@ -180,7 +180,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
                     "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
                     [],
                 )
-                next_free_prefunded_account+=1
+                next_free_prefunded_account += 1
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
             if "grafana" in additional_services:
