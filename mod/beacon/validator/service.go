@@ -43,7 +43,7 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
 	// cfg is the validator config.
@@ -96,7 +96,7 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
 	cfg *Config,

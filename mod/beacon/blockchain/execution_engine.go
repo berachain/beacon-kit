@@ -81,7 +81,8 @@ func (s *Service[
 	blk types.BeaconBlock,
 ) {
 	var (
-		headHash common.ExecutionHash
+		headHash   common.ExecutionHash
+		parentHash common.ExecutionHash
 	)
 
 	payload := blk.GetBody().GetExecutionPayload()
@@ -91,6 +92,7 @@ func (s *Service[
 	// TODO: clean this up.
 	if payload != nil {
 		headHash = payload.GetBlockHash()
+		parentHash = payload.GetParentHash()
 	} else {
 		lph, err := st.GetLatestExecutionPayloadHeader()
 		if err != nil {
@@ -101,6 +103,7 @@ func (s *Service[
 			return
 		}
 		headHash = lph.GetBlockHash()
+		parentHash = lph.GetParentHash()
 	}
 
 	// If we are the local builder and we are not in init sync
@@ -141,6 +144,7 @@ func (s *Service[
 			)),
 			prevBlockRoot,
 			headHash,
+			parentHash,
 		); err == nil {
 			return
 		}
