@@ -37,7 +37,8 @@ def launch_blutgang(
         config_template,
         full_node_el_clients,
         clients_from_user,
-        network_params):
+        network_params,
+    ):
     all_el_client_info = []
 
     # proceed with adding to all_el_client_info only if full_node_el_clients matches with clients_from_user
@@ -81,7 +82,8 @@ def launch_blutgang(
 
 def get_config(
         config_files_artifact_name,
-        network_params):
+        network_params,
+    ):
     config_file_path = shared_utils.path_join(
         BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE,
         BLUTGANG_CONFIG_FILENAME,

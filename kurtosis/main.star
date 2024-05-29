@@ -26,6 +26,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
     args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
 
+    next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(validators)
     full_nodes = nodes.parse_nodes_from_dict(full_nodes)
     num_validators = len(validators)
@@ -156,10 +157,11 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
             goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
-                constants.PRE_FUNDED_ACCOUNTS[0],
+                constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
                 rpc_endpoint_goomy_blob,
                 goomy_blob_args,
             )
+            next_free_prefunded_account += 1
             plan.print("Successfully launched goomy the blob spammer")
         elif s == "blutgang":
             plan.print("Launghing blutgang")
@@ -179,10 +181,11 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
                 fuzzing_node = full_node_el_clients[0]["service"]
             tx_fuzz.launch_tx_fuzz(
                 plan,
-                constants.PRE_FUNDED_ACCOUNTS[1].private_key,
+                constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account].private_key,
                 "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
                 [],
             )
+            next_free_prefunded_account+=1
         elif s == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
             if "grafana" in additional_services:
