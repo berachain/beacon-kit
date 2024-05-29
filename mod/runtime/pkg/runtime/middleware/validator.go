@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
@@ -74,7 +73,7 @@ func NewValidatorMiddleware[
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
 		types.BeaconBlock,
-		core.BeaconState[*types.Validator],
+		BeaconStateT,
 		BlobsSidecarsT,
 	],
 ) *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT] {

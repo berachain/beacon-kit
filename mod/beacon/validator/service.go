@@ -339,8 +339,19 @@ func (s *Service[
 	if err := s.verifyStateRoot(
 		ctx, stCopy, blk,
 	); err != nil {
+		// TODO: this is expensive because we are not caching the
+		// previous result of HashTreeRoot().
+		localStateRoot, htrErr := st.HashTreeRoot()
+		if htrErr != nil {
+			return htrErr
+		}
+
 		s.logger.Error(
-			"rejecting incoming block ❌",
+			"rejecting incoming block ❌ ",
+			"block_state_root",
+			blk.GetStateRoot(),
+			"local_state_root",
+			localStateRoot,
 			"error",
 			err,
 		)
