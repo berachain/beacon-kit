@@ -362,7 +362,7 @@ func (s *Service[
 		// If we reject the incoming block, we attempt to rebuild a payload for
 		// this slot.
 		return s.rebuildPayloadForRejectedBlock(
-			ctx, st, blk,
+			ctx, st,
 		)
 	}
 
@@ -387,17 +387,22 @@ func (s *Service[
 
 // rebuildPayloadForRejectedBlock rebuilds a payload for the current
 // slot, if the incoming block was rejected.
+//
+// NOTE: We cannot use any data off the incoming block and must recompute
+// any required information from our local state. We do this since we have
+// rejected the incoming block and it would be unsafe to use any
+// information from it.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
 ) error {
 	var (
 		previousBlockRoot primitives.Root
 		latestHeader      *types.BeaconBlockHeader
 		lph               engineprimitives.ExecutionPayloadHeader
+		slot              math.Slot
 	)
 
 	// In order to rebuild a payload for the current slot, we need to know the
@@ -428,14 +433,19 @@ func (s *Service[
 		return err
 	}
 
+	slot, err = st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// Submit a request for a new payload.
 	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
-		blk.GetSlot(),
+		slot,
 		// TODO: this is hood as fuck.
-		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+		uint64(lph.GetTimestamp()+2),
 		// We set the parent root to the previous block root.
 		previousBlockRoot,
 		// We set the head of our chain to previous finalized block.

@@ -105,6 +105,7 @@ func (s *Service[
 		if err != nil {
 			return nil, err
 		}
+
 		// If we failed to retrieve the payload, request a synchrnous payload.
 		return s.localPayloadBuilder.RequestPayloadSync(
 			ctx,
