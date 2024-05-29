@@ -172,7 +172,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
 
             for i in range(s.replicas):
                 if i > 0:
-                    fuzzing_node = full_node_el_clients[i%len(full_node_el_clients)]["service"]
+                    fuzzing_node = full_node_el_clients[i % len(full_node_el_clients)]["service"]
                 tx_fuzz.launch_tx_fuzz(
                     plan,
                     i,
@@ -180,7 +180,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
                     "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
                     [],
                 )
-                next_free_prefunded_account+=1
+                next_free_prefunded_account += 1
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
             if "grafana" in additional_services:
