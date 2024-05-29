@@ -54,6 +54,6 @@ func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(start time.
 // measureProcessProposalDuration measures the time to process
 func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(start time.Time) {
 	cm.sink.MeasureSince(
-		"beacon_kit.beacon.blockchain.blob_processing_duration", start,
+		"beacon_kit.runtime.process_proposal_duration", start,
 	)
 }
