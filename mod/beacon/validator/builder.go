@@ -114,7 +114,8 @@ func (s *Service[
 // prepareStateForBuilding ensures that the state is at the requested slot
 // before building a block.
 func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) prepareStateForBuilding(
-	st BeaconStateT, requestedSlot math.Slot,
+	st BeaconStateT,
+	requestedSlot math.Slot,
 ) error {
 	// Get the current state slot.
 	stateSlot, err := st.GetSlot()

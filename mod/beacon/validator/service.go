@@ -41,7 +41,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
 	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
@@ -58,7 +58,9 @@ type Service[
 	signer crypto.BLSSigner
 
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody]
+	blobFactory BlobFactory[
+		BeaconBlockT, BlobSidecarsT, types.BeaconBlockBody,
+	]
 
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT]
@@ -91,7 +93,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
 	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ](
@@ -101,7 +103,7 @@ func NewService[
 	bsb StorageBackend[BeaconStateT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BlobSidecarsT, types.BeaconBlockBody],
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT, types.BeaconBlockBody],
 	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
@@ -128,7 +130,9 @@ func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Name() string {
 }
 
 // Start starts the service.
-func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Start(context.Context) error {
+func (s *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]) Start(
+	context.Context,
+) error {
 	return nil
 }
 

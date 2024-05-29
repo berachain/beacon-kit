@@ -38,6 +38,27 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
+	ReadOnlyBeaconBlock[BeaconBlockBodyT]
+}
+
+// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
+type ReadOnlyBeaconBlock[BodyT any] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+	Version() uint32
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	GetBody() BodyT
+}
+
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
 type BeaconState interface {
@@ -63,12 +84,13 @@ type StorageBackend[BeaconStateT BeaconState] interface {
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
+	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
 	BlobSidecarsT BlobSidecars,
 	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk types.ReadOnlyBeaconBlock[BeaconBlockBodyT],
+		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
 }

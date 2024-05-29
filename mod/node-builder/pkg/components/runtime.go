@@ -181,7 +181,7 @@ func ProvideRuntime(
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
-			types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
+			types.BeaconBlock,
 			types.BeaconBlockBody,
 		](
 			chainSpec,
