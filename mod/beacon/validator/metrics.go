@@ -44,14 +44,16 @@ func newValidatorMetrics(
 	}
 }
 
-// measureRequestBestBlockTime measures the time taken to run the request best block function.
+// measureRequestBestBlockTime measures the time taken to run the request best
+// block function.
 func (cm *validatorMetrics) measureRequestBestBlockTime(start time.Time) {
 	cm.sink.MeasureSince(
 		"beacon_kit.validator.request_best_block_duration", start,
 	)
 }
 
-// measureStateRootVerificationTime measures the time taken to verify the state root of a block.
+// measureStateRootVerificationTime measures the time taken to verify the state
+// root of a block.
 // It records the duration from the provided start time to the current time.
 func (cm *validatorMetrics) measureStateRootVerificationTime(start time.Time) {
 	cm.sink.MeasureSince(
@@ -59,7 +61,8 @@ func (cm *validatorMetrics) measureStateRootVerificationTime(start time.Time) {
 	)
 }
 
-// measureStateRootComputationTime measures the time taken to compute the state root of a block.
+// measureStateRootComputationTime measures the time taken to compute the state
+// root of a block.
 // It records the duration from the provided start time to the current time.
 func (cm *validatorMetrics) measureStateRootComputationTime(start time.Time) {
 	cm.sink.MeasureSince(
