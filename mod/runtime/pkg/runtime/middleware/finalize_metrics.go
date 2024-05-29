@@ -23,18 +23,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"time"
 )
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
+// finalizeMiddlewareMetrics is a struct that contains metrics for the chain.
+type finalizeMiddlewareMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
 
-	// EffectiveBalance is the effective balance of the validator.
-	EffectiveBalance math.Gwei
+// newFinalizeMiddlewareMetrics creates a new finalizeMiddlewareMetrics.
+func newFinalizeMiddlewareMetrics(
+	sink TelemetrySink,
+) *finalizeMiddlewareMetrics {
+	return &finalizeMiddlewareMetrics{
+		sink: sink,
+	}
+}
+
+// measureEndBlockDuration measures the time to run end block.
+func (cm *finalizeMiddlewareMetrics) measureEndBlockDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.end_block_duration", start,
+	)
 }

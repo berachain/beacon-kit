@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-IDentifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -23,18 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package backend
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/node-api/server/types"
 )
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
-
-	// EffectiveBalance is the effective balance of the validator.
-	EffectiveBalance math.Gwei
+func (h Backend) GetBlockRewards(
+	_ context.Context,
+	_ string,
+) (*types.BlockRewardsData, error) {
+	return &types.BlockRewardsData{
+		ProposerIndex:     1,
+		Total:             1,
+		Attestations:      1,
+		SyncAggregate:     1,
+		ProposerSlashings: 1,
+		AttesterSlashings: 1,
+	}, nil
 }

@@ -48,49 +48,38 @@ type Service[
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
-
 	// logger is a logger.
 	logger log.Logger[any]
-
 	// chainSpec is the chain spec.
 	chainSpec primitives.ChainSpec
-
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
-
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	]
-
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT]
-
 	// randaoProcessor is responsible for building the reveal for the
 	// current slot.
 	randaoProcessor RandaoProcessor[BeaconStateT]
-
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
 	]
-
 	// ds is used to retrieve deposits that have been
 	// queued up for inclusion in the next block.
 	ds DepositStore[*types.Deposit]
-
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder[BeaconStateT]
-
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
-
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 }
@@ -275,16 +264,14 @@ func (s *Service[
 		return sidecarErr
 	})
 
-	// Set the state root on the BeaconBlock.
+	// Compute and set the state root for the block.
 	g.Go(func() error {
-		// Compute the state root for the block.
-		var stateRoot primitives.Root
-
 		s.logger.Info(
 			"computing state root for block 🌲",
 			"slot", blk.GetSlot(),
 		)
 
+		var stateRoot primitives.Root
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
@@ -317,8 +304,8 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
-// logs the process.
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
@@ -357,7 +344,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"state root verification succeeded - accepting incoming block ✅ ",
+		"state root verification succeeded - accepting incoming block 🏎️ ",
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil

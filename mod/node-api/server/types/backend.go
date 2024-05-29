@@ -23,18 +23,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
-
-	// EffectiveBalance is the effective balance of the validator.
-	EffectiveBalance math.Gwei
+type BackendHandlers interface {
+	GetGenesis(ctx context.Context) (primitives.Root, error)
+	GetStateRoot(
+		ctx context.Context,
+		stateID string,
+	) (primitives.Bytes32, error)
+	GetStateValidators(
+		ctx context.Context,
+		stateID string,
+		id []string,
+		status []string,
+	) ([]*ValidatorData, error)
+	GetStateValidator(
+		ctx context.Context,
+		stateID string,
+		validatorID string,
+	) (*ValidatorData, error)
+	GetStateValidatorBalances(
+		ctx context.Context,
+		stateID string,
+		id []string,
+	) ([]*ValidatorBalanceData, error)
+	GetBlockRewards(
+		ctx context.Context,
+		blockID string,
+	) (*BlockRewardsData, error)
 }

@@ -23,18 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package transition
+package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"time"
 )
 
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
+// validatorMiddlewareMetrics is a struct that contains metrics for the chain.
+type validatorMiddlewareMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
 
-	// EffectiveBalance is the effective balance of the validator.
-	EffectiveBalance math.Gwei
+// newValidatorMiddlewareMetrics creates a new validatorMiddlewareMetrics.
+func newValidatorMiddlewareMetrics(
+	sink TelemetrySink,
+) *validatorMiddlewareMetrics {
+	return &validatorMiddlewareMetrics{
+		sink: sink,
+	}
+}
+
+// measurePrepareProposalDuration measures the time to prepare.
+func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.prepare_proposal_duration", start,
+	)
+}
+
+// measureProcessProposalDuration measures the time to process.
+func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", start,
+	)
 }
