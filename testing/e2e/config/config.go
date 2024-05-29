@@ -35,7 +35,7 @@ import (
 type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
-	AdditionalServices []any `json:"additional_services"`
+	AdditionalServices []AdditionalService `json:"additional_services"`
 	// Validators lists the configurations for each validator in the test.
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
@@ -66,13 +66,27 @@ type Node struct {
 	Replicas int `json:"replicas"`
 }
 
+// AdditionalService holds the configuration for an additional service
+// to be included in the test.
+type AdditionalService struct {
+	// Name specifies the name of the additional service.
+	Name string `json:"name"`
+	// Replicas specifies the number of replicas to use for the service.
+	Replicas int `json:"replicas"`
+}
+
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
+//
+//nolint:mnd // this is a default config.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []any{
-			"tx-fuzz",
+		AdditionalServices: []AdditionalService{
+			{
+				Name:     "tx-fuzz",
+				Replicas: 3,
+			},
 		},
 		Validators: []Node{
 			{
