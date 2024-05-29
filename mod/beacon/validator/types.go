@@ -33,10 +33,48 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
 )
+
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock[BeaconBlockBodyT any] interface {
+	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
+	ReadOnlyBeaconBlock[BeaconBlockBodyT]
+}
+
+// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
+type ReadOnlyBeaconBlock[BodyT any] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+	Version() uint32
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	GetBody() BodyT
+}
+
+type BeaconBlockBody[
+	DepositT, Eth1DataT any,
+] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	ssz.HashRoot
+	IsNil() bool
+	SetRandaoReveal(crypto.BLSSignature)
+	SetEth1Data(Eth1DataT)
+	GetDeposits() []DepositT
+	SetDeposits([]DepositT)
+	SetExecutionData(engineprimitives.ExecutionPayload) error
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+}
 
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
@@ -57,18 +95,15 @@ type BeaconState interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type StorageBackend[BeaconStateT BeaconState] interface {
-	StateFromContext(context.Context) BeaconStateT
-}
-
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
 	BlobSidecarsT BlobSidecars,
-	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk types.ReadOnlyBeaconBlock[BeaconBlockBodyT],
+		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
 }
@@ -81,11 +116,11 @@ type BlobSidecars interface {
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore interface {
+type DepositStore[DepositT any] interface {
 	// ExpectedDeposits returns `numView` expected deposits.
 	ExpectedDeposits(
 		numView uint64,
-	) ([]*types.Deposit, error)
+	) ([]DepositT, error)
 }
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
@@ -113,6 +148,7 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
+	BeaconBlockT any,
 	BeaconStateT BeaconState,
 	ContextT any,
 ] interface {
@@ -125,6 +161,12 @@ type StateProcessor[
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
-		blk types.BeaconBlock,
+		blk BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
+}
+
+// StorageBackend is the interface for the storage backend.
+type StorageBackend[BeaconStateT BeaconState] interface {
+	// StateFromContext retrieves the beacon state from the context.
+	StateFromContext(context.Context) BeaconStateT
 }
