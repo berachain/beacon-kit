@@ -59,29 +59,23 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type ReadOnlyBeaconState[T any] interface {
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
-
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader,
 		error,
 	)
-
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
 	GetEth1DepositIndex() (uint64, error)
-
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
 		*types.BeaconBlockHeader,
 		error,
 	)
-
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-
 	// Copy creates a copy of the beacon state.
 	Copy() T
-
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
@@ -161,6 +155,8 @@ type ExecutionEngine interface {
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
+	// Enabled returns true if the local builder is enabled.
+	Enabled() bool
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
@@ -190,14 +186,12 @@ type StateProcessor[
 		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// ProcessSlot processes the state transition for a single slot.
 	//
 	// TODO: This eventually needs to be deprecated.
 	ProcessSlot(
 		st BeaconStateT,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// Transition processes the state transition for a given block.
 	Transition(
 		ctx ContextT,

@@ -72,3 +72,8 @@ func New[BeaconStateT BeaconState](
 		pc:        pc,
 	}
 }
+
+// Enabled returns true if the payload builder is enabled.
+func (pb *PayloadBuilder[BeaconStateT]) Enabled() bool {
+	return pb.cfg.Enabled
+}
