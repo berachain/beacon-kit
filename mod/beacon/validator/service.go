@@ -275,16 +275,14 @@ func (s *Service[
 		return sidecarErr
 	})
 
-	// Set the state root on the BeaconBlock.
+	// Compute and set the state root for the block.
 	g.Go(func() error {
-		// Compute the state root for the block.
-		var stateRoot primitives.Root
-
 		s.logger.Info(
 			"computing state root for block 🌲",
 			"slot", blk.GetSlot(),
 		)
 
+		var stateRoot primitives.Root
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
@@ -317,8 +315,8 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block and
-// logs the process.
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
@@ -357,7 +355,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"state root verification succeeded - accepting incoming block ✅ ",
+		"state root verification succeeded - accepting incoming block 🏎️ ",
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil
