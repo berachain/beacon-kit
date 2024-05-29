@@ -88,6 +88,7 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 
 	sszBlock, err := originalBlock.MarshalSSZ()
 	require.NoError(t, err)
+	require.NotNil(t, sszBlock)
 
 	block, err := types.BeaconBlockFromSSZ(sszBlock, version.Deneb)
 	require.NoError(t, err)
@@ -131,6 +132,7 @@ func TestBeaconBlockDeneb_MarshalUnmarshalSSZ(t *testing.T) {
 
 	sszBlock, err := block.MarshalSSZ()
 	require.NoError(t, err)
+	require.NotNil(t, sszBlock)
 
 	var unmarshalledBlock types.BeaconBlockDeneb
 	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
