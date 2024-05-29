@@ -80,31 +80,16 @@ func (s *Service[
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) {
-	var (
-		headHash   common.ExecutionHash
-		parentHash common.ExecutionHash
-	)
-
-	payload := blk.GetBody().GetExecutionPayload()
-
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	// TODO: clean this up.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-		parentHash = payload.GetParentHash()
-	} else {
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-		headHash = lph.GetBlockHash()
-		parentHash = lph.GetParentHash()
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcess",
+			"error", err,
+		)
+		return
 	}
+	headHash := lph.GetBlockHash()
+	parentHash := lph.GetParentHash()
 
 	// If we are the local builder and we are not in init sync
 	// forkchoice update with attributes.
