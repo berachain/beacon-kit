@@ -76,6 +76,7 @@ func (em *engineMetrics) markNewPayloadCalled(
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
@@ -87,8 +88,6 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_accepted_syncing_payload_status",
-		"payload_block_hash",
-		payloadHash.Hex(),
 		"is_optimistic",
 		strconv.FormatBool(isOptimistic),
 	)
@@ -109,7 +108,6 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_invalid_payload_status",
-		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
@@ -132,8 +130,6 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_json_rpc_error",
-		"payload_block_hash", payloadHash.Hex(),
-		"last_valid_hash", lastValidHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
 	)
@@ -155,7 +151,6 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_undefined_error",
-		"payload_block_hash", payloadHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
 	)
@@ -176,9 +171,6 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update",
-		"head_block_hash", state.HeadBlockHash.Hex(),
-		"safe_block_hash", state.SafeBlockHash.Hex(),
-		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
 		"has_payload_attributes", strconv.FormatBool(hasPayloadAttributes),
 	)
 }
@@ -200,9 +192,6 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_accepted_syncing",
-		"head_block_hash", state.HeadBlockHash.Hex(),
-		"safe_block_hash", state.SafeBlockHash.Hex(),
-		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
 	)
 }
 
@@ -220,9 +209,6 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_invalid",
-		"head_block_hash", state.HeadBlockHash.Hex(),
-		"safe_block_hash", state.SafeBlockHash.Hex(),
-		"finalized_block_hash", state.FinalizedBlockHash.Hex(),
 	)
 }
 

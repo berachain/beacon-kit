@@ -68,7 +68,7 @@ type DepInjectInput struct {
 	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
 	BeaconConfig      *config.Config
 	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore
+	DepositStore      *depositdb.KVStore[*types.Deposit]
 	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner

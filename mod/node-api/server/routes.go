@@ -31,6 +31,13 @@ import (
 
 type Handlers interface {
 	NotImplemented(c echo.Context) error
+	GetGenesis(c echo.Context) error
+	GetStateRoot(c echo.Context) error
+	GetStateValidators(c echo.Context) error
+	PostStateValidators(c echo.Context) error
+	GetStateValidatorBalances(c echo.Context) error
+	PostStateValidatorBalances(c echo.Context) error
+	GetBlockRewards(c echo.Context) error
 }
 
 func UseMiddlewares(e *echo.Echo, middlewares ...echo.MiddlewareFunc) {
@@ -45,30 +52,30 @@ func AssignRoutes(e *echo.Echo, handler Handlers) {
 	assignConfigRoutes(e, handler)
 	assignDebugRoutes(e, handler)
 	assignEventsRoutes(e, handler)
-	assignNodeRoutes(e, handler)
+	aasignNodeRoutes(e, handler)
 	assignValidatorRoutes(e, handler)
 	assignRewardsRoutes(e, handler)
 }
 
 func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/beacon/genesis",
-		h.NotImplemented)
+		h.GetGenesis)
 	e.GET("/eth/v1/beacon/states/:state_id/root",
-		h.NotImplemented)
+		h.GetStateRoot)
 	e.GET("/eth/v1/beacon/states/:state_id/fork",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/states/:state_id/finality_checkpoints",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/states/:state_id/validators",
-		h.NotImplemented)
+		h.GetStateValidators)
 	e.POST("/eth/v1/beacon/states/:state_id/validators",
-		h.NotImplemented)
+		h.PostStateValidators)
 	e.GET("/eth/v1/beacon/states/:state_id/validators/:validator_id",
 		h.NotImplemented)
-	e.GET("/eth/v1/beacon/states/:state_id/validators/validator_balances",
-		h.NotImplemented)
-	e.POST("/eth/v1/beacon/states/:state_id/validators/validator_balances",
-		h.NotImplemented)
+	e.GET("/eth/v1/beacon/states/:state_id/validator_balances",
+		h.GetStateValidatorBalances)
+	e.POST("/eth/v1/beacon/states/:state_id/validator_balances",
+		h.PostStateValidatorBalances)
 	e.GET("/eth/v1/beacon/states/:state_id/committees",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/states/:state_id/sync_committees",
@@ -98,8 +105,6 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/deposit_snapshot",
-		h.NotImplemented)
-	e.GET("/eth/v1/beacon/rewards/block/:block_id",
 		h.NotImplemented)
 	e.POST("/eth/v1/beacon/rewards/attestation/:epoch",
 		h.NotImplemented)
@@ -138,7 +143,7 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 }
 
 func assignBuilderRoutes(e *echo.Echo, h Handlers) {
-	e.GET("/eth/v1/builder/states/{state_id}/expected_withdrawals",
+	e.GET("/eth/v1/builder/states/:state_id/expected_withdrawals",
 		h.NotImplemented)
 }
 
@@ -165,7 +170,7 @@ func assignEventsRoutes(e *echo.Echo, h Handlers) {
 		h.NotImplemented)
 }
 
-func assignNodeRoutes(e *echo.Echo, h Handlers) {
+func aasignNodeRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/node/identity",
 		h.NotImplemented)
 	e.GET("/eth/v1/node/peers",
@@ -221,7 +226,7 @@ func assignRewardsRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/rewards/blocks/:block_id",
-		h.NotImplemented)
+		h.GetBlockRewards)
 	e.POST("/eth/v1/beacon/rewards/attestations/:epoch",
 		h.NotImplemented)
 }

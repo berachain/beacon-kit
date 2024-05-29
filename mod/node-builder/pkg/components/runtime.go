@@ -49,9 +49,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/version"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -65,13 +67,13 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	types.BeaconBlockBody,
 	core.BeaconState[*types.Validator],
 	*datypes.BlobSidecars,
-	*depositdb.KVStore,
+	*depositdb.KVStore[*types.Deposit],
 	runtime.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 ]
 
@@ -90,7 +92,7 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 	ts *metrics.TelemetrySink,
 	logger log.Logger,
@@ -273,7 +275,7 @@ func ProvideRuntime(
 	depositService := deposit.NewService[
 		types.BeaconBlock,
 		events.Block[types.BeaconBlock],
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](
 		logger.With("service", "deposit"),
@@ -290,6 +292,11 @@ func ProvideRuntime(
 		service.WithService(chainService),
 		service.WithService(depositService),
 		service.WithService(engineClient),
+		service.WithService(version.NewReportingService(
+			logger,
+			ts,
+			sdkversion.Version,
+		)),
 		service.WithService(dbManagerService),
 	)
 
@@ -299,11 +306,12 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		chainSpec,
 		logger,
 		svcRegistry,
 		storageBackend,
+		ts,
 	)
 }

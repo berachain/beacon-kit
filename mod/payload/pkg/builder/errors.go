@@ -28,6 +28,10 @@ package builder
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
+	// ErrPayloadBuilderDisabled is returned when the payload builder is
+	// disabled.
+	ErrPayloadBuilderDisabled = errors.New("payload builder is disabled")
+
 	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
 	// received on a VALID engine response.
 	ErrNilPayloadOnValidResponse = errors.New(
