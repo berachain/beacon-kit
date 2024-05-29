@@ -46,5 +46,5 @@ func ProvideChainSpec(in ChainSpecInput) (primitives.ChainSpec, error) {
 		return nil, err
 	}
 
-	return chain.NewChainSpec(*data), nil
+	return chain.NewChainSpec(data), nil
 }
