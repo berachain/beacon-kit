@@ -84,9 +84,9 @@ type StorageBackend[BeaconStateT BeaconState] interface {
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
-	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
-	BlobSidecarsT BlobSidecars,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.ReadOnlyBeaconBlockBody,
+	BlobSidecarsT BlobSidecars,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
 	BuildSidecars(

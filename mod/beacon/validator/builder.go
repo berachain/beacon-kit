@@ -37,6 +37,7 @@ import (
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 ]) GetEmptyBeaconBlock(
@@ -76,6 +77,7 @@ func (s *Service[
 
 func (s *Service[
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 ]) retrievePayload(
@@ -108,7 +110,7 @@ func (s *Service[
 // prepareStateForBuilding ensures that the state is at the requested slot
 // before building a block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) prepareStateForBuilding(
 	st BeaconStateT,
 	requestedSlot math.Slot,

@@ -41,7 +41,8 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ] struct {
@@ -59,7 +60,7 @@ type Service[
 
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[
-		BeaconBlockT, BlobSidecarsT, types.BeaconBlockBody,
+		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	]
 
 	// bsb is the beacon state backend.
@@ -93,7 +94,8 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[types.BeaconBlockBody],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT BlobSidecars,
 ](
@@ -103,13 +105,15 @@ func NewService[
 	bsb StorageBackend[BeaconStateT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT, types.BeaconBlockBody],
+	blobFactory BlobFactory[
+		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+	],
 	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore,
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
-) *Service[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
-	return &Service[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
+) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
+	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
 		cfg:                   cfg,
 		logger:                logger,
 		bsb:                   bsb,
@@ -126,14 +130,14 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) Start(
 	context.Context,
 ) error {
@@ -142,14 +146,14 @@ func (s *Service[
 
 // Status returns the status of the service.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
@@ -159,7 +163,7 @@ func (s *Service[
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -311,7 +315,7 @@ func (s *Service[
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block and
 // logs the process.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,

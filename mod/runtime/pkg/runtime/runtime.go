@@ -102,7 +102,10 @@ func NewBeaconKitRuntime[
 			DepositStoreT,
 		]
 		validatorService *validator.Service[
-			types.BeaconBlock, BeaconStateT, BlobSidecarsT,
+			types.BeaconBlock,
+			types.BeaconBlockBody,
+			BeaconStateT,
+			BlobSidecarsT,
 		]
 	)
 
