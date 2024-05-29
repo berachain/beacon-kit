@@ -32,10 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// defaultReportingInterval is the default interval at which the version is reported.
+// defaultReportingInterval is the default interval at which the version is
+// reported.
 const defaultReportingInterval = 5 * time.Minute
 
-// ReportingService is a service that periodically logs the running chain version.
+// ReportingService is a service that periodically logs the running chain
+// version.
 type ReportingService struct {
 	// logger is used to log information about the running chain version.
 	logger log.Logger[any]
@@ -64,7 +66,7 @@ func NewReportingService(
 }
 
 // Name returns the name of the service.
-func (v *ReportingService) Name() string {
+func (*ReportingService) Name() string {
 	return "ReportingService"
 }
 
@@ -85,9 +87,9 @@ func (v *ReportingService) Start(ctx context.Context) error {
 }
 
 // Status returns nil if the service is healthy.
-func (v *ReportingService) Status() error {
+func (*ReportingService) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for all registered services to be healthy.
-func (v *ReportingService) WaitForHealthy(ctx context.Context) {}
+func (*ReportingService) WaitForHealthy(context.Context) {}
