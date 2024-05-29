@@ -76,7 +76,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		}
 		return errors.Wrapf(
 			err,
-			"got an unexpected server error in JSON-RPC response"+
+			"got an unexpected server error in JSON-RPC response "+
 				"failed to convert from jsonrpc.Error",
 		)
 	}
@@ -108,7 +108,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
 		if !ok {
 			return errors.Wrapf(
-				errors.Join(jsonrpc.ErrServer, err),
+				errors.Join(err.Error(), jsonrpc.ErrServer),
 				"got an unexpected data error in JSON-RPC response",
 			)
 		}
