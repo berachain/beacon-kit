@@ -93,6 +93,11 @@ type BeaconState[BeaconStateT any] interface {
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
 	)
+	// GetLatestBlockHeader
+	GetLatestBlockHeader() (
+		*types.BeaconBlockHeader,
+		error,
+	)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.

@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -364,7 +365,8 @@ func (s *Service[
 	return nil
 }
 
-// rebuildPayloadForRejectedBlock rebuilds a payload for the current slot, if the
+// rebuildPayloadForRejectedBlock rebuilds a payload for the current slot, if
+// the
 // incoming block was rejected.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
@@ -373,20 +375,59 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// We need to get the *last* finalized execution payload, thus
-	// the BeaconState that was passed in must be `unmodified`.
-	lph, err := st.GetLatestExecutionPayloadHeader()
+	var (
+		previousBlockRoot primitives.Root
+		latestHeader      *types.BeaconBlockHeader
+		lph               engineprimitives.ExecutionPayloadHeader
+	)
+
+	// In order to rebuild a payload for the current slot, we need to know the
+	// previous block root, since we know that this is unmodified state.
+	// We can safely get the latest block header and then rebuild the previous block
+	// and it's root.
+	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
 
-	return s.buildPayload(
-		ctx, st, blk.GetSlot(),
+	stateRoot, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	latestHeader.StateRoot = stateRoot
+	previousBlockRoot, err = latestHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// We need to get the *last* finalized execution payload, thus
+	// the BeaconState that was passed in must be `unmodified`.
+	lph, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	// Submit a request for a new payload.
+	if _, err = s.localPayloadBuilder.RequestPayload(
+		ctx,
+		st,
+		// We are rebuilding for the current slot.
+		blk.GetSlot(),
+		// TODO: this is hood as fuck.
 		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-		blk.GetParentBlockRoot(),
+		// We set the parent root to the previous block root.
+		previousBlockRoot,
+		// We set the head of our chain to previous finalized block.
 		lph.GetBlockHash(),
-		lph.GetParentHash(),
-	)
+		// We can say that the payload from the previous block is *finalized*,
+		// TODO: This is making an assumption about the consensus rules
+		// and possibly should be made more explicit later on.
+		lph.GetBlockHash(),
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.
@@ -397,47 +438,38 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	blkHash, err := blk.HashTreeRoot()
+	// We know that this block was properly formed so we can
+	// calculate the block hash easily.
+	blkRoot, err := blk.HashTreeRoot()
 	if err != nil {
 		return err
 	}
 
-	return s.buildPayload(
-		ctx, st, blk.GetSlot()+1,
-		// TODO: time.
-		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-		blkHash,
-		blk.GetBody().GetExecutionPayload().GetBlockHash(),
-		blk.GetBody().GetExecutionPayload().GetParentHash(),
-	)
-}
-
-// logs the process.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-]) buildPayload(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-	time uint64,
-	parentRoot primitives.Root,
-	eth1Head common.ExecutionHash,
-	eth1Final common.ExecutionHash,
-) error {
-	if _, err := s.stateProcessor.ProcessSlot(
+	// We process the slot to update any RANDAO values.
+	if _, err = s.stateProcessor.ProcessSlot(
 		st,
 	); err != nil {
 		return err
 	}
 
-	if _, err := s.localPayloadBuilder.RequestPayload(
-		ctx,
-		st,
-		slot,
-		time,
-		parentRoot,
-		eth1Head,
-		eth1Final,
+	// We then trigger a request for the next payload.
+	if _, err = s.localPayloadBuilder.RequestPayload(
+		ctx, st,
+		// We are building for the next slot, so we increment the slot.
+		blk.GetSlot()+1,
+		// TODO: this is hood as fuck, also kind of dangerous if
+		// payload is malicious, we should fix it.
+		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+		// The previous block root is simply the root of the block we just
+		// processed.
+		blkRoot,
+		// We set the head of our chain to the block we just processed.
+		blk.GetBody().GetExecutionPayload().GetBlockHash(),
+		// We can say that the payload from the previous block is *finalized*,
+		// This is safe to do since this block was accepted and the thus the
+		// parent hash was deemed valid by the state transition function we
+		// just processed.
+		blk.GetBody().GetExecutionPayload().GetParentHash(),
 	); err != nil {
 		return err
 	}
