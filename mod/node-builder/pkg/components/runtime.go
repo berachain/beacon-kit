@@ -53,10 +53,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
