@@ -118,10 +118,11 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			//nolint:mnd // bet.
+			
 			max(
+				//#nosec:G701
 				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+2)),
+				uint64((lph.GetTimestamp()+1)),
 			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),

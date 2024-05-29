@@ -361,9 +361,18 @@ func (s *Service[
 
 		// If we reject the incoming block, we attempt to rebuild a payload for
 		// this slot.
-		return s.rebuildPayloadForRejectedBlock(
-			ctx, st,
-		)
+		go func() {
+			if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
+				//#nosec
+				slot, _ := st.GetSlot()
+				s.logger.Error(
+					"failed to re-build payload for rejected block",
+					"for_slot", slot,
+					"error", fErr,
+				)
+			}
+		}()
+		return err
 	}
 
 	s.logger.Info(
@@ -444,10 +453,11 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		slot,
 		// TODO: this is hood as fuck.
-		//nolint:mnd // bet.
+
 		max(
+			//#nosec:G701
 			uint64(time.Now().Unix()+1),
-			uint64((lph.GetTimestamp()+2)),
+			uint64((lph.GetTimestamp()+1)),
 		),
 		// We set the parent root to the previous block root.
 		previousBlockRoot,
