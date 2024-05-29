@@ -108,7 +108,7 @@ func (s *Service[
 
 		// Ask the builder to send a forkchoice update with attributes.
 		// This will trigger a new payload to be built.
-		if _, err = s.lb.RequestPayload(
+		if _, err = s.lb.RequestPayloadAsync(
 			ctx,
 			stCopy,
 			blk.GetSlot()+1,
