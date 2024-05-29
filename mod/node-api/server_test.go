@@ -63,7 +63,7 @@ func TestEndpoints(t *testing.T) {
 	}
 }
 
-//nolint:golint,maintidx // defining test cases for each route
+//nolint:golint,maintidx,lll // defining test cases for each route
 func getTestcases() []testcase {
 	return []testcase{
 		{
