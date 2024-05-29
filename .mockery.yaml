@@ -25,7 +25,7 @@
 
 dir: "{{.InterfaceDir}}/mocks"
 mockname: "{{.InterfaceNameCamel}}"
-filename: "{{.InterfaceNameSnake}}.go"
+filename: "{{.InterfaceNameSnake}}.mock.go"
 outpkg: "mocks"
 packages:
   github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient:
