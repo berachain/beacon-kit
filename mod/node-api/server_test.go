@@ -26,6 +26,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -38,6 +39,7 @@ import (
 type testcase struct {
 	method         string
 	endpoint       string
+	body           string
 	expectedStatus int
 	expectedBody   string
 }
@@ -48,10 +50,9 @@ func TestEndpoints(t *testing.T) {
 
 	for _, testcase := range getTestcases() {
 		testcase.endpoint = remapParams(testcase.endpoint)
-		req := httptest.NewRequest(testcase.method, testcase.endpoint, nil)
+		req := buildRequest(testcase.method, testcase.endpoint, &testcase.body)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
-
 		assert.Equal(t, testcase.expectedStatus, rec.Code,
 			"Expected status code %d but got %d for path %s",
 			testcase.expectedStatus, rec.Code, testcase.endpoint)
@@ -61,6 +62,16 @@ func TestEndpoints(t *testing.T) {
 				testcase.expectedBody, rec.Body.String(), testcase.endpoint)
 		}
 	}
+}
+
+func buildRequest(method, endpoint string, body *string) *http.Request {
+	req := httptest.NewRequest(method, endpoint, nil)
+	if method != "GET" && body != nil {
+		req = httptest.NewRequest(method, endpoint,
+			io.NopCloser(strings.NewReader(*body)))
+		req.Header.Set("Content-Type", "application/json")
+	}
+	return req
 }
 
 //nolint:golint,maintidx,lll // defining test cases for each route
@@ -97,7 +108,9 @@ func getTestcases() []testcase {
 		{
 			method:         "POST",
 			endpoint:       "/eth/v1/beacon/states/:state_id/validators",
+			body:           `{"ids":["1"]}`,
 			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
 		},
 		{
 			method:         "GET",
@@ -113,7 +126,9 @@ func getTestcases() []testcase {
 		{
 			method:         "POST",
 			endpoint:       "/eth/v1/beacon/states/:state_id/validator_balances",
+			body:           `["1"]`,
 			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\"}]}\n",
 		},
 		{
 			method:         "GET",
