@@ -98,6 +98,7 @@ func (s *Service[
 			blk.GetSlot(),
 			blk.GetParentBlockRoot(),
 			parentExecutionPayload.GetBlockHash(),
+			parentExecutionPayload.GetParentHash(),
 		)
 	if err != nil {
 		return nil, err

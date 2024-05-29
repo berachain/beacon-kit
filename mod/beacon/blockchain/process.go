@@ -121,6 +121,8 @@ func (s *Service[
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
+	// We won't send a fcu if the block is bad, should be addressed
+	// via ticker later.
 	go s.sendPostBlockFCU(ctx, st, blk)
 	go s.postBlockProcessTasks(ctx, st)
 

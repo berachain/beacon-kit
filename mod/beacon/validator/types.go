@@ -40,14 +40,19 @@ import (
 )
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock[BeaconBlockBodyT BeaconBlockBody[
+	*types.Deposit, *types.Eth1Data,
+]] interface {
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	ReadOnlyBeaconBlock[BeaconBlockBodyT]
 }
 
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock[BodyT any] interface {
+type ReadOnlyBeaconBlock[
+	BodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data,
+	]] interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
@@ -74,17 +79,24 @@ type BeaconBlockBody[
 	SetExecutionData(engineprimitives.ExecutionPayload) error
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	GetExecutionPayload() engineprimitives.ExecutionPayload
 }
 
 // BeaconState defines the interface for accessing various components of the
 // beacon state.
-type BeaconState interface {
+type BeaconState[BeaconStateT any] interface {
+	Copy() BeaconStateT
 	// GetBlockRootAtIndex fetches the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader, error,
+	)
+	// GetLatestBlockHeader
+	GetLatestBlockHeader() (
+		*types.BeaconBlockHeader,
+		error,
 	)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
@@ -125,7 +137,7 @@ type DepositStore[DepositT any] interface {
 
 // RandaoProcessor defines the interface for processing RANDAO reveals.
 type RandaoProcessor[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 ] interface {
 	// BuildReveal generates a RANDAO reveal based on the given beacon state.
 	// It returns a Reveal object and any error encountered during the process.
@@ -134,7 +146,16 @@ type RandaoProcessor[
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT BeaconState] interface {
+type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
+	RequestPayload(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+		timestamp uint64,
+		parentBlockRoot primitives.Root,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
+	) (*engineprimitives.PayloadID, error)
 	// RetrieveOrBuildPayload retrieves or builds the payload for the given
 	// slot.
 	RetrieveOrBuildPayload(
@@ -142,14 +163,15 @@ type PayloadBuilder[BeaconStateT BeaconState] interface {
 		st BeaconStateT,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
 }
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[BeaconStateT],
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.
@@ -166,7 +188,7 @@ type StateProcessor[
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[BeaconStateT BeaconState] interface {
+type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
 }
