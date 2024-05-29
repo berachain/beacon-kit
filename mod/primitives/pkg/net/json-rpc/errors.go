@@ -107,7 +107,7 @@ var (
 	// ErrServerError is reserved for implementation-defined server errors.
 	// (code: -32000 to -32099).
 	ErrServer = errors.New(
-		"reserved for implementation-defined server-errors (code: -32000 to -32099)",
+		"received implementation-defined server-error (code: -32000 to -32099)",
 	)
 
 	// ErrServerParseError indicates an error occurred on the server while
