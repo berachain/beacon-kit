@@ -49,9 +49,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/version"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
@@ -244,6 +246,11 @@ func ProvideRuntime(
 		service.WithService(chainService),
 		service.WithService(depositService),
 		service.WithService(engineClient),
+		service.WithService(version.NewReportingService(
+			logger,
+			ts,
+			sdkversion.Version,
+		)),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
