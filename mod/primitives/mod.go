@@ -43,6 +43,9 @@ type (
 	ChainSpec = chain.Spec[
 		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
 	]
+	ChainSpecData = chain.SpecData[
+		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
+	]
 
 	// Export `pkg/common`.
 	Domain     = common.Domain
