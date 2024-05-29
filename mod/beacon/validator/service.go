@@ -325,34 +325,30 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
+	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
+
+	// We purposefully make a copy of the BeaconState in orer
+	// to avoid modifying the underyling state, for the event in which
+	// we have to rebuild a payload for this slot again, if we do not agree
+	// with the incoming block.
 	stCopy := st.Copy()
+
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
 		ctx, stCopy, blk,
 	); err != nil {
 		s.logger.Error(
-			"rejecting incoming block ❌ ",
+			"rejecting incoming block ❌",
 			"error",
 			err,
 		)
 
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return err
-		}
-
-		if err := s.buildPayload(
-			ctx, st, blk.GetSlot(),
-			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			blk.GetParentBlockRoot(),
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		); err != nil {
-			return err
-		}
-
-		return err
+		// If we reject the incoming block, we attempt to rebuild a payload for
+		// this slot.
+		return s.rebuildPayloadForRejectedBlock(
+			ctx, st, blk,
+		)
 	}
 
 	s.logger.Info(
@@ -361,21 +357,59 @@ func (s *Service[
 	)
 
 	if true {
-		blkHash, err := blk.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-		if err = s.buildPayload(
-			ctx, stCopy, blk.GetSlot()+1,
-			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			blkHash,
-			blk.GetBody().GetExecutionPayload().GetBlockHash(),
-			blk.GetBody().GetExecutionPayload().GetParentHash(),
-		); err != nil {
-			return err
-		}
+		return s.optimisticPayloadBuild(
+			ctx, st, blk,
+		)
 	}
 	return nil
+}
+
+// rebuildPayloadForRejectedBlock rebuilds a payload for the current slot, if the
+// incoming block was rejected.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) rebuildPayloadForRejectedBlock(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	// We need to get the *last* finalized execution payload, thus
+	// the BeaconState that was passed in must be `unmodified`.
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	return s.buildPayload(
+		ctx, st, blk.GetSlot(),
+		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+		blk.GetParentBlockRoot(),
+		lph.GetBlockHash(),
+		lph.GetParentHash(),
+	)
+}
+
+// optimisticPayloadBuild builds a payload for the next slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) optimisticPayloadBuild(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	blkHash, err := blk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	return s.buildPayload(
+		ctx, st, blk.GetSlot()+1,
+		// TODO: time.
+		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+		blkHash,
+		blk.GetBody().GetExecutionPayload().GetBlockHash(),
+		blk.GetBody().GetExecutionPayload().GetParentHash(),
+	)
 }
 
 // logs the process.
