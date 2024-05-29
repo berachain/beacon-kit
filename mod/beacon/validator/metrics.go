@@ -27,6 +27,9 @@ package validator
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // validatorMetrics is a struct that contains metrics for the chain.
@@ -67,5 +70,21 @@ func (cm *validatorMetrics) measureStateRootVerificationTime(start time.Time) {
 func (cm *validatorMetrics) measureStateRootComputationTime(start time.Time) {
 	cm.sink.MeasureSince(
 		"beacon_kit.validator.state_root_computation_duration", start,
+	)
+}
+
+// failedToRetrieveOptimisticPayload increments the counter for the number of times the
+// validator failed to retrieve payloads.
+func (cm *validatorMetrics) failedToRetrieveOptimisticPayload(
+	slot math.Slot, blkRoot primitives.Root, err error,
+) {
+	cm.sink.IncrementCounter(
+		"beacon_kit.validator.failed_to_retrieve_optimistic_payload",
+		"slot",
+		string(slot.String()),
+		"block_root",
+		blkRoot.String(),
+		"error",
+		err.Error(),
 	)
 }

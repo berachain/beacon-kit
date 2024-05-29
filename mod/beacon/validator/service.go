@@ -220,7 +220,7 @@ func (s *Service[
 	body.SetRandaoReveal(reveal)
 
 	// Get the payload for the block.
-	envelope, err := s.retrievePayload(ctx, st, blk)
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
 	} else if envelope == nil {
