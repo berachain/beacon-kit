@@ -52,15 +52,14 @@ type FinalizeBlockMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
-
 	// chainService represents the blockchain service.
 	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT]
+	// metrics is the metrics for the middleware.
+	metrics *finalizeMiddlewareMetrics
 
 	// TODO: this is really hacky here.
 	LatestBeaconBlock BeaconBlockT
 	LatestSidecars    BlobsSidecarsT
-
-	metrics *finalizeMiddlewareMetrics
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.

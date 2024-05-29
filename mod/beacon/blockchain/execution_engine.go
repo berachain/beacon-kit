@@ -77,8 +77,7 @@ func (s *Service[
 	st BeaconStateT,
 	blk types.BeaconBlock,
 ) {
-	// TODO: re-enable this flag.
-	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
+	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
 		if _, err := s.sp.ProcessSlot(
 			stCopy,
