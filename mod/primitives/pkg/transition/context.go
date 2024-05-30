@@ -30,19 +30,16 @@ import "context"
 // Context is the context for the state transition.
 type Context struct {
 	context.Context
-
 	// OptimisticEngine indicates whether to optimistically assume
 	// the execution client has the correct state certain errors
 	// are returned by the execution engine.
 	OptimisticEngine bool
-
-	// SkipPayloadIfExists indicates whether to skip verifying
-	// the payload if it already exists on the execution client.
-	SkipPayloadIfExists bool
-
+	// SkipPayloadVerification indicates whether to skip calling NewPayload
+	// on the execution client. This can be done when the node is not
+	// syncing, and the payload is already known to the execution client.
+	SkipPayloadVerification bool
 	// SkipValidateRandao indicates whether to skip validating the Randao mix.
 	SkipValidateRandao bool
-
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
@@ -55,10 +52,11 @@ func (c *Context) GetOptimisticEngine() bool {
 	return c.OptimisticEngine
 }
 
-// GetSkipPayloadIfExists returns whether to skip verifying the payload if it
-// already exists on the execution client.
-func (c *Context) GetSkipPayloadIfExists() bool {
-	return c.SkipPayloadIfExists
+// GetSkipPayloadVerification returns whether to skip calling NewPayload on the
+// execution client. This can be done when the node is not syncing, and the
+// payload is already known to the execution client.
+func (c *Context) GetSkipPayloadVerification() bool {
+	return c.SkipPayloadVerification
 }
 
 // GetSkipValidateRandao returns whether to skip validating the Randao mix.

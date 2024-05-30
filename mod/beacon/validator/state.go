@@ -50,11 +50,11 @@ func (s *Service[
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
-			Context:             ctx,
-			OptimisticEngine:    true,
-			SkipPayloadIfExists: true,
-			SkipValidateResult:  true,
-			SkipValidateRandao:  true,
+			Context:                 ctx,
+			OptimisticEngine:        true,
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+			SkipValidateRandao:      true,
 		},
 		st, blk,
 	); err != nil {
@@ -78,11 +78,11 @@ func (s *Service[
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
-			Context:             ctx,
-			OptimisticEngine:    false,
-			SkipPayloadIfExists: false,
-			SkipValidateResult:  false,
-			SkipValidateRandao:  false,
+			Context:                 ctx,
+			OptimisticEngine:        false,
+			SkipPayloadVerification: false,
+			SkipValidateResult:      false,
+			SkipValidateRandao:      false,
 		},
 		st, blk,
 	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {

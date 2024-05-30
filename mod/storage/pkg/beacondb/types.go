@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+package beacondb
+
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallable interface {
+	// MarshalSSZTo marshals the object into the provided byte slice and returns
+	// it along with any error.
+	MarshalSSZTo([]byte) ([]byte, error)
+	// MarshalSSZ marshals the object into a new byte slice and returns it along
+	// with any error.
+	MarshalSSZ() ([]byte, error)
+	// UnmarshalSSZ unmarshals the object from the provided byte slice and
+	// returns an error if the unmarshaling fails.
+	UnmarshalSSZ([]byte) error
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
+}
+
+// Validator represents an interface for a validator in the beacon chain.
+type Validator interface {
+	// SSZMarshallable is embedded to ensure that the validator can be marshaled
+	// and unmarshaled using SSZ (Simple Serialize) encoding.
+	SSZMarshallable
+	// GetPubkey returns the BLS public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator in
+	// Gwei.
+	GetEffectiveBalance() math.Gwei
+	// IsActive checks if the validator is active at the given epoch.
+	IsActive(epoch math.Epoch) bool
+}
