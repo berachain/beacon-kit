@@ -42,7 +42,7 @@ def start(persistent_peers, is_seed):
     seed_option = ""
     if persistent_peers != "":
         persistent_peers_option = "--p2p.seeds {}".format("$BEACOND_PERSISTENT_PEERS")
-    
+
     if is_seed:
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")

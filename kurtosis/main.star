@@ -72,7 +72,6 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         enode_addr = execution.get_enode_addr(plan, el_service_name)
         el_enode_addrs.append(enode_addr)
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, el_service_name, seed_node_el_clients[el_service_name], node_modules)
-        
 
     seed_node_configs = {}
     for n, seed in enumerate(seed_nodes):
@@ -82,8 +81,8 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         seed_node_configs[cl_service_name] = seed_node_config
 
     seed_nodes_clients = plan.add_services(
-            configs = seed_node_configs,
-        )
+        configs = seed_node_configs,
+    )
 
     for n, seed_client in enumerate(seed_nodes):
         cl_service_name = "cl-seed-beaconkit-{}".format(n)
@@ -93,7 +92,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
             "name": cl_service_name,
             "service": seed_nodes_clients[cl_service_name],
             "metrics_path": beacond.METRICS_PATH,
-            })
+        })
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
@@ -155,7 +154,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         el_client = "el-{}-{}-{}".format("validator", validator.el_type, index)
         validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, index)
         validator_node_configs[cl_service_name] = validator_node_config
-    
+
     remaining_cl_clients = plan.add_services(
         configs = validator_node_configs,
     )
@@ -174,11 +173,6 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     for n, seed_node in enumerate(seed_nodes):
         cl_service_name = "cl-seed-beaconkit-{}".format(n)
         beacond.dial_unsafe_peers(plan, cl_service_name, all_consensus_peering_info)
-
-
-
-    # 6. Start RPCs
-    #  check the "type" value inside of rpc_endpoints to determine which rpc endpoint to launch
 
     # Get only the first rpc endpoint
     eth_json_rpc_endpoint = eth_json_rpc_endpoints[0]

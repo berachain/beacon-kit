@@ -83,4 +83,3 @@ def set_max_peers(config, max_peers):
     cmdList.append(max_peers)
     config["cmd"] = cmdList
     return config
-

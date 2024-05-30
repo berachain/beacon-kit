@@ -35,7 +35,7 @@ def get_default_service_config(service_name, node_module):
         max_cpu = DEFAULT_MAX_CPU,
         min_memory = DEFAULT_MIN_MEMORY,
         max_memory = DEFAULT_MAX_MEMORY,
-        labels={
+        labels = {
             "node_type": "execution",
         },
     )
@@ -132,14 +132,13 @@ def generate_node_config(plan, node_modules, node, node_type = "validator", inde
 
     # 4a. Launch EL
     el_service_config_dict = get_default_service_config(el_service_name, node_module)
-    
+
     if node_type == "seed":
         el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")
     else:
         el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
 
     return el_service_config_dict
-
 
 def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
     el_type = node.el_type

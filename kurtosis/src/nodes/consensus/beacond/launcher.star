@@ -3,12 +3,10 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
-
 DEFAULT_MIN_CPU = 0
 DEFAULT_MAX_CPU = 2000
 DEFAULT_MIN_MEMORY = 0
 DEFAULT_MAX_MEMORY = 2048
-
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -70,7 +68,7 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         },
         ports = exposed_ports,
-        labels={
+        labels = {
             "node_type": "consensus",
         },
     )
@@ -229,7 +227,7 @@ def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, 
         # Add back in the node's config data and overwrite genesis.json with final genesis file
         beacond_config.files["/root"] = Directory(
             artifact_names = ["node-beacond-config-{}".format(index)],
-    )
+        )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
 
@@ -254,10 +252,10 @@ def dial_unsafe_peers(plan, seed_service_name, peers):
         endpoint = "/dial_peers?peers=%5B{}%5D&persistent=false".format(peer_string)
         curl_command = ["curl", "-X", "GET", "http://localhost:{}{}".format(COMETBFT_RPC_PORT_NUM, endpoint)]
         exec_recipe = ExecRecipe(
-            command=curl_command,
+            command = curl_command,
         )
         plan.exec(
-            service_name=seed_service_name,
-            recipe=exec_recipe,
-            description="Adding peers to seed node",
+            service_name = seed_service_name,
+            recipe = exec_recipe,
+            description = "Adding peers to seed node",
         )
