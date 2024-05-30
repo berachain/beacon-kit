@@ -154,3 +154,12 @@ def create_node(plan, node_modules, node, node_type = "validator", index = 0, bo
         "service": el_client_service,
         "enode_addr": enode_addr,
     }
+
+def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
+    if node.el_type != "ethereumjs":
+        metrics_enabled_services.append({
+            "name": el_service_name,
+            "service": el_client_service,
+            "metrics_path": node_modules[node.el_type].METRICS_PATH,
+        })
+    return metrics_enabled_services

@@ -35,20 +35,12 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     # 1. Initialize EVM genesis data
     evm_genesis_data = networks.get_genesis_data(plan)
 
+    all_nodes = []
+    all_nodes.extend(validators)
+    all_nodes.extend(seed_nodes)
+    all_nodes.extend(full_nodes)
     node_modules = {}
-    for node in validators:
-        if node.el_type not in node_modules.keys():
-            node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
-            node_module = import_module(node_path)
-            node_modules[node.el_type] = node_module
-
-    for node in full_nodes:
-        if node.el_type not in node_modules.keys():
-            node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
-            node_module = import_module(node_path)
-            node_modules[node.el_type] = node_module
-
-    for node in seed_nodes:
+    for node in all_nodes:
         if node.el_type not in node_modules.keys():
             node_path = "./src/nodes/execution/{}/config.star".format(node.el_type)
             node_module = import_module(node_path)
@@ -79,12 +71,8 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         el_service_name = "el-{}-{}-{}".format("seed", seed.el_type, n)
         enode_addr = execution.get_enode_addr(plan, el_service_name)
         el_enode_addrs.append(enode_addr)
-        if seed.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": el_service_name,
-                "service": seed_node_el_clients[el_service_name],
-                "metrics_path": node_modules[seed.el_type].METRICS_PATH,
-            })
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, el_service_name, seed_node_el_clients[el_service_name], node_modules)
+        
 
     seed_node_configs = {}
     for n, seed in enumerate(seed_nodes):
@@ -101,13 +89,11 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         cl_service_name = "cl-seed-beaconkit-{}".format(n)
         peer_info = beacond.get_peer_info(plan, cl_service_name)
         consensus_node_peering_info.append(peer_info)
-
-        if seed_client.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": cl_service_name,
-                "service": seed_nodes_clients[cl_service_name],
-                    "metrics_path": beacond.METRICS_PATH,
-                })
+        metrics_enabled_services.append({
+            "name": cl_service_name,
+            "service": seed_nodes_clients[cl_service_name],
+            "metrics_path": beacond.METRICS_PATH,
+            })
 
     # 5. Start full nodes (rpcs)
     full_node_configs = {}
@@ -122,12 +108,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
 
     for n, full in enumerate(full_nodes):
         el_client = "el-{}-{}-{}".format("full", full.el_type, n)
-        if full.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": el_client,
-                "service": full_node_el_clients[el_client],
-                "metrics_path": node_modules[full.el_type].METRICS_PATH,
-            })
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, full, el_client, full_node_el_clients[el_client], node_modules)
 
     for n, full in enumerate(full_nodes):
         # 5b. Launch CL
@@ -146,12 +127,11 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         cl_service_name = "cl-full-beaconkit-{}".format(n)
         peer_info = beacond.get_peer_info(plan, cl_service_name)
         all_consensus_peering_info[cl_service_name] = peer_info
-        if full_node.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": cl_service_name,
-                "service": services[cl_service_name],
-                "metrics_path": beacond.METRICS_PATH,
-            })
+        metrics_enabled_services.append({
+            "name": cl_service_name,
+            "service": services[cl_service_name],
+            "metrics_path": beacond.METRICS_PATH,
+        })
 
     # 4. Start network validators
     validator_node_el_clients = []
@@ -166,12 +146,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     for n, validator in enumerate(validators):
         index = n
         el_service_name = "el-{}-{}-{}".format("validator", validator.el_type, index)
-        if validator.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": el_service_name,
-                "service": validator_el_clients[el_service_name],
-                "metrics_path": node_modules[validator.el_type].METRICS_PATH,
-            })
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, validator, el_service_name, validator_el_clients[el_service_name], node_modules)
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
@@ -190,12 +165,11 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         cl_service_name = "cl-validator-beaconkit-{}".format(index)
         peer_info = beacond.get_peer_info(plan, cl_service_name)
         all_consensus_peering_info[cl_service_name] = peer_info
-        if validator.el_type != "ethereumjs":
-            metrics_enabled_services.append({
-                "name": cl_service_name,
-                "service": remaining_cl_clients[cl_service_name],
-                "metrics_path": beacond.METRICS_PATH,
-            })
+        metrics_enabled_services.append({
+            "name": cl_service_name,
+            "service": remaining_cl_clients[cl_service_name],
+            "metrics_path": beacond.METRICS_PATH,
+        })
 
     for n, seed_node in enumerate(seed_nodes):
         cl_service_name = "cl-seed-beaconkit-{}".format(n)
