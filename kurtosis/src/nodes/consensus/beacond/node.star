@@ -15,11 +15,11 @@ def create_beacond_config_directory(plan, cl_service_name):
     TMP_GENESIS = "{}/config/tmp_genesis.json".format("$BEACOND_HOME")
 
 def add_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
 def collect_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
 def start(persistent_peers):
@@ -34,11 +34,10 @@ def start(persistent_peers):
     start_node = "/usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
-    --beacon-kit.accept-tos --beacon-kit.engine.rpc-dial-url {} \
-    --beacon-kit.engine.required-chain-id {} \
+    --beacon-kit.engine.rpc-dial-url {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", "$BEACOND_ETH_CHAIN_ID", persistent_peers_option)
+    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
@@ -46,15 +45,15 @@ def get_init_sh():
     genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
 
     # Check if genesis file exists, if not then initialize the beacond
-    command = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --consensus-key-algo {} --beacon-kit.accept-tos; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", "$BEACOND_CONSENSUS_KEY_ALGO")
+    command = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --consensus-key-algo {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", "$BEACOND_CONSENSUS_KEY_ALGO")
     return command
 
 def get_add_validator_sh():
-    command = "/usr/bin/beacond genesis add-validator --home {} --beacon-kit.accept-tos".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
     return command
 
 def get_collect_validator_sh():
-    command = "/usr/bin/beacond genesis collect-validators --home {}".format("$BEACOND_HOME")
+    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return command
 
 def get_execution_payload_sh():
@@ -66,11 +65,11 @@ def get_genesis_env_vars(cl_service_name):
         "BEACOND_MONIKER": cl_service_name,
         "BEACOND_NET": "VALUE_2",
         "BEACOND_HOME": "/root/.beacond",
-        "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+        "BEACOND_CHAIN_ID": "beacon-kurtosis-80086",
         "BEACOND_DEBUG": "false",
         "BEACOND_KEYRING_BACKEND": "test",
         "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
-        "BEACOND_ETH_CHAIN_ID": "80087",
+        "BEACOND_ETH_CHAIN_ID": "80086",
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",

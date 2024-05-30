@@ -32,7 +32,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -99,28 +99,68 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Convert the data to the types expected by VerifyBlobProofBatch
-	args := &prooftypes.BlobProofArgs{
+	args := &types.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(data.Blobs)),
 		Proofs:      make([]eip4844.KZGProof, len(data.Proofs)),
 		Commitments: make([]eip4844.KZGCommitment, len(data.Commitments)),
 	}
 	for i := range data.Blobs {
 		var blob eip4844.Blob
-		err = blob.UnmarshalJSON([]byte(`"` + data.Blobs[i] + `"`))
+		err = blob.UnmarshalJSON(
+			[]byte(`"` + data.Blobs[i] + `"`))
 		require.NoError(t, err)
 		args.Blobs[i] = &blob
 
 		var proof eip4844.KZGProof
-		err = proof.UnmarshalJSON([]byte(`"` + data.Proofs[i] + `"`))
+		err = proof.UnmarshalJSON(
+			[]byte(`"` + data.Proofs[i] + `"`))
 		require.NoError(t, err)
 		args.Proofs[i] = proof
 
 		var commitment eip4844.KZGCommitment
-		err = commitment.UnmarshalJSON([]byte(`"` + data.Commitments[i] + `"`))
+		err = commitment.UnmarshalJSON(
+			[]byte(`"` + data.Commitments[i] + `"`))
 		require.NoError(t, err)
 		args.Commitments[i] = commitment
 	}
 
 	err = globalVerifier.VerifyBlobProofBatch(args)
 	require.NoError(t, err)
+}
+
+// TestVerifyBlobKZGInvalidProof tests the VerifyBlobProof function for an
+// invalid proof
+func TestVerifyBlobKZGInvalidProof(t *testing.T) {
+	validBlob, invalidProof, validCommitment := setupTestData(
+		t, "test_data_incorrect_proof.json")
+	testCases := []struct {
+		name        string
+		blob        *eip4844.Blob
+		proof       eip4844.KZGProof
+		commitment  eip4844.KZGCommitment
+		expectError bool
+	}{
+		{
+			name:        "Invalid Proof",
+			blob:        validBlob,
+			proof:       invalidProof,
+			commitment:  validCommitment,
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := globalVerifier.VerifyBlobProof(
+				tc.blob,
+				tc.proof,
+				tc.commitment,
+			)
+			if tc.expectError {
+				require.Error(t, err, "invalid proof")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }

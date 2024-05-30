@@ -97,7 +97,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	docker run \
     --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
     -v $(PWD)/.tmp:/.tmp \
-    thorax/erigon:v2.59.3 init \
+    thorax/erigon:latest init \
     --datadir .tmp/erigon \
     ${ETH_GENESIS_PATH}
 
@@ -107,7 +107,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:v2.59.3 \
+	thorax/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -118,7 +118,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--networkid 80087 \
+	--networkid 80086 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon
 

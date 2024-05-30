@@ -28,7 +28,7 @@ package constants
 // This file contains various constants as defined:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 //
-//nolint:lll
+//nolint:lll // link.
 const (
 	// GenesisSlot represents the initial slot in the system.
 	GenesisSlot uint64 = 0

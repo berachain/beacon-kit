@@ -35,14 +35,11 @@ type BeaconBlockHeaderBase struct {
 	// Slot represents the position of the block in the chain.
 	// TODO: Put back to math.Slot after fastssz fixes.
 	Slot uint64
-
 	// ProposerIndex is the index of the validator who proposed the block.
 	// TODO: Put back to math.ProposerIndex after fastssz fixes.
 	ProposerIndex uint64
-
 	// ParentBlockRoot is the hash of the parent block
 	ParentBlockRoot common.Root
-
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root
 }
@@ -75,4 +72,23 @@ type BeaconBlockHeader struct {
 	BeaconBlockHeaderBase
 	// 	// BodyRoot is the root of the block body.
 	BodyRoot common.Root `json:"bodyRoot"`
+}
+
+// NewBeaconBlockHeader creates a new BeaconBlockHeader.
+func NewBeaconBlockHeader(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
+	stateRoot common.Root,
+	bodyRoot common.Root,
+) *BeaconBlockHeader {
+	return &BeaconBlockHeader{
+		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
+			Slot:            uint64(slot),
+			ProposerIndex:   uint64(proposerIndex),
+			ParentBlockRoot: parentBlockRoot,
+			StateRoot:       stateRoot,
+		},
+		BodyRoot: bodyRoot,
+	}
 }

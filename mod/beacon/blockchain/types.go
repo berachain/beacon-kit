@@ -27,69 +27,87 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// BeaconState defines the interface for accessing various components of the
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		context.Context, math.Slot, BeaconBlockBodyT,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(math.Slot, BlobSidecarsT) error
+}
+
+// ReadOnlyBeaconState defines the interface for accessing various components of
+// the
 // beacon state.
-type BeaconState[T any] interface {
+type ReadOnlyBeaconState[T any] interface {
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
-
-	// GetBlockRootAtIndex fetches the block root at a specified index.
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		engineprimitives.ExecutionPayloadHeader,
 		error,
 	)
-
-	// SetLatestExecutionPayloadHeader sets the most recent execution payload
-	// header.
-	SetLatestExecutionPayloadHeader(
-		engineprimitives.ExecutionPayloadHeader,
-	) error
-
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
 	GetEth1DepositIndex() (uint64, error)
-
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
 		*types.BeaconBlockHeader,
 		error,
 	)
-
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-
 	// Copy creates a copy of the beacon state.
 	Copy() T
-
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-type BeaconStorageBackend[
-	BeaconStateT any, BlobSidecarsT BlobSidecars, DepositStoreT DepositStore,
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
+type StorageBackend[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	BeaconStateT any,
+	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore,
 ] interface {
-	AvailabilityStore(
-		context.Context,
-	) core.AvailabilityStore[
-		types.BeaconBlockBody, BlobSidecarsT,
-	]
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
 	DepositStore(context.Context) DepositStoreT
+}
+
+// BlobVerifier is the interface for the blobs processor.
+type BlobProcessor[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	BlobSidecarsT any,
+] interface {
+	// ProcessBlobs processes the blobs and ensures they match the local state.
+	ProcessBlobs(
+		slot math.Slot,
+		avs AvailabilityStoreT,
+		sidecars BlobSidecarsT,
+	) error
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
@@ -99,106 +117,92 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// BlockVerifier is the interface for the block verifier.
-type BlockVerifier[BeaconStateT any] interface {
-	ValidateBlock(
-		st BeaconStateT,
-		blk types.ReadOnlyBeaconBlock[types.BeaconBlockBody],
-	) error
+// EventFeed is a generic interface for sending events.
+type EventFeed[EventT any] interface {
+	// Send sends an event and returns the number of
+	// subscribers that received it.
+	Send(event EventT) int
 }
 
-// DepositContract is the ABI for the deposit contract.
-type DepositContract interface {
-	GetDeposits(
-		ctx context.Context,
-		blockNumber uint64,
-	) ([]*types.Deposit, error)
-}
-
+// DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	PruneToIndex(uint64) error
-	EnqueueDeposits([]*types.Deposit) error
+	// PruneToIndex prunes the deposit store up to the specified index.
+	PruneToIndex(index uint64) error
+	// EnqueueDeposits adds a list of deposits to the deposit store.
+	EnqueueDeposits(deposits []*types.Deposit) error
 }
 
+// ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
 	) (engineprimitives.BuiltExecutionPayloadEnv, error)
-
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
 	) error
 }
 
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
-	RequestPayload(
+	// Enabled returns true if the local builder is enabled.
+	Enabled() bool
+	// RequestPayloadAsync requests a new payload for the given slot.
+	RequestPayloadAsync(
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot primitives.Root,
-		parentEth1Hash common.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-}
-
-// PayloadVerifier is the interface for the payload verifier.
-type PayloadVerifier[BeaconStateT any] interface {
-	VerifyPayload(
-		st BeaconStateT,
-		payload engineprimitives.ExecutionPayload,
-	) error
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconStateT any] interface {
-	BuildReveal(
-		st BeaconStateT,
-	) (crypto.BLSSignature, error)
-	MixinNewReveal(
-		st BeaconStateT,
-		reveal crypto.BLSSignature,
-	) error
-	VerifyReveal(
-		st BeaconStateT,
-		proposerPubkey crypto.BLSPubkey,
-		reveal crypto.BLSSignature,
-	) error
 }
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[BeaconStateT, BlobSidecarsT any] interface {
-	// ProcessBlock processes a given beacon block and updates the state
-	// accordingly.
-	ProcessBlock(
+type StateProcessor[
+	BeaconBlockT,
+	BeaconStateT,
+	BlobSidecarsT,
+	ContextT any,
+] interface {
+	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	// state
+	// from the eth1 deposits.
+	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
-		blk types.BeaconBlock,
-	) error
-
+		deposits []*types.Deposit,
+		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		genesisVersion primitives.Version,
+	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.
+	//
+	// TODO: This eventually needs to be deprecated.
 	ProcessSlot(
 		st BeaconStateT,
-	) error
-
-	// ProcessBlobs processes the blobs associated with a beacon block.
-	ProcessBlobs(
+	) ([]*transition.ValidatorUpdate, error)
+	// Transition processes the state transition for a given block.
+	Transition(
+		ctx ContextT,
 		st BeaconStateT,
-		avs core.AvailabilityStore[
-			types.BeaconBlockBody, BlobSidecarsT,
-		],
-		blobs BlobSidecarsT,
-	) error
+		blk BeaconBlockT,
+	) ([]*transition.ValidatorUpdate, error)
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
 }

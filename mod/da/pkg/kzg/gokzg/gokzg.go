@@ -28,10 +28,12 @@ package gokzg
 import (
 	"unsafe"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
+
+const Implementation = "crate-crypto/go-kzg-4844"
 
 // Verifier is a KZG verifier that uses the Go implementation of KZG.
 type Verifier struct {
@@ -45,6 +47,11 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 		return nil, err
 	}
 	return &Verifier{ctx}, nil
+}
+
+// GetImplementation returns the implementation of the verifier.
+func (v Verifier) GetImplementation() string {
+	return Implementation
 }
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the
@@ -65,7 +72,7 @@ func (v Verifier) VerifyBlobProof(
 // by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.
 func (v Verifier) VerifyBlobProofBatch(
-	args *prooftypes.BlobProofArgs,
+	args *types.BlobProofArgs,
 ) error {
 	blobs := make([]gokzg4844.Blob, len(args.Blobs))
 	for i := range args.Blobs {

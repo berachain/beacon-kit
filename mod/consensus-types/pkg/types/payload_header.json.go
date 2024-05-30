@@ -11,6 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+var _ = (*executionPayloadHeaderDenebMarshaling)(nil)
+
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadHeaderDeneb struct {
@@ -18,13 +20,13 @@ func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 		FeeRecipient     common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
 		StateRoot        bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot     bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
-		LogsBloom        []byte         `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
+		LogsBloom        bytes.Bytes    `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
 		Random           bytes.B32      `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
 		Number           math.U64       `json:"blockNumber"                     gencodec:"required"`
 		GasLimit         math.U64       `json:"gasLimit"                        gencodec:"required"`
 		GasUsed          math.U64       `json:"gasUsed"                         gencodec:"required"`
 		Timestamp        math.U64       `json:"timestamp"                       gencodec:"required"`
-		ExtraData        []byte         `json:"extraData"                       gencodec:"required" ssz-max:"32"`
+		ExtraData        bytes.Bytes    `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas    math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
 		BlockHash        common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
 		TransactionsRoot bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
@@ -60,13 +62,13 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 		FeeRecipient     *common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
 		StateRoot        *bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot     *bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
-		LogsBloom        []byte          `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
+		LogsBloom        *bytes.Bytes    `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
 		Random           *bytes.B32      `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
 		Number           *math.U64       `json:"blockNumber"                     gencodec:"required"`
 		GasLimit         *math.U64       `json:"gasLimit"                        gencodec:"required"`
 		GasUsed          *math.U64       `json:"gasUsed"                         gencodec:"required"`
 		Timestamp        *math.U64       `json:"timestamp"                       gencodec:"required"`
-		ExtraData        []byte          `json:"extraData"                       gencodec:"required" ssz-max:"32"`
+		ExtraData        *bytes.Bytes    `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 		BaseFeePerGas    *math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
 		BlockHash        *common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
 		TransactionsRoot *bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
@@ -97,7 +99,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 	if dec.LogsBloom == nil {
 		return errors.New("missing required field 'logsBloom' for ExecutionPayloadHeaderDeneb")
 	}
-	e.LogsBloom = dec.LogsBloom
+	e.LogsBloom = *dec.LogsBloom
 	if dec.Random == nil {
 		return errors.New("missing required field 'prevRandao' for ExecutionPayloadHeaderDeneb")
 	}
@@ -121,7 +123,7 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 	if dec.ExtraData == nil {
 		return errors.New("missing required field 'extraData' for ExecutionPayloadHeaderDeneb")
 	}
-	e.ExtraData = dec.ExtraData
+	e.ExtraData = *dec.ExtraData
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayloadHeaderDeneb")
 	}

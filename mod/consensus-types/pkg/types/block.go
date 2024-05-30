@@ -26,6 +26,8 @@
 package types
 
 import (
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -35,13 +37,14 @@ import (
 // the given slot, time, execution data, and version. It
 // returns an error if the fork version is not supported.
 func EmptyBeaconBlock[
+	ReturnT any,
 	SlotT, ProposerIndexT ~uint64,
 	ParentBlockRootT ~[32]byte](
 	slot SlotT,
 	proposerIndex ProposerIndexT,
 	parentBlockRoot ParentBlockRootT,
 	forkVersion uint32,
-) (BeaconBlock, error) {
+) (ReturnT, error) {
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
@@ -57,9 +60,10 @@ func EmptyBeaconBlock[
 			Body: &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return block, ErrForkVersionNotSupported
+		return reflect.ValueOf(block).Interface().(ReturnT),
+			ErrForkVersionNotSupported
 	}
-	return block, nil
+	return reflect.ValueOf(block).Interface().(ReturnT), nil
 }
 
 // BeaconBlockFromSSZ assembles a new beacon block
@@ -86,7 +90,7 @@ func BeaconBlockFromSSZ(
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../primitives-engine/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
 	BeaconBlockHeaderBase

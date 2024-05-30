@@ -37,23 +37,20 @@ const (
 	defaultPayloadTimeout = 2500 * time.Millisecond
 )
 
-// Builder is the configuration for the payload builder.
+// Config is the configuration for the payload builder.
 //
 //nolint:lll // struct tags.
 type Config struct {
 	// Enabled determines if the local builder is enabled.
 	Enabled bool `mapstructure:"enabled"`
-
 	// SuggestedFeeRecipient is the address that will receive the transaction
 	// fees
 	// produced by any blocks from this node.
 	SuggestedFeeRecipient common.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
-
 	// PayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
-	// timeout on your
-	// execution client. It also must be less than timeout_proposal in the
-	// CometBFT configuration.
+	// timeout on your execution client. It also must be less than
+	// timeout_proposal in the CometBFT configuration.
 	PayloadTimeout time.Duration `mapstructure:"payload-timeout"`
 }
 

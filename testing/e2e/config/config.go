@@ -35,18 +35,20 @@ import (
 type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
-	AdditionalServices []any `json:"additional_services"`
+	AdditionalServices []AdditionalService `json:"additional_services"`
 	// Validators lists the configurations for each validator in the test.
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
 	FullNodes []Node `json:"full_nodes"`
-	// RPCEndpoints specifies the RPC endpoints to include in the test.
-	RPCEndpoints []RPCEndpoint `json:"rpc_endpoints"`
+	// BootSequence specifies the methodology for how the network boots.
+	BootSequence map[string]string `json:"boot_sequence"`
+	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
+	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 }
 
-type RPCEndpoint struct {
-	Type     string   `json:"type"`
-	Services []string `json:"services"`
+type EthJSONRPCEndpoint struct {
+	Type    string   `json:"type"`
+	Clients []string `json:"clients"`
 }
 
 // Validator holds the configuration for a single validator in the test,
@@ -64,13 +66,26 @@ type Node struct {
 	Replicas int `json:"replicas"`
 }
 
+// AdditionalService holds the configuration for an additional service
+// to be included in the test.
+type AdditionalService struct {
+	// Name specifies the name of the additional service.
+	Name string `json:"name"`
+	// Replicas specifies the number of replicas to use for the service.
+	Replicas int `json:"replicas"`
+}
+
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
+//
+//nolint:mnd // this is a default config.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []any{
-			"tx-fuzz",
+		AdditionalServices: []AdditionalService{
+			{
+				Name: "tx-fuzz",
+			},
 		},
 		Validators: []Node{
 			{
@@ -89,20 +104,20 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
+				Replicas: 2, //nolint:mnd // 2 replicas
+			},
+			{
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			// {
-			// 	ElType:   "erigon",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
-			// {
-			// 	ElType:   "besu",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		FullNodes: []Node{
 			{
@@ -115,7 +130,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "geth",
@@ -123,29 +138,32 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ClType:   "beaconkit",
 				Replicas: 1,
 			},
-			// {
-			// 	ElType:   "erigon",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
-			// {
-			// 	ElType:   "besu",
-			// 	ClImage:  "beacond:kurtosis-local",
-			// 	ClType:   "beaconkit",
-			// 	Replicas: 1,
-			// },
-		},
-		RPCEndpoints: []RPCEndpoint{
 			{
-				Type: "nginx",
-				Services: []string{
-					"el-full-nethermind-0:8545",
-					"el-full-reth-1:8545",
-					"el-full-geth-2:8545",
-					// "el-full-erigon-3:8545",
+				ElType:   "erigon",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
+		},
+		BootSequence: map[string]string{
+			"type": "parallel",
+		},
+		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
+			{
+				Type: "blutgang",
+				Clients: []string{
+					"el-full-nethermind-0",
+					"el-full-reth-1",
+					"el-full-geth-3",
+					// "el-full-erigon-3",
 					// Besu causing flakey tests.
-					// "el-full-besu-4:8545",
+					// "el-full-besu-4",
 				},
 			},
 		},

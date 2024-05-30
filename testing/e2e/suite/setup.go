@@ -52,13 +52,6 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
-// BeforeTest executes before specific tests in the suite.
-func (s *KurtosisE2ESuite) BeforeTest(_, testName string) {
-	if testName == "TestDepositContract" {
-		s.SetupSuite()
-	}
-}
-
 // Option is a function that sets a field on the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
@@ -138,10 +131,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().Empty(result.ValidationErrors)
 	s.logger.Info("enclave spun up successfully")
 
-	s.logger.Info("setting up execution clients")
-	err = s.SetupExecutionClients()
-	s.Require().NoError(err, "Error setting up execution clients")
-
 	s.logger.Info("setting up consensus clients")
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
@@ -159,11 +148,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.FundAccounts()
 }
 
-// SetupExecutionClients sets up the execution clients for the test suite.
-func (s *KurtosisE2ESuite) SetupExecutionClients() error {
-	return nil
-}
-
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	s.consensusClients = make(map[string]*types.ConsensusClient)
 	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
@@ -177,12 +161,6 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 			s.Enclave().RunStarlarkScriptBlocking,
 		),
 	)
-	ports := s.consensusClients["cl-validator-beaconkit-0"].GetPublicPorts()
-	s.logger.Info(
-		"consensus client ports",
-		"ports",
-		ports["cometbft-rpc"].GetNumber(),
-	)
 
 	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
 	if err != nil {
@@ -194,17 +172,44 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 			s.Enclave().RunStarlarkScriptBlocking,
 		),
 	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-2")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-2"] = types.NewConsensusClient(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+	)
+
+	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-3")
+	if err != nil {
+		return err
+	}
+	s.consensusClients["cl-validator-beaconkit-3"] = types.NewConsensusClient(
+		types.NewWrappedServiceContext(
+			sCtx,
+			s.Enclave().RunStarlarkScriptBlocking,
+		),
+	)
 	return nil
 }
 
-// SetupNGINXBalancer sets up the NGINX balancer for the test suite.
+// SetupJSONRPCBalancer sets up the load balancer for the test suite.
 func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
-	sCtx, err := s.Enclave().GetServiceContext("nginx")
+	// get the type for EthJSONRPCEndpoint
+	typeRPCEndpoint := s.JSONRPCBalancerType()
+
+	s.logger.Info("setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+
+	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
 		return err
 	}
 
-	if s.nginxBalancer, err = types.NewLoadBalancer(
+	if s.loadBalancer, err = types.NewLoadBalancer(
 		sCtx,
 	); err != nil {
 		return err
@@ -245,7 +250,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			gasFeeCap := new(big.Int).Add(
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
-			value := big.NewInt(Ether)
+			//nolint:mnd // 20000 Ether
+			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
@@ -330,13 +336,12 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	ticker := time.NewTicker(time.Second)
 	var finalBlockNum uint64
 	for finalBlockNum < target {
-		finalBlock, err := s.JSONRPCBalancer().BlockByNumber(cctx, nil)
+		var err error
+		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
 		}
-		finalBlockNum = finalBlock.NumberU64()
-
 		s.logger.Info(
 			"waiting for finalized block number to reach target",
 			"target",
@@ -362,6 +367,18 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	)
 
 	return nil
+}
+
+// WaitForNBlockNumber waits for a specified amount of blocks into the future
+// from now.
+func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
+	n uint64,
+) error {
+	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+	if err != nil {
+		return err
+	}
+	return s.WaitForFinalizedBlockNumber(current + n)
 }
 
 // TearDownSuite cleans up resources after all tests have been executed.

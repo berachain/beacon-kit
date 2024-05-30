@@ -32,7 +32,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	prooftypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -96,7 +96,7 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Convert the data to the types expected by VerifyBlobProofBatch
-	args := &prooftypes.BlobProofArgs{
+	args := &types.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, len(data.Blobs)),
 		Proofs:      make([]eip4844.KZGProof, len(data.Proofs)),
 		Commitments: make([]eip4844.KZGCommitment, len(data.Commitments)),
@@ -120,4 +120,41 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 
 	err = globalVerifier.VerifyBlobProofBatch(args)
 	require.Error(t, err, "cgo is not enabled")
+}
+
+// TestVerifyBlobKZGInvalidProof tests the VerifyBlobProof function for invalid
+// proofs.
+func TestVerifyBlobKZGInvalidProof(t *testing.T) {
+	validBlob, invalidProof, validCommitment := setupTestData(
+		t, "test_data_incorrect_proof.json")
+	testCases := []struct {
+		name        string
+		blob        *eip4844.Blob
+		proof       eip4844.KZGProof
+		commitment  eip4844.KZGCommitment
+		expectError bool
+	}{
+		{
+			name:        "Invalid Proof",
+			blob:        validBlob,
+			proof:       invalidProof,
+			commitment:  validCommitment,
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := globalVerifier.VerifyBlobProof(
+				tc.blob,
+				tc.proof,
+				tc.commitment,
+			)
+			if tc.expectError {
+				require.Error(t, err, "invalid proof")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }

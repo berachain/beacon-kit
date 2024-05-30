@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )

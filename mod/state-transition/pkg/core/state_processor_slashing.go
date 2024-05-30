@@ -26,7 +26,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -35,7 +34,9 @@ import (
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -54,7 +55,9 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
@@ -67,7 +70,9 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
@@ -83,7 +88,9 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -96,11 +103,12 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	proportionalSlashingMultiplier := sp.cs.ProportionalSlashingMultiplier
+
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*proportionalSlashingMultiplier(),
+		uint64(totalSlashings)*sp.cs.ProportionalSlashingMultiplier(),
 		uint64(totalBalance),
 	)
+
 	vals, err := st.GetValidators()
 	if err != nil {
 		return err
@@ -112,16 +120,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// Iterate through the validators.
+	//nolint:mnd // this is in the spec
+	slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
+
+	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
-		// Checks if the validator is slashable.
-		//nolint:mnd // this is in the spec
-		slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
-		// If the validator is slashable, and slashed
-		if val.Slashed && (slashableEpoch == uint64(val.WithdrawableEpoch)) {
+		if val.IsSlashed() &&
+			(slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
 			if err = sp.processSlash(
-				st,
-				val,
+				st, val,
 				adjustedTotalSlashingBalance,
 				uint64(totalBalance),
 			); err != nil {
@@ -136,10 +143,12 @@ func (sp *StateProcessor[
 //
 //nolint:unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) processSlash(
 	st BeaconStateT,
-	val *types.Validator,
+	val ValidatorT,
 	adjustedTotalSlashingBalance uint64,
 	totalBalance uint64,
 ) error {
@@ -150,7 +159,7 @@ func (sp *StateProcessor[
 	penalty := penaltyNumerator / totalBalance * increment
 
 	// Get the val index and decrease the balance of the validator.
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}

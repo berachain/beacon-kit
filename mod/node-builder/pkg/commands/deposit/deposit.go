@@ -117,8 +117,8 @@ func validateDepositMessage(chainSpec primitives.ChainSpec) func(
 		return depositMessage.VerifyCreateValidator(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
-			signer.BLSSigner{}.VerifySignature,
 			chainSpec.DomainTypeDeposit(),
+			signer.BLSSigner{}.VerifySignature,
 		)
 	}
 }

@@ -28,109 +28,135 @@ package blockchain
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // Service is the blockchain service.
 type Service[
-	BeaconStateT BeaconState[BeaconStateT],
+	AvailabilityStoreT AvailabilityStore[
+		types.BeaconBlockBody, BlobSidecarsT,
+	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ] struct {
-	// bsb represents the backend storage for beacon states and associated
+	// sb represents the backend storage for beacon states and associated
 	// sidecars.
-	bsb BeaconStorageBackend[
-		BeaconStateT, BlobSidecarsT, DepositStoreT,
+	sb StorageBackend[
+		AvailabilityStoreT,
+		BeaconStateT,
+		BlobSidecarsT,
+		DepositStoreT,
 	]
-
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-
 	// cs holds the chain specifications.
 	cs primitives.ChainSpec
-
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
-
-	// bdc is a connection to the deposit contract.
-	bdc DepositContract
-
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
-
-	// bv is responsible for verifying beacon blocks.
-	bv BlockVerifier[BeaconStateT]
-
+	// bp is the blob processor for processing incoming blobs.
+	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
-	sp StateProcessor[BeaconStateT, BlobSidecarsT]
-
-	// pv verifies the payload of beacon blocks.
-	pv PayloadVerifier[BeaconStateT]
+	sp StateProcessor[
+		types.BeaconBlock,
+		BeaconStateT,
+		BlobSidecarsT,
+		*transition.Context,
+	]
+	// metrics is the metrics for the service.
+	metrics *chainMetrics
+	// blockFeed is the event feed for new blocks.
+	blockFeed EventFeed[events.Block[types.BeaconBlock]]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconStateT BeaconState[BeaconStateT],
+	AvailabilityStoreT AvailabilityStore[
+		types.BeaconBlockBody, BlobSidecarsT,
+	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
-	bsb BeaconStorageBackend[
+	sb StorageBackend[
+		AvailabilityStoreT,
 		BeaconStateT, BlobSidecarsT, DepositStoreT],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
-	bv BlockVerifier[BeaconStateT],
-	sp StateProcessor[BeaconStateT, BlobSidecarsT],
-	pv PayloadVerifier[BeaconStateT],
-	bdc DepositContract,
-) *Service[BeaconStateT, BlobSidecarsT, DepositStoreT] {
-	return &Service[BeaconStateT, BlobSidecarsT, DepositStoreT]{
-		bsb:    bsb,
-		logger: logger,
-		cs:     cs,
-		ee:     ee,
-		lb:     lb,
-		bv:     bv,
-		sp:     sp,
-		pv:     pv,
-		bdc:    bdc,
+	bp BlobProcessor[
+		AvailabilityStoreT,
+		BlobSidecarsT,
+	],
+	sp StateProcessor[
+		types.BeaconBlock, BeaconStateT,
+		BlobSidecarsT, *transition.Context,
+	],
+	ts TelemetrySink,
+	blockFeed EventFeed[events.Block[types.BeaconBlock]],
+) *Service[
+	AvailabilityStoreT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT,
+] {
+	return &Service[
+		AvailabilityStoreT, BeaconStateT,
+		BlobSidecarsT, DepositStoreT,
+	]{
+		sb:        sb,
+		logger:    logger,
+		cs:        cs,
+		ee:        ee,
+		lb:        lb,
+		bp:        bp,
+		sp:        sp,
+		metrics:   newChainMetrics(ts),
+		blockFeed: blockFeed,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Start(
 	context.Context,
-) {
+) error {
+	return nil
 }
 
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Status() error {
 	return nil
 }
 
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
-}
-
-// TODO: Remove
-func (s Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) StateFromContext(
-	ctx context.Context,
-) BeaconStateT {
-	return s.bsb.StateFromContext(ctx)
 }

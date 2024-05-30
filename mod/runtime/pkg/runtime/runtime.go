@@ -33,67 +33,109 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/abci"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	StorageBackendT BeaconStorageBackend[
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BlobSidecarsT,
-		DepositStoreT,
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, DepositStoreT,
 	],
 ] struct {
-	engineClient   interface{ Start(context.Context) error }
-	logger         log.Logger[any]
-	services       *service.Registry
+	// logger is used for logging within the BeaconKitRuntime.
+	logger log.Logger[any]
+	// services is a registry of services used by the BeaconKitRuntime.
+	services *service.Registry
+	// storageBackend is the backend storage interface used by the
+	// BeaconKitRuntime.
 	storageBackend StorageBackendT
-	chainSpec      primitives.ChainSpec
+	// chainSpec defines the chain specifications for the BeaconKitRuntime.
+	chainSpec primitives.ChainSpec
+	// abciFinalizeBlockMiddleware handles ABCI interactions for the
+	// BeaconKitRuntime.
+	abciFinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
+		types.BeaconBlock, BeaconStateT, BlobSidecarsT,
+	]
+	// abciValidatorMiddleware is responsible for forward ABCI requests to the
+	// validator service.
+	abciValidatorMiddleware *middleware.ValidatorMiddleware[
+		BeaconStateT, BlobSidecarsT,
+	]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
+	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT state.BeaconState,
+	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	StorageBackendT BeaconStorageBackend[
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BlobSidecarsT,
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT,
 		DepositStoreT,
 	],
 ](
-	engineClient interface{ Start(context.Context) error },
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
+	telemetrySink middleware.TelemetrySink,
 ) (*BeaconKitRuntime[
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	StorageBackendT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ], error) {
+	var (
+		chainService *blockchain.Service[
+			AvailabilityStoreT,
+			core.BeaconState[*types.Validator],
+			BlobSidecarsT,
+			DepositStoreT,
+		]
+		validatorService *validator.Service[
+			types.BeaconBlock,
+			types.BeaconBlockBody,
+			core.BeaconState[*types.Validator],
+			BlobSidecarsT,
+		]
+	)
+
+	if err := services.FetchService(&chainService); err != nil {
+		panic(err)
+	}
+
+	if err := services.FetchService(&validatorService); err != nil {
+		panic(err)
+	}
+
 	return &BeaconKitRuntime[
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BlobSidecarsT,
-		DepositStoreT,
-		StorageBackendT,
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		engineClient:   engineClient,
+		abciFinalizeBlockMiddleware: middleware.
+			NewFinalizeBlockMiddleware[types.BeaconBlock, BeaconStateT](
+			chainSpec,
+			chainService,
+			telemetrySink,
+		),
+		abciValidatorMiddleware: middleware.
+			NewValidatorMiddleware[
+			BeaconStateT, BlobSidecarsT,
+		](
+			chainSpec,
+			validatorService,
+			telemetrySink,
+		),
 		chainSpec:      chainSpec,
 		logger:         logger,
 		services:       services,
@@ -103,59 +145,30 @@ func NewBeaconKitRuntime[
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	BeaconBlockBodyT,
-	StorageBackendT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
 ) error {
-	if err := r.engineClient.Start(ctx); err != nil {
-		return err
-	}
-	r.services.StartAll(ctx)
-	return nil
+	return r.services.StartAll(ctx)
 }
 
-// BuildABCIComponents returns the ABCI components for the beacon runtime.
+// ABCIHandler returns the ABCI handler.
 func (r *BeaconKitRuntime[
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	StorageBackendT,
-]) BuildABCIComponents() (
-	sdk.PrepareProposalHandler, sdk.ProcessProposalHandler,
-	sdk.PreBlocker,
-) {
-	var (
-		chainService *blockchain.Service[
-			state.BeaconState,
-			BlobSidecarsT,
-			DepositStoreT,
-		]
-		builderService *validator.Service[BeaconStateT, BlobSidecarsT]
-	)
-	if err := r.services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
+]) ABCIFinalizeBlockMiddleware() *middleware.FinalizeBlockMiddleware[
+	types.BeaconBlock, BeaconStateT, BlobSidecarsT,
+] {
+	return r.abciFinalizeBlockMiddleware
+}
 
-	if err := r.services.FetchService(&builderService); err != nil {
-		panic(err)
-	}
-
-	if chainService == nil || builderService == nil {
-		panic("missing services")
-	}
-
-	handler := abci.NewHandler[BlobSidecarsT](
-		r.chainSpec,
-		builderService,
-		chainService,
-	)
-
-	return handler.PrepareProposalHandler,
-		handler.ProcessProposalHandler,
-		handler.FinalizeBlock
+// ABCIValidatorMiddleware returns the ABCI validator middleware.
+func (r *BeaconKitRuntime[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, StorageBackendT,
+]) ABCIValidatorMiddleware() *middleware.ValidatorMiddleware[
+	BeaconStateT, BlobSidecarsT,
+] {
+	return r.abciValidatorMiddleware
 }

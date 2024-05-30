@@ -27,7 +27,19 @@ package crypto
 
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 
-//nolint:lll // links.
+const (
+	// CometBLSType is the BLS curve type used in the Comet BFT consensus
+	// algorithm.
+	CometBLSType = "bls12_381"
+
+	// TODO: Move this, it doesn't really belong here.
+	//
+	// CometBLSPower is the voting power given to a validator when they
+	// are in the active set.
+	CometBLSPower = 1e10
+)
+
+//nolint:lll // link.
 type (
 	// BLSPubkey as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
