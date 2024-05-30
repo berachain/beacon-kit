@@ -539,10 +539,8 @@ cosmossdk.io/depinject v1.0.0-alpha.4/go.mod h1:HeDk7IkR5ckZ3lMGs/o91AVUc7E596vM
 cosmossdk.io/errors v1.0.0/go.mod h1:+hJZLuhdDE0pYN8HkOrVNwrIOYvUGnn6+4fjnJs/oV0=
 cosmossdk.io/log v1.2.0/go.mod h1:GNSCc/6+DhFIj1aLn/j7Id7PaO8DzNylUZoOYBL9+I4=
 cosmossdk.io/log v1.3.1/go.mod h1:2/dIomt8mKdk6vl3OWJcPk2be3pGOS8OQaLUM/3/tCM=
-cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 h1:eb0kcGyaYHSS0do7+MIWg7UKlskSH01biRNENbm/zDA=
-cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5/go.mod h1:drzY4oVisyWvSgpsM7ccQ7IX3efMuVIvd9Eij1Gm/6o=
-cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 h1:52ZjPyQB4piLDq9CS7NsIFCgZais0ceifU807vZw8iI=
-cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6/go.mod h1:QTnpgKDagSBlkHdtHTluV2Vp6Kn5l2LY6y2DrQZ9Isk=
+cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91/go.mod h1:S9DBfhkvqzOzflam/Byh81E9LYj6x82HnTouU0zbkJ4=
+cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91/go.mod h1:3WvOZSOMJR1NHudlw116khC3fm2RQHo7qSf/JsOVkRA=
 cosmossdk.io/x/gov v0.0.0-20240516114011-e03476679912 h1:VsGBWpQfil0IVLaDNn0i5oG7lom9fDbnmhsJOddfemg=
 cosmossdk.io/x/gov v0.0.0-20240516114011-e03476679912/go.mod h1:aVozK0wfWPQa58IZCcmgI5vJoQzf0X185kDFP1aDTmA=
 cosmossdk.io/x/gov v0.0.0-20240530104414-90cbb022d5f6 h1:h35xUqmgBdNuNE3c9zIPHRNgBnZ0Qo/XDSuwMagIOrQ=
