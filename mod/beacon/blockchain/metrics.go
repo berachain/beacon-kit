@@ -51,8 +51,10 @@ func (cm *chainMetrics) measureStateTransitionDuration(
 	start time.Time, skipPayloadVerification bool,
 ) {
 	cm.sink.MeasureSince(
-		"beacon_kit.beacon.blockchain.state_transition_duration", start,
-		"skip_payload_verification", strconv.FormatBool(skipPayloadVerification),
+		"beacon_kit.beacon.blockchain.state_transition_duration",
+		start,
+		"skip_payload_verification",
+		strconv.FormatBool(skipPayloadVerification),
 	)
 }
 
