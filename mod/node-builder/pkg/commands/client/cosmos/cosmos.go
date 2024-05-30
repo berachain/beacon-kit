@@ -26,7 +26,6 @@
 package cosmos
 
 import (
-	authcmd "cosmossdk.io/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -49,35 +48,8 @@ func QueryCommands() *cobra.Command {
 	cmd.AddCommand(
 		rpc.QueryEventForTxCmd(),
 		server.QueryBlockCmd(),
-		authcmd.QueryTxsByEventsCmd(),
 		server.QueryBlocksCmd(),
 		server.QueryBlockResultsCmd(),
-		authcmd.QueryTxCmd(),
-	)
-
-	return cmd
-}
-
-// TxCommands creates a new cobra.Command for transaction-related subcommands.
-func TxCommands() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "tx",
-		Short:                      "Transactions subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		authcmd.GetSignCommand(),
-		authcmd.GetSignBatchCommand(),
-		authcmd.GetMultiSignCommand(),
-		authcmd.GetMultiSignBatchCmd(),
-		authcmd.GetValidateSignaturesCommand(),
-		authcmd.GetBroadcastCommand(),
-		authcmd.GetEncodeCommand(),
-		authcmd.GetDecodeCommand(),
-		authcmd.GetSimulateCmd(),
 	)
 
 	return cmd
