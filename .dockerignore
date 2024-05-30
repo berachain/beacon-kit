@@ -6,6 +6,7 @@ networks/
 proto/
 tools/
 kurtosis/
+testing/
 .github/
 .git/
 .vscode/
