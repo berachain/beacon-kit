@@ -44,6 +44,7 @@ CMD = [
 ]
 
 BOOTNODE_CMD = "--Network.Bootnodes"
+MAX_PEERS_CMD = "--Network.MaxActivePeers"
 
 RPC_PORT_NUM = defaults.RPC_PORT_NUM
 WS_PORT_NUM = defaults.WS_PORT_NUM
@@ -95,3 +96,10 @@ USED_PORTS_TEMPLATE = {
         shared_utils.TCP_PROTOCOL,
     ),
 }
+
+def set_max_peers(config, max_peers):
+    cmdList = config["cmd"][:]
+    cmdList.append(MAX_PEERS_CMD)
+    cmdList.append(max_peers)
+    config["cmd"] = cmdList
+    return config
