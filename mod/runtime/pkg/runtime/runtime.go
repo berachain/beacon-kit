@@ -123,7 +123,9 @@ func NewBeaconKitRuntime[
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
 		abciFinalizeBlockMiddleware: middleware.
-			NewFinalizeBlockMiddleware[types.BeaconBlock, BeaconStateT](
+			NewFinalizeBlockMiddleware[
+			types.BeaconBlock, BeaconStateT,
+		](
 			chainSpec,
 			chainService,
 			telemetrySink,

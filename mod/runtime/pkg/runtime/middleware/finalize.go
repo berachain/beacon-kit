@@ -134,6 +134,7 @@ func (h *FinalizeBlockMiddleware[
 	// in EndBlock.
 	h.LatestBeaconBlock = blk
 	h.LatestSidecars = blobs
+
 	return nil
 }
 

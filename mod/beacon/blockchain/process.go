@@ -89,9 +89,6 @@ func (s *Service[
 		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		//
-		// TODO: Figure out why SkipPayloadIfExists being `true`
-		// causes nodes to create gaps in their chain.
 		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
 		return err
 	})
