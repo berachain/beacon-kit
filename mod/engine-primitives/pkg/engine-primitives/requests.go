@@ -48,9 +48,6 @@ type NewPayloadRequest[
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *primitives.Root
-	// SkipIfExists is a flag that indicates if the payload should be skipped
-	// if it alreadyexists in the database of the execution client.
-	SkipIfExists bool
 	// Optimistic is a flag that indicates if the payload should be
 	// optimistically deemed valid. This is useful during syncing.
 	Optimistic bool
@@ -66,14 +63,12 @@ func BuildNewPayloadRequest[
 	executionPayload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
-	skipIfExists bool,
 	optimistic bool,
 ) *NewPayloadRequest[ExecutionPayloadT] {
 	return &NewPayloadRequest[ExecutionPayloadT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		SkipIfExists:          skipIfExists,
 		Optimistic:            optimistic,
 	}
 }
