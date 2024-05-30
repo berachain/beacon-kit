@@ -41,6 +41,7 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -52,6 +53,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
@@ -62,13 +64,13 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	types.BeaconBlockBody,
 	core.BeaconState[*types.Validator],
 	*datypes.BlobSidecars,
-	*depositdb.KVStore,
+	*depositdb.KVStore[*types.Deposit],
 	runtime.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 ]
 
@@ -87,7 +89,7 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	],
 	ts *metrics.TelemetrySink,
 	logger log.Logger,
@@ -227,7 +229,7 @@ func ProvideRuntime(
 	depositService := deposit.NewService[
 		types.BeaconBlock,
 		events.Block[types.BeaconBlock],
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](
 		logger.With("service", "deposit"),
@@ -244,6 +246,11 @@ func ProvideRuntime(
 		service.WithService(chainService),
 		service.WithService(depositService),
 		service.WithService(engineClient),
+		service.WithService(version.NewReportingService(
+			logger,
+			ts,
+			sdkversion.Version,
+		)),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
@@ -252,11 +259,12 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
-		*depositdb.KVStore,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		chainSpec,
 		logger,
 		svcRegistry,
 		storageBackend,
+		ts,
 	)
 }

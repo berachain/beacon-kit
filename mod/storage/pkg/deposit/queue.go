@@ -31,15 +31,14 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	sdkcodec "cosmossdk.io/collections/codec"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // Queue is a simple queue implementation that uses a map and two sequences.
 // TODO: Check atomicity of write operations.
-type Queue struct {
+type Queue[DepositT Deposit] struct {
 	// container is a map that holds the queue elements.
-	container sdkcollections.Map[uint64, *types.Deposit]
+	container sdkcollections.Map[uint64, DepositT]
 	// headSeq is a sequence that points to the head of the queue.
 	headSeq sdkcollections.Sequence // inclusive
 	// length is an item that holds the length of the queue.
@@ -49,16 +48,16 @@ type Queue struct {
 }
 
 // NewQueue creates a new queue with the provided prefix and name.
-func NewQueue(
+func NewQueue[DepositT Deposit](
 	schema *sdkcollections.SchemaBuilder, name string,
-	valueCodec sdkcodec.ValueCodec[*types.Deposit],
-) *Queue {
+	valueCodec sdkcodec.ValueCodec[DepositT],
+) *Queue[DepositT] {
 	var (
 		queueName   = name + "_queue"
 		headSeqName = name + "_head"
 		lengthName  = name + "_length"
 	)
-	return &Queue{
+	return &Queue[DepositT]{
 		container: sdkcollections.NewMap(
 			schema,
 			sdkcollections.NewPrefix(queueName),
@@ -75,7 +74,7 @@ func NewQueue(
 	}
 }
 
-func (q *Queue) Init(ctx context.Context) error {
+func (q *Queue[DepositT]) Init(ctx context.Context) error {
 	if err := q.headSeq.Set(ctx, 0); err != nil {
 		return err
 	}
@@ -85,7 +84,7 @@ func (q *Queue) Init(ctx context.Context) error {
 }
 
 // Peek wraps the peek method with a read lock.
-func (q *Queue) Peek(ctx context.Context) (*types.Deposit, error) {
+func (q *Queue[DepositT]) Peek(ctx context.Context) (DepositT, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 	return q.UnsafePeek(ctx)
@@ -93,11 +92,11 @@ func (q *Queue) Peek(ctx context.Context) (*types.Deposit, error) {
 
 // UnsafePeek returns the top element of the queue without removing it.
 // It is unsafe to call this method without acquiring the read lock.
-func (q *Queue) UnsafePeek(
+func (q *Queue[DepositT]) UnsafePeek(
 	ctx context.Context,
-) (*types.Deposit, error) {
+) (DepositT, error) {
 	var (
-		v       *types.Deposit
+		v       DepositT
 		headIdx uint64
 		length  uint64
 		err     error
@@ -111,12 +110,12 @@ func (q *Queue) UnsafePeek(
 }
 
 // Pop returns the top element of the queue and removes it from the queue.
-func (q *Queue) Pop(ctx context.Context) (*types.Deposit, error) {
+func (q *Queue[DepositT]) Pop(ctx context.Context) (DepositT, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	var (
-		v       *types.Deposit
+		v       DepositT
 		headIdx uint64
 		err     error
 	)
@@ -128,24 +127,24 @@ func (q *Queue) Pop(ctx context.Context) (*types.Deposit, error) {
 	}
 	err = q.container.Remove(ctx, headIdx)
 	if err != nil {
-		return nil, err
+		return v, err
 	}
 	length, err := q.len(ctx)
 	if err != nil {
-		return nil, err
+		return v, err
 	}
 	err = q.length.Set(ctx, length-1)
 	if err != nil {
-		return nil, err
+		return v, err
 	}
 	return v, err
 }
 
 // PeekMulti returns the top n elements of the queue.
-func (q *Queue) PeekMulti(
+func (q *Queue[DepositT]) PeekMulti(
 	ctx context.Context,
 	n uint64,
-) ([]*types.Deposit, error) {
+) ([]DepositT, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
@@ -176,10 +175,10 @@ func (q *Queue) PeekMulti(
 
 // PopMulti returns the top n elements of the queue and removes them from the
 // queue.
-func (q *Queue) PopMulti(
+func (q *Queue[DepositT]) PopMulti(
 	ctx context.Context,
 	n uint64,
-) ([]*types.Deposit, error) {
+) ([]DepositT, error) {
 	if n == 0 {
 		return nil, nil
 	}
@@ -227,13 +226,13 @@ func (q *Queue) PopMulti(
 }
 
 // Push adds a new element to the queue.
-func (q *Queue) Push(
+func (q *Queue[DepositT]) Push(
 	ctx context.Context,
-	value *types.Deposit,
+	value DepositT,
 ) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if err := q.container.Set(ctx, value.Index, value); err != nil {
+	if err := q.container.Set(ctx, value.GetIndex(), value); err != nil {
 		return err
 	}
 	length, err := q.len(ctx)
@@ -244,9 +243,9 @@ func (q *Queue) Push(
 }
 
 // PushMulti adds multiple new elements to the queue.
-func (q *Queue) PushMulti(
+func (q *Queue[DepositT]) PushMulti(
 	ctx context.Context,
-	values []*types.Deposit,
+	values []DepositT,
 ) error {
 	if len(values) == 0 {
 		return nil
@@ -255,7 +254,7 @@ func (q *Queue) PushMulti(
 	defer q.mu.Unlock()
 
 	for _, value := range values {
-		if err := q.container.Set(ctx, value.Index, value); err != nil {
+		if err := q.container.Set(ctx, value.GetIndex(), value); err != nil {
 			return err
 		}
 	}
@@ -268,7 +267,7 @@ func (q *Queue) PushMulti(
 
 // Len returns the length of the queue. len assumes that the lock is already
 // held.
-func (q *Queue) len(ctx context.Context) (uint64, error) {
+func (q *Queue[DepositT]) len(ctx context.Context) (uint64, error) {
 	length, err := q.length.Get(ctx)
 	if errors.Is(err, sdkcollections.ErrNotFound) {
 		return 0, nil
@@ -277,7 +276,7 @@ func (q *Queue) len(ctx context.Context) (uint64, error) {
 }
 
 // Len returns the length of the queue.
-func (q *Queue) Len(ctx context.Context) (uint64, error) {
+func (q *Queue[DepositT]) Len(ctx context.Context) (uint64, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 	length, err := q.length.Get(ctx)
@@ -288,8 +287,8 @@ func (q *Queue) Len(ctx context.Context) (uint64, error) {
 }
 
 // Container returns the underlying map container of the queue.
-func (q *Queue) Container() sdkcollections.Map[
-	uint64, *types.Deposit,
+func (q *Queue[DepositT]) Container() sdkcollections.Map[
+	uint64, DepositT,
 ] {
 	return q.container
 }

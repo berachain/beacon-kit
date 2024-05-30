@@ -29,12 +29,10 @@ import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	_ "cosmossdk.io/x/auth/tx/config" // import for side-effects
-	_ "cosmossdk.io/x/consensus"      // import for side-effects
+	_ "cosmossdk.io/x/consensus" // import for side-effects
 	consensustypes "cosmossdk.io/x/consensus/types"
 	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
@@ -67,13 +65,6 @@ func Config() depinject.Config {
 				{
 					Name:   consensustypes.ModuleName,
 					Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
-				},
-				{
-					Name: "tx",
-					Config: appconfig.WrapAny(&txconfigv1.Config{
-						SkipAnteHandler: true,
-						SkipPostHandler: true,
-					}),
 				},
 			},
 		}),

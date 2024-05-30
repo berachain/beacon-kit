@@ -25,6 +25,16 @@
 
 package deposit
 
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+)
+
+// Deposit is a struct that represents a deposit.
+type Deposit interface {
+	ssz.Marshallable
+	GetIndex() uint64
+}
+
 // RawBatch represents a group of writes. They may or may not be written
 // atomically depending on the
 // backend. Callers must call Close on the batch when done.

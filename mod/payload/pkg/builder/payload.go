@@ -47,6 +47,10 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAsync(
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
+	if !pb.Enabled() {
+		return nil, ErrPayloadBuilderDisabled
+	}
+
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
@@ -106,6 +110,9 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadSync(
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	if !pb.Enabled() {
+		return nil, ErrPayloadBuilderDisabled
+	}
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
 	payloadID, err := pb.RequestPayloadAsync(
@@ -156,6 +163,10 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrievePayload(
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+	if !pb.Enabled() {
+		return nil, ErrPayloadBuilderDisabled
+	}
+
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)

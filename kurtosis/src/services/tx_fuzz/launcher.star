@@ -9,6 +9,7 @@ MAX_MEMORY = 300
 
 def launch_tx_fuzz(
         plan,
+        id,
         prefunded_private_key,
         el_uri,
         tx_spammer_extra_args):
@@ -17,7 +18,10 @@ def launch_tx_fuzz(
         el_uri,
         tx_spammer_extra_args,
     )
-    plan.add_service(SERVICE_NAME, config)
+    plan.add_service(
+        SERVICE_NAME + "-" + str(id),
+        config,
+    )
 
 def get_config(
         prefunded_private_key,
@@ -41,7 +45,7 @@ def get_config(
         "--sk={0}".format(prefunded_private_key),
         "--accounts=100",
         "--txcount=100",
-        "--slot-time=3",
+        "--slot-time=2",
     ])
 
     if len(tx_spammer_extra_args) > 0:

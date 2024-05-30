@@ -26,6 +26,8 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -63,6 +65,8 @@ type ValidatorMiddleware[
 		encoding.ABCIRequest,
 		types.BeaconBlock,
 	]
+	// metrics is the metrics emitter.
+	metrics *validatorMiddlewareMetrics
 }
 
 // NewValidatorMiddleware creates a new instance of the Handler struct.
@@ -76,6 +80,7 @@ func NewValidatorMiddleware[
 		BeaconStateT,
 		BlobsSidecarsT,
 	],
+	telemetrySink TelemetrySink,
 ) *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT] {
 	return &ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]{
 		chainSpec:        chainSpec,
@@ -86,6 +91,7 @@ func NewValidatorMiddleware[
 			NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainSpec,
 		),
+		metrics: newValidatorMiddlewareMetrics(telemetrySink),
 	}
 }
 
@@ -97,7 +103,12 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	logger := ctx.Logger().With("service", "prepare-proposal")
+	var (
+		logger    = ctx.Logger().With("service", "prepare-proposal")
+		startTime = time.Now()
+	)
+
+	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
@@ -141,8 +152,12 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	logger := ctx.Logger().With("service", "process-proposal")
+	var (
+		logger    = ctx.Logger().With("service", "process-proposal")
+		startTime = time.Now()
+	)
 
+	defer h.metrics.measureProcessProposalDuration(startTime)
 	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
 		logger.Error(
 			"failed to retrieve beacon block from request",
