@@ -117,6 +117,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				&signer.BLSSigner{},
 			),
 			depinject.Provide(
+				components.ProvideNoopTxConfig,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
