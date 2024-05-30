@@ -313,6 +313,14 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
+	// If the block is nil, exit early.
+	if blk.IsNil() {
+		s.logger.Error(
+			"aborting block verification on nil block ❌ ",
+		)
+		return ErrNilBlk
+	}
+
 	s.logger.Info(
 		"received incoming beacon block 📫 ",
 		"state_root", blk.GetStateRoot(),

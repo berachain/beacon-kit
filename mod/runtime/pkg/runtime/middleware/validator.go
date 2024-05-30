@@ -152,23 +152,12 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		logger    = ctx.Logger().With("service", "process-proposal")
-		startTime = time.Now()
-	)
-
+	startTime := time.Now()
 	defer h.metrics.measureProcessProposalDuration(startTime)
-	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		logger.Error(
-			"failed to retrieve beacon block from request",
-			"error",
-			err,
-		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	} else if err = h.validatorService.
-		VerifyIncomingBlock(ctx, blk); err != nil {
+
+	//#nosec:G703
+	blk, _ := h.beaconBlockGossiper.Request(ctx, req)
+	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
