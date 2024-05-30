@@ -39,6 +39,16 @@ func ProvideNoopTxConfig() client.TxConfig {
 	return NoOpTxConfig{}
 }
 
+// NoOpTxConfig is a no-op implementation of the TxConfig interface.
+type NoOpTxConfig struct{}
+
+// TxEncoder returns a no-op TxEncoder.
+func (NoOpTxConfig) TxEncoder() sdk.TxEncoder {
+	return func(sdk.Tx) ([]byte, error) {
+		return nil, nil
+	}
+}
+
 // TxDecoder returns a no-op TxDecoder.
 func (NoOpTxConfig) TxDecoder() sdk.TxDecoder {
 	return func(txBytes []byte) (sdk.Tx, error) {

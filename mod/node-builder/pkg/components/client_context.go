@@ -101,16 +101,6 @@ func InitClientConfig() (string, interface{}) {
 	return config.DefaultClientConfigTemplate, clientCfg
 }
 
-// NoOpTxConfig is a no-op implementation of the TxConfig interface.
-type NoOpTxConfig struct{}
-
-// TxEncoder returns a no-op TxEncoder.
-func (NoOpTxConfig) TxEncoder() sdk.TxEncoder {
-	return func(sdk.Tx) ([]byte, error) {
-		return nil, nil
-	}
-}
-
 type fakeTx struct {
 }
 
