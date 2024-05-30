@@ -172,13 +172,23 @@ func (s *Service[
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	// During block replay, we DO NOT want to skip verifiying the payload.
-	// During normal block processing, we DO want to skip verifying the payload,
-	// since it will have been validated in ProcessProposal.
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
-			Context:                 ctx,
-			OptimisticEngine:        true,
+			Context:          ctx,
+			OptimisticEngine: true,
+			// When we are NOT synced to the tip, process proposal
+			// does NOT get called and thus we must ensure that
+			// NewPayload is called to get the execution
+			// client the payload.
+			//
+			// When we are synced to the tip, we can skip the
+			// NewPayload call since we already gave our execution client
+			// the payload in process proposal.
+			//
+			// In both cases the payload was already accepted by a majority
+			// of validators in their process proposal call and thus
+			// the "verification aspect" of this NewPayload call is
+			// actually irrelevant at this point.
 			SkipPayloadVerification: syncedToHead,
 		},
 		st,
