@@ -92,6 +92,7 @@ func NewBeaconKitApp(
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
 	app.setupBeaconModule()
 
 	// Load the app.
