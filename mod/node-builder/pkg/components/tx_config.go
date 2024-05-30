@@ -51,8 +51,8 @@ func (NoOpTxConfig) TxEncoder() sdk.TxEncoder {
 
 // TxDecoder returns a no-op TxDecoder.
 func (NoOpTxConfig) TxDecoder() sdk.TxDecoder {
-	return func(txBytes []byte) (sdk.Tx, error) {
-		return fakeTx{}, errors.New("skip decoding")
+	return func([]byte) (sdk.Tx, error) {
+		return nil, errors.New("skip decoding")
 	}
 }
 
@@ -66,7 +66,7 @@ func (NoOpTxConfig) TxJSONEncoder() sdk.TxEncoder {
 // TxJSONDecoder returns a no-op TxJSONDecoder.
 func (NoOpTxConfig) TxJSONDecoder() sdk.TxDecoder {
 	return func([]byte) (sdk.Tx, error) {
-		return fakeTx{}, nil
+		return nil, nil
 	}
 }
 

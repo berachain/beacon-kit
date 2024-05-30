@@ -35,8 +35,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -99,15 +97,4 @@ func InitClientConfig() (string, interface{}) {
 	clientCfg := config.DefaultConfig()
 	clientCfg.KeyringBackend = keyring.BackendTest
 	return config.DefaultClientConfigTemplate, clientCfg
-}
-
-type fakeTx struct {
-}
-
-func (fakeTx) GetMsgs() []sdk.Msg {
-	return nil
-}
-
-func (fakeTx) GetReflectMessages() ([]protoreflect.Message, error) {
-	return nil, nil
 }
