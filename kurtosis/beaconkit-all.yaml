@@ -58,7 +58,7 @@ full_nodes:
     cl_image: beacond:kurtosis-local
     replicas: 1
   - el_type: nethermind
-    cl_type: beaconkitF
+    cl_type: beaconkit
     cl_image: beacond:kurtosis-local
     replicas: 1
   - el_type: besu

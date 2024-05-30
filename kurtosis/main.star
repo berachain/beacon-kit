@@ -149,8 +149,6 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
     else:
         plan.print("Invalid type for eth_json_rpc_endpoint")
 
-    plan.print(full_node_configs)
-
     # 7. Start additional services
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
@@ -175,6 +173,7 @@ def run(plan, validators, full_nodes = [], eth_json_rpc_endpoints = [], boot_seq
                 op_images,
                 l1_full_node.ip_address,
             )
+            plan.print("Successfully launched OP stack L2")
         elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             fuzzing_node = validator_node_el_clients[0]["service"]
