@@ -75,7 +75,7 @@ require (
 	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/gov v0.0.0-20240504202441-b795646c9b2a // indirect
+	cosmossdk.io/x/gov v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
