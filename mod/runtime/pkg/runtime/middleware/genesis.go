@@ -26,29 +26,38 @@
 package middleware
 
 import (
-	"time"
+	"context"
+	"encoding/json"
+
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/sourcegraph/conc/iter"
 )
 
-// finalizeMiddlewareMetrics is a struct that contains metrics for the chain.
-type finalizeMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
-}
-
-// newFinalizeMiddlewareMetrics creates a new finalizeMiddlewareMetrics.
-func newFinalizeMiddlewareMetrics(
-	sink TelemetrySink,
-) *finalizeMiddlewareMetrics {
-	return &finalizeMiddlewareMetrics{
-		sink: sink,
-	}
-}
-
-// measurePreBlockDuration measures the time to run the PreBlocker.
-func (cm *finalizeMiddlewareMetrics) measurePreBlockDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.pre_block_duration", start,
+// InitGenesis is called by the base app to initialize the beacon state from
+// the eth1 genesis data.
+func (h *FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
+]) InitGenesis(
+	ctx context.Context,
+	bz []byte,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	data := new(
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
 	)
+	if err := json.Unmarshal(bz, data); err != nil {
+		return nil, err
+	}
+
+	updates, err := h.chainService.ProcessGenesisData(
+		ctx,
+		data,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert updates into the Cosmos SDK format.
+	return iter.MapErr(updates, convertValidatorUpdate)
 }
