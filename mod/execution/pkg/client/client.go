@@ -101,9 +101,8 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
-	// This is not required for IPC connections.
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
-		// If we are in a JWT mode, we will start the JWT refresh loop.
+		// If we are dialing with HTTP(S), start the JWT refresh loop.
 		defer func() {
 			if s.jwtSecret == nil {
 				s.logger.Warn(

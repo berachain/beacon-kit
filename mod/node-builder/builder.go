@@ -82,8 +82,6 @@ func (nb *NodeBuilder[T]) RunNode() error {
 	if err := nb.BuildRootCmd(); err != nil {
 		return err
 	}
-	// TODO: build cmds before calling NewNodeBuilder in main.go so that
-	// we can get depinject AppOpts during creation of dependencies.
 
 	// Run the root command.
 	if err := svrcmd.Execute(
