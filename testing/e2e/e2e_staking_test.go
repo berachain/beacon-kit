@@ -110,6 +110,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		if i == NumDepositsLoad-1 {
 			s.Logger().
 				Info("Waiting for final transaction mined", "txHash", tx.Hash().Hex())
+			blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+			s.Require().NoError(err)
 			err = s.WaitForFinalizedBlockNumber(blkNum + 5)
 			s.Require().NoError(err)
 			// Wait for the transaction to be mined.
