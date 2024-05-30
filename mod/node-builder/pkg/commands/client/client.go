@@ -43,7 +43,6 @@ func Commands[T servertypes.Application]() *cobra.Command {
 	}
 
 	clientCmd.AddCommand(
-		cosmos.TxCommands(),
 		cosmos.QueryCommands(),
 	)
 

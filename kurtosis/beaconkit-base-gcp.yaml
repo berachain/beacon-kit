@@ -78,4 +78,4 @@ eth_json_rpc_endpoints:
       - el-full-erigon-5
       - el-full-ethereumjs-6
 additional_services: 
-  - "goomy_blob"
+  - "goomy-blob"

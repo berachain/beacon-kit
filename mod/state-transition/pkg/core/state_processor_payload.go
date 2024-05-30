@@ -38,7 +38,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 //
-//nolint:funlen // todo fix.
+
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, ContextT, DepositT, ForkDataT,
@@ -49,52 +49,12 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
-
-	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, gCtx := errgroup.WithContext(context.Background())
-	var (
+		body            = blk.GetBody()
+		payload         = body.GetExecutionPayload()
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
+		g, gCtx         = errgroup.WithContext(context.Background())
 	)
-
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	// We want to check to ensure the chain is canonical with respect to the
-	// parent hash before we let the execution client know about the payload,
-	// this is to prevent Polygon style re-orgs from being triggered by a
-	// malicious actor who tries to force clients to accept a non-canonical
-	// block that passes block validity checks.
-	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
-		return errors.Wrapf(
-			ErrParentRootMismatch,
-			"parent block with hash %x is not finalized, expected finalized hash %x",
-			payload.GetParentHash(),
-			safeHash,
-		)
-	}
-
-	// Verify and notify the new payload early in the function.
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	g.Go(func() error {
-		if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-			gCtx, engineprimitives.BuildNewPayloadRequest(
-				payload,
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				ctx.GetSkipPayloadIfExists(),
-				ctx.GetOptimisticEngine(),
-			),
-		); err != nil {
-			return err
-		}
-		return nil
-	})
 
 	g.Go(func() error {
 		var txsRootErr error
@@ -111,6 +71,93 @@ func (sp *StateProcessor[
 		).HashTreeRoot()
 		return withdrawalsRootErr
 	})
+
+	if !ctx.GetSkipPayloadVerification() {
+		// Verify and notify the new payload early in the function.
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
+
+	// If deriving either of the roots or verifying the payload fails, return
+	// the error.
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// Set the latest execution payload header.
+	return st.SetLatestExecutionPayloadHeader(
+		&types.ExecutionPayloadHeaderDeneb{
+			ParentHash:       payload.GetParentHash(),
+			FeeRecipient:     payload.GetFeeRecipient(),
+			StateRoot:        payload.GetStateRoot(),
+			ReceiptsRoot:     payload.GetReceiptsRoot(),
+			LogsBloom:        payload.GetLogsBloom(),
+			Random:           payload.GetPrevRandao(),
+			Number:           payload.GetNumber(),
+			GasLimit:         payload.GetGasLimit(),
+			GasUsed:          payload.GetGasUsed(),
+			Timestamp:        payload.GetTimestamp(),
+			ExtraData:        payload.GetExtraData(),
+			BaseFeePerGas:    payload.GetBaseFeePerGas(),
+			BlockHash:        payload.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      payload.GetBlobGasUsed(),
+			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		},
+	)
+}
+
+// validateExecutionPayload validates the execution payload against both local
+// state
+// and the execution engine.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	ValidatorT, WithdrawalCredentialsT,
+]) validateExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	optimisticEngine bool,
+) error {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	// We want to check to ensure the chain is canonical with respect to the
+	// parent hash before we let the execution client know about the
+	// payload,
+	// this is to prevent Polygon style re-orgs from being triggered by a
+	// malicious actor who tries to force clients to accept a non-canonical
+	// block that passes block validity checks.
+	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
+		return errors.Wrapf(
+			ErrParentRootMismatch,
+			"parent block with hash %x is not finalized, expected finalized hash %x",
+			payload.GetParentHash(),
+			safeHash,
+		)
+	}
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+		ctx, engineprimitives.BuildNewPayloadRequest(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			optimisticEngine,
+		),
+	); err != nil {
+		return err
+	}
 
 	// Get the current epoch.
 	slot, err := st.GetSlot()
@@ -136,8 +183,9 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: Verify timestamp data once Clock is done.
-	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-	// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err !=
+	// nil { 	return errors.Newf("slot or genesis time in state is corrupt,
+	// cannot
 	// compute time: %v", err)
 	// } else if payload.Timestamp != expectedTime {
 	// 	return errors.Newf("state at slot %d, genesis time %d, expected
@@ -166,33 +214,5 @@ func (sp *StateProcessor[
 			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
-
-	// If deriving either of the roots or verifying the payload fails, return
-	// the error.
-	if err = g.Wait(); err != nil {
-		return err
-	}
-
-	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	return nil
 }

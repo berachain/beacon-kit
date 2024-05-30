@@ -30,9 +30,6 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
-	"cosmossdk.io/x/auth/tx"
-	authtxconfig "cosmossdk.io/x/auth/tx/config"
-	"cosmossdk.io/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -60,7 +57,7 @@ const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TER
 func ProvideClientContext(
 	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
-	txConfigOpts tx.ConfigOptions,
+	txConfig client.TxConfig,
 	addressCodec address.Codec,
 	validatorAddressCodec address.ValidatorAddressCodec,
 	consensusAddressCodec address.ConsensusAddressCodec,
@@ -71,7 +68,6 @@ func ProvideClientContext(
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
 		WithAddressCodec(addressCodec).
 		WithValidatorAddressCodec(validatorAddressCodec).
 		WithConsensusAddressCodec(consensusAddressCodec).
@@ -90,16 +86,6 @@ func ProvideClientContext(
 		return clientCtx, err
 	}
 
-	// textual is enabled by default, we need to re-create the tx config grpc
-	// instead of bank keeper.
-	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.
-		NewGRPCCoinMetadataQueryFn(
-			clientCtx,
-		)
-	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
-	if err != nil {
-		return clientCtx, err
-	}
 	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx, nil
