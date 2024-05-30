@@ -16,16 +16,16 @@ bash = import_module("../../../lib/bash.star")
 # DEFAULT_MIN_MEMORY = 4096
 
 # 4x resources
-# DEFAULT_MAX_CPU = 4000
-# DEFAULT_MAX_MEMORY = 16384
-# DEFAULT_MIN_CPU = 4000
-# DEFAULT_MIN_MEMORY = 16384
+DEFAULT_MAX_CPU = 4000
+DEFAULT_MAX_MEMORY = 16384
+DEFAULT_MIN_CPU = 4000
+DEFAULT_MIN_MEMORY = 16384
 
 # 8x resources
-DEFAULT_MAX_CPU = 8000
-DEFAULT_MAX_MEMORY = 32768
-DEFAULT_MIN_CPU = 8000
-DEFAULT_MIN_MEMORY = 32768
+# DEFAULT_MAX_CPU = 8000
+# DEFAULT_MAX_MEMORY = 32768
+# DEFAULT_MIN_CPU = 8000
+# DEFAULT_MIN_MEMORY = 32768
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -89,9 +89,6 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
         ports = exposed_ports,
         labels={
             "node_type": "consensus",
-        },
-        node_selectors={
-            "node_preference": "fast",
         },
     )
 
