@@ -35,71 +35,52 @@ import (
 )
 
 func TestFork_Serialization(t *testing.T) {
-	// Create a Fork
 	original := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
-	// Marshal the Fork to bytes
 	data, err := original.MarshalSSZ()
 	require.NotNil(t, data)
 	require.NoError(t, err)
 
-	// Unmarshal the bytes into a new Fork
 	var unmarshalled types.Fork
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
-	// The original and unmarshalled Fork should be the same
 	require.Equal(t, original, &unmarshalled)
 }
 
 func TestFork_SizeSSZ(t *testing.T) {
-	// Create a Fork
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
-	// Get the SSZ size of the Fork
 	size := fork.SizeSSZ()
-
-	// The size should be 16
 	require.Equal(t, 16, size)
 }
 
 func TestFork_HashTreeRoot(t *testing.T) {
-	// Create a Fork
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
-	// Get the hash tree root of the Fork
 	_, err := fork.HashTreeRoot()
-
-	// There should be no error
 	require.NoError(t, err)
 }
 
 func TestFork_GetTree(t *testing.T) {
-	// Create a Fork
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
-	// Get the SSZ tree of the Fork
 	tree, err := fork.GetTree()
-
-	// There should be no error
 	require.NoError(t, err)
-
-	// The tree should not be nil
 	require.NotNil(t, tree)
 }

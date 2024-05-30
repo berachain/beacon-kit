@@ -85,12 +85,10 @@ func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
-	// Unmarshal the bytes into a new DepositMessage
 	var unmarshalled types.DepositMessage
 	err = unmarshalled.UnmarshalSSZ(data)
-	require.NoError(t, err)
 
-	// The unmarshalled DepositMessage should be the same as the original
+	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
 }
 
@@ -108,8 +106,6 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 	var unmarshalled types.DepositMessage
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
-	// The unmarshalled DepositMessage should be the same as the original
 	require.Equal(t, original, &unmarshalled)
 }
 
@@ -120,7 +116,6 @@ func TestDepositMessage_GetTree(t *testing.T) {
 		Amount:      math.Gwei(1000),
 	}
 
-	// Get the SSZ tree of the DepositMessage
 	tree, err := original.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -131,7 +126,6 @@ func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
 	var unmarshalledDepositMessage types.DepositMessage
 	err := unmarshalledDepositMessage.UnmarshalSSZ(buf)
 
-	// The error should be ErrSize
 	require.ErrorIs(t, err, ssz.ErrSize)
 }
 

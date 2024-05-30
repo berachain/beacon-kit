@@ -43,7 +43,6 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 		common.Root{},
 	)
 
-	// Marshal the BeaconBlockHeader to bytes
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
@@ -62,7 +61,6 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 		common.Root{},
 	)
 
-	// Get the SSZ size of the BeaconBlockHeader
 	size := header.SizeSSZ()
 	require.Equal(t, 112, size)
 }

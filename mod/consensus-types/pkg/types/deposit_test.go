@@ -73,12 +73,10 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszDeposit)
 
-	// Unmarshal the SSZ back into a new deposit
 	var unmarshalledDeposit types.Deposit
 	err = unmarshalledDeposit.UnmarshalSSZ(sszDeposit)
 	require.NoError(t, err)
 
-	// The unmarshalled deposit should be equal to the original
 	require.Equal(t, originalDeposit, &unmarshalledDeposit)
 }
 
@@ -122,11 +120,9 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
-	// Unmarshal the SSZ into a new deposit
 	var unmarshalledDeposit types.Deposit
 	err := unmarshalledDeposit.UnmarshalSSZ(buf)
 
-	// The error should be ErrSize
 	require.ErrorIs(t, err, ssz.ErrSize)
 }
 

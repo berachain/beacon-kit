@@ -47,8 +47,6 @@ func TestEth1Data_Serialization(t *testing.T) {
 	var unmarshalled types.Eth1Data
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
-	// The original and unmarshalled Eth1Data should be the same
 	require.Equal(t, original, &unmarshalled)
 }
 
@@ -59,10 +57,7 @@ func TestEth1Data_SizeSSZ(t *testing.T) {
 		BlockHash:    common.ExecutionHash{},
 	}
 
-	// Get the SSZ size of the Eth1Data
 	size := eth1Data.SizeSSZ()
-
-	// The size should be 72
 	require.Equal(t, 72, size)
 }
 
@@ -73,27 +68,19 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 		BlockHash:    common.ExecutionHash{},
 	}
 
-	// Get the hash tree root of the Eth1Data
 	_, err := eth1Data.HashTreeRoot()
-
-	// There should be no error
 	require.NoError(t, err)
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
-	// Create an Eth1Data
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,
 		BlockHash:    common.ExecutionHash{},
 	}
 
-	// Get the SSZ tree of the Eth1Data
 	tree, err := eth1Data.GetTree()
 
-	// There should be no error
 	require.NoError(t, err)
-
-	// The tree should not be nil
 	require.NotNil(t, tree)
 }
