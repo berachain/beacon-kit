@@ -31,7 +31,6 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/tools/confix v0.1.1
-	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
@@ -73,6 +72,7 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240504202441-b795646c9b2a // indirect
