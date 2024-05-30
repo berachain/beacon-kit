@@ -13,6 +13,7 @@
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+IPC_PATH = .tmp/geth/geth.ipc
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
@@ -26,6 +27,7 @@ start-reth: ## start an ephemeral `reth` node
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
@@ -33,6 +35,18 @@ start-reth: ## start an ephemeral `reth` node
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
+
+
+start-geth-ipc: ## start a local ephemeral `geth` node
+	rm -rf .tmp/geth
+	geth init --datadir .tmp/geth ${ETH_GENESIS_PATH}
+	geth --datadir .tmp/geth --ipcpath ${IPC_PATH}
+
+start-ipc: ## start a local ephemeral `beacond` node with IPC
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	RPC_DIAL_URL=${IPC_PATH} \
+	RPC_PREFIX="ipc://" \
+	${TESTAPP_FILES_DIR}/entrypoint.sh 
 	
 start-geth: ## start an ephemeral `geth` node
 	rm -rf .tmp/geth
