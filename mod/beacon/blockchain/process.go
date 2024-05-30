@@ -171,7 +171,7 @@ func (s *Service[
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateTransitionDuration(startTime)
+	defer s.metrics.measureStateTransitionDuration(startTime, syncedToHead)
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
