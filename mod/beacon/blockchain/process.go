@@ -69,6 +69,7 @@ func (s *Service[
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
@@ -89,7 +90,7 @@ func (s *Service[
 		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, syncedToHead)
 		return err
 	})
 
@@ -163,32 +164,23 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ProcessBeaconBlock(
-	ctx context.Context,
-	blk types.BeaconBlock,
-) ([]*transition.ValidatorUpdate, error) {
-	st := s.sb.StateFromContext(ctx)
-	return s.processBeaconBlock(ctx, st, blk, false)
-}
-
-// ProcessBeaconBlock processes the beacon block.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
 	blk types.BeaconBlock,
-	optimisticEngine bool,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
+	// During block replay, we DO NOT want to skip verifiying the payload.
+	// During normal block processing, we DO want to skip verifying the payload,
+	// since it will have been validated in ProcessProposal.
+	skipPayloadVerification := !syncedToHead
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
-			Context:          ctx,
-			OptimisticEngine: optimisticEngine,
+			Context:                 ctx,
+			OptimisticEngine:        true,
+			SkipPayloadVerification: skipPayloadVerification,
 		},
 		st,
 		blk,

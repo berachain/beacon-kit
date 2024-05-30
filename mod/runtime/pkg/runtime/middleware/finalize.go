@@ -58,8 +58,7 @@ type FinalizeBlockMiddleware[
 	metrics *finalizeMiddlewareMetrics
 
 	// TODO: this is really hacky here.
-	LatestBeaconBlock BeaconBlockT
-	LatestSidecars    BlobsSidecarsT
+	updates []appmodulev2.ValidatorUpdate
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -114,7 +113,7 @@ func (h *FinalizeBlockMiddleware[
 func (h *FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) PreBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
+	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	startTime := time.Now()
 	defer h.metrics.measureEndBlockDuration(startTime)
@@ -130,33 +129,29 @@ func (h *FinalizeBlockMiddleware[
 		return err
 	}
 
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
+	// Process the state transition and produce the required delta from
+	// the sync committee.
+	valUpdates, err := h.chainService.ProcessBlockAndBlobs(
+		ctx,
+		// TODO: improve the robustness of these types to ensure we
+		// don't run into any nil ptr issues.
+		blk,
+		blobs,
+		req.SyncingToHeight == req.Height,
+	)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	h.updates, err = iter.MapErr(valUpdates, convertValidatorUpdate)
+	return err
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) EndBlock(
-	ctx context.Context,
+	context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Process the state transition and produce the required delta from
-	// the sync committee.
-	updates, err := h.chainService.ProcessBlockAndBlobs(
-		ctx,
-		// TODO: improve the robustness of these types to ensure we
-		// don't run into any nil ptr issues.
-		h.LatestBeaconBlock,
-		h.LatestSidecars,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return h.updates, nil
 }
