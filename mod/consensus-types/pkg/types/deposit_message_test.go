@@ -84,7 +84,7 @@ func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
 
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
-
+	require.NotNil(t, data)
 	// Unmarshal the bytes into a new DepositMessage
 	var unmarshalled types.DepositMessage
 	err = unmarshalled.UnmarshalSSZ(data)
