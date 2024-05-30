@@ -25,7 +25,6 @@ replace (
 	github.com/berachain/beacon-kit/mod/state-transition => ../mod/state-transition
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
-	github.com/cosmos/iavl => github.com/cosmos/iavl v1.1.4
 )
 
 require (
