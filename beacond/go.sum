@@ -20,8 +20,8 @@ cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce/go.mod h1:QFKLI3pmk619LV+uh4DKxVBlNCGQhvTyoVYBaxHaTNM=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
-cosmossdk.io/store v1.0.0-rc.0.0.20240530104414-90cbb022d5f6 h1:K615eoHDv5TPQ2XAYDeYbLzhS83g5hSyVotYRS7+nIo=
-cosmossdk.io/store v1.0.0-rc.0.0.20240530104414-90cbb022d5f6/go.mod h1:Ti7hR+QfWps697V11xeyHtpThCZZvz9pnuK2NpR0f3c=
+cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
+cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8 h1:/HQCqhisNVf3o/BomkYi4+afIH9/ZNbyMnw/yaSEWW8=
 cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8/go.mod h1:QtxtWcrZalTczr4O8LeR2J76Ee5YhH/p3urT4E3pKMs=
 cosmossdk.io/tools/confix v0.1.1 h1:aexyRv9+y15veH3Qw16lxQwo+ki7r2I+g0yNTEFEQM8=
