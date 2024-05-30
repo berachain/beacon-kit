@@ -78,8 +78,6 @@ type AdditionalService struct {
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
-//
-
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		AdditionalServices: []AdditionalService{
