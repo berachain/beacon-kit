@@ -25,6 +25,7 @@ start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine
+# Only works with geth-host rn
 start-ipc: ## start a local ephemeral `beacond` node with IPC
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	RPC_DIAL_URL=${IPC_PATH} \
