@@ -55,6 +55,7 @@ type BlockchainService[
 		context.Context,
 		BeaconBlockT,
 		BlobsSidecarsT,
+		bool,
 	) ([]*transition.ValidatorUpdate, error)
 }
 
