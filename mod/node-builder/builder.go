@@ -108,7 +108,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				nb.chainSpec,
-				&depositdb.KVStore{},
+				&depositdb.KVStore[*types.Deposit]{},
 				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
 				&gokzg4844.JSONTrustedSetup{},
 				&dastore.Store[types.BeaconBlockBody]{},

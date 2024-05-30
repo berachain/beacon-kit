@@ -233,6 +233,7 @@ func (ee *Engine[
 	):
 		ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
 			req.Optimistic,
 		)
 

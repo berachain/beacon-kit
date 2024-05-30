@@ -30,7 +30,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
 
@@ -48,48 +47,48 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 }
 
 // KVStore is a wrapper around an sdk.Context.
-type KVStore struct {
-	depositQueue *Queue
+type KVStore[DepositT Deposit] struct {
+	depositQueue *Queue[DepositT]
 }
 
 // NewStore creates a new deposit store.
-func NewStore(kvsp store.KVStoreService) *KVStore {
+func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	return &KVStore{
+	return &KVStore[DepositT]{
 		depositQueue: NewQueue(
 			schemaBuilder,
 			KeyDepositPrefix,
-			encoding.SSZValueCodec[*types.Deposit]{},
+			encoding.SSZValueCodec[DepositT]{},
 		),
 	}
 }
 
 // ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore) ExpectedDeposits(
+func (kv *KVStore[DepositT]) ExpectedDeposits(
 	numView uint64,
-) ([]*types.Deposit, error) {
+) ([]DepositT, error) {
 	return kv.depositQueue.PeekMulti(context.TODO(), numView)
 }
 
 // EnqueueDeposit pushes the deposit to the queue.
-func (kv *KVStore) EnqueueDeposit(deposit *types.Deposit) error {
+func (kv *KVStore[DepositT]) EnqueueDeposit(deposit DepositT) error {
 	return kv.depositQueue.Push(context.TODO(), deposit)
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*types.Deposit) error {
+func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 	return kv.depositQueue.PushMulti(context.TODO(), deposits)
 }
 
 // DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore) DequeueDeposits(
+func (kv *KVStore[DepositT]) DequeueDeposits(
 	numDequeue uint64,
-) ([]*types.Deposit, error) {
+) ([]DepositT, error) {
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
 
 // PruneToIndex removes all deposits up to the given index.
-func (kv *KVStore) PruneToIndex(
+func (kv *KVStore[DepositT]) PruneToIndex(
 	index uint64,
 ) error {
 	length, err := kv.depositQueue.Len(context.TODO())
@@ -104,7 +103,7 @@ func (kv *KVStore) PruneToIndex(
 		return err
 	}
 
-	numPop := min(index-head.Index+1, length)
+	numPop := min(index-head.GetIndex()+1, length)
 	_, err = kv.depositQueue.PopMulti(context.TODO(), numPop)
 	return err
 }

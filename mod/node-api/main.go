@@ -26,6 +26,7 @@
 package main
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
 	"github.com/labstack/echo/v4"
@@ -36,10 +37,16 @@ func NewServer(corsConfig middleware.CORSConfig,
 	loggingConfig middleware.LoggerConfig) *echo.Echo {
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
+	e.Validator = &handlers.CustomValidator{
+		Validator: server.ConstructValidator(),
+	}
 	server.UseMiddlewares(e,
 		middleware.CORSWithConfig(corsConfig),
 		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(e, handlers.RouteHandlers{})
+	server.AssignRoutes(
+		e,
+		handlers.RouteHandlers{Backend: mocks.NewMockBackend()},
+	)
 	return e
 }
 

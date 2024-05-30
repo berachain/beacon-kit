@@ -42,6 +42,7 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240511193312-dee73d6774a7
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
@@ -90,7 +91,6 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
