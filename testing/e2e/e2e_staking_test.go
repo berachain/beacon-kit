@@ -105,7 +105,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			big.NewInt(int64(nonce+uint64(i))),
 		)
 		s.Require().NoError(err)
+		s.Logger().
+			Info("Deposit transaction created", "txHash", tx.Hash().Hex())
 		if i == NumDepositsLoad-1 {
+			s.Logger().
+				Info("Waiting for final transaction mined", "txHash", tx.Hash().Hex())
 			err = s.WaitForFinalizedBlockNumber(blkNum + 5)
 			s.Require().NoError(err)
 			// Wait for the transaction to be mined.
