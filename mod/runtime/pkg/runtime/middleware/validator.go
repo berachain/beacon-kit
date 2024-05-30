@@ -156,7 +156,11 @@ func (h *ValidatorMiddleware[
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	//#nosec:G703
-	blk, _ := h.beaconBlockGossiper.Request(ctx, req)
+	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	if err != nil {
+		// TODO: Handle better.
+		blk = (*types.BeaconBlockDeneb)(nil)
+	}
 	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,

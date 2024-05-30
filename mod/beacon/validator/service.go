@@ -313,7 +313,7 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
-	// If the block is nil, exit early.
+	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Error(
 			"aborting block verification on nil block ❌ ",
@@ -351,24 +351,26 @@ func (s *Service[
 			"block_state_root",
 			blk.GetStateRoot(),
 			"local_state_root",
-			localStateRoot,
+			primitives.Root(localStateRoot),
 			"error",
 			err,
 		)
 
 		// If we reject the incoming block, we attempt to rebuild a payload for
 		// this slot.
-		go func() {
-			if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
-				//#nosec
-				slot, _ := st.GetSlot()
-				s.logger.Error(
-					"failed to re-build payload for rejected block",
-					"for_slot", slot,
-					"error", fErr,
-				)
-			}
-		}()
+		if s.localPayloadBuilder.Enabled() {
+			go func() {
+				if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
+					//#nosec
+					slot, _ := st.GetSlot()
+					s.logger.Error(
+						"failed to re-build payload for rejected block",
+						"for_slot", slot,
+						"error", fErr,
+					)
+				}
+			}()
+		}
 		return err
 	}
 
@@ -377,16 +379,18 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
-	// TODO: Put this behind a flag.
-	go func() {
-		if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
-			s.logger.Error(
-				"failed to build optimistic payload",
-				"for_slot", blk.GetSlot()+1,
-				"error", err,
-			)
-		}
-	}()
+	// TODO: Make optimistic explicitly feature flagged.
+	if s.localPayloadBuilder.Enabled() {
+		go func() {
+			if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
+				s.logger.Error(
+					"failed to build optimistic payload",
+					"for_slot", blk.GetSlot()+1,
+					"error", err,
+				)
+			}
+		}()
+	}
 
 	return nil
 }
