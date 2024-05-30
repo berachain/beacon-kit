@@ -88,7 +88,6 @@ func (sp *StateProcessor[
 					payload,
 					body.GetBlobKzgCommitments().ToVersionedHashes(),
 					&parentBeaconBlockRoot,
-					false,
 					ctx.GetOptimisticEngine(),
 				),
 			); err != nil {
