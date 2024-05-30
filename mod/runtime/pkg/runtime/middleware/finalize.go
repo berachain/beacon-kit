@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,9 +57,8 @@ type FinalizeBlockMiddleware[
 	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT]
 	// metrics is the metrics for the middleware.
 	metrics *finalizeMiddlewareMetrics
-
-	// TODO: this is really hacky here.
-	updates []appmodulev2.ValidatorUpdate
+	// valUpdates caches the validator updates as they are produced.
+	valUpdates []*transition.ValidatorUpdate
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -131,19 +131,14 @@ func (h *FinalizeBlockMiddleware[
 
 	// Process the state transition and produce the required delta from
 	// the sync committee.
-	valUpdates, err := h.chainService.ProcessBlockAndBlobs(
-		ctx,
-		// TODO: improve the robustness of these types to ensure we
-		// don't run into any nil ptr issues.
-		blk,
-		blobs,
+	h.valUpdates, err = h.chainService.ProcessBlockAndBlobs(
+		ctx, blk, blobs,
 		req.SyncingToHeight == req.Height,
 	)
 	if err != nil {
 		return err
 	}
 
-	h.updates, err = iter.MapErr(valUpdates, convertValidatorUpdate)
 	return err
 }
 
@@ -153,5 +148,5 @@ func (h FinalizeBlockMiddleware[
 ]) EndBlock(
 	context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return h.updates, nil
+	return iter.MapErr(h.valUpdates, convertValidatorUpdate)
 }
