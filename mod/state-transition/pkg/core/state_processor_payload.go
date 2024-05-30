@@ -56,43 +56,6 @@ func (sp *StateProcessor[
 		g, gCtx         = errgroup.WithContext(context.Background())
 	)
 
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	// We want to check to ensure the chain is canonical with respect to the
-	// parent hash before we let the execution client know about the payload,
-	// this is to prevent Polygon style re-orgs from being triggered by a
-	// malicious actor who tries to force clients to accept a non-canonical
-	// block that passes block validity checks.
-	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
-		return errors.Wrapf(
-			ErrParentRootMismatch,
-			"parent block with hash %x is not finalized, expected finalized hash %x",
-			payload.GetParentHash(),
-			safeHash,
-		)
-	}
-
-	// Verify and notify the new payload early in the function.
-	if !ctx.GetSkipPayloadVerification() {
-		parentBeaconBlockRoot := blk.GetParentBlockRoot()
-		g.Go(func() error {
-			if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-				gCtx, engineprimitives.BuildNewPayloadRequest(
-					payload,
-					body.GetBlobKzgCommitments().ToVersionedHashes(),
-					&parentBeaconBlockRoot,
-					ctx.GetOptimisticEngine(),
-				),
-			); err != nil {
-				return err
-			}
-			return nil
-		})
-	}
-
 	g.Go(func() error {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
@@ -109,64 +72,101 @@ func (sp *StateProcessor[
 		return withdrawalsRootErr
 	})
 
-	// Get the current epoch.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
+	if !ctx.GetSkipPayloadVerification() {
+		lph, err := st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
 
-	// When we are verifying a payload we expect that it was produced by
-	// the proposer for the slot that it is for.
-	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
-	if err != nil {
-		return err
-	}
+		// We want to check to ensure the chain is canonical with respect to the
+		// parent hash before we let the execution client know about the payload,
+		// this is to prevent Polygon style re-orgs from being triggered by a
+		// malicious actor who tries to force clients to accept a non-canonical
+		// block that passes block validity checks.
+		if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
+			return errors.Wrapf(
+				ErrParentRootMismatch,
+				"parent block with hash %x is not finalized, expected finalized hash %x",
+				payload.GetParentHash(),
+				safeHash,
+			)
+		}
 
-	// Ensure the prev randao matches the local state.
-	if payload.GetPrevRandao() != expectedMix {
-		return errors.Wrapf(
-			ErrRandaoMixMismatch,
-			"prev randao does not match, expected: %x, got: %x",
-			expectedMix, payload.GetPrevRandao(),
-		)
-	}
+		// Verify and notify the new payload early in the function.
+		parentBeaconBlockRoot := blk.GetParentBlockRoot()
+		g.Go(func() error {
+			if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+				gCtx, engineprimitives.BuildNewPayloadRequest(
+					payload,
+					body.GetBlobKzgCommitments().ToVersionedHashes(),
+					&parentBeaconBlockRoot,
+					ctx.GetOptimisticEngine(),
+				),
+			); err != nil {
+				return err
+			}
+			return nil
+		})
 
-	// TODO: Verify timestamp data once Clock is done.
-	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-	// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
-	// compute time: %v", err)
-	// } else if payload.Timestamp != expectedTime {
-	// 	return errors.Newf("state at slot %d, genesis time %d, expected
-	// execution
-	// payload time %d, but got %d",
-	// 		slot, genesisTime, expectedTime, payload.Timestamp)
-	// }
+		// Get the current epoch.
+		slot, err := st.GetSlot()
+		if err != nil {
+			return err
+		}
 
-	// Verify the number of blobs.
-	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockBlobLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
-		)
-	}
+		// When we are verifying a payload we expect that it was produced by
+		// the proposer for the slot that it is for.
+		expectedMix, err := st.GetRandaoMixAtIndex(
+			uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
+		if err != nil {
+			return err
+		}
 
-	// Verify the number of withdrawals.
-	// TODO: This is in the wrong spot I think.
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(payload.GetWithdrawals()),
-	) > sp.cs.MaxWithdrawalsPerPayload() {
-		return errors.Newf(
-			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
-		)
+		// Ensure the prev randao matches the local state.
+		if payload.GetPrevRandao() != expectedMix {
+			return errors.Wrapf(
+				ErrRandaoMixMismatch,
+				"prev randao does not match, expected: %x, got: %x",
+				expectedMix, payload.GetPrevRandao(),
+			)
+		}
+
+		// TODO: Verify timestamp data once Clock is done.
+		// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
+		// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
+		// compute time: %v", err)
+		// } else if payload.Timestamp != expectedTime {
+		// 	return errors.Newf("state at slot %d, genesis time %d, expected
+		// execution
+		// payload time %d, but got %d",
+		// 		slot, genesisTime, expectedTime, payload.Timestamp)
+		// }
+
+		// Verify the number of blobs.
+		blobKzgCommitments := body.GetBlobKzgCommitments()
+		if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
+			return errors.Wrapf(
+				ErrExceedsBlockBlobLimit,
+				"expected: %d, got: %d",
+				sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
+			)
+		}
+
+		// Verify the number of withdrawals.
+		// TODO: This is in the wrong spot I think.
+		if withdrawals := payload.GetWithdrawals(); uint64(
+			len(payload.GetWithdrawals()),
+		) > sp.cs.MaxWithdrawalsPerPayload() {
+			return errors.Newf(
+				"too many withdrawals, expected: %d, got: %d",
+				sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+			)
+		}
 	}
 
 	// If deriving either of the roots or verifying the payload fails, return
 	// the error.
-	if err = g.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
