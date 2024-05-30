@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,10 +57,8 @@ type FinalizeBlockMiddleware[
 	chainService BlockchainService[BeaconBlockT, BlobsSidecarsT]
 	// metrics is the metrics for the middleware.
 	metrics *finalizeMiddlewareMetrics
-
-	// TODO: this is really hacky here.
-	LatestBeaconBlock BeaconBlockT
-	LatestSidecars    BlobsSidecarsT
+	// valUpdates caches the validator updates as they are produced.
+	valUpdates []*transition.ValidatorUpdate
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -114,7 +113,7 @@ func (h *FinalizeBlockMiddleware[
 func (h *FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) PreBlock(
-	_ sdk.Context, req *cometabci.FinalizeBlockRequest,
+	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
 	startTime := time.Now()
 	defer h.metrics.measureEndBlockDuration(startTime)
@@ -130,33 +129,19 @@ func (h *FinalizeBlockMiddleware[
 		return err
 	}
 
-	// Update the latest beacon block and sidecars, to be utilized
-	// in EndBlock.
-	h.LatestBeaconBlock = blk
-	h.LatestSidecars = blobs
-
-	return nil
+	// Process the state transition and produce the required delta from
+	// the sync committee.
+	h.valUpdates, err = h.chainService.ProcessBlockAndBlobs(
+		ctx, blk, blobs, req.SyncingToHeight == req.Height,
+	)
+	return err
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) EndBlock(
-	ctx context.Context,
+	context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Process the state transition and produce the required delta from
-	// the sync committee.
-	updates, err := h.chainService.ProcessBlockAndBlobs(
-		ctx,
-		// TODO: improve the robustness of these types to ensure we
-		// don't run into any nil ptr issues.
-		h.LatestBeaconBlock,
-		h.LatestSidecars,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return iter.MapErr(h.valUpdates, convertValidatorUpdate)
 }
