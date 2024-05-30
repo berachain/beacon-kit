@@ -76,7 +76,7 @@ func (em *engineMetrics) markNewPayloadCalled(
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
-	_ common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
