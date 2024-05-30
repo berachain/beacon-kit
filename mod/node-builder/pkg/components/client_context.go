@@ -106,7 +106,7 @@ type NoOpTxConfig struct{}
 
 // TxEncoder returns a no-op TxEncoder.
 func (NoOpTxConfig) TxEncoder() sdk.TxEncoder {
-	return func(tx sdk.Tx) ([]byte, error) {
+	return func(sdk.Tx) ([]byte, error) {
 		return nil, nil
 	}
 }

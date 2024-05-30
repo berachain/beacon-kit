@@ -1,22 +1,42 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package components
 
 import (
 	"errors"
 
 	txsigning "cosmossdk.io/x/tx/signing"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 )
 
 // ProvideNoopTxConfig returns a no-op TxConfig.
-func ProvideNoopTxConfig() (client.TxConfig, runtime.BaseAppOption) {
-	return NoOpTxConfig{}, func(app *baseapp.BaseApp) {
-		app.SetTxDecoder(NoOpTxConfig{}.TxDecoder())
-		app.SetTxEncoder(NoOpTxConfig{}.TxEncoder())
-	}
+func ProvideNoopTxConfig() client.TxConfig {
+	return NoOpTxConfig{}
 }
 
 // TxDecoder returns a no-op TxDecoder.
@@ -28,25 +48,29 @@ func (NoOpTxConfig) TxDecoder() sdk.TxDecoder {
 
 // TxJSONEncoder returns a no-op TxJSONEncoder.
 func (NoOpTxConfig) TxJSONEncoder() sdk.TxEncoder {
-	return func(tx sdk.Tx) ([]byte, error) {
+	return func(sdk.Tx) ([]byte, error) {
 		return nil, errors.New("skip decoding")
 	}
 }
 
 // TxJSONDecoder returns a no-op TxJSONDecoder.
 func (NoOpTxConfig) TxJSONDecoder() sdk.TxDecoder {
-	return func(txBytes []byte) (sdk.Tx, error) {
+	return func([]byte) (sdk.Tx, error) {
 		return fakeTx{}, nil
 	}
 }
 
 // MarshalSignatureJSON returns a no-op MarshalSignatureJSON.
-func (NoOpTxConfig) MarshalSignatureJSON([]signingtypes.SignatureV2) ([]byte, error) {
+func (NoOpTxConfig) MarshalSignatureJSON(
+	[]signingtypes.SignatureV2,
+) ([]byte, error) {
 	return make([]byte, 0), nil
 }
 
 // UnmarshalSignatureJSON returns a no-op UnmarshalSignatureJSON.
-func (NoOpTxConfig) UnmarshalSignatureJSON([]byte) ([]signingtypes.SignatureV2, error) {
+func (NoOpTxConfig) UnmarshalSignatureJSON(
+	[]byte,
+) ([]signingtypes.SignatureV2, error) {
 	return nil, nil
 }
 
