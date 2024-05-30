@@ -51,7 +51,6 @@ func TestDBManager_Start(t *testing.T) {
 	sub.EXPECT().Unsubscribe().Return()
 	feed.EXPECT().Subscribe(mock.Anything).Return(&sub)
 
-
 	logger := log.NewNopLogger()
 	p1 := pruner.NewPruner[
 		manager.BeaconBlock,
