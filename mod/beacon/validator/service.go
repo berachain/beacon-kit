@@ -313,11 +313,31 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
+
+	// Grab a copy of the state to verify the incoming block.
+	st := s.bsb.StateFromContext(ctx)
+
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Error(
 			"aborting block verification on nil block ❌ ",
 		)
+
+		// If we reject the incoming block, we attempt to rebuild a payload for
+		// this slot.
+		if s.localPayloadBuilder.Enabled() {
+			go func() {
+				if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
+					//#nosec
+					slot, _ := st.GetSlot()
+					s.logger.Error(
+						"failed to re-build payload for rejected block",
+						"for_slot", slot,
+						"error", fErr,
+					)
+				}
+			}()
+		}
 		return ErrNilBlk
 	}
 
@@ -325,9 +345,6 @@ func (s *Service[
 		"received incoming beacon block 📫 ",
 		"state_root", blk.GetStateRoot(),
 	)
-
-	// Grab a copy of the state to verify the incoming block.
-	st := s.bsb.StateFromContext(ctx)
 
 	// We purposefully make a copy of the BeaconState in orer
 	// to avoid modifying the underlying state, for the event in which
