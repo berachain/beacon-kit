@@ -38,6 +38,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -92,6 +93,9 @@ func NewBeaconKitApp(
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app.SetTxDecoder(func(txBytes []byte) (sdk.Tx, error) {
+		return nil, nil
+	})
 	app.setupBeaconModule()
 
 	// Load the app.

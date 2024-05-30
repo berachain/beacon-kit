@@ -31,6 +31,7 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/tools/confix v0.1.1
+	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
@@ -77,7 +78,6 @@ require (
 	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/tx v0.13.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect

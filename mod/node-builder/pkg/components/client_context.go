@@ -30,14 +30,13 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
-	"cosmossdk.io/x/auth/tx"
-	authtxconfig "cosmossdk.io/x/auth/tx/config"
-	"cosmossdk.io/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -60,7 +59,7 @@ const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TER
 func ProvideClientContext(
 	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
-	txConfigOpts tx.ConfigOptions,
+	txConfig client.TxConfig,
 	addressCodec address.Codec,
 	validatorAddressCodec address.ValidatorAddressCodec,
 	consensusAddressCodec address.ConsensusAddressCodec,
@@ -71,7 +70,6 @@ func ProvideClientContext(
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
 		WithAddressCodec(addressCodec).
 		WithValidatorAddressCodec(validatorAddressCodec).
 		WithConsensusAddressCodec(consensusAddressCodec).
@@ -90,16 +88,6 @@ func ProvideClientContext(
 		return clientCtx, err
 	}
 
-	// textual is enabled by default, we need to re-create the tx config grpc
-	// instead of bank keeper.
-	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.
-		NewGRPCCoinMetadataQueryFn(
-			clientCtx,
-		)
-	txConfig, err := tx.NewTxConfigWithOptions(clientCtx.Codec, txConfigOpts)
-	if err != nil {
-		return clientCtx, err
-	}
 	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx, nil
@@ -111,4 +99,25 @@ func InitClientConfig() (string, interface{}) {
 	clientCfg := config.DefaultConfig()
 	clientCfg.KeyringBackend = keyring.BackendTest
 	return config.DefaultClientConfigTemplate, clientCfg
+}
+
+// NoOpTxConfig is a no-op implementation of the TxConfig interface.
+type NoOpTxConfig struct{}
+
+// TxEncoder returns a no-op TxEncoder.
+func (NoOpTxConfig) TxEncoder() sdk.TxEncoder {
+	return func(tx sdk.Tx) ([]byte, error) {
+		return nil, nil
+	}
+}
+
+type fakeTx struct {
+}
+
+func (fakeTx) GetMsgs() []sdk.Msg {
+	return nil
+}
+
+func (fakeTx) GetReflectMessages() ([]protoreflect.Message, error) {
+	return nil, nil
 }

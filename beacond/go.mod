@@ -32,7 +32,6 @@ require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
-	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6
 	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6
 	github.com/berachain/beacon-kit/mod/node-builder v0.0.0-00010101000000-000000000000
 	github.com/cosmos/cosmos-sdk v0.51.0
@@ -65,6 +64,7 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6 // indirect
