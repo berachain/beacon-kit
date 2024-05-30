@@ -24,8 +24,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Function to resolve absolute path
+# function to resolve absolute path from relative
 resolve_path() {
+	if [[ "$1" =~ : ]]; then
+        # treat as an address or url, return as is
+        echo "$1"
+	fi
     cd "$(dirname "$1")"
     local abs_path
     abs_path="$(pwd -P)/$(basename "$1")"
@@ -85,4 +89,5 @@ if [ -n "$RPC_DIAL_URL" ]; then
 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
 fi
 
+# run the beacon node
 eval $BEACON_START_CMD
