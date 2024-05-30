@@ -91,6 +91,7 @@ func (NoOpTxConfig) NewTxBuilder() client.TxBuilder {
 
 // WrapTxBuilder returns a no-op WrapTxBuilder.
 func (NoOpTxConfig) WrapTxBuilder(sdk.Tx) (client.TxBuilder, error) {
+	//nolint:nilnil // its whatever.
 	return nil, nil
 }
 
