@@ -31,6 +31,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -377,6 +379,14 @@ func (s *Service[
 		// this slot.
 		if s.localPayloadBuilder.Enabled() {
 			go func() {
+				if errors.Is(err, engineerrors.ErrSyncingPayloadStatus) {
+					s.logger.Warn(
+						"skipping rebuilding payload for " +
+							"rejected block due to syncing payload status",
+					)
+					return
+				}
+
 				if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
 					//#nosec
 					slot, _ := st.GetSlot()
