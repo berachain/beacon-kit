@@ -71,6 +71,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	// Marshal the original deposit to SSZ
 	sszDeposit, err := originalDeposit.MarshalSSZ()
 	require.NoError(t, err)
+	require.NotNil(t, sszDeposit)
 
 	// Unmarshal the SSZ back into a new deposit
 	var unmarshalledDeposit types.Deposit
@@ -84,8 +85,9 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 func TestDeposit_MarshalSSZTo(t *testing.T) {
 	deposit := generateValidDeposit()
 	buf := make([]byte, deposit.SizeSSZ())
-	_, err := deposit.MarshalSSZTo(buf)
+	target, err := deposit.MarshalSSZTo(buf)
 	require.NoError(t, err)
+	require.NotNil(t, target)
 }
 
 func TestDeposit_HashTreeRoot(t *testing.T) {

@@ -44,6 +44,7 @@ func TestFork_Serialization(t *testing.T) {
 
 	// Marshal the Fork to bytes
 	data, err := original.MarshalSSZ()
+	require.NotNil(t, data)
 	require.NoError(t, err)
 
 	// Unmarshal the bytes into a new Fork

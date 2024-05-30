@@ -46,7 +46,7 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	// Marshal the BeaconBlockHeader to bytes
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
-
+	require.NotNil(t, data)
 	var unmarshalled types.BeaconBlockHeader
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)

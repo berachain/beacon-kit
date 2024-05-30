@@ -41,6 +41,7 @@ func TestForkData_Serialization(t *testing.T) {
 
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
+	require.NotNil(t, data)
 
 	var unmarshalled types.ForkData
 	err = unmarshalled.UnmarshalSSZ(data)

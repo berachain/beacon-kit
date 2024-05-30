@@ -42,6 +42,7 @@ func TestEth1Data_Serialization(t *testing.T) {
 
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
+	require.NotNil(t, data)
 
 	var unmarshalled types.Eth1Data
 	err = unmarshalled.UnmarshalSSZ(data)
