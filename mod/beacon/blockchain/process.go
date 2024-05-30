@@ -69,6 +69,7 @@ func (s *Service[
 	ctx context.Context,
 	blk types.BeaconBlock,
 	sidecars BlobSidecarsT,
+	syncing bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
@@ -92,7 +93,7 @@ func (s *Service[
 		//
 		// TODO: Figure out why SkipPayloadIfExists being `true`
 		// causes nodes to create gaps in their chain.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true, syncing)
 		return err
 	})
 
@@ -171,7 +172,7 @@ func (s *Service[
 	blk types.BeaconBlock,
 ) ([]*transition.ValidatorUpdate, error) {
 	st := s.sb.StateFromContext(ctx)
-	return s.processBeaconBlock(ctx, st, blk, false)
+	return s.processBeaconBlock(ctx, st, blk, false, false)
 }
 
 // ProcessBeaconBlock processes the beacon block.
@@ -185,6 +186,7 @@ func (s *Service[
 	st BeaconStateT,
 	blk types.BeaconBlock,
 	optimisticEngine bool,
+	syncing bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)

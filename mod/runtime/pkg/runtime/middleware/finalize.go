@@ -28,6 +28,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"sync/atomic"
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -60,6 +61,9 @@ type FinalizeBlockMiddleware[
 	// TODO: this is really hacky here.
 	LatestBeaconBlock BeaconBlockT
 	LatestSidecars    BlobsSidecarsT
+
+	// TODO: Move this onto the sync service.
+	NodeIsSyncing *atomic.Bool
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -134,6 +138,10 @@ func (h *FinalizeBlockMiddleware[
 	// in EndBlock.
 	h.LatestBeaconBlock = blk
 	h.LatestSidecars = blobs
+
+	// TODO: This needs to be moved it's hacky.
+	// if height and syncing to Height are not the same, then we are syncing.
+	h.NodeIsSyncing.Store(req.Height != req.SyncingToHeight)
 	return nil
 }
 
@@ -151,6 +159,7 @@ func (h FinalizeBlockMiddleware[
 		// don't run into any nil ptr issues.
 		h.LatestBeaconBlock,
 		h.LatestSidecars,
+		h.NodeIsSyncing.Load(),
 	)
 	if err != nil {
 		return nil, err

@@ -80,21 +80,23 @@ func (sp *StateProcessor[
 	}
 
 	// Verify and notify the new payload early in the function.
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	g.Go(func() error {
-		if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-			gCtx, engineprimitives.BuildNewPayloadRequest(
-				payload,
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				ctx.GetSkipPayloadIfExists(),
-				ctx.GetOptimisticEngine(),
-			),
-		); err != nil {
-			return err
-		}
-		return nil
-	})
+	if !ctx.GetSkipPayloadVerification() {
+		parentBeaconBlockRoot := blk.GetParentBlockRoot()
+		g.Go(func() error {
+			if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+				gCtx, engineprimitives.BuildNewPayloadRequest(
+					payload,
+					body.GetBlobKzgCommitments().ToVersionedHashes(),
+					&parentBeaconBlockRoot,
+					false,
+					ctx.GetOptimisticEngine(),
+				),
+			); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
 
 	g.Go(func() error {
 		var txsRootErr error

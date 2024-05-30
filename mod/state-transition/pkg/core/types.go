@@ -99,9 +99,9 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
-	// GetSkipPayloadIfExists returns whether to skip verifying the payload if
+	// GetSkipPayloadVerification returns whether to skip verifying the payload if
 	// it already exists on the execution client.
-	GetSkipPayloadIfExists() bool
+	GetSkipPayloadVerification() bool
 	// Unwrap returns the underlying golang standard library context.
 	Unwrap() context.Context
 }
