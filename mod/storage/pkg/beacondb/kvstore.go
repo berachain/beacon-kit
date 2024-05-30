@@ -193,7 +193,9 @@ func New[
 		),
 		latestExecutionPayloadHeader: sdkcollections.NewItem[ExecutionPayloadHeaderT](
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.LatestExecutionPayloadHeaderPrefix}),
+			sdkcollections.NewPrefix(
+				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
+			),
 			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
 			encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{
 				Factory: executionPayloadHeaderFactory,
@@ -243,7 +245,9 @@ func New[
 		),
 		nextWithdrawalValidatorIndex: sdkcollections.NewItem[uint64](
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalValidatorIndexPrefix}),
+			sdkcollections.NewPrefix(
+				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
+			),
 			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
@@ -255,7 +259,9 @@ func New[
 		),
 		latestBlockHeader: sdkcollections.NewItem[BeaconBlockHeaderT](
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.LatestBeaconBlockHeaderPrefix}),
+			sdkcollections.NewPrefix(
+				[]byte{keys.LatestBeaconBlockHeaderPrefix},
+			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),

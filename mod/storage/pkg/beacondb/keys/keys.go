@@ -50,6 +50,7 @@ const (
 	ForkPrefix
 )
 
+//nolint:lll
 const (
 	WithdrawalQueuePrefixHumanReadable                  = "WithdrawalQueuePrefix"
 	RandaoMixPrefixHumanReadable                        = "RandaoMixPrefix"
