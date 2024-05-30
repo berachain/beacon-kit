@@ -175,12 +175,11 @@ func (s *Service[
 	// During block replay, we DO NOT want to skip verifiying the payload.
 	// During normal block processing, we DO want to skip verifying the payload,
 	// since it will have been validated in ProcessProposal.
-	skipPayloadVerification := !syncedToHead
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:                 ctx,
 			OptimisticEngine:        true,
-			SkipPayloadVerification: skipPayloadVerification,
+			SkipPayloadVerification: syncedToHead,
 		},
 		st,
 		blk,
