@@ -192,25 +192,6 @@ func (ee *Engine[
 		return err
 	}
 
-	// If the block already exists on our execution client
-	// we can skip sending the payload to speed things up a bit.
-	if req.SkipIfExists {
-		header, err := ee.ec.HeaderByHash(
-			ctx,
-			req.ExecutionPayload.GetBlockHash(),
-		)
-
-		// If we find the header and there is no error, we can
-		// skip any payload verification, since this block must've
-		// been validated at some point in the past.
-		if header != nil && err == nil {
-			ee.logger.Info("skipping new payload, block already available",
-				"block_hash", req.ExecutionPayload.GetBlockHash(),
-			)
-			return nil
-		}
-	}
-
 	// Otherwise we will send the payload to the execution client.
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
