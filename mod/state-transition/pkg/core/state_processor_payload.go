@@ -79,7 +79,8 @@ func (sp *StateProcessor[
 		}
 
 		// We want to check to ensure the chain is canonical with respect to the
-		// parent hash before we let the execution client know about the payload,
+		// parent hash before we let the execution client know about the
+		// payload,
 		// this is to prevent Polygon style re-orgs from being triggered by a
 		// malicious actor who tries to force clients to accept a non-canonical
 		// block that passes block validity checks.
@@ -93,19 +94,16 @@ func (sp *StateProcessor[
 		}
 
 		// Verify and notify the new payload early in the function.
-		parentBeaconBlockRoot := blk.GetParentBlockRoot()
 		g.Go(func() error {
-			if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+			parentBeaconBlockRoot := blk.GetParentBlockRoot()
+			return sp.executionEngine.VerifyAndNotifyNewPayload(
 				gCtx, engineprimitives.BuildNewPayloadRequest(
 					payload,
 					body.GetBlobKzgCommitments().ToVersionedHashes(),
 					&parentBeaconBlockRoot,
 					ctx.GetOptimisticEngine(),
 				),
-			); err != nil {
-				return err
-			}
-			return nil
+			)
 		})
 
 		// Get the current epoch.
@@ -132,8 +130,9 @@ func (sp *StateProcessor[
 		}
 
 		// TODO: Verify timestamp data once Clock is done.
-		// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-		// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
+		// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err !=
+		// nil { 	return errors.Newf("slot or genesis time in state is corrupt,
+		// cannot
 		// compute time: %v", err)
 		// } else if payload.Timestamp != expectedTime {
 		// 	return errors.Newf("state at slot %d, genesis time %d, expected
