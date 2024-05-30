@@ -30,23 +30,19 @@ import "context"
 // Context is the context for the state transition.
 type Context struct {
 	context.Context
-
 	// OptimisticEngine indicates whether to optimistically assume
 	// the execution client has the correct state certain errors
 	// are returned by the execution engine.
 	OptimisticEngine bool
-
-	// SkipValidateRandao indicates whether to skip validating the Randao mix.
-	SkipValidateRandao bool
-
-	// SkipValidateResult indicates whether to validate the result of
-	// the state transition.
-	SkipValidateResult bool
-
 	// SkipPayloadVerification indicates whether to skip calling NewPayload
 	// on the execution client. This can be done when the node is not
 	// syncing, and the payload is already known to the execution client.
 	SkipPayloadVerification bool
+	// SkipValidateRandao indicates whether to skip validating the Randao mix.
+	SkipValidateRandao bool
+	// SkipValidateResult indicates whether to validate the result of
+	// the state transition.
+	SkipValidateResult bool
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -54,6 +50,13 @@ type Context struct {
 // execution engine.
 func (c *Context) GetOptimisticEngine() bool {
 	return c.OptimisticEngine
+}
+
+// GetSkipPayloadVerification returns whether to skip calling NewPayload on the
+// execution client. This can be done when the node is not syncing, and the
+// payload is already known to the execution client.
+func (c *Context) GetSkipPayloadVerification() bool {
+	return c.SkipPayloadVerification
 }
 
 // GetSkipValidateRandao returns whether to skip validating the Randao mix.
@@ -65,13 +68,6 @@ func (c *Context) GetSkipValidateRandao() bool {
 // transition.
 func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
-}
-
-// GetSkipPayloadVerification returns whether to skip calling NewPayload on the
-// execution client. This can be done when the node is not syncing, and the
-// payload is already known to the execution client.
-func (c *Context) GetSkipPayloadVerification() bool {
-	return c.SkipPayloadVerification
 }
 
 // Unwrap returns the underlying standard context.

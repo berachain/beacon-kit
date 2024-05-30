@@ -49,15 +49,11 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	var (
-		body    = blk.GetBody()
-		payload = body.GetExecutionPayload()
-	)
-
-	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, gCtx := errgroup.WithContext(context.Background())
-	var (
+		body            = blk.GetBody()
+		payload         = body.GetExecutionPayload()
 		txsRoot         primitives.Root
 		withdrawalsRoot primitives.Root
+		g, gCtx         = errgroup.WithContext(context.Background())
 	)
 
 	lph, err := st.GetLatestExecutionPayloadHeader()
