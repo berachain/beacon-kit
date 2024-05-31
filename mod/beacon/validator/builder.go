@@ -29,7 +29,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -67,8 +66,7 @@ func (s *Service[
 		)
 	}
 
-	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock[BeaconBlockT](
+	return blk.NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
