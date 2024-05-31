@@ -33,6 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
+// ExecutionPayload represents an execution payload across
+// all fork versions.
 type ExecutionPayload struct {
 	engineprimitives.ExecutionPayload
 }
