@@ -30,8 +30,8 @@ package core
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -47,8 +47,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {

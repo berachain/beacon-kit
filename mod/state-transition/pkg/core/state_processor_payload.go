@@ -32,6 +32,9 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -42,8 +45,8 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -67,9 +70,10 @@ func (sp *StateProcessor[
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
+
+		withdrawalsRoot, withdrawalsRootErr = ssz.MerkleizeListComposite[any, math.U64](
+			payload.GetWithdrawals(), constants.MaxWithdrawalsPerPayload,
+		)
 		return withdrawalsRootErr
 	})
 
@@ -118,8 +122,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
