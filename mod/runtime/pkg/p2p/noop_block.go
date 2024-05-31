@@ -37,7 +37,7 @@ import (
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlockGossipHandler[ReqT encoding.ABCIRequest] struct {
-	NoopGossipHandler[types.BeaconBlock, []byte]
+	NoopGossipHandler[*types.WrappedBeaconBlock, []byte]
 	chainSpec common.ChainSpec
 }
 
@@ -45,7 +45,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[ReqT] {
 	return NoopBlockGossipHandler[ReqT]{
-		NoopGossipHandler: NoopGossipHandler[types.BeaconBlock, []byte]{},
+		NoopGossipHandler: NoopGossipHandler[*types.WrappedBeaconBlock, []byte]{},
 		chainSpec:         chainSpec,
 	}
 }

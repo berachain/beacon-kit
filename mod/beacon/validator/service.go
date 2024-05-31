@@ -41,7 +41,7 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
@@ -86,7 +86,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,

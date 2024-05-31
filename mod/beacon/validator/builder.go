@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -68,7 +67,7 @@ func (s *Service[
 		)
 	}
 
-	x, err := (&types.WrappedBeaconBlock{}).NewWithVersion(
+	x, err := blk.NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,

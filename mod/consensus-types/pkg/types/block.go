@@ -39,12 +39,17 @@ type WrappedBeaconBlock struct {
 
 // Empty creates an empty beacon block.
 func (w *WrappedBeaconBlock) Empty(forkVersion uint32) *WrappedBeaconBlock {
-	return &WrappedBeaconBlock{
-		BeaconBlock: &BeaconBlockDeneb{},
+	switch forkVersion {
+	case version.Deneb:
+		return &WrappedBeaconBlock{
+			BeaconBlock: &BeaconBlockDeneb{},
+		}
+	default:
+		panic("fork version not supported")
 	}
 }
 
-// NewWithVersion assembles a new beacon block from the given
+// NewWithVersion assembles a new beacon block from the given.
 func (w *WrappedBeaconBlock) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
@@ -60,7 +65,7 @@ func (w *WrappedBeaconBlock) NewWithVersion(
 				Slot: uint64(slot),
 				//#nosec:G701 // this is safe.
 				ProposerIndex:   uint64(proposerIndex),
-				ParentBlockRoot: bytes.B32(parentBlockRoot),
+				ParentBlockRoot: parentBlockRoot,
 				StateRoot:       bytes.B32{},
 			},
 			Body: &BeaconBlockBodyDeneb{},
@@ -75,7 +80,10 @@ func (w *WrappedBeaconBlock) NewWithVersion(
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (w *WrappedBeaconBlock) NewFromSSZ(bz []byte, forkVersion uint32) (*WrappedBeaconBlock, error) {
+func (w *WrappedBeaconBlock) NewFromSSZ(
+	bz []byte,
+	forkVersion uint32,
+) (*WrappedBeaconBlock, error) {
 	// TODO: switch is fugazi atm.
 	var block = new(WrappedBeaconBlock)
 	switch forkVersion {

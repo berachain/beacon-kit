@@ -41,9 +41,15 @@ import (
 )
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock[BeaconBlockBodyT BeaconBlockBody[
+type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
 	*types.Deposit, *types.Eth1Data,
 ]] interface {
+	NewWithVersion(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		forkVersion uint32,
+	) (BeaconBlockT, error)
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	ReadOnlyBeaconBlock[BeaconBlockBodyT]
@@ -110,7 +116,7 @@ type BeaconState[BeaconStateT any] interface {
 
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
 	BlobSidecarsT BlobSidecars,
 ] interface {
