@@ -59,7 +59,7 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 }
 
 // StringToDialURLFunc returns a DecodeHookFunc that converts
-// string to *url.URL by parsing the string.
+// string to *beaconurl.ConnectionURL by parsing the string.
 func StringToConnectionURLFunc() mapstructure.DecodeHookFunc {
 	return StringTo(beaconurl.NewFromRaw)
 }

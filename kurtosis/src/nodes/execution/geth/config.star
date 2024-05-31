@@ -63,6 +63,7 @@ CMD = [
     "80086",
 ]
 BOOTNODE_CMD = "--bootnodes"
+MAX_PEERS_CMD = "--maxpeers"
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {
@@ -75,3 +76,10 @@ VERBOSITY_LEVELS = {
 
 USED_PORTS = defaults.USED_PORTS
 USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
+
+def set_max_peers(config, max_peers):
+    cmdList = config["cmd"][:]
+    cmdList.append(MAX_PEERS_CMD)
+    cmdList.append(max_peers)
+    config["cmd"] = cmdList
+    return config
