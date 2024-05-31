@@ -23,14 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd
+package genesis
 
-import "errors"
+const (
+	ChainID         = 80086
+	ZeroHex         = 0x0
+	ZeroNonce       = 0x0000000000000000
+	DefaultGasLimit = 0x1c9c380
+	//nolint:lll // default genesis extra data
+	DefaultExtraData = "0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	DefaultCoinBase  = "0x0000000000000000000000000000000000000000"
 
-//nolint:lll // long err messages
-var (
-	errInvalidEthGenesisFormat = errors.New("invalid eth genesis format")
-	errPredeployFlagsLength    = errors.New("predeploy flags must have the same length")
-	errAccountFlagsLength      = errors.New("account flags must have the same length")
-	errInvalidAccountBalance   = errors.New("invalid account balance")
+	HexBase = 16
 )

@@ -145,7 +145,7 @@ func NewNethermind() *Nethermind {
 		Genesis: NetherGenesis{
 			Coinbase:   "0x0000000000000000000000000000000000000000",
 			Difficulty: "0x0",
-			ExtraData:  "0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+			ExtraData:  DefaultExtraData,
 			GasLimit:   "0x1c9c380",
 			Nonce:      "0x0000000000000000",
 			Timestamp:  "0x0",
@@ -160,20 +160,25 @@ func (n *Nethermind) AddAccount(address string, balance *big.Int) error {
 	}
 
 	n.Accounts[address] = Account{
-		Balance: "0x" + balance.Text(16), // Convert balance to hexadecimal
+		Balance: "0x" + balance.Text(HexBase), // Convert balance to hexadecimal
 	}
 	return nil
 }
 
-func (n *Nethermind) AddPredeploy(address string, code []byte, balance *big.Int, nonce uint64) error {
+func (n *Nethermind) AddPredeploy(
+	address string,
+	code []byte,
+	balance *big.Int,
+	nonce uint64) error {
 	if _, ok := n.Accounts[address]; ok {
 		return errPredeployAlreadyExists
 	}
 
 	n.Accounts[address] = Account{
-		Balance: "0x" + balance.Text(16),              // Convert balance to hexadecimal
-		Nonce:   "0x" + strconv.FormatUint(nonce, 16), // Convert nonce to hexadecimal
-		Code:    "0x" + hex.FromBytes(code).Unwrap(),  // Convert code to hexadecimal
+		// convert to hexadecimal
+		Balance: "0x" + balance.Text(HexBase),
+		Nonce:   "0x" + strconv.FormatUint(nonce, HexBase),
+		Code:    "0x" + hex.FromBytes(code).Unwrap(),
 	}
 
 	return nil

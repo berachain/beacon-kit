@@ -28,7 +28,7 @@ package genesis
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
@@ -44,17 +44,14 @@ type Geth struct {
 func NewGeth() *Geth {
 	return &Geth{
 		&core.Genesis{
-			Config:    defaultGethChainConfig(),
-			Nonce:     0x0000000000000000,
-			Timestamp: 0x0,
-			ExtraData: common.FromHex(
-				//nolint:lll // default genesis extra data
-				"0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-			),
-			GasLimit:   0x1c9c380,
-			Difficulty: big.NewInt(0x0),
+			Config:     defaultGethChainConfig(),
+			Nonce:      ZeroNonce,
+			Timestamp:  ZeroHex,
+			ExtraData:  common.FromHex(DefaultExtraData),
+			GasLimit:   DefaultGasLimit,
+			Difficulty: big.NewInt(ZeroHex),
 			Alloc:      make(types.GenesisAlloc),
-			Coinbase:   common.Address{},
+			Coinbase:   common.ExecutionAddress{},
 		},
 	}
 }
@@ -70,7 +67,11 @@ func (g *Geth) AddAccount(address string, balance *big.Int) error {
 	return nil
 }
 
-func (g *Geth) AddPredeploy(address string, code []byte, balance *big.Int, nonce uint64) error {
+func (g *Geth) AddPredeploy(
+	address string,
+	code []byte,
+	balance *big.Int,
+	nonce uint64) error {
 	addr := common.HexToAddress(address)
 	if _, ok := g.Alloc[addr]; ok {
 		return errPredeployAlreadyExists
@@ -89,7 +90,7 @@ func (g *Geth) WriteJSON(filename string) error {
 
 func defaultGethChainConfig() *params.ChainConfig {
 	return &params.ChainConfig{
-		ChainID:                       big.NewInt(80086), // 80086 is the chain ID for Berachain
+		ChainID:                       big.NewInt(ChainID),
 		HomesteadBlock:                big.NewInt(0),
 		DAOForkBlock:                  big.NewInt(0),
 		DAOForkSupport:                true,
