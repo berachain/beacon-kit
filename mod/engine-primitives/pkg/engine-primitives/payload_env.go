@@ -31,9 +31,9 @@ import (
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
-type BuiltExecutionPayloadEnv interface {
+type BuiltExecutionPayloadEnv[T any] interface {
 	// GetExecutionPayload retrieves the associated execution payload.
-	GetExecutionPayload() ExecutionPayload
+	GetExecutionPayload() T
 	// GetValue returns the Wei value of the block in the execution payload.
 	GetValue() math.Wei
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
@@ -57,7 +57,7 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	ExecutionPayloadT ExecutionPayload,
+	ExecutionPayloadT any,
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
@@ -70,7 +70,7 @@ type ExecutionPayloadEnvelope[
 // ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
 	ExecutionPayloadT, BlobsBundleT,
-]) GetExecutionPayload() ExecutionPayload {
+]) GetExecutionPayload() ExecutionPayloadT {
 	return e.ExecutionPayload
 }
 

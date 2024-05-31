@@ -82,7 +82,7 @@ func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
+	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
@@ -94,7 +94,7 @@ func ProvideRuntime(
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
-	executionEngine := execution.New[engineprimitives.ExecutionPayload](
+	executionEngine := execution.New[*types.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
 		ts,
@@ -157,6 +157,7 @@ func ProvideRuntime(
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
+		*types.ExecutionPayload,
 		*types.ForkData,
 		*types.Validator,
 		types.WithdrawalCredentials,

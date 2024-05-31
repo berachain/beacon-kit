@@ -29,6 +29,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -82,7 +83,7 @@ func (s *Service[
 	BlobSidecarsT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
 		RetrievePayload(

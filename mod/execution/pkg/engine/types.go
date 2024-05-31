@@ -30,7 +30,8 @@ import (
 )
 
 // ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload interface {
+type ExecutionPayload[ExecutionPayloadT any] interface {
+	Empty(uint32) ExecutionPayloadT
 	// GetTransactions returns the transactions included in the payload.
 	GetTransactions() [][]byte
 	// GetBlockHash returns the hash of the block.

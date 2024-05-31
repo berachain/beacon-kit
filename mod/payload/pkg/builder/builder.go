@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -37,6 +38,12 @@ import (
 // execution client.
 type PayloadBuilder[
 	BeaconStateT BeaconState,
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	},
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -45,7 +52,7 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine
+	ee ExecutionEngine[ExecutionPayloadT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -55,16 +62,21 @@ type PayloadBuilder[
 }
 
 // NewService creates a new service.
-func New[BeaconStateT BeaconState](
+func New[BeaconStateT BeaconState, ExecutionPayloadT interface {
+	IsNil() bool
+	Empty(uint32) ExecutionPayloadT
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+}](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine,
+	ee ExecutionEngine[ExecutionPayloadT],
 	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
-) *PayloadBuilder[BeaconStateT] {
-	return &PayloadBuilder[BeaconStateT]{
+) *PayloadBuilder[BeaconStateT, ExecutionPayloadT] {
+	return &PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -74,6 +86,6 @@ func New[BeaconStateT BeaconState](
 }
 
 // Enabled returns true if the payload builder is enabled.
-func (pb *PayloadBuilder[BeaconStateT]) Enabled() bool {
+func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) Enabled() bool {
 	return pb.cfg.Enabled
 }
