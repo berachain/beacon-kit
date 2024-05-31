@@ -402,6 +402,40 @@ func TestRangeDB_Invariants(t *testing.T) {
 	}
 }
 
+// MockDB that errors after a certain number of calls.
+type ErrMockDB struct {
+	*file.DB
+	callsUntilError int
+}
+
+func NewErrMockDB(calls int) *ErrMockDB {
+	return &ErrMockDB{
+		DB:              newTestFDB(),
+		callsUntilError: calls,
+	}
+}
+
+func (m *ErrMockDB) RemoveAll(_ string) error {
+	if m.callsUntilError == 0 {
+		return errors.New("mocked error")
+	}
+	m.callsUntilError--
+	return nil
+}
+
+// explicit enforcement of the RangeDB invariant on Pruning error.
+func TestRangeDB_Invariant_Err(t *testing.T) {
+	rdb := file.NewRangeDB(NewErrMockDB(2), 2)
+	// populate the DB
+	_ = populateTestDB(rdb, 1, 5)
+	// first call to prune will move the firstNonNilIndex to 3
+	_ = rdb.Prune(3)
+	// second call to prune will err
+	_ = rdb.Prune(10)
+	// enforce invariant
+	requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+}
+
 // =============================== HELPERS ==================================
 
 // newTestFDB returns a new file DB instance with an in-memory filesystem.

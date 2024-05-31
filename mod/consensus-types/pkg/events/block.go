@@ -31,11 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
+// BlockEvent is an event that contains a beacon block.
 type Block[BeaconBlockT types.BeaconBlock] struct {
 	ctx   context.Context
 	block BeaconBlockT
 }
 
+// NewBlock creates a new Block event.
 func NewBlock[
 	BeaconBlockT types.BeaconBlock,
 ](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
@@ -45,10 +47,12 @@ func NewBlock[
 	}
 }
 
+// Context returns the context of the event.
 func (e Block[BeaconBlockT]) Context() context.Context {
 	return e.ctx
 }
 
+// Block returns the block of the event.
 func (e Block[BeaconBlockT]) Block() types.BeaconBlock {
 	return e.block
 }
