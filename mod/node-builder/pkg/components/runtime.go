@@ -90,8 +90,7 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
-		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal],
+		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 	],
@@ -150,10 +149,7 @@ func ProvideRuntime(
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
 		*types.BeaconBlock,
-		core.BeaconState[
-			*types.BeaconBlockHeader,
-			*types.Validator, *engineprimitives.Withdrawal,
-		],
+		BeaconState,
 	](
 		chainSpec,
 		signer,
@@ -163,11 +159,7 @@ func ProvideRuntime(
 		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		*types.BeaconBlockHeader,
-		core.BeaconState[
-			*types.BeaconBlockHeader,
-			*types.Validator,
-			*engineprimitives.Withdrawal,
-		],
+		BeaconState,
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
