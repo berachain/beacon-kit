@@ -227,11 +227,10 @@ type Validator[
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
-	interface {
-		HashTreeRoot() ([32]byte, error)
-		SizeSSZ() int
-		Equals(WithdrawalT) bool
-	}
+	ssz.Marshaler
+	ssz.HashRoot
+	// Equals returns true if the withdrawal is equal to the other.
+	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.

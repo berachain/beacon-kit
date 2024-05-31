@@ -60,7 +60,8 @@ func (w *Withdrawal) GetIndex() math.U64 {
 	return w.Index
 }
 
-// GetValidatorIndex returns the index of the validator initiating the withdrawal.
+// GetValidatorIndex returns the index of the validator initiating the
+// withdrawal.
 func (w *Withdrawal) GetValidatorIndex() math.ValidatorIndex {
 	return w.Validator
 }

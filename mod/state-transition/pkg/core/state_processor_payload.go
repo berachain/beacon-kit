@@ -72,7 +72,8 @@ func (sp *StateProcessor[
 		var withdrawalsRootErr error
 
 		withdrawalsRoot, withdrawalsRootErr = ssz.MerkleizeListComposite[any, math.U64](
-			payload.GetWithdrawals(), constants.MaxWithdrawalsPerPayload,
+			payload.GetWithdrawals(),
+			constants.MaxWithdrawalsPerPayload,
 		)
 		return withdrawalsRootErr
 	})

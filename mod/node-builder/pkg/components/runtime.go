@@ -113,7 +113,8 @@ func ProvideRuntime(
 	}
 
 	// Build the local builder service.
-	localBuilder := payloadbuilder.New[core.BeaconState[*types.Validator, *engineprimitives.Withdrawal]](
+	localBuilder := payloadbuilder.New[core.BeaconState[
+		*types.Validator, *engineprimitives.Withdrawal]](
 		&cfg.PayloadBuilder,
 		chainSpec,
 		logger.With("service", "payload-builder"),
@@ -176,7 +177,9 @@ func ProvideRuntime(
 	validatorService := validator.NewService[
 		*types.BeaconBlock,
 		types.BeaconBlockBody,
-		core.BeaconState[*types.Validator, *engineprimitives.Withdrawal], *datypes.BlobSidecars,
+		core.BeaconState[
+			*types.Validator, *engineprimitives.Withdrawal,
+		], *datypes.BlobSidecars,
 	](
 		&cfg.Validator,
 		logger.With("service", "validator"),
@@ -195,7 +198,9 @@ func ProvideRuntime(
 		randaoProcessor,
 		storageBackend.DepositStore(nil),
 		localBuilder,
-		[]validator.PayloadBuilder[core.BeaconState[*types.Validator, *engineprimitives.Withdrawal]]{
+		[]validator.PayloadBuilder[core.BeaconState[
+			*types.Validator, *engineprimitives.Withdrawal,
+		]]{
 			localBuilder,
 		},
 		ts,
