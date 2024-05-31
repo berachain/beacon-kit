@@ -128,4 +128,9 @@ var (
 	ErrNilPayloadStatus = errors.New(
 		"nil payload status received from execution client",
 	)
+
+	// ErrEngineAPITimeout is returned when the engine API call times out.
+	ErrEngineAPITimeout = errors.New(
+		"engine API call timed out",
+	)
 )
