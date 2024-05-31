@@ -211,7 +211,6 @@ func ProvideRuntime(
 		logger.With("service", "blockchain"),
 		chainSpec,
 		executionEngine,
-		localBuilder,
 		dablob.NewProcessor[
 			*dastore.Store[types.BeaconBlockBody],
 			types.BeaconBlockBody,
