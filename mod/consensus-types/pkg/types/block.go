@@ -26,25 +26,31 @@
 package types
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// EmptyBeaconBlock assembles a new beacon block from
-// the given slot, time, execution data, and version. It
-// returns an error if the fork version is not supported.
-func EmptyBeaconBlock[
-	ReturnT any,
-	SlotT, ProposerIndexT ~uint64,
-	ParentBlockRootT ~[32]byte](
-	slot SlotT,
-	proposerIndex ProposerIndexT,
-	parentBlockRoot ParentBlockRootT,
+// BeaconBlock is the interface for a beacon block.
+type WrappedBeaconBlock struct {
+	BeaconBlock
+}
+
+// Empty creates an empty beacon block.
+func (w *WrappedBeaconBlock) Empty(forkVersion uint32) *WrappedBeaconBlock {
+	return &WrappedBeaconBlock{
+		BeaconBlock: &BeaconBlockDeneb{},
+	}
+}
+
+// NewWithVersion assembles a new beacon block from the given
+func (w *WrappedBeaconBlock) NewWithVersion(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
 	forkVersion uint32,
-) (ReturnT, error) {
+) (*WrappedBeaconBlock, error) {
 	var block BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
@@ -60,31 +66,29 @@ func EmptyBeaconBlock[
 			Body: &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return reflect.ValueOf(block).Interface().(ReturnT),
-			ErrForkVersionNotSupported
+		return &WrappedBeaconBlock{}, ErrForkVersionNotSupported
 	}
-	return reflect.ValueOf(block).Interface().(ReturnT), nil
+
+	return &WrappedBeaconBlock{
+		BeaconBlock: block,
+	}, nil
 }
 
-// BeaconBlockFromSSZ assembles a new beacon block
-// from the given SSZ bytes and fork version.
-func BeaconBlockFromSSZ(
-	bz []byte,
-	forkVersion uint32,
-) (BeaconBlock, error) {
+// NewFromSSZ creates a new beacon block from the given SSZ bytes.
+func (w *WrappedBeaconBlock) NewFromSSZ(bz []byte, forkVersion uint32) (*WrappedBeaconBlock, error) {
 	// TODO: switch is fugazi atm.
-	var block BeaconBlockDeneb
+	var block = new(WrappedBeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
-		_ = block
+		block.BeaconBlock = &BeaconBlockDeneb{}
 	default:
-		return &block, ErrForkVersionNotSupported
+		return block, ErrForkVersionNotSupported
 	}
 
 	if err := block.UnmarshalSSZ(bz); err != nil {
-		return &block, err
+		return block, err
 	}
-	return &block, nil
+	return block, nil
 }
 
 // BeaconBlockDeneb represents a block in the beacon chain during

@@ -49,6 +49,6 @@ func (e Block[BeaconBlockT]) Context() context.Context {
 	return e.ctx
 }
 
-func (e Block[BeaconBlockT]) Block() types.BeaconBlock {
+func (e Block[BeaconBlockT]) Block() BeaconBlockT {
 	return e.block
 }

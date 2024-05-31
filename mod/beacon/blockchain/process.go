@@ -67,7 +67,7 @@ func (s *Service[
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
-	blk types.BeaconBlock,
+	blk *types.WrappedBeaconBlock,
 	sidecars BlobSidecarsT,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -114,7 +114,7 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, blk))
+	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
@@ -167,7 +167,7 @@ func (s *Service[
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk *types.WrappedBeaconBlock,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()

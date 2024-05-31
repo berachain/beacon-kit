@@ -53,7 +53,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 // Publish takes a BeaconBlock and returns the ssz marshalled data.
 func (n NoopBlockGossipHandler[ReqT]) Publish(
 	_ context.Context,
-	data types.BeaconBlock,
+	data *types.WrappedBeaconBlock,
 ) ([]byte, error) {
 	return data.MarshalSSZ()
 }
@@ -62,8 +62,8 @@ func (n NoopBlockGossipHandler[ReqT]) Publish(
 func (n NoopBlockGossipHandler[ReqT]) Request(
 	_ context.Context,
 	req ReqT,
-) (types.BeaconBlock, error) {
-	return encoding.UnmarshalBeaconBlockFromABCIRequest[types.BeaconBlock](
+) (*types.WrappedBeaconBlock, error) {
+	return encoding.UnmarshalBeaconBlockFromABCIRequest[*types.WrappedBeaconBlock](
 		req,
 		0,
 		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),

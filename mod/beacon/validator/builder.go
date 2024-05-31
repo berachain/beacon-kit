@@ -27,6 +27,7 @@ package validator
 
 import (
 	"context"
+	"reflect"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -67,13 +68,17 @@ func (s *Service[
 		)
 	}
 
-	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock[BeaconBlockT](
+	x, err := (&types.WrappedBeaconBlock{}).NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
+	if err != nil {
+		return blk, err
+	}
+
+	return reflect.ValueOf(x).Interface().(BeaconBlockT), nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.

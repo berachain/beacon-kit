@@ -26,7 +26,7 @@
 package components
 
 import (
-	"cosmossdk.io/log"
+	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
@@ -144,7 +144,7 @@ func ProvideRuntime(
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
-		types.BeaconBlock,
+		*types.WrappedBeaconBlock,
 		core.BeaconState[*types.Validator],
 	](
 		chainSpec,
@@ -152,7 +152,7 @@ func ProvideRuntime(
 	)
 
 	stateProcessor := core.NewStateProcessor[
-		types.BeaconBlock,
+		*types.WrappedBeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
@@ -169,11 +169,11 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[events.Block[types.BeaconBlock]]{}
+	blockFeed := event.FeedOf[events.Block[*types.WrappedBeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
-		types.BeaconBlock,
+		*types.WrappedBeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
@@ -184,7 +184,7 @@ func ProvideRuntime(
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
-			types.BeaconBlock,
+			*types.WrappedBeaconBlock,
 			types.BeaconBlockBody,
 		](
 			chainSpec,
@@ -227,8 +227,8 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		types.BeaconBlock,
-		events.Block[types.BeaconBlock],
+		*types.WrappedBeaconBlock,
+		events.Block[*types.WrappedBeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](

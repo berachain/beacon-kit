@@ -75,7 +75,7 @@ func (s *Service[
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk *types.WrappedBeaconBlock,
 ) {
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()

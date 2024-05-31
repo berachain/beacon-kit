@@ -64,7 +64,7 @@ type Service[
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
-		types.BeaconBlock,
+		*types.WrappedBeaconBlock,
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
@@ -72,7 +72,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[types.BeaconBlock]]
+	blockFeed EventFeed[events.Block[*types.WrappedBeaconBlock]]
 }
 
 // NewService creates a new validator service.
@@ -96,11 +96,11 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		types.BeaconBlock, BeaconStateT,
+		*types.WrappedBeaconBlock, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[types.BeaconBlock]],
+	blockFeed EventFeed[events.Block[*types.WrappedBeaconBlock]],
 ) *Service[
 	AvailabilityStoreT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
