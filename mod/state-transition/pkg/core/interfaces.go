@@ -37,22 +37,22 @@ import (
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
-type BeaconState[ValidatorT any] interface {
-	Copy() BeaconState[ValidatorT]
+type BeaconState[ValidatorT, WithdrawalT any] interface {
+	Copy() BeaconState[ValidatorT, WithdrawalT]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[ValidatorT]
+	ReadOnlyBeaconState[ValidatorT, WithdrawalT]
 	WriteOnlyBeaconState[ValidatorT]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[ValidatorT any] interface {
+type ReadOnlyBeaconState[ValidatorT, WithdrawalT any] interface {
 	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
-	ReadOnlyWithdrawals
+	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
@@ -153,6 +153,6 @@ type ReadOnlyEth1Data interface {
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+type ReadOnlyWithdrawals[WithdrawalT any] interface {
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 }
