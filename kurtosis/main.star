@@ -50,7 +50,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
 
     # 3. Perform genesis ceremony
-    beacond.perform_genesis_ceremony_parallel(plan, validators, jwt_file)
+    beacond.perform_genesis_ceremony(plan, validators, jwt_file)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
@@ -136,37 +136,33 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     validator_node_el_clients = []
 
     for n, validator in enumerate(validators):
-        index = n
-        el_client_config = execution.generate_node_config(plan, node_modules, validator, "validator", index, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, validator, "validator", n, el_enode_addrs)
         validator_node_el_clients.append(el_client_config)
 
     validator_el_clients = execution.deploy_nodes(plan, validator_node_el_clients)
 
     for n, validator in enumerate(validators):
-        index = n
-        el_service_name = "el-{}-{}-{}".format("validator", validator.el_type, index)
+        el_service_name = "el-{}-{}-{}".format("validator", validator.el_type, n)
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, validator, el_service_name, validator_el_clients[el_service_name], node_modules)
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        index = n
-        cl_service_name = "cl-validator-beaconkit-{}".format(index)
-        el_client = "el-{}-{}-{}".format("validator", validator.el_type, index)
-        validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, index)
+        cl_service_name = "cl-validator-beaconkit-{}".format(n)
+        el_client = "el-{}-{}-{}".format("validator", validator.el_type, n)
+        validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, n)
         validator_node_configs[cl_service_name] = validator_node_config
 
-    remaining_cl_clients = plan.add_services(
+    cl_clients = plan.add_services(
         configs = validator_node_configs,
     )
 
     for n, validator in enumerate(validators):
-        index = n
-        cl_service_name = "cl-validator-beaconkit-{}".format(index)
+        cl_service_name = "cl-validator-beaconkit-{}".format(n)
         peer_info = beacond.get_peer_info(plan, cl_service_name)
         all_consensus_peering_info[cl_service_name] = peer_info
         metrics_enabled_services.append({
             "name": cl_service_name,
-            "service": remaining_cl_clients[cl_service_name],
+            "service": cl_clients[cl_service_name],
             "metrics_path": beacond.METRICS_PATH,
         })
 
@@ -218,17 +214,7 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:
                 s.replicas = 1
-            for i in range(s.replicas):
-                full_node_service_name = full_node_el_client_configs[i % len(full_node_el_client_configs)]["name"]
-                fuzzing_node = full_node_el_clients[full_node_service_name]
-                tx_fuzz.launch_tx_fuzz(
-                    plan,
-                    i,
-                    constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account].private_key,
-                    "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
-                    [],
-                )
-                next_free_prefunded_account += 1
+            next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
             if "grafana" in additional_services:

@@ -8,6 +8,11 @@ DEFAULT_MAX_CPU = 2000
 DEFAULT_MIN_MEMORY = 0
 DEFAULT_MAX_MEMORY = 2048
 
+# DEFAULT_MAX_CPU = 8000
+# DEFAULT_MAX_MEMORY = 32768
+# DEFAULT_MIN_CPU = 8000
+# DEFAULT_MIN_MEMORY = 32768
+
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
 COMETBFT_GRPC_PORT_NUM = 9090
@@ -75,7 +80,7 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
 
     return config
 
-def perform_genesis_ceremony_parallel(plan, validators, jwt_file):
+def perform_genesis_ceremony(plan, validators, jwt_file):
     num_validators = len(validators)
 
     node_peering_info = []
@@ -110,68 +115,6 @@ def perform_genesis_ceremony_parallel(plan, validators, jwt_file):
         env_vars = multiple_gentx_env_vars,
         store = stored_configs,
         description = "Collecting beacond genesis files",
-    )
-
-def perform_genesis_ceremony(plan, validators, jwt_file):
-    num_validators = len(validators)
-
-    node_peering_info = []
-    beacond_configs = []
-
-    # Generate gentx from all but last validator node
-    for n in range(num_validators - 1):
-        sh_cmd = "{} && {}".format(node.get_init_sh(), node.get_add_validator_sh())
-
-        node_beacond_config = "node-beacond-config-{}".format(n)
-        cl_service_name = "cl-validator-beaconkit-{}".format(n)
-        beacond_configs.append(node_beacond_config)
-        plan.run_sh(
-            run = sh_cmd,
-            image = validators[n].cl_image,
-            env_vars = node.get_genesis_env_vars(cl_service_name),
-            store = [
-                StoreSpec(src = "/root", name = node_beacond_config),
-            ],
-            description = "Initialize and store config for validator {}".format(n),
-        )
-
-    final_config_folders = {}
-    mv_all_gentx_cmd = ""
-    for x, beacond_config in enumerate(beacond_configs):
-        final_config_folders["/tmp/{}".format(beacond_config)] = beacond_config
-        if x < len(beacond_configs) - 1:
-            mv_all_gentx_cmd += ("mv /tmp/{}/.beacond/config/gentx/gen* /root/.beacond/config/gentx/ && ".format(beacond_config))
-        else:
-            mv_all_gentx_cmd += ("mv /tmp/{}/.beacond/config/gentx/gen* /root/.beacond/config/gentx/".format(beacond_config))
-
-    # Final run will collect all gentx from all previous nodes to create final genesis
-    final_config_folder = "node-beacond-config-{}".format(num_validators - 1)
-    cl_service_name = "cl-validator-beaconkit-{}".format(num_validators - 1)
-
-    last_cmd = "{} && {}".format(mv_all_gentx_cmd, node.get_collect_validator_sh()) if num_validators > 1 else node.get_collect_validator_sh()
-    final_sh_cmd = "{} && {} && {} && {} && {}".format(
-        node.get_init_sh(),
-        node.get_add_validator_sh(),
-        "cp -R /root /tmp/{}".format(final_config_folder),  # Store final gentx to the side for easy file artifact storage later
-        node.get_execution_payload_sh(),
-        last_cmd,
-    )
-
-    # Add eth genesis file to final config
-    final_config_folders["/root/eth_genesis"] = "genesis_file"
-
-    # Run final gentx generation
-    sh_cmd = final_sh_cmd
-    plan.run_sh(
-        run = sh_cmd,
-        image = validators[num_validators - 1].cl_image,
-        env_vars = node.get_genesis_env_vars(cl_service_name),
-        files = final_config_folders,
-        store = [
-            StoreSpec(src = "/tmp/{}".format(final_config_folder), name = final_config_folder),
-            StoreSpec(src = "/root/.beacond/config/genesis.json", name = "cosmos-genesis-final"),
-        ],
-        description = "Initialize and store final node's config && final genesis file",
     )
 
 def get_persistent_peers(plan, peers):

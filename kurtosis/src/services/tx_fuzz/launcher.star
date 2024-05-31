@@ -1,4 +1,6 @@
 shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+constants = import_module("../../constants.star")
+execution = import_module("../../nodes/execution/execution.star")
 SERVICE_NAME = "tx-fuzz"
 
 # The min/max CPU/memory that tx-spammer can use
@@ -6,6 +8,22 @@ MIN_CPU = 100
 MAX_CPU = 1000
 MIN_MEMORY = 20
 MAX_MEMORY = 300
+
+def launch_tx_fuzzes(plan, amount, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, tx_spammer_extra_args):
+    tx_fuzz_service_configs = {}
+    for i in range(amount):
+        full_node_service_name = full_node_el_client_configs[i % len(full_node_el_client_configs)]["name"]
+        fuzzing_node = full_node_el_clients[full_node_service_name]
+        tx_fuzz_config = get_config(
+            constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account].private_key,
+            "http://{}:{}".format(fuzzing_node.ip_address, execution.RPC_PORT_NUM),
+            tx_spammer_extra_args,
+        )
+        tx_fuzz_service_configs[SERVICE_NAME + "-" + str(i)] = tx_fuzz_config
+        next_free_prefunded_account += 1
+
+    plan.add_services(tx_fuzz_service_configs)
+    return next_free_prefunded_account
 
 def launch_tx_fuzz(
         plan,
@@ -37,7 +55,7 @@ def get_config(
     # A sleep is added to ensure the full node is up in single-node deployments
     cmd = " ".join([
         "sleep",
-        "3",
+        "5",
         "&&",
         "/tx-fuzz.bin",
         "spam",
