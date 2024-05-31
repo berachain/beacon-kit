@@ -58,8 +58,8 @@ type EngineClientInputs struct {
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient(
 	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutableDataDeneb] {
-	return engineclient.New[*types.ExecutableDataDeneb](
+) *engineclient.EngineClient[*types.ExecutionPayload] {
+	return engineclient.New[*types.ExecutionPayload](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,

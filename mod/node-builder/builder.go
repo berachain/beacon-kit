@@ -109,7 +109,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				viper.GetViper(),
 				nb.chainSpec,
 				&depositdb.KVStore[*types.Deposit]{},
-				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
+				&engineclient.EngineClient[*types.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
 				&dastore.Store[types.BeaconBlockBody]{},
 				&signer.BLSSigner{},

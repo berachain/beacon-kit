@@ -40,8 +40,9 @@ import (
 //
 
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ForkDataT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
@@ -115,8 +116,9 @@ func (sp *StateProcessor[
 // state
 // and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ForkDataT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) validateExecutionPayload(
 	ctx context.Context,

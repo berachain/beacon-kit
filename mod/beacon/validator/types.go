@@ -42,7 +42,7 @@ import (
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
-	*types.Deposit, *types.Eth1Data,
+	*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
 ]] interface {
 	NewWithVersion(
 		slot math.Slot,
@@ -58,7 +58,7 @@ type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconBlock[
 	BodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data,
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
 	]] interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
@@ -73,7 +73,7 @@ type ReadOnlyBeaconBlock[
 }
 
 type BeaconBlockBody[
-	DepositT, Eth1DataT any,
+	DepositT, Eth1DataT, ExecutionPayloadT any,
 ] interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
@@ -83,10 +83,10 @@ type BeaconBlockBody[
 	SetEth1Data(Eth1DataT)
 	GetDeposits() []DepositT
 	SetDeposits([]DepositT)
-	SetExecutionData(engineprimitives.ExecutionPayload) error
+	SetExecutionData(ExecutionPayloadT) error
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	GetExecutionPayload() engineprimitives.ExecutionPayload
+	GetExecutionPayload() ExecutionPayloadT
 }
 
 // BeaconState defines the interface for accessing various components of the
@@ -117,7 +117,9 @@ type BeaconState[BeaconStateT any] interface {
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	],
 	BlobSidecarsT BlobSidecars,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
@@ -159,7 +161,7 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
 	// RequestPayloadAsync requests a payload for the given slot and returns
 	// immediately.
 	RequestPayloadAsync(
@@ -181,7 +183,7 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
 }
 
 // StateProcessor defines the interface for processing the state.
