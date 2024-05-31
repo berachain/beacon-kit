@@ -27,55 +27,71 @@
 # Monitoring and alerting are not included in this configuration, as they are handled by the GCP infrastructure.
 
 validators:
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
   - el_type: reth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 64
   - el_type: geth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
   - el_type: erigon
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 64
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
   - el_type: ethereumjs
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main  
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic  
+    replicas: 0
 full_nodes:
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
   - el_type: reth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 2
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 3
   - el_type: geth
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 1
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
   - el_type: erigon
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 3
+  - el_type: besu
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
+  - el_type: nethermind
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
   - el_type: ethereumjs
     cl_type: beaconkit
-    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    replicas: 1 
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 0
+seed_nodes:
+  - el_type: erigon
+    cl_type: beaconkit
+    cl_image: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.10-optimistic
+    replicas: 3
 eth_json_rpc_endpoints:
   - type: blutgang
     clients:
-      - el-full-besu-0
-      - el-full-nethermind-1
-      - el-full-reth-2
-      - el-full-reth-3
-      - el-full-geth-4
-      - el-full-erigon-5
-      - el-full-ethereumjs-6
+      - el-full-reth-0
+      - el-full-reth-1
+      - el-full-geth-2
+      - el-full-erigon-4
 additional_services: 
-  - "goomy-blob"
+  - name: "goomy-blob"
+  - name: "tx-fuzz"
+    replicas: 99
+  - name: "prometheus"
+  - name: "grafana"
+  - name: "pyroscope"

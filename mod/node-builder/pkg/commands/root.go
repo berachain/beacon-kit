@@ -71,9 +71,8 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(
-			chainSpec,
-		),
+		genesis.Commands(chainSpec),
+		// `deposit`
 		deposit.Commands(chainSpec),
 		// `jwt`
 		jwt.Commands(),

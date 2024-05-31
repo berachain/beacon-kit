@@ -28,10 +28,7 @@ package client
 import (
 	"context"
 	"math/big"
-	"net"
 	"net/http"
-	"net/rpc"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -73,8 +70,6 @@ type EngineClient[
 	statusErrMu *sync.RWMutex
 	// statusErr is the status error of the engine client.
 	statusErr error
-	// IPC
-	ipcListener net.Listener
 }
 
 // New creates a new engine client EngineClient.
@@ -102,25 +97,12 @@ func New[ExecutionPayloadDenebT engineprimitives.ExecutionPayload](
 	}
 }
 
-func (s *EngineClient[ExecutionPayloadDenebT]) StartWithIPC(
-	ctx context.Context,
-) error {
-	if err := s.initializeConnection(ctx); err != nil {
-		return err
-	}
-	if s.cfg.RPCDialURL.IsIPC() {
-		s.startIPCServer(ctx)
-	}
-	return nil
-}
-
 // StartWithHTTP starts the engine client.
 func (s *EngineClient[ExecutionPayloadDenebT]) Start(
 	ctx context.Context,
 ) error {
-	// This is not required for IPC connections.
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
-		// If we are in a JWT mode, we will start the JWT refresh loop.
+		// If we are dialing with HTTP(S), start the JWT refresh loop.
 		defer func() {
 			if s.jwtSecret == nil {
 				s.logger.Warn(
@@ -203,6 +185,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) initializeConnection(
 			s.statusErr = err
 			s.statusErrMu.Unlock()
 			time.Sleep(s.cfg.RPCStartupCheckInterval)
+			s.logger.Error("failed to setup execution client", "err", err)
 			continue
 		}
 		break
@@ -288,7 +271,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) dialExecutionRPCClient(
 		}
 	case s.cfg.RPCDialURL.IsIPC():
 		if client, err = ethrpc.DialIPC(
-			ctx, s.cfg.RPCDialURL.String()); err != nil {
+			ctx, s.cfg.RPCDialURL.Path); err != nil {
+			s.logger.Error("failed to dial IPC", "err", err)
 			return err
 		}
 	default:
@@ -356,74 +340,6 @@ func (s *EngineClient[ExecutionPayloadDenebT]) buildJWTHeader() (http.Header, er
 
 func (s *EngineClient[ExecutionPayloadDenebT]) Name() string {
 	return "EngineClient"
-}
-
-// ================================ IPC ================================
-
-//
-
-func (s *EngineClient[ExecutionPayloadDenebT]) startIPCServer(
-	ctx context.Context,
-) {
-	if s.cfg.RPCDialURL == nil || !s.cfg.RPCDialURL.IsIPC() {
-		s.logger.Error("IPC server not started, invalid IPC URL")
-		return
-	}
-	// remove existing socket file if exists
-	// alternatively we can use existing one by checking for os.IsNotExist(err)
-	if _, err := os.Stat(s.cfg.RPCDialURL.Path); err != nil {
-		s.logger.Info(
-			"Removing existing IPC file",
-			"path",
-			s.cfg.RPCDialURL.Path,
-		)
-
-		if err = os.Remove(s.cfg.RPCDialURL.Path); err != nil {
-			s.logger.Error("failed to remove existing IPC file", "err", err)
-			return
-		}
-	}
-
-	// use UDS for IPC
-	listener, err := net.Listen("unix", s.cfg.RPCDialURL.Path)
-	if err != nil {
-		s.logger.Error("failed to listen on IPC socket", "err", err)
-		return
-	}
-	s.ipcListener = listener
-
-	// register the RPC server
-	server := rpc.NewServer()
-	if err = server.Register(s); err != nil {
-		s.logger.Error("failed to register RPC server", "err", err)
-		return
-	}
-	s.logger.Info("IPC server started", "path", s.cfg.RPCDialURL.Path)
-
-	// start server in a goroutine
-	go func() {
-		for {
-			// continuously accept incoming connections until context is
-			// cancelled
-			select {
-			case <-ctx.Done():
-				s.logger.Info("shutting down IPC server")
-				return
-			default:
-				var conn net.Conn
-				conn, err = listener.Accept()
-				if err != nil {
-					s.logger.Error(
-						"failed to accept IPC connection",
-						"err",
-						err,
-					)
-					continue
-				}
-				go server.ServeConn(conn)
-			}
-		}
-	}()
 }
 
 // ================================ Info ================================
