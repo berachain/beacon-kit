@@ -484,7 +484,6 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		slot,
 		// TODO: this is hood as fuck.
-
 		max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+1),

@@ -59,8 +59,6 @@ type Service[
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
-	// lb is a local builder for constructing new beacon states.
-	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
@@ -95,7 +93,6 @@ func NewService[
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
-	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT,
 		BlobSidecarsT,
@@ -118,7 +115,6 @@ func NewService[
 		logger:    logger,
 		cs:        cs,
 		ee:        ee,
-		lb:        lb,
 		bp:        bp,
 		sp:        sp,
 		metrics:   newChainMetrics(ts),
