@@ -32,6 +32,7 @@ import (
 // PruneDepositEvents prunes deposit events.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

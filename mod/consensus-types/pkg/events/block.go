@@ -27,12 +27,10 @@ package events
 
 import (
 	"context"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
 // Block represents a generic block in the beacon chain.
-type Block[BeaconBlockT types.RawBeaconBlock] struct {
+type Block[BeaconBlockT any] struct {
 	// ctx is the context associated with the block.
 	ctx context.Context
 	// block is the actual beacon block.
@@ -41,7 +39,7 @@ type Block[BeaconBlockT types.RawBeaconBlock] struct {
 
 // NewBlock creates a new Block with the given context and beacon block.
 func NewBlock[
-	BeaconBlockT types.RawBeaconBlock,
+	BeaconBlockT any,
 ](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
 	return Block[BeaconBlockT]{
 		ctx:   ctx,

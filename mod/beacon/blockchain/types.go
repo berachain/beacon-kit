@@ -85,8 +85,8 @@ type ReadOnlyBeaconState[T any] interface {
 // required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-	BeaconStateT any,
-	BlobSidecarsT BlobSidecars,
+	BeaconStateT,
+	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
