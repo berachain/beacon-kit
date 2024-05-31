@@ -39,13 +39,14 @@ type ExecutionPayload struct {
 
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+	e = new(ExecutionPayload)
 	switch forkVersion {
 	case version.Deneb:
 		e.ExecutionPayload = &ExecutableDataDeneb{}
 	default:
 		panic("unknown fork version")
 	}
-	return nil
+	return e
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.

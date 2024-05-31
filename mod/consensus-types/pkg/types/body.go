@@ -26,9 +26,6 @@
 package types
 
 import (
-	"reflect"
-
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -144,10 +141,9 @@ func (
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	executionData *ExecutionPayload,
 ) error {
-	v := reflect.ValueOf(b.ExecutionPayload)
-	if v.Kind() == reflect.Ptr && v.Elem().Type().Name() == "ExecutableDataDeneb" {
-		b.ExecutionPayload = v.Interface().(*ExecutableDataDeneb)
-	} else {
+	var ok bool
+	b.ExecutionPayload, ok = executionData.ExecutionPayload.(*ExecutableDataDeneb)
+	if !ok {
 		return errors.New("invalid execution data type")
 	}
 	return nil
@@ -204,15 +200,4 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 // Length returns the number of fields in the BeaconBlockBodyDeneb struct.
 func (b *BeaconBlockBodyDeneb) Length() uint64 {
 	return BodyLengthDeneb
-}
-
-func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData engineprimitives.ExecutionPayload,
-) error {
-	var ok bool
-	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
-	if !ok {
-		return errors.New("invalid execution data type")
-	}
-	return nil
 }

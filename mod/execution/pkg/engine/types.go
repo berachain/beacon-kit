@@ -26,11 +26,15 @@
 package engine
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT any] interface {
+	json.Marshaler
+	json.Unmarshaler
 	Empty(uint32) ExecutionPayloadT
 	// GetTransactions returns the transactions included in the payload.
 	GetTransactions() [][]byte

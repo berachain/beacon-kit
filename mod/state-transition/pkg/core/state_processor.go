@@ -62,8 +62,13 @@ type StateProcessor[
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT, *engineprimitives.Withdrawal],
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT, *engineprimitives.Withdrawal],
+	BeaconBlockT BeaconBlock[
+		DepositT, BeaconBlockBodyT,
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, ExecutionPayloadT,
+		*engineprimitives.Withdrawal,
+	],
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
@@ -77,7 +82,8 @@ func NewStateProcessor[
 	rp RandaoProcessor[
 		BeaconBlockT, BeaconStateT,
 	],
-	executionEngine ExecutionEngine[ExecutionPayloadT, *engineprimitives.Withdrawal],
+	executionEngine ExecutionEngine[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 	signer crypto.BLSSigner,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,

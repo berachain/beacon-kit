@@ -27,6 +27,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"strings"
@@ -46,6 +47,8 @@ type EngineClient[
 	ExecutionPayloadT interface {
 		Empty(uint32) ExecutionPayloadT
 		Version() uint32
+		json.Marshaler
+		json.Unmarshaler
 	},
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
@@ -80,6 +83,8 @@ type EngineClient[
 func New[ExecutionPayloadT interface {
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
+	json.Marshaler
+	json.Unmarshaler
 }](
 	cfg *Config,
 	logger log.Logger[any],

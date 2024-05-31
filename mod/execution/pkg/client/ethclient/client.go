@@ -27,11 +27,13 @@ package ethclient
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -40,6 +42,8 @@ import (
 // its configuration.
 type Eth1Client[
 	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ] struct {
@@ -50,6 +54,8 @@ type Eth1Client[
 // context and options.
 func NewEth1Client[
 	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
@@ -62,6 +68,8 @@ func NewEth1Client[
 // NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
 func NewFromRPCClient[
 	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
@@ -121,18 +129,22 @@ func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdateCall(
 func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	var t ExecutionPayloadT
 	result := &engineprimitives.ExecutionPayloadEnvelope[
 		ExecutionPayloadT,
 		*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 		],
-	]{}
+	]{
+		ExecutionPayload: t.Empty(version.Deneb),
+	}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
