@@ -1,4 +1,4 @@
-// SPDX-License-IDentifier: MIT
+// SPDX-License-Identifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -23,21 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package backend
+package handlers
 
 import (
 	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	echo "github.com/labstack/echo/v4"
 )
 
-func (h Backend) GetBlockRewards(
-	ctx context.Context,
-	blockID string,
-) (*types.BlockRewardsData, error) {
-	blockRewards, err := h.getNewBlockDB(ctx, blockID).GetBlockRewards()
+func (rh RouteHandlers) GetBlockRewards(c echo.Context) error {
+	params, err := BindAndValidate[types.BlockIDRequest](c)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return blockRewards, nil
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
+	rewards, err := rh.Backend.GetBlockRewards(context.TODO(), params.BlockID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, types.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                rewards,
+	})
 }

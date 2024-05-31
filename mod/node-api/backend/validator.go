@@ -29,15 +29,21 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h Backend) GetBlockRewards(
+func (h Backend) GetBlockPropserDuties(
 	ctx context.Context,
-	blockID string,
-) (*types.BlockRewardsData, error) {
-	blockRewards, err := h.getNewBlockDB(ctx, blockID).GetBlockRewards()
+	epoch string,
+) ([]*types.ProposerDutiesData, error) {
+	blockDB := h.getNewBlockDB(ctx, "blockID")
+	epochU64, err := resolveUint64[math.Epoch](epoch)
 	if err != nil {
 		return nil, err
 	}
-	return blockRewards, nil
+	proposerDuties, err := blockDB.GetBlockPropserDuties(epochU64)
+	if err != nil {
+		return nil, err
+	}
+	return proposerDuties, nil
 }

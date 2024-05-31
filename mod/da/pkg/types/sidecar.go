@@ -39,19 +39,19 @@ import (
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../../primitives/pkg/bytes,../../../consensus-types/pkg/types,../../../primitives/pkg/math,../../../primitives/mod.go,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
-	Index uint64
+	Index uint64 `json:"index,string"`
 	// Blob represents the blob data.
-	Blob eip4844.Blob
+	Blob eip4844.Blob `json:"blob"`
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment eip4844.KZGCommitment
+	KzgCommitment eip4844.KZGCommitment `json:"kzg_commitment"`
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof eip4844.KZGProof
+	KzgProof eip4844.KZGProof `json:"kzg_proof"`
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *types.BeaconBlockHeader
+	BeaconBlockHeader *types.BeaconBlockHeader `json:"signed_block_header"`
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
-	InclusionProof [][32]byte `ssz-size:"8,32"`
+	InclusionProof [][32]byte `json:"kzg_commitment_inclusion_proof" ssz-size:"8,32"`
 }
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and

@@ -40,14 +40,14 @@ import (
 //nolint:lll // struct tags.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"                 ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"withdrawal_credentials"              ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature"   ssz-max:"96"`
+	Signature crypto.BLSSignature `json:"signature"              ssz-max:"96"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }

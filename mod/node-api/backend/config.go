@@ -28,16 +28,16 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	response "github.com/berachain/beacon-kit/mod/node-api/server/types"
 )
 
-func (h Backend) GetBlockRewards(
+func (h Backend) GetSpecParams(
 	ctx context.Context,
-	blockID string,
-) (*types.BlockRewardsData, error) {
-	blockRewards, err := h.getNewBlockDB(ctx, blockID).GetBlockRewards()
+) (*response.SpecParamsResponse, error) {
+	nodeState := h.getNodeState(ctx)
+	params, err := nodeState.GetSpecParams()
 	if err != nil {
 		return nil, err
 	}
-	return blockRewards, nil
+	return params, nil
 }

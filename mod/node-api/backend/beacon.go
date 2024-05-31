@@ -30,15 +30,17 @@ import (
 	"strconv"
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	serverType "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	sszTypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	response "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h Backend) GetGenesis(ctx context.Context) (primitives.Root, error) {
-	// needs genesis_time and gensis_fork_version
-	return h.getNewStateDB(ctx, "stateID").GetGenesisValidatorsRoot()
+func (h Backend) GetGenesis(
+	ctx context.Context,
+) (*response.GenesisData, error) {
+	return h.getNewStateDB(ctx, "genesis").GetGenesisDetails()
 }
 
 func (h Backend) GetStateRoot(
@@ -73,9 +75,9 @@ func (h Backend) GetStateValidators(
 	stateID string,
 	id []string,
 	_ []string,
-) ([]*serverType.ValidatorData, error) {
+) ([]*response.ValidatorData, error) {
 	stateDB := h.getNewStateDB(ctx, stateID)
-	validators := make([]*serverType.ValidatorData, 0)
+	validators := make([]*response.ValidatorData, 0)
 	for _, indexOrKey := range id {
 		index, indexErr := getValidatorIndex(stateDB, indexOrKey)
 		if indexErr != nil {
@@ -89,7 +91,7 @@ func (h Backend) GetStateValidators(
 		if balanceErr != nil {
 			return nil, balanceErr
 		}
-		validators = append(validators, &serverType.ValidatorData{
+		validators = append(validators, &response.ValidatorData{
 			Index:     index.Unwrap(),
 			Balance:   balance.Unwrap(),
 			Status:    "active",
@@ -119,7 +121,7 @@ func (h Backend) GetStateValidator(
 	ctx context.Context,
 	stateID string,
 	validatorID string,
-) (*serverType.ValidatorData, error) {
+) (*response.ValidatorData, error) {
 	stateDB := h.getNewStateDB(ctx, stateID)
 	index, indexErr := getValidatorIndex(stateDB, validatorID)
 	if indexErr != nil {
@@ -133,7 +135,7 @@ func (h Backend) GetStateValidator(
 	if balanceErr != nil {
 		return nil, balanceErr
 	}
-	return &serverType.ValidatorData{
+	return &response.ValidatorData{
 		Index:     index.Unwrap(),
 		Balance:   balance.Unwrap(),
 		Status:    "active",
@@ -145,9 +147,9 @@ func (h Backend) GetStateValidatorBalances(
 	ctx context.Context,
 	stateID string,
 	id []string,
-) ([]*serverType.ValidatorBalanceData, error) {
+) ([]*response.ValidatorBalanceData, error) {
 	stateDB := h.getNewStateDB(ctx, stateID)
-	balances := make([]*serverType.ValidatorBalanceData, 0)
+	balances := make([]*response.ValidatorBalanceData, 0)
 	for _, indexOrKey := range id {
 		index, indexErr := getValidatorIndex(stateDB, indexOrKey)
 		if indexErr != nil {
@@ -157,7 +159,7 @@ func (h Backend) GetStateValidatorBalances(
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &serverType.ValidatorBalanceData{
+		balances = append(balances, &response.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})
@@ -183,4 +185,118 @@ func (h Backend) GetBlockRoot(
 		return primitives.Bytes32{}, err
 	}
 	return root, nil
+}
+
+func (h Backend) GetStateCommittees(
+	ctx context.Context,
+	stateID string,
+	index string,
+	epoch string,
+	slot string,
+) ([]*response.CommitteeData, error) {
+	stateDb := h.getNewStateDB(ctx, stateID)
+	epochU64, epochErr := resolveEpoch(stateDb, epoch)
+	if epochErr != nil {
+		return nil, epochErr
+	}
+	committees, committeeErr := stateDb.GetStateCommittees(epochU64)
+	if committeeErr != nil {
+		return nil, committeeErr
+	}
+	// filter committees by index and slot
+	return committees, nil
+}
+
+func (h Backend) GetStateSyncCommittees(
+	ctx context.Context,
+	stateID string,
+	epoch string,
+) (*response.SyncCommitteeData, error) {
+	stateDb := h.getNewStateDB(ctx, stateID)
+	epochU64, epochErr := resolveEpoch(stateDb, epoch)
+	if epochErr != nil {
+		return nil, epochErr
+	}
+	committees, committeeErr := stateDb.GetStateSyncCommittees(epochU64)
+	if committeeErr != nil {
+		return nil, committeeErr
+	}
+	// filter committees by index and slot
+	return committees, nil
+}
+
+func (h Backend) GetBlockHeaders(
+	ctx context.Context,
+	slot string,
+	parentRoot primitives.Root,
+) ([]*response.BlockHeaderData, error) {
+	blockDb := h.getNewBlockDB(ctx, "blockID")
+	slotU64, slotErr := resolveUint64[math.Slot](slot)
+	if slotErr != nil {
+		return nil, slotErr
+	}
+	headers, err := blockDb.GetBlockHeaders(slotU64, parentRoot)
+	if err != nil {
+		return nil, err
+	}
+	return headers, nil
+}
+
+func (h Backend) GetBlockHeader(
+	ctx context.Context,
+	blockID string,
+) (*response.BlockHeaderData, error) {
+	blockDb := h.getNewBlockDB(ctx, blockID)
+	header, err := blockDb.GetBlockHeader()
+	if err != nil {
+		return nil, err
+	}
+	return header, nil
+}
+
+func (h Backend) GetBlock(
+	ctx context.Context,
+	blockID string,
+) (*types.BeaconBlock, error) {
+	blockDb := h.getNewBlockDB(ctx, blockID)
+	block, err := blockDb.GetBlock()
+	if err != nil {
+		return nil, err
+	}
+	return block, nil
+}
+
+func (h Backend) GetBlockBlobSidecars(
+	ctx context.Context,
+	blockID string,
+	indicies []string,
+) ([]*sszTypes.BlobSidecar, error) {
+	blockDb := h.getNewBlockDB(ctx, blockID)
+	sidecars, err := blockDb.GetBlockBlobSidecars(indicies)
+	if err != nil {
+		return nil, err
+	}
+	return sidecars, nil
+}
+
+func (h Backend) GetPoolVoluntaryExits(
+	ctx context.Context,
+) ([]*response.MessageSignature, error) {
+	nodeState := h.getNodeState(ctx)
+	exits, err := nodeState.GetVoluntaryExits()
+	if err != nil {
+		return nil, err
+	}
+	return exits, nil
+}
+
+func (h Backend) GetPoolBtsToExecutionChanges(
+	ctx context.Context,
+) ([]*response.MessageSignature, error) {
+	nodeState := h.getNodeState(ctx)
+	blsToExecutionChanges, err := nodeState.GetBlsToExecutionChanges()
+	if err != nil {
+		return nil, err
+	}
+	return blsToExecutionChanges, nil
 }
