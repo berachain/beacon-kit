@@ -57,6 +57,15 @@ func (sp *StateProcessor[
 		g, gCtx         = errgroup.WithContext(context.Background())
 	)
 
+	// Skip payload verification if the context is configured as such.
+	if !ctx.GetSkipPayloadVerification() {
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
+
 	g.Go(func() error {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
@@ -74,15 +83,6 @@ func (sp *StateProcessor[
 			)
 		return withdrawalsRootErr
 	})
-
-	if !ctx.GetSkipPayloadVerification() {
-		// Verify and notify the new payload early in the function.
-		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk, ctx.GetOptimisticEngine(),
-			)
-		})
-	}
 
 	// If deriving either of the roots or verifying the payload fails, return
 	// the error.
