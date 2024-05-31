@@ -28,6 +28,8 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
 type ErrorResponse struct {
@@ -39,10 +41,15 @@ type DataResponse struct {
 	Data any `json:"data"`
 }
 
+type MessageResponse struct {
+	Message any `json:"message"`
+}
+
+//nolint:lll
 type GenesisData struct {
-	GenesisTime           string             `json:"genesis_time"`
-	GenesisValidatorsRoot primitives.Bytes32 `json:"genesis_validators_root"`
-	GenesisForkVersion    string             `json:"genesis_fork_version"`
+	GenesisTime           uint64             `json:"genesis_time,string"`
+	GenesisValidatorsRoot primitives.Bytes32 `json:"genesis_validators_root,string"`
+	GenesisForkVersion    primitives.Version `json:"genesis_fork_version,string"`
 }
 
 type RootData struct {
@@ -73,6 +80,11 @@ type CommitteeData struct {
 	Validators []uint64 `json:"validators,string"`
 }
 
+type SyncCommitteeData struct {
+	Validators          []uint64   `json:"validators,string,string"`
+	ValidatorAggregates [][]uint64 `json:"validator_aggregates,string,string"`
+}
+
 type BlockRewardsData struct {
 	ProposerIndex     uint64 `json:"proposer_index,string"`
 	Total             uint64 `json:"total,string"`
@@ -80,4 +92,55 @@ type BlockRewardsData struct {
 	SyncAggregate     uint64 `json:"sync_aggregate,string"`
 	ProposerSlashings uint64 `json:"proposer_slashings,string"`
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
+}
+
+//nolint:lll
+type SpecParamsResponse struct {
+	DepositContractAddress          string `json:"DEPOSIT_CONTRACT_ADDRESS,string"`
+	DepositNetworkID                uint64 `json:"DEPOSIT_NETWORK_ID,string"`
+	DomainAggregateAndProof         string `json:"DOMAIN_AGGREGATE_AND_PROOF,string"`
+	InactivityPenaltyQuotient       uint64 `json:"INACTIVITY_PENALTY_QUOTIENT,string"`
+	InactivityPenaltyQuotientAltair uint64 `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR,string"`
+}
+
+type VoluntaryExitData struct {
+	Epoch          uint64 `json:"epoch,string"`
+	ValidatorIndex uint64 `json:"validator_index,string"`
+}
+
+type MessageSignature struct {
+	Message   any                 `json:"message"`
+	Signature crypto.BLSSignature `json:"signature"`
+}
+
+type BtsToExecutionChangeData struct {
+	ValidatorIndex     uint64                  `json:"validator_index,string"`
+	FromBlsPubkey      crypto.BLSPubkey        `json:"from_bls_pubkey,string"`
+	ToExecutionAddress common.ExecutionAddress `json:"to_execution_address,string"`
+}
+
+type ProposerDutiesData struct {
+	Pubkey         crypto.BLSPubkey `json:"pubkey,string"`
+	ValidatorIndex uint64           `json:"validator_index,string"`
+	Slot           uint64           `json:"slot,string"`
+}
+
+type BlockProposerDutiesResponse struct {
+	DependentRoot       primitives.Root       `json:"dependent_root,string"`
+	ExecutionOptimistic bool                  `json:"execution_optimistic"`
+	Data                []*ProposerDutiesData `json:"data"`
+}
+
+type BlockHeaderData struct {
+	Root      primitives.Root     `json:"root"`
+	Canonical bool                `json:"canonical"`
+	Header    MessageResponse     `json:"header"`
+	Signature crypto.BLSSignature `json:"signature"`
+}
+
+type BlockResponse struct {
+	Version             string            `json:"version"`
+	ExecutionOptimistic bool              `json:"execution_optimistic"`
+	Finalized           bool              `json:"finalized"`
+	Data                *MessageSignature `json:"data"`
 }

@@ -28,11 +28,13 @@ package types
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	sszTypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 type BackendHandlers interface {
-	GetGenesis(ctx context.Context) (primitives.Root, error)
+	GetGenesis(ctx context.Context) (*GenesisData, error)
 	GetStateRoot(
 		ctx context.Context,
 		stateID string,
@@ -53,8 +55,44 @@ type BackendHandlers interface {
 		stateID string,
 		id []string,
 	) ([]*ValidatorBalanceData, error)
+	GetStateCommittees(
+		ctx context.Context,
+		stateID string,
+		index string,
+		epoch string,
+		slot string,
+	) ([]*CommitteeData, error)
+	GetStateSyncCommittees(
+		ctx context.Context,
+		stateID string,
+		epoch string,
+	) (*SyncCommitteeData, error)
+	GetBlockHeaders(
+		ctx context.Context,
+		slot string,
+		parentRoot primitives.Root,
+	) ([]*BlockHeaderData, error)
+	GetBlockHeader(
+		ctx context.Context,
+		blockID string,
+	) (*BlockHeaderData, error)
+	GetBlock(ctx context.Context, blockID string) (*types.BeaconBlock, error)
+	GetBlockBlobSidecars(
+		ctx context.Context,
+		blockID string,
+		indicies []string,
+	) ([]*sszTypes.BlobSidecar, error)
+	GetPoolVoluntaryExits(ctx context.Context) ([]*MessageSignature, error)
+	GetPoolBtsToExecutionChanges(
+		ctx context.Context,
+	) ([]*MessageSignature, error)
+	GetSpecParams(ctx context.Context) (*SpecParamsResponse, error)
 	GetBlockRewards(
 		ctx context.Context,
 		blockID string,
 	) (*BlockRewardsData, error)
+	GetBlockPropserDuties(
+		ctx context.Context,
+		epoch string,
+	) ([]*ProposerDutiesData, error)
 }

@@ -1,4 +1,4 @@
-// SPDX-License-IDentifier: MIT
+// SPDX-License-Identifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -26,18 +26,33 @@
 package backend
 
 import (
-	"context"
+	"strconv"
 
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h Backend) GetBlockRewards(
-	ctx context.Context,
-	blockID string,
-) (*types.BlockRewardsData, error) {
-	blockRewards, err := h.getNewBlockDB(ctx, blockID).GetBlockRewards()
-	if err != nil {
-		return nil, err
+func resolveEpoch(stateDB StateDB, epoch string) (math.Epoch, error) {
+	if epoch == "" {
+		curEpoch, err := stateDB.GetEpoch()
+		if err != nil {
+			return math.Epoch(0), err
+		}
+		return curEpoch, nil
 	}
-	return blockRewards, nil
+	epochU64, errU64 := resolveUint64[math.Epoch](epoch)
+	if errU64 != nil {
+		return math.Epoch(0), errU64
+	}
+	return epochU64, nil
+}
+
+func resolveUint64[uint64T ~uint64](num string) (uint64T, error) {
+	if num == "" {
+		return uint64T(0), nil
+	}
+	epochU64, errU64 := strconv.ParseUint(num, 10, 64)
+	if errU64 != nil {
+		return uint64T(0), errU64
+	}
+	return uint64T(epochU64), nil
 }

@@ -42,6 +42,7 @@ func ConstructValidator() *validator.Validate {
 		"slot":             ValidateUint64,
 		"committee_index":  ValidateUint64,
 		"hex":              ValidateHex,
+		"blob_index":       ValidateUint64,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {

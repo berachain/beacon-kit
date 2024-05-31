@@ -69,18 +69,11 @@ type EpochRequest struct {
 }
 
 type CommitteeIndexRequest struct {
-	ComitteeIndex string `query:"committee_index" validate:"committee_index"`
+	ComitteeIndex string `query:"index" validate:"committee_index"`
 }
 
 type SlotRequest struct {
 	Slot string `query:"slot" validate:"slot"`
-}
-
-type CommitteesRequest struct {
-	StateIDRequest
-	EpochOptionalRequest
-	CommitteeIndexRequest
-	SlotRequest
 }
 
 type SyncCommitteesRequest struct {
@@ -88,12 +81,33 @@ type SyncCommitteesRequest struct {
 	EpochOptionalRequest
 }
 
+type ParentRootRequest struct {
+	ParentRoot string `query:"parent_root" validate:"hex"`
+}
+
 type BeaconHeadersRequest struct {
 	SlotRequest
-	ParentRoot string `query:"parent_root" validate:"hex"`
+	ParentRootRequest
 }
 
 type BlobSidecarRequest struct {
 	BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,blob_index"`
+}
+
+type StateCommitteesRequest struct {
+	StateIDRequest
+	EpochOptionalRequest
+	CommitteeIndexRequest
+	SlotRequest
+}
+
+type StateSyncCommitteesRequest struct {
+	StateIDRequest
+	EpochOptionalRequest
+}
+
+type BlockHeadersRequest struct {
+	SlotRequest
+	ParentRootRequest
 }

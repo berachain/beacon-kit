@@ -32,9 +32,9 @@ import (
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
-	DepositRoot common.Root `json:"depositRoot"  ssz-size:"32"`
+	DepositRoot common.Root `json:"deposit_root"         ssz-size:"32"`
 	// DepositCount is the number of deposits in the deposit tree.
-	DepositCount uint64 `json:"depositCount"`
+	DepositCount uint64 `json:"deposit_count,string"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
-	BlockHash common.ExecutionHash `json:"blockHash"    ssz-size:"32"`
+	BlockHash common.ExecutionHash `json:"block_hash"           ssz-size:"32"`
 }

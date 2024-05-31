@@ -29,23 +29,142 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	sszTypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
+	response "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/mock"
 )
 
 func NewMockBackend() *Backend {
 	sdb := &mocks.StateDB{}
-	b := New(func(context.Context, string) StateDB {
-		return sdb
-	})
-	setReturnValues(sdb)
+	bdb := &mocks.BlockDB{}
+	ns := &mocks.NodeState{}
+	setStateDBMockValues(sdb)
+	setBlockDBMockValues(bdb)
+	setNodeStateMockValues(ns)
+
+	b := New(
+		func(context.Context, string) StateDB {
+			return sdb
+		},
+		func(context.Context, string) BlockDB {
+			return bdb
+		},
+		func(context.Context) NodeState {
+			return ns
+		},
+	)
 	return b
 }
 
-func setReturnValues(sdb *mocks.StateDB) {
-	sdb.EXPECT().GetGenesisValidatorsRoot().Return(primitives.Root{0x01}, nil)
+func setNodeStateMockValues(ns *mocks.NodeState) {
+	ns.EXPECT().GetSpecParams().Return(&response.SpecParamsResponse{}, nil)
+	ns.EXPECT().GetBlsToExecutionChanges().Return([]*response.MessageSignature{
+		{
+			Message: response.BtsToExecutionChangeData{
+				ValidatorIndex:     0,
+				FromBlsPubkey:      crypto.BLSPubkey{0x01},
+				ToExecutionAddress: common.ExecutionAddress{0x01},
+			},
+			Signature: crypto.BLSSignature{0x01},
+		},
+		{
+			Message: response.BtsToExecutionChangeData{
+				ValidatorIndex:     1,
+				FromBlsPubkey:      crypto.BLSPubkey{0x01},
+				ToExecutionAddress: common.ExecutionAddress{0x01},
+			},
+			Signature: crypto.BLSSignature{0x01},
+		},
+	}, nil)
+	ns.EXPECT().GetVoluntaryExits().Return(
+		[]*response.MessageSignature{
+			{
+				Message: response.VoluntaryExitData{
+					ValidatorIndex: 0,
+					Epoch:          0,
+				},
+				Signature: crypto.BLSSignature{0x01},
+			},
+			{
+				Message: response.VoluntaryExitData{
+					ValidatorIndex: 1,
+					Epoch:          1,
+				},
+				Signature: crypto.BLSSignature{0x01},
+			},
+		},
+		nil,
+	)
+}
+
+func setBlockDBMockValues(bdb *mocks.BlockDB) {
+	bdb.EXPECT().
+		GetBlockBlobSidecars(mock.Anything).
+		Return([]*sszTypes.BlobSidecar{
+			sszTypes.BuildBlobSidecar(0,
+				types.NewBeaconBlockHeader(0, 0,
+					primitives.Root{0x01}, primitives.Root{0x01}, primitives.Root{0x01}),
+				&eip4844.Blob{},
+				eip4844.KZGCommitment{},
+				eip4844.KZGProof{},
+				nil),
+		}, nil)
+	block := types.BeaconBlock{}
+	bdb.EXPECT().GetBlock().Return(block.Empty(version.Deneb), nil)
+	blockHeader := &response.BlockHeaderData{
+		Root:      primitives.Root{0x01},
+		Canonical: true,
+		Header: response.MessageResponse{
+			Message: types.NewBeaconBlockHeader(
+				0,
+				0,
+				primitives.Root{0x01},
+				primitives.Root{0x01},
+				primitives.Root{0x01},
+			),
+		},
+		Signature: crypto.BLSSignature{0x01},
+	}
+	bdb.EXPECT().GetBlockHeader().Return(blockHeader, nil)
+	bdb.EXPECT().
+		GetBlockHeaders(mock.Anything, mock.Anything).
+		Return([]*response.BlockHeaderData{blockHeader, blockHeader}, nil)
+	bdb.EXPECT().
+		GetBlockPropserDuties(mock.Anything).
+		Return([]*response.ProposerDutiesData{
+			{
+				Pubkey:         crypto.BLSPubkey{0x01},
+				ValidatorIndex: 0,
+				Slot:           0,
+			},
+			{
+				Pubkey:         crypto.BLSPubkey{0x01},
+				ValidatorIndex: 1,
+				Slot:           1,
+			},
+		}, nil)
+	bdb.EXPECT().GetBlockRewards().Return(&response.BlockRewardsData{
+		ProposerIndex:     0,
+		Total:             0,
+		Attestations:      0,
+		SyncAggregate:     0,
+		ProposerSlashings: 0,
+		AttesterSlashings: 0,
+	}, nil)
+}
+
+func setStateDBMockValues(sdb *mocks.StateDB) {
+	sdb.EXPECT().GetGenesisDetails().Return(&response.GenesisData{
+		GenesisTime:           0,
+		GenesisValidatorsRoot: primitives.Root{0x01},
+		GenesisForkVersion:    primitives.Version{0x01},
+	}, nil)
 	sdb.EXPECT().GetSlot().Return(1, nil)
 	sdb.EXPECT().GetLatestExecutionPayloadHeader().Return(nil, nil)
 	sdb.EXPECT().SetLatestExecutionPayloadHeader(mock.Anything).Return(nil)
@@ -107,4 +226,17 @@ func setReturnValues(sdb *mocks.StateDB) {
 	sdb.EXPECT().ValidatorIndexByPubkey(mock.Anything).Return(0, nil)
 	sdb.EXPECT().AddValidator(mock.Anything).Return(nil)
 	sdb.EXPECT().GetValidatorsByEffectiveBalance().Return(nil, nil)
+	sdb.EXPECT().
+		GetStateCommittees(mock.Anything).
+		Return([]*response.CommitteeData{
+			{Index: 0, Slot: 0, Validators: []uint64{1, 2}},
+			{Index: 1, Slot: 1, Validators: []uint64{1, 2}},
+		}, nil)
+	sdb.EXPECT().
+		GetStateSyncCommittees(mock.Anything).
+		Return(&response.SyncCommitteeData{
+			Validators:          []uint64{1, 2},
+			ValidatorAggregates: [][]uint64{{1, 2}, {1, 2}},
+		}, nil)
+	sdb.EXPECT().GetEpoch().Return(0, nil)
 }

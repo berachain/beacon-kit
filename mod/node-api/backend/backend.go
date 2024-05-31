@@ -29,6 +29,8 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	fastsszTypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	response "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,6 +38,8 @@ import (
 
 type Backend struct {
 	getNewStateDB func(context.Context, string) StateDB
+	getNewBlockDB func(context.Context, string) BlockDB
+	getNodeState  func(context.Context) NodeState
 }
 
 // TODO: need to add state_id resolver; possible values are: "head" (canonical
@@ -43,10 +47,34 @@ type Backend struct {
 // encoded stateRoot with 0x prefix>.
 func New(
 	getNewStateDB func(ctx context.Context, stateId string) StateDB,
+	getNewBlockDB func(ctx context.Context, blockId string) BlockDB,
+	getNodeState func(ctx context.Context) NodeState,
 ) *Backend {
 	return &Backend{
 		getNewStateDB: getNewStateDB,
+		getNewBlockDB: getNewBlockDB,
+		getNodeState:  getNodeState,
 	}
+}
+
+type NodeState interface {
+	GetVoluntaryExits() ([]*response.MessageSignature, error)
+	GetBlsToExecutionChanges() ([]*response.MessageSignature, error)
+	GetSpecParams() (*response.SpecParamsResponse, error)
+}
+
+type BlockDB interface {
+	GetBlockHeaders(
+		slot math.Slot,
+		parentRoot primitives.Root,
+	) ([]*response.BlockHeaderData, error)
+	GetBlockHeader() (*response.BlockHeaderData, error)
+	GetBlock() (*types.BeaconBlock, error)
+	GetBlockBlobSidecars(indicies []string) ([]*fastsszTypes.BlobSidecar, error)
+	GetBlockRewards() (*response.BlockRewardsData, error)
+	GetBlockPropserDuties(
+		epoch math.Epoch,
+	) ([]*response.ProposerDutiesData, error)
 }
 
 type StateDB interface {
@@ -100,4 +128,11 @@ type StateDB interface {
 		val *types.Validator,
 	) error
 	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
+
+	GetGenesisDetails() (*response.GenesisData, error)
+	GetEpoch() (math.Epoch, error)
+	GetStateCommittees(epoch math.Epoch) ([]*response.CommitteeData, error)
+	GetStateSyncCommittees(
+		epoch math.Epoch,
+	) (*response.SyncCommitteeData, error)
 }

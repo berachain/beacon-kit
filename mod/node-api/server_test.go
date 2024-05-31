@@ -81,7 +81,7 @@ func getTestcases() []testcase {
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/genesis",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"data\":{\"genesis_time\":\"1590832934\",\"genesis_validators_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"genesis_fork_version\":\"0x00000000\"}}\n",
+			expectedBody:   "{\"data\":{\"genesis_time\":\"0\",\"genesis_validators_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"genesis_fork_version\":\"0x01000000\"}}\n",
 		},
 		{
 			method:         "GET",
@@ -103,14 +103,14 @@ func getTestcases() []testcase {
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/states/:state_id/validators?id=1",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
 		},
 		{
 			method:         "POST",
 			endpoint:       "/eth/v1/beacon/states/:state_id/validators",
 			body:           `{"ids":["1"]}`,
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
 		},
 		{
 			method:         "GET",
@@ -133,12 +133,14 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/states/:state_id/committees",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"0\",\"slot\":\"0\",\"validators\":[1,2]},{\"index\":\"1\",\"slot\":\"1\",\"validators\":[1,2]}]}\n",
 		},
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/states/:state_id/sync_committees",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"validators\":[1,2],\"validator_aggregates\":[[1,2],[1,2]]}}\n",
 		},
 		{
 			method:         "GET",
@@ -148,12 +150,15 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/headers",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"canonical\":true,\"header\":{\"message\":{\"slot\":\"0\",\"proposer_index\":\"0\",\"parent_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"state_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"body_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\"}},\"signature\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"},{\"root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"canonical\":true,\"header\":{\"message\":{\"slot\":\"0\",\"proposer_index\":\"0\",\"parent_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"state_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"body_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\"}},\"signature\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}]}\n",
 		},
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/headers/:block_id",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"canonical\":true,\"header\":{\"message\":{\"slot\":\"0\",\"proposer_index\":\"0\",\"parent_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"state_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"body_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\"}},\"signature\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}}\n",
+
 		},
 		{
 			method:         "POST",
@@ -178,7 +183,8 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v2/beacon/blocks/:block_id",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"version\":\"deneb\",\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"message\":{\"RawBeaconBlock\":{\"slot\":\"0\",\"proposer_index\":\"0\",\"parent_root\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"state_root\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"body\":null}},\"signature\":\"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}}\n",
 		},
 		{
 			method:         "GET",
@@ -193,7 +199,7 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/blob_sidecars/:block_id",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			method:         "POST",
@@ -209,7 +215,7 @@ func getTestcases() []testcase {
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/rewards/blocks/:block_id",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"proposer_index\":\"1\",\"total\":\"1\",\"attestations\":\"1\",\"sync_aggregate\":\"1\",\"proposer_slashings\":\"1\",\"attester_slashings\":\"1\"}}\n",
+			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"proposer_index\":\"0\",\"total\":\"0\",\"attestations\":\"0\",\"sync_aggregate\":\"0\",\"proposer_slashings\":\"0\",\"attester_slashings\":\"0\"}}\n",
 		},
 		{
 			method:         "POST",
@@ -279,7 +285,8 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/pool/voluntary_exits",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
+			expectedBody:   "{\"data\":{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"message\":{\"epoch\":\"0\",\"validator_index\":\"0\"},\"signature\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"},{\"message\":{\"epoch\":\"1\",\"validator_index\":\"1\"},\"signature\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}]}}\n",
 		},
 		{
 			method:         "POST",
@@ -289,7 +296,7 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/beacon/pool/bls_to_execution_changes",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			method:         "POST",
@@ -309,7 +316,7 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/config/spec",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			method:         "GET",
@@ -379,7 +386,7 @@ func getTestcases() []testcase {
 		{
 			method:         "GET",
 			endpoint:       "/eth/v1/validator/duties/proposer/:epoch",
-			expectedStatus: http.StatusNotImplemented,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			method:         "POST",

@@ -109,7 +109,7 @@ type BeaconBlockDeneb struct {
 	BeaconBlockHeaderBase
 	// Body is the body of the BeaconBlockDeneb, containing the block's
 	// operations.
-	Body *BeaconBlockBodyDeneb
+	Body *BeaconBlockBodyDeneb `json:"body"`
 }
 
 // Version identifies the version of the BeaconBlockDeneb.

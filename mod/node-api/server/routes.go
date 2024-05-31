@@ -37,6 +37,16 @@ type Handlers interface {
 	PostStateValidators(c echo.Context) error
 	GetStateValidatorBalances(c echo.Context) error
 	PostStateValidatorBalances(c echo.Context) error
+	GetStateCommittees(c echo.Context) error
+	GetStateSyncCommittees(c echo.Context) error
+	GetBlockHeaders(c echo.Context) error
+	GetBlockHeader(c echo.Context) error
+	GetBlock(c echo.Context) error
+	GetBlockBlobSidecars(c echo.Context) error
+	GetPoolVoluntaryExits(c echo.Context) error
+	GetPoolBtsToExecutionChanges(c echo.Context) error
+	GetSpecParams(c echo.Context) error
+	GetBlockPropserDuties(c echo.Context) error
 	GetBlockRewards(c echo.Context) error
 }
 
@@ -77,15 +87,15 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/states/:state_id/validator_balances",
 		h.PostStateValidatorBalances)
 	e.GET("/eth/v1/beacon/states/:state_id/committees",
-		h.NotImplemented)
+		h.GetStateCommittees)
 	e.GET("/eth/v1/beacon/states/:state_id/sync_committees",
-		h.NotImplemented)
+		h.GetStateSyncCommittees)
 	e.GET("/eth/v1/beacon/states/:state_id/randao",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/headers",
-		h.NotImplemented)
+		h.GetBlockHeaders)
 	e.GET("/eth/v1/beacon/headers/:block_id",
-		h.NotImplemented)
+		h.GetBlockHeader)
 	e.POST("/eth/v1/beacon/blocks/blinded_blocks",
 		h.NotImplemented)
 	e.POST("/eth/v2/beacon/blocks/blinded_blocks",
@@ -95,13 +105,13 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v2/beacon/blocks",
 		h.NotImplemented)
 	e.GET("/eth/v2/beacon/blocks/:block_id",
-		h.NotImplemented)
+		h.GetBlock)
 	e.GET("/eth/v1/beacon/blocks/:block_id/root",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blocks/:block_id/attestations",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/blob_sidecars/:block_id",
-		h.NotImplemented)
+		h.GetBlockBlobSidecars)
 	e.POST("/eth/v1/beacon/rewards/sync_committee/:block_id",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/deposit_snapshot",
@@ -133,11 +143,11 @@ func assignBeaconRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/beacon/pool/sync_committees",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/pool/voluntary_exits",
-		h.NotImplemented)
+		h.GetPoolVoluntaryExits)
 	e.POST("/eth/v1/beacon/pool/voluntary_exits",
 		h.NotImplemented)
 	e.GET("/eth/v1/beacon/pool/bls_to_execution_changes",
-		h.NotImplemented)
+		h.GetPoolBtsToExecutionChanges)
 	e.POST("/eth/v1/beacon/pool/bls_to_execution_changes",
 		h.NotImplemented)
 }
@@ -151,7 +161,7 @@ func assignConfigRoutes(e *echo.Echo, h Handlers) {
 	e.GET("/eth/v1/config/fork_schedule",
 		h.NotImplemented)
 	e.GET("/eth/v1/config/spec",
-		h.NotImplemented)
+		h.GetSpecParams)
 	e.GET("/eth/v1/config/deposit_contract",
 		h.NotImplemented)
 }
@@ -191,7 +201,7 @@ func assignValidatorRoutes(e *echo.Echo, h Handlers) {
 	e.POST("/eth/v1/validator/duties/attester/:epoch",
 		h.NotImplemented)
 	e.GET("/eth/v1/validator/duties/proposer/:epoch",
-		h.NotImplemented)
+		h.GetBlockPropserDuties)
 	e.POST("/eth/v1/validator/duties/sync/:epoch",
 		h.NotImplemented)
 	e.GET("/eth/v3/validator/blocks/:slot",

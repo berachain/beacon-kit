@@ -8,6 +8,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	servertypes "github.com/berachain/beacon-kit/mod/node-api/server/types"
+
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
@@ -241,6 +243,61 @@ func (_c *StateDB_GetBlockRootAtIndex_Call) RunAndReturn(run func(uint64) (bytes
 	return _c
 }
 
+// GetEpoch provides a mock function with given fields:
+func (_m *StateDB) GetEpoch() (math.U64, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEpoch")
+	}
+
+	var r0 math.U64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (math.U64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StateDB_GetEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEpoch'
+type StateDB_GetEpoch_Call struct {
+	*mock.Call
+}
+
+// GetEpoch is a helper method to define mock.On call
+func (_e *StateDB_Expecter) GetEpoch() *StateDB_GetEpoch_Call {
+	return &StateDB_GetEpoch_Call{Call: _e.mock.On("GetEpoch")}
+}
+
+func (_c *StateDB_GetEpoch_Call) Run(run func()) *StateDB_GetEpoch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *StateDB_GetEpoch_Call) Return(_a0 math.U64, _a1 error) *StateDB_GetEpoch_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StateDB_GetEpoch_Call) RunAndReturn(run func() (math.U64, error)) *StateDB_GetEpoch_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetEth1Data provides a mock function with given fields:
 func (_m *StateDB) GetEth1Data() (*types.Eth1Data, error) {
 	ret := _m.Called()
@@ -406,6 +463,63 @@ func (_c *StateDB_GetFork_Call) Return(_a0 *types.Fork, _a1 error) *StateDB_GetF
 }
 
 func (_c *StateDB_GetFork_Call) RunAndReturn(run func() (*types.Fork, error)) *StateDB_GetFork_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGenesisDetails provides a mock function with given fields:
+func (_m *StateDB) GetGenesisDetails() (*servertypes.GenesisData, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGenesisDetails")
+	}
+
+	var r0 *servertypes.GenesisData
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (*servertypes.GenesisData, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() *servertypes.GenesisData); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*servertypes.GenesisData)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StateDB_GetGenesisDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGenesisDetails'
+type StateDB_GetGenesisDetails_Call struct {
+	*mock.Call
+}
+
+// GetGenesisDetails is a helper method to define mock.On call
+func (_e *StateDB_Expecter) GetGenesisDetails() *StateDB_GetGenesisDetails_Call {
+	return &StateDB_GetGenesisDetails_Call{Call: _e.mock.On("GetGenesisDetails")}
+}
+
+func (_c *StateDB_GetGenesisDetails_Call) Run(run func()) *StateDB_GetGenesisDetails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *StateDB_GetGenesisDetails_Call) Return(_a0 *servertypes.GenesisData, _a1 error) *StateDB_GetGenesisDetails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StateDB_GetGenesisDetails_Call) RunAndReturn(run func() (*servertypes.GenesisData, error)) *StateDB_GetGenesisDetails_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -913,6 +1027,122 @@ func (_c *StateDB_GetSlot_Call) Return(_a0 math.U64, _a1 error) *StateDB_GetSlot
 }
 
 func (_c *StateDB_GetSlot_Call) RunAndReturn(run func() (math.U64, error)) *StateDB_GetSlot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetStateCommittees provides a mock function with given fields: epoch
+func (_m *StateDB) GetStateCommittees(epoch math.U64) ([]*servertypes.CommitteeData, error) {
+	ret := _m.Called(epoch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStateCommittees")
+	}
+
+	var r0 []*servertypes.CommitteeData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(math.U64) ([]*servertypes.CommitteeData, error)); ok {
+		return rf(epoch)
+	}
+	if rf, ok := ret.Get(0).(func(math.U64) []*servertypes.CommitteeData); ok {
+		r0 = rf(epoch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*servertypes.CommitteeData)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
+		r1 = rf(epoch)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StateDB_GetStateCommittees_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStateCommittees'
+type StateDB_GetStateCommittees_Call struct {
+	*mock.Call
+}
+
+// GetStateCommittees is a helper method to define mock.On call
+//   - epoch math.U64
+func (_e *StateDB_Expecter) GetStateCommittees(epoch interface{}) *StateDB_GetStateCommittees_Call {
+	return &StateDB_GetStateCommittees_Call{Call: _e.mock.On("GetStateCommittees", epoch)}
+}
+
+func (_c *StateDB_GetStateCommittees_Call) Run(run func(epoch math.U64)) *StateDB_GetStateCommittees_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.U64))
+	})
+	return _c
+}
+
+func (_c *StateDB_GetStateCommittees_Call) Return(_a0 []*servertypes.CommitteeData, _a1 error) *StateDB_GetStateCommittees_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StateDB_GetStateCommittees_Call) RunAndReturn(run func(math.U64) ([]*servertypes.CommitteeData, error)) *StateDB_GetStateCommittees_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetStateSyncCommittees provides a mock function with given fields: epoch
+func (_m *StateDB) GetStateSyncCommittees(epoch math.U64) (*servertypes.SyncCommitteeData, error) {
+	ret := _m.Called(epoch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStateSyncCommittees")
+	}
+
+	var r0 *servertypes.SyncCommitteeData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(math.U64) (*servertypes.SyncCommitteeData, error)); ok {
+		return rf(epoch)
+	}
+	if rf, ok := ret.Get(0).(func(math.U64) *servertypes.SyncCommitteeData); ok {
+		r0 = rf(epoch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*servertypes.SyncCommitteeData)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
+		r1 = rf(epoch)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StateDB_GetStateSyncCommittees_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStateSyncCommittees'
+type StateDB_GetStateSyncCommittees_Call struct {
+	*mock.Call
+}
+
+// GetStateSyncCommittees is a helper method to define mock.On call
+//   - epoch math.U64
+func (_e *StateDB_Expecter) GetStateSyncCommittees(epoch interface{}) *StateDB_GetStateSyncCommittees_Call {
+	return &StateDB_GetStateSyncCommittees_Call{Call: _e.mock.On("GetStateSyncCommittees", epoch)}
+}
+
+func (_c *StateDB_GetStateSyncCommittees_Call) Run(run func(epoch math.U64)) *StateDB_GetStateSyncCommittees_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.U64))
+	})
+	return _c
+}
+
+func (_c *StateDB_GetStateSyncCommittees_Call) Return(_a0 *servertypes.SyncCommitteeData, _a1 error) *StateDB_GetStateSyncCommittees_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *StateDB_GetStateSyncCommittees_Call) RunAndReturn(run func(math.U64) (*servertypes.SyncCommitteeData, error)) *StateDB_GetStateSyncCommittees_Call {
 	_c.Call.Return(run)
 	return _c
 }

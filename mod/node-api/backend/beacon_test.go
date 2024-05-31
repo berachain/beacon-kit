@@ -29,19 +29,48 @@ import (
 	"context"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
+	response "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetGenesisValidatorsRoot(t *testing.T) {
+func TestGetGenesisDetails(t *testing.T) {
 	sdb := &mocks.StateDB{}
-	b := backend.New(func(context.Context, string) backend.StateDB {
-		return sdb
-	})
-	sdb.EXPECT().GetGenesisValidatorsRoot().Return(primitives.Root{0x01}, nil)
-	root, err := b.GetGenesis(context.Background())
+	b := backend.NewMockBackend()
+	expected := &response.GenesisData{
+		GenesisTime:           0,
+		GenesisValidatorsRoot: primitives.Root{0x01},
+		GenesisForkVersion:    primitives.Version{0x01},
+	}
+	sdb.EXPECT().GetGenesisDetails().Return(expected, nil)
+	actual, err := b.GetGenesis(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, primitives.Root{0x01}, root)
+	require.Equal(t, expected, actual)
+}
+
+func TestGetBlockHeader(t *testing.T) {
+	bdb := &mocks.BlockDB{}
+	b := backend.NewMockBackend()
+	expected := &response.BlockHeaderData{
+		Root:      primitives.Root{0x01},
+		Canonical: true,
+		Header: response.MessageResponse{
+			Message: types.NewBeaconBlockHeader(
+				0,
+				0,
+				primitives.Root{0x01},
+				primitives.Root{0x01},
+				primitives.Root{0x01},
+			),
+		},
+		Signature: crypto.BLSSignature{0x01},
+	}
+	bdb.EXPECT().GetBlockHeader().Return(expected, nil)
+	actual, err := b.GetBlockHeader(context.Background(), "0")
+	require.NoError(t, err)
+	require.Equal(t, expected, actual)
 }

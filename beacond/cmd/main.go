@@ -41,7 +41,6 @@ func run() error {
 	if _, err := maxprocs.Set(); err != nil {
 		return err
 	}
-
 	// Build the node using the node-builder.
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
 		WithAppName("beacond").

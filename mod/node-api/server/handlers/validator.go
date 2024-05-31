@@ -1,4 +1,4 @@
-// SPDX-License-IDentifier: MIT
+// SPDX-License-Identifier: MIT
 //
 // Copyright (c) 2024 Berachain Foundation
 //
@@ -23,21 +23,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package backend
+package handlers
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	echo "github.com/labstack/echo/v4"
 )
 
-func (h Backend) GetBlockRewards(
-	ctx context.Context,
-	blockID string,
-) (*types.BlockRewardsData, error) {
-	blockRewards, err := h.getNewBlockDB(ctx, blockID).GetBlockRewards()
+func (rh RouteHandlers) GetBlockPropserDuties(c echo.Context) error {
+	params, err := BindAndValidate[types.EpochRequest](c)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return blockRewards, nil
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
+
+	duties, err := rh.Backend.GetBlockPropserDuties(
+		context.TODO(),
+		params.Epoch,
+	)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, types.BlockProposerDutiesResponse{
+		DependentRoot:       primitives.Root{0x1}, // stubbed
+		ExecutionOptimistic: false,                // stubbed
+		Data:                duties,
+	})
 }
