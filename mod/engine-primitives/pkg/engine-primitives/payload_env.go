@@ -26,8 +26,6 @@
 package engineprimitives
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -59,10 +57,7 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-	},
+	ExecutionPayloadT any,
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
