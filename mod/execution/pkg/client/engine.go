@@ -60,6 +60,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 		parentBeaconBlockRoot,
 	)
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementNewPayloadTimeout()
+		}
 		return nil, err
 	} else if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
@@ -125,7 +128,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	}
 
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
+
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementForkchoiceUpdateTimeout()
+		}
 		return nil, nil, s.handleRPCError(err)
 	} else if result == nil {
 		return nil, nil, engineerrors.ErrNilForkchoiceResponse
@@ -187,6 +194,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	result, err := fn(dctx, payloadID)
 	switch {
 	case err != nil:
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementGetPayloadTimeout()
+		}
 		return result, s.handleRPCError(err)
 	case result == nil:
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
