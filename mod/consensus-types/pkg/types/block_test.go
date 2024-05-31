@@ -95,18 +95,18 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszBlock)
 
-	wrappedBlock := &types.WrappedBeaconBlock{}
+	wrappedBlock := &types.BeaconBlock{}
 	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
 	require.NoError(t, err)
 	require.NotNil(t, wrappedBlock)
 
-	block, ok := wrappedBlock.BeaconBlock.(*types.BeaconBlockDeneb)
+	block, ok := wrappedBlock.RawBeaconBlock.(*types.BeaconBlockDeneb)
 	require.True(t, ok)
 	require.Equal(t, originalBlock, block)
 }
 
 func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	wrappedBlock := &types.WrappedBeaconBlock{}
+	wrappedBlock := &types.BeaconBlock{}
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }

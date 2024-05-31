@@ -70,7 +70,7 @@ type ReadOnlyBeaconBlockBody interface {
 }
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock interface {
+type RawBeaconBlock interface {
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	ReadOnlyBeaconBlock[BeaconBlockBody]

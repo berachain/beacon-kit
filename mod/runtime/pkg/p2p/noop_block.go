@@ -37,7 +37,7 @@ import (
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlockGossipHandler[ReqT encoding.ABCIRequest] struct {
-	NoopGossipHandler[*types.WrappedBeaconBlock, []byte]
+	NoopGossipHandler[*types.BeaconBlock, []byte]
 	chainSpec common.ChainSpec
 }
 
@@ -45,7 +45,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[ReqT] {
 	return NoopBlockGossipHandler[ReqT]{
-		NoopGossipHandler: NoopGossipHandler[*types.WrappedBeaconBlock, []byte]{},
+		NoopGossipHandler: NoopGossipHandler[*types.BeaconBlock, []byte]{},
 		chainSpec:         chainSpec,
 	}
 }
@@ -53,7 +53,7 @@ func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
 // Publish takes a BeaconBlock and returns the ssz marshalled data.
 func (n NoopBlockGossipHandler[ReqT]) Publish(
 	_ context.Context,
-	data *types.WrappedBeaconBlock,
+	data *types.BeaconBlock,
 ) ([]byte, error) {
 	return data.MarshalSSZ()
 }
@@ -62,8 +62,8 @@ func (n NoopBlockGossipHandler[ReqT]) Publish(
 func (n NoopBlockGossipHandler[ReqT]) Request(
 	_ context.Context,
 	req ReqT,
-) (*types.WrappedBeaconBlock, error) {
-	return encoding.UnmarshalBeaconBlockFromABCIRequest[*types.WrappedBeaconBlock](
+) (*types.BeaconBlock, error) {
+	return encoding.UnmarshalBeaconBlockFromABCIRequest[*types.BeaconBlock](
 		req,
 		0,
 		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),

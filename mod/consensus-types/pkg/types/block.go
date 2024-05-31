@@ -33,16 +33,16 @@ import (
 )
 
 // BeaconBlock is the interface for a beacon block.
-type WrappedBeaconBlock struct {
-	BeaconBlock
+type BeaconBlock struct {
+	RawBeaconBlock
 }
 
 // Empty creates an empty beacon block.
-func (w *WrappedBeaconBlock) Empty(forkVersion uint32) *WrappedBeaconBlock {
+func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 	switch forkVersion {
 	case version.Deneb:
-		return &WrappedBeaconBlock{
-			BeaconBlock: &BeaconBlockDeneb{},
+		return &BeaconBlock{
+			RawBeaconBlock: &BeaconBlockDeneb{},
 		}
 	default:
 		panic("fork version not supported")
@@ -50,14 +50,14 @@ func (w *WrappedBeaconBlock) Empty(forkVersion uint32) *WrappedBeaconBlock {
 }
 
 // NewWithVersion assembles a new beacon block from the given.
-func (w *WrappedBeaconBlock) NewWithVersion(
+func (w *BeaconBlock) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion uint32,
-) (*WrappedBeaconBlock, error) {
+) (*BeaconBlock, error) {
 	var (
-		block BeaconBlock
+		block RawBeaconBlock
 		base  = BeaconBlockHeaderBase{
 			Slot:            slot.Unwrap(),
 			ProposerIndex:   proposerIndex.Unwrap(),
@@ -73,23 +73,23 @@ func (w *WrappedBeaconBlock) NewWithVersion(
 			Body:                  &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return &WrappedBeaconBlock{}, ErrForkVersionNotSupported
+		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
 
-	return &WrappedBeaconBlock{
-		BeaconBlock: block,
+	return &BeaconBlock{
+		RawBeaconBlock: block,
 	}, nil
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (w *WrappedBeaconBlock) NewFromSSZ(
+func (w *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
-) (*WrappedBeaconBlock, error) {
-	var block = new(WrappedBeaconBlock)
+) (*BeaconBlock, error) {
+	var block = new(BeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
-		block.BeaconBlock = &BeaconBlockDeneb{}
+		block.RawBeaconBlock = &BeaconBlockDeneb{}
 	default:
 		return block, ErrForkVersionNotSupported
 	}

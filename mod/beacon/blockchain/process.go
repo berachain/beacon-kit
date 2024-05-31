@@ -67,7 +67,7 @@ func (s *Service[
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
-	blk *types.WrappedBeaconBlock,
+	blk *types.BeaconBlock,
 	sidecars BlobSidecarsT,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -167,7 +167,7 @@ func (s *Service[
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk *types.WrappedBeaconBlock,
+	blk *types.BeaconBlock,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()

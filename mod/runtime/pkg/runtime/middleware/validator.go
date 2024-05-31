@@ -48,7 +48,7 @@ type ValidatorMiddleware[
 	chainSpec primitives.ChainSpec
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
 	]
@@ -60,10 +60,10 @@ type ValidatorMiddleware[
 	// TODO: we will eventually gossip the blocks separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	beaconBlockGossiper p2p.PublisherReceiver[
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		[]byte,
 		encoding.ABCIRequest,
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 	]
 	// metrics is the metrics emitter.
 	metrics *validatorMiddlewareMetrics
@@ -76,7 +76,7 @@ func NewValidatorMiddleware[
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		BeaconStateT,
 		BlobsSidecarsT,
 	],

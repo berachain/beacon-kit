@@ -32,7 +32,7 @@ import (
 )
 
 // Block represents a generic block in the beacon chain.
-type Block[BeaconBlockT types.BeaconBlock] struct {
+type Block[BeaconBlockT types.RawBeaconBlock] struct {
 	// ctx is the context associated with the block.
 	ctx context.Context
 	// block is the actual beacon block.
@@ -41,7 +41,7 @@ type Block[BeaconBlockT types.BeaconBlock] struct {
 
 // NewBlock creates a new Block with the given context and beacon block.
 func NewBlock[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT types.RawBeaconBlock,
 ](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
 	return Block[BeaconBlockT]{
 		ctx:   ctx,

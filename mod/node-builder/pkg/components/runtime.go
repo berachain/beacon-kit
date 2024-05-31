@@ -144,7 +144,7 @@ func ProvideRuntime(
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		core.BeaconState[*types.Validator],
 	](
 		chainSpec,
@@ -152,7 +152,7 @@ func ProvideRuntime(
 	)
 
 	stateProcessor := core.NewStateProcessor[
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
@@ -169,11 +169,11 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[events.Block[*types.WrappedBeaconBlock]]{}
+	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
-		*types.WrappedBeaconBlock,
+		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
@@ -184,7 +184,7 @@ func ProvideRuntime(
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
-			*types.WrappedBeaconBlock,
+			*types.BeaconBlock,
 			types.BeaconBlockBody,
 		](
 			chainSpec,
@@ -227,8 +227,8 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		*types.WrappedBeaconBlock,
-		events.Block[*types.WrappedBeaconBlock],
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](
