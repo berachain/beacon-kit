@@ -75,14 +75,7 @@ func TestEmptyBeaconBlockForDeneb(t *testing.T) {
 // Test the case where the fork version is not supported.
 func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
 	require.Panics(t, func() {
-		block := &types.BeaconBlockDeneb{
-			BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-				Slot:            10,
-				ProposerIndex:   5,
-				ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
-			},
-		}
-		require.NotNil(t, block)
+		(&types.BeaconBlock{}).Empty(100)
 	})
 }
 
