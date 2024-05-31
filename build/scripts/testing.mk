@@ -14,6 +14,7 @@ JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
 ETH_DATA_DIR = .tmp/eth-home
+
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
 HTTP_URL = localhost:8551
