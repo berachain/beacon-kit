@@ -31,17 +31,17 @@ BALANCE = 100
 GENESIS_CMD = ./generate-genesis
 
 genesis_binary:
-	go build -o $(GENESIS_CMD) ./mod/generate-genesis
+	go build -o $(GENESIS_CMD) ./testing/generate-genesis
 
 generate-genesis-cmd: genesis_binary
-	 $(GENESIS_CMD) generate-genesis --predeployAddress $(PREDEPLOY_ADDRESS) \
-	--nonce $(NONCE) --predeploybalance $(PREDEPLOY_BALANCE) --code $(CODE) \
-	--account $(ACCOUNT) --balance $(BALANCE) --format $(FORMAT)  --output $(OUTPUT)
+	@$(GENESIS_CMD) $(FORMAT) --predeployAddresses $(PREDEPLOY_ADDRESS) \
+	--predeployNonces $(NONCE) --predeployBalances $(PREDEPLOY_BALANCE) --predeployCodes $(CODE) \
+	--accountAddresses $(ACCOUNT) --accountBalances $(BALANCE) --output $(OUTPUT)
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
 	@$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
-	@$(MAKE) FORMAT=nethermind OUTPUT=${NETHERMIND_GENESIS_PATH} generate-genesis-cmd
+	@$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine

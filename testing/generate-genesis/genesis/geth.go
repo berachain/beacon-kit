@@ -64,7 +64,7 @@ func (g *Geth) WriteJSON(filename string) error {
 
 func defaultGethChainConfig() *params.ChainConfig {
 	return &params.ChainConfig{
-		ChainID:                       big.NewInt(80087), // 80087 is the chain ID for Berachain
+		ChainID:                       big.NewInt(80086), // 80086 is the chain ID for Berachain
 		HomesteadBlock:                big.NewInt(0),
 		DAOForkBlock:                  big.NewInt(0),
 		DAOForkSupport:                true,
