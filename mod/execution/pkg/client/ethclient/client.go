@@ -27,6 +27,7 @@ package ethclient
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -63,6 +64,8 @@ func NewEth1Client[
 // NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
 func NewFromRPCClient[
 	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
