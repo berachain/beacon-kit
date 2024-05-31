@@ -73,15 +73,14 @@ func (sp *StateProcessor[
 		return withdrawalsRootErr
 	})
 
-	// TODO: Re-enable skipping verification once we debug infra issues.
-	//if !ctx.GetSkipPayloadVerification() {
-	// Verify and notify the new payload early in the function.
-	g.Go(func() error {
-		return sp.validateExecutionPayload(
-			gCtx, st, blk, ctx.GetOptimisticEngine(),
-		)
-	})
-	// }
+	if !ctx.GetSkipPayloadVerification() {
+		// Verify and notify the new payload early in the function.
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
 
 	// If deriving either of the roots or verifying the payload fails, return
 	// the error.
