@@ -135,7 +135,7 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/$(NETHER_ETH_GENESIS_PATH)
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
 start-besu: ## start an ephemeral `besu` node
 	docker run \
