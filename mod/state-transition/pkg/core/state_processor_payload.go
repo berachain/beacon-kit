@@ -40,7 +40,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -118,7 +118,7 @@ func (sp *StateProcessor[
 // state
 // and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
