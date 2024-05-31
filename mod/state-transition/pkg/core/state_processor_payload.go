@@ -32,7 +32,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"golang.org/x/sync/errgroup"
@@ -70,11 +69,11 @@ func (sp *StateProcessor[
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-
-		withdrawalsRoot, withdrawalsRootErr = ssz.MerkleizeListComposite[any, math.U64](
-			payload.GetWithdrawals(),
-			constants.MaxWithdrawalsPerPayload,
-		)
+		withdrawalsRoot, withdrawalsRootErr =
+			ssz.MerkleizeListComposite[any, math.U64](
+				payload.GetWithdrawals(),
+				sp.cs.MaxWithdrawalsPerPayload(),
+			)
 		return withdrawalsRootErr
 	})
 
