@@ -67,8 +67,7 @@ func (s *Service[
 		)
 	}
 
-	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock[BeaconBlockT](
+	return blk.NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -84,7 +83,7 @@ func (s *Service[
 	BlobSidecarsT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
 		RetrievePayload(

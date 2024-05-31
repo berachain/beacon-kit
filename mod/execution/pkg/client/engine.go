@@ -39,16 +39,17 @@ import (
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
+func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayload,
+	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
 	startTime := time.Now()
 	defer s.metrics.measureNewPayloadDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
@@ -59,6 +60,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 		parentBeaconBlockRoot,
 	)
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementNewPayloadTimeout()
+		}
 		return nil, err
 	} else if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
@@ -78,7 +82,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 }
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
+func (s *EngineClient[ExecutionPayloadT]) callNewPayloadRPC(
 	ctx context.Context,
 	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
@@ -100,7 +104,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
+func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
@@ -108,8 +112,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	startTime := time.Now()
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// If the suggested fee recipient is not set, log a warning.
@@ -123,7 +128,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 	}
 
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
+
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementForkchoiceUpdateTimeout()
+		}
 		return nil, nil, s.handleRPCError(err)
 	} else if result == nil {
 		return nil, nil, engineerrors.ErrNilForkchoiceResponse
@@ -138,7 +147,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
+func (s *EngineClient[ExecutionPayloadT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
@@ -156,21 +165,22 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
+func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	startTime := time.Now()
 	defer s.metrics.measureGetPayloadDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Determine what version we want to call.
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
@@ -184,11 +194,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	result, err := fn(dctx, payloadID)
 	switch {
 	case err != nil:
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementGetPayloadTimeout()
+		}
 		return result, s.handleRPCError(err)
 	case result == nil:
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
-	case result.GetExecutionPayload() == nil:
-		return result, engineerrors.ErrNilExecutionPayload
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
 		return result, engineerrors.ErrNilBlobsBundle
 	}
@@ -198,7 +209,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
+func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
