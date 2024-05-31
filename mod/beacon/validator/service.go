@@ -31,8 +31,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -325,24 +323,8 @@ func (s *Service[
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Error(
-			"aborting block verification on nil block ❌ ",
+			"aborting block verification on nil block ⛔️ ",
 		)
-
-		// If we reject the incoming block, we attempt to rebuild a payload for
-		// this slot.
-		if s.localPayloadBuilder.Enabled() {
-			go func() {
-				if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
-					//#nosec
-					slot, _ := st.GetSlot()
-					s.logger.Error(
-						"failed to re-build payload for rejected block",
-						"for_slot", slot,
-						"error", fErr,
-					)
-				}
-			}()
-		}
 		return ErrNilBlk
 	}
 
@@ -378,29 +360,6 @@ func (s *Service[
 			err,
 		)
 
-		// If we reject the incoming block, we attempt to rebuild a payload for
-		// this slot.
-		if s.localPayloadBuilder.Enabled() {
-			go func() {
-				if errors.Is(err, engineerrors.ErrSyncingPayloadStatus) {
-					s.logger.Warn(
-						"skipping rebuilding payload for " +
-							"rejected block due to syncing payload status",
-					)
-					return
-				}
-
-				if fErr := s.rebuildPayloadForRejectedBlock(ctx, st); fErr != nil {
-					//#nosec
-					slot, _ := st.GetSlot()
-					s.logger.Error(
-						"failed to re-build payload for rejected block",
-						"for_slot", slot,
-						"error", fErr,
-					)
-				}
-			}()
-		}
 		return err
 	}
 
