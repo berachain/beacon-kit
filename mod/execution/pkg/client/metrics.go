@@ -78,22 +78,29 @@ func (cm *clientMetrics) measureGetPayloadDuration(startTime time.Time) {
 	)
 }
 
-// incrementForkchoiceUpdateTimeout increments the timeout counter for forkchoice update.
+// incrementForkchoiceUpdateTimeout increments the timeout counter
+// for forkchoice update.
 func (cm *clientMetrics) incrementForkchoiceUpdateTimeout() {
-	cm.incrementTimeoutCounter("beacon_kit.execution.client.forkchoice_update_duration")
+	cm.incrementTimeoutCounter(
+		"beacon_kit.execution.client.forkchoice_update_duration")
 }
 
-// incrementNewPayloadTimeout increments the timeout counter for new payload.
+// incrementNewPayloadTimeout increments the timeout counter for
+// new payload.
 func (cm *clientMetrics) incrementNewPayloadTimeout() {
-	cm.incrementTimeoutCounter("beacon_kit.execution.client.new_payload_duration")
+	cm.incrementTimeoutCounter(
+		"beacon_kit.execution.client.new_payload_duration")
 }
 
-// incrementGetPayloadTimeout increments the timeout counter for get payload.
+// incrementGetPayloadTimeout increments the timeout counter for
+// get payload.
 func (cm *clientMetrics) incrementGetPayloadTimeout() {
-	cm.incrementTimeoutCounter("beacon_kit.execution.client.get_payload_duration")
+	cm.incrementTimeoutCounter(
+		"beacon_kit.execution.client.get_payload_duration")
 }
 
-// incrementTimeoutCounter increments the timeout counter for the given metric.
+// incrementTimeoutCounter increments the timeout counter for
+// the given metric.
 func (cm *clientMetrics) incrementTimeoutCounter(metricName string) {
 	cm.sink.IncrementCounter(metricName + "_timeout")
 }
