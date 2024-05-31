@@ -48,9 +48,13 @@ type StateProcessor[
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	cs              primitives.ChainSpec
-	rp              RandaoProcessor[BeaconBlockT, BeaconStateT]
-	signer          crypto.BLSSigner
+	// cs is the chain specification for the beacon chain.
+	cs primitives.ChainSpec
+	// rp is the Randao processor used for randomness in the beacon chain.
+	rp RandaoProcessor[BeaconBlockT, BeaconStateT]
+	// signer is the BLS signer used for cryptographic operations.
+	signer crypto.BLSSigner
+	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 }
 
