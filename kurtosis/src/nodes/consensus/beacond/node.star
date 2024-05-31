@@ -46,7 +46,7 @@ def start(persistent_peers, is_seed):
     if is_seed:
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
-        seed_option = "--p2p.seed_mode"
+        seed_option = "--p2p.seed_mode true"
 
     start_node = "/usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
