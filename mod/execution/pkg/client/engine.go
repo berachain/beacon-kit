@@ -195,7 +195,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
-			s.metrics.incrementNewPayloadTimeout()
+			s.metrics.incrementGetPayloadTimeout()
 		}
 		return result, s.handleRPCError(err)
 	case result == nil:
