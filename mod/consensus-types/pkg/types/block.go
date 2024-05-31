@@ -56,19 +56,21 @@ func (w *WrappedBeaconBlock) NewWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*WrappedBeaconBlock, error) {
-	var block BeaconBlock
+	var (
+		block BeaconBlock
+		base  = BeaconBlockHeaderBase{
+			Slot:            slot.Unwrap(),
+			ProposerIndex:   proposerIndex.Unwrap(),
+			ParentBlockRoot: parentBlockRoot,
+			StateRoot:       bytes.B32{},
+		}
+	)
+
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlockDeneb{
-			BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-				//#nosec:G701 // this is safe.
-				Slot: uint64(slot),
-				//#nosec:G701 // this is safe.
-				ProposerIndex:   uint64(proposerIndex),
-				ParentBlockRoot: parentBlockRoot,
-				StateRoot:       bytes.B32{},
-			},
-			Body: &BeaconBlockBodyDeneb{},
+			BeaconBlockHeaderBase: base,
+			Body:                  &BeaconBlockBodyDeneb{},
 		}
 	default:
 		return &WrappedBeaconBlock{}, ErrForkVersionNotSupported
