@@ -42,8 +42,6 @@ import (
 // its configuration.
 type Eth1Client[
 	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ] struct {
@@ -54,8 +52,6 @@ type Eth1Client[
 // context and options.
 func NewEth1Client[
 	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
 	},
 ](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {

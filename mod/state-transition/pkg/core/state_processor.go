@@ -39,8 +39,12 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT, *engineprimitives.Withdrawal],
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT, *engineprimitives.Withdrawal],
+	BeaconBlockT BeaconBlock[
+		DepositT, BeaconBlockBodyT,
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 	BeaconStateT BeaconState[ValidatorT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
@@ -57,7 +61,8 @@ type StateProcessor[
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
-	executionEngine ExecutionEngine[ExecutionPayloadT, *engineprimitives.Withdrawal]
+	executionEngine ExecutionEngine[
+		ExecutionPayloadT, *engineprimitives.Withdrawal]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -73,7 +78,8 @@ func NewStateProcessor[
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, *engineprimitives.Withdrawal],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
