@@ -179,7 +179,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
-	// graffiti
 	layer[2] = b.GetGraffiti()
 
 	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
@@ -187,7 +186,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
-	// Execution Payload
 	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err

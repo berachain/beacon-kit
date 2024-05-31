@@ -49,7 +49,8 @@ type StateProcessor[
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, *engineprimitives.Withdrawal],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
