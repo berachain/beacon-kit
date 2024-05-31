@@ -47,8 +47,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 ) (*common.ExecutionHash, error) {
 	startTime := time.Now()
 	defer s.metrics.measureNewPayloadDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
@@ -108,8 +109,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	startTime := time.Now()
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// If the suggested fee recipient is not set, log a warning.
@@ -163,8 +165,9 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 ) (engineprimitives.BuiltExecutionPayloadEnv, error) {
 	startTime := time.Now()
 	defer s.metrics.measureGetPayloadDuration(startTime)
-
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Determine what version we want to call.
