@@ -33,9 +33,9 @@ import (
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
-type BuiltExecutionPayloadEnv[T any] interface {
+type BuiltExecutionPayloadEnv[ExecutionPayloadT any] interface {
 	// GetExecutionPayload retrieves the associated execution payload.
-	GetExecutionPayload() T
+	GetExecutionPayload() ExecutionPayloadT
 	// GetValue returns the Wei value of the block in the execution payload.
 	GetValue() math.Wei
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
