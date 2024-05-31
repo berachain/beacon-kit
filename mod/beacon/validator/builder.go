@@ -27,7 +27,6 @@ package validator
 
 import (
 	"context"
-	"reflect"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -67,17 +66,12 @@ func (s *Service[
 		)
 	}
 
-	x, err := blk.NewWithVersion(
+	return blk.NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-	if err != nil {
-		return blk, err
-	}
-
-	return reflect.ValueOf(x).Interface().(BeaconBlockT), nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.

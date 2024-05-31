@@ -86,7 +86,6 @@ func (w *WrappedBeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*WrappedBeaconBlock, error) {
-	// TODO: switch is fugazi atm.
 	var block = new(WrappedBeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
