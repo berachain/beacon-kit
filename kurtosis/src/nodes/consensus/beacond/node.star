@@ -46,7 +46,7 @@ def start(persistent_peers, is_seed):
     if is_seed:
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = 200/" {}/config/config.toml'.format("$BEACOND_HOME")
-        seed_option = "--p2p.seed_mode"
+        seed_option = "--p2p.seed_mode true"
 
     start_node = "/usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
@@ -54,7 +54,7 @@ def start(persistent_peers, is_seed):
     --beacon-kit.engine.rpc-dial-url {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
-    --api.enable {}".format("$BEACOND_ENGINE_DIAL_URL", persistent_peers_option)
+    --api.enable {} {}".format("$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
