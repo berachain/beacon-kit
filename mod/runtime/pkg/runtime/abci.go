@@ -34,10 +34,10 @@ import (
 
 // TODO: InitGenesis should be calling into the StateProcessor.
 func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
-	DepositStoreT, StorageBackendT],
-) InitGenesis(
+	DepositStoreT, StorageBackendT,
+]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
@@ -46,7 +46,7 @@ func (r BeaconKitRuntime[
 
 // EndBlock returns the validator set updates from the beacon state.
 func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, DepositStoreT,
 	StorageBackendT,
 ]) EndBlock(

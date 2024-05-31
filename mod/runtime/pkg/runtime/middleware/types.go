@@ -61,7 +61,7 @@ type BlockchainService[
 
 // ValidatorService is responsible for building beacon blocks.
 type ValidatorService[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT any,
 	BeaconStateT any,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
