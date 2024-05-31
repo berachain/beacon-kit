@@ -54,20 +54,21 @@ func newEngineMetrics(
 
 // markNewPayloadCalled increments the counter for new payload calls.
 func (em *engineMetrics) markNewPayloadCalled(
-	payload ExecutionPayload,
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.logger.Info(
 		"calling new payload",
-		"payload_block_hash", payload.GetBlockHash(),
-		"payload_parent_block_hash", payload.GetParentHash(),
+		"payload_block_hash", payloadHash,
+		"payload_parent_block_hash", parentHash,
 		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload",
-		"payload_block_hash", payload.GetBlockHash().Hex(),
-		"payload_parent_block_hash", payload.GetParentHash().Hex(),
+		"payload_block_hash", payloadHash.Hex(),
+		"payload_parent_block_hash", parentHash.Hex(),
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }

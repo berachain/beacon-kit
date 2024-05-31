@@ -108,13 +108,10 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Logger().
 			Info("Deposit transaction created", "txHash", tx.Hash().Hex())
 		if i == NumDepositsLoad-1 {
-			s.Logger().
-				Info("Waiting for final transaction mined", "txHash", tx.Hash().Hex())
-			blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
-			s.Require().NoError(err)
-			err = s.WaitForFinalizedBlockNumber(blkNum + 5)
-			s.Require().NoError(err)
-			// Wait for the transaction to be mined.
+			s.Logger().Info(
+				"Waiting for deposit transaction to be mined", "txHash",
+				tx.Hash().Hex(),
+			)
 			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 			s.Require().NoError(err)
 			s.Require().Equal(uint64(1), receipt.Status)
@@ -160,7 +157,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(client2)
 
 	// Give time for the node to catch up
-	err = s.WaitForNBlockNumbers(3)
+	err = s.WaitForNBlockNumbers(10)
 	s.Require().NoError(err)
 
 	// Compare height of node 1 and 2

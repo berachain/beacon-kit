@@ -26,65 +26,78 @@
 package types
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// EmptyBeaconBlock assembles a new beacon block from
-// the given slot, time, execution data, and version. It
-// returns an error if the fork version is not supported.
-func EmptyBeaconBlock[
-	ReturnT any,
-	SlotT, ProposerIndexT ~uint64,
-	ParentBlockRootT ~[32]byte](
-	slot SlotT,
-	proposerIndex ProposerIndexT,
-	parentBlockRoot ParentBlockRootT,
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock struct {
+	RawBeaconBlock
+}
+
+// Empty creates an empty beacon block.
+func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlock{
+			RawBeaconBlock: &BeaconBlockDeneb{},
+		}
+	default:
+		panic("fork version not supported")
+	}
+}
+
+// NewWithVersion assembles a new beacon block from the given.
+func (w *BeaconBlock) NewWithVersion(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
 	forkVersion uint32,
-) (ReturnT, error) {
-	var block BeaconBlock
+) (*BeaconBlock, error) {
+	var (
+		block RawBeaconBlock
+		base  = BeaconBlockHeaderBase{
+			Slot:            slot.Unwrap(),
+			ProposerIndex:   proposerIndex.Unwrap(),
+			ParentBlockRoot: parentBlockRoot,
+			StateRoot:       bytes.B32{},
+		}
+	)
+
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlockDeneb{
-			BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-				//#nosec:G701 // this is safe.
-				Slot: uint64(slot),
-				//#nosec:G701 // this is safe.
-				ProposerIndex:   uint64(proposerIndex),
-				ParentBlockRoot: bytes.B32(parentBlockRoot),
-				StateRoot:       bytes.B32{},
-			},
-			Body: &BeaconBlockBodyDeneb{},
+			BeaconBlockHeaderBase: base,
+			Body:                  &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return reflect.ValueOf(block).Interface().(ReturnT),
-			ErrForkVersionNotSupported
+		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
-	return reflect.ValueOf(block).Interface().(ReturnT), nil
+
+	return &BeaconBlock{
+		RawBeaconBlock: block,
+	}, nil
 }
 
-// BeaconBlockFromSSZ assembles a new beacon block
-// from the given SSZ bytes and fork version.
-func BeaconBlockFromSSZ(
+// NewFromSSZ creates a new beacon block from the given SSZ bytes.
+func (w *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
-) (BeaconBlock, error) {
-	// TODO: switch is fugazi atm.
-	var block BeaconBlockDeneb
+) (*BeaconBlock, error) {
+	var block = new(BeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
-		_ = block
+		block.RawBeaconBlock = &BeaconBlockDeneb{}
 	default:
-		return &block, ErrForkVersionNotSupported
+		return block, ErrForkVersionNotSupported
 	}
 
 	if err := block.UnmarshalSSZ(bz); err != nil {
-		return &block, err
+		return block, err
 	}
-	return &block, nil
+	return block, nil
 }
 
 // BeaconBlockDeneb represents a block in the beacon chain during

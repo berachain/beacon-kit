@@ -69,7 +69,7 @@ type DepInjectInput struct {
 	BeaconConfig      *config.Config
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
-	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink

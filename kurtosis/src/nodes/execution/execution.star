@@ -17,6 +17,16 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
+DEFAULT_MIN_CPU = 0
+DEFAULT_MAX_CPU = 2000
+DEFAULT_MIN_MEMORY = 0
+DEFAULT_MAX_MEMORY = 2048
+
+# DEFAULT_MAX_CPU = 8000
+# DEFAULT_MAX_MEMORY = 32768
+# DEFAULT_MIN_CPU = 8000
+# DEFAULT_MIN_MEMORY = 32768
+
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(service_name, node_module):
     sc = service_config_lib.get_service_config_template(
@@ -26,6 +36,13 @@ def get_default_service_config(service_name, node_module):
         entrypoint = node_module.ENTRYPOINT,
         cmd = node_module.CMD,
         files = node_module.FILES,
+        min_cpu = DEFAULT_MIN_CPU,
+        max_cpu = DEFAULT_MAX_CPU,
+        min_memory = DEFAULT_MIN_MEMORY,
+        max_memory = DEFAULT_MAX_MEMORY,
+        labels = {
+            "node_type": "execution",
+        },
     )
 
     return sc
@@ -55,7 +72,7 @@ def upload_global_files(plan, node_modules):
 
     return jwt_file, kzg_trusted_setup_file
 
-def get_enode_addr(plan, el_service, el_service_name, el_type):
+def get_enode_addr(plan, el_service_name):
     extract_statement = {"enode": """.result.enode | split("?") | .[0]"""}
 
     request_recipe = PostHttpRequestRecipe(
@@ -73,6 +90,10 @@ def get_enode_addr(plan, el_service, el_service_name, el_type):
 
     enode = response["extract.enode"]
     return enode
+
+def set_max_peers(node_module, config, max_peers):
+    node_module.set_max_peers(config, max_peers)
+    return config
 
 def add_bootnodes(node_module, config, bootnodes):
     if type(bootnodes) == builtins.types.list:
@@ -100,19 +121,49 @@ def deploy_node(plan, config):
         config = service_config,
     )
 
-def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+def deploy_nodes(plan, configs):
+    service_configs = {}
+    for config in configs:
+        service_configs[config["name"]] = service_config_lib.create_from_config(config)
+
+    return plan.add_services(
+        configs = service_configs,
+    )
+
+def generate_node_config(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
     el_type = node.el_type
     node_module = node_modules[el_type]
     el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
 
     # 4a. Launch EL
     el_service_config_dict = get_default_service_config(el_service_name, node_module)
-    el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+
+    if node_type == "seed":
+        el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")
+    else:
+        el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
+
+    return el_service_config_dict
+
+def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
+    el_type = node.el_type
+    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
+
+    el_service_config_dict = generate_node_config(plan, node_modules, node, node_type, index, bootnode_enode_addrs)
     el_client_service = deploy_node(plan, el_service_config_dict)
 
-    enode_addr = get_enode_addr(plan, el_client_service, el_service_name, el_type)
+    enode_addr = get_enode_addr(plan, el_service_name)
     return {
         "name": el_service_name,
         "service": el_client_service,
         "enode_addr": enode_addr,
     }
+
+def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
+    if node.el_type != "ethereumjs":
+        metrics_enabled_services.append({
+            "name": el_service_name,
+            "service": el_client_service,
+            "metrics_path": node_modules[node.el_type].METRICS_PATH,
+        })
+    return metrics_enabled_services

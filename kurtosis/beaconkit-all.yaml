@@ -73,8 +73,11 @@ full_nodes:
     cl_type: beaconkit
     cl_image: beacond:kurtosis-local
     replicas: 0
-boot_sequence:
-  type: parallel
+seed_nodes:
+  - el_type: reth
+    cl_type: beaconkit
+    cl_image: beacond:kurtosis-local
+    replicas: 1
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang
@@ -89,7 +92,7 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 99
+    replicas: 1
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
