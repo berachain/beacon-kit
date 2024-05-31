@@ -26,7 +26,7 @@
 package components
 
 import (
-	"cosmossdk.io/log"
+	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
@@ -61,13 +61,13 @@ import (
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	*dastore.Store[types.BeaconBlockBody],
+	*types.BeaconBlock,
 	types.BeaconBlockBody,
 	core.BeaconState[*types.Validator],
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
-	runtime.StorageBackend[
+	blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -82,11 +82,10 @@ func ProvideRuntime(
 	cfg *config.Config,
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
-	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
+	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	storageBackend runtime.StorageBackend[
+	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -95,7 +94,7 @@ func ProvideRuntime(
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
-	executionEngine := execution.New[engineprimitives.ExecutionPayload](
+	executionEngine := execution.New[*types.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
 		ts,
@@ -144,7 +143,7 @@ func ProvideRuntime(
 	// Build the Randao Processor.
 	randaoProcessor := randao.NewProcessor[
 		types.BeaconBlockBody,
-		types.BeaconBlock,
+		*types.BeaconBlock,
 		core.BeaconState[*types.Validator],
 	](
 		chainSpec,
@@ -152,12 +151,13 @@ func ProvideRuntime(
 	)
 
 	stateProcessor := core.NewStateProcessor[
-		types.BeaconBlock,
+		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
+		*types.ExecutionPayload,
 		*types.ForkData,
 		*types.Validator,
 		types.WithdrawalCredentials,
@@ -169,11 +169,11 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[events.Block[types.BeaconBlock]]{}
+	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
-		types.BeaconBlock,
+		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator], *datypes.BlobSidecars,
 	](
@@ -184,7 +184,7 @@ func ProvideRuntime(
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
-			types.BeaconBlock,
+			*types.BeaconBlock,
 			types.BeaconBlockBody,
 		](
 			chainSpec,
@@ -203,6 +203,7 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
+		*types.BeaconBlock,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 	](
@@ -213,7 +214,8 @@ func ProvideRuntime(
 		localBuilder,
 		dablob.NewProcessor[
 			*dastore.Store[types.BeaconBlockBody],
-			types.BeaconBlockBody](
+			types.BeaconBlockBody,
+		](
 			logger.With("service", "blob-processor"),
 			chainSpec,
 			dablob.NewVerifier(blobProofVerifier, ts),
@@ -227,8 +229,8 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		types.BeaconBlock,
-		events.Block[types.BeaconBlock],
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		event.Subscription,
 	](
@@ -256,10 +258,17 @@ func ProvideRuntime(
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
 		*dastore.Store[types.BeaconBlockBody],
+		*types.BeaconBlock,
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		blockchain.StorageBackend[
+			*dastore.Store[types.BeaconBlockBody],
+			core.BeaconState[*types.Validator],
+			*datypes.BlobSidecars,
+			*depositdb.KVStore[*types.Deposit],
+		],
 	](
 		chainSpec,
 		logger,

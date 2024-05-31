@@ -30,6 +30,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -53,7 +54,14 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 }
 
 // BeaconBlock represents a generic interface for a beacon block.
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock[
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, ExecutionPayloadT, WithdrawalsT,
+	],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	WithdrawalsT any,
+] interface {
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
 	// GetSlot returns the slot number of the block.
@@ -68,11 +76,15 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 
 // BeaconBlockBody represents a generic interface for the body of a beacon
 // block.
-type BeaconBlockBody[DepositT any] interface {
+type BeaconBlockBody[
+	DepositT any,
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	WithdrawalsT any,
+] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() engineprimitives.ExecutionPayload
+	GetExecutionPayload() ExecutionPayloadT
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
@@ -133,13 +145,38 @@ type Deposit[
 	) error
 }
 
+type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
+	Empty(uint32) ExecutionPayloadT
+	Version() uint32
+	GetTransactions() [][]byte
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetPrevRandao() bytes.B32
+	GetWithdrawals() []WithdrawalsT
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() bytes.B32
+	GetReceiptsRoot() common.Root
+	GetLogsBloom() []byte
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetTimestamp() math.U64
+	GetGasUsed() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.U256L
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
+}
+
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	WithdrawalsT any,
+] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 	) error
 }
 

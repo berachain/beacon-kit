@@ -33,7 +33,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-var _ engineprimitives.ExecutionPayload = (*ExecutableDataDeneb)(nil)
+// ExecutionPayload represents an execution payload across
+// all fork versions.
+type ExecutionPayload struct {
+	engineprimitives.ExecutionPayload
+}
+
+// Empty returns an empty ExecutionPayload for the given fork version.
+func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+	e = new(ExecutionPayload)
+	switch forkVersion {
+	case version.Deneb:
+		e.ExecutionPayload = &ExecutableDataDeneb{}
+	default:
+		panic("unknown fork version")
+	}
+	return e
+}
 
 // ExecutableDataDeneb is the execution payload for Deneb.
 //

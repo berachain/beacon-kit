@@ -8,8 +8,6 @@ import (
 
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -128,7 +126,7 @@ func (_c *WriteOnlyBeaconBlockBody_SetEth1Data_Call) RunAndReturn(run func(*type
 }
 
 // SetExecutionData provides a mock function with given fields: _a0
-func (_m *WriteOnlyBeaconBlockBody) SetExecutionData(_a0 engineprimitives.ExecutionPayload) error {
+func (_m *WriteOnlyBeaconBlockBody) SetExecutionData(_a0 *types.ExecutionPayload) error {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -136,7 +134,7 @@ func (_m *WriteOnlyBeaconBlockBody) SetExecutionData(_a0 engineprimitives.Execut
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(engineprimitives.ExecutionPayload) error); ok {
+	if rf, ok := ret.Get(0).(func(*types.ExecutionPayload) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -151,14 +149,14 @@ type WriteOnlyBeaconBlockBody_SetExecutionData_Call struct {
 }
 
 // SetExecutionData is a helper method to define mock.On call
-//   - _a0 engineprimitives.ExecutionPayload
+//   - _a0 *types.ExecutionPayload
 func (_e *WriteOnlyBeaconBlockBody_Expecter) SetExecutionData(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
 	return &WriteOnlyBeaconBlockBody_SetExecutionData_Call{Call: _e.mock.On("SetExecutionData", _a0)}
 }
 
-func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) Run(run func(_a0 engineprimitives.ExecutionPayload)) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
+func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) Run(run func(_a0 *types.ExecutionPayload)) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(engineprimitives.ExecutionPayload))
+		run(args[0].(*types.ExecutionPayload))
 	})
 	return _c
 }
@@ -168,7 +166,7 @@ func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) Return(_a0 error) *Wri
 	return _c
 }
 
-func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) RunAndReturn(run func(engineprimitives.ExecutionPayload) error) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
+func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) RunAndReturn(run func(*types.ExecutionPayload) error) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
 	_c.Call.Return(run)
 	return _c
 }

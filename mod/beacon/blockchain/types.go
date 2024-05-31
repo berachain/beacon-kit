@@ -85,8 +85,8 @@ type ReadOnlyBeaconState[T any] interface {
 // required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-	BeaconStateT any,
-	BlobSidecarsT BlobSidecars,
+	BeaconStateT,
+	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
@@ -138,7 +138,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
@@ -149,7 +149,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[*types.ExecutionPayload],
 	) error
 }
 

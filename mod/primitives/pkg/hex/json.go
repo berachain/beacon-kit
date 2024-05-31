@@ -34,7 +34,8 @@ import (
 // TextUnmarshaler.
 func UnmarshalJSONText(input []byte,
 	u encoding.TextUnmarshaler,
-	t reflect.Type) error {
+	t reflect.Type,
+) error {
 	if err := ValidateUnmarshalInput(input); err != nil {
 		return WrapUnmarshalError(err, t)
 	}
