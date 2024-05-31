@@ -42,7 +42,8 @@ import (
 // Service is responsible for building beacon blocks.
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {

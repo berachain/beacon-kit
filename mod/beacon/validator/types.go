@@ -117,7 +117,9 @@ type BeaconState[BeaconStateT any] interface {
 // BlobFactory is the interface for building blobs.
 type BlobFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	],
 	BlobSidecarsT BlobSidecars,
 ] interface {
 	// BuildSidecars generates sidecars for a given block and blobs bundle.
