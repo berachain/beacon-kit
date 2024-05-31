@@ -275,7 +275,7 @@ func (s *Service[
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
-				"failed to compute state root for block ❌ ",
+				"failed to compute state root while building block ❗️ ",
 				"slot", requestedSlot,
 				"error", err,
 			)
