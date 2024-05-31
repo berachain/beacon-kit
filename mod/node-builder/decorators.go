@@ -25,8 +25,46 @@
 
 package nodebuilder
 
-// WithAppInfo sets the application information.
-func (nb *NodeBuilder[T]) WithAppInfo(appInfo *AppInfo[T]) *NodeBuilder[T] {
-	nb.appInfo = appInfo
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/primitives"
+)
+
+// WithAppName sets the application name.
+func (nb *NodeBuilder[T]) WithAppName(name string) *NodeBuilder[T] {
+	if nb.appInfo == nil {
+		nb.appInfo = &AppInfo[T]{}
+	}
+	nb.appInfo.Name = name
+	return nb
+}
+
+// WithAppDescription sets the application description.
+func (nb *NodeBuilder[T]) WithAppDescription(
+	description string,
+) *NodeBuilder[T] {
+	if nb.appInfo == nil {
+		nb.appInfo = &AppInfo[T]{}
+	}
+	nb.appInfo.Description = description
+	return nb
+}
+
+// WithChainSpec sets the chain specification.
+func (nb *NodeBuilder[T]) WithChainSpec(
+	spec primitives.ChainSpec,
+) *NodeBuilder[T] {
+	nb.chainSpec = spec
+	return nb
+}
+
+// WithDepInjectConfig sets the dependency injection configuration.
+func (nb *NodeBuilder[T]) WithDepInjectConfig(
+	config depinject.Config,
+) *NodeBuilder[T] {
+	if nb.appInfo == nil {
+		nb.appInfo = &AppInfo[T]{}
+	}
+	nb.appInfo.DepInjectConfig = config
 	return nb
 }

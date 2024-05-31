@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 ## DevTools:
 
-bet: format build test-unit ## yo bet
+bet: build format test-unit ## yo bet
 	@git add .
 	@git commit -m 'bet'
 	@git push
@@ -25,10 +25,19 @@ sync:
 
 tidy: ## run go mod tidy in all modules
 	@echo "Running go mod tidy in all modules"
+	@go env -w GOPRIVATE=github.com/berachain
 	@find . -name 'go.mod' ! -path './go.mod' -execdir go mod tidy \;
 
 yap: ## the yap cave
-	@go run ./mod/node-builder/utils/yap/yap.go
+	@go run ./mod/node-builder/pkg/utils/yap/yap.go
+
+tidy-sync-check:
+	@$(MAKE) repo-rinse tidy sync 
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Tidy and sync operations resulted in changes"; \
+		git status -s; \
+		git diff --exit-code; \
+	fi
 
 
 .PHONY: format build test-unit bet

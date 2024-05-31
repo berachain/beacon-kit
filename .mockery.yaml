@@ -25,25 +25,35 @@
 
 dir: "{{.InterfaceDir}}/mocks"
 mockname: "{{.InterfaceNameCamel}}"
-filename: "{{.InterfaceNameSnake}}.go"
+filename: "{{.InterfaceNameSnake}}.mock.go"
 outpkg: "mocks"
 packages:
-  github.com/berachain/beacon-kit/mod/execution/client/ethclient:
+  github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient:
     config:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/berachain/beacon-kit/mod/node-builder/service:
+  github.com/berachain/beacon-kit/mod/runtime/pkg/service:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/node-builder/commands/utils/prompt:
+  github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/prompt:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage:
+  github.com/berachain/beacon-kit/mod/storage/pkg/interfaces:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True
+  github.com/berachain/beacon-kit/mod/consensus-types/pkg/types:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True
+  github.com/berachain/beacon-kit/mod/primitives/pkg/crypto:
     config:
       recursive: False
       with-expecter: true

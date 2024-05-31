@@ -33,7 +33,7 @@ import (
 )
 
 // LoadBalancer represents a group of eth JSON-RPC endpoints
-// behind an NGINX load balancer.
+// behind a load balancer which could be either NGINX or blutgang.
 type LoadBalancer struct {
 	*JSONRPCConnection
 

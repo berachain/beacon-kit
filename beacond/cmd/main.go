@@ -26,19 +26,38 @@
 package main
 
 import (
-	app "github.com/berachain/beacon-kit/beacond/app"
+	"log/slog"
+	"os"
+
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
-func main() {
+// run runs the beacon node.
+func run() error {
+	// Set the uber max procs
+	if _, err := maxprocs.Set(); err != nil {
+		return err
+	}
+
+	// Build the node using the node-builder.
 	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppInfo(
-			&nodebuilder.AppInfo[app.BeaconApp]{
-				Name:            "beacond",
-				Description:     "beacond is a beacon node for any beacon-kit chain",
-				Creator:         app.NewBeaconKitAppWithDefaultBaseAppOptions,
-				DepInjectConfig: app.Config(),
-			},
-		)
-	nb.RunNode()
+		WithAppName("beacond").
+		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
+		WithDepInjectConfig(Config()).
+		// TODO: Don't hardcode the default chain spec.
+		WithChainSpec(spec.LocalnetChainSpec())
+
+	return nb.RunNode()
+}
+
+// main is the entry point.
+func main() {
+	if err := run(); err != nil {
+		//nolint:sloglint // todo fix.
+		slog.Error("startup failure", "error", err)
+		os.Exit(1)
+	}
 }

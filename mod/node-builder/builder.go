@@ -26,25 +26,28 @@
 package nodebuilder
 
 import (
-	"context"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/commands"
-	"github.com/berachain/beacon-kit/mod/node-builder/commands/utils/tos"
-	"github.com/berachain/beacon-kit/mod/node-builder/components"
-	"github.com/berachain/beacon-kit/mod/node-builder/config/spec"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 )
 
 // AppInfo is a struct that holds the application information.
@@ -53,18 +56,20 @@ type AppInfo[T servertypes.Application] struct {
 	Name string
 	// Description is a short description of the application.
 	Description string
-	// Creator is a function that creates the application.
-	Creator servertypes.AppCreator[T]
 	// DepInjectConfig is the configuration for the application.
 	DepInjectConfig depinject.Config
 }
 
 // NodeBuilder is a struct that holds the application information.
-type NodeBuilder[
-	T servertypes.Application,
-] struct {
+type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
+
+	// chainSpec is the chain specification for the application.
+	chainSpec primitives.ChainSpec
+
+	// rootCmd is the root command for the application.
+	rootCmd *cobra.Command
 }
 
 // NewNodeBuilder creates a new NodeBuilder.
@@ -73,20 +78,24 @@ func NewNodeBuilder[T servertypes.Application]() *NodeBuilder[T] {
 }
 
 // Run runs the application.
-func (nb *NodeBuilder[T]) RunNode() {
-	rootCmd := nb.BuildRootCmd()
+func (nb *NodeBuilder[T]) RunNode() error {
+	if err := nb.BuildRootCmd(); err != nil {
+		return err
+	}
+
 	// Run the root command.
 	if err := svrcmd.Execute(
-		rootCmd, "", components.DefaultNodeHome,
+		nb.rootCmd, "", components.DefaultNodeHome,
 	); err != nil {
-		log.NewLogger(rootCmd.OutOrStderr()).
+		log.NewLogger(nb.rootCmd.OutOrStderr()).
 			Error("failure when running app", "error", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 // BuildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
+func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -98,22 +107,29 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				spec.LocalnetChainSpec(),
+				nb.chainSpec,
+				&depositdb.KVStore[*types.Deposit]{},
+				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
+				&gokzg4844.JSONTrustedSetup{},
+				&dastore.Store[types.BeaconBlockBody]{},
+				&signer.BLSSigner{},
 			),
 			depinject.Provide(
+				components.ProvideNoopTxConfig,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
+				components.ProvideTelemetrySink,
 			),
 		),
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
 	); err != nil {
-		panic(err)
+		return err
 	}
 
-	rootCmd := &cobra.Command{
+	nb.rootCmd = &cobra.Command{
 		Use:   nb.appInfo.Name,
 		Short: nb.appInfo.Description,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
@@ -127,12 +143,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 				cmd.Flags(),
 			)
 			if err != nil {
-				return err
-			}
-
-			if err = tos.VerifyTosAcceptedOrPrompt(
-				nb.appInfo.Name, components.TermsOfServiceURL, clientCtx, cmd,
-			); err != nil {
 				return err
 			}
 
@@ -162,26 +172,11 @@ func (nb *NodeBuilder[T]) BuildRootCmd() *cobra.Command {
 	}
 
 	cmdlib.DefaultRootCommandSetup(
-		rootCmd,
+		nb.rootCmd,
 		mm,
-		nb.appInfo.Creator,
-		func(
-			_app T,
-			_ *server.Context,
-			clientCtx client.Context,
-			ctx context.Context,
-			_ *errgroup.Group,
-		) error {
-			return interface{}(_app).(BeaconApp).PostStartup(
-				ctx,
-				clientCtx,
-			)
-		},
+		nb.AppCreator,
+		nb.chainSpec,
 	)
 
-	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-		panic(err)
-	}
-
-	return rootCmd
+	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)
 }
