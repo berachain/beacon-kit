@@ -311,13 +311,14 @@ func (s *Service[
 
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block
 // and logs the process.
+//
+//nolint:nestif,gocognit // todo fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
-
 	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
 
