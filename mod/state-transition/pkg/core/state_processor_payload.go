@@ -39,8 +39,6 @@ import (
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-//
-
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
