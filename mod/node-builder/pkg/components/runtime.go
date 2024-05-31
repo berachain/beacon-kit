@@ -117,8 +117,7 @@ func ProvideRuntime(
 	}
 
 	// Build the local builder service.
-	localBuilder := payloadbuilder.New[core.BeaconState[
-		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal]](
+	localBuilder := payloadbuilder.New[BeaconState](
 		&cfg.PayloadBuilder,
 		chainSpec,
 		logger.With("service", "payload-builder"),
