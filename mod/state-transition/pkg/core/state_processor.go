@@ -86,7 +86,10 @@ func NewStateProcessor[
 		WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT BeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT],
+	BeaconStateT BeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
