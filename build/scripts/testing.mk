@@ -36,8 +36,12 @@ generate-genesis-cmd:
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
-	@$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd
+	@if [ ! -f ${ETH_GENESIS_PATH} ]; then \
+		$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd; \
+	fi
+	@if [ ! -f ${NETHER_ETH_GENESIS_PATH} ]; then \
+		$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd; \
+	fi
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine
