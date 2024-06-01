@@ -56,7 +56,10 @@ type BeaconKitRuntime[
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Validator, *engineprimitives.Withdrawal,
+		*types.BeaconBlockHeader,
+		*types.ExecutionPayloadHeader,
+		*types.Validator,
+		*engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
