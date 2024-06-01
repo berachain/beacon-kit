@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -55,7 +56,9 @@ type BeaconKitRuntime[
 		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -100,7 +103,11 @@ func NewBeaconKitRuntime[
 		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Validator,
+		*engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT blockchain.StorageBackend[
@@ -123,14 +130,22 @@ func NewBeaconKitRuntime[
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
 			BeaconBlockT,
-			core.BeaconState[*types.Validator],
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 			DepositStoreT,
 		]
 		validatorService *validator.Service[
 			BeaconBlockT,
 			types.BeaconBlockBody,
-			core.BeaconState[*types.Validator],
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 		]
 	)

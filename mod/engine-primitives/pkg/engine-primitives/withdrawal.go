@@ -55,6 +55,27 @@ func (w *Withdrawal) Equals(other *Withdrawal) bool {
 		w.Amount == other.Amount
 }
 
+// GetIndex returns the unique identifier for the withdrawal.
+func (w *Withdrawal) GetIndex() math.U64 {
+	return w.Index
+}
+
+// GetValidatorIndex returns the index of the validator initiating the
+// withdrawal.
+func (w *Withdrawal) GetValidatorIndex() math.ValidatorIndex {
+	return w.Validator
+}
+
+// GetAddress returns the execution address where the withdrawal will be sent.
+func (w *Withdrawal) GetAddress() common.ExecutionAddress {
+	return w.Address
+}
+
+// GetAmount returns the amount of Gwei to be withdrawn.
+func (w *Withdrawal) GetAmount() math.Gwei {
+	return w.Amount
+}
+
 // Withdrawals represents a slice of withdrawals.
 type Withdrawals []*Withdrawal
 

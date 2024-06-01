@@ -32,18 +32,18 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"golang.org/x/sync/errgroup"
 )
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-//
-
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -57,6 +57,15 @@ func (sp *StateProcessor[
 		g, gCtx         = errgroup.WithContext(context.Background())
 	)
 
+	// Skip payload verification if the context is configured as such.
+	if !ctx.GetSkipPayloadVerification() {
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
+
 	g.Go(func() error {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
@@ -67,20 +76,13 @@ func (sp *StateProcessor[
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
+		withdrawalsRoot, withdrawalsRootErr =
+			ssz.MerkleizeListComposite[any, math.U64](
+				payload.GetWithdrawals(),
+				sp.cs.MaxWithdrawalsPerPayload(),
+			)
 		return withdrawalsRootErr
 	})
-
-	if !ctx.GetSkipPayloadVerification() {
-		// Verify and notify the new payload early in the function.
-		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk, ctx.GetOptimisticEngine(),
-			)
-		})
-	}
 
 	// If deriving either of the roots or verifying the payload fails, return
 	// the error.
@@ -116,10 +118,10 @@ func (sp *StateProcessor[
 // state
 // and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,

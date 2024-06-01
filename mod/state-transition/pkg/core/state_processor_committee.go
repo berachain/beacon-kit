@@ -30,10 +30,10 @@ import (
 )
 
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
 ) ([]*transition.ValidatorUpdate, error) {
