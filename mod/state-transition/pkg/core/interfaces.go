@@ -49,16 +49,16 @@ type BeaconState[
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT]
-	WriteOnlyBeaconState[BeaconBlockHeaderT, ValidatorT]
+	ReadOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT]
+	WriteOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ValidatorT, WithdrawalT any,
+	ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
 ] interface {
-	ReadOnlyEth1Data
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
@@ -96,8 +96,8 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[BeaconBlockHeaderT, ValidatorT any] interface {
-	WriteOnlyEth1Data
+type WriteOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT any] interface {
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
@@ -162,20 +162,20 @@ type ReadOnlyValidators[ValidatorT any] interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data interface {
+type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 	SetEth1Data(*types.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data interface {
+type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 	GetEth1Data() (*types.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 }
 

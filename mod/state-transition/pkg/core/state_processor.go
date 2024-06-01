@@ -39,10 +39,10 @@ import (
 type StateProcessor[
 	BeaconBlockT BeaconBlock[
 		DepositT, BeaconBlockBodyT,
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, WithdrawalT,
+		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT],
@@ -50,9 +50,9 @@ type StateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	ExecutionPayloadHeaderT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
@@ -66,7 +66,7 @@ type StateProcessor[
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
 }
 
@@ -74,10 +74,10 @@ type StateProcessor[
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[
 		DepositT, BeaconBlockBodyT,
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
@@ -86,9 +86,9 @@ func NewStateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	ExecutionPayloadHeaderT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
@@ -99,7 +99,7 @@ func NewStateProcessor[
 		BeaconBlockT, BeaconStateT,
 	],
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	signer crypto.BLSSigner,
 ) *StateProcessor[

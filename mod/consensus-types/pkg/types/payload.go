@@ -26,11 +26,15 @@
 package types
 
 import (
+	"context"
+
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"golang.org/x/sync/errgroup"
 )
 
 // ExecutionPayload represents an execution payload across
@@ -49,6 +53,64 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 		panic("unknown fork version")
 	}
 	return e
+}
+
+// ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
+func (e *ExecutionPayload) ToHeader() *ExecutionPayloadHeader {
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(context.Background())
+		txsRoot         primitives.Root
+		withdrawalsRoot primitives.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			e.GetTransactions(),
+		).HashTreeRoot()
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
+			e.GetWithdrawals(),
+		).HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	// Wait for the goroutines to finish.
+	if err := g.Wait(); err != nil {
+		panic(err)
+	}
+
+	switch e.Version() {
+	case version.Deneb:
+		return &ExecutionPayloadHeader{
+			ExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
+				ParentHash:       e.GetParentHash(),
+				FeeRecipient:     e.GetFeeRecipient(),
+				StateRoot:        e.GetStateRoot(),
+				ReceiptsRoot:     e.GetReceiptsRoot(),
+				LogsBloom:        e.GetLogsBloom(),
+				Random:           e.GetPrevRandao(),
+				Number:           math.U64(e.GetNumber()),
+				GasLimit:         math.U64(e.GetGasLimit()),
+				GasUsed:          math.U64(e.GetGasUsed()),
+				Timestamp:        math.U64(e.GetTimestamp()),
+				ExtraData:        e.GetExtraData(),
+				BaseFeePerGas:    e.GetBaseFeePerGas(),
+				BlockHash:        e.GetBlockHash(),
+				TransactionsRoot: txsRoot,
+				WithdrawalsRoot:  withdrawalsRoot,
+				BlobGasUsed:      math.U64(e.GetBlobGasUsed()),
+				ExcessBlobGas:    math.U64(e.GetExcessBlobGas()),
+			},
+		}
+	default:
+		panic("unknown fork version")
+	}
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.

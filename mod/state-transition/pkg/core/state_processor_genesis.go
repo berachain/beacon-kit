@@ -47,7 +47,7 @@ func (sp *StateProcessor[
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader *types.ExecutionPayloadHeader,
+	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
 	fork := &types.Fork{
