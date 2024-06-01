@@ -41,7 +41,9 @@ type ExecutionPayloadHeader struct {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (e *ExecutionPayloadHeader) Empty(forkVersion uint32) *ExecutionPayloadHeader {
+func (e *ExecutionPayloadHeader) Empty(
+	forkVersion uint32,
+) *ExecutionPayloadHeader {
 	e = new(ExecutionPayloadHeader)
 	switch forkVersion {
 	case version.Deneb:

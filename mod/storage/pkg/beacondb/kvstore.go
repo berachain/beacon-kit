@@ -71,9 +71,9 @@ type KVStore[
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 
-	latestExecutionPayloadCodec encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
-	// latestExecutionPayloadHeader stores the latest execution payload header.
-	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
+	latestExecutionPayloadVersion sdkcollections.Item[uint32]
+	latestExecutionPayloadCodec   encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
+	latestExecutionPayloadHeader  sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
 	validatorIndex sdkcollections.Sequence
@@ -167,6 +167,13 @@ func New[
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
+		latestExecutionPayloadVersion: sdkcollections.NewItem[uint32](
+			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{keys.LatestExecutionPayloadVersionPrefix}),
+			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
+			sdkcollections.Uint32Value,
+		),
+
 		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
@@ -180,9 +187,7 @@ func New[
 			sdkcollections.NewPrefix([]byte{keys.ValidatorIndexPrefix}),
 			keys.ValidatorIndexPrefixHumanReadable,
 		),
-		validators: sdkcollections.NewIndexedMap[
-			uint64, ValidatorT,
-		](
+		validators: sdkcollections.NewIndexedMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
