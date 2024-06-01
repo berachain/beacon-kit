@@ -72,7 +72,8 @@ type KVStore[
 	eth1DepositIndex sdkcollections.Item[uint64]
 	// latestExecutionPayload stores the latest execution payload version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
-	// latestExecutionPayloadCodec is the codec for the latest execution payload, it
+	// latestExecutionPayloadCodec is the codec for the latest execution
+	// payload, it
 	// allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
@@ -120,7 +121,8 @@ func New[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	latestExecutionPayloadCodec := &encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
+	latestExecutionPayloadCodec :=
+		&encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
 	return &KVStore[
 		ForkT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
@@ -172,7 +174,9 @@ func New[
 		),
 		latestExecutionPayloadVersion: sdkcollections.NewItem[uint32](
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.LatestExecutionPayloadVersionPrefix}),
+			sdkcollections.NewPrefix(
+				[]byte{keys.LatestExecutionPayloadVersionPrefix},
+			),
 			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
 			sdkcollections.Uint32Value,
 		),
