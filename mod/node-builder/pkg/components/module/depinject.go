@@ -95,7 +95,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		beacondb.New[
 			*types.Fork,
 			*types.BeaconBlockHeader,
-			engineprimitives.ExecutionPayloadHeader,
+			*types.ExecutionPayloadHeader,
 			*types.Eth1Data,
 			*types.Validator,
 		](in.Environment.KVStoreService, DenebPayloadFactory),
@@ -127,6 +127,8 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 }
 
 // TODO: move this.
-func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeaderDeneb{}
+func DenebPayloadFactory() *types.ExecutionPayloadHeader {
+	return &types.ExecutionPayloadHeader{
+		ExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{},
+	}
 }

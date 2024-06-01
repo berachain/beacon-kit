@@ -349,5 +349,147 @@ func (s *Service[
 		"state root verification succeeded - accepting incoming block 🏎️ ",
 		"state_root", blk.GetStateRoot(),
 	)
+<<<<<<< Updated upstream
+=======
+
+	// TODO: Make optimistic explicitly feature flagged.
+	if s.localPayloadBuilder.Enabled() {
+		go func() {
+			if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
+				s.logger.Error(
+					"failed to build optimistic payload",
+					"for_slot", blk.GetSlot()+1,
+					"error", err,
+				)
+			}
+		}()
+	}
+
+	return nil
+}
+
+// rebuildPayloadForRejectedBlock rebuilds a payload for the current
+// slot, if the incoming block was rejected.
+//
+// NOTE: We cannot use any data off the incoming block and must recompute
+// any required information from our local state. We do this since we have
+// rejected the incoming block and it would be unsafe to use any
+// information from it.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) rebuildPayloadForRejectedBlock(
+	ctx context.Context,
+	st BeaconStateT,
+) error {
+	var (
+		previousBlockRoot primitives.Root
+		latestHeader      *types.BeaconBlockHeader
+		lph               *types.ExecutionPayloadHeader
+		slot              math.Slot
+	)
+
+	// In order to rebuild a payload for the current slot, we need to know the
+	// previous block root, since we know that this is unmodified state.
+	// We can safely get the latest block header and then rebuild the
+	// previous block and it's root.
+	latestHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	stateRoot, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	latestHeader.StateRoot = stateRoot
+	previousBlockRoot, err = latestHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// We need to get the *last* finalized execution payload, thus
+	// the BeaconState that was passed in must be `unmodified`.
+	lph, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	slot, err = st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// Submit a request for a new payload.
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+		ctx,
+		st,
+		// We are rebuilding for the current slot.
+		slot,
+		// TODO: this is hood as fuck.
+		max(
+			//#nosec:G701
+			uint64(time.Now().Unix()+1),
+			uint64((lph.GetTimestamp()+1)),
+		),
+		// We set the parent root to the previous block root.
+		previousBlockRoot,
+		// We set the head of our chain to previous finalized block.
+		lph.GetBlockHash(),
+		// We can say that the payload from the previous block is *finalized*,
+		// TODO: This is making an assumption about the consensus rules
+		// and possibly should be made more explicit later on.
+		lph.GetBlockHash(),
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// optimisticPayloadBuild builds a payload for the next slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) optimisticPayloadBuild(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	// We know that this block was properly formed so we can
+	// calculate the block hash easily.
+	blkRoot, err := blk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// We process the slot to update any RANDAO values.
+	if _, err = s.stateProcessor.ProcessSlot(
+		st,
+	); err != nil {
+		return err
+	}
+
+	// We then trigger a request for the next payload.
+	payload := blk.GetBody().GetExecutionPayload()
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+		ctx, st,
+		// We are building for the next slot, so we increment the slot.
+		blk.GetSlot()+1,
+		// TODO: this is hood as fuck, also kind of dangerous if
+		// payload is malicious, we should fix it.
+		uint64(payload.GetTimestamp()+1),
+		// The previous block root is simply the root of the block we just
+		// processed.
+		blkRoot,
+		// We set the head of our chain to the block we just processed.
+		payload.GetBlockHash(),
+		// We can say that the payload from the previous block is *finalized*,
+		// This is safe to do since this block was accepted and the thus the
+		// parent hash was deemed valid by the state transition function we
+		// just processed.
+		payload.GetParentHash(),
+	); err != nil {
+		return err
+	}
+>>>>>>> Stashed changes
 	return nil
 }

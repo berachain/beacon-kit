@@ -27,7 +27,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -48,7 +47,7 @@ func (sp *StateProcessor[
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+	executionPayloadHeader *types.ExecutionPayloadHeader,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
 	fork := &types.Fork{

@@ -62,7 +62,7 @@ type ReadOnlyBeaconState[T any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeader,
 		error,
 	)
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
@@ -183,7 +183,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
 		deposits []*types.Deposit,
-		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		executionPayloadHeader *types.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.

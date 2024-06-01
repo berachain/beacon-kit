@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -163,7 +162,7 @@ type WriteOnlyEth1Data interface {
 	SetEth1Data(*types.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
-		engineprimitives.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeader,
 	) error
 }
 
@@ -172,7 +171,7 @@ type ReadOnlyEth1Data interface {
 	GetEth1Data() (*types.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		*types.ExecutionPayloadHeader, error,
 	)
 }
 

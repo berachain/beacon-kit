@@ -91,31 +91,31 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "nethermind",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 0,
+				Replicas: 5,
 			},
 			{
 				ElType:   "geth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 5,
 			},
 			{
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2, //nolint:mnd // 2 replicas
+				Replicas: 5, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "erigon",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 5,
 			},
 			{
 				ElType:   "besu",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 0,
+				Replicas: 5,
 			},
 		},
 		FullNodes: []Node{
@@ -129,19 +129,19 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "reth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 2, //nolint:mnd // 2 replicas
+				Replicas: 0, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "geth",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 5,
 			},
 			{
 				ElType:   "erigon",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 0,
 			},
 			{
 				ElType:   "besu",
@@ -163,9 +163,11 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Type: "blutgang",
 				Clients: []string{
 					// "el-full-nethermind-0",
-					"el-full-reth-0",
-					"el-full-reth-1",
+					"el-full-geth-0",
+					"el-full-geth-1",
 					"el-full-geth-2",
+					"el-full-geth-3",
+					"el-full-geth-4",
 					// "el-full-erigon-3",
 					// Besu causing flakey tests.
 					// "el-full-besu-4",

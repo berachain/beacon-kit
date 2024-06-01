@@ -92,24 +92,26 @@ func (sp *StateProcessor[
 
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
+		&types.ExecutionPayloadHeader{
+			ExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{
+				ParentHash:       payload.GetParentHash(),
+				FeeRecipient:     payload.GetFeeRecipient(),
+				StateRoot:        payload.GetStateRoot(),
+				ReceiptsRoot:     payload.GetReceiptsRoot(),
+				LogsBloom:        payload.GetLogsBloom(),
+				Random:           payload.GetPrevRandao(),
+				Number:           payload.GetNumber(),
+				GasLimit:         payload.GetGasLimit(),
+				GasUsed:          payload.GetGasUsed(),
+				Timestamp:        payload.GetTimestamp(),
+				ExtraData:        payload.GetExtraData(),
+				BaseFeePerGas:    payload.GetBaseFeePerGas(),
+				BlockHash:        payload.GetBlockHash(),
+				TransactionsRoot: txsRoot,
+				WithdrawalsRoot:  withdrawalsRoot,
+				BlobGasUsed:      payload.GetBlobGasUsed(),
+				ExcessBlobGas:    payload.GetExcessBlobGas(),
+			},
 		},
 	)
 }
