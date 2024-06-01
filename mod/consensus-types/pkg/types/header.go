@@ -92,3 +92,21 @@ func NewBeaconBlockHeader(
 		BodyRoot: bodyRoot,
 	}
 }
+
+// New creates a new BeaconBlockHeader.
+func (b *BeaconBlockHeader) New(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
+	stateRoot common.Root,
+	bodyRoot common.Root,
+) *BeaconBlockHeader {
+	return NewBeaconBlockHeader(
+		slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot,
+	)
+}
+
+// SetStateRoot sets the state root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) SetStateRoot(stateRoot common.Root) {
+	b.StateRoot = stateRoot
+}

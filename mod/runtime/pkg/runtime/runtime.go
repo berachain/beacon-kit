@@ -31,8 +31,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -42,12 +44,24 @@ import (
 // service registry.
 type BeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	BeaconBlockT interface {
+		types.RawBeaconBlock
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockBodyT,
+		AvailabilityStoreT,
 		BeaconStateT, BlobSidecarsT, DepositStoreT,
 	],
 ] struct {
@@ -63,12 +77,12 @@ type BeaconKitRuntime[
 	// abciFinalizeBlockMiddleware handles ABCI interactions for the
 	// BeaconKitRuntime.
 	abciFinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		types.BeaconBlock, BeaconStateT, BlobSidecarsT,
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
 	]
 	// abciValidatorMiddleware is responsible for forward ABCI requests to the
 	// validator service.
 	abciValidatorMiddleware *middleware.ValidatorMiddleware[
-		BeaconStateT, BlobSidecarsT,
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
 	]
 }
 
@@ -76,13 +90,28 @@ type BeaconKitRuntime[
 // and applies the provided options.
 func NewBeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	BeaconBlockT interface {
+		types.RawBeaconBlock
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Validator,
+		*engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT,
+	StorageBackendT blockchain.StorageBackend[
+		AvailabilityStoreT,
+		BeaconStateT,
+		BlobSidecarsT,
 		DepositStoreT,
 	],
 ](
@@ -92,20 +121,29 @@ func NewBeaconKitRuntime[
 	storageBackend StorageBackendT,
 	telemetrySink middleware.TelemetrySink,
 ) (*BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ], error) {
 	var (
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
-			core.BeaconState[*types.Validator],
+			BeaconBlockT,
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 			DepositStoreT,
 		]
 		validatorService *validator.Service[
-			types.BeaconBlock,
+			BeaconBlockT,
 			types.BeaconBlockBody,
-			core.BeaconState[*types.Validator],
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 		]
 	)
@@ -119,12 +157,12 @@ func NewBeaconKitRuntime[
 	}
 
 	return &BeaconKitRuntime[
-		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
 		abciFinalizeBlockMiddleware: middleware.
 			NewFinalizeBlockMiddleware[
-			types.BeaconBlock, BeaconStateT,
+			BeaconBlockT, BeaconStateT, BlobSidecarsT,
 		](
 			chainSpec,
 			chainService,
@@ -132,7 +170,7 @@ func NewBeaconKitRuntime[
 		),
 		abciValidatorMiddleware: middleware.
 			NewValidatorMiddleware[
-			BeaconStateT, BlobSidecarsT,
+			BeaconBlockT, BeaconStateT, BlobSidecarsT,
 		](
 			chainSpec,
 			validatorService,
@@ -147,7 +185,7 @@ func NewBeaconKitRuntime[
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
@@ -157,20 +195,20 @@ func (r *BeaconKitRuntime[
 
 // ABCIHandler returns the ABCI handler.
 func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) ABCIFinalizeBlockMiddleware() *middleware.FinalizeBlockMiddleware[
-	types.BeaconBlock, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ] {
 	return r.abciFinalizeBlockMiddleware
 }
 
 // ABCIValidatorMiddleware returns the ABCI validator middleware.
 func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) ABCIValidatorMiddleware() *middleware.ValidatorMiddleware[
-	BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ] {
 	return r.abciValidatorMiddleware
 }

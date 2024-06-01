@@ -40,6 +40,7 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
+	BeaconBlockT types.RawBeaconBlock,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
@@ -64,7 +65,7 @@ type Service[
 	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
-		types.BeaconBlock,
+		BeaconBlockT,
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
@@ -72,7 +73,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[types.BeaconBlock]]
+	blockFeed EventFeed[events.Block[BeaconBlockT]]
 }
 
 // NewService creates a new validator service.
@@ -80,13 +81,17 @@ func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		types.BeaconBlockBody, BlobSidecarsT,
 	],
+	BeaconBlockT types.RawBeaconBlock,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
-		BeaconStateT, BlobSidecarsT, DepositStoreT],
+		BeaconStateT,
+		BlobSidecarsT,
+		DepositStoreT,
+	],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
@@ -96,17 +101,17 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		types.BeaconBlock, BeaconStateT,
+		BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[types.BeaconBlock]],
+	blockFeed EventFeed[events.Block[BeaconBlockT]],
 ) *Service[
-	AvailabilityStoreT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconStateT,
+		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
 		sb:        sb,
@@ -124,6 +129,7 @@ func NewService[
 // Name returns the name of the service.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -133,6 +139,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -144,6 +151,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -153,6 +161,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

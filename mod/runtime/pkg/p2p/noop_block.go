@@ -28,42 +28,50 @@ package p2p
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
-type NoopBlockGossipHandler[ReqT encoding.ABCIRequest] struct {
-	NoopGossipHandler[types.BeaconBlock, []byte]
+type NoopBlockGossipHandler[BeaconBlockT interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+}, ReqT encoding.ABCIRequest] struct {
+	NoopGossipHandler[BeaconBlockT, []byte]
 	chainSpec common.ChainSpec
 }
 
-func NewNoopBlockGossipHandler[ReqT encoding.ABCIRequest](
+func NewNoopBlockGossipHandler[BeaconBlockT interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+}, ReqT encoding.ABCIRequest](
 	chainSpec common.ChainSpec,
-) NoopBlockGossipHandler[ReqT] {
-	return NoopBlockGossipHandler[ReqT]{
-		NoopGossipHandler: NoopGossipHandler[types.BeaconBlock, []byte]{},
+) NoopBlockGossipHandler[BeaconBlockT, ReqT] {
+	return NoopBlockGossipHandler[BeaconBlockT, ReqT]{
+		NoopGossipHandler: NoopGossipHandler[BeaconBlockT, []byte]{},
 		chainSpec:         chainSpec,
 	}
 }
 
 // Publish takes a BeaconBlock and returns the ssz marshalled data.
-func (n NoopBlockGossipHandler[ReqT]) Publish(
+func (n NoopBlockGossipHandler[BeaconBlockT, ReqT]) Publish(
 	_ context.Context,
-	data types.BeaconBlock,
+	data BeaconBlockT,
 ) ([]byte, error) {
 	return data.MarshalSSZ()
 }
 
 // Request takes an ABCI Request and returns a BeaconBlock.
-func (n NoopBlockGossipHandler[ReqT]) Request(
+func (n NoopBlockGossipHandler[BeaconBlockT, ReqT]) Request(
 	_ context.Context,
 	req ReqT,
-) (types.BeaconBlock, error) {
-	return encoding.UnmarshalBeaconBlockFromABCIRequest[types.BeaconBlock](
+) (BeaconBlockT, error) {
+	return encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
 		0,
 		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),

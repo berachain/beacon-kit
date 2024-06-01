@@ -41,6 +41,7 @@ import (
 // state.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -62,12 +63,13 @@ func (s *Service[
 // and then processes the block.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 	sidecars BlobSidecarsT,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
@@ -78,7 +80,7 @@ func (s *Service[
 	)
 
 	// If the block is nil, exit early.
-	if blk == nil || blk.IsNil() {
+	if blk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
@@ -114,7 +116,7 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, blk))
+	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
@@ -129,13 +131,14 @@ func (s *Service[
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
@@ -168,6 +171,7 @@ func (s *Service[
 // ProcessBlobSidecars processes the blob sidecars.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

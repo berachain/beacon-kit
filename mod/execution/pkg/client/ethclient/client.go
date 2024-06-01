@@ -27,11 +27,13 @@ package ethclient
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -39,7 +41,11 @@ import (
 // Eth1Client is a struct that holds the Ethereum 1 client and
 // its configuration.
 type Eth1Client[
-	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
+		Empty(uint32) ExecutionPayloadT
+	},
 ] struct {
 	*ethclient.Client
 }
@@ -47,9 +53,13 @@ type Eth1Client[
 // NewEth1Client creates a new Ethereum 1 client with the provided
 // context and options.
 func NewEth1Client[
-	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
-](client *ethclient.Client) (*Eth1Client[ExecutionPayloadDenebT], error) {
-	c := &Eth1Client[ExecutionPayloadDenebT]{
+	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
+		Empty(uint32) ExecutionPayloadT
+	},
+](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
+	c := &Eth1Client[ExecutionPayloadT]{
 		Client: client,
 	}
 	return c, nil
@@ -57,13 +67,17 @@ func NewEth1Client[
 
 // NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
 func NewFromRPCClient[
-	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
-](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadDenebT], error) {
-	return NewEth1Client[ExecutionPayloadDenebT](ethclient.NewClient(rpcClient))
+	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
+		Empty(uint32) ExecutionPayloadT
+	},
+](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
+	return NewEth1Client[ExecutionPayloadT](ethclient.NewClient(rpcClient))
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) NewPayloadV3(
+func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
 	ctx context.Context,
 	payload any,
 	versionedHashes []common.ExecutionHash,
@@ -80,7 +94,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) NewPayloadV3(
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) ForkchoiceUpdatedV3(
+func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
@@ -90,7 +104,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) ForkchoiceUpdatedV3(
 
 // forkchoiceUpdateCall is a helper function to call to any version
 // of the forkchoiceUpdates method.
-func (s *Eth1Client[ExecutionPayloadDenebT]) forkchoiceUpdateCall(
+func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdateCall(
 	ctx context.Context,
 	method string,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -112,27 +126,31 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) forkchoiceUpdateCall(
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) GetPayloadV3(
+func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	var t ExecutionPayloadT
 	result := &engineprimitives.ExecutionPayloadEnvelope[
-		ExecutionPayloadDenebT,
+		ExecutionPayloadT,
 		*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 		],
-	]{}
+	]{
+		ExecutionPayload: t.Empty(version.Deneb),
+	}
 
 	if err := s.Client.Client().CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) ExecutionBlockByHash(
+func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
 	ctx context.Context, hash common.ExecutionHash, withTxs bool,
 ) (*engineprimitives.Block, error) {
 	result := &engineprimitives.Block{}
@@ -143,7 +161,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) ExecutionBlockByHash(
 
 // ExecutionBlockByNumber fetches an execution engine block by number
 // by calling eth_getBlockByNumber via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) ExecutionBlockByNumber(
+func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
 ) (*engineprimitives.Block, error) {
 	result := &engineprimitives.Block{}
@@ -153,7 +171,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) ExecutionBlockByNumber(
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) GetClientVersionV1(
+func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)
@@ -167,7 +185,7 @@ func (s *Eth1Client[ExecutionPayloadDenebT]) GetClientVersionV1(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadDenebT]) ExchangeCapabilities(
+func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {

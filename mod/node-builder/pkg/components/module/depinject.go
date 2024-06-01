@@ -69,7 +69,7 @@ type DepInjectInput struct {
 	BeaconConfig      *config.Config
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
-	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink
@@ -84,7 +84,11 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody], core.BeaconState[*types.Validator],
+		*dastore.Store[types.BeaconBlockBody],
+		core.BeaconState[
+			*types.BeaconBlockHeader, *types.Validator,
+			*engineprimitives.Withdrawal,
+		],
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
