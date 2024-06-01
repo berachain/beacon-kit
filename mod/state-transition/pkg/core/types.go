@@ -78,8 +78,8 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	DepositT any,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
-	WithdrawalsT any,
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	WithdrawalT any,
 ] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
@@ -145,14 +145,14 @@ type Deposit[
 	) error
 }
 
-type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
+type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() bytes.B32
-	GetWithdrawals() []WithdrawalsT
+	GetWithdrawals() []WithdrawalT
 	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() bytes.B32
 	GetReceiptsRoot() common.Root
@@ -223,4 +223,18 @@ type Validator[
 	SetEffectiveBalance(math.Gwei)
 	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 	GetWithdrawableEpoch() math.Epoch
+}
+
+// Withdrawal is the interface for a withdrawal.
+type Withdrawal[WithdrawalT any] interface {
+	ssz.Marshaler
+	ssz.HashRoot
+	// Equals returns true if the withdrawal is equal to the other.
+	Equals(WithdrawalT) bool
+	// GetAmount returns the amount of the withdrawal.
+	GetAmount() math.Gwei
+	// GetPubkey returns the public key of the validator.
+	GetIndex() math.U64
+	// GetValidatorIndex returns the index of the validator.
+	GetValidatorIndex() math.ValidatorIndex
 }

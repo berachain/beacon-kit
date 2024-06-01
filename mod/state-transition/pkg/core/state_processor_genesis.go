@@ -43,8 +43,8 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,

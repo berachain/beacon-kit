@@ -36,8 +36,8 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -58,8 +58,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
@@ -74,8 +74,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
@@ -93,8 +93,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -149,8 +149,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSlash(
 	st BeaconStateT,
 	val ValidatorT,

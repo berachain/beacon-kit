@@ -56,7 +56,7 @@ type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
 	DepositT deposit.Deposit,
 ] struct {
 	cs                primitives.ChainSpec
@@ -69,7 +69,7 @@ func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		types.BeaconBlockBody, *datypes.BlobSidecars,
 	],
-	BeaconStateT core.BeaconState[*types.Validator],
+	BeaconStateT core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
 	DepositT deposit.Deposit,
 ](
 	cs primitives.ChainSpec,
