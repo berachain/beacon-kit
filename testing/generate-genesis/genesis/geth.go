@@ -45,11 +45,11 @@ func NewGeth() *Geth {
 	return &Geth{
 		&core.Genesis{
 			Config:     defaultGethChainConfig(),
-			Nonce:      ZeroNonce,
-			Timestamp:  ZeroHex,
-			ExtraData:  common.FromHex(DefaultExtraData),
-			GasLimit:   DefaultGasLimit,
-			Difficulty: big.NewInt(ZeroHex),
+			Nonce:      zeroNonce,
+			Timestamp:  zeroHex,
+			ExtraData:  common.FromHex(defaultExtraData),
+			GasLimit:   defaultGasLimit,
+			Difficulty: big.NewInt(zeroHex),
 			Alloc:      make(types.GenesisAlloc),
 			Coinbase:   common.ExecutionAddress{},
 		},
@@ -90,7 +90,7 @@ func (g *Geth) WriteJSON(filename string) error {
 
 func defaultGethChainConfig() *params.ChainConfig {
 	return &params.ChainConfig{
-		ChainID:                       big.NewInt(ChainID),
+		ChainID:                       big.NewInt(chainID),
 		HomesteadBlock:                big.NewInt(0),
 		DAOForkBlock:                  big.NewInt(0),
 		DAOForkSupport:                true,

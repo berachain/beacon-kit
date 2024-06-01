@@ -145,7 +145,7 @@ func NewNethermind() *Nethermind {
 		Genesis: NetherGenesis{
 			Coinbase:   "0x0000000000000000000000000000000000000000",
 			Difficulty: "0x0",
-			ExtraData:  DefaultExtraData,
+			ExtraData:  defaultExtraData,
 			GasLimit:   "0x1c9c380",
 			Nonce:      "0x0000000000000000",
 			Timestamp:  "0x0",
@@ -160,7 +160,7 @@ func (n *Nethermind) AddAccount(address string, balance *big.Int) error {
 	}
 
 	n.Accounts[address] = Account{
-		Balance: "0x" + balance.Text(HexBase), // Convert balance to hexadecimal
+		Balance: "0x" + balance.Text(hexBase), // Convert balance to hexadecimal
 	}
 	return nil
 }
@@ -176,8 +176,8 @@ func (n *Nethermind) AddPredeploy(
 
 	n.Accounts[address] = Account{
 		// convert to hexadecimal
-		Balance: "0x" + balance.Text(HexBase),
-		Nonce:   "0x" + strconv.FormatUint(nonce, HexBase),
+		Balance: "0x" + balance.Text(hexBase),
+		Nonce:   "0x" + strconv.FormatUint(nonce, hexBase),
 		Code:    "0x" + hex.FromBytes(code).Unwrap(),
 	}
 

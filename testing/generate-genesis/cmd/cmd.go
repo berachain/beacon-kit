@@ -34,7 +34,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const DecBase = 10
+const decBase = 10
 
 // CreateEthGenesisCmd creates a cobra command for generating a genesis.json
 // file.
@@ -108,7 +108,7 @@ func createEthGenesisCmdFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	for index, address := range accountAddresses {
-		balance, ok := new(big.Int).SetString(accountBalances[index], DecBase)
+		balance, ok := new(big.Int).SetString(accountBalances[index], decBase)
 		if !ok {
 			return errInvalidAccountBalance
 		}
@@ -120,16 +120,20 @@ func createEthGenesisCmdFunc(cmd *cobra.Command, args []string) error {
 	for i := range predeployAddresses {
 		code := common.FromHex(predeployCodes[i])
 		balance := new(big.Int)
-		balance.SetString(predeployBalances[i], DecBase)
+		balance.SetString(predeployBalances[i], decBase)
 		// convert nonce to uint64
 		var nonce uint64
-		nonce, err = strconv.ParseUint(predeployNonces[i], DecBase, 64)
+		nonce, err = strconv.ParseUint(predeployNonces[i], decBase, 64)
 		if err != nil {
 			return err
 		}
 
-		err = gen.AddPredeploy(predeployAddresses[i], code, balance, nonce)
-		if err != nil {
+		if err = gen.AddPredeploy(
+			predeployAddresses[i],
+			code,
+			balance,
+			nonce,
+		); err != nil {
 			return err
 		}
 	}
