@@ -11,8 +11,8 @@
 #################
 
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/genesis.eth.json
+NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/nether-genesis.eth.json
 ETH_DATA_DIR = .tmp/eth-home
 
 # URLs used for dialing the eth client
