@@ -41,7 +41,11 @@ import (
 type KVStore[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
@@ -66,6 +70,8 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
+
+	latestExecutionPayloadCodec encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
@@ -98,16 +104,20 @@ type KVStore[
 func New[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
-	executionPayloadHeaderFactory func() ExecutionPayloadHeaderT,
 ) *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
+	latestExecutionPayloadCodec := &encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
 	return &KVStore[
 		ForkT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
@@ -157,15 +167,13 @@ func New[
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestExecutionPayloadHeader: sdkcollections.NewItem[ExecutionPayloadHeaderT](
+		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
 			),
 			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
-			encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{
-				Factory: executionPayloadHeaderFactory,
-			},
+			latestExecutionPayloadCodec,
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,

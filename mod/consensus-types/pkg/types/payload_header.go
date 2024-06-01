@@ -52,6 +52,17 @@ func (e *ExecutionPayloadHeader) Empty(forkVersion uint32) *ExecutionPayloadHead
 	return e
 }
 
+// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
+func (e *ExecutionPayloadHeader) NewFromSSZ(
+	bz []byte, forkVersion uint32,
+) (*ExecutionPayloadHeader, error) {
+	e = e.Empty(forkVersion)
+	if err := e.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -out payload_header.json.go -field-override executionPayloadHeaderDenebMarshaling

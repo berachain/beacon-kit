@@ -42,6 +42,9 @@ func (kv *KVStore[
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
+	// We set the active fork version in the codec so that we can decode the
+	// payload correctly when we call get next.
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

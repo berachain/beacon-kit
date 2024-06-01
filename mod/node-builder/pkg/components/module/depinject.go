@@ -98,7 +98,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 			*types.ExecutionPayloadHeader,
 			*types.Eth1Data,
 			*types.Validator,
-		](in.Environment.KVStoreService, DenebPayloadFactory),
+		](in.Environment.KVStoreService),
 		in.DepositStore,
 	)
 
@@ -124,11 +124,4 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	return DepInjectOutput{
 		Module: NewAppModule(runtime),
 	}, nil
-}
-
-// TODO: move this.
-func DenebPayloadFactory() *types.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeader{
-		ExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{},
-	}
 }
