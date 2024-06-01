@@ -49,8 +49,14 @@ type BeaconState[
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT]
-	WriteOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT]
+	ReadOnlyBeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	]
+	WriteOnlyBeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT,
+	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -96,7 +102,9 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT any] interface {
+type WriteOnlyBeaconState[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT any,
+] interface {
 	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
