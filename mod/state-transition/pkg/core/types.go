@@ -59,7 +59,8 @@ type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[
 		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
@@ -79,7 +80,9 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	DepositT any,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
 	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
@@ -142,12 +145,15 @@ type Deposit[
 		forkData ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
-			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+			pubkey crypto.BLSPubkey,
+			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
 }
 
-type ExecutionPayload[ExecutionPayloadT, ExecutionPayloadHeaderT any, WithdrawalT any] interface {
+type ExecutionPayload[
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+] interface {
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -191,7 +197,8 @@ type ExecutionPayloadHeader interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT,
 	WithdrawalsT any,
 ] interface {
