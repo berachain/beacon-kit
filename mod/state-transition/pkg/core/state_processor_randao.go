@@ -28,7 +28,7 @@ package core
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -45,7 +45,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
