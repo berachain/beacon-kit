@@ -63,12 +63,14 @@ type PayloadBuilder[
 }
 
 // NewService creates a new service.
-func New[BeaconStateT BeaconState[ExecutionPayloadHeaderT], ExecutionPayloadT interface {
-	IsNil() bool
-	Empty(uint32) ExecutionPayloadT
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-}, ExecutionPayloadHeaderT any](
+func New[
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	}, ExecutionPayloadHeaderT any](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
@@ -76,8 +78,12 @@ func New[BeaconStateT BeaconState[ExecutionPayloadHeaderT], ExecutionPayloadT in
 	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
-) *PayloadBuilder[BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT] {
-	return &PayloadBuilder[BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT]{
+) *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+] {
+	return &PayloadBuilder[
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
 		logger:    logger,
