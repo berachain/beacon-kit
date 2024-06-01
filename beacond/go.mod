@@ -64,7 +64,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c // indirect
