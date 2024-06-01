@@ -138,6 +138,9 @@ func NewNethermind() *Nethermind {
 					MinimumDifficulty:      "0x0",
 					DifficultyBoundDivisor: "0x0",
 					DurationLimit:          "0x0",
+					HomesteadTransition:    "0x0",
+					DaoHardforkTransition:  "0x0",
+					Eip100bTransition:      "0x0",
 				},
 			},
 		},
@@ -178,7 +181,7 @@ func (n *Nethermind) AddPredeploy(
 		// convert to hexadecimal
 		Balance: "0x" + balance.Text(hexBase),
 		Nonce:   "0x" + strconv.FormatUint(nonce, hexBase),
-		Code:    "0x" + hex.FromBytes(code).Unwrap(),
+		Code:    hex.FromBytes(code).Unwrap(),
 	}
 
 	return nil
@@ -235,7 +238,7 @@ func defaultNethermindParams() Params {
 		Eip4844TransitionTimestamp:    "0x0",
 		Eip5656TransitionTimestamp:    "0x0",
 		Eip6780TransitionTimestamp:    "0x0",
-		TerminalTotalDifficulty:       "0",
+		TerminalTotalDifficulty:       "0x0",
 		TerminalTotalDifficultyPassed: true,
 	}
 }
