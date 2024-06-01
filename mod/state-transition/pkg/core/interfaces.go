@@ -39,9 +39,13 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ExecutionPayloadHeaderT,
 	ValidatorT, WithdrawalT any,
 ] interface {
-	Copy() BeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT]
+	Copy() BeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)

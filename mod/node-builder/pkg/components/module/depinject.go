@@ -86,7 +86,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Validator,
+			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Validator,
 			*engineprimitives.Withdrawal,
 		],
 	](

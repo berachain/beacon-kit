@@ -37,13 +37,14 @@ import (
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT interface {
 		IsNil() bool
 		Empty(uint32) ExecutionPayloadT
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	ExecutionPayloadHeaderT any,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -62,12 +63,12 @@ type PayloadBuilder[
 }
 
 // NewService creates a new service.
-func New[BeaconStateT BeaconState, ExecutionPayloadT interface {
+func New[BeaconStateT BeaconState[ExecutionPayloadHeaderT], ExecutionPayloadT interface {
 	IsNil() bool
 	Empty(uint32) ExecutionPayloadT
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
-}](
+}, ExecutionPayloadHeaderT any](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
@@ -75,8 +76,8 @@ func New[BeaconStateT BeaconState, ExecutionPayloadT interface {
 	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
-) *PayloadBuilder[BeaconStateT, ExecutionPayloadT] {
-	return &PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
+) *PayloadBuilder[BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT] {
+	return &PayloadBuilder[BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -86,6 +87,6 @@ func New[BeaconStateT BeaconState, ExecutionPayloadT interface {
 }
 
 // Enabled returns true if the payload builder is enabled.
-func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) Enabled() bool {
+func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT]) Enabled() bool {
 	return pb.cfg.Enabled
 }
