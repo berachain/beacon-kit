@@ -55,7 +55,9 @@ type BeaconKitRuntime[
 		) (BeaconBlockT, error)
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
@@ -99,7 +101,11 @@ func NewBeaconKitRuntime[
 		) (BeaconBlockT, error)
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Validator,
+		*engineprimitives.Withdrawal,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 	StorageBackendT blockchain.StorageBackend[
@@ -122,14 +128,22 @@ func NewBeaconKitRuntime[
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
 			BeaconBlockT,
-			core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 			DepositStoreT,
 		]
 		validatorService *validator.Service[
 			BeaconBlockT,
 			types.BeaconBlockBody,
-			core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
+			core.BeaconState[
+				*types.BeaconBlockHeader,
+				*types.Validator,
+				*engineprimitives.Withdrawal,
+			],
 			BlobSidecarsT,
 		]
 	)

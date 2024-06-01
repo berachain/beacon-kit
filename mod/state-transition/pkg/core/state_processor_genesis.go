@@ -41,7 +41,7 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -90,9 +90,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetLatestBlockHeader(&types.BeaconBlockHeader{
-		BodyRoot: bodyRoot,
-	}); err != nil {
+	var bbh BeaconBlockHeaderT
+	if err = st.SetLatestBlockHeader(bbh.New(
+		0, 0, common.Root{}, common.Root{}, bodyRoot,
+	)); err != nil {
 		return nil, err
 	}
 

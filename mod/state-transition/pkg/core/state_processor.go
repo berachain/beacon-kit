@@ -26,7 +26,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -45,7 +44,8 @@ type StateProcessor[
 	BeaconBlockBodyT BeaconBlockBody[
 		DepositT, ExecutionPayloadT, WithdrawalT,
 	],
-	BeaconStateT BeaconState[ValidatorT, WithdrawalT],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -79,7 +79,8 @@ func NewStateProcessor[
 		DepositT, ExecutionPayloadT,
 		WithdrawalT,
 	],
-	BeaconStateT BeaconState[ValidatorT, WithdrawalT],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -99,13 +100,13 @@ func NewStateProcessor[
 	],
 	signer crypto.BLSSigner,
 ) *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
-		BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, ContextT,
 		DepositT, ExecutionPayloadT,
 		ForkDataT, ValidatorT, WithdrawalT,
@@ -120,7 +121,7 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -201,7 +202,7 @@ func (sp *StateProcessor[
 
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -236,8 +237,8 @@ func (sp *StateProcessor[
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
-	if (latestHeader.StateRoot == primitives.Root{}) {
-		latestHeader.StateRoot = prevStateRoot
+	if (latestHeader.GetStateRoot() == primitives.Root{}) {
+		latestHeader.SetStateRoot(prevStateRoot)
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
 			return nil, err
 		}
@@ -270,7 +271,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -340,7 +341,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -360,7 +361,7 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -371,7 +372,7 @@ func (sp *StateProcessor[
 	var (
 		slot              math.Slot
 		err               error
-		latestBlockHeader *types.BeaconBlockHeader
+		latestBlockHeader BeaconBlockHeaderT
 		parentBlockRoot   primitives.Root
 		bodyRoot          primitives.Root
 		proposer          ValidatorT
@@ -415,10 +416,11 @@ func (sp *StateProcessor[
 	}
 
 	// Calculate the body root to place on the header.
+	var lbh BeaconBlockHeaderT
 	if bodyRoot, err = blk.GetBody().HashTreeRoot(); err != nil {
 		return err
 	} else if err = st.SetLatestBlockHeader(
-		types.NewBeaconBlockHeader(
+		lbh.New(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
 			blk.GetParentBlockRoot(),
@@ -447,7 +449,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -468,7 +470,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,

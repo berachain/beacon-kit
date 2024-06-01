@@ -31,23 +31,30 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
-type BeaconState[ValidatorT, WithdrawalT any] interface {
-	Copy() BeaconState[ValidatorT, WithdrawalT]
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ValidatorT, WithdrawalT any,
+] interface {
+	Copy() BeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[ValidatorT, WithdrawalT]
-	WriteOnlyBeaconState[ValidatorT]
+	ReadOnlyBeaconState[BeaconBlockHeaderT, ValidatorT, WithdrawalT]
+	WriteOnlyBeaconState[BeaconBlockHeaderT, ValidatorT]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[ValidatorT, WithdrawalT any] interface {
+type ReadOnlyBeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ValidatorT, WithdrawalT any,
+] interface {
 	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
@@ -58,7 +65,7 @@ type ReadOnlyBeaconState[ValidatorT, WithdrawalT any] interface {
 	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() ([]ValidatorT, error)
 	GetTotalSlashing() (math.Gwei, error)
@@ -68,8 +75,25 @@ type ReadOnlyBeaconState[ValidatorT, WithdrawalT any] interface {
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 }
 
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() primitives.Root
+	GetStateRoot() primitives.Root
+	SetStateRoot(primitives.Root)
+}
+
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[ValidatorT any] interface {
+type WriteOnlyBeaconState[BeaconBlockHeaderT, ValidatorT any] interface {
 	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
@@ -79,7 +103,7 @@ type WriteOnlyBeaconState[ValidatorT any] interface {
 	SetFork(*types.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
