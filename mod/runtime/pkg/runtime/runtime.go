@@ -130,7 +130,7 @@ func NewBeaconKitRuntime[
 			BeaconBlockT,
 			core.BeaconState[
 				*types.BeaconBlockHeader,
-				types.Validator,
+				*types.Validator,
 				*engineprimitives.Withdrawal,
 			],
 			BlobSidecarsT,
