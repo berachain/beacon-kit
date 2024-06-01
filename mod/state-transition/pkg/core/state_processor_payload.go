@@ -40,7 +40,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
@@ -56,6 +56,15 @@ func (sp *StateProcessor[
 		withdrawalsRoot primitives.Root
 		g, gCtx         = errgroup.WithContext(context.Background())
 	)
+
+	// Skip payload verification if the context is configured as such.
+	if !ctx.GetSkipPayloadVerification() {
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
 
 	g.Go(func() error {
 		var txsRootErr error
@@ -74,15 +83,6 @@ func (sp *StateProcessor[
 			)
 		return withdrawalsRootErr
 	})
-
-	if !ctx.GetSkipPayloadVerification() {
-		// Verify and notify the new payload early in the function.
-		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk, ctx.GetOptimisticEngine(),
-			)
-		})
-	}
 
 	// If deriving either of the roots or verifying the payload fails, return
 	// the error.
@@ -118,7 +118,7 @@ func (sp *StateProcessor[
 // state
 // and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
