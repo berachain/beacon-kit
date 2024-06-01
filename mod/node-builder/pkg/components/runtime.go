@@ -211,8 +211,8 @@ func ProvideRuntime(
 	)
 
 	depositPruner := pruner.NewPruner[
-		types.BeaconBlock,
-		events.Block[types.BeaconBlock],
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", manager.DepositPrunerName),
@@ -229,8 +229,8 @@ func ProvideRuntime(
 	}()
 
 	availabilityPruner := pruner.NewPruner[
-		types.BeaconBlock,
-		events.Block[types.BeaconBlock],
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", manager.AvailabilityPrunerName),
@@ -241,8 +241,8 @@ func ProvideRuntime(
 	)
 
 	dbManagerService, err := manager.NewDBManager[
-		types.BeaconBlock,
-		events.Block[types.BeaconBlock],
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", "db-manager"),
