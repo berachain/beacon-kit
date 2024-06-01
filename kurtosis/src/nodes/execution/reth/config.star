@@ -83,6 +83,28 @@ CMD = [
     # "--config", CONFIG_LOCATION,
     "--nat",
     "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--builder.deadline",
+    "2",
+    "--builder.max-tasks",
+    "20",
+    "--txpool.pending-max-count",
+    "100000",
+    "--txpool.pending-max-size",
+    "100",
+    "--txpool.basefee-max-count",
+    "100000",
+    "--txpool.basefee-max-size",
+    "100",
+    "--txpool.queued-max-count",
+    "100000",
+    "--txpool.queued-max-size",
+    "100",
+    "--txpool.max-account-slots",
+    "1000",
+    "--txpool.max-cached-entries",
+    "1000",
+    "--rpc-cache.max-receipts",
+    "10000"
 ]
 BOOTNODE_CMD = "--bootnodes"
 MAX_PEERS_OUTBOUND_CMD = "--max-outbound-peers"

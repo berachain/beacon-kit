@@ -3,15 +3,15 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
-DEFAULT_MIN_CPU = 0
-DEFAULT_MAX_CPU = 2000
-DEFAULT_MIN_MEMORY = 0
-DEFAULT_MAX_MEMORY = 2048
+# DEFAULT_MIN_CPU = 0
+# DEFAULT_MAX_CPU = 2000
+# DEFAULT_MIN_MEMORY = 0
+# DEFAULT_MAX_MEMORY = 2048
 
-# DEFAULT_MAX_CPU = 8000
-# DEFAULT_MAX_MEMORY = 32768
-# DEFAULT_MIN_CPU = 8000
-# DEFAULT_MIN_MEMORY = 32768
+DEFAULT_MAX_CPU = 8000
+DEFAULT_MAX_MEMORY = 32768
+DEFAULT_MIN_CPU = 8000
+DEFAULT_MIN_MEMORY = 32768
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -75,6 +75,9 @@ def get_config(image, engine_dial_url, cl_service_name, entrypoint = [], cmd = [
         ports = exposed_ports,
         labels = {
             "node_type": "consensus",
+        },
+        node_selectors = {
+            "node_preference": "fast",
         },
     )
 
@@ -149,11 +152,11 @@ def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, 
 
     persistent_peers = get_persistent_peers(plan, peers)
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0))
     if node_type == "validator":
-        cmd = node.start(persistent_peers, False)
+        cmd = node.start(persistent_peers, False, index)
     elif node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0))
 
     beacond_config = get_config(
         cl_image,

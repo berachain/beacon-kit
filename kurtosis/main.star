@@ -195,17 +195,18 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         plan.print("Invalid type for eth_json_rpc_endpoint")
 
     # 7. Start additional services
+    prometheus_url = ""
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
         if s.name == "goomy-blob":
             plan.print("Launching Goomy the Blob Spammer")
-            rpc_endpoint_goomy_blob = plan.get_service(endpoint_type).ports["http"].url
-            plan.print("Launching goomy blob for rpc endpoint: ", rpc_endpoint_goomy_blob)
+            ip_goomy_blob = plan.get_service(endpoint_type).ip_address
+            port_goomy_blob = plan.get_service(endpoint_type).ports["http"].number
             goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
-                rpc_endpoint_goomy_blob,
+                "http://{}:{}".format(ip_goomy_blob, port_goomy_blob),
                 goomy_blob_args,
             )
             next_free_prefunded_account += 1
@@ -215,11 +216,12 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
             if "replicas" not in s_dict:
                 s.replicas = 1
             next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
+            # next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
-            if "grafana" in additional_services:
-                grafana.start(plan, prometheus_url)
-            if "pyroscope" in additional_services:
-                pyroscope.run(plan)
+        elif s.name == "grafana":
+            grafana.start(plan, prometheus_url)
+        elif s.name == "pyroscope":
+            pyroscope.run(plan)
 
     plan.print("Successfully launched development network")
