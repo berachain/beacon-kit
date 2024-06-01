@@ -84,7 +84,8 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody], core.BeaconState[*types.Validator],
+		*dastore.Store[types.BeaconBlockBody],
+		core.BeaconState[*types.Validator, *engineprimitives.Withdrawal],
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

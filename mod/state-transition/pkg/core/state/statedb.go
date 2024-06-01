@@ -113,10 +113,7 @@ func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
 	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
 ]) Copy() BeaconStateT {
-	return NewBeaconStateFromDB[
-		BeaconStateT, KVStoreT, ForkT,
-		BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
-	](
+	return NewBeaconStateFromDB[BeaconStateT](
 		s.KVStore.Copy(),
 		s.cs,
 	)
