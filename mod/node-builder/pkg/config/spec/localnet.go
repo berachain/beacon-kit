@@ -42,7 +42,6 @@ func LocalnetChainSpec() chain.Spec[
 	math.Slot,
 	any,
 ] {
-
 	cmtConsensusParams := cmttypes.DefaultConsensusParams()
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
