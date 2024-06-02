@@ -191,6 +191,7 @@ func (h *ValidatorMiddleware[
 
 	// Get the attestations from the votes.
 	attestations, err := h.attestationDataFromVotes(
+		//#nosec:G701 // safe.
 		st, root, req.LocalLastCommit.Votes, uint64(req.Height-1),
 	)
 	if err != nil {
@@ -289,6 +290,7 @@ func (h *ValidatorMiddleware[
 			return nil, err
 		}
 		slashingInfo[i] = &types.SlashingInfo{
+			//#nosec:G701 // safe.
 			Slot:  uint64(misbehavior.GetHeight()),
 			Index: index.Unwrap(),
 		}
