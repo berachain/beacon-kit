@@ -80,10 +80,10 @@ type ExecutionPayloadBody interface {
 }
 
 // ExecutionPayload represents the execution data of a block.
-type ExecutionPayload[WithdrawlT any] interface {
+type ExecutionPayload[WithdrawalT any] interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	GetWithdrawals() []WithdrawlT
+	GetWithdrawals() []WithdrawalT
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.
