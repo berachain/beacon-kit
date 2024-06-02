@@ -289,7 +289,7 @@ func (h *ValidatorMiddleware[
 			return nil, err
 		}
 		slashingInfo[i] = &types.SlashingInfo{
-			Slot:  uint64(misbehavior.GetHeight() - 1),
+			Slot:  uint64(misbehavior.GetHeight()),
 			Index: index.Unwrap(),
 		}
 	}
