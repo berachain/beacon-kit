@@ -28,12 +28,9 @@ package main
 import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
-	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	_ "cosmossdk.io/x/consensus" // import for side-effects
-	consensustypes "cosmossdk.io/x/consensus/types"
 	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
@@ -61,10 +58,6 @@ func Config() depinject.Config {
 				{
 					Name:   beacon.ModuleName,
 					Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
-				},
-				{
-					Name:   consensustypes.ModuleName,
-					Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
 				},
 			},
 		}),
