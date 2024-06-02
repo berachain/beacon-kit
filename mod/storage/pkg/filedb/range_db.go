@@ -27,27 +27,35 @@ package filedb
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 // two is a constant for the number 2.
 const two = 2
 
+// Compile-time assertion of prunable interface.
+var _ db.Prunable = (*RangeDB)(nil)
+
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
+// Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	db.DB
+	dataWindow       uint64
+	firstNonNilIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB(db db.DB) *RangeDB {
+func NewRangeDB(db db.DB, dataWindow uint64) *RangeDB {
 	return &RangeDB{
-		DB: db,
+		DB:               db,
+		dataWindow:       dataWindow,
+		firstNonNilIndex: 0,
 	}
 }
 
@@ -69,6 +77,10 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
+	// enforce invariant
+	if index < db.firstNonNilIndex {
+		db.firstNonNilIndex = index
+	}
 	return db.DB.Set(db.prefix(index, key), value)
 }
 
@@ -95,9 +107,30 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	return nil
 }
 
+func (db *RangeDB) Prune(index uint64) error {
+	if db.dataWindow > index {
+		return nil
+	}
+	err := db.DeleteRange(db.firstNonNilIndex, index-db.dataWindow)
+	if err != nil {
+		// Resets last pruned index in case Delete somehow populates indices on
+		// err. This will cause the next prune operation is O(n), but next
+		// successful prune will set it to the correct value, so runtime is
+		// ammortized
+		db.firstNonNilIndex = 0
+		return err
+	}
+	db.firstNonNilIndex = index - db.dataWindow
+	return nil
+}
+
+func (db *RangeDB) FirstNonNilIndex() uint64 {
+	return db.firstNonNilIndex
+}
+
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf("%d/%s", index, Encode(key)))
+	return []byte(fmt.Sprintf("%d/%s", index, hex.FromBytes(key).Unwrap()))
 }
 
 // ExtractIndex extracts the index from a prefixed key.
@@ -115,13 +148,4 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 
 	//#nosec:g
 	return index, nil
-}
-
-// Encode encodes b as a hex string with 0x prefix.
-func Encode(b []byte) string {
-	//nolint:mnd // its okay.
-	enc := make([]byte, len(b)*2+2)
-	copy(enc, "0x")
-	hex.Encode(enc[2:], b)
-	return string(enc)
 }
