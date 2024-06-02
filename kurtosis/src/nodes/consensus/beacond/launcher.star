@@ -3,15 +3,15 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
-# DEFAULT_MIN_CPU = 0
-# DEFAULT_MAX_CPU = 2000
-# DEFAULT_MIN_MEMORY = 0
-# DEFAULT_MAX_MEMORY = 2048
+DEFAULT_MIN_CPU = 0
+DEFAULT_MAX_CPU = 2000
+DEFAULT_MIN_MEMORY = 0
+DEFAULT_MAX_MEMORY = 2048
 
-DEFAULT_MAX_CPU = 8000
-DEFAULT_MAX_MEMORY = 32768
-DEFAULT_MIN_CPU = 8000
-DEFAULT_MIN_MEMORY = 32768
+# DEFAULT_MAX_CPU = 8000
+# DEFAULT_MAX_MEMORY = 32768
+# DEFAULT_MIN_CPU = 8000
+# DEFAULT_MIN_MEMORY = 32768
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -128,12 +128,11 @@ def get_persistent_peers(plan, peers):
         persistent_peers[i] = persistent_peers[i] + "@" + peer_service.ip_address + ":26656"
     return ",".join(persistent_peers)
 
-def create_node(plan, cl_image, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
-    cl_service_name = "cl-validator-beaconkit-{}".format(index)
-    beacond_config = create_node_config(plan, cl_image, peers, paired_el_client_name, "validator", jwt_file, kzg_trusted_setup_file, index)
+def create_node(plan, node_struct, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None):
+    beacond_config = create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file, kzg_trusted_setup_file)
 
     return plan.add_service(
-        name = cl_service_name,
+        name = node_struct.cl_service_name,
         config = beacond_config,
     )
 
@@ -146,22 +145,21 @@ def init_consensus_nodes():
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
-def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, jwt_file = None, kzg_trusted_setup_file = None, index = 0):
-    cl_service_name = "cl-{}-beaconkit-{}".format(node_type, index)
+def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None):
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
 
     cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0))
-    if node_type == "validator":
-        cmd = node.start(persistent_peers, False, index)
-    elif node_type == "seed":
+    if node_struct.node_type == "validator":
+        cmd = node.start(persistent_peers, False, node_struct.index)
+    elif node_struct.node_type == "seed":
         cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0))
 
     beacond_config = get_config(
-        cl_image,
+        node_struct.cl_image,
         engine_dial_url,
-        cl_service_name,
+        node_struct.cl_service_name,
         entrypoint = ["bash", "-c"],
         cmd = [cmd],
         persistent_peers = persistent_peers,
@@ -169,10 +167,10 @@ def create_node_config(plan, cl_image, peers, paired_el_client_name, node_type, 
         kzg_trusted_setup_file = kzg_trusted_setup_file,
     )
 
-    if node_type == "validator":
+    if node_struct.node_type == "validator":
         # Add back in the node's config data and overwrite genesis.json with final genesis file
         beacond_config.files["/root"] = Directory(
-            artifact_names = ["node-beacond-config-{}".format(index)],
+            artifact_names = ["node-beacond-config-{}".format(node_struct.index)],
         )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
