@@ -73,8 +73,6 @@ type BeaconBlockBodyBase struct {
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
-	// Attestations is the list of attestations included in the body.
-	Attestations []*AttestationData `              ssz-max:"128"`
 	// Deposits is the list of deposits included in the body.
 	Deposits []*Deposit `              ssz-max:"16"`
 }
@@ -103,16 +101,6 @@ func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 // GetGraffiti returns the Graffiti of the Body.
 func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 	return b.Graffiti
-}
-
-// GetAttestations returns the Attestations of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) GetAttestations() []*AttestationData {
-	return b.Attestations
-}
-
-// SetAttestations sets the Attestations of the BeaconBlockBodyBase.
-func (b *BeaconBlockBodyBase) SetAttestations(attestations []*AttestationData) {
-	b.Attestations = attestations
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyBase.

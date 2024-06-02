@@ -26,7 +26,6 @@
 package middleware
 
 import (
-	"sort"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -162,40 +161,6 @@ func (h *ValidatorMiddleware[
 	)
 
 	defer h.metrics.measurePrepareProposalDuration(startTime)
-
-	st := h.storageBackend.StateFromContext(ctx)
-	attestations := make(
-		[]types.AttestationData, len(req.LocalLastCommit.Votes),
-	)
-	for i, vote := range req.LocalLastCommit.Votes {
-		index, err := st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
-		if err != nil {
-			logger.Error(
-				"failed to get validator index by comet BFT address",
-				"error",
-				err,
-			)
-			return &cmtabci.PrepareProposalResponse{}, err
-		}
-
-		slot := uint64(req.GetHeight() - 1)
-		rootIndex := slot % h.chainSpec.SlotsPerHistoricalRoot()
-		root, err := st.GetBlockRootAtIndex(rootIndex)
-		if err != nil {
-			logger.Error("failed to get block root at index", "error", err)
-			return &cmtabci.PrepareProposalResponse{}, err
-		}
-		attestations[i] = types.AttestationData{
-			Slot:            slot,
-			Index:           index.Unwrap(),
-			BeaconBlockRoot: root,
-		}
-	}
-
-	// Attestations are sorted by index.
-	sort.Slice(attestations, func(i, j int) bool {
-		return attestations[i].Index < attestations[j].Index
-	})
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
