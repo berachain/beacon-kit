@@ -140,8 +140,10 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
 
-	// Wait for the finalized block number to reach 1.
-	err = s.WaitForFinalizedBlockNumber(1)
+	// Wait for the finalized block number to increase a bit to
+	// ensure all clients are in sync.
+	//nolint:mnd // 3 blocks
+	err = s.WaitForFinalizedBlockNumber(3)
 	s.Require().NoError(err, "Error waiting for finalized block number")
 
 	// Fund any requested accounts.
