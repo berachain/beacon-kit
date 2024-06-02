@@ -23,61 +23,54 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-validators:
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 1
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 1
-  - el_type: erigon
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 1
-  - el_type: ethereumjs
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-full_nodes:
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 2
-  - el_type: geth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 2
-  - el_type: nethermind
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-  - el_type: besu
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-  - el_type: erigon
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-  - el_type: ethereumjs
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 0
-seed_nodes:
-  - el_type: reth
-    cl_type: beaconkit
-    cl_image: beacond:kurtosis-local
-    replicas: 1
+network_configuration:
+  validators:
+    type: "validator"
+    nodes:
+      - el_type: besu
+        replicas: 0
+      - el_type: nethermind
+        replicas: 0
+      - el_type: reth
+        replicas: 1
+      - el_type: geth
+        replicas: 1
+      - el_type: erigon
+        replicas: 1
+      - el_type: ethereumjs
+        replicas: 0
+  full_nodes:
+    type: "full"
+    nodes:
+      - el_type: reth
+        replicas: 2
+      - el_type: geth
+        replicas: 1
+      - el_type: nethermind
+        replicas: 0
+      - el_type: besu
+        replicas: 0
+      - el_type: erigon
+        replicas: 0
+      - el_type: ethereumjs
+        replicas: 0
+  seed_nodes:
+    type: "seed"
+    nodes:
+      - el_type: reth
+        replicas: 1
+node_settings:
+  consensus_settings:
+    images:
+      beaconkit: beacond:kurtosis-local
+  execution_settings:
+    images:
+      besu: hyperledger/besu:latest
+      erigon: thorax/erigon:latest
+      ethereumjs: ethpandaops/ethereumjs:stable
+      geth: ethereum/client-go:latest
+      nethermind: nethermind/nethermind:latest
+      reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang
@@ -85,10 +78,10 @@ eth_json_rpc_endpoints:
       - el-full-reth-0
       - el-full-reth-1
       - el-full-geth-2
-      - el-full-nethermind-3
-      - el-full-besu-4
-      - el-full-erigon-5
-      - el-full-ethereumjs-6
+      # - el-full-nethermind-3
+      # - el-full-besu-4
+      # - el-full-erigon-5
+      # - el-full-ethereumjs-6
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"

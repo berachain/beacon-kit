@@ -28,10 +28,10 @@ DEFAULT_MAX_MEMORY = 2048
 # DEFAULT_MIN_MEMORY = 32768
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
-def get_default_service_config(service_name, node_module):
+def get_default_service_config(node_struct, node_module):
     sc = service_config_lib.get_service_config_template(
-        name = service_name,
-        image = node_module.IMAGE,
+        name = node_struct.el_service_name,
+        image = node_struct.el_image,
         ports = node_module.USED_PORTS_TEMPLATE,
         entrypoint = node_module.ENTRYPOINT,
         cmd = node_module.CMD,
@@ -42,6 +42,9 @@ def get_default_service_config(service_name, node_module):
         max_memory = DEFAULT_MAX_MEMORY,
         labels = {
             "node_type": "execution",
+        },
+        node_selectors = {
+            "node_preference": "fast",
         },
     )
 
@@ -130,31 +133,26 @@ def deploy_nodes(plan, configs):
         configs = service_configs,
     )
 
-def generate_node_config(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
-    el_type = node.el_type
-    node_module = node_modules[el_type]
-    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
+def generate_node_config(plan, node_modules, node_struct, bootnode_enode_addrs = []):
+    node_module = node_modules[node_struct.el_type]
 
     # 4a. Launch EL
-    el_service_config_dict = get_default_service_config(el_service_name, node_module)
+    el_service_config_dict = get_default_service_config(node_struct, node_module)
 
-    if node_type == "seed":
+    if node_struct.node_type == "seed":
         el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")
     else:
         el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
 
     return el_service_config_dict
 
-def create_node(plan, node_modules, node, node_type = "validator", index = 0, bootnode_enode_addrs = []):
-    el_type = node.el_type
-    el_service_name = "el-{}-{}-{}".format(node_type, el_type, index)
-
-    el_service_config_dict = generate_node_config(plan, node_modules, node, node_type, index, bootnode_enode_addrs)
+def create_node(plan, node_modules, node_struct, bootnode_enode_addrs = []):
+    el_service_config_dict = generate_node_config(plan, node_modules, node_struct, bootnode_enode_addrs)
     el_client_service = deploy_node(plan, el_service_config_dict)
 
-    enode_addr = get_enode_addr(plan, el_service_name)
+    enode_addr = get_enode_addr(plan, node_struct.el_service_name)
     return {
-        "name": el_service_name,
+        "name": node_struct.el_service_name,
         "service": el_client_service,
         "enode_addr": enode_addr,
     }

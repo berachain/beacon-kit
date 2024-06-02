@@ -113,9 +113,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.logger.Info(
 		"spinning up enclave...",
 		"num_validators",
-		len(s.cfg.Validators),
+		len(s.cfg.NetworkConfiguration.Validators.Nodes),
 		"num_full_nodes",
-		len(s.cfg.FullNodes),
+		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
 	)
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,

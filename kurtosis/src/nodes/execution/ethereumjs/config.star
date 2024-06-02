@@ -14,7 +14,6 @@ VERBOSITY_LEVELS = {
 PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
 
 GENESIS_FILEPATH = "/app/genesis"
-IMAGE = "ethpandaops/ethereumjs:stable"
 FILES = {
     "/app/genesis": "genesis_file",
     "/jwt": "jwt_file",

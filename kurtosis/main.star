@@ -17,7 +17,7 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 
-def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -26,10 +26,13 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     args: Additional arguments to configure the plan. Defaults to an empty dictionary.
     """
 
+    # all_node_types = [validators["type"], full_nodes["type"], seed_nodes["type"]]
+    # all_node_settings = nodes.parse_node_settings(node_settings, all_node_types)
+
     next_free_prefunded_account = 0
-    validators = nodes.parse_nodes_from_dict(validators)
-    full_nodes = nodes.parse_nodes_from_dict(full_nodes)
-    seed_nodes = nodes.parse_nodes_from_dict(seed_nodes)
+    validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
+    full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"], node_settings)
+    seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
     num_validators = len(validators)
 
     # 1. Initialize EVM genesis data
@@ -61,36 +64,32 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     # Start seed nodes
     seed_node_el_client_configs = []
     for n, seed in enumerate(seed_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, seed, "seed", n)
+        el_client_config = execution.generate_node_config(plan, node_modules, seed)
         seed_node_el_client_configs.append(el_client_config)
 
     if seed_node_el_client_configs != []:
         seed_node_el_clients = execution.deploy_nodes(plan, seed_node_el_client_configs)
 
     for n, seed in enumerate(seed_nodes):
-        el_service_name = "el-{}-{}-{}".format("seed", seed.el_type, n)
-        enode_addr = execution.get_enode_addr(plan, el_service_name)
+        enode_addr = execution.get_enode_addr(plan, seed.el_service_name)
         el_enode_addrs.append(enode_addr)
-        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, el_service_name, seed_node_el_clients[el_service_name], node_modules)
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, seed.el_service_name, seed_node_el_clients[seed.el_service_name], node_modules)
 
     seed_node_configs = {}
     for n, seed in enumerate(seed_nodes):
-        cl_service_name = "cl-seed-beaconkit-{}".format(n)
-        el_client = "el-{}-{}-{}".format("seed", seed.el_type, n)
-        seed_node_config = beacond.create_node_config(plan, seed.cl_image, consensus_node_peering_info, el_client, "seed", jwt_file, kzg_trusted_setup, n)
-        seed_node_configs[cl_service_name] = seed_node_config
+        seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, jwt_file, kzg_trusted_setup)
+        seed_node_configs[seed.cl_service_name] = seed_node_config
 
     seed_nodes_clients = plan.add_services(
         configs = seed_node_configs,
     )
 
     for n, seed_client in enumerate(seed_nodes):
-        cl_service_name = "cl-seed-beaconkit-{}".format(n)
-        peer_info = beacond.get_peer_info(plan, cl_service_name)
+        peer_info = beacond.get_peer_info(plan, seed_client.cl_service_name)
         consensus_node_peering_info.append(peer_info)
         metrics_enabled_services.append({
-            "name": cl_service_name,
-            "service": seed_nodes_clients[cl_service_name],
+            "name": seed_client.cl_service_name,
+            "service": seed_nodes_clients[seed_client.cl_service_name],
             "metrics_path": beacond.METRICS_PATH,
         })
 
@@ -99,22 +98,19 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     full_node_el_client_configs = []
     full_node_el_clients = {}
     for n, full in enumerate(full_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, full, "full", n, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, full, el_enode_addrs)
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
         full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs)
 
     for n, full in enumerate(full_nodes):
-        el_client = "el-{}-{}-{}".format("full", full.el_type, n)
-        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, full, el_client, full_node_el_clients[el_client], node_modules)
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, full, full.el_service_name, full_node_el_clients[full.el_service_name], node_modules)
 
     for n, full in enumerate(full_nodes):
         # 5b. Launch CL
-        cl_service_name = "cl-full-beaconkit-{}".format(n)
-        el_client = "el-{}-{}-{}".format("full", full.el_type, n)
-        full_node_config = beacond.create_node_config(plan, full.cl_image, consensus_node_peering_info, el_client, "full", jwt_file, kzg_trusted_setup, n)
-        full_node_configs[cl_service_name] = full_node_config
+        full_node_config = beacond.create_node_config(plan, full, consensus_node_peering_info, full.el_service_name, jwt_file, kzg_trusted_setup)
+        full_node_configs[full.cl_service_name] = full_node_config
 
     if full_node_configs != {}:
         services = plan.add_services(
@@ -123,12 +119,11 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
 
     for n, full_node in enumerate(full_nodes):
         # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
-        cl_service_name = "cl-full-beaconkit-{}".format(n)
-        peer_info = beacond.get_peer_info(plan, cl_service_name)
-        all_consensus_peering_info[cl_service_name] = peer_info
+        peer_info = beacond.get_peer_info(plan, full_node.cl_service_name)
+        all_consensus_peering_info[full_node.cl_service_name] = peer_info
         metrics_enabled_services.append({
-            "name": cl_service_name,
-            "service": services[cl_service_name],
+            "name": full_node.cl_service_name,
+            "service": services[full_node.cl_service_name],
             "metrics_path": beacond.METRICS_PATH,
         })
 
@@ -136,39 +131,34 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
     validator_node_el_clients = []
 
     for n, validator in enumerate(validators):
-        el_client_config = execution.generate_node_config(plan, node_modules, validator, "validator", n, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, validator, el_enode_addrs)
         validator_node_el_clients.append(el_client_config)
 
     validator_el_clients = execution.deploy_nodes(plan, validator_node_el_clients)
 
     for n, validator in enumerate(validators):
-        el_service_name = "el-{}-{}-{}".format("validator", validator.el_type, n)
-        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, validator, el_service_name, validator_el_clients[el_service_name], node_modules)
+        metrics_enabled_services = execution.add_metrics(metrics_enabled_services, validator, validator.el_service_name, validator_el_clients[validator.el_service_name], node_modules)
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        cl_service_name = "cl-validator-beaconkit-{}".format(n)
-        el_client = "el-{}-{}-{}".format("validator", validator.el_type, n)
-        validator_node_config = beacond.create_node_config(plan, validator.cl_image, consensus_node_peering_info, el_client, "validator", jwt_file, kzg_trusted_setup, n)
-        validator_node_configs[cl_service_name] = validator_node_config
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, jwt_file, kzg_trusted_setup)
+        validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
         configs = validator_node_configs,
     )
 
     for n, validator in enumerate(validators):
-        cl_service_name = "cl-validator-beaconkit-{}".format(n)
-        peer_info = beacond.get_peer_info(plan, cl_service_name)
-        all_consensus_peering_info[cl_service_name] = peer_info
+        peer_info = beacond.get_peer_info(plan, validator.cl_service_name)
+        all_consensus_peering_info[validator.cl_service_name] = peer_info
         metrics_enabled_services.append({
-            "name": cl_service_name,
-            "service": cl_clients[cl_service_name],
+            "name": validator.cl_service_name,
+            "service": cl_clients[validator.cl_service_name],
             "metrics_path": beacond.METRICS_PATH,
         })
 
     for n, seed_node in enumerate(seed_nodes):
-        cl_service_name = "cl-seed-beaconkit-{}".format(n)
-        beacond.dial_unsafe_peers(plan, cl_service_name, all_consensus_peering_info)
+        beacond.dial_unsafe_peers(plan, seed_node.cl_service_name, all_consensus_peering_info)
 
     # Get only the first rpc endpoint
     eth_json_rpc_endpoint = eth_json_rpc_endpoints[0]
@@ -195,17 +185,18 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
         plan.print("Invalid type for eth_json_rpc_endpoint")
 
     # 7. Start additional services
+    prometheus_url = ""
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
         if s.name == "goomy-blob":
             plan.print("Launching Goomy the Blob Spammer")
-            rpc_endpoint_goomy_blob = plan.get_service(endpoint_type).ports["http"].url
-            plan.print("Launching goomy blob for rpc endpoint: ", rpc_endpoint_goomy_blob)
+            ip_goomy_blob = plan.get_service(endpoint_type).ip_address
+            port_goomy_blob = plan.get_service(endpoint_type).ports["http"].number
             goomy_blob_args = {"goomy_blob_args": []}
             goomy_blob.launch_goomy_blob(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
-                rpc_endpoint_goomy_blob,
+                "http://{}:{}".format(ip_goomy_blob, port_goomy_blob),
                 goomy_blob_args,
             )
             next_free_prefunded_account += 1
@@ -214,12 +205,12 @@ def run(plan, validators, full_nodes = [], seed_nodes = [], eth_json_rpc_endpoin
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:
                 s.replicas = 1
-            next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
+            next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
-            if "grafana" in additional_services:
-                grafana.start(plan, prometheus_url)
-            if "pyroscope" in additional_services:
-                pyroscope.run(plan)
+        elif s.name == "grafana":
+            grafana.start(plan, prometheus_url)
+        elif s.name == "pyroscope":
+            pyroscope.run(plan)
 
     plan.print("Successfully launched development network")
