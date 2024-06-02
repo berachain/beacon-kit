@@ -113,7 +113,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
+	if err = st.SetEth1DepositIndex(depositIndex + 1); err != nil {
 		return err
 	}
 
