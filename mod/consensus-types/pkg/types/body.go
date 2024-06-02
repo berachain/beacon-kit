@@ -73,6 +73,10 @@ type BeaconBlockBodyBase struct {
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte `ssz-size:"32"`
+	// Attestations is the list of attestations included in the body.
+	Attestations []*AttestationData `              ssz-max:"256"`
+	// SlashingInfo is the list of slashing info included in the body.
+	SlashingInfo []*SlashingInfo `              ssz-max:"256"`
 	// Deposits is the list of deposits included in the body.
 	Deposits []*Deposit `              ssz-max:"16"`
 }
@@ -113,10 +117,23 @@ func (b *BeaconBlockBodyBase) SetDeposits(deposits []*Deposit) {
 	b.Deposits = deposits
 }
 
+// SetAttestations sets the Attestations of the BeaconBlockBodyBase.
+func (b *BeaconBlockBodyBase) SetAttestations(
+	attestations []*AttestationData,
+) {
+	b.Attestations = attestations
+}
+
+func (b *BeaconBlockBodyBase) SetSlashingInfo(
+	slashingInfo []*SlashingInfo,
+) {
+	b.SlashingInfo = slashingInfo
+}
+
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body.go -objs BeaconBlockBodyDeneb -include ../../../primitives/pkg/crypto,./attestation_data.go,./slashing_info.go,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 	// ExecutionPayload is the execution payload of the body.

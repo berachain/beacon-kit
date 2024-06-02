@@ -26,6 +26,7 @@
 package middleware
 
 import (
+	"sort"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -37,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -174,6 +176,33 @@ func (h *ValidatorMiddleware[
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
+	st := h.storageBackend.StateFromContext(ctx)
+
+	// Get the previous slot's hash tree root.
+	root, err := blk.GetParentBlockRoot().HashTreeRoot()
+	if err != nil {
+		logger.Error(
+			"failed to get parent block root",
+			"error",
+			err,
+		)
+		return &cmtabci.PrepareProposalResponse{}, err
+	}
+
+	// Get the attestations from the votes.
+	attestations, err := h.attestationDataFromVotes(
+		st, root, req.LocalLastCommit.Votes, uint64(req.Height-1),
+	)
+	if err != nil {
+		logger.Error("failed to get attestations from votes", "error", err)
+		return &cmtabci.PrepareProposalResponse{}, err
+	}
+	blk.GetBody().SetAttestations(attestations)
+
+	// Get the slashing info from the misbehaviors.
+	slashingInfo, err := h.slashingInfoFromMisbehaviors(st, req.Misbehavior)
+	blk.GetBody().SetSlashingInfo(slashingInfo)
+
 	// "Publish" the blobs and the beacon block.
 	var sidecarsBz, beaconBlockBz []byte
 	g, gCtx := errgroup.WithContext(ctx)
@@ -198,6 +227,73 @@ func (h *ValidatorMiddleware[
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
 	}, g.Wait()
+}
+
+// attestationDataFromVotes returns a list of attestation data from the
+// comet vote info. This is used to build the attestations for the block.
+func (h *ValidatorMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobsSidecarsT,
+	DepositStoreT,
+]) attestationDataFromVotes(
+	st BeaconStateT,
+	root primitives.Root,
+	votes []v1.ExtendedVoteInfo,
+	slot uint64,
+) ([]*types.AttestationData, error) {
+	var err error
+	var index math.U64
+	attestations := make([]*types.AttestationData, len(votes))
+	for i, vote := range votes {
+		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
+		if err != nil {
+			return nil, err
+		}
+		attestations[i] = &types.AttestationData{
+			Slot:            slot,
+			Index:           index.Unwrap(),
+			BeaconBlockRoot: root,
+		}
+	}
+	// Attestations are sorted by index.
+	sort.Slice(attestations, func(i, j int) bool {
+		return attestations[i].Index < attestations[j].Index
+	})
+	return attestations, nil
+}
+
+// slashingInfoFromMisbehaviors returns a list of slashing info from the
+// comet misbehaviors.
+func (h *ValidatorMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobsSidecarsT,
+	DepositStoreT,
+]) slashingInfoFromMisbehaviors(
+	st BeaconStateT,
+	misbehaviors []v1.Misbehavior,
+) ([]*types.SlashingInfo, error) {
+	var err error
+	var index math.U64
+	slashingInfo := make([]*types.SlashingInfo, len(misbehaviors))
+	for i, misbehavior := range misbehaviors {
+		index, err = st.ValidatorIndexByCometBFTAddress(
+			misbehavior.Validator.Address,
+		)
+		if err != nil {
+			return nil, err
+		}
+		slashingInfo[i] = &types.SlashingInfo{
+			Slot:  uint64(misbehavior.GetHeight() - 1),
+			Index: index.Unwrap(),
+		}
+	}
+	return slashingInfo, nil
 }
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
