@@ -123,7 +123,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// wait blocks
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	targetBlkNum := blkNum + 15
+	targetBlkNum := blkNum + 10
 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 
@@ -157,7 +157,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(client2)
 
 	// Give time for the node to catch up
-	err = s.WaitForNBlockNumbers(10)
+	err = s.WaitForNBlockNumbers(15)
 	s.Require().NoError(err)
 
 	// Compare height of node 1 and 2

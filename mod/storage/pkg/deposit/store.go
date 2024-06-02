@@ -27,10 +27,12 @@ package deposit
 
 import (
 	"context"
+	"errors"
+	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
 
 const (
@@ -46,64 +48,87 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 	return p.KVStoreWithBatch
 }
 
-// KVStore is a wrapper around an sdk.Context.
+// KVStore is a simple KV store based implementation that assumes
+// the deposit indexes are tracked outside of the kv store.
 type KVStore[DepositT Deposit] struct {
-	depositQueue *Queue[DepositT]
+	store sdkcollections.Map[uint64, DepositT]
+	mu    sync.RWMutex
 }
 
 // NewStore creates a new deposit store.
 func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore[DepositT]{
-		depositQueue: NewQueue(
+		store: sdkcollections.NewMap(
 			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{uint8(0)}),
 			KeyDepositPrefix,
+			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[DepositT]{},
 		),
 	}
 }
 
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore[DepositT]) ExpectedDeposits(
+// GetDepositsByIndex returns the first N deposits starting from the given
+// index. If N is greater than the number of deposits, it returns up to the
+// last deposit.
+func (kv *KVStore[DepositT]) GetDepositsByIndex(
+	startIndex uint64,
 	numView uint64,
 ) ([]DepositT, error) {
-	return kv.depositQueue.PeekMulti(context.TODO(), numView)
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+	deposits := []DepositT{}
+	for i := range numView {
+		deposit, err := kv.store.Get(context.TODO(), startIndex+i)
+		if errors.Is(err, sdkcollections.ErrNotFound) {
+			return deposits, nil
+		}
+		if err != nil {
+			return deposits, err
+		}
+		deposits = append(deposits, deposit)
+	}
+	return deposits, nil
 }
 
 // EnqueueDeposit pushes the deposit to the queue.
 func (kv *KVStore[DepositT]) EnqueueDeposit(deposit DepositT) error {
-	return kv.depositQueue.Push(context.TODO(), deposit)
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	return kv.setDeposit(deposit)
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
 func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
-	return kv.depositQueue.PushMulti(context.TODO(), deposits)
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	for _, deposit := range deposits {
+		if err := kv.setDeposit(deposit); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore[DepositT]) DequeueDeposits(
-	numDequeue uint64,
-) ([]DepositT, error) {
-	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
+// setDeposit sets the deposit in the store.
+func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
+	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
 }
 
-// PruneToIndex removes all deposits up to the given index.
-func (kv *KVStore[DepositT]) PruneToIndex(
+// PruneFromInclusive removes up to N deposits from the given starting index.
+func (kv *KVStore[DepositT]) PruneFromInclusive(
 	index uint64,
+	numPrune uint64,
 ) error {
-	length, err := kv.depositQueue.Len(context.TODO())
-	if err != nil {
-		return err
-	} else if length == 0 {
-		return nil
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	for i := range numPrune {
+		// This only errors if the key passed in cannot be encoded.
+		err := kv.store.Remove(context.TODO(), index+i)
+		if err != nil {
+			return err
+		}
 	}
-
-	head, err := kv.depositQueue.Peek(context.TODO())
-	if err != nil {
-		return err
-	}
-
-	numPop := min(index-head.GetIndex()+1, length)
-	_, err = kv.depositQueue.PopMulti(context.TODO(), numPop)
-	return err
+	return nil
 }

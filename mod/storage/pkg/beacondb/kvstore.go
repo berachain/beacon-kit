@@ -172,7 +172,7 @@ func New[
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestExecutionPayloadVersion: sdkcollections.NewItem[uint32](
+		latestExecutionPayloadVersion: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestExecutionPayloadVersionPrefix},
