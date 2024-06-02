@@ -33,7 +33,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c

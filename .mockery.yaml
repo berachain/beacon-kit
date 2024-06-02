@@ -33,6 +33,11 @@ packages:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
+  github.com/berachain/beacon-kit/mod/node-api/backend:
+    config:
+      recursive: True
+      with-expecter: true
+      all: True
   github.com/berachain/beacon-kit/mod/runtime/pkg/service:
     config:
       recursive: True

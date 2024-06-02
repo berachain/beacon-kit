@@ -373,7 +373,8 @@ func (s *StateDB[
 	switch activeFork {
 	case version.Deneb:
 		executionPayloadHeader, ok :=
-			latestExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb)
+			latestExecutionPayloadHeader.
+				ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb)
 		if !ok {
 			return [32]byte{}, errors.New(
 				"latest execution payload is not of type ExecutableDataDeneb")

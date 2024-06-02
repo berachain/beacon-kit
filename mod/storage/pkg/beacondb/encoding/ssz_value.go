@@ -88,26 +88,28 @@ func (SSZValueCodec[T]) ValueType() string {
 // This type exists for codecs for interfaces, which require a factory function
 // to create new instances of the underlying hard type since reflect cannot
 // infer the type of an interface.
-type SSZInterfaceCodec[T SSZMarshallable] struct {
-	Factory func() T
+type SSZInterfaceCodec[T interface {
+	SSZMarshallable
+	NewFromSSZ([]byte, uint32) (T, error)
+	Version() uint32
+}] struct {
+	latestVersion uint32
 }
 
-// Assert that SSZInterfaceCodec implements codec.ValueCodec.
-var _ codec.ValueCodec[SSZMarshallable] = SSZInterfaceCodec[SSZMarshallable]{}
+// SetForkVersion sets the fork version for the codec.
+func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
+	cdc.latestVersion = version
+}
 
 // Encode marshals the provided value into its SSZ encoding.
-func (SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
+func (cdc *SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
-	v := cdc.Factory()
-	if err := v.UnmarshalSSZ(b); err != nil {
-		return v, err
-	}
-
-	return v, nil
+	var t T
+	return t.NewFromSSZ(b, cdc.latestVersion)
 }
 
 // EncodeJSON is not implemented and will panic if called.

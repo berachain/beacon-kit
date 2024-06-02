@@ -98,7 +98,7 @@ type BeaconState[BeaconStateT any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		*types.ExecutionPayloadHeader, error,
 	)
 	// GetLatestBlockHeader
 	GetLatestBlockHeader() (

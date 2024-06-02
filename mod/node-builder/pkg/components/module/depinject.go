@@ -42,6 +42,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -83,10 +84,12 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	storageBackend := storage.NewBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Validator,
+			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Validator,
 			*engineprimitives.Withdrawal,
 		],
 	](
@@ -95,10 +98,10 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		beacondb.New[
 			*types.Fork,
 			*types.BeaconBlockHeader,
-			engineprimitives.ExecutionPayloadHeader,
+			*types.ExecutionPayloadHeader,
 			*types.Eth1Data,
 			*types.Validator,
-		](in.Environment.KVStoreService, DenebPayloadFactory),
+		](in.Environment.KVStoreService, payloadCodec),
 		in.DepositStore,
 	)
 
@@ -124,9 +127,4 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	return DepInjectOutput{
 		Module: NewAppModule(runtime),
 	}, nil
-}
-
-// TODO: move this.
-func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeaderDeneb{}
 }

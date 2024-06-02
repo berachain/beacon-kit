@@ -57,9 +57,11 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BeaconBlock[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, WithdrawalsT,
+		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
 	// GetProposerIndex returns the index of the proposer.
@@ -78,7 +80,10 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	DepositT any,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -140,12 +145,15 @@ type Deposit[
 		forkData ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
-			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+			pubkey crypto.BLSPubkey,
+			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
 }
 
-type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
+type ExecutionPayload[
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+] interface {
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -165,11 +173,33 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	GetBaseFeePerGas() math.U256L
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
+	ToHeader() (ExecutionPayloadHeaderT, error)
+}
+
+type ExecutionPayloadHeader interface {
+	Version() uint32
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetPrevRandao() bytes.B32
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() bytes.B32
+	GetReceiptsRoot() common.Root
+	GetLogsBloom() []byte
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetTimestamp() math.U64
+	GetGasUsed() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.U256L
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadHeaderT,
 	WithdrawalsT any,
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
