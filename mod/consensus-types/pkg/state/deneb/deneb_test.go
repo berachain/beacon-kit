@@ -28,52 +28,57 @@ package deneb_test
 
 import (
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/stretchr/testify/require"
 )
 
-// Test using local deneb genesis beaconstate.
-func TestParityDenebLocal(_ *testing.T) {
-	// Demonstrate the block is valid by proving
-	// the block can be serialized
-	// and deserialized back to the same object using fastssz
-	//
-	// TODO: Fix later.
-	//
-	// block := deneb.BeaconState{}
-	// genesis, getBlockErr := deneb.DefaultBeaconState()
-	// require.NoError(t, getBlockErr)
-	// data, fastSSZMarshalErr := genesis.MarshalSSZ()
-	// require.NoError(t, fastSSZMarshalErr)
-	// if data == nil {
-	// 	panic("Data is nil")
-	// }
+// generateValidBeaconState generates a valid beacon state for the Deneb.
+func generateValidBeaconState() *deneb.BeaconState {
+	var byteArray [256]byte
+	return &deneb.BeaconState{
+		BlockRoots:  []primitives.Root{},
+		StateRoots:  []primitives.Root{},
+		Validators:  []*types.Validator{},
+		Balances:    []uint64{},
+		RandaoMixes: []primitives.Bytes32{},
+		Slashings:   []uint64{},
+		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{
+			LogsBloom: byteArray[:],
+			ExtraData: []byte{},
+		},
+	}
+}
 
-	// if err := block.UnmarshalSSZ(data); err != nil {
-	// 	panic(err)
-	// }
+func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
+	state := generateValidBeaconState()
 
-	// if block.SizeSSZ() == 0 {
-	// 	panic("Block is nil")
-	// }
+	data, fastSSZMarshalErr := state.MarshalSSZ()
+	require.NoError(t, fastSSZMarshalErr)
+	require.NotNil(t, data)
 
-	// destBlockBz, err := block.MarshalSSZ()
-	// if err != nil {
-	// 	panic(`Step 1: Deserialize-Serialize
-	// 	-- could not serialize back the
-	// 	deserialized input block`)
-	// }
+	newState := &deneb.BeaconState{}
+	err := newState.UnmarshalSSZ(data)
+	require.NoError(t, err)
 
-	// if !reflect.DeepEqual(data, destBlockBz) {
-	// 	panic(`Step 2: Deserialize-Serialize
-	// 	-- input != serialize(deserialize(input))`)
-	// }
+	require.Equal(t, state, newState)
 
-	// // Use our native serializer to do the same
-	// s := sszv2.NewSerializer()
-	// o2, err3 := s.MarshalSSZ(genesis)
-	// require.NoError(t, err3)
-	// require.Equal(t, len(o2), len(data), defaultErrMsg)
+	// Check if the state size is greater than 0
+	size := state.SizeSSZ()
+	require.Greater(t, size, 0)
+}
 
-	// TODO: not a full match yet
-	// require.Equal(t, o2, data, "local output and fastssz output doesnt
-	// match")
+func TestHashTreeRoot(t *testing.T) {
+	state := generateValidBeaconState()
+	_, err := state.HashTreeRoot()
+	require.NoError(t, err)
+}
+
+func TestGetTree(t *testing.T) {
+	state := generateValidBeaconState()
+	tree, err := state.GetTree()
+	require.NoError(t, err)
+	require.NotNil(t, tree)
 }

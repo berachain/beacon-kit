@@ -82,6 +82,11 @@ func TestExecutionPayloadHeaderDeneb_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetExcessBlobGas())
 }
 
+func TestExecutionPayloadHeaderDeneb_IsBlinded(t *testing.T) {
+	header := generateExecutionPayloadHeaderDeneb()
+	require.False(t, header.IsBlinded())
+}
+
 func TestExecutionPayloadHeaderDeneb_IsNil(t *testing.T) {
 	header := generateExecutionPayloadHeaderDeneb()
 	require.False(t, header.IsNil())
@@ -145,4 +150,12 @@ func TestExecutionPayloadHeaderDeneb_GetTree(t *testing.T) {
 	header := generateExecutionPayloadHeaderDeneb()
 	_, err := header.GetTree()
 	require.NoError(t, err)
+}
+
+func TestExecutionPayloadHeaderDeneb_Empty(t *testing.T) {
+	header := new(types.ExecutionPayloadHeader)
+	emptyHeader := header.Empty(version.Deneb)
+
+	require.NotNil(t, emptyHeader)
+	require.Equal(t, version.Deneb, emptyHeader.Version())
 }
