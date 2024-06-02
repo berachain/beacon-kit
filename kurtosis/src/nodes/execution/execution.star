@@ -18,7 +18,6 @@ ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
 
-
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(node_struct, node_module):
     sc = service_config_lib.get_service_config_template(
