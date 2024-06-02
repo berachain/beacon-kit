@@ -54,7 +54,9 @@ func (s *Service[
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		genesisData.ExecutionPayloadHeader,
+		&types.ExecutionPayloadHeader{
+			ExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+		},
 		genesisData.ForkVersion,
 	)
 }

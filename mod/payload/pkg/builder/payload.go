@@ -38,7 +38,9 @@ import (
 
 // RequestPayload builds a payload for the given slot and
 // returns the payload ID.
-func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) RequestPayloadAsync(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
@@ -101,7 +103,9 @@ func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) RequestPayloadAsync(
 
 // RequestPayload request a payload for the given slot and
 // blocks until the payload is delivered.
-func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) RequestPayloadSync(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
@@ -158,7 +162,9 @@ func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) RequestPayloadSync(
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (pb *PayloadBuilder[BeaconStateT, ExecutionPayloadT]) RetrievePayload(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
