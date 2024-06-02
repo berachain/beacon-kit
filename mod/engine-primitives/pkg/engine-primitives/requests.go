@@ -99,11 +99,17 @@ func BuildNewPayloadRequest[
 //
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
+
+	var (
+		gethWithdrawals []*types.Withdrawal
+		withdrawalsHash *common.ExecutionHash
+		blobHashes      = make([]common.ExecutionHash, 0)
+		payload         = n.ExecutionPayload
+		txs             = make([]*types.Transaction, len(payload.GetTransactions()))
+	)
+
 	// Extracts and validates the blob hashes from the transactions in the
 	// execution payload.
-	blobHashes := make([]common.ExecutionHash, 0)
-	payload := n.ExecutionPayload
-	var txs = make([]*types.Transaction, len(payload.GetTransactions()))
 	for i, encTx := range payload.GetTransactions() {
 		var tx types.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
@@ -137,54 +143,55 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 		}
 	}
 
-	gethWds := make([]*types.Withdrawal, len(payload.GetWithdrawals()))
-	for i, wd := range payload.GetWithdrawals() {
-		gethWds[i] = &types.Withdrawal{
-			Index:     wd.GetIndex().Unwrap(),
-			Amount:    wd.GetAmount().Unwrap(),
-			Address:   wd.GetAddress(),
-			Validator: wd.GetValidatorIndex().Unwrap(),
+	// Construct the withdrawals and withdrawals hash.
+	if payload.GetWithdrawals() != nil {
+		gethWithdrawals = make(
+			[]*types.Withdrawal,
+			len(payload.GetWithdrawals()),
+		)
+		for i, wd := range payload.GetWithdrawals() {
+			gethWithdrawals[i] = &types.Withdrawal{
+				Index:     wd.GetIndex().Unwrap(),
+				Amount:    wd.GetAmount().Unwrap(),
+				Address:   wd.GetAddress(),
+				Validator: wd.GetValidatorIndex().Unwrap(),
+			}
 		}
+		h := types.DeriveSha(types.Withdrawals(gethWithdrawals), trie.NewStackTrie(nil))
+		withdrawalsHash = &h
 	}
 
-	wroot := types.DeriveSha(types.Withdrawals(gethWds), trie.NewStackTrie(nil))
-	bf := payload.GetBaseFeePerGas().Unwrap()
-	header := &types.Header{
-		ParentHash: payload.GetParentHash(),
-		UncleHash:  types.EmptyUncleHash,
-		Coinbase:   payload.GetFeeRecipient(),
-		Root:       common.ExecutionHash(payload.GetStateRoot()),
-		TxHash: types.DeriveSha(
-			types.Transactions(txs),
-			trie.NewStackTrie(nil),
-		),
-		ReceiptHash:      types.EmptyRootHash,
-		Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
-		Difficulty:       big.NewInt(0),
-		Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-		GasLimit:         payload.GetGasLimit().Unwrap(),
-		GasUsed:          payload.GetGasUsed().Unwrap(),
-		Time:             payload.GetTimestamp().Unwrap(),
-		BaseFee:          new(big.Int).SetBytes(bf[:]),
-		Extra:            payload.GetExtraData(),
-		MixDigest:        common.ExecutionHash(payload.GetPrevRandao()),
-		WithdrawalsHash:  &wroot,
-		ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-		ParentBeaconRoot: (*common.ExecutionHash)(n.ParentBeaconBlockRoot),
-	}
-
-	block := types.NewBlockWithHeader(header).
-		WithBody(types.Body{Transactions: txs, Uncles: nil, Withdrawals: gethWds})
-	if block.Hash() != payload.GetBlockHash() {
-		return errors.Wrapf(
-			ErrPayloadBlockHashMismatch,
-			"blockhash mismatch, want %x, got %x",
-			payload.GetBlockHash(),
-			block.Hash(),
+	// Verify that the payload is telling the truth about it's block hash.
+	if block := types.NewBlockWithHeader(
+		&types.Header{
+			ParentHash:       payload.GetParentHash(),
+			UncleHash:        types.EmptyUncleHash,
+			Coinbase:         payload.GetFeeRecipient(),
+			Root:             common.ExecutionHash(payload.GetStateRoot()),
+			TxHash:           types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+			ReceiptHash:      common.ExecutionHash(payload.GetReceiptsRoot()),
+			Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
+			Difficulty:       big.NewInt(0),
+			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
+			GasLimit:         payload.GetGasLimit().Unwrap(),
+			GasUsed:          payload.GetGasUsed().Unwrap(),
+			Time:             payload.GetTimestamp().Unwrap(),
+			BaseFee:          payload.GetBaseFeePerGas().UnwrapBig(),
+			Extra:            payload.GetExtraData(),
+			MixDigest:        common.ExecutionHash(payload.GetPrevRandao()),
+			WithdrawalsHash:  withdrawalsHash,
+			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
+			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
+			ParentBeaconRoot: (*common.ExecutionHash)(n.ParentBeaconBlockRoot),
+		},
+	).WithBody(types.Body{
+		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
+	}); block.Hash() != payload.GetBlockHash() {
+		return errors.Wrapf(ErrPayloadBlockHashMismatch,
+			"%x, got %x",
+			payload.GetBlockHash(), block.Hash(),
 		)
 	}
-
 	return nil
 }
 
