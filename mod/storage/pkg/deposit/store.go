@@ -124,6 +124,7 @@ func (kv *KVStore[DepositT]) PruneFromInclusive(
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range numPrune {
+		// This only errors if the key passed in cannot be encoded.
 		err := kv.store.Remove(context.TODO(), index+i)
 		if err != nil {
 			return err
