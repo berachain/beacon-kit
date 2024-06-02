@@ -100,9 +100,6 @@ type NodeLayerSettings struct {
 	// MaxMemory specifies the maximum amount of memory to use for all nodes in
 	// the layer.
 	MaxMemory int `json:"max_memory"`
-	// Labels specifies the labels to use for all nodes in the layer.
-	// node_type is included by default in our kurtosis plan.
-	Labels map[string]string `json:"labels"`
 	// Images specifies the image available for the layer.
 	Images map[string]string `json:"images"`
 }
