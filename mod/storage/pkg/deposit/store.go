@@ -27,8 +27,10 @@ package deposit
 
 import (
 	"context"
+	"errors"
 	"sync"
 
+	"cosmossdk.io/collections"
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
@@ -80,6 +82,9 @@ func (kv *KVStore[DepositT]) ExpectedDeposits(
 	deposits := []DepositT{}
 	for i := range numView {
 		deposit, err := kv.store.Get(context.TODO(), startIndex+i)
+		if errors.Is(err, collections.ErrNotFound) {
+			return deposits, nil
+		}
 		if err != nil {
 			return deposits, err
 		}
