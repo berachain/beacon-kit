@@ -38,11 +38,6 @@ type (
 	ExecutableData  = engine.ExecutableData
 )
 
-var (
-	// ExecutableDataToBlock constructs a block from executable data.
-	ExecutableDataToBlock = engine.ExecutableDataToBlock
-)
-
 type PayloadStatusStr = string
 
 var (

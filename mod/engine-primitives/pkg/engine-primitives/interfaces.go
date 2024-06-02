@@ -62,7 +62,7 @@ type ExecutionPayloadBody interface {
 	json.Unmarshaler
 	IsNil() bool
 	Version() uint32
-	IsBlinded() bool
+	// IsBlinded() bool
 	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
@@ -81,11 +81,11 @@ type ExecutionPayloadBody interface {
 }
 
 // ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
+type ExecutionPayload[WithdrawlT any] interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
 	// TODO: decouple from consensus-types
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []WithdrawlT
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.
