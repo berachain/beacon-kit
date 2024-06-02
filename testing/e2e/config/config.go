@@ -36,19 +36,32 @@ type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []AdditionalService `json:"additional_services"`
-	// Validators lists the configurations for each validator in the test.
-	Validators []Node `json:"validators"`
-	// FullNodes specifies the number of full nodes to include in the test.
-	FullNodes []Node `json:"full_nodes"`
-	// SeedNodes specifies the number of seed nodes to include in the test.
-	SeedNodes []Node `json:"seed_nodes"`
+	// NetworkConfiguration specifies the configuration for the network.
+	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
 	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
 	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
+}
+
+type NetworkConfiguration struct {
+	// Validators lists the configurations for each validator in the test.
+	Validators NodeSet `json:"validators"`
+	// FullNodes specifies the number of full nodes to include in the test.
+	FullNodes NodeSet `json:"full_nodes"`
+	// SeedNodes specifies the number of seed nodes to include in the test.
+	SeedNodes NodeSet `json:"seed_nodes"`
 }
 
 type EthJSONRPCEndpoint struct {
 	Type    string   `json:"type"`
 	Clients []string `json:"clients"`
+}
+
+// NodeSet holds nodes that have a distinct role in the network.
+type NodeSet struct {
+	// Type is the type of node set.
+	Type string `json:"type"`
+	// Nodes is a list of nodes in the set.
+	Nodes []Node `json:"nodes"`
 }
 
 // Validator holds the configuration for a single validator in the test,
@@ -60,6 +73,9 @@ type Node struct {
 	// ClType denotes the type of consensus layer client (e.g.,
 	// beaconkit).
 	ClType string `json:"cl_type"`
+	// ElImage specifies the Docker image to use for the execution layer
+	// client.
+	ElImage string `json:"el_image"`
 	// ElType denotes the type of execution layer client (e.g., reth).
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
@@ -86,76 +102,98 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Replicas: 1,
 			},
 		},
-		Validators: []Node{
-			{
-				ElType:   "nethermind",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
+		NetworkConfiguration: NetworkConfiguration{
+			Validators: NodeSet{
+				Type: "validator",
+				Nodes: []Node{
+					{
+						ElType:   "nethermind",
+						ElImage:  "nethermind/nethermind:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 0,
+					},
+					{
+						ElType:   "geth",
+						ElImage:  "ethereum/client-go:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 1,
+					},
+					{
+						ElType:   "reth",
+						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 2, //nolint:mnd // 2 replicas
+					},
+					{
+						ElType:   "erigon",
+						ElImage:  "thorax/erigon:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 1,
+					},
+					{
+						ElType:   "besu",
+						ElImage:  "hyperledger/besu:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 0,
+					},
+				},
 			},
-			{
-				ElType:   "geth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
+			FullNodes: NodeSet{
+				Type: "full",
+				Nodes: []Node{
+					{
+						ElType:   "nethermind",
+						ElImage:  "nethermind/nethermind:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 0,
+					},
+					{
+						ElType:   "reth",
+						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 2, //nolint:mnd // 2 replicas
+					},
+					{
+						ElType:   "geth",
+						ElImage:  "ethereum/client-go:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 1,
+					},
+					{
+						ElType:   "erigon",
+						ElImage:  "thorax/erigon:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 1,
+					},
+					{
+						ElType:   "besu",
+						ElImage:  "hyperledger/besu:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 0,
+					},
+				},
 			},
-			{
-				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 2, //nolint:mnd // 2 replicas
-			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
-			},
-		},
-		FullNodes: []Node{
-			{
-				ElType:   "nethermind",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
-			},
-			{
-				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 2, //nolint:mnd // 2 replicas
-			},
-			{
-				ElType:   "geth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
-			},
-		},
-		SeedNodes: []Node{
-			{
-				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
+			SeedNodes: NodeSet{
+				Type: "seed",
+				Nodes: []Node{
+					{
+						ElType:   "reth",
+						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
+						ClImage:  "beacond:kurtosis-local",
+						ClType:   "beaconkit",
+						Replicas: 1,
+					},
+				},	
 			},
 		},
 		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
