@@ -38,6 +38,8 @@ type E2ETestConfig struct {
 	AdditionalServices []AdditionalService `json:"additional_services"`
 	// NetworkConfiguration specifies the configuration for the network.
 	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
+	// NodeSettings specifies the configuration for the nodes in the test.
+	NodeSettings NodeSettings `json:"node_settings"`
 	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
 	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 }
@@ -64,22 +66,34 @@ type NodeSet struct {
 	Nodes []Node `json:"nodes"`
 }
 
-// Validator holds the configuration for a single validator in the test,
+// Node holds the configuration for a single node in the test,
 // including client images and types.
 type Node struct {
-	// ClImage specifies the Docker image to use for the consensus layer
-	// client.
-	ClImage string `json:"cl_image"`
-	// ClType denotes the type of consensus layer client (e.g.,
-	// beaconkit).
-	ClType string `json:"cl_type"`
-	// ElImage specifies the Docker image to use for the execution layer
-	// client.
-	ElImage string `json:"el_image"`
 	// ElType denotes the type of execution layer client (e.g., reth).
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
 	Replicas int `json:"replicas"`
+}
+
+// NodeSettings holds the configuration for a single node in the test,
+// including client images and types.
+type NodeSettings struct {
+	// ExecutionSettings holds the configuration for the execution layer clients.
+	ExecutionSettings ExecutionSettings `json:"execution_settings"`
+	// ConsensusSettings holds the configuration for the consensus layer clients.
+	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
+}
+
+// ExecutionSettings holds the configuration for the execution layer clients.
+type ExecutionSettings struct {
+	// Images specifies the images to use for the execution layer clients.
+	Images map[string]string `json:"images"`
+}
+
+// ConsensusSettings holds the configuration for the consensus layer clients.
+type ConsensusSettings struct {
+	// Images specifies the images to use for the consensus layer clients.
+	Images map[string]string `json:"images"`
 }
 
 // AdditionalService holds the configuration for an additional service
@@ -108,37 +122,22 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Nodes: []Node{
 					{
 						ElType:   "nethermind",
-						ElImage:  "nethermind/nethermind:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 0,
 					},
 					{
 						ElType:   "geth",
-						ElImage:  "ethereum/client-go:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 1,
 					},
 					{
 						ElType:   "reth",
-						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 2, //nolint:mnd // 2 replicas
 					},
 					{
 						ElType:   "erigon",
-						ElImage:  "thorax/erigon:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 1,
 					},
 					{
 						ElType:   "besu",
-						ElImage:  "hyperledger/besu:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 0,
 					},
 				},
@@ -148,37 +147,22 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Nodes: []Node{
 					{
 						ElType:   "nethermind",
-						ElImage:  "nethermind/nethermind:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 0,
 					},
 					{
 						ElType:   "reth",
-						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 2, //nolint:mnd // 2 replicas
 					},
 					{
 						ElType:   "geth",
-						ElImage:  "ethereum/client-go:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 1,
 					},
 					{
 						ElType:   "erigon",
-						ElImage:  "thorax/erigon:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 1,
 					},
 					{
 						ElType:   "besu",
-						ElImage:  "hyperledger/besu:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 0,
 					},
 				},
@@ -188,12 +172,26 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				Nodes: []Node{
 					{
 						ElType:   "reth",
-						ElImage:  "ghcr.io/paradigmxyz/reth:latest",
-						ClImage:  "beacond:kurtosis-local",
-						ClType:   "beaconkit",
 						Replicas: 1,
 					},
 				},	
+			},
+		},
+		NodeSettings: NodeSettings{
+			ExecutionSettings: ExecutionSettings{
+				Images: map[string]string{
+					"besu":      "hyperledger/besu:latest",
+					"erigon":    "thorax/erigon:latest",
+					"ethereumjs": "ethpandaops/ethereumjs:stable",
+					"geth":      "ethereum/client-go:latest",
+					"nethermind": "nethermind/nethermind:latest",
+					"reth":      "ghcr.io/paradigmxyz/reth:latest",
+				},
+			},
+			ConsensusSettings: ConsensusSettings{
+				Images: map[string]string{
+					"beaconkit": "beacond:kurtosis-local",
+				},
 			},
 		},
 		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{

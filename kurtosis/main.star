@@ -30,9 +30,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     # all_node_settings = nodes.parse_node_settings(node_settings, all_node_types)
 
     next_free_prefunded_account = 0
-    validators = nodes.parse_nodes_from_dict(network_configuration["validators"])
-    full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"])
-    seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"])
+    validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
+    full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"], node_settings)
+    seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
     num_validators = len(validators)
 
     # 1. Initialize EVM genesis data

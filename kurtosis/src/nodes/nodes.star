@@ -12,7 +12,9 @@ EXECUTION_DEFAULT_SETTINGS = {
     "max_memory": 2048,
 }
 
-def parse_nodes_from_dict(vals):
+CL_TYPE = "beaconkit"
+
+def parse_nodes_from_dict(vals, settings):
     node_type = vals["type"]
     node_list = []
 
@@ -22,22 +24,23 @@ def parse_nodes_from_dict(vals):
         if "replicas" in val_configuration:
             replicas = val_configuration["replicas"]
         
-        for i in range(replicas):
-            val_struct = parse_node_from_dict(node_type, val_configuration, count)
-            node_list.append(val_struct)
-            count += 1
+        if replicas != 0:
+            for i in range(replicas):
+                val_struct = parse_node_from_dict(node_type, val_configuration, settings, count)
+                node_list.append(val_struct)
+                count += 1
 
     return node_list
 
-def parse_node_from_dict(node_type, val, index):
+def parse_node_from_dict(node_type, val, settings, index):
     return struct(
         node_type = node_type,
         el_type = val["el_type"],
-        el_image = val["el_image"],
-        cl_type = val["cl_type"],
-        cl_image = val["cl_image"],
+        el_image = settings["execution_settings"]["images"][val["el_type"]],
+        cl_type = CL_TYPE,
+        cl_image = settings["consensus_settings"]["images"][CL_TYPE],
         index = index,
-        cl_service_name = "cl-{}-{}-{}".format(node_type, val["cl_type"], index),
+        cl_service_name = "cl-{}-{}-{}".format(node_type, CL_TYPE, index),
         el_service_name = "el-{}-{}-{}".format(node_type, val["el_type"], index),
     )
 
