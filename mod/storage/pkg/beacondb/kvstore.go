@@ -121,8 +121,8 @@ func New[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	latestExecutionPayloadCodec :=
-		&encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
+	latestExecutionPayloadCodec := &encoding.
+		SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
 	return &KVStore[
 		ForkT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,

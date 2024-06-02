@@ -46,7 +46,7 @@ type BlockchainService[
 	ProcessGenesisData(
 		context.Context,
 		*genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeader,
+			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 		],
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated

@@ -49,7 +49,8 @@ func (e *ExecutionPayloadHeader) Empty(
 	case version.Deneb:
 		e.ExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
 	default:
-		panic("unknown fork version")
+		panic(
+			"unknown fork version, cannot create empty ExecutionPayloadHeader")
 	}
 	return e
 }
@@ -63,6 +64,13 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 		return nil, err
 	}
 	return e, nil
+}
+
+// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
+func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
+	// TODO: Generalize somehow.
+	e = e.Empty(version.Deneb)
+	return e.ExecutionPayloadHeader.UnmarshalJSON(bz)
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.

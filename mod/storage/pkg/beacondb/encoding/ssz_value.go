@@ -91,24 +91,27 @@ func (SSZValueCodec[T]) ValueType() string {
 type SSZInterfaceCodec[T interface {
 	SSZMarshallable
 	NewFromSSZ([]byte, uint32) (T, error)
+	Version() uint32
 }] struct {
-	version uint32
+	latestVersion uint32
 }
 
 // SetForkVersion sets the fork version for the codec.
 func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
-	cdc.version = version
+	cdc.latestVersion = version
 }
 
 // Encode marshals the provided value into its SSZ encoding.
-func (SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
+func (cdc *SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
+	// TODO: this feels really risky.
+	cdc.latestVersion = value.Version()
 	return value.MarshalSSZ()
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
 	var t T
-	return t.NewFromSSZ(b, cdc.version)
+	return t.NewFromSSZ(b, cdc.latestVersion)
 }
 
 // EncodeJSON is not implemented and will panic if called.

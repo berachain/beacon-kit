@@ -96,7 +96,7 @@ func (h *FinalizeBlockMiddleware[
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	data := new(
-		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader],
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
 	)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err

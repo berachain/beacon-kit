@@ -53,6 +53,7 @@ func (kv *KVStore[
 	); err != nil {
 		return err
 	}
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 
