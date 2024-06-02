@@ -1,8 +1,10 @@
 CONSENSUS_DEFAULT_SETTINGS = {
-    "min_cpu": 0,
-    "max_cpu": 2000,
-    "min_memory": 0,
-    "max_memory": 2048,
+    "specs": {
+        "min_cpu": 0,
+        "max_cpu": 2000,
+        "min_memory": 0,
+        "max_memory": 2048,
+    },
     "images": {
         "beaconkit": "beacond:kurtosis-local",
     },
@@ -21,10 +23,12 @@ CONSENSUS_DEFAULT_SETTINGS = {
 }
 
 EXECUTION_DEFAULT_SETTINGS = {
-    "min_cpu": 0,
-    "max_cpu": 2000,
-    "min_memory": 0,
-    "max_memory": 2048,
+    "specs": {
+        "min_cpu": 0,
+        "max_cpu": 2000,
+        "min_memory": 0,
+        "max_memory": 2048,
+    },
     "images": {
         "besu": "hyperledger/besu:latest",
         "erigon": "thorax/erigon:latest",
@@ -133,15 +137,18 @@ def parse_execution_settings(settings):
 
 def parse_default_node_settings(settings, default_settings):
     node_settings = dict(settings)
+    if "specs" not in node_settings:
+        node_settings["specs"] = default_settings["specs"]
 
-    if "min_cpu" not in node_settings:
-        node_settings["min_cpu"] = default_settings["min_cpu"]
-    if "max_cpu" not in node_settings:
-        node_settings["max_cpu"] = default_settings["max_cpu"]
-    if "min_memory" not in node_settings:
-        node_settings["min_memory"] = default_settings["min_memory"]
-    if "max_memory" not in node_settings:
-        node_settings["max_memory"] = default_settings["max_memory"]
+    node_specs = dict(node_settings["specs"])
+    if "min_cpu" not in node_specs:
+        node_specs["min_cpu"] = default_settings["specs"]["min_cpu"]
+    if "max_cpu" not in node_specs:
+        node_specs["max_cpu"] = default_settings["specs"]["max_cpu"]
+    if "min_memory" not in node_specs:
+        node_specs["min_memory"] = default_settings["specs"]["min_memory"]
+    if "max_memory" not in node_specs:
+        node_specs["max_memory"] = default_settings["specs"]["max_memory"]
     if "images" not in node_settings:
         node_settings["images"] = default_settings["images"]
     if "labels" not in node_settings:
@@ -149,14 +156,19 @@ def parse_default_node_settings(settings, default_settings):
     if "node_selectors" not in node_settings:
         node_settings["node_selectors"] = default_settings["node_selectors"]
 
+    node_specs = struct(
+        min_cpu = node_specs["min_cpu"],
+        max_cpu = node_specs["max_cpu"],
+        min_memory = node_specs["min_memory"],
+        max_memory = node_specs["max_memory"],
+    )
+    node_settings["specs"] = node_specs
+
     return node_settings
 
 def get_consensus_struct(consensus_settings):
     return struct(
-        min_cpu = consensus_settings["min_cpu"],
-        max_cpu = consensus_settings["max_cpu"],
-        min_memory = consensus_settings["min_memory"],
-        max_memory = consensus_settings["max_memory"],
+        specs = consensus_settings["specs"],
         images = consensus_settings["images"],
         labels = consensus_settings["labels"],
         node_selectors = consensus_settings["node_selectors"],
@@ -166,12 +178,8 @@ def get_consensus_struct(consensus_settings):
 
 def get_execution_struct(execution_settings):
     return struct(
-        min_cpu = execution_settings["min_cpu"],
-        max_cpu = execution_settings["max_cpu"],
-        min_memory = execution_settings["min_memory"],
-        max_memory = execution_settings["max_memory"],
+        specs = execution_settings["specs"],
         images = execution_settings["images"],
         labels = execution_settings["labels"],
         node_selectors = execution_settings["node_selectors"],
     )
-

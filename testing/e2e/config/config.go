@@ -78,16 +78,38 @@ type Node struct {
 // NodeSettings holds the configuration for a single node in the test,
 // including client images and types.
 type NodeSettings struct {
-	// ExecutionSettings holds the configuration for the execution layer
-	// clients.
-	ExecutionSettings NodeLayerSettings `json:"execution_settings"`
 	// ConsensusSettings holds the configuration for the consensus layer
 	// clients.
-	ConsensusSettings NodeLayerSettings `json:"consensus_settings"`
+	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
+	// ExecutionSettings holds the configuration for the execution layer
+	// clients.
+	ExecutionSettings ExecutionSettings `json:"execution_settings"`
 }
 
-// NodeLayerSettings holds the configuration for all clients in a single layer.
-type NodeLayerSettings struct {
+// ExecutionSettings holds the configuration for the execution layer
+// clients.
+type ExecutionSettings struct {
+	// Specs holds the node specs for all nodes in the execution layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the execution layer.
+	Images map[string]string `json:"images"`
+}
+
+// ConsensusSettings holds the configuration for the consensus layer
+// clients.
+type ConsensusSettings struct {
+	// Specs holds the node specs for all nodes in the consensus layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the consensus layer.
+	Images map[string]string `json:"images"`
+	// Config specifies the config.toml edits for the consensus layer nodes.
+	Config map[string]string `json:"config"`
+	// AppConfig specifies the app.toml edits for the consensus layer nodes.
+	AppConfig map[string]string `json:"app_config"`
+}
+
+// NodeSpecs holds the node specs for all nodes in a single layer.
+type NodeSpecs struct {
 	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
 	// layer.
 	MinCPU int `json:"min_cpu"`
@@ -100,8 +122,6 @@ type NodeLayerSettings struct {
 	// MaxMemory specifies the maximum amount of memory to use for all nodes in
 	// the layer.
 	MaxMemory int `json:"max_memory"`
-	// Images specifies the image available for the layer.
-	Images map[string]string `json:"images"`
 }
 
 // AdditionalService holds the configuration for an additional service
@@ -208,12 +228,14 @@ func defaultNodeSettings() NodeSettings {
 	}
 }
 
-func defaultExecutionSettings() NodeLayerSettings {
-	return NodeLayerSettings{
-		MinCPU:    1000, //nolint:mnd // 1 vCPU
-		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 1024, //nolint:mnd // 1 GB
-		MaxMemory: 2048, //nolint:mnd // 2 GB
+func defaultExecutionSettings() ExecutionSettings {
+	return ExecutionSettings{
+		Specs: NodeSpecs{
+			MinCPU:    1000, //nolint:mnd // 1 vCPU
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
 			"erigon":     "thorax/erigon:latest",
@@ -225,14 +247,26 @@ func defaultExecutionSettings() NodeLayerSettings {
 	}
 }
 
-func defaultConsensusSettings() NodeLayerSettings {
-	return NodeLayerSettings{
-		MinCPU:    1000, //nolint:mnd // 1 vCPU
-		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 1024, //nolint:mnd // 1 GB
-		MaxMemory: 2048, //nolint:mnd // 2 GB
+func defaultConsensusSettings() ConsensusSettings {
+	return ConsensusSettings{
+		Specs: NodeSpecs{
+			MinCPU:    1000, //nolint:mnd // 1 vCPU
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",
+		},
+		Config: map[string]string{
+			"timeout_propose":        "3s",
+			"timeout_vote":           "2s",
+			"timeout_commit":         "1s",
+			"max_num_inbound_peers":  "40",
+			"max_num_outbound_peers": "10",
+		},
+		AppConfig: map[string]string{
+			"payload-timeout": "1.5s",
 		},
 	}
 }
@@ -243,9 +277,9 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 			Type: "blutgang",
 			Clients: []string{
 				// "el-full-nethermind-0",
-				"el-full-reth-0",
 				"el-full-reth-1",
 				"el-full-geth-2",
+				"el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",
