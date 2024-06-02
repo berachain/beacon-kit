@@ -127,20 +127,6 @@ func TestExecutableDataDeneb_MarshalJSON(t *testing.T) {
 	require.Equal(t, payload, &unmarshalled)
 }
 
-func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
-	malformedJSON := `{"invalidField": "invalidValue"}`
-
-	var payload types.ExecutableDataDeneb
-	err := json.Unmarshal([]byte(malformedJSON), &payload)
-
-	require.Error(t, err)
-	require.ErrorContains(
-		t,
-		err,
-		"missing required field 'parentHash' for ExecutableDataDeneb",
-	)
-}
-
 func TestExecutableDataDeneb_IsNil(t *testing.T) {
 	var payload *types.ExecutableDataDeneb
 	require.True(t, payload.IsNil())
@@ -209,4 +195,107 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
+}
+
+//nolint:lll
+func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
+	original := generateExecutableDataDeneb()
+	validJSON, err := original.MarshalJSON()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		removeField   string
+		expectedError string
+	}{
+		{
+			name:          "missing required field 'parentHash'",
+			removeField:   "parentHash",
+			expectedError: "missing required field 'parentHash' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'feeRecipient'",
+			removeField:   "feeRecipient",
+			expectedError: "missing required field 'feeRecipient' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'stateRoot'",
+			removeField:   "stateRoot",
+			expectedError: "missing required field 'stateRoot' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'receiptsRoot'",
+			removeField:   "receiptsRoot",
+			expectedError: "missing required field 'receiptsRoot' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'logsBloom'",
+			removeField:   "logsBloom",
+			expectedError: "missing required field 'logsBloom' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'prevRandao'",
+			removeField:   "prevRandao",
+			expectedError: "missing required field 'prevRandao' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'blockNumber'",
+			removeField:   "blockNumber",
+			expectedError: "missing required field 'blockNumber' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'gasLimit'",
+			removeField:   "gasLimit",
+			expectedError: "missing required field 'gasLimit' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'gasUsed'",
+			removeField:   "gasUsed",
+			expectedError: "missing required field 'gasUsed' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'timestamp'",
+			removeField:   "timestamp",
+			expectedError: "missing required field 'timestamp' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'extraData'",
+			removeField:   "extraData",
+			expectedError: "missing required field 'extraData' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'baseFeePerGas'",
+			removeField:   "baseFeePerGas",
+			expectedError: "missing required field 'baseFeePerGas' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'blockHash'",
+			removeField:   "blockHash",
+			expectedError: "missing required field 'blockHash' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'transactions'",
+			removeField:   "transactions",
+			expectedError: "missing required field 'transactions' for ExecutableDataDeneb",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var payload types.ExecutableDataDeneb
+			var jsonMap map[string]interface{}
+
+			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+			require.NoError(t, errUnmarshal)
+
+			delete(jsonMap, tc.removeField)
+
+			malformedJSON, errMarshal := json.Marshal(jsonMap)
+			require.NoError(t, errMarshal)
+
+			err = payload.UnmarshalJSON(malformedJSON)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
 }
