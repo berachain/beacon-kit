@@ -78,16 +78,58 @@ type Node struct {
 // NodeSettings holds the configuration for a single node in the test,
 // including client images and types.
 type NodeSettings struct {
-	// ExecutionSettings holds the configuration for the execution layer
-	// clients.
-	ExecutionSettings NodeLayerSettings `json:"execution_settings"`
 	// ConsensusSettings holds the configuration for the consensus layer
 	// clients.
-	ConsensusSettings NodeLayerSettings `json:"consensus_settings"`
+	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
+	// ExecutionSettings holds the configuration for the execution layer
+	// clients.
+	ExecutionSettings ExecutionSettings `json:"execution_settings"`
 }
 
-// NodeLayerSettings holds the configuration for all clients in a single layer.
-type NodeLayerSettings struct {
+// ExecutionSettings holds the configuration for the execution layer
+// clients.
+type ExecutionSettings struct {
+	// Specs holds the node specs for all nodes in the execution layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the execution layer.
+	Images map[string]string `json:"images"`
+}
+
+// ConsensusSettings holds the configuration for the consensus layer
+// clients.
+type ConsensusSettings struct {
+	// Specs holds the node specs for all nodes in the consensus layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the consensus layer.
+	Images map[string]string `json:"images"`
+	// Config specifies the config.toml edits for the consensus layer nodes.
+	Config ConsensusConfig `json:"config"`
+	// AppConfig specifies the app.toml edits for the consensus layer nodes.
+	AppConfig AppConfig `json:"app"`
+}
+
+// ConsensusConfig holds the configuration for the consensus layer.
+type ConsensusConfig struct {
+	// TimeoutPropose specifies the timeout for proposing a block.
+	TimeoutPropose string `json:"timeout_propose"`
+	// TimeoutVote specifies the timeout for voting on a block.
+	TimeoutVote string `json:"timeout_vote"`
+	// TimeoutCommit specifies the timeout for committing a block.
+	TimeoutCommit string `json:"timeout_commit"`
+	// MaxNumInboundPeers specifies the maximum number of inbound peers.
+	MaxNumInboundPeers int `json:"max_num_inbound_peers"`
+	// MaxNumOutboundPeers specifies the maximum number of outbound peers.
+	MaxNumOutboundPeers int `json:"max_num_outbound_peers"`
+}
+
+// AppConfig holds the configuration for the app layer.
+type AppConfig struct {
+	// PayloadTimeout specifies the timeout for the payload.
+	PayloadTimeout string `json:"payload-timeout"`
+}
+
+// NodeSpecs holds the node specs for all nodes in a single layer.
+type NodeSpecs struct {
 	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
 	// layer.
 	MinCPU int `json:"min_cpu"`
@@ -100,8 +142,6 @@ type NodeLayerSettings struct {
 	// MaxMemory specifies the maximum amount of memory to use for all nodes in
 	// the layer.
 	MaxMemory int `json:"max_memory"`
-	// Images specifies the image available for the layer.
-	Images map[string]string `json:"images"`
 }
 
 // AdditionalService holds the configuration for an additional service
@@ -208,12 +248,14 @@ func defaultNodeSettings() NodeSettings {
 	}
 }
 
-func defaultExecutionSettings() NodeLayerSettings {
-	return NodeLayerSettings{
-		MinCPU:    1000, //nolint:mnd // 1 vCPU
-		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 1024, //nolint:mnd // 1 GB
-		MaxMemory: 2048, //nolint:mnd // 2 GB
+func defaultExecutionSettings() ExecutionSettings {
+	return ExecutionSettings{
+		Specs: NodeSpecs{
+			MinCPU:    1000, //nolint:mnd // 1 vCPU
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
 			"erigon":     "thorax/erigon:latest",
@@ -225,14 +267,26 @@ func defaultExecutionSettings() NodeLayerSettings {
 	}
 }
 
-func defaultConsensusSettings() NodeLayerSettings {
-	return NodeLayerSettings{
-		MinCPU:    1000, //nolint:mnd // 1 vCPU
-		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 1024, //nolint:mnd // 1 GB
-		MaxMemory: 2048, //nolint:mnd // 2 GB
+func defaultConsensusSettings() ConsensusSettings {
+	return ConsensusSettings{
+		Specs: NodeSpecs{
+			MinCPU:    1000, //nolint:mnd // 1 vCPU
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",
+		},
+		Config: ConsensusConfig{
+			TimeoutPropose:      "3s",
+			TimeoutVote:         "2s",
+			TimeoutCommit:       "1s",
+			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
+			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
+		},
+		AppConfig: AppConfig{
+			PayloadTimeout: "1.5s",
 		},
 	}
 }
@@ -243,9 +297,9 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 			Type: "blutgang",
 			Clients: []string{
 				// "el-full-nethermind-0",
-				"el-full-reth-0",
 				"el-full-reth-1",
 				"el-full-geth-2",
+				"el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",

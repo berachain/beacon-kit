@@ -49,10 +49,10 @@ def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persiste
         files = files,
         entrypoint = entrypoint,
         cmd = cmd,
-        min_cpu = settings.min_cpu,
-        max_cpu = settings.max_cpu,
-        min_memory = settings.min_memory,
-        max_memory = settings.max_memory,
+        min_cpu = settings.specs.min_cpu,
+        max_cpu = settings.specs.max_cpu,
+        min_memory = settings.specs.min_memory,
+        max_memory = settings.specs.max_memory,
         env_vars = {
             "BEACOND_MONIKER": node_struct.cl_service_name,
             "BEACOND_NET": "VALUE_2",
@@ -140,12 +140,14 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
+    config_settings = node_struct.consensus_settings.config
+    app_settings = node_struct.consensus_settings.app
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings))
     if node_struct.node_type == "validator":
-        cmd = node.start(persistent_peers, False, node_struct.index)
+        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings)
     elif node_struct.node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings))
 
     beacond_config = get_config(
         node_struct,
