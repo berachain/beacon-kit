@@ -59,7 +59,7 @@ import (
 )
 
 type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+	*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
 	*types.Validator, *engineprimitives.Withdrawal,
 ]
 
@@ -169,6 +169,7 @@ func ProvideRuntime(
 		*types.Deposit,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
+		*types.Fork,
 		*types.ForkData,
 		*types.Validator,
 		*engineprimitives.Withdrawal,
