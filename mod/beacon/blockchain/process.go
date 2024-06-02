@@ -117,46 +117,10 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
-	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
-
-	// No matter what happens we always want to forkchoice at the end of post
-	// block processing.
-	// TODO: this is hood as fuck.
-	go s.postBlockProcessTasks(ctx, st)
+	// Emit new block event
+	s.blockFeed.Send(events.NewBlock(ctx, blk))
 
 	return valUpdates, nil
-}
-
-// postBlockProcessTasks performs post block processing tasks.
-//
-// TODO: Deprecate this function and move it's usage outside of the main block
-// processing thread.
-func (s *Service[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
-]) postBlockProcessTasks(
-	ctx context.Context,
-	st BeaconStateT,
-) {
-	// Prune deposits.
-	// TODO: This should be moved into a go-routine in the background.
-	// Watching for logs should be completely decoupled as well.
-	idx, err := st.GetEth1DepositIndex()
-	if err != nil {
-		s.logger.Error(
-			"failed to get eth1 deposit index in postBlockProcessTasks",
-			"error", err)
-		return
-	}
-
-	// TODO: pruner shouldn't be in main block processing thread.
-	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		s.logger.Error(
-			"failed to prune deposit events in postBlockProcessTasks",
-			"error", err)
-		return
-	}
 }
 
 // ProcessBeaconBlock processes the beacon block.

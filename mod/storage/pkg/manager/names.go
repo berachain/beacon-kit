@@ -23,22 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package manager
 
-import (
-	"context"
+// TODO: find better place for these names
+const (
+	// DepositPrunerName is the name of the deposit store pruner.
+	DepositPrunerName = "deposit-store-pruner"
+	// AvailabilityPrunerName is the name of the availability store pruner.
+	AvailabilityPrunerName = "availability-store-pruner"
 )
-
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
-}

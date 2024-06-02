@@ -23,42 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package components
+package manager
 
 import (
-	"os"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
-	appOpts servertypes.AppOptions,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger,
-) (*dastore.Store[types.BeaconBlockBody], error) {
-	return dastore.New[types.BeaconBlockBody](
-		filedb.NewRangeDB(
-			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						appOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(logger),
-			),
-			chainSpec.MinEpochsForBlobsSidecarsRequest()*chainSpec.SlotsPerEpoch(),
-		),
-		logger.With("service", "beacon-kit.da.store"),
-		chainSpec,
-	), nil
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
+}
+
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Block() BeaconBlockT
+}
+
+type Subscription interface {
+	Unsubscribe()
+}
+
+// BlockFeed is an interface for subscribing to block events.
+type BlockFeed[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] interface {
+	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }
