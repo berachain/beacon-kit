@@ -167,11 +167,11 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 0,
+				Replicas: 1,
 			},
 			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // 2 replicas
+				Replicas: 1,
 			},
 			{
 				ElType:   "geth",
@@ -183,7 +183,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 0,
+				Replicas: 1,
 			},
 		},
 	}
@@ -194,7 +194,7 @@ func defaultSeedNodes() NodeSet {
 		Type: "seed",
 		Nodes: []Node{
 			{
-				ElType:   "reth",
+				ElType:   "geth",
 				Replicas: 1,
 			},
 		},
@@ -255,12 +255,7 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 }
 
 func defaultAdditionalServices() []AdditionalService {
-	return []AdditionalService{
-		{
-			Name:     "tx-fuzz",
-			Replicas: 1,
-		},
-	}
+	return []AdditionalService{}
 }
 
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
