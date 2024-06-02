@@ -62,7 +62,7 @@ type ReadOnlyBeaconState[T any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeader,
 		error,
 	)
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
@@ -84,7 +84,8 @@ type ReadOnlyBeaconState[T any] interface {
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
 	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
@@ -99,7 +100,8 @@ type StorageBackend[
 
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BlobSidecarsT any,
 ] interface {
 	// ProcessBlobs processes the blobs and ensures they match the local state.
@@ -183,7 +185,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
 		deposits []*types.Deposit,
-		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		executionPayloadHeader *types.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.

@@ -34,7 +34,6 @@ GLOBAL_FILES = [
     ("./geth/geth-config.toml", NODE_CONFIG_ARTIFACT_NAME),
 ]
 
-IMAGE = "ethereum/client-go:latest"
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "/root/.geth/{}".format(CONFIG_FILENAME)
 FILES = {

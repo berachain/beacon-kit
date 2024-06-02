@@ -123,7 +123,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// wait blocks
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	targetBlkNum := blkNum + 10
+	targetBlkNum := blkNum + 15
 	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
 	s.Require().NoError(err)
 

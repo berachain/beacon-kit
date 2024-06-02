@@ -34,9 +34,45 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-var _ engineprimitives.ExecutionPayloadHeader = (*ExecutionPayloadHeaderDeneb)(
-	nil,
-)
+// ExecutionPayload represents an execution payload across
+// all fork versions.
+type ExecutionPayloadHeader struct {
+	engineprimitives.ExecutionPayloadHeader
+}
+
+// Empty returns an empty ExecutionPayload for the given fork version.
+func (e *ExecutionPayloadHeader) Empty(
+	forkVersion uint32,
+) *ExecutionPayloadHeader {
+	e = new(ExecutionPayloadHeader)
+	switch forkVersion {
+	case version.Deneb:
+		e.ExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
+	default:
+		panic(
+			"unknown fork version, cannot create empty ExecutionPayloadHeader",
+		)
+	}
+	return e
+}
+
+// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
+func (e *ExecutionPayloadHeader) NewFromSSZ(
+	bz []byte, forkVersion uint32,
+) (*ExecutionPayloadHeader, error) {
+	e = e.Empty(forkVersion)
+	if err := e.UnmarshalSSZ(bz); err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
+// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
+func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
+	// TODO: Generalize somehow.
+	e = e.Empty(version.Deneb)
+	return e.ExecutionPayloadHeader.UnmarshalJSON(bz)
+}
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //

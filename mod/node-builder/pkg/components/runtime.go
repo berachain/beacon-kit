@@ -59,7 +59,8 @@ import (
 )
 
 type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+	*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+	*types.Validator, *engineprimitives.Withdrawal,
 ]
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
@@ -72,6 +73,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	*depositdb.KVStore[*types.Deposit],
 	blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -90,6 +92,7 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -117,7 +120,9 @@ func ProvideRuntime(
 	}
 
 	// Build the local builder service.
-	localBuilder := payloadbuilder.New[BeaconState](
+	localBuilder := payloadbuilder.New[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	](
 		&cfg.PayloadBuilder,
 		chainSpec,
 		logger.With("service", "payload-builder"),
@@ -163,6 +168,7 @@ func ProvideRuntime(
 		*transition.Context,
 		*types.Deposit,
 		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 		*types.ForkData,
 		*types.Validator,
 		*engineprimitives.Withdrawal,
@@ -211,8 +217,10 @@ func ProvideRuntime(
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
 		*types.BeaconBlock,
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		storageBackend,
 		logger.With("service", "blockchain"),
@@ -272,6 +280,7 @@ func ProvideRuntime(
 		*depositdb.KVStore[*types.Deposit],
 		blockchain.StorageBackend[
 			*dastore.Store[types.BeaconBlockBody],
+			types.BeaconBlockBody,
 			BeaconState,
 			*datypes.BlobSidecars,
 			*depositdb.KVStore[*types.Deposit],

@@ -33,6 +33,7 @@ import (
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

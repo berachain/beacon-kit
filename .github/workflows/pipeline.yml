@@ -26,6 +26,9 @@
 name: pipeline
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     paths-ignore:
       - "vercel.json"

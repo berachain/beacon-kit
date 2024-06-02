@@ -39,91 +39,89 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
-// KVStore is a type alias for the beacon store with
-// the generics defined using primitives.
+// KVStore is a type alias for the beacon store with the generics defined using
+// primitives.
 type KVStore = beacondb.KVStore[
-	*types.Fork,
-	*types.BeaconBlockHeader,
-	engineprimitives.ExecutionPayloadHeader,
-	*types.Eth1Data,
-	*types.Validator,
+	*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+	*types.Eth1Data, *types.Validator,
 ]
 
-// Backend is a struct that holds the storage backend. It
-// provides a simply interface to access all types of storage
-// required by the runtime.
+// Backend is a struct that holds the storage backend. It provides a simple
+// interface to access all types of storage required by the runtime.
 type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
-		types.BeaconBlockBody, *datypes.BlobSidecars,
+		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
-	],
-	DepositT deposit.Deposit,
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+		*types.Validator, *engineprimitives.Withdrawal],
+	DepositStoreT *deposit.KVStore[*types.Deposit],
 ] struct {
-	cs                primitives.ChainSpec
-	availabilityStore AvailabilityStoreT
-	beaconStore       *KVStore
-	depositStore      *deposit.KVStore[DepositT]
+	cs primitives.ChainSpec
+	as AvailabilityStoreT
+	bs *KVStore
+	ds DepositStoreT
 }
 
 func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
-		types.BeaconBlockBody, *datypes.BlobSidecars,
+		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Validator,
-		*engineprimitives.Withdrawal,
-	],
-	DepositT deposit.Deposit,
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+		*types.Validator, *engineprimitives.Withdrawal],
+	DepositStoreT *deposit.KVStore[*types.Deposit],
 ](
 	cs primitives.ChainSpec,
-	availabilityStore AvailabilityStoreT,
-	beaconStore *KVStore,
-	depositStore *deposit.KVStore[DepositT],
-) *Backend[AvailabilityStoreT, BeaconStateT, DepositT] {
-	return &Backend[AvailabilityStoreT, BeaconStateT, DepositT]{
-		cs:                cs,
-		availabilityStore: availabilityStore,
-		beaconStore:       beaconStore,
-		depositStore:      depositStore,
+	as AvailabilityStoreT,
+	bs *KVStore,
+	ds DepositStoreT,
+) *Backend[AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT] {
+	return &Backend[
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	]{
+		cs: cs,
+		as: as,
+		bs: bs,
+		ds: ds,
 	}
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.
-func (k *Backend[
-	AvailabilityStoreT, BeaconStateT, DepositT,
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
 ]) AvailabilityStore(
 	_ context.Context,
 ) AvailabilityStoreT {
-	return k.availabilityStore
+	return k.as
 }
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Backend[
-	AvailabilityStoreT, BeaconStateT, DepositT,
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
 	return state.NewBeaconStateFromDB[BeaconStateT](
-		k.beaconStore.WithContext(ctx),
-		k.cs,
+		k.bs.WithContext(ctx), k.cs,
 	)
 }
 
 // BeaconStore returns the beacon store struct.
-func (k *Backend[
-	AvailabilityStoreT, BeaconStateT, DepositT,
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 ]) BeaconStore() *KVStore {
-	return k.beaconStore
+	return k.bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
-func (k *Backend[
-	AvailabilityStoreT, BeaconStateT, DepositT,
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 ]) DepositStore(
 	_ context.Context,
-) *deposit.KVStore[DepositT] {
-	return k.depositStore
+) DepositStoreT {
+	return k.ds
 }
