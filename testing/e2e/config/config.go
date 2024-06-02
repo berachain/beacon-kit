@@ -103,9 +103,29 @@ type ConsensusSettings struct {
 	// Images specifies the images available for the consensus layer.
 	Images map[string]string `json:"images"`
 	// Config specifies the config.toml edits for the consensus layer nodes.
-	Config map[string]string `json:"config"`
+	Config ConsensusConfig `json:"config"`
 	// AppConfig specifies the app.toml edits for the consensus layer nodes.
-	AppConfig map[string]string `json:"app_config"`
+	AppConfig AppConfig `json:"app"`
+}
+
+// ConsensusConfig holds the configuration for the consensus layer.
+type ConsensusConfig struct {
+	// TimeoutPropose specifies the timeout for proposing a block.
+	TimeoutPropose string `json:"timeout_propose"`
+	// TimeoutVote specifies the timeout for voting on a block.
+	TimeoutVote string `json:"timeout_vote"`
+	// TimeoutCommit specifies the timeout for committing a block.
+	TimeoutCommit string `json:"timeout_commit"`
+	// MaxNumInboundPeers specifies the maximum number of inbound peers.
+	MaxNumInboundPeers int `json:"max_num_inbound_peers"`
+	// MaxNumOutboundPeers specifies the maximum number of outbound peers.
+	MaxNumOutboundPeers int `json:"max_num_outbound_peers"`
+}
+
+// AppConfig holds the configuration for the app layer.
+type AppConfig struct {
+	// PayloadTimeout specifies the timeout for the payload.
+	PayloadTimeout string `json:"payload-timeout"`
 }
 
 // NodeSpecs holds the node specs for all nodes in a single layer.
@@ -258,15 +278,15 @@ func defaultConsensusSettings() ConsensusSettings {
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",
 		},
-		Config: map[string]string{
-			"timeout_propose":        "3s",
-			"timeout_vote":           "2s",
-			"timeout_commit":         "1s",
-			"max_num_inbound_peers":  "40",
-			"max_num_outbound_peers": "10",
+		Config: ConsensusConfig{
+			TimeoutPropose:        "3s",
+			TimeoutVote:           "2s",
+			TimeoutCommit:         "1s",
+			MaxNumInboundPeers:  40,
+			MaxNumOutboundPeers: 10,
 		},
-		AppConfig: map[string]string{
-			"payload-timeout": "1.5s",
+		AppConfig: AppConfig{
+			PayloadTimeout: "1.5s",
 		},
 	}
 }
