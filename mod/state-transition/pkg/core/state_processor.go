@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
@@ -67,8 +62,6 @@ type StateProcessor[
 ] struct {
 	// cs is the chain specification for the beacon chain.
 	cs primitives.ChainSpec
-	// rp is the Randao processor used for randomness in the beacon chain.
-	rp RandaoProcessor[BeaconBlockT, BeaconStateT]
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
@@ -109,9 +102,6 @@ func NewStateProcessor[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs primitives.ChainSpec,
-	rp RandaoProcessor[
-		BeaconBlockT, BeaconStateT,
-	],
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
@@ -130,7 +120,6 @@ func NewStateProcessor[
 		WithdrawalCredentialsT,
 	]{
 		cs:              cs,
-		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
 	}
@@ -239,8 +228,7 @@ func (sp *StateProcessor[
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
-		prevStateRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return nil, err
 	}
@@ -399,7 +387,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Wrapf(ErrSlotMismatch,
+		return errors.Wrapf(
+			ErrSlotMismatch,
 			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
@@ -417,8 +406,8 @@ func (sp *StateProcessor[
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
-			"expected: %x, got: %x",
-			parentBlockRoot, blk.GetParentBlockRoot(),
+			"expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
 	}
 

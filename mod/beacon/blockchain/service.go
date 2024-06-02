@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package blockchain
 
@@ -44,7 +39,9 @@ type Service[
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
+
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -53,6 +50,7 @@ type Service[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		DepositT,
 		DepositStoreT,
 	]
 	// logger is used for logging messages in the service.
@@ -71,11 +69,15 @@ type Service[
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
+		DepositT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[events.Block[BeaconBlockT]]
+	// skipPostBlockFCU is a flag used when the optimistic payload
+	// builder is enabled.
+	skipPostBlockFCU bool
 }
 
 // NewService creates a new validator service.
@@ -87,13 +89,15 @@ func NewService[
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
+	DepositStoreT DepositStore[DepositT],
+	DepositT Deposit,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		DepositT,
 		DepositStoreT,
 	],
 	logger log.Logger[any],
@@ -107,27 +111,29 @@ func NewService[
 	],
 	sp StateProcessor[
 		BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, *transition.Context,
+		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
+	skipPostBlockFCU bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
+	BlobSidecarsT, DepositT, DepositStoreT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT,
+		BlobSidecarsT, DepositT, DepositStoreT,
 	]{
-		sb:        sb,
-		logger:    logger,
-		cs:        cs,
-		ee:        ee,
-		lb:        lb,
-		bp:        bp,
-		sp:        sp,
-		metrics:   newChainMetrics(ts),
-		blockFeed: blockFeed,
+		sb:               sb,
+		logger:           logger,
+		cs:               cs,
+		ee:               ee,
+		lb:               lb,
+		bp:               bp,
+		sp:               sp,
+		metrics:          newChainMetrics(ts),
+		blockFeed:        blockFeed,
+		skipPostBlockFCU: skipPostBlockFCU,
 	}
 }
 
@@ -139,6 +145,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -150,6 +157,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Start(
 	context.Context,
 ) error {
@@ -163,6 +171,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Status() error {
 	return nil
 }
@@ -174,6 +183,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) WaitForHealthy(
 	context.Context,
 ) {

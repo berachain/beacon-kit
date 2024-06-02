@@ -1,31 +1,27 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -158,4 +154,107 @@ func TestExecutionPayloadHeaderDeneb_Empty(t *testing.T) {
 
 	require.NotNil(t, emptyHeader)
 	require.Equal(t, version.Deneb, emptyHeader.Version())
+}
+
+//nolint:lll
+func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
+	original := generateExecutionPayloadHeaderDeneb()
+	validJSON, err := original.MarshalJSON()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		removeField   string
+		expectedError string
+	}{
+		{
+			name:          "missing required field 'parentHash'",
+			removeField:   "parentHash",
+			expectedError: "missing required field 'parentHash' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'feeRecipient'",
+			removeField:   "feeRecipient",
+			expectedError: "missing required field 'feeRecipient' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'stateRoot'",
+			removeField:   "stateRoot",
+			expectedError: "missing required field 'stateRoot' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'receiptsRoot'",
+			removeField:   "receiptsRoot",
+			expectedError: "missing required field 'receiptsRoot' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'logsBloom'",
+			removeField:   "logsBloom",
+			expectedError: "missing required field 'logsBloom' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'prevRandao'",
+			removeField:   "prevRandao",
+			expectedError: "missing required field 'prevRandao' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'blockNumber'",
+			removeField:   "blockNumber",
+			expectedError: "missing required field 'blockNumber' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'gasLimit'",
+			removeField:   "gasLimit",
+			expectedError: "missing required field 'gasLimit' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'gasUsed'",
+			removeField:   "gasUsed",
+			expectedError: "missing required field 'gasUsed' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'timestamp'",
+			removeField:   "timestamp",
+			expectedError: "missing required field 'timestamp' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'extraData'",
+			removeField:   "extraData",
+			expectedError: "missing required field 'extraData' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'baseFeePerGas'",
+			removeField:   "baseFeePerGas",
+			expectedError: "missing required field 'baseFeePerGas' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'blockHash'",
+			removeField:   "blockHash",
+			expectedError: "missing required field 'blockHash' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'transactionsRoot'",
+			removeField:   "transactionsRoot",
+			expectedError: "missing required field 'transactionsRoot' for ExecutionPayloadHeaderDeneb",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var payload types.ExecutionPayloadHeaderDeneb
+			var jsonMap map[string]interface{}
+
+			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+			require.NoError(t, errUnmarshal)
+
+			delete(jsonMap, tc.removeField)
+
+			malformedJSON, errMarshal := json.Marshal(jsonMap)
+			require.NoError(t, errMarshal)
+
+			err = payload.UnmarshalJSON(malformedJSON)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
 }

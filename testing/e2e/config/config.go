@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 //nolint:tagliatelle // starlark uses snek case.
 package config
@@ -73,6 +68,8 @@ type Node struct {
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
 	Replicas int `json:"replicas"`
+	// KzgImpl specifies the KZG implementation to use for the client.
+	KzgImpl string `json:"kzg_impl"`
 }
 
 // NodeSettings holds the configuration for a single node in the test,
@@ -112,8 +109,10 @@ type ConsensusSettings struct {
 type ConsensusConfig struct {
 	// TimeoutPropose specifies the timeout for proposing a block.
 	TimeoutPropose string `json:"timeout_propose"`
-	// TimeoutVote specifies the timeout for voting on a block.
-	TimeoutVote string `json:"timeout_vote"`
+	// TimeoutPrevote specifies the timeout for prevoting on a block.
+	TimeoutPrevote string `json:"timeout_prevote"`
+	// TimeoutVote specifies the timeout for precommiting on a block.
+	TimeoutPrecommit string `json:"timeout_precommit"`
 	// TimeoutCommit specifies the timeout for committing a block.
 	TimeoutCommit string `json:"timeout_commit"`
 	// MaxNumInboundPeers specifies the maximum number of inbound peers.
@@ -125,7 +124,11 @@ type ConsensusConfig struct {
 // AppConfig holds the configuration for the app layer.
 type AppConfig struct {
 	// PayloadTimeout specifies the timeout for the payload.
-	PayloadTimeout string `json:"payload-timeout"`
+	PayloadTimeout string `json:"payload_timeout"`
+	// EnableOptimisticPayloadBuilds enables building the next block's payload
+	// optimistically in process-proposal to allow for the execution client to
+	// have more time to assemble the block.
+	EnableOptimisticPayloadBuilds bool `json:"enable_optimistic_payload_builds"`
 }
 
 // NodeSpecs holds the node specs for all nodes in a single layer.
@@ -184,6 +187,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "geth",
 				Replicas: 1,
+				KzgImpl:  "crate-crypto/go-kzg-4844", // by default impl
 			},
 			{
 				ElType:   "reth",
@@ -192,6 +196,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "erigon",
 				Replicas: 1,
+				KzgImpl:  "ethereum/c-kzg-4844",
 			},
 			{
 				ElType:   "besu",
@@ -251,14 +256,14 @@ func defaultNodeSettings() NodeSettings {
 func defaultExecutionSettings() ExecutionSettings {
 	return ExecutionSettings{
 		Specs: NodeSpecs{
-			MinCPU:    1000, //nolint:mnd // 1 vCPU
-			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinCPU:    0,
+			MaxCPU:    0,
 			MinMemory: 1024, //nolint:mnd // 1 GB
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
-			"erigon":     "thorax/erigon:latest",
+			"erigon":     "thorax/erigon:v2.60.0",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:latest",
 			"nethermind": "nethermind/nethermind:latest",
@@ -270,9 +275,9 @@ func defaultExecutionSettings() ExecutionSettings {
 func defaultConsensusSettings() ConsensusSettings {
 	return ConsensusSettings{
 		Specs: NodeSpecs{
-			MinCPU:    1000, //nolint:mnd // 1 vCPU
+			MinCPU:    0,
 			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-			MinMemory: 1024, //nolint:mnd // 1 GB
+			MinMemory: 0,
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
@@ -280,13 +285,15 @@ func defaultConsensusSettings() ConsensusSettings {
 		},
 		Config: ConsensusConfig{
 			TimeoutPropose:      "3s",
-			TimeoutVote:         "2s",
+			TimeoutPrevote:      "1s",
+			TimeoutPrecommit:    "1s",
 			TimeoutCommit:       "1s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout: "1.5s",
+			PayloadTimeout:                "1.5s",
+			EnableOptimisticPayloadBuilds: false,
 		},
 	}
 }

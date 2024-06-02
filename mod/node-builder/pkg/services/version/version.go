@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package version
 
@@ -43,8 +38,8 @@ type ReportingService struct {
 	logger log.Logger[any]
 	// version represents the current version of the running chain.
 	version string
-	// ticker is used to trigger periodic logging at specified intervals.
-	ticker *time.Ticker
+	// reportingInterval is the interval at which the version is reported.
+	reportingInterval time.Duration
 	// metrics contains the metrics for the version service.
 	metrics *versionMetrics
 }
@@ -56,30 +51,31 @@ func NewReportingService(
 	version string,
 ) *ReportingService {
 	return &ReportingService{
-		logger:  logger,
-		version: version,
-		ticker: time.NewTicker(
-			defaultReportingInterval,
-		),
-		metrics: newVersionMetrics(logger, telemetrySink),
+		logger:            logger,
+		version:           version,
+		reportingInterval: defaultReportingInterval,
+		metrics:           newVersionMetrics(logger, telemetrySink),
 	}
 }
 
 // Name returns the name of the service.
 func (*ReportingService) Name() string {
-	return "ReportingService"
+	return "reporting"
 }
 
 // Start begins the periodic logging of the chain version.
 func (v *ReportingService) Start(ctx context.Context) error {
+	ticker := time.NewTicker(v.reportingInterval)
+	v.metrics.reportVersion(v.version)
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
-				v.ticker.Stop()
-				return
-			case <-v.ticker.C:
+			case <-ticker.C:
 				v.metrics.reportVersion(v.version)
+				continue
+			case <-ctx.Done():
+				ticker.Stop()
+				return
 			}
 		}
 	}()

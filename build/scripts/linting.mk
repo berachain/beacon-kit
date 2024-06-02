@@ -2,10 +2,10 @@
 
 ## Linting:
 format: ## run all configured formatters
-	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix star-fix
+	@$(MAKE) license-fix markdownlint buf-lint-fix forge-lint-fix golines golangci-fix star-fix
 
 lint: ## run all configured linters
-	@$(MAKE) license buf-lint forge-lint golangci star-lint
+	@$(MAKE) license markdownlint buf-lint forge-lint golangci star-lint
 
 
 #################
@@ -107,7 +107,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox:edge \
-	/bin/bash -c "cd /contracts && slither ./src/eip4788 && slither ./src/staking"
+	/bin/bash -c "cd /contracts && slither ./."
 
 #################
 # markdown-lint #

@@ -28,14 +28,19 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        replicas: 0
+        kzg_impl: ethereum/c-kzg-4844
+        replicas: 1
       - el_type: nethermind
-        replicas: 0
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 1
       - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: erigon
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: ethereumjs
         replicas: 0
@@ -43,8 +48,10 @@ network_configuration:
     type: "full"
     nodes:
       - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 2
       - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: nethermind
         replicas: 0
@@ -70,12 +77,14 @@ node_settings:
       beaconkit: beacond:kurtosis-local
     config:
       timeout_propose: 3s
-      timeout_vote: 2s
-      timeout_commit: 1s
+      timeout_prevote: 1s
+      timeout_precommit: 1s
+      timeout_commit: 2s
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 1.5s
+      payload_timeout: 2.5s
+      enable_optimistic_payload_builds: true
   execution_settings:
     specs:
       min_cpu: 0
@@ -84,7 +93,7 @@ node_settings:
       max_memory: 2048
     images:
       besu: hyperledger/besu:latest
-      erigon: thorax/erigon:latest
+      erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
@@ -103,7 +112,7 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 32
+    replicas: 16
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"

@@ -1,4 +1,3 @@
-
 # syntax=docker/dockerfile:1
 #
 # Copyright (C) 2022, Berachain Foundation. All rights reserved.
@@ -27,25 +26,14 @@ ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
 
-
 #######################################################
-###         Stage 1 - Build the Application         ###
+###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 
-ARG GIT_VERSION
-ARG GIT_COMMIT
-ARG BUILD_TAGS
-
-# Consolidate RUN commands to reduce layers
-RUN apk add --no-cache ca-certificates build-base linux-headers git && \
-    set -eux
-
-# Set the working directory
 WORKDIR /workdir
 
-# Copy the go.mod and go.sum files for each module
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
@@ -80,15 +68,34 @@ RUN go work use ./mod/state-transition
 RUN go work use ./mod/storage
 RUN go work use ./mod/errors
 
-
-# Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     go mod download
 
+#######################################################
+###         Stage 2 - Build the Application         ###
+#######################################################
+
+FROM golang:${GO_VERSION}-alpine3.19 as builder
+
+ARG GIT_VERSION
+ARG GIT_COMMIT
+ARG BUILD_TAGS
+
+# Consolidate RUN commands to reduce layers
+RUN apk add --no-cache ca-certificates build-base linux-headers git && \
+    set -eux
+
+# Set the working directory
+WORKDIR /workdir
+
+# Copy the go.mod and go.sum files for each module
+COPY --from=mod-cache /go/pkg /go/pkg
+
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
+COPY --from=mod-cache ./workdir/go.work ./go.work
 
 # Build args
 ARG NAME
@@ -115,7 +122,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###        Stage 2 - Prepare the Final Image        ###
+###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
 FROM ${RUNNER_IMAGE}

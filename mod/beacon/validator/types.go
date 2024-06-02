@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package validator
 
@@ -36,85 +31,100 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	ssz "github.com/ferranbt/fastssz"
 )
 
-// BeaconBlock is the interface for a beacon block.
+// BeaconBlock represents a beacon block interface.
 type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
 	*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
 ]] interface {
+	ssz.Marshallable
+	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,
 		parentBlockRoot common.Root,
 		forkVersion uint32,
 	) (BeaconBlockT, error)
-	SetStateRoot(common.Root)
-	GetStateRoot() common.Root
-	ReadOnlyBeaconBlock[BeaconBlockBodyT]
-}
 
-// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock[
-	BodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
-	]] interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	// IsNil checks if the beacon block is nil.
 	IsNil() bool
+	// Version returns the version of the beacon block.
 	Version() uint32
+	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
+	// GetProposerIndex returns the proposer index of the beacon block.
 	GetProposerIndex() math.ValidatorIndex
+	// GetParentBlockRoot returns the parent block root of the beacon block.
 	GetParentBlockRoot() common.Root
+	// SetStateRoot sets the state root of the beacon block.
+	SetStateRoot(common.Root)
+	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
-	GetBody() BodyT
+
+	// GetBody returns the body of the beacon block.
+	GetBody() BeaconBlockBodyT
 }
 
+// BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
 	DepositT, Eth1DataT, ExecutionPayloadT any,
 ] interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	ssz.Marshallable
+	// IsNil checks if the beacon block body is nil.
 	IsNil() bool
+	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
+	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(Eth1DataT)
+	// GetDeposits returns the deposits of the beacon block body.
 	GetDeposits() []DepositT
+	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
+	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
+	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon
+	// block body.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
+	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	// GetExecutionPayload returns the execution payload of the beacon block
+	// body.
 	GetExecutionPayload() ExecutionPayloadT
 }
 
-// BeaconState defines the interface for accessing various components of the
-// beacon state.
+// BeaconState represents a beacon state interface.
 type BeaconState[BeaconStateT any] interface {
+	// Copy creates a copy of the beacon state.
 	Copy() BeaconStateT
-	// GetBlockRootAtIndex fetches the block root at a specified index.
+	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		*types.ExecutionPayloadHeader, error,
 	)
-	// GetLatestBlockHeader
+	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (
 		*types.BeaconBlockHeader,
 		error,
 	)
-	// GetSlot retrieves the current slot of the beacon state.
+	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-	// ValidatorIndexByPubkey finds the index of a validator based on their
-	// public key.
+	// ValidatorIndexByPubkey returns the validator index by public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+	// GetEth1DepositIndex returns the latest deposit index from the beacon
+	// state.
+	GetEth1DepositIndex() (uint64, error)
+	// GetGenesisValidatorsRoot returns the genesis validators root.
+	GetGenesisValidatorsRoot() (primitives.Root, error)
 }
 
-// BlobFactory is the interface for building blobs.
+// BlobFactory represents a blob factory interface.
 type BlobFactory[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
@@ -122,40 +132,35 @@ type BlobFactory[
 	],
 	BlobSidecarsT BlobSidecars,
 ] interface {
-	// BuildSidecars generates sidecars for a given block and blobs bundle.
+	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
 }
 
-// BlobSidecars is the interface for blobs sidecars.
+// BlobSidecars represents a blob sidecars interface.
 type BlobSidecars interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	// BlobSidecars must be ssz.Marshallable.
+	ssz.Marshallable
+	// Len returns the length of the blob sidecars.
 	Len() int
 }
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
-	// ExpectedDeposits returns `numView` expected deposits.
-	ExpectedDeposits(
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)
-}
-
-// RandaoProcessor defines the interface for processing RANDAO reveals.
-type RandaoProcessor[
-	BeaconStateT BeaconState[BeaconStateT],
-] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
+	// Enabled returns true if the payload builder is enabled.
+	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
@@ -184,6 +189,12 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	// SendForceHeadFCU sends a force head FCU to the execution client.
+	SendForceHeadFCU(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+	) error
 }
 
 // StateProcessor defines the interface for processing the state.
@@ -206,7 +217,13 @@ type StateProcessor[
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
+type StorageBackend[
+	BeaconStateT BeaconState[BeaconStateT],
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+] interface {
+	// DepositStore retrieves the deposit store.
+	DepositStore(context.Context) DepositStoreT
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
 }
