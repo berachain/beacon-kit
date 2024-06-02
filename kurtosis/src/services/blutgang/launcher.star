@@ -14,10 +14,10 @@ BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE = "/config"
 IMAGE_NAME = "makemake1337/blutgang:latest"
 
 # The min/max CPU/memory that blutgang can use
-MIN_CPU = 100
-MAX_CPU = 1000
-MIN_MEMORY = 128
-MAX_MEMORY = 2048
+MIN_CPU = 1000
+MAX_CPU = 8000
+MIN_MEMORY = 1024
+MAX_MEMORY = 8096
 
 USED_PORTS = {
     HTTP_PORT_ID: shared_utils.new_port_spec(

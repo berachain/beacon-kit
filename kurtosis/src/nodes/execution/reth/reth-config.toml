@@ -49,9 +49,9 @@ max_backoff_count = 5
 ban_duration = "12h"
 
 [peers.connection_info]
-max_outbound = 200
-max_inbound = 200
-max_concurrent_outbound_dials = 70
+max_outbound = 100
+max_inbound = 30
+max_concurrent_outbound_dials = 10
 
 [peers.reputation_weights]
 bad_message = -16384
