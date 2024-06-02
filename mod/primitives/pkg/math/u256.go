@@ -119,8 +119,10 @@ func (s U256L) UnwrapU256() *U256 {
 	return new(uint256.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 
-// UnwrapBig converts a U256 to a big.Int.
+// UnwrapBig converts a U256 to a non-negative big.Int.
 func (s U256L) UnwrapBig() *big.Int {
+	// SetBytes treats byte slice as unsigned int in big-endian, so result
+	// will always be non-negative.
 	return new(big.Int).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))
 }
 

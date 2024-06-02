@@ -36,7 +36,7 @@ import (
 type ChainSpec interface {
 	// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
 	// slot.
-	GetCometBFTConfigForSlot(math.Slot) *cmttypes.ConsensusParams
+	GetCometBFTConfigForSlot(math.Slot) any
 }
 
 // ConsensusParamsStore is a store for consensus parameters.
@@ -56,7 +56,9 @@ func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
 func (s *ConsensusParamsStore) Get(
 	context.Context,
 ) (cmtproto.ConsensusParams, error) {
-	return s.cs.GetCometBFTConfigForSlot(0).ToProto(), nil
+	return s.cs.
+		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
+		ToProto(), nil
 }
 
 // Has checks if the consensus parameters exist in the store.

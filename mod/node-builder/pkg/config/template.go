@@ -23,9 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//nolint:lll // it's a template file.
 package config
 
+//nolint:lll // template.
 const Template = `
 ###############################################################################
 ###                                BeaconKit                                ###
@@ -49,9 +49,6 @@ rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
 
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
-
-# Required chain id for the execution client.
-required-chain-id = "{{.BeaconKit.Engine.RequiredChainID}}"
 
 [beacon-kit.kzg]
 # Path to the trusted setup path.

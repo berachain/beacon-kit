@@ -29,7 +29,7 @@ import (
 	"context"
 	"math/big"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -44,13 +44,11 @@ func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByNumber(
 		if err != nil {
 			return nil, err
 		}
-
 		number = new(big.Int).SetUint64(latest)
 	}
 
 	// Check the cache for the header.
-	header, ok := s.engineCache.HeaderByNumber(number.Uint64())
-	if ok {
+	if header, ok := s.engineCache.HeaderByNumber(number.Uint64()); ok {
 		return header, nil
 	}
 
@@ -59,7 +57,8 @@ func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByNumber(
 		return nil, err
 	}
 
-	defer s.engineCache.AddHeader(header)
+	// Add the header to the cache before returning.
+	s.engineCache.AddHeader(header)
 
 	return header, nil
 }

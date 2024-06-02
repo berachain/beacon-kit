@@ -26,7 +26,6 @@
 package types
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -34,40 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
 )
-
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
-	IsNil() bool
-	Version() uint32
-	IsBlinded() bool
-	GetPrevRandao() bytes.B32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() bytes.B32
-	GetReceiptsRoot() bytes.B32
-	GetLogsBloom() []byte
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-}
-
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*engineprimitives.Withdrawal
-}
 
 // BeaconBlockBody is the interface for a beacon block body.
 type BeaconBlockBody interface {
@@ -80,7 +45,7 @@ type BeaconBlockBody interface {
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
-	SetExecutionData(ExecutionPayload) error
+	SetExecutionData(*ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 }
@@ -98,14 +63,16 @@ type ReadOnlyBeaconBlockBody interface {
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
 	GetRandaoReveal() crypto.BLSSignature
-	GetExecutionPayload() ExecutionPayload
+	GetExecutionPayload() *ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock interface {
-	ReadOnlyBeaconBlock[BeaconBlockBody]
+type RawBeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
+	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
+	ReadOnlyBeaconBlock[BeaconBlockBodyT]
 }
 
 type BeaconBlockG[BodyT any] struct {

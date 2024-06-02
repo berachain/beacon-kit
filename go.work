@@ -6,14 +6,15 @@ use (
 	./mod/beacon
 	./mod/consensus-types
 	./mod/da
+	./mod/engine-primitives
 	./mod/errors
 	./mod/execution
 	./mod/log
+	./mod/node-api
 	./mod/node-builder
 	./mod/p2p
 	./mod/payload
 	./mod/primitives
-	./mod/primitives-engine
 	./mod/runtime
 	./mod/state-transition
 	./mod/storage

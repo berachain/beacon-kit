@@ -26,10 +26,8 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
@@ -38,14 +36,17 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
-	body types.BeaconBlockBody,
+	blk BeaconBlockT,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number
 	// of deposits.
-	deposits := body.GetDeposits()
+	deposits := blk.GetBody().GetDeposits()
 	index, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -69,18 +70,17 @@ func (sp *StateProcessor[
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
-	deposits []*types.Deposit,
+	deposits []DepositT,
 ) error {
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
-			return err
-		}
-		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.Index); err != nil {
 			return err
 		}
 	}
@@ -89,10 +89,13 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
 	// TODO: fill this in properly
 	// if !sp.isValidMerkleBranch(
@@ -104,20 +107,46 @@ func (sp *StateProcessor[
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
-	idx, err := st.ValidatorIndexByPubkey(dep.Pubkey)
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	if err = st.SetEth1DepositIndex(
+		depositIndex + 1,
+	); err != nil {
+		return err
+	}
+
+	return sp.applyDeposit(st, dep)
+}
+
+// processDeposit processes the deposit and ensures it matches the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) applyDeposit(
+	st BeaconStateT,
+	dep DepositT,
+) error {
+	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		var val *types.Validator
+		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
 			return err
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.EffectiveBalance = min(val.EffectiveBalance+dep.Amount,
-			math.Gwei(sp.cs.MaxEffectiveBalance()))
+		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
+			math.Gwei(sp.cs.MaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
+
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
 	return sp.createValidator(st, dep)
@@ -125,10 +154,13 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
 	var (
 		genesisValidatorsRoot primitives.Root
@@ -150,20 +182,16 @@ func (sp *StateProcessor[
 	}
 	epoch = sp.cs.SlotToEpoch(slot)
 
-	// Get the fork data for the current epoch.
-	fd := types.NewForkData(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	depositMessage := types.DepositMessage{
-		Pubkey:      dep.Pubkey,
-		Credentials: dep.Credentials,
-		Amount:      dep.Amount,
-	}
-	if err = depositMessage.VerifyCreateValidator(
-		fd, dep.Signature, sp.signer.VerifySignature, sp.cs.DomainTypeDeposit(),
+	// Verify that the message was signed correctly.
+	var d ForkDataT
+	if err = dep.VerifySignature(
+		d.New(
+			version.FromUint32[primitives.Version](
+				sp.cs.ActiveForkVersionForEpoch(epoch),
+			), genesisValidatorsRoot,
+		),
+		sp.cs.DomainTypeDeposit(),
+		sp.signer.VerifySignature,
 	); err != nil {
 		return err
 	}
@@ -174,27 +202,32 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep *types.Deposit,
+	dep DepositT,
 ) error {
-	val := types.NewValidatorFromDeposit(
-		dep.Pubkey,
-		dep.Credentials,
-		dep.Amount,
+	var val ValidatorT
+	val = val.New(
+		dep.GetPubkey(),
+		dep.GetWithdrawalCredentials(),
+		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
+
 	if err := st.AddValidator(val); err != nil {
 		return err
 	}
 
-	idx, err := st.ValidatorIndexByPubkey(val.Pubkey)
+	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, dep.Amount)
+	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
 // processWithdrawals as per the Ethereum 2.0 specification.
@@ -202,21 +235,30 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
+	body BeaconBlockBodyT,
 ) error {
 	// Dequeue and verify the logs.
-	var nextValidatorIndex math.ValidatorIndex
-	payloadWithdrawals := payload.GetWithdrawals()
+	var (
+		nextValidatorIndex math.ValidatorIndex
+		payload            = body.GetExecutionPayload()
+		payloadWithdrawals = payload.GetWithdrawals()
+	)
+
+	// Get the expected withdrawals.
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		return err
 	}
+	numWithdrawals := len(expectedWithdrawals)
 
 	// Ensure the withdrawals have the same length
-	if len(expectedWithdrawals) != len(payloadWithdrawals) {
+	if numWithdrawals != len(payloadWithdrawals) {
 		return errors.Newf(
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
@@ -234,17 +276,18 @@ func (sp *StateProcessor[
 		}
 
 		// Then we process the withdrawal.
-		if err = st.DecreaseBalance(wd.Validator, wd.Amount); err != nil {
+		if err = st.DecreaseBalance(
+			wd.GetValidatorIndex(), wd.GetAmount(),
+		); err != nil {
 			return err
 		}
 	}
 
 	// Update the next withdrawal index if this block contained withdrawals
-	numWithdrawals := len(expectedWithdrawals)
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1).Unwrap(),
+			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
 		); err != nil {
 			return err
 		}
@@ -260,7 +303,7 @@ func (sp *StateProcessor[
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
+			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
 				math.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not

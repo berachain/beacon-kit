@@ -27,34 +27,28 @@ package blockchain
 
 import (
 	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
-
-// RetrieveDepositsFromBlock gets logs in the Eth1 block
-// received from the execution client and processes them to
-// convert them into appropriate objects that can be consumed
-// by other services.
-func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-]) retrieveDepositsFromBlock(
-	ctx context.Context,
-	blockNumber math.U64,
-) error {
-	deposits, err := s.bdc.GetDeposits(ctx, blockNumber.Unwrap())
-	if err != nil {
-		return err
-	}
-
-	return s.bsb.DepositStore(ctx).EnqueueDeposits(deposits)
-}
 
 // PruneDepositEvents prunes deposit events.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) PruneDepositEvents(
 	ctx context.Context,
-	idx uint64,
+	eth1DepositIndex uint64,
 ) error {
-	return s.bsb.DepositStore(ctx).PruneToIndex(idx)
+	var startIndex uint64
+	var numToPrune uint64
+	if eth1DepositIndex > s.cs.MaxDepositsPerBlock() {
+		startIndex = 0
+		numToPrune = eth1DepositIndex
+	} else {
+		startIndex = eth1DepositIndex - s.cs.MaxDepositsPerBlock()
+		numToPrune = s.cs.MaxDepositsPerBlock()
+	}
+	return s.sb.DepositStore(ctx).PruneFromInclusive(startIndex, numToPrune)
 }

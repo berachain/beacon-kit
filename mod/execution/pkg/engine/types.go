@@ -25,11 +25,23 @@
 
 package engine
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+)
 
-type ExecutionPayload interface {
-	GetTransactions() [][]byte
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-	Version() uint32
+// ExecutionPayload represents the payload of an execution block.
+type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
+	engineprimitives.ExecutionPayload[WithdrawalT]
+	// Empty creates an empty execution payload.
+	Empty(uint32) ExecutionPayloadT
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// IncrementCounter increments a counter metric identified by the provided
+	// keys.
+	IncrementCounter(key string, args ...string)
+	// SetGauge sets a gauge metric to the specified value, identified by the
+	// provided keys.
+	SetGauge(key string, value int64, args ...string)
 }

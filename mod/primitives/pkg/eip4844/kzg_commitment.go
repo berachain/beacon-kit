@@ -41,13 +41,13 @@ type KZGCommitment [48]byte
 // as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#kzg_commitment_to_versioned_hash
 //
-//nolint:lll
+//nolint:lll // link.
 func (c KZGCommitment) ToVersionedHash() [32]byte {
-	hash := sha256.Sum256(c[:])
+	sum := sha256.Sum256(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
-	hash[0] = constants.BlobCommitmentVersion
-	return hash
+	sum[0] = constants.BlobCommitmentVersion
+	return sum
 }
 
 // ToHashChunks converts this KZG commitment into a set of hash chunks.

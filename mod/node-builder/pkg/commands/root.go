@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/jwt"
 	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -49,15 +50,14 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	rootCmd *cobra.Command,
 	mm *module.Manager,
 	newApp servertypes.AppCreator[T],
-	postSetupFn PostSetupFn[T],
+	chainSpec primitives.ChainSpec,
 ) {
 	// Add the ToS Flag to the root command.
 	beaconconfig.AddToSFlag(rootCmd)
 
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags:  beaconconfig.AddBeaconKitFlags,
-		PostSetup: postSetupFn,
+		AddFlags: beaconconfig.AddBeaconKitFlags,
 	}
 
 	// Add all the commands to the root command.
@@ -71,11 +71,9 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(
-			genesis.AddPubkeyCmd(),
-			genesis.CollectValidatorsCmd(),
-		),
-		deposit.Commands(),
+		genesis.Commands(chainSpec),
+		// `deposit`
+		deposit.Commands(chainSpec),
 		// `jwt`
 		jwt.Commands(),
 		// `keys`

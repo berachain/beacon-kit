@@ -39,9 +39,6 @@ var (
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
 
-	// ErrNilBlockHeader is returned when a block header from a block is nil.
-	ErrNilBlockHeader = errors.New("nil block header")
-
 	// ErrNilWithdrawal is an error for when the deposit is nil.
 	ErrNilWithdrawal = errors.New("nil withdrawal")
 
@@ -50,4 +47,8 @@ var (
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+
+	// ErrNilDepositIndexStart is an error for when the deposit index start is
+	// nil.
+	ErrNilDepositIndexStart = errors.New("nil deposit index start")
 )

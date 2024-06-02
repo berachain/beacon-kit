@@ -12,6 +12,7 @@ DEFAULT_CONFIG_FILEPATH = "/etc/nginx/templates"
 DEFAULT_PORT_ID = "http"
 DEFAULT_PORT_NUMBER = 80
 HTTP_PORT_APP_PROTOCOL = "http"
+RPC_PORT_NUM = 8545
 
 def get_config(plan, services, args = {}):
     name = args.get(NAME_ARG, DEFAULT_SERVICE_NAME)
@@ -39,7 +40,8 @@ def get_config(plan, services, args = {}):
     formatted_services = []
     for service in services:
         # DO NOT ADJUST INDENDATION UNLESS default.conf.template CHANGES
-        service = "    server {};".format(service)
+        # Add port to the server block
+        service = "    server {0}:{1};".format(service, RPC_PORT_NUM)
         formatted_services.append(service)
     load_balanced_services = """
 """.join(formatted_services)

@@ -26,25 +26,35 @@
 package builder
 
 import (
+	engineprimitves "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// TODO: Decouple from ABCI and have this validator run on a separate thread
-// have it configured itself and not be a service persay.
+// PayloadBuilder is used to build payloads on the
+// execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
+		GetParentHash() common.ExecutionHash
+	},
+	ExecutionPayloadHeaderT any,
 ] struct {
-	cfg       *Config
+	// cfg holds the configuration settings for the PayloadBuilder.
+	cfg *Config
+	// chainSpec holds the chain specifications for the PayloadBuilder.
 	chainSpec primitives.ChainSpec
-	logger    log.Logger[any]
-
+	// logger is used for logging within the PayloadBuilder.
+	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine
-
+	ee ExecutionEngine[ExecutionPayloadT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -54,20 +64,39 @@ type PayloadBuilder[
 }
 
 // NewService creates a new service.
-func New[BeaconStateT BeaconState](
+func New[
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
+	}, ExecutionPayloadHeaderT any](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine,
+	ee ExecutionEngine[ExecutionPayloadT],
 	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
-) *PayloadBuilder[BeaconStateT] {
-	return &PayloadBuilder[BeaconStateT]{
+) *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+] {
+	return &PayloadBuilder[
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
 		logger:    logger,
 		ee:        ee,
 		pc:        pc,
 	}
+}
+
+// Enabled returns true if the payload builder is enabled.
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) Enabled() bool {
+	return pb.cfg.Enabled
 }

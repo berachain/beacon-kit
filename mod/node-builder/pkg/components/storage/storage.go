@@ -29,75 +29,99 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
-// KVStore is a type alias for the beacon store with
-// the generics defined using primitives.
+// KVStore is a type alias for the beacon store with the generics defined using
+// primitives.
 type KVStore = beacondb.KVStore[
-	*types.Fork,
-	*types.BeaconBlockHeader,
-	engineprimitives.ExecutionPayloadHeader,
-	*types.Eth1Data,
-	*types.Validator,
+	*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+	*types.Eth1Data, *types.Validator,
 ]
 
-// Backend is a struct that holds the storage backend. It
-// provides a simply interface to access all types of storage
-// required by the runtime.
-type Backend struct {
-	cs                primitives.ChainSpec
-	availabilityStore *dastore.Store[types.BeaconBlockBody]
-	beaconStore       *KVStore
-	depositStore      *deposit.KVStore
+// Backend is a struct that holds the storage backend. It provides a simple
+// interface to access all types of storage required by the runtime.
+type Backend[
+	AvailabilityStoreT runtime.AvailabilityStore[
+		BeaconBlockBodyT, *datypes.BlobSidecars,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.Validator, *engineprimitives.Withdrawal],
+	DepositStoreT *deposit.KVStore[*types.Deposit],
+] struct {
+	cs primitives.ChainSpec
+	as AvailabilityStoreT
+	bs *KVStore
+	ds DepositStoreT
 }
 
-func NewBackend(
+func NewBackend[
+	AvailabilityStoreT runtime.AvailabilityStore[
+		BeaconBlockBodyT, *datypes.BlobSidecars,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconStateT core.BeaconState[
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.Validator, *engineprimitives.Withdrawal],
+	DepositStoreT *deposit.KVStore[*types.Deposit],
+](
 	cs primitives.ChainSpec,
-	availabilityStore *dastore.Store[types.BeaconBlockBody],
-	beaconStore *KVStore,
-	depositStore *deposit.KVStore,
-) *Backend {
-	return &Backend{
-		cs:                cs,
-		availabilityStore: availabilityStore,
-		beaconStore:       beaconStore,
-		depositStore:      depositStore,
+	as AvailabilityStoreT,
+	bs *KVStore,
+	ds DepositStoreT,
+) *Backend[AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT] {
+	return &Backend[
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	]{
+		cs: cs,
+		as: as,
+		bs: bs,
+		ds: ds,
 	}
 }
 
 // AvailabilityStore returns the availability store struct initialized with a.
-func (k *Backend) AvailabilityStore(
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
+]) AvailabilityStore(
 	_ context.Context,
-) core.AvailabilityStore[
-	types.BeaconBlockBody, *datypes.BlobSidecars,
-] {
-	return k.availabilityStore
+) AvailabilityStoreT {
+	return k.as
 }
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
-func (k *Backend) BeaconState(
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
+]) StateFromContext(
 	ctx context.Context,
-) state.BeaconState {
-	return state.NewBeaconStateFromDB(k.beaconStore.WithContext(ctx), k.cs)
+) BeaconStateT {
+	return state.NewBeaconStateFromDB[BeaconStateT](
+		k.bs.WithContext(ctx), k.cs,
+	)
 }
 
 // BeaconStore returns the beacon store struct.
-func (k *Backend) BeaconStore() *KVStore {
-	return k.beaconStore
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+]) BeaconStore() *KVStore {
+	return k.bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
-func (k *Backend) DepositStore(
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+]) DepositStore(
 	_ context.Context,
-) *deposit.KVStore {
-	return k.depositStore
+) DepositStoreT {
+	return k.ds
 }

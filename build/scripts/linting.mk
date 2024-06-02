@@ -18,8 +18,8 @@ golangci:
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
-		printf "[%d/%d modules complete] Linting in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8 -v) || exit 1; \
+		printf "[%d/%d modules complete] Running linter in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8) || exit 1; \
 		count=$$((count + 1)); \
 	done
 	@printf "All modules complete\n"
@@ -30,8 +30,8 @@ golangci-fix:
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
-		printf "[%d/%d modules complete] Applying fixes in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 -v) || exit 1; \
+		printf "[%d/%d modules complete] Running formatter in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1; \
 		count=$$((count + 1)); \
 	done
 	@printf "All modules complete\n"
@@ -85,7 +85,7 @@ nilaway:
 	for dir in $$dirs; do \
 		count=$$((count + 1)); \
 		printf "[%d/%d modules complete] Running nilaway in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "x/beacon/api,pkg/deposit" -v ./...) || exit 1; \
+		(cd $$dir && go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "pkg/components/module,pkg/deposit" -v ./...) || exit 1; \
 	done
 	@printf "Nilaway complete for all modules\n"
 

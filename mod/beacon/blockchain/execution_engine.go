@@ -29,56 +29,77 @@ import (
 	"context"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // sendFCU sends a forkchoice update to the execution client.
 // It sets the head and finalizes the latest.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	headEth1Hash common.ExecutionHash,
+	slot math.Slot,
 ) error {
-	latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
-	eth1BlockHash := latestExecutionPayloadHeader.GetBlockHash()
 
 	_, _, err = s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		&engineprimitives.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceState{
-				HeadBlockHash:      headEth1Hash,
-				SafeBlockHash:      eth1BlockHash,
-				FinalizedBlockHash: eth1BlockHash,
+		engineprimitives.BuildForkchoiceUpdateRequest(
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
 			},
-		},
+			nil,
+			s.cs.ActiveForkVersionForSlot(slot),
+		),
 	)
 	return err
 }
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	payload engineprimitives.ExecutionPayload,
+	blk BeaconBlockT,
 ) {
-	var (
-		headHash common.ExecutionHash
-	)
+	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
+		stCopy := st.Copy()
+		if _, err := s.sp.ProcessSlot(
+			stCopy,
+		); err != nil {
+			return
+		}
 
-	// If we have a payload we want to set our head to it's block hash.
-	// Otherwise we are going to use the justified payload block hash.
-	if payload != nil {
-		headHash = payload.GetBlockHash()
-	} else {
-		latestExecutionPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+		prevBlockRoot, err := blk.HashTreeRoot()
+		if err != nil {
+			s.logger.
+				Error(
+					"failed to get block root in postBlockProcess",
+					"error",
+					err,
+				)
+			return
+		}
+
+		lph, err := st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			s.logger.Error(
 				"failed to get latest execution payload in postBlockProcess",
@@ -86,75 +107,23 @@ func (s *Service[
 			)
 			return
 		}
-		headHash = latestExecutionPayloadHeader.GetBlockHash()
-	}
-
-	// If we are the local builder and we are not in init sync
-	// forkchoice update with attributes.
-	//nolint:nestif // todo:cleanup
-	// TODO: re-enable this flag.
-	if true /*s.BuilderCfg().LocalBuilderEnabled */ /*&& !s.ss.IsInitSync()*/ {
-		// TODO: This BlockRoot calculation is sound, but very confusing
-		// and hard to explain to someone who is not familiar with the
-		// nuance of our implementation. We should refactor this.
-		h, err := st.GetLatestBlockHeader()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get latest block header in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		stateRoot, err := st.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get state root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		h.StateRoot = stateRoot
-		root, err := h.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block header root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		slot, err := st.GetSlot()
-		if err != nil {
-			s.logger.
-				Error("failed to get slot in postBlockProcess", "error", err)
-		}
-
-		stCopy := st.Copy()
-		if err = s.sp.ProcessSlot(
-			stCopy,
-		); err != nil {
-			return
-		}
 
 		// Ask the builder to send a forkchoice update with attributes.
 		// This will trigger a new payload to be built.
-		if _, err = s.lb.RequestPayload(
+		if _, err = s.lb.RequestPayloadAsync(
 			ctx,
 			stCopy,
-			slot+1,
+			blk.GetSlot()+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(time.Now().Unix()+1),
-			root,
-			headHash,
+			uint64(max(
+				math.U64(time.Now().Unix()+1),
+				blk.GetBody().GetExecutionPayload().GetTimestamp()+
+					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			)),
+			prevBlockRoot,
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
 		); err == nil {
 			return
 		}
@@ -171,7 +140,9 @@ func (s *Service[
 	}
 
 	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(ctx, st, headHash); err != nil {
+	if err := s.sendFCU(
+		ctx, st, blk.GetSlot(),
+	); err != nil {
 		s.logger.
 			Error(
 				"failed to send forkchoice update in postBlockProcess",

@@ -25,19 +25,12 @@
 
 package deposit
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "errors"
 
 var (
 	// ErrValidatorPrivateKeyRequired is returned when the validator private key
 	// is required but not provided.
 	ErrValidatorPrivateKeyRequired = errors.New(
 		"validator private key required",
-	)
-
-	// ErrInvalidValidatorPrivateKeyLength is returned when the validator
-	// private
-	// key has an invalid length.
-	ErrInvalidValidatorPrivateKeyLength = errors.New(
-		"invalid validator private key length",
 	)
 )

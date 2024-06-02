@@ -30,10 +30,11 @@ import (
 	"encoding/json"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -75,7 +76,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			genesis, err := genutiltypes.AppGenesisFromFile(
+			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),
 			)
 			if err != nil {
@@ -84,22 +85,24 @@ func AddExecutionPayloadCmd() *cobra.Command {
 
 			// create the app state
 			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				genesis,
+				appGenesis,
 			)
 			if err != nil {
 				return err
 			}
 
-			beaconState := &deneb.BeaconState{}
-
+			genesisInfo := &genesis.Genesis[
+				*types.Deposit,
+				*types.ExecutionPayloadHeaderDeneb,
+			]{}
 			if err = json.Unmarshal(
-				appGenesisState["beacon"], beaconState,
+				appGenesisState["beacon"], genesisInfo,
 			); err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon state")
 			}
 
 			// Inject the execution payload.
-			beaconState.LatestExecutionPayloadHeader, err =
+			genesisInfo.ExecutionPayloadHeader, err =
 				executableDataToExecutionPayloadHeader(payload)
 			if err != nil {
 				return errors.Wrap(
@@ -108,18 +111,18 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				)
 			}
 
-			appGenesisState["beacon"], err = json.Marshal(beaconState)
+			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal beacon state")
 			}
 
-			if genesis.AppState, err = json.MarshalIndent(
+			if appGenesis.AppState, err = json.MarshalIndent(
 				appGenesisState, "", "  ",
 			); err != nil {
 				return err
 			}
 
-			return genutil.ExportGenesisFile(genesis, config.GenesisFile())
+			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 		},
 	}
 
@@ -130,7 +133,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 // interface.
 func executableDataToExecutionPayloadHeader(
 	data *ethengineprimitives.ExecutableData,
-) (*engineprimitives.ExecutionPayloadHeaderDeneb, error) {
+) (*types.ExecutionPayloadHeaderDeneb, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, len(data.Withdrawals))
 	for i, withdrawal := range data.Withdrawals {
 		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with hard
@@ -182,7 +185,7 @@ func executableDataToExecutionPayloadHeader(
 		return nil, err
 	}
 
-	executionPayloadHeader := &engineprimitives.ExecutionPayloadHeaderDeneb{
+	executionPayloadHeader := &types.ExecutionPayloadHeaderDeneb{
 		ParentHash:       data.ParentHash,
 		FeeRecipient:     data.FeeRecipient,
 		StateRoot:        primitives.Bytes32(data.StateRoot),

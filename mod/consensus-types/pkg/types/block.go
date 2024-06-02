@@ -27,66 +27,83 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// EmptyBeaconBlock assembles a new beacon block from
-// the given slot, time, execution data, and version. It
-// returns an error if the fork version is not supported.
-func EmptyBeaconBlock[
-	SlotT, ProposerIndexT ~uint64,
-	ParentBlockRootT, StateRootT ~[32]byte](
-	slot SlotT,
-	proposerIndex ProposerIndexT,
-	parentBlockRoot ParentBlockRootT,
-	stateRoot StateRootT,
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock struct {
+	RawBeaconBlock[BeaconBlockBody]
+}
+
+// Empty creates an empty beacon block.
+func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlock{
+			RawBeaconBlock: &BeaconBlockDeneb{},
+		}
+	default:
+		panic("fork version not supported")
+	}
+}
+
+// NewWithVersion assembles a new beacon block from the given.
+func (w *BeaconBlock) NewWithVersion(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
 	forkVersion uint32,
-) (BeaconBlock, error) {
-	var block BeaconBlock
+) (*BeaconBlock, error) {
+	var (
+		block RawBeaconBlock[BeaconBlockBody]
+		base  = BeaconBlockHeaderBase{
+			Slot:            slot.Unwrap(),
+			ProposerIndex:   proposerIndex.Unwrap(),
+			ParentBlockRoot: parentBlockRoot,
+			StateRoot:       bytes.B32{},
+		}
+	)
+
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlockDeneb{
-			BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-				//#nosec:G701 // this is safe.
-				Slot: uint64(slot),
-				//#nosec:G701 // this is safe.
-				ProposerIndex:   uint64(proposerIndex),
-				ParentBlockRoot: bytes.B32(parentBlockRoot),
-				StateRoot:       bytes.B32(stateRoot),
-			},
-			Body: &BeaconBlockBodyDeneb{},
+			BeaconBlockHeaderBase: base,
+			Body:                  &BeaconBlockBodyDeneb{},
 		}
+	default:
+		return &BeaconBlock{}, ErrForkVersionNotSupported
+	}
+
+	return &BeaconBlock{
+		RawBeaconBlock: block,
+	}, nil
+}
+
+// NewFromSSZ creates a new beacon block from the given SSZ bytes.
+func (w *BeaconBlock) NewFromSSZ(
+	bz []byte,
+	forkVersion uint32,
+) (*BeaconBlock, error) {
+	var block = new(BeaconBlock)
+	switch forkVersion {
+	case version.Deneb:
+		block.RawBeaconBlock = &BeaconBlockDeneb{}
 	default:
 		return block, ErrForkVersionNotSupported
 	}
-	return block, nil
-}
-
-// BeaconBlockFromSSZ assembles a new beacon block
-// from the given SSZ bytes and fork version.
-func BeaconBlockFromSSZ(
-	bz []byte,
-	forkVersion uint32,
-) (BeaconBlock, error) {
-	// TODO: switch is fugazi atm.
-	var block BeaconBlockDeneb
-	switch forkVersion {
-	case version.Deneb:
-		_ = block
-	default:
-		return &block, ErrForkVersionNotSupported
-	}
 
 	if err := block.UnmarshalSSZ(bz); err != nil {
-		return &block, err
+		return block, err
 	}
-	return &block, nil
+	return block, nil
 }
 
 // BeaconBlockDeneb represents a block in the beacon chain during
 // the Deneb fork.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../primitives-engine/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
 type BeaconBlockDeneb struct {
 	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
 	BeaconBlockHeaderBase
@@ -103,6 +120,11 @@ func (b *BeaconBlockDeneb) Version() uint32 {
 // IsNil checks if the BeaconBlockDeneb instance is nil.
 func (b *BeaconBlockDeneb) IsNil() bool {
 	return b == nil
+}
+
+// SetStateRoot sets the state root of the BeaconBlockDeneb.
+func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
+	b.StateRoot = root
 }
 
 // GetBody retrieves the body of the BeaconBlockDeneb.

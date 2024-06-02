@@ -36,7 +36,7 @@ import (
 // Basic is the minimal interface for a service.
 type Basic interface {
 	// Start spawns any goroutines required by the service.
-	Start(ctx context.Context)
+	Start(ctx context.Context) error
 	// Name returns the name of the service.
 	Name() string
 	// Status returns error if the service is not considered healthy.
@@ -72,7 +72,7 @@ func NewRegistry(opts ...RegistryOption) *Registry {
 }
 
 // StartAll initialized each service in order of registration.
-func (s *Registry) StartAll(ctx context.Context) {
+func (s *Registry) StartAll(ctx context.Context) error {
 	s.logger.Info("starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
 		s.logger.Info("starting service", "type", typeName)
@@ -81,8 +81,12 @@ func (s *Registry) StartAll(ctx context.Context) {
 			s.logger.Error("service not found", "type", typeName)
 			continue
 		}
-		svc.Start(ctx)
+
+		if err := svc.Start(ctx); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Statuses returns a map of Service type -> error. The map will be populated

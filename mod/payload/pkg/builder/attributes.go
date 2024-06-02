@@ -26,14 +26,16 @@
 package builder
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // getPayloadAttributes returns the payload attributes for the given state and
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
-func (pb *PayloadBuilder[BeaconStateT]) getPayloadAttribute(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) getPayloadAttribute(
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,

@@ -46,7 +46,6 @@ const (
 	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
 	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
 	JWTSecretPath           = engineRoot + "jwt-secret-path"
-	RequiredChainID         = engineRoot + "required-chain-id"
 
 	// KZG Config.
 	kzgRoot             = beaconKitRoot + "kzg."

@@ -77,6 +77,13 @@ type Spec[
 	//
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() ExecutionAddressT
+	// DepositEth1ChainID returns the chain ID of the deposit contract.
+	DepositEth1ChainID() uint64
+	// Eth1FollowDistance returns the distance between the eth1 chain and the
+	// beacon chain for eth1 data.
+	Eth1FollowDistance() uint64
+	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
+	TargetSecondsPerEth1Block() uint64
 
 	// Fork-related values.
 	//
@@ -282,6 +289,28 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DepositContractAddress() ExecutionAddressT {
 	return c.Data.DepositContractAddress
+}
+
+// DepositEth1ChainID returns the chain ID of the execution chain.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) DepositEth1ChainID() uint64 {
+	return c.Data.DepositEth1ChainID
+}
+
+// Eth1FollowDistance returns the distance between the eth1 chain and the beacon
+// chain.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) Eth1FollowDistance() uint64 {
+	return c.Data.Eth1FollowDistance
+}
+
+// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) TargetSecondsPerEth1Block() uint64 {
+	return c.Data.TargetSecondsPerEth1Block
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.

@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+//nolint:lll // lots of hex strings.
 package jwt_test
 
 import (
@@ -49,7 +50,7 @@ func TestNewFromHex(t *testing.T) {
 	}{
 		{
 			name: "valid hex string w/ 0x prefix",
-			//nolint:lll
+
 			hexStr:  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			want:    &(wantValid),
 			wantErr: false,
@@ -144,7 +145,6 @@ func TestSecretBytes(t *testing.T) {
 }
 
 func TestSecretHexWithFixedInput(t *testing.T) {
-	//nolint:lll
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
 	// Since the secret is 32 bytes, its hex representation should be 64
 	// characters

@@ -26,7 +26,6 @@
 package deposit
 
 import (
-	"encoding/hex"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -35,8 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,8 +42,8 @@ import (
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:gomnd // lots of magic numbers
-func NewCreateValidator() *cobra.Command {
+
+func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -54,7 +52,7 @@ func NewCreateValidator() *cobra.Command {
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd(),
+		RunE: createValidatorCmd(chainSpec),
 	}
 
 	cmd.Flags().BoolP(
@@ -80,7 +78,9 @@ func NewCreateValidator() *cobra.Command {
 // for the geth client but something about the Deposit binding is not handling
 // other execution layers correctly. Peep the commit history for what we had.
 // 🤷‍♂️.
-func createValidatorCmd() func(*cobra.Command, []string) error {
+func createValidatorCmd(
+	chainSpec primitives.ChainSpec,
+) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
 			logger = log.NewLogger(os.Stdout)
@@ -115,7 +115,7 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		// Create and sign the deposit message.
 		depositMsg, signature, err := types.CreateAndSignDepositMessage(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
-			spec.LocalnetChainSpec().DomainTypeDeposit(),
+			chainSpec.DomainTypeDeposit(),
 			blsSigner,
 			credentials,
 			amount,
@@ -128,8 +128,8 @@ func createValidatorCmd() func(*cobra.Command, []string) error {
 		if err = depositMsg.VerifyCreateValidator(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
+			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
-			spec.LocalnetChainSpec().DomainTypeDeposit(),
 		); err != nil {
 			return err
 		}
@@ -157,19 +157,17 @@ func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
-	// If the override node key flag is set, a validator private key must be
-	// provided.
+	supplies := []interface{}{viper.GetViper()}
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build the BLS signer.
-	//nolint:nestif // complexity comes from parsing values
 	if overrideFlag {
 		var (
-			validatorPrivKey   string
-			validatorPrivKeyBz []byte
+			validatorPrivKey string
+			legacyInput      components.LegacyKey
 		)
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
@@ -178,30 +176,16 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-
-		validatorPrivKeyBz, err = hex.DecodeString(validatorPrivKey)
+		legacyInput, err = components.GetLegacyKey(validatorPrivKey)
 		if err != nil {
 			return nil, err
 		}
-		if len(validatorPrivKeyBz) != constants.BLSSecretKeyLength {
-			return nil, ErrInvalidValidatorPrivateKeyLength
-		}
-
-		blsSigner, err = signer.NewBLSSigner(
-			[constants.BLSSecretKeyLength]byte(validatorPrivKeyBz),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		return blsSigner, nil
+		supplies = append(supplies, legacyInput)
 	}
 
 	if err = depinject.Inject(
 		depinject.Configs(
-			depinject.Supply(
-				viper.GetViper(),
-			),
+			depinject.Supply(supplies...),
 			depinject.Provide(
 				components.ProvideBlsSigner,
 			),

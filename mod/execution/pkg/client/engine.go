@@ -27,23 +27,29 @@ package client
 
 import (
 	"context"
+	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	engineprimitives "github.com/berachain/beacon-kit/mod/primitives-engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
+func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayload,
+	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	startTime := time.Now()
+	defer s.metrics.measureNewPayloadDuration(startTime)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
@@ -54,9 +60,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 		parentBeaconBlockRoot,
 	)
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementNewPayloadTimeout()
+		}
 		return nil, err
 	} else if result == nil {
-		return nil, ErrNilPayloadStatus
+		return nil, engineerrors.ErrNilPayloadStatus
 	}
 
 	// This case is only true when the payload is invalid, so
@@ -73,12 +82,12 @@ func (s *EngineClient[ExecutionPayloadDenebT]) NewPayload(
 }
 
 // callNewPayloadRPC calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
+func (s *EngineClient[ExecutionPayloadT]) callNewPayloadRPC(
 	ctx context.Context,
 	payload ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatus, error) {
+) (*engineprimitives.PayloadStatusV1, error) {
 	switch payload.Version() {
 	case version.Deneb:
 		return s.NewPayloadV3(
@@ -90,25 +99,43 @@ func (s *EngineClient[ExecutionPayloadDenebT]) callNewPayloadRPC(
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra payload")
 	default:
-		return nil, ErrInvalidPayloadType
+		return nil, engineerrors.ErrInvalidPayloadType
 	}
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
+func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+	startTime := time.Now()
+	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
+	// If the suggested fee recipient is not set, log a warning.
+	if attrs != nil && !attrs.IsNil() &&
+		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+		s.logger.Warn(
+			"suggested fee recipient is not configured 🔆",
+			"fee-recipent", common.DisplayBytes(
+				common.ZeroAddress[:]).TerminalString(),
+		)
+	}
+
 	result, err := s.callUpdatedForkchoiceRPC(dctx, state, attrs, forkVersion)
+
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementForkchoiceUpdateTimeout()
+		}
 		return nil, nil, s.handleRPCError(err)
 	} else if result == nil {
-		return nil, nil, ErrNilForkchoiceResponse
+		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
 	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
@@ -120,56 +147,61 @@ func (s *EngineClient[ExecutionPayloadDenebT]) ForkchoiceUpdated(
 
 // updateForkChoiceByVersion calls the engine_forkchoiceUpdatedVX method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) callUpdatedForkchoiceRPC(
+func (s *EngineClient[ExecutionPayloadT]) callUpdatedForkchoiceRPC(
 	ctx context.Context,
-	state *engineprimitives.ForkchoiceState,
+	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
 	forkVersion uint32,
-) (*engineprimitives.ForkchoiceResponse, error) {
+) (*engineprimitives.ForkchoiceResponseV1, error) {
 	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra forkchoice")
 	default:
-		return nil, ErrInvalidPayloadAttributes
+		return nil, engineerrors.ErrInvalidPayloadAttributes
 	}
 }
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
+func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
-	dctx, cancel := context.WithTimeout(ctx, s.cfg.RPCTimeout)
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	startTime := time.Now()
+	defer s.metrics.measureGetPayloadDuration(startTime)
+	dctx, cancel := context.WithTimeoutCause(
+		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	)
 	defer cancel()
 
 	// Determine what version we want to call.
 	var fn func(
 		context.Context, engineprimitives.PayloadID,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	switch forkVersion {
 	case version.Deneb:
 		fn = s.GetPayloadV3
 	case version.Electra:
 		return nil, errors.New("TODO: implement Electra getPayload")
 	default:
-		return nil, ErrInvalidGetPayloadVersion
+		return nil, engineerrors.ErrInvalidGetPayloadVersion
 	}
 
 	// Call and check for errors.
 	result, err := fn(dctx, payloadID)
 	switch {
 	case err != nil:
+		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+			s.metrics.incrementGetPayloadTimeout()
+		}
 		return result, s.handleRPCError(err)
 	case result == nil:
-		return result, ErrNilExecutionPayloadEnvelope
-	case result.GetExecutionPayload() == nil:
-		return result, ErrNilExecutionPayload
+		return result, engineerrors.ErrNilExecutionPayloadEnvelope
 	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
-		return result, ErrNilBlobsBundle
+		return result, engineerrors.ErrNilBlobsBundle
 	}
 
 	return result, nil
@@ -177,7 +209,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadDenebT]) ExchangeCapabilities(
+func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(

@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service/mocks"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRegistry_StartAll(t *testing.T) {
@@ -42,11 +43,11 @@ func TestRegistry_StartAll(t *testing.T) {
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := &mocks.Basic{}
-	service1.On("Start", mock.Anything).Return().Once()
+	service1.On("Start", mock.Anything).Return(nil).Once()
 	service1.On("Name").Return("Service1")
 
 	service2 := &mocks.Basic{}
-	service2.On("Start", mock.Anything).Return().Once()
+	service2.On("Start", mock.Anything).Return(nil).Once()
 	service2.On("Name").Return("Service2")
 
 	err := registry.RegisterService(service1)
@@ -59,7 +60,7 @@ func TestRegistry_StartAll(t *testing.T) {
 		t.Fatalf("Failed to register Service2: %v", err)
 	}
 
-	registry.StartAll(context.Background())
+	require.NoError(t, registry.StartAll(context.Background()))
 	time.Sleep(25 * time.Millisecond)
 
 	service1.AssertCalled(t, "Start", mock.Anything)
@@ -99,9 +100,9 @@ func TestRegistry_Statuses(t *testing.T) {
 		}
 	}
 
-	service1.On("Start", mock.Anything).Return().Once()
-	service2.On("Start", mock.Anything).Return().Once()
-	registry.StartAll(context.Background())
+	service1.On("Start", mock.Anything).Return(nil).Once()
+	service2.On("Start", mock.Anything).Return(nil).Once()
+	require.NoError(t, registry.StartAll(context.Background()))
 
 	statuses = registry.Statuses()
 

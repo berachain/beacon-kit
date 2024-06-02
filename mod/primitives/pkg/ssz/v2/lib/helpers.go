@@ -29,6 +29,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
@@ -65,6 +66,14 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 	case reflect.Uint32:
 		return ssz.MarshalU32(val.Interface().(uint32))
 	case reflect.Uint64:
+		// handle native
+		if data, ok := val.Interface().(math.U64); ok {
+			serialized, serializationErr := data.MarshalSSZ()
+			if serializationErr != nil {
+				panic(serializationErr)
+			}
+			return serialized
+		}
 		return ssz.MarshalU64(val.Interface().(uint64))
 	// TODO(Chibera): Handle numbers over 64bit?
 	// case reflect.Uint128:
@@ -77,22 +86,15 @@ func RouteUint(val reflect.Value, typ reflect.Type) []byte {
 }
 
 func IsUintLike(kind reflect.Kind) bool {
-	isUintLike := false
-
 	switch kind {
-	case reflect.Uint8:
-		isUintLike = true
-	case reflect.Uint16:
-		isUintLike = true
-	case reflect.Uint32:
-		isUintLike = true
-	case reflect.Uint64:
-		isUintLike = true
+	case reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
 	default:
-		return isUintLike
+		return false
 	}
-
-	return isUintLike
 }
 
 // Helper to iterate over fields in a struct.
@@ -120,19 +122,49 @@ func IterStructFields(
 	}
 
 	// Deref the pointer
+	subtyp := typ
+	numFields := 0
+	subval := val
 	if typ.Kind() == reflect.Ptr {
-		subtyp := reflect.TypeOf(val.Interface()).Elem()
-		vf = reflect.VisibleFields(subtyp)
+		subtyp = reflect.TypeOf(val.Interface()).Elem()
+		subval = val.Elem()
+		numFields = subval.NumField()
+	}
+	if typ.Kind() == reflect.Struct {
+		numFields = val.NumField()
 	}
 
-	for i := range len(vf) {
+	vf = reflect.VisibleFields(subtyp)
+	// Double check field count for rare nested cases
+	iterLen := len(vf)
+	if numFields < len(vf) {
+		iterLen = numFields
+	}
+
+	for i := range iterLen {
 		sf := vf[i]
 		// Note: You can get the name this way for deserialization
 		// name := sf.Name
 		sft := sf.Type
-		sfv := val.Elem().Field(i)
+		sfv := subval.Field(i)
 		cb(sft, sfv, sf, nil)
 	}
+}
+
+// Recursive function to traverse and serialize elements in slice or arr.
+func SerializeRecursive(currentVal reflect.Value, cb func(interface{})) error {
+	if currentVal.Kind() == reflect.Array ||
+		currentVal.Kind() == reflect.Slice {
+		for i := range currentVal.Len() {
+			if err := SerializeRecursive(currentVal.Index(i), cb); err != nil {
+				return err
+			}
+		}
+	} else {
+		// Serialize single element
+		cb(currentVal.Interface())
+	}
+	return nil
 }
 
 func InterleaveOffsets(
@@ -168,16 +200,19 @@ func InterleaveOffsets(
 		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 	}
 
+	fixedPartsWithOffsets := make([][]byte, len(fixedParts))
 	for i, part := range fixedParts {
 		if part == nil {
-			fixedParts[i] = variableOffsets[i]
+			fixedPartsWithOffsets[i] = variableOffsets[i]
+		} else {
+			fixedPartsWithOffsets[i] = part
 		}
 	}
 
 	// Flatten the nested arr to a 1d []byte
 	allParts := make([][]byte, 0)
+	allParts = append(allParts, fixedPartsWithOffsets...)
 	allParts = append(allParts, variableParts...)
-	allParts = append(allParts, fixedParts...)
 	res := make([]byte, 0)
 	for i := range allParts {
 		res = append(res, allParts[i]...)
@@ -195,5 +230,21 @@ func sumArr[S ~[]E, E ~int | ~uint | ~float64 | ~uint64](s S) E {
 }
 
 func IsStruct(typ reflect.Type, val reflect.Value) bool {
-	return typ.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct
+	return typ.Kind() == reflect.Struct ||
+		(typ.Kind() == reflect.Ptr &&
+			val.Elem().Kind() == reflect.Struct)
+}
+
+func SafeCopyBuffer(res []byte, buf *[]byte, startOffset uint64) {
+	bufLocal := *buf
+	if len(res) != len(bufLocal) {
+		//#nosec:G701 // will not realistically cause a problem.
+		buf2 := make([]byte, len(res)+int(startOffset))
+		copy(buf2, bufLocal[:startOffset])
+		copy(buf2[startOffset:], res)
+		*buf = buf2
+		return
+	}
+	copy(bufLocal[startOffset:], res)
+	*buf = bufLocal
 }

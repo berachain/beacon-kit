@@ -53,13 +53,10 @@ func DefaultConfig() *Config {
 type Config struct {
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
-
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
-
 	// PayloadBuilder is the configuration for the local build payload timeout.
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
-
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
 }
@@ -102,6 +99,7 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 			mapstructure.StringToSliceHookFunc(","),
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDialURLFunc(),
+			viperlib.StringToConnectionURLFunc(),
 		))); err != nil {
 		return nil, errors.Newf(
 			"failed to decode beacon-kit configuration: %w",
@@ -131,9 +129,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval")
-	startCmd.Flags().Uint64(
-		flags.RequiredChainID, defaultCfg.Engine.RequiredChainID,
-		"required chain id")
 	startCmd.Flags().String(flags.SuggestedFeeRecipient,
 		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",

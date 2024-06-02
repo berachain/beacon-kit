@@ -110,15 +110,16 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	})
 }
 
-func checkAuthFileIntegrity(t testing.TB, fPath string) {
+func checkAuthFileIntegrity(tb testing.TB, fPath string) {
+	tb.Helper()
 	fs := afero.NewOsFs()
 	fileInfo, err := fs.Stat(fPath)
-	require.NoError(t, err)
-	require.NotNil(t, fileInfo)
+	require.NoError(tb, err)
+	require.NotNil(tb, fileInfo)
 
 	enc, err := afero.ReadFile(fs, fPath)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	decoded, err := hexutil.Decode(string(enc))
-	require.NoError(t, err)
-	require.Len(t, decoded, 32)
+	require.NoError(tb, err)
+	require.Len(tb, decoded, 32)
 }

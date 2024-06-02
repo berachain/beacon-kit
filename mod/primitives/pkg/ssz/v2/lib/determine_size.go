@@ -50,28 +50,46 @@ func DetermineSize(val reflect.Value) uint64 {
 }
 
 func isBasicType(kind reflect.Kind) bool {
-	return kind == reflect.Bool ||
-		kind == reflect.Int32 ||
-		kind == reflect.Uint8 ||
-		kind == reflect.Uint16 ||
-		kind == reflect.Uint32 ||
-		kind == reflect.Uint64
+	switch kind {
+	case reflect.Bool,
+		reflect.Int32,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
+	default:
+		return false
+	}
+}
+
+func isBasicTypeSliceOrArr(t reflect.Type, k reflect.Kind) bool {
+	return isBasicTypeSlice(t, k) || isBasicTypeArray(t, k)
+}
+
+func isBasicTypeSlice(typ reflect.Type, kind reflect.Kind) bool {
+	return isBasicList(reflect.Slice, typ, kind)
 }
 
 func isBasicTypeArray(typ reflect.Type, kind reflect.Kind) bool {
-	return kind == reflect.Array && isBasicType(typ.Elem().Kind())
+	return isBasicList(reflect.Array, typ, kind)
+}
+
+func isBasicList(
+	listType reflect.Kind,
+	typ reflect.Type,
+	kind reflect.Kind) bool {
+	return kind == listType && isBasicType(typ.Elem().Kind())
 }
 
 func isVariableSizeType(typ reflect.Type) bool {
 	kind := typ.Kind()
 	switch {
-	case isBasicType(kind):
+	case isBasicType(kind),
+		isBasicTypeArray(typ, kind):
 		return false
-	case isBasicTypeArray(typ, kind):
-		return false
-	case kind == reflect.Slice:
-		return true
-	case kind == reflect.String:
+	case kind == reflect.Slice,
+		kind == reflect.String:
 		return true
 	case kind == reflect.Array:
 		return isVariableSizeType(typ.Elem())
@@ -97,38 +115,48 @@ func isVariableSizeType(typ reflect.Type) bool {
 	return false
 }
 
+func isFixedSizeType(typ reflect.Type) bool {
+	kind := typ.Kind()
+	switch kind {
+	case reflect.Bool,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Int32,
+		reflect.Uint64:
+		return true
+	default:
+		return false
+	}
+}
+
 func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
-	switch {
-	case kind == reflect.Bool:
-
+	switch kind {
+	case reflect.Bool,
+		reflect.Uint8:
 		return 1
-	case kind == reflect.Uint8:
-
-		return 1
-	case kind == reflect.Uint16:
+	case reflect.Uint16:
 		//nolint:mnd // static mapped types
 		return 2
-	case kind == reflect.Uint32 || kind == reflect.Int32:
+	case reflect.Uint32, reflect.Int32:
 		//nolint:mnd // static mapped types
 		return 4
-	case kind == reflect.Uint64:
+	case reflect.Uint64:
 		//nolint:mnd // static mapped types
 		return 8
-	case kind == reflect.Array && typ.Elem().Kind() == reflect.Uint8:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(typ.Len())
-	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(val.Len())
-	case kind == reflect.Array || kind == reflect.Slice:
+	case reflect.Array, reflect.Slice:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			//#nosec:G701 // will not realistically cause a problem.
+			return uint64(val.Len())
+		}
 		var num uint64
 		n := val.Len()
 		for i := range n {
 			num += determineFixedSize(val.Index(i), typ.Elem())
 		}
 		return num
-	case kind == reflect.Struct:
+	case reflect.Struct:
 		totalSize := uint64(0)
 		n := typ.NumField()
 		for i := range n {
@@ -143,7 +171,7 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 			totalSize += determineFixedSize(val.Field(i), fType)
 		}
 		return totalSize
-	case kind == reflect.Ptr:
+	case reflect.Ptr:
 		if val.IsNil() {
 			newElem := reflect.New(typ.Elem()).Elem()
 			return determineVariableSize(newElem, newElem.Type())
@@ -156,18 +184,19 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 
 func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 	kind := typ.Kind()
-	switch {
-	case kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8:
+	switch kind {
+	case reflect.String:
 		//#nosec:G701 // will not realistically cause a problem.
 		return uint64(val.Len())
-	case kind == reflect.String:
-		//#nosec:G701 // will not realistically cause a problem.
-		return uint64(val.Len())
-	case kind == reflect.Slice || kind == reflect.Array:
+	case reflect.Slice, reflect.Array:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			//#nosec:G701 // will not realistically cause a problem.
+			return uint64(val.Len())
+		}
 		return determineSizeSliceOrArray(val, typ)
-	case kind == reflect.Struct:
+	case reflect.Struct:
 		return determineSizeStruct(val, typ)
-	case kind == reflect.Ptr:
+	case reflect.Ptr:
 		if val.IsNil() {
 			newElem := reflect.New(typ.Elem()).Elem()
 			return determineVariableSize(newElem, newElem.Type())
@@ -221,7 +250,7 @@ func determineFieldType(field reflect.StructField) (reflect.Type, error) {
 			err,
 			"could not parse ssz struct field tags")
 	}
-	if exists {
+	if exists && len(fieldSizeTags) > 0 && !hasUndefinedSizeTag(field) {
 		// If the field does indeed specify ssz struct tags
 		// we infer the field's type.
 		return inferFieldTypeFromSizeTags(field, fieldSizeTags), nil
@@ -266,21 +295,22 @@ func parseSSZFieldTags(field reflect.StructField) ([]uint64, bool, error) {
 	sizes := make([]uint64, len(items))
 	var err error
 	for i := range len(items) {
-		// If a field is unbounded, we mark it with a size of 0.
-		if items[i] == ssz.UnboundedSSZFieldSizeMarker {
-			sizes[i] = 0
-			continue
-		}
-		sizes[i], err = strconv.ParseUint(items[i], 10, 64)
-		if err != nil {
-			return make([]uint64, 0), false, err
+		// If a field is unbounded, we skip it
+		if items[i] != ssz.UnboundedSSZFieldSizeMarker {
+			sizes[i], err = strconv.ParseUint(items[i], 10, 64)
+			if err != nil {
+				return make([]uint64, 0), false, err
+			}
 		}
 	}
-	return sizes, true, nil
+	return sizes, len(sizes) > 0, nil
 }
 
 func inferFieldTypeFromSizeTags(
 	field reflect.StructField, sizes []uint64) reflect.Type {
+	if isFixedSizeType(field.Type) {
+		return field.Type
+	}
 	innerElement := field.Type.Elem()
 	for i := 1; i < len(sizes); i++ {
 		innerElement = innerElement.Elem()
@@ -317,6 +347,11 @@ func GetNestedArrayLength(val reflect.Value) int {
 // Function to determine the dimensionality of an N-dimensional array.
 func GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
+	typ := reflect.TypeOf(val.Interface())
+	if val.Len() == 0 && isBasicTypeSliceOrArr(typ, typ.Kind()) {
+		// 1 dimensional empty arr. e.g. Balances   []uint64
+		return 1
+	}
 	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
 		dimensionality++
 		val = val.Index(0) // Move to the next nested array.
