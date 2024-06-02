@@ -65,3 +65,5 @@ func (cm *chainMetrics) measureBlobProcessingDuration(start time.Time) {
 		"beacon_kit.beacon.blockchain.blob_processing_duration", start,
 	)
 }
+
+//
