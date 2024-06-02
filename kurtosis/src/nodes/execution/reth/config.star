@@ -103,7 +103,7 @@ CMD = [
     "--txpool.max-cached-entries",
     "1000",
     "--rpc-cache.max-receipts",
-    "10000"
+    "10000",
 ]
 BOOTNODE_CMD = "--bootnodes"
 MAX_PEERS_OUTBOUND_CMD = "--max-outbound-peers"

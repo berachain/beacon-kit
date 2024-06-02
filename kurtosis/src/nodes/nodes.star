@@ -23,7 +23,7 @@ def parse_nodes_from_dict(vals, settings):
         replicas = 1
         if "replicas" in val_configuration:
             replicas = val_configuration["replicas"]
-        
+
         if replicas != 0:
             for i in range(replicas):
                 val_struct = parse_node_from_dict(node_type, val_configuration, settings, count)
@@ -63,9 +63,6 @@ def parse_node_settings(settings):
         }
     else:
         default_settings = dict(settings["default"])
-
-
-
 
 def get_settings_struct(settings):
     return struct(

@@ -78,9 +78,11 @@ type Node struct {
 // NodeSettings holds the configuration for a single node in the test,
 // including client images and types.
 type NodeSettings struct {
-	// ExecutionSettings holds the configuration for the execution layer clients.
+	// ExecutionSettings holds the configuration for the execution layer
+	// clients.
 	ExecutionSettings ExecutionSettings `json:"execution_settings"`
-	// ConsensusSettings holds the configuration for the consensus layer clients.
+	// ConsensusSettings holds the configuration for the consensus layer
+	// clients.
 	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
 }
 
@@ -174,18 +176,18 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 						ElType:   "reth",
 						Replicas: 1,
 					},
-				},	
+				},
 			},
 		},
 		NodeSettings: NodeSettings{
 			ExecutionSettings: ExecutionSettings{
 				Images: map[string]string{
-					"besu":      "hyperledger/besu:latest",
-					"erigon":    "thorax/erigon:latest",
+					"besu":       "hyperledger/besu:latest",
+					"erigon":     "thorax/erigon:latest",
 					"ethereumjs": "ethpandaops/ethereumjs:stable",
-					"geth":      "ethereum/client-go:latest",
+					"geth":       "ethereum/client-go:latest",
 					"nethermind": "nethermind/nethermind:latest",
-					"reth":      "ghcr.io/paradigmxyz/reth:latest",
+					"reth":       "ghcr.io/paradigmxyz/reth:latest",
 				},
 			},
 			ConsensusSettings: ConsensusSettings{
