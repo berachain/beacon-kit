@@ -103,8 +103,6 @@ func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
 
 // Encode marshals the provided value into its SSZ encoding.
 func (cdc *SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
-	// TODO: this feels really risky.
-	cdc.latestVersion = value.Version()
 	return value.MarshalSSZ()
 }
 

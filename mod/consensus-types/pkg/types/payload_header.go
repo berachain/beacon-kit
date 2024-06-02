@@ -50,7 +50,8 @@ func (e *ExecutionPayloadHeader) Empty(
 		e.ExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
 	default:
 		panic(
-			"unknown fork version, cannot create empty ExecutionPayloadHeader")
+			"unknown fork version, cannot create empty ExecutionPayloadHeader",
+		)
 	}
 	return e
 }
