@@ -83,7 +83,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		AdditionalServices: []AdditionalService{
 			{
 				Name:     "tx-fuzz",
-				Replicas: 1,
+				Replicas: 0,
 			},
 		},
 		Validators: []Node{
