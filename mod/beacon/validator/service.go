@@ -333,7 +333,6 @@ func (s *Service[
 			); pErr != nil {
 				s.logger.Error(
 					"failed to rebuild payload for nil block",
-					"for_slot", blk.GetSlot(),
 					"error", pErr,
 				)
 			}
