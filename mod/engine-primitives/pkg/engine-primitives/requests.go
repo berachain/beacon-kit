@@ -102,7 +102,6 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	// Extracts and validates the blob hashes from the transactions in the
 	// execution payload.
 	blobHashes := make([]common.ExecutionHash, 0)
-
 	payload := n.ExecutionPayload
 	var txs = make([]*types.Transaction, len(payload.GetTransactions()))
 	for i, encTx := range payload.GetTransactions() {
