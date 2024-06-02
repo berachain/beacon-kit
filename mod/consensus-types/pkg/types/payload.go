@@ -29,6 +29,7 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -56,7 +57,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader() *ExecutionPayloadHeader {
+func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
@@ -82,7 +83,7 @@ func (e *ExecutionPayload) ToHeader() *ExecutionPayloadHeader {
 
 	// Wait for the goroutines to finish.
 	if err := g.Wait(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	switch e.Version() {
@@ -107,9 +108,9 @@ func (e *ExecutionPayload) ToHeader() *ExecutionPayloadHeader {
 				BlobGasUsed:      e.GetBlobGasUsed(),
 				ExcessBlobGas:    e.GetExcessBlobGas(),
 			},
-		}
+		}, nil
 	default:
-		panic("unknown fork version")
+		return nil, errors.New("unknown fork version")
 	}
 }
 

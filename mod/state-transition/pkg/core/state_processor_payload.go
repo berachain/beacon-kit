@@ -60,8 +60,14 @@ func (sp *StateProcessor[
 		})
 	}
 
+	// Convert the execution payload to a header.
+	header, err := payload.ToHeader()
+	if err != nil {
+		return err
+	}
+
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(payload.ToHeader())
+	return st.SetLatestExecutionPayloadHeader(header)
 }
 
 // validateExecutionPayload validates the execution payload against both local
