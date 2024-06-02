@@ -179,15 +179,7 @@ func (h *ValidatorMiddleware[
 	st := h.storageBackend.StateFromContext(ctx)
 
 	// Get the previous slot's hash tree root.
-	root, err := blk.GetParentBlockRoot().HashTreeRoot()
-	if err != nil {
-		logger.Error(
-			"failed to get parent block root",
-			"error",
-			err,
-		)
-		return &cmtabci.PrepareProposalResponse{}, err
-	}
+	root := blk.GetParentBlockRoot()
 
 	// Get the attestations from the votes.
 	attestations, err := h.attestationDataFromVotes(
