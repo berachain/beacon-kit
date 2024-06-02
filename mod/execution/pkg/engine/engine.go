@@ -123,7 +123,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State)
+		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State, err)
 		return payloadID, nil, nil
 
 	// If we get invalid payload status, we will need to find a valid
@@ -136,14 +136,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateInvalid(req.State)
-		req.State.HeadBlockHash = req.State.SafeBlockHash
-		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
-		if err != nil {
-			// We have to return the error here since this function
-			// is recursive.
-			return nil, nil, err
-		}
+		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
 	// JSON-RPC errors are predefined and should be handled as such.
