@@ -84,7 +84,10 @@ func (sp *StateProcessor[
 			return err
 		}
 		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.GetIndex()); err != nil {
+		// We set this as index + 1 because we prune everything we've already
+		// processed. Therefore, if we processed block N, our index is N+1.
+		// Everything less than or equal to N should be pruned.
+		if err := st.SetEth1DepositIndex(dep.GetIndex() + 1); err != nil {
 			return err
 		}
 	}

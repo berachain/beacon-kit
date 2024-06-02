@@ -81,15 +81,11 @@ type BlobSidecars interface {
 // expected deposits to the runtime.
 type DepositStore interface {
 	ExpectedDeposits(
+		startIndex uint64,
 		numView uint64,
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
-	DequeueDeposits(
-		numDequeue uint64,
-	) ([]*types.Deposit, error)
-	PruneToIndex(
-		index uint64,
-	) error
+	Prune(index uint64, numPrune uint64) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

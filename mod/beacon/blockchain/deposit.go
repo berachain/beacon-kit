@@ -39,7 +39,8 @@ func (s *Service[
 	DepositStoreT,
 ]) PruneDepositEvents(
 	ctx context.Context,
-	idx uint64,
+	startIdx uint64,
+	num uint64,
 ) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+	return s.sb.DepositStore(ctx).Prune(startIdx, num)
 }
