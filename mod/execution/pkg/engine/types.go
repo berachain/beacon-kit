@@ -26,15 +26,11 @@
 package engine
 
 import (
-	"encoding/json"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
-	json.Marshaler
-	json.Unmarshaler
 	engineprimitives.ExecutionPayload[WithdrawalT]
 	// Empty creates an empty execution payload.
 	Empty(uint32) ExecutionPayloadT
