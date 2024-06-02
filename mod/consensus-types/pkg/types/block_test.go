@@ -26,6 +26,7 @@
 package types_test
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -61,7 +62,7 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 	}
 }
 
-func TestEmptyBeaconBlockForDeneb(t *testing.T) {
+func TestBeaconBlockForDeneb(t *testing.T) {
 	block := &types.BeaconBlockDeneb{
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
 			Slot:            10,
@@ -149,4 +150,37 @@ func TestBeaconBlockDeneb_HashTreeRoot(t *testing.T) {
 	hashRoot, err := block.HashTreeRoot()
 	require.NoError(t, err)
 	require.NotNil(t, hashRoot)
+}
+
+func TestBeaconBlockEmpty(t *testing.T) {
+	block := &types.BeaconBlock{}
+	emptyBlock := block.Empty(version.Deneb)
+	require.NotNil(t, emptyBlock)
+	require.IsType(t, &types.BeaconBlockDeneb{}, emptyBlock.RawBeaconBlock)
+}
+
+func TestNewWithVersion(t *testing.T) {
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+
+	block, err := (&types.BeaconBlock{}).NewWithVersion(slot, proposerIndex, parentBlockRoot, version.Deneb)
+	require.NoError(t, err)
+	require.NotNil(t, block)
+
+	// Check the block's fields
+	require.NotNil(t, block.RawBeaconBlock)
+	require.Equal(t, slot, block.RawBeaconBlock.GetSlot())
+	require.Equal(t, proposerIndex, block.RawBeaconBlock.GetProposerIndex())
+	require.Equal(t, parentBlockRoot, block.RawBeaconBlock.GetParentBlockRoot())
+	require.Equal(t, version.Deneb, block.RawBeaconBlock.Version())
+}
+
+func TestNewWithVersionInvalidForkVersion(t *testing.T) {
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+
+	_, err := (&types.BeaconBlock{}).NewWithVersion(slot, proposerIndex, parentBlockRoot, 100) // 100 is an invalid fork version
+	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
