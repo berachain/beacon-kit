@@ -47,8 +47,10 @@ const (
 func sanitizeFlags(cmd *cobra.Command) (
 	[]string, []string, []string, []string, []string, []string, string, error,
 ) {
-	handleError := func(err error) ([]string, []string, []string, []string, []string, []string, string, error) {
-		return []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, "", err
+	handleError := func(err error) ([]string, []string, []string, []string,
+		[]string, []string, string, error) {
+		return []string{}, []string{}, []string{}, []string{}, []string{},
+			[]string{}, "", err
 	}
 
 	// Check if all predeploy flags have the same length
