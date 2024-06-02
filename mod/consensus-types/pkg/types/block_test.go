@@ -26,13 +26,13 @@
 package types_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
@@ -164,7 +164,9 @@ func TestNewWithVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
 
-	block, err := (&types.BeaconBlock{}).NewWithVersion(slot, proposerIndex, parentBlockRoot, version.Deneb)
+	block, err := (&types.BeaconBlock{}).NewWithVersion(
+		slot, proposerIndex, parentBlockRoot, version.Deneb,
+	)
 	require.NoError(t, err)
 	require.NotNil(t, block)
 
@@ -181,6 +183,11 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
 
-	_, err := (&types.BeaconBlock{}).NewWithVersion(slot, proposerIndex, parentBlockRoot, 100) // 100 is an invalid fork version
+	_, err := (&types.BeaconBlock{}).NewWithVersion(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		100,
+	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
