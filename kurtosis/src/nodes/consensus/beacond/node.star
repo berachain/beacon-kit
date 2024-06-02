@@ -30,14 +30,14 @@ def start(persistent_peers, is_seed, validator_index):
     set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"3s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_vote = \\".*\\"$/timeout_vote = \\"2s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"1s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"2s\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^unsafe = false$/unsafe = true/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^type = \\".*\\"$/type = \\"nop\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^discard_abci_responses = false$/discard_abci_responses = true/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^# other sinks such as Prometheus.\nenabled = false$/# other sinks such as Prometheus.\nenabled = true/" {}/config/app.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^prometheus-retention-time = 0$/prometheus-retention-time = 60/" {}/config/app.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^payload-timeout = \\".*\\"$/payload-timeout = \\"1.5s\\"/" {}/config/app.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^payload-timeout = \\".*\\"$/payload-timeout = \\"2.5s\\"/" {}/config/app.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^suggested-fee-recipient = \\"0x0000000000000000000000000000000000000000\\"/suggested-fee-recipient = \\"0x$(printf \"%040d\" {})\\"/" {}/config/app.toml'.format(validator_index, "$BEACOND_HOME")
     persistent_peers_option = ""
     seed_option = ""
