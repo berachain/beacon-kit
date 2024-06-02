@@ -38,6 +38,7 @@ import (
 // It sets the head and finalizes the latest.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -69,6 +70,7 @@ func (s *Service[
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

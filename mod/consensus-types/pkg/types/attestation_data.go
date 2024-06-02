@@ -23,22 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package types
 
-import (
-	"context"
-)
-
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+type AttestationData struct {
+	Slot            uint64   // st.get slot
+	Index           uint64   //  committee index address -> pyubkey -> index
+	BeaconBlockRoot [32]byte // free
 }

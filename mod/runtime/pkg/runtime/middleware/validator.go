@@ -26,11 +26,13 @@
 package middleware
 
 import (
+	"sort"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -42,7 +44,15 @@ import (
 
 // ValidatorMiddleware is a middleware between ABCI and the validator logic.
 type ValidatorMiddleware[
-	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
+	AvailabilityStoreT any,
+	BeaconBlockBodyT any,
+	BeaconStateT interface {
+		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
+		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
+		ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.ValidatorIndex, error)
+	},
+	BlobsSidecarsT ssz.Marshallable,
+	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
@@ -67,12 +77,24 @@ type ValidatorMiddleware[
 	]
 	// metrics is the metrics emitter.
 	metrics *validatorMiddlewareMetrics
+
+	// storageBackend is the storage backend.
+	storageBackend StorageBackend[BeaconStateT]
 }
 
 // NewValidatorMiddleware creates a new instance of the Handler struct.
 func NewValidatorMiddleware[
-	BeaconStateT any,
+	AvailabilityStoreT any,
+	BeaconBlockBodyT any,
+	BeaconStateT interface {
+		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
+		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
+		ValidatorIndexByCometBFTAddress(
+			cometBFTAddress []byte,
+		) (math.ValidatorIndex, error)
+	},
 	BlobsSidecarsT ssz.Marshallable,
+	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -81,8 +103,13 @@ func NewValidatorMiddleware[
 		BlobsSidecarsT,
 	],
 	telemetrySink TelemetrySink,
-) *ValidatorMiddleware[BeaconStateT, BlobsSidecarsT] {
-	return &ValidatorMiddleware[BeaconStateT, BlobsSidecarsT]{
+	storageBackend StorageBackendT,
+) *ValidatorMiddleware[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+] {
+	return &ValidatorMiddleware[
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
 		blobGossiper: rp2p.
@@ -91,14 +118,19 @@ func NewValidatorMiddleware[
 			NewNoopBlockGossipHandler[encoding.ABCIRequest](
 			chainSpec,
 		),
-		metrics: newValidatorMiddlewareMetrics(telemetrySink),
+		metrics:        newValidatorMiddlewareMetrics(telemetrySink),
+		storageBackend: storageBackend,
 	}
 }
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ValidatorMiddleware[
-	BeaconStateT, BlobsSidecarsT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconStateT,
+	BlobsSidecarsT,
+	DepositStoreT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -109,6 +141,40 @@ func (h *ValidatorMiddleware[
 	)
 
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+
+	st := h.storageBackend.StateFromContext(ctx)
+	attestations := make(
+		[]types.AttestationData, len(req.LocalLastCommit.Votes),
+	)
+	for i, vote := range req.LocalLastCommit.Votes {
+		index, err := st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
+		if err != nil {
+			logger.Error(
+				"failed to get validator index by comet BFT address",
+				"error",
+				err,
+			)
+			return &cmtabci.PrepareProposalResponse{}, err
+		}
+
+		slot := uint64(req.GetHeight() - 1)
+		rootIndex := slot % h.chainSpec.SlotsPerHistoricalRoot()
+		root, err := st.GetBlockRootAtIndex(rootIndex)
+		if err != nil {
+			logger.Error("failed to get block root at index", "error", err)
+			return &cmtabci.PrepareProposalResponse{}, err
+		}
+		attestations[i] = types.AttestationData{
+			Slot:            slot,
+			Index:           index.Unwrap(),
+			BeaconBlockRoot: root,
+		}
+	}
+
+	// Attestations are sorted by index.
+	sort.Slice(attestations, func(i, j int) bool {
+		return attestations[i].Index < attestations[j].Index
+	})
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
@@ -147,7 +213,11 @@ func (h *ValidatorMiddleware[
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ValidatorMiddleware[
-	BeaconStateT, BlobsSidecarsT,
+	AvailabilityStoreT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobsSidecarsT,
+	DepositStoreT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,

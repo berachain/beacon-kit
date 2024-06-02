@@ -41,7 +41,7 @@ import (
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
@@ -68,14 +68,14 @@ type BeaconKitRuntime[
 	// abciValidatorMiddleware is responsible for forward ABCI requests to the
 	// validator service.
 	abciValidatorMiddleware *middleware.ValidatorMiddleware[
-		BeaconStateT, BlobSidecarsT,
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT, StorageBackendT,
 	]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
 func NewBeaconKitRuntime[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[*types.Validator],
 	BlobSidecarsT BlobSidecars,
@@ -98,6 +98,7 @@ func NewBeaconKitRuntime[
 	var (
 		chainService *blockchain.Service[
 			AvailabilityStoreT,
+			BeaconBlockBodyT,
 			core.BeaconState[*types.Validator],
 			BlobSidecarsT,
 			DepositStoreT,
@@ -132,11 +133,16 @@ func NewBeaconKitRuntime[
 		),
 		abciValidatorMiddleware: middleware.
 			NewValidatorMiddleware[
-			BeaconStateT, BlobSidecarsT,
+			AvailabilityStoreT,
+			BeaconBlockBodyT,
+			BeaconStateT,
+			BlobSidecarsT,
+			StorageBackendT,
 		](
 			chainSpec,
 			validatorService,
 			telemetrySink,
+			storageBackend,
 		),
 		chainSpec:      chainSpec,
 		logger:         logger,
@@ -170,7 +176,7 @@ func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ]) ABCIValidatorMiddleware() *middleware.ValidatorMiddleware[
-	BeaconStateT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT, StorageBackendT,
 ] {
 	return r.abciValidatorMiddleware
 }

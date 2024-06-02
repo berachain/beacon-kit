@@ -66,6 +66,9 @@ type ReadOnlyBeaconState[ValidatorT any] interface {
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.

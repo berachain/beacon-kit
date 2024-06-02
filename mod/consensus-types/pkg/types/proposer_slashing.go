@@ -23,22 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package blockchain
+package types
 
-import (
-	"context"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	idx uint64,
-) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+type SignedBeaconBlockHeader struct {
+	message   *BeaconBlockHeader
+	signature *crypto.BLSSignature
+}
+
+type ProposerSlashing struct {
+	signedHeader1 *SignedBeaconBlockHeader
+	signedHeader2 *SignedBeaconBlockHeader
 }

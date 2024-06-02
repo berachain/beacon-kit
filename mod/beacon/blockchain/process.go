@@ -41,6 +41,7 @@ import (
 // state.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -62,6 +63,7 @@ func (s *Service[
 // and then processes the block.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -108,7 +110,7 @@ func (s *Service[
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
 	if !s.sb.AvailabilityStore(ctx).IsDataAvailable(
-		ctx, blk.GetSlot(), blk.GetBody(),
+		ctx, blk.GetSlot(), blk.GetBody().(BeaconBlockBodyT),
 	) {
 		return nil, ErrDataNotAvailable
 	}
@@ -132,7 +134,7 @@ func (s *Service[
 // TODO: Deprecate this function and move it's usage outside of the main block
 // processing thread.
 func (s *Service[
-	AvailabilityStoreT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ]) postBlockProcessTasks(
 	ctx context.Context,
@@ -161,6 +163,7 @@ func (s *Service[
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -200,6 +203,7 @@ func (s *Service[
 // ProcessBlobSidecars processes the blob sidecars.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

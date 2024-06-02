@@ -40,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -84,11 +85,10 @@ func ProvideRuntime(
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutableDataDeneb],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
-	storageBackend runtime.StorageBackend[
+	storageBackend *storage.Backend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
-		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 	],
 	ts *metrics.TelemetrySink,
@@ -203,8 +203,10 @@ func ProvideRuntime(
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		storageBackend,
 		logger.With("service", "blockchain"),
@@ -260,6 +262,13 @@ func ProvideRuntime(
 		core.BeaconState[*types.Validator],
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		runtime.StorageBackend[
+			*dastore.Store[types.BeaconBlockBody],
+			types.BeaconBlockBody,
+			core.BeaconState[*types.Validator],
+			*datypes.BlobSidecars,
+			*depositdb.KVStore[*types.Deposit],
+		],
 	](
 		chainSpec,
 		logger,
