@@ -53,9 +53,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
@@ -214,49 +211,6 @@ func ProvideRuntime(
 		ts,
 	)
 
-	depositPruner := pruner.NewPruner[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", manager.DepositPrunerName),
-		storageBackend.DepositStore(nil),
-		manager.DepositPrunerName,
-		&blockFeed,
-	)
-
-	defer func() {
-		// TODO: at this point, Deposit store and Availability store are both
-		// nil.
-		// Recovering from casting nil to *filedb.RangeDB.
-		_ = recover()
-	}()
-
-	availabilityPruner := pruner.NewPruner[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", manager.AvailabilityPrunerName),
-		storageBackend.AvailabilityStore(
-			nil).IndexDB.(*filedb.RangeDB),
-		manager.AvailabilityPrunerName,
-		&blockFeed,
-	)
-
-	dbManagerService, err := manager.NewDBManager[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", "db-manager"),
-		depositPruner,
-		availabilityPruner,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
@@ -310,7 +264,6 @@ func ProvideRuntime(
 			ts,
 			sdkversion.Version,
 		)),
-		service.WithService(dbManagerService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

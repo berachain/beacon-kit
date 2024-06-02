@@ -23,8 +23,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package interfaces
+package filedb
 
-type Prunable interface {
-	Prune(index uint64) error
+import "context"
+
+// RangeDBPruner prunes old indexes from the range DB.
+type RangeDBPruner struct {
+	db             *RangeDB
+	notifyNewIndex chan uint64
+	pruneWindow    uint64
+}
+
+func NewRangeDBPruner(
+	db *RangeDB,
+	pruneWindow uint64,
+	notifyNewIndex chan uint64,
+) *RangeDBPruner {
+	return &RangeDBPruner{
+		db:             db,
+		notifyNewIndex: notifyNewIndex,
+		pruneWindow:    pruneWindow,
+	}
+}
+
+// Start starts a goroutine that listens for new indices to prune.
+func (p *RangeDBPruner) Start(ctx context.Context) {
+	go p.runLoop(ctx)
+}
+
+// NotifyNewIndex notifies the pruner of a new index.
+func (p *RangeDBPruner) runLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case index := <-p.notifyNewIndex:
+			// Do nothing until the prune window is reached.
+			if p.pruneWindow > index {
+				continue
+			}
+
+			// Prune all indexes below the most recently seen
+			// index minus the prune window.
+			if err := p.db.DeleteRange(0, index-p.pruneWindow); err != nil {
+				return
+			}
+		}
+	}
 }

@@ -87,8 +87,8 @@ func (kv *KVStore[DepositT]) DequeueDeposits(
 	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
 }
 
-// Prune removes all deposits up to the given index.
-func (kv *KVStore[DepositT]) Prune(
+// PruneToIndex removes all deposits up to the given index.
+func (kv *KVStore[DepositT]) PruneToIndex(
 	index uint64,
 ) error {
 	length, err := kv.depositQueue.Len(context.TODO())
