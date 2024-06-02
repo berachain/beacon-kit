@@ -156,7 +156,7 @@ func TestExecutableDataDeneb_IsBlinded(t *testing.T) {
 
 func TestExecutableDataDeneb_Version(t *testing.T) {
 	payload := generateExecutableDataDeneb()
-	require.Equal(t, uint32(4), payload.Version())
+	require.Equal(t, version.Deneb, payload.Version())
 }
 
 func TestExecutionPayload_Empty(t *testing.T) {
