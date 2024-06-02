@@ -31,24 +31,24 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: reth
-        replicas: 128
+        replicas: 32
       - el_type: geth
-        replicas: 0
+        replicas: 32
       - el_type: erigon
-        replicas: 0
+        replicas: 32
       - el_type: besu
-        replicas: 0
+        replicas: 32
       - el_type: nethermind
-        replicas: 0
+        replicas: 32
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
     type: "full"
     nodes:
       - el_type: reth
-        replicas: 10
-      - el_type: geth
         replicas: 0
+      - el_type: geth
+        replicas: 10
       - el_type: erigon
         replicas: 0
       - el_type: besu
@@ -60,7 +60,7 @@ network_configuration:
   seed_nodes:
     type: "seed"
     nodes:
-      - el_type: reth
+      - el_type: geth
         replicas: 6
 node_settings:
   consensus_settings:
@@ -69,12 +69,24 @@ node_settings:
     min_memory: 32768
     max_memory: 32768
     images:
-      beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.22-optimistic
+      beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.24-optimistic
+    node_selectors:
+      node_preference: fast
+    config:
+      timeout_propose: 3s
+      timeout_vote: 2s
+      timeout_commit: 1s
+      max_num_inbound_peers: 40
+      max_num_outbound_peers: 10
+    app:
+      payload-timeout: 1.5s
   execution_settings:
     min_cpu: 8000
     max_cpu: 8000
     min_memory: 32768
     max_memory: 32768
+    node_selectors:
+      node_preference: fast
     images:
       besu: hyperledger/besu:latest
       erigon: thorax/erigon:latest
