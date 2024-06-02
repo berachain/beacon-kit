@@ -83,7 +83,6 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload[WithdrawlT any] interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	// TODO: decouple from consensus-types
 	GetWithdrawals() []WithdrawlT
 }
 
