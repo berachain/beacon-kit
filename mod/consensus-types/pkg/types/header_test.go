@@ -123,7 +123,13 @@ func TestBeaconBlockHeader_New(t *testing.T) {
 		bodyRoot,
 	)
 
-	newHeader := header.New(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
+	newHeader := header.New(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		stateRoot,
+		bodyRoot,
+	)
 	require.Equal(t, slot, newHeader.GetSlot())
 	require.Equal(t, proposerIndex, newHeader.GetProposerIndex())
 	require.Equal(t, parentBlockRoot, newHeader.GetParentBlockRoot())

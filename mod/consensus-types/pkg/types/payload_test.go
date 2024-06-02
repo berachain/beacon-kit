@@ -197,6 +197,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
 }
 
+//nolint:lll
 func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 	original := generateExecutableDataDeneb()
 	validJSON, err := original.MarshalJSON()
@@ -284,13 +285,13 @@ func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 			var payload types.ExecutableDataDeneb
 			var jsonMap map[string]interface{}
 
-			err := json.Unmarshal(validJSON, &jsonMap)
-			require.NoError(t, err)
+			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+			require.NoError(t, errUnmarshal)
 
 			delete(jsonMap, tc.removeField)
 
-			malformedJSON, err := json.Marshal(jsonMap)
-			require.NoError(t, err)
+			malformedJSON, errMarshal := json.Marshal(jsonMap)
+			require.NoError(t, errMarshal)
 
 			err = payload.UnmarshalJSON(malformedJSON)
 			require.Error(t, err)
