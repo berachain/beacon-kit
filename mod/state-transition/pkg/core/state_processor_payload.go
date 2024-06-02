@@ -28,12 +28,8 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -42,7 +38,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
@@ -50,11 +46,9 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	var (
-		body            = blk.GetBody()
-		payload         = body.GetExecutionPayload()
-		txsRoot         primitives.Root
-		withdrawalsRoot primitives.Root
-		g, gCtx         = errgroup.WithContext(context.Background())
+		body    = blk.GetBody()
+		payload = body.GetExecutionPayload()
+		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
 	// Skip payload verification if the context is configured as such.
@@ -66,52 +60,14 @@ func (sp *StateProcessor[
 		})
 	}
 
-	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr =
-			ssz.MerkleizeListComposite[any, math.U64](
-				payload.GetWithdrawals(),
-				sp.cs.MaxWithdrawalsPerPayload(),
-			)
-		return withdrawalsRootErr
-	})
-
-	// If deriving either of the roots or verifying the payload fails, return
-	// the error.
-	if err := g.Wait(); err != nil {
+	// Convert the execution payload to a header.
+	header, err := payload.ToHeader()
+	if err != nil {
 		return err
 	}
 
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	return st.SetLatestExecutionPayloadHeader(header)
 }
 
 // validateExecutionPayload validates the execution payload against both local
@@ -120,7 +76,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) validateExecutionPayload(
 	ctx context.Context,

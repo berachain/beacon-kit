@@ -38,7 +38,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
@@ -72,7 +72,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
@@ -95,7 +95,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
@@ -134,7 +134,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
@@ -182,7 +182,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
@@ -215,7 +215,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,

@@ -41,7 +41,11 @@ import (
 type KVStore[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
@@ -66,6 +70,13 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
+	// latestExecutionPayload stores the latest execution payload version.
+	latestExecutionPayloadVersion sdkcollections.Item[uint32]
+	// latestExecutionPayloadCodec is the codec for the latest execution
+	// payload, it
+	// allows us to update the codec with the latest version.
+	latestExecutionPayloadCodec *encoding.
+					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
@@ -98,12 +109,16 @@ type KVStore[
 func New[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
-	executionPayloadHeaderFactory func() ExecutionPayloadHeaderT,
+	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
@@ -157,24 +172,29 @@ func New[
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestExecutionPayloadHeader: sdkcollections.NewItem[ExecutionPayloadHeaderT](
+		latestExecutionPayloadVersion: sdkcollections.NewItem[uint32](
+			schemaBuilder,
+			sdkcollections.NewPrefix(
+				[]byte{keys.LatestExecutionPayloadVersionPrefix},
+			),
+			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
+			sdkcollections.Uint32Value,
+		),
+		latestExecutionPayloadCodec: payloadCodec,
+		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
 			),
 			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
-			encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{
-				Factory: executionPayloadHeaderFactory,
-			},
+			payloadCodec,
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ValidatorIndexPrefix}),
 			keys.ValidatorIndexPrefixHumanReadable,
 		),
-		validators: sdkcollections.NewIndexedMap[
-			uint64, ValidatorT,
-		](
+		validators: sdkcollections.NewIndexedMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,

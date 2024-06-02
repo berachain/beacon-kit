@@ -59,7 +59,8 @@ import (
 )
 
 type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+	*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+	*types.Validator, *engineprimitives.Withdrawal,
 ]
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
@@ -117,7 +118,9 @@ func ProvideRuntime(
 	}
 
 	// Build the local builder service.
-	localBuilder := payloadbuilder.New[BeaconState](
+	localBuilder := payloadbuilder.New[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	](
 		&cfg.PayloadBuilder,
 		chainSpec,
 		logger.With("service", "payload-builder"),
@@ -163,6 +166,7 @@ func ProvideRuntime(
 		*transition.Context,
 		*types.Deposit,
 		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 		*types.ForkData,
 		*types.Validator,
 		*engineprimitives.Withdrawal,

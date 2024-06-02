@@ -28,7 +28,7 @@ package state
 import (
 	"context"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -48,10 +48,10 @@ type KVStore[
 	) KVStoreT
 	Save()
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		*types.ExecutionPayloadHeader, error,
 	)
 	SetLatestExecutionPayloadHeader(
-		payloadHeader engineprimitives.ExecutionPayloadHeader,
+		payloadHeader *types.ExecutionPayloadHeader,
 	) error
 	GetEth1DepositIndex() (uint64, error)
 	SetEth1DepositIndex(

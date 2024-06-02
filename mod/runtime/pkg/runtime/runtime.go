@@ -57,7 +57,10 @@ type BeaconKitRuntime[
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Validator, *engineprimitives.Withdrawal,
+		*types.BeaconBlockHeader,
+		*types.ExecutionPayloadHeader,
+		*types.Validator,
+		*engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
@@ -104,9 +107,8 @@ func NewBeaconKitRuntime[
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Validator,
-		*engineprimitives.Withdrawal,
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
@@ -132,6 +134,7 @@ func NewBeaconKitRuntime[
 			BeaconBlockT,
 			core.BeaconState[
 				*types.BeaconBlockHeader,
+				*types.ExecutionPayloadHeader,
 				*types.Validator,
 				*engineprimitives.Withdrawal,
 			],
@@ -143,6 +146,7 @@ func NewBeaconKitRuntime[
 			types.BeaconBlockBody,
 			core.BeaconState[
 				*types.BeaconBlockHeader,
+				*types.ExecutionPayloadHeader,
 				*types.Validator,
 				*engineprimitives.Withdrawal,
 			],

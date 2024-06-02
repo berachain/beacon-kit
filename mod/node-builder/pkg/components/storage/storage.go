@@ -29,7 +29,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -39,7 +38,7 @@ import (
 // KVStore is a type alias for the beacon store with the generics defined using
 // primitives.
 type KVStore = beacondb.KVStore[
-	*types.Fork, *types.BeaconBlockHeader, engineprimitives.ExecutionPayloadHeader,
+	*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
 	*types.Eth1Data, *types.Validator,
 ]
 
