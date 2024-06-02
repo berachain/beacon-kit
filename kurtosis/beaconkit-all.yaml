@@ -61,9 +61,17 @@ network_configuration:
         replicas: 1
 node_settings:
   consensus_settings:
+    min_cpu: 0
+    max_cpu: 2000
+    min_memory: 0
+    max_memory: 2048
     images:
       beaconkit: beacond:kurtosis-local
   execution_settings:
+    min_cpu: 0
+    max_cpu: 2000
+    min_memory: 0
+    max_memory: 2048
     images:
       besu: hyperledger/besu:latest
       erigon: thorax/erigon:latest

@@ -80,21 +80,26 @@ type Node struct {
 type NodeSettings struct {
 	// ExecutionSettings holds the configuration for the execution layer
 	// clients.
-	ExecutionSettings ExecutionSettings `json:"execution_settings"`
+	ExecutionSettings NodeLayerSettings `json:"execution_settings"`
 	// ConsensusSettings holds the configuration for the consensus layer
 	// clients.
-	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
+	ConsensusSettings NodeLayerSettings `json:"consensus_settings"`
 }
 
-// ExecutionSettings holds the configuration for the execution layer clients.
-type ExecutionSettings struct {
-	// Images specifies the images to use for the execution layer clients.
-	Images map[string]string `json:"images"`
-}
-
-// ConsensusSettings holds the configuration for the consensus layer clients.
-type ConsensusSettings struct {
-	// Images specifies the images to use for the consensus layer clients.
+// NodeLayerSettings holds the configuration for all clients in a single layer.
+type NodeLayerSettings struct {
+	// MinCPU specifies the minimum number of CPUs to use for all nodes in the layer.
+	MinCPU int `json:"min_cpu"`
+	// MaxCPU specifies the maximum number of CPUs to use for all nodes in the layer.
+	MaxCPU int `json:"max_cpu"`
+	// MinMemory specifies the minimum amount of memory to use for all nodes in the layer.
+	MinMemory int `json:"min_memory"`
+	// MaxMemory specifies the maximum amount of memory to use for all nodes in the layer.
+	MaxMemory int `json:"max_memory"`
+	// Labels specifies the labels to use for all nodes in the layer.
+	// node_type is included by default in our kurtosis plan.
+	Labels map[string]string `json:"labels"`
+	// Images specifies the image available for the layer.
 	Images map[string]string `json:"images"`
 }
 
@@ -180,7 +185,11 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 			},
 		},
 		NodeSettings: NodeSettings{
-			ExecutionSettings: ExecutionSettings{
+			ExecutionSettings: NodeLayerSettings{
+				MinCPU: 0,
+				MaxCPU: 2000,
+				MinMemory: 0,
+				MaxMemory: 2048,
 				Images: map[string]string{
 					"besu":       "hyperledger/besu:latest",
 					"erigon":     "thorax/erigon:latest",
@@ -190,7 +199,11 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 					"reth":       "ghcr.io/paradigmxyz/reth:latest",
 				},
 			},
-			ConsensusSettings: ConsensusSettings{
+			ConsensusSettings: NodeLayerSettings{
+				MinCPU: 0,
+				MaxCPU: 2000,
+				MinMemory: 0,
+				MaxMemory: 2048,
 				Images: map[string]string{
 					"beaconkit": "beacond:kurtosis-local",
 				},

@@ -64,9 +64,17 @@ network_configuration:
         replicas: 6
 node_settings:
   consensus_settings:
+    min_cpu: 8000
+    max_cpu: 8000
+    min_memory: 32768
+    max_memory: 32768
     images:
       beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.22-optimistic
   execution_settings:
+    min_cpu: 8000
+    max_cpu: 8000
+    min_memory: 32768
+    max_memory: 32768
     images:
       besu: hyperledger/besu:latest
       erigon: thorax/erigon:latest
