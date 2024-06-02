@@ -26,5 +26,7 @@
 package interfaces
 
 type Prunable interface {
-	Prune(index uint64) error
+	// PruneFromInclusive prunes the deposit store from the given
+	// index for N indexes.
+	PruneFromInclusive(index uint64, numPrune uint64) error
 }

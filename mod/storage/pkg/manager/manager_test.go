@@ -78,5 +78,5 @@ func TestDBManager_Start(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	feed.AssertCalled(t, "Subscribe", mock.Anything)
 	feed.AssertNumberOfCalls(t, "Subscribe", 2)
-	mockPrunable.AssertNotCalled(t, "Prune")
+	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
 }

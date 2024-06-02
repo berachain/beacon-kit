@@ -28,14 +28,16 @@ package encoding
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
-	BeaconBlockT ssz.Marshallable, BlobsSidecarsT ssz.Marshallable,
+	BeaconBlockT interface {
+		ssz.Marshallable
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	}, BlobsSidecarsT ssz.Marshallable,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
@@ -73,7 +75,10 @@ func ExtractBlobsAndBlockFromRequest[
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
-func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT ssz.Marshallable](
+func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT interface {
+	ssz.Marshallable
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+}](
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
@@ -101,18 +106,7 @@ func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT ssz.Marshallable](
 		return blk, ErrNilBeaconBlockInRequest
 	}
 
-	rawBlk, err := types.BeaconBlockFromSSZ(blkBz, forkVersion)
-	if err != nil {
-		return blk, err
-	}
-
-	// TODO: This is ghetto.
-	blkT, ok := reflect.ValueOf(rawBlk).Interface().(BeaconBlockT)
-	if !ok {
-		return blkT, ErrInvalidType
-	}
-
-	return blkT, nil
+	return blk.NewFromSSZ(blkBz, forkVersion)
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

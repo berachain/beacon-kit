@@ -284,7 +284,7 @@ func TestRangeDB_Prune(t *testing.T) {
 				}
 			}
 
-			err := rdb.Prune(tt.pruneIndex)
+			err := rdb.PruneFromInclusive(0, tt.pruneIndex)
 			if (err != nil) != tt.expectedError {
 				t.Fatalf(
 					"Prune() error = %v, expectedError %v",
@@ -349,7 +349,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				_ = rdb.Prune(3)
+				_ = rdb.PruneFromInclusive(0, 3)
 				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
 			},
 		},
@@ -377,7 +377,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				if err := rdb.Prune(25); err != nil {
+				if err := rdb.PruneFromInclusive(0, 25); err != nil {
 					t.Fatalf("Prune() error = %v", err)
 				}
 				_ = populateTestDB(rdb, 5, 10)

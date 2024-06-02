@@ -37,7 +37,7 @@ import (
 
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
-type BeaconState interface {
+type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
@@ -45,7 +45,7 @@ type BeaconState interface {
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 	// ValidatorIndexByPubkey finds the validator index associated with a given
 	// BLS public key.
@@ -55,12 +55,12 @@ type BeaconState interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[ExecutionPayloadT any] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(

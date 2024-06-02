@@ -42,7 +42,7 @@ type AppOptions interface {
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
@@ -53,20 +53,21 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// StorageBackend is an interface that provides the
-// beacon state to the runtime.
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-	BeaconBlockT,
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
-	AvailabilityStore(
-		ctx context.Context,
-	) AvailabilityStoreT
-	StateFromContext(ctx context.Context) BeaconStateT
-	DepositStore(ctx context.Context) DepositStoreT
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // BlobSidecars is an interface that represents the sidecars.
@@ -79,16 +80,12 @@ type BlobSidecars interface {
 // DepositStore is an interface that provides the
 // expected deposits to the runtime.
 type DepositStore interface {
-	ExpectedDeposits(
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
-	DequeueDeposits(
-		numDequeue uint64,
-	) ([]*types.Deposit, error)
-	Prune(
-		index uint64,
-	) error
+	PruneFromInclusive(index uint64, numPrune uint64) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

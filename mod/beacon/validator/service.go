@@ -41,8 +41,10 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
@@ -86,8 +88,9 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
@@ -226,8 +229,14 @@ func (s *Service[
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return blk, sidecars, ErrNilDepositIndexStart
+	}
+
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.ExpectedDeposits(
+	deposits, err := s.ds.GetDepositsByIndex(
+		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -275,7 +284,7 @@ func (s *Service[
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
-				"failed to compute state root for block ❌ ",
+				"failed to compute state root while building block ❗️ ",
 				"slot", requestedSlot,
 				"error", err,
 			)

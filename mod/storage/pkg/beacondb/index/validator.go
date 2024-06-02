@@ -30,6 +30,7 @@ import (
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 )
 
 // Collection prefixes.
@@ -70,6 +71,9 @@ type ValidatorsIndex[ValidatorT Validator] struct {
 	// EffectiveBalance is a multi-index mapping a validator's effective balance
 	// to their numeric ID.
 	EffectiveBalance *indexes.Multi[uint64, uint64, ValidatorT]
+	// CometBFTAddress is a unique index mapping a validator's Comet BFT address
+	// to their numeric ID.
+	CometBFTAddress *indexes.Unique[[]byte, uint64, ValidatorT]
 }
 
 // IndexesList returns a list of all indexes associated with the
@@ -80,6 +84,7 @@ func (a ValidatorsIndex[ValidatorT]) IndexesList() []sdkcollections.Index[
 	return []sdkcollections.Index[uint64, ValidatorT]{
 		a.Pubkey,
 		a.EffectiveBalance,
+		a.CometBFTAddress,
 	}
 }
 
@@ -95,7 +100,6 @@ func NewValidatorsIndex[ValidatorT Validator](
 			validatorPubkeyToIndexPrefix,
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
-
 			func(_ uint64, validator ValidatorT) ([]byte, error) {
 				pk := validator.GetPubkey()
 				return pk[:], nil
@@ -109,6 +113,17 @@ func NewValidatorsIndex[ValidatorT Validator](
 			sdkcollections.Uint64Key,
 			func(_ uint64, validator ValidatorT) (uint64, error) {
 				return uint64(validator.GetEffectiveBalance()), nil
+			},
+		),
+		CometBFTAddress: indexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(validatorConsAddrToIndexPrefix),
+			validatorConsAddrToIndexPrefix,
+			sdkcollections.BytesKey,
+			sdkcollections.Uint64Key,
+			func(_ uint64, validator ValidatorT) ([]byte, error) {
+				pk := validator.GetPubkey()
+				return cmtcrypto.AddressHash(pk[:]).Bytes(), nil
 			},
 		),
 	}

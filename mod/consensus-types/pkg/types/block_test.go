@@ -32,6 +32,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
@@ -61,23 +62,21 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 	}
 }
 
-func TestEmptyBeaconBlockForDeneb(t *testing.T) {
-	block, err := types.EmptyBeaconBlock[
-		*types.BeaconBlockDeneb, uint64, uint64, [32]byte](
-		10, 5, [32]byte{1, 2, 3, 4, 5}, version.Deneb)
-	require.NoError(t, err)
+func TestBeaconBlockForDeneb(t *testing.T) {
+	block := &types.BeaconBlockDeneb{
+		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
+			Slot:            10,
+			ProposerIndex:   5,
+			ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
+		},
+	}
 	require.NotNil(t, block)
 }
 
 // Test the case where the fork version is not supported.
 func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
 	require.Panics(t, func() {
-		_, err := types.EmptyBeaconBlock[
-			types.BeaconBlockDeneb, uint64, uint64, [32]byte](
-			10, 5, [32]byte{1, 2, 3, 4, 5}, 1)
-		if err != nil {
-			return
-		}
+		(&types.BeaconBlock{}).Empty(100)
 	})
 }
 
@@ -90,18 +89,21 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszBlock)
 
-	block, err := types.BeaconBlockFromSSZ(sszBlock, version.Deneb)
+	wrappedBlock := &types.BeaconBlock{}
+	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
 	require.NoError(t, err)
-	require.NotNil(t, block)
+	require.NotNil(t, wrappedBlock)
 
+	block, ok := wrappedBlock.RawBeaconBlock.(*types.BeaconBlockDeneb)
+	require.True(t, ok)
 	require.Equal(t, originalBlock, block)
 }
 
 func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	_, err := types.BeaconBlockFromSSZ([]byte{}, 1)
+	wrappedBlock := &types.BeaconBlock{}
+	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
-
 func TestBeaconBlockDeneb(t *testing.T) {
 	block := generateValidBeaconBlockDeneb()
 
@@ -148,4 +150,51 @@ func TestBeaconBlockDeneb_HashTreeRoot(t *testing.T) {
 	hashRoot, err := block.HashTreeRoot()
 	require.NoError(t, err)
 	require.NotNil(t, hashRoot)
+}
+
+func TestBeaconBlockEmpty(t *testing.T) {
+	block := &types.BeaconBlock{}
+	emptyBlock := block.Empty(version.Deneb)
+	require.NotNil(t, emptyBlock)
+	require.IsType(t, &types.BeaconBlockDeneb{}, emptyBlock.RawBeaconBlock)
+}
+
+func TestNewWithVersion(t *testing.T) {
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+
+	block, err := (&types.BeaconBlock{}).NewWithVersion(
+		slot, proposerIndex, parentBlockRoot, version.Deneb,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, block)
+
+	// Check the block's fields
+	require.NotNil(t, block.RawBeaconBlock)
+	require.Equal(t, slot, block.RawBeaconBlock.GetSlot())
+	require.Equal(t, proposerIndex, block.RawBeaconBlock.GetProposerIndex())
+	require.Equal(t, parentBlockRoot, block.RawBeaconBlock.GetParentBlockRoot())
+	require.Equal(t, version.Deneb, block.RawBeaconBlock.Version())
+}
+
+func TestNewWithVersionInvalidForkVersion(t *testing.T) {
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+
+	_, err := (&types.BeaconBlock{}).NewWithVersion(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		100,
+	) // 100 is an invalid fork version
+	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
+}
+
+func TestBeaconBlockDeneb_GetTree(t *testing.T) {
+	block := generateValidBeaconBlockDeneb()
+	tree, err := block.GetTree()
+	require.NoError(t, err)
+	require.NotNil(t, tree)
 }

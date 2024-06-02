@@ -94,7 +94,8 @@ func TestPruner(t *testing.T) {
 			}
 
 			mockPrunable := new(interfacemocks.Prunable)
-			mockPrunable.On("Prune", mock.Anything).Return(nil)
+			mockPrunable.On("PruneFromInclusive", mock.Anything, mock.Anything).
+				Return(nil)
 
 			// create Pruner with a Noop logger
 			testPruner := pruner.NewPruner[
@@ -122,11 +123,20 @@ func TestPruner(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 
 			// assert that prune was called expected number of times
-			mockPrunable.AssertNumberOfCalls(t, "Prune", tt.expectedCalls)
+			mockPrunable.AssertNumberOfCalls(
+				t,
+				"PruneFromInclusive",
+				tt.expectedCalls,
+			)
 
 			// assert that prune was called on correct indices
 			for _, index := range tt.pruneIndexes {
-				mockPrunable.AssertCalled(t, "Prune", index)
+				mockPrunable.AssertCalled(
+					t,
+					"PruneFromInclusive",
+					index,
+					mock.Anything,
+				)
 			}
 		})
 	}

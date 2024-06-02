@@ -81,7 +81,7 @@ func (p *Pruner[
 					"🔪 pruning events 🔪",
 					"index", index,
 				)
-				if err := p.prunable.Prune(index); err != nil {
+				if err := p.prunable.PruneFromInclusive(index, 0); err != nil {
 					p.logger.Error(
 						"‼️ error pruning index ‼️",
 						"index", index,

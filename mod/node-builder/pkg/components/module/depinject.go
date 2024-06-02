@@ -42,6 +42,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -69,7 +70,7 @@ type DepInjectInput struct {
 	BeaconConfig      *config.Config
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
-	EngineClient      *engineclient.EngineClient[*types.ExecutableDataDeneb]
+	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink
@@ -83,18 +84,25 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody], core.BeaconState[*types.Validator],
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+		core.BeaconState[
+			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+			*types.Validator, *engineprimitives.Withdrawal,
+		],
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
 		beacondb.New[
 			*types.Fork,
 			*types.BeaconBlockHeader,
-			engineprimitives.ExecutionPayloadHeader,
+			*types.ExecutionPayloadHeader,
 			*types.Eth1Data,
 			*types.Validator,
-		](in.Environment.KVStoreService, DenebPayloadFactory),
+		](in.Environment.KVStoreService, payloadCodec),
 		in.DepositStore,
 	)
 
@@ -120,9 +128,4 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	return DepInjectOutput{
 		Module: NewAppModule(runtime),
 	}, nil
-}
-
-// TODO: move this.
-func DenebPayloadFactory() engineprimitives.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeaderDeneb{}
 }

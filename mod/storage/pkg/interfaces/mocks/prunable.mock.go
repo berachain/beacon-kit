@@ -17,17 +17,17 @@ func (_m *Prunable) EXPECT() *Prunable_Expecter {
 	return &Prunable_Expecter{mock: &_m.Mock}
 }
 
-// Prune provides a mock function with given fields: index
-func (_m *Prunable) Prune(index uint64) error {
-	ret := _m.Called(index)
+// PruneFromInclusive provides a mock function with given fields: index, numPrune
+func (_m *Prunable) PruneFromInclusive(index uint64, numPrune uint64) error {
+	ret := _m.Called(index, numPrune)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Prune")
+		panic("no return value specified for PruneFromInclusive")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(uint64) error); ok {
-		r0 = rf(index)
+	if rf, ok := ret.Get(0).(func(uint64, uint64) error); ok {
+		r0 = rf(index, numPrune)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -35,30 +35,31 @@ func (_m *Prunable) Prune(index uint64) error {
 	return r0
 }
 
-// Prunable_Prune_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Prune'
-type Prunable_Prune_Call struct {
+// Prunable_PruneFromInclusive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PruneFromInclusive'
+type Prunable_PruneFromInclusive_Call struct {
 	*mock.Call
 }
 
-// Prune is a helper method to define mock.On call
+// PruneFromInclusive is a helper method to define mock.On call
 //   - index uint64
-func (_e *Prunable_Expecter) Prune(index interface{}) *Prunable_Prune_Call {
-	return &Prunable_Prune_Call{Call: _e.mock.On("Prune", index)}
+//   - numPrune uint64
+func (_e *Prunable_Expecter) PruneFromInclusive(index interface{}, numPrune interface{}) *Prunable_PruneFromInclusive_Call {
+	return &Prunable_PruneFromInclusive_Call{Call: _e.mock.On("PruneFromInclusive", index, numPrune)}
 }
 
-func (_c *Prunable_Prune_Call) Run(run func(index uint64)) *Prunable_Prune_Call {
+func (_c *Prunable_PruneFromInclusive_Call) Run(run func(index uint64, numPrune uint64)) *Prunable_PruneFromInclusive_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uint64))
+		run(args[0].(uint64), args[1].(uint64))
 	})
 	return _c
 }
 
-func (_c *Prunable_Prune_Call) Return(_a0 error) *Prunable_Prune_Call {
+func (_c *Prunable_PruneFromInclusive_Call) Return(_a0 error) *Prunable_PruneFromInclusive_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Prunable_Prune_Call) RunAndReturn(run func(uint64) error) *Prunable_Prune_Call {
+func (_c *Prunable_PruneFromInclusive_Call) RunAndReturn(run func(uint64, uint64) error) *Prunable_PruneFromInclusive_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -26,14 +26,16 @@
 package engineprimitives
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
-type BuiltExecutionPayloadEnv interface {
+type BuiltExecutionPayloadEnv[ExecutionPayloadT any] interface {
 	// GetExecutionPayload retrieves the associated execution payload.
-	GetExecutionPayload() ExecutionPayload
+	GetExecutionPayload() ExecutionPayloadT
 	// GetValue returns the Wei value of the block in the execution payload.
 	GetValue() math.Wei
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
@@ -57,7 +59,10 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	ExecutionPayloadT ExecutionPayload,
+	ExecutionPayloadT interface {
+		json.Marshaler
+		json.Unmarshaler
+	},
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
@@ -70,7 +75,7 @@ type ExecutionPayloadEnvelope[
 // ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
 	ExecutionPayloadT, BlobsBundleT,
-]) GetExecutionPayload() ExecutionPayload {
+]) GetExecutionPayload() ExecutionPayloadT {
 	return e.ExecutionPayload
 }
 

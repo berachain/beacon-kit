@@ -107,11 +107,12 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	return nil
 }
 
-func (db *RangeDB) Prune(index uint64) error {
-	if db.dataWindow > index {
+func (db *RangeDB) PruneFromInclusive(index uint64, num uint64) error {
+	endIndex := index + num
+	if db.dataWindow > endIndex {
 		return nil
 	}
-	err := db.DeleteRange(db.firstNonNilIndex, index-db.dataWindow)
+	err := db.DeleteRange(db.firstNonNilIndex, endIndex-db.dataWindow)
 	if err != nil {
 		// Resets last pruned index in case Delete somehow populates indices on
 		// err. This will cause the next prune operation is O(n), but next
@@ -120,7 +121,7 @@ func (db *RangeDB) Prune(index uint64) error {
 		db.firstNonNilIndex = 0
 		return err
 	}
-	db.firstNonNilIndex = index - db.dataWindow
+	db.firstNonNilIndex = endIndex - db.dataWindow
 	return nil
 }
 

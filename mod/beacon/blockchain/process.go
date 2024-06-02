@@ -41,6 +41,8 @@ import (
 // state.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -53,7 +55,9 @@ func (s *Service[
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		genesisData.ExecutionPayloadHeader,
+		&types.ExecutionPayloadHeader{
+			ExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+		},
 		genesisData.ForkVersion,
 	)
 }
@@ -62,13 +66,16 @@ func (s *Service[
 // and then processes the block.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 	sidecars BlobSidecarsT,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
@@ -77,7 +84,7 @@ func (s *Service[
 	)
 
 	// If the block is nil, exit early.
-	if blk == nil || blk.IsNil() {
+	if blk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
@@ -89,10 +96,7 @@ func (s *Service[
 		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		//
-		// TODO: Figure out why SkipPayloadIfExists being `true`
-		// causes nodes to create gaps in their chain.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, true)
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, syncedToHead)
 		return err
 	})
 
@@ -116,7 +120,7 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, blk))
+	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.
@@ -131,35 +135,37 @@ func (s *Service[
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
 	AvailabilityStoreT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) ProcessBeaconBlock(
-	ctx context.Context,
-	blk types.BeaconBlock,
-) ([]*transition.ValidatorUpdate, error) {
-	st := s.sb.StateFromContext(ctx)
-	return s.processBeaconBlock(ctx, st, blk, false)
-}
-
-// ProcessBeaconBlock processes the beacon block.
-func (s *Service[
-	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
-	optimisticEngine bool,
+	blk BeaconBlockT,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateTransitionDuration(startTime)
+	defer s.metrics.measureStateTransitionDuration(startTime, syncedToHead)
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
-			OptimisticEngine: optimisticEngine,
+			OptimisticEngine: true,
+			// When we are NOT synced to the tip, process proposal
+			// does NOT get called and thus we must ensure that
+			// NewPayload is called to get the execution
+			// client the payload.
+			//
+			// When we are synced to the tip, we can skip the
+			// NewPayload call since we already gave our execution client
+			// the payload in process proposal.
+			//
+			// In both cases the payload was already accepted by a majority
+			// of validators in their process proposal call and thus
+			// the "verification aspect" of this NewPayload call is
+			// actually irrelevant at this point.
+			SkipPayloadVerification: syncedToHead,
 		},
 		st,
 		blk,
@@ -170,6 +176,8 @@ func (s *Service[
 // ProcessBlobSidecars processes the blob sidecars.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

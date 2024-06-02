@@ -29,7 +29,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -38,6 +37,8 @@ import (
 // It sets the head and finalizes the latest.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -69,13 +70,15 @@ func (s *Service[
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	blk types.BeaconBlock,
+	blk BeaconBlockT,
 ) {
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
