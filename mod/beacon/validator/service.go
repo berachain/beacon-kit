@@ -235,6 +235,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
+	//#nosec:G703 // Sometimes there are no deposits, and its ok to error.
 	deposits, _ := s.ds.ExpectedDeposits(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
