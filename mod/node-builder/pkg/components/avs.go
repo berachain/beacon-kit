@@ -56,7 +56,6 @@ func ProvideAvailibilityStore(
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(logger),
 			),
-			chainSpec.MinEpochsForBlobsSidecarsRequest()*chainSpec.SlotsPerEpoch(),
 		),
 		logger.With("service", "beacon-kit.da.store"),
 		chainSpec,

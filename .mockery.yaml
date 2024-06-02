@@ -58,16 +58,6 @@ packages:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/pruner:
-    config:
-      recursive: False
-      with-expecter: true
-      all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/manager:
-      config:
-      recursive: False
-      with-expecter: true
-      all: True
   github.com/berachain/beacon-kit/mod/primitives/pkg/crypto:
     config:
       recursive: False

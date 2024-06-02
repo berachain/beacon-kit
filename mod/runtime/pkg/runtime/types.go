@@ -86,7 +86,7 @@ type DepositStore interface {
 	DequeueDeposits(
 		numDequeue uint64,
 	) ([]*types.Deposit, error)
-	Prune(
+	PruneToIndex(
 		index uint64,
 	) error
 }
