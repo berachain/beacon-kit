@@ -223,6 +223,9 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
 		&blockFeed,
+		depositdb.PrunerFn[
+			*types.BeaconBlock, types.BeaconBlockBody, *types.Deposit,
+		],
 	)
 
 	defer func() {
@@ -242,6 +245,7 @@ func ProvideRuntime(
 			nil).IndexDB.(*filedb.RangeDB),
 		manager.AvailabilityPrunerName,
 		&blockFeed,
+		pruner.DefaultBlockToPruneIndexFn,
 	)
 
 	dbManagerService, err := manager.NewDBManager[

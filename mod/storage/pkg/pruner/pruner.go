@@ -33,16 +33,22 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
+// DefaultBlockToPruneIndexFn is the default function to convert a block to an index to prune.
+func DefaultBlockToPruneIndexFn[BeaconBlockT BeaconBlock](_ context.Context, blk BeaconBlockT) uint64 {
+	return blk.GetSlot().Unwrap()
+}
+
 // Pruner is a struct that holds the prunable interface and a notifier channel.
 type Pruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
 	SubscriptionT Subscription,
 ] struct {
-	prunable interfaces.Prunable
-	logger   log.Logger[any]
-	name     string
-	feed     BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	prunable            interfaces.Prunable
+	logger              log.Logger[any]
+	name                string
+	feed                BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	blockToPruneIndexFn func(context.Context, BeaconBlockT) uint64
 }
 
 func NewPruner[
@@ -54,12 +60,14 @@ func NewPruner[
 	prunable interfaces.Prunable,
 	name string,
 	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
+	blockToPruneIndexFn func(context.Context, BeaconBlockT) uint64,
 ) *Pruner[BeaconBlockT, BlockEventT, SubscriptionT] {
 	return &Pruner[BeaconBlockT, BlockEventT, SubscriptionT]{
-		logger:   logger,
-		prunable: prunable,
-		name:     name,
-		feed:     feed,
+		logger:              logger,
+		prunable:            prunable,
+		name:                name,
+		feed:                feed,
+		blockToPruneIndexFn: blockToPruneIndexFn,
 	}
 }
 
@@ -76,7 +84,7 @@ func (p *Pruner[
 			case <-ctx.Done():
 				return
 			case event := <-ch:
-				index := event.Block().GetSlot().Unwrap()
+				index := p.blockToPruneIndexFn(ctx, event.Block())
 				p.logger.Info(
 					"🔪 pruning events 🔪",
 					"index", index,
