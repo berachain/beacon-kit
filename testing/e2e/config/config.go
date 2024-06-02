@@ -210,9 +210,9 @@ func defaultNodeSettings() NodeSettings {
 
 func defaultExecutionSettings() NodeLayerSettings {
 	return NodeLayerSettings{
-		MinCPU:    0,
+		MinCPU:    1000, //nolint:mnd // 1 vCPU
 		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 0,
+		MinMemory: 1024, //nolint:mnd // 1 GB
 		MaxMemory: 2048, //nolint:mnd // 2 GB
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
@@ -227,9 +227,9 @@ func defaultExecutionSettings() NodeLayerSettings {
 
 func defaultConsensusSettings() NodeLayerSettings {
 	return NodeLayerSettings{
-		MinCPU:    0,
+		MinCPU:    1000, //nolint:mnd // 1 vCPU
 		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-		MinMemory: 0,
+		MinMemory: 1024, //nolint:mnd // 1 GB
 		MaxMemory: 2048, //nolint:mnd // 2 GB
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",
