@@ -32,7 +32,6 @@ METRICS_PORT_ID = defaults.METRICS_PORT_ID
 
 METRICS_PATH = defaults.METRICS_PATH
 
-IMAGE = "hyperledger/besu:latest"
 ENTRYPOINT = ["sh", "-c"]
 
 # CONFIG_LOCATION = "/root/.geth/{}".format(CONFIG_FILENAME)

@@ -82,6 +82,9 @@ type ReadOnlyBeaconState[
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.

@@ -38,9 +38,10 @@ import (
 // Service is the blockchain service.
 type Service[
 	AvailabilityStoreT AvailabilityStore[
-		types.BeaconBlockBody, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT types.RawBeaconBlock,
+	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
@@ -49,6 +50,7 @@ type Service[
 	// sidecars.
 	sb StorageBackend[
 		AvailabilityStoreT,
+		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
@@ -60,7 +62,7 @@ type Service[
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
 	// bp is the blob processor for processing incoming blobs.
-	bp BlobProcessor[AvailabilityStoreT, BlobSidecarsT]
+	bp BlobProcessor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		BeaconBlockT,
@@ -77,15 +79,17 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore[
-		types.BeaconBlockBody, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT types.RawBeaconBlock,
+	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
+		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
 		DepositStoreT,
@@ -95,6 +99,7 @@ func NewService[
 	ee ExecutionEngine,
 	bp BlobProcessor[
 		AvailabilityStoreT,
+		BeaconBlockBodyT,
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
@@ -104,11 +109,11 @@ func NewService[
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
 		sb:        sb,
@@ -126,6 +131,7 @@ func NewService[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -136,6 +142,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -148,6 +155,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -158,6 +166,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
