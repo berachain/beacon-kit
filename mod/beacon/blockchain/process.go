@@ -189,7 +189,7 @@ func (s *Service[
 			Context:          ctx,
 			OptimisticEngine: true,
 			// When we are NOT synced to the tip, process proposal
-			// does NOT gmet called and thus we must ensure that
+			// does NOT get called and thus we must ensure that
 			// NewPayload is called to get the execution
 			// client the payload.
 			//
