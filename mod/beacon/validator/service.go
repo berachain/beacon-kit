@@ -235,13 +235,10 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.ExpectedDeposits(
+	deposits, _ := s.ds.ExpectedDeposits(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
-	if err != nil {
-		return blk, sidecars, err
-	}
 
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
