@@ -213,5 +213,16 @@ func (pb *PayloadBuilder[
 	}
 
 	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
+
+	// If the payload was built by a different builder, something is
+	// wrong the EL<>CL setup.
+	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
+		pb.logger.Warn(
+			"payload fee recipient does not match suggested fee recipient - "+
+				"please check both your CL and EL configuration",
+			"payload_fee_recipient", payload.GetFeeRecipient(),
+			"suggested_fee_recipient", pb.cfg.SuggestedFeeRecipient,
+		)
+	}
 	return envelope, err
 }
