@@ -191,8 +191,11 @@ func (h *ValidatorMiddleware[
 
 	// Get the attestations from the votes.
 	attestations, err := h.attestationDataFromVotes(
+		st,
+		root,
+		req.LocalLastCommit.Votes,
 		//#nosec:G701 // safe.
-		st, root, req.LocalLastCommit.Votes, uint64(req.Height-1),
+		uint64(req.Height-1),
 	)
 	if err != nil {
 		logger.Error("failed to get attestations from votes", "error", err)
