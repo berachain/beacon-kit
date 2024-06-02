@@ -75,7 +75,8 @@ type KVStore[
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it
 	// allows us to update the codec with the latest version.
-	latestExecutionPayloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
+	latestExecutionPayloadCodec *encoding.
+					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
