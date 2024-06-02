@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -126,16 +127,175 @@ func TestExecutableDataDeneb_MarshalJSON(t *testing.T) {
 	require.Equal(t, payload, &unmarshalled)
 }
 
+func TestExecutableDataDeneb_IsNil(t *testing.T) {
+	var payload *types.ExecutableDataDeneb
+	require.True(t, payload.IsNil())
+
+	payload = generateExecutableDataDeneb()
+	require.False(t, payload.IsNil())
+}
+
+func TestExecutableDataDeneb_IsBlinded(t *testing.T) {
+	payload := generateExecutableDataDeneb()
+	require.False(t, payload.IsBlinded())
+}
+
+func TestExecutableDataDeneb_Version(t *testing.T) {
+	payload := generateExecutableDataDeneb()
+	require.Equal(t, version.Deneb, payload.Version())
+}
+
+func TestExecutionPayload_Empty(t *testing.T) {
+	payload := new(types.ExecutionPayload)
+	emptyPayload := payload.Empty(version.Deneb)
+
+	require.NotNil(t, emptyPayload)
+	require.Equal(t, version.Deneb, emptyPayload.Version())
+}
+
+func TestExecutionPayload_ToHeader(t *testing.T) {
+	payload := types.ExecutionPayload{
+		ExecutionPayload: &types.ExecutableDataDeneb{
+			ParentHash:    common.ExecutionHash{},
+			FeeRecipient:  common.ExecutionAddress{},
+			StateRoot:     bytes.B32{},
+			ReceiptsRoot:  bytes.B32{},
+			LogsBloom:     make([]byte, 256),
+			Random:        bytes.B32{},
+			Number:        math.U64(0),
+			GasLimit:      math.U64(0),
+			GasUsed:       math.U64(0),
+			Timestamp:     math.U64(0),
+			ExtraData:     []byte{},
+			BaseFeePerGas: math.Wei{},
+			BlockHash:     common.ExecutionHash{},
+			Transactions:  [][]byte{},
+			Withdrawals:   []*engineprimitives.Withdrawal{},
+			BlobGasUsed:   math.U64(0),
+			ExcessBlobGas: math.U64(0),
+		},
+	}
+
+	header, err := payload.ToHeader()
+	require.NoError(t, err)
+	require.NotNil(t, header)
+
+	require.Equal(t, payload.GetParentHash(), header.GetParentHash())
+	require.Equal(t, payload.GetFeeRecipient(), header.GetFeeRecipient())
+	require.Equal(t, payload.GetStateRoot(), header.GetStateRoot())
+	require.Equal(t, payload.GetReceiptsRoot(), header.GetReceiptsRoot())
+	require.Equal(t, payload.GetLogsBloom(), header.GetLogsBloom())
+	require.Equal(t, payload.GetPrevRandao(), header.GetPrevRandao())
+	require.Equal(t, payload.GetNumber(), header.GetNumber())
+	require.Equal(t, payload.GetGasLimit(), header.GetGasLimit())
+	require.Equal(t, payload.GetGasUsed(), header.GetGasUsed())
+	require.Equal(t, payload.GetTimestamp(), header.GetTimestamp())
+	require.Equal(t, payload.GetExtraData(), header.GetExtraData())
+	require.Equal(t, payload.GetBaseFeePerGas(), header.GetBaseFeePerGas())
+	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
+	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
+	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
+}
+
+//nolint:lll
 func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
-	malformedJSON := `{"invalidField": "invalidValue"}`
+	original := generateExecutableDataDeneb()
+	validJSON, err := original.MarshalJSON()
+	require.NoError(t, err)
 
-	var payload types.ExecutableDataDeneb
-	err := json.Unmarshal([]byte(malformedJSON), &payload)
+	testCases := []struct {
+		name          string
+		removeField   string
+		expectedError string
+	}{
+		{
+			name:          "missing required field 'parentHash'",
+			removeField:   "parentHash",
+			expectedError: "missing required field 'parentHash' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'feeRecipient'",
+			removeField:   "feeRecipient",
+			expectedError: "missing required field 'feeRecipient' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'stateRoot'",
+			removeField:   "stateRoot",
+			expectedError: "missing required field 'stateRoot' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'receiptsRoot'",
+			removeField:   "receiptsRoot",
+			expectedError: "missing required field 'receiptsRoot' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'logsBloom'",
+			removeField:   "logsBloom",
+			expectedError: "missing required field 'logsBloom' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'prevRandao'",
+			removeField:   "prevRandao",
+			expectedError: "missing required field 'prevRandao' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'blockNumber'",
+			removeField:   "blockNumber",
+			expectedError: "missing required field 'blockNumber' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'gasLimit'",
+			removeField:   "gasLimit",
+			expectedError: "missing required field 'gasLimit' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'gasUsed'",
+			removeField:   "gasUsed",
+			expectedError: "missing required field 'gasUsed' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'timestamp'",
+			removeField:   "timestamp",
+			expectedError: "missing required field 'timestamp' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'extraData'",
+			removeField:   "extraData",
+			expectedError: "missing required field 'extraData' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'baseFeePerGas'",
+			removeField:   "baseFeePerGas",
+			expectedError: "missing required field 'baseFeePerGas' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'blockHash'",
+			removeField:   "blockHash",
+			expectedError: "missing required field 'blockHash' for ExecutableDataDeneb",
+		},
+		{
+			name:          "missing required field 'transactions'",
+			removeField:   "transactions",
+			expectedError: "missing required field 'transactions' for ExecutableDataDeneb",
+		},
+	}
 
-	require.Error(t, err)
-	require.ErrorContains(
-		t,
-		err,
-		"missing required field 'parentHash' for ExecutableDataDeneb",
-	)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var payload types.ExecutableDataDeneb
+			var jsonMap map[string]interface{}
+
+			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+			require.NoError(t, errUnmarshal)
+
+			delete(jsonMap, tc.removeField)
+
+			malformedJSON, errMarshal := json.Marshal(jsonMap)
+			require.NoError(t, errMarshal)
+
+			err = payload.UnmarshalJSON(malformedJSON)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
 }

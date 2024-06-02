@@ -38,11 +38,6 @@ type (
 	ExecutableData  = engine.ExecutableData
 )
 
-var (
-	// ExecutableDataToBlock constructs a block from executable data.
-	ExecutableDataToBlock = engine.ExecutableDataToBlock
-)
-
 type PayloadStatusStr = string
 
 var (
@@ -64,7 +59,6 @@ var (
 type ForkchoiceResponseV1 struct {
 	// PayloadStatus is the payload status.
 	PayloadStatus PayloadStatusV1 `json:"payloadStatus"`
-
 	// PayloadID isthe identifier of the payload build process, it
 	// can also be `nil`.
 	PayloadID *PayloadID `json:"payloadId"`
@@ -78,13 +72,11 @@ type ForkchoiceStateV1 struct {
 	// HeadBlockHash is the desired block hash of the head of the canonical
 	// chain.
 	HeadBlockHash common.ExecutionHash `json:"headBlockHash"`
-
 	// SafeBlockHash is  the "safe" block hash of the canonical chain under
 	// certain
 	// synchrony and honesty assumptions. This value MUST be either equal to
 	// or an ancestor of `HeadBlockHash`.
 	SafeBlockHash common.ExecutionHash `json:"safeBlockHash"`
-
 	// FinalizedBlockHash is the desired block hash of the most recent finalized
 	// block
 	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
@@ -98,11 +90,9 @@ type ForkchoiceStateV1 struct {
 type PayloadStatusV1 struct {
 	// Status string of the payload.
 	Status string `json:"status"`
-
 	// LatestValidHash is the hash of the most recent valid block
 	// in the branch defined by payload and its ancestors
 	LatestValidHash *common.ExecutionHash `json:"latestValidHash"`
-
 	// ValidationError is a message providing additional details on
 	// the validation error if the payload is classified as
 	// INVALID or INVALID_BLOCK_HASH
