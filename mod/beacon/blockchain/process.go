@@ -159,18 +159,7 @@ func (s *Service[
 		return
 	}
 
-	// TODO: pruner shouldn't be in main block processing thread.
-	var startIndex uint64
-	var numToPrune uint64
-	if idx > s.cs.MaxDepositsPerBlock() {
-		startIndex = 0
-		numToPrune = idx
-	} else {
-		startIndex = idx - s.cs.MaxDepositsPerBlock()
-		numToPrune = s.cs.MaxDepositsPerBlock()
-	}
-
-	if err = s.PruneDepositEvents(ctx, startIndex, numToPrune); err != nil {
+	if err = s.PruneDepositEvents(ctx, idx); err != nil {
 		s.logger.Error(
 			"failed to prune deposit events in postBlockProcessTasks",
 			"error", err)
