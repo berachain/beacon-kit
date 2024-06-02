@@ -83,10 +83,6 @@ func (sp *StateProcessor[
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
-		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.GetIndex()); err != nil {
-			return err
-		}
 	}
 	return nil
 }
