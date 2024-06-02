@@ -35,11 +35,9 @@ import (
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	json.Marshaler
 	json.Unmarshaler
+	engineprimitives.ExecutionPayload[WithdrawalT]
 	// Empty creates an empty execution payload.
 	Empty(uint32) ExecutionPayloadT
-	// Version returns the version of the payload.
-	Version() uint32
-	engineprimitives.ExecutionPayload[WithdrawalT]
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

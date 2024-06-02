@@ -62,7 +62,6 @@ type ExecutionPayloadBody interface {
 	json.Unmarshaler
 	IsNil() bool
 	Version() uint32
-	// IsBlinded() bool
 	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
@@ -84,7 +83,6 @@ type ExecutionPayloadBody interface {
 type ExecutionPayload[WithdrawlT any] interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	// TODO: decouple from consensus-types
 	GetWithdrawals() []WithdrawlT
 }
 
