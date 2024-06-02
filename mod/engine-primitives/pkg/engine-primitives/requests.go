@@ -26,7 +26,6 @@
 package engineprimitives
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -109,7 +108,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	for i, encTx := range payload.GetTransactions() {
 		var tx types.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
-			return fmt.Errorf("invalid transaction %d: %v", i, err)
+			return errors.Wrapf(err, "invalid transaction %d", i)
 		}
 		blobHashes = append(blobHashes, tx.BlobHashes()...)
 		txs[i] = &tx
@@ -152,11 +151,14 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	wroot := types.DeriveSha(types.Withdrawals(gethWds), trie.NewStackTrie(nil))
 	bf := payload.GetBaseFeePerGas().Unwrap()
 	header := &types.Header{
-		ParentHash:       payload.GetParentHash(),
-		UncleHash:        types.EmptyUncleHash,
-		Coinbase:         payload.GetFeeRecipient(),
-		Root:             common.ExecutionHash(payload.GetStateRoot()),
-		TxHash:           types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+		ParentHash: payload.GetParentHash(),
+		UncleHash:  types.EmptyUncleHash,
+		Coinbase:   payload.GetFeeRecipient(),
+		Root:       common.ExecutionHash(payload.GetStateRoot()),
+		TxHash: types.DeriveSha(
+			types.Transactions(txs),
+			trie.NewStackTrie(nil),
+		),
 		ReceiptHash:      types.EmptyRootHash,
 		Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
 		Difficulty:       big.NewInt(0),
@@ -176,7 +178,12 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	block := types.NewBlockWithHeader(header).
 		WithBody(types.Body{Transactions: txs, Uncles: nil, Withdrawals: gethWds})
 	if block.Hash() != payload.GetBlockHash() {
-		return fmt.Errorf("blockhash mismatch, want %x, got %x", payload.GetBlockHash(), block.Hash())
+		return errors.Wrapf(
+			ErrPayloadBlockHashMismatch,
+			"blockhash mismatch, want %x, got %x",
+			payload.GetBlockHash(),
+			block.Hash(),
+		)
 	}
 
 	return nil
