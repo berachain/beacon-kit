@@ -98,6 +98,9 @@ type KVStore[
 	AddValidator(
 		val ValidatorT,
 	) error
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }

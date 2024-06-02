@@ -42,6 +42,7 @@ import (
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -66,6 +67,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -136,8 +138,12 @@ func (s *Service[
 // TODO: Deprecate this function and move it's usage outside of the main block
 // processing thread.
 func (s *Service[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) postBlockProcessTasks(
 	ctx context.Context,
 	st BeaconStateT,
@@ -166,6 +172,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -206,6 +213,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

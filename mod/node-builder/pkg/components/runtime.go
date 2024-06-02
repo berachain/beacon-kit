@@ -73,6 +73,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	*depositdb.KVStore[*types.Deposit],
 	blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -91,6 +92,7 @@ func ProvideRuntime(
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -215,8 +217,10 @@ func ProvideRuntime(
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
 		*types.BeaconBlock,
+		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
 	](
 		storageBackend,
 		logger.With("service", "blockchain"),
@@ -276,6 +280,7 @@ func ProvideRuntime(
 		*depositdb.KVStore[*types.Deposit],
 		blockchain.StorageBackend[
 			*dastore.Store[types.BeaconBlockBody],
+			types.BeaconBlockBody,
 			BeaconState,
 			*datypes.BlobSidecars,
 			*depositdb.KVStore[*types.Deposit],

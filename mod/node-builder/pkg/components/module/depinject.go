@@ -88,6 +88,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	storageBackend := storage.NewBackend[
 		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
 		core.BeaconState[
 			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Validator,
 			*engineprimitives.Withdrawal,
