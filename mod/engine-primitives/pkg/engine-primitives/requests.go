@@ -138,7 +138,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 		}
 	}
 
-	gethWds := make([]*types.Withdrawal, 0)
+	gethWds := make([]*types.Withdrawal, len(payload.GetWithdrawals()))
 	for i, wd := range payload.GetWithdrawals() {
 		gethWds[i] = &types.Withdrawal{
 			Index:     wd.GetIndex().Unwrap(),
