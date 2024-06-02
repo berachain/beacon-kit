@@ -45,7 +45,7 @@ HOMEDIR="./.tmp/beacond"
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
-ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
+ETH_GENESIS=$(resolve_path "./testing/files/genesis.eth.json")
 
 # used to exit on first error (any non-zero exit code)
 set -e

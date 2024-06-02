@@ -11,8 +11,8 @@
 #################
 
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/genesis.eth.json
+NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/nether-genesis.eth.json
 ETH_DATA_DIR = .tmp/eth-home
 
 # URLs used for dialing the eth client
@@ -36,8 +36,12 @@ generate-genesis-cmd:
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
-	@$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd
+	@if [ ! -f ${ETH_GENESIS_PATH} ]; then \
+		$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd; \
+	fi
+	@if [ ! -f ${NETHER_ETH_GENESIS_PATH} ]; then \
+		$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd; \
+	fi
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine

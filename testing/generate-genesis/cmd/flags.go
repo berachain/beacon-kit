@@ -52,7 +52,8 @@ func sanitizeFlags(cmd *cobra.Command) (
 	}
 
 	// Check if all predeploy flags have the same length
-	predeployAddresses, err := cmd.Flags().GetStringSlice(predeployAddressesFlag)
+	predeployAddresses, err := cmd.Flags().
+		GetStringSlice(predeployAddressesFlag)
 	if err != nil {
 		return handleError(errors.Wrap(err,
 			"failed to get predeployAddresses flag"))
