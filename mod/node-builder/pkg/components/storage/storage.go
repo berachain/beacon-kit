@@ -54,7 +54,7 @@ type Backend[
 	],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ] struct {
@@ -70,7 +70,7 @@ func NewBackend[
 	],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
+		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ](

@@ -39,7 +39,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -73,7 +73,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -92,7 +92,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -127,7 +127,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -157,7 +157,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -205,7 +205,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
@@ -238,7 +238,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	body BeaconBlockBodyT,
