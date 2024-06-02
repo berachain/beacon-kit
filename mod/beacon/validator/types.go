@@ -141,8 +141,8 @@ type BlobSidecars interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
-	// ExpectedDeposits returns `numView` expected deposits.
-	ExpectedDeposits(
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)

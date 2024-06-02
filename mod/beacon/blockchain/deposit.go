@@ -42,5 +42,5 @@ func (s *Service[
 	startIdx uint64,
 	num uint64,
 ) error {
-	return s.sb.DepositStore(ctx).Prune(startIdx, num)
+	return s.sb.DepositStore(ctx).PruneFromInclusive(startIdx, num)
 }

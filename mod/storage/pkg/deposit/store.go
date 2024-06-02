@@ -69,10 +69,10 @@ func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	}
 }
 
-// ExpectedDeposits returns the first N deposits starting from the given index.
-// If N is greater than the number of deposits, it returns up to the
+// GetDepositsByIndex returns the first N deposits starting from the given
+// index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
-func (kv *KVStore[DepositT]) ExpectedDeposits(
+func (kv *KVStore[DepositT]) GetDepositsByIndex(
 	startIndex uint64,
 	numView uint64,
 ) ([]DepositT, error) {
@@ -116,8 +116,8 @@ func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
 	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
 }
 
-// Prune removes up to N deposits from the given starting index.
-func (kv *KVStore[DepositT]) Prune(
+// PruneFromInclusive removes up to N deposits from the given starting index.
+func (kv *KVStore[DepositT]) PruneFromInclusive(
 	index uint64,
 	numPrune uint64,
 ) error {

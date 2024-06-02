@@ -76,8 +76,9 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 
 // Store defines the interface for managing deposit operations.
 type Store[DepositT any] interface {
-	// Prune prunes the deposit store from the given index for N indexes.
-	Prune(index uint64, numPrune uint64) error
+	// PruneFromInclusive prunes the deposit store from the given
+	// index for N indexes.
+	PruneFromInclusive(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []DepositT) error
 }
