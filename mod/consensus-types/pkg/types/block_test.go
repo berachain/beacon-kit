@@ -191,3 +191,10 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
+
+func TestBeaconBlockDeneb_GetTree(t *testing.T) {
+	block := generateValidBeaconBlockDeneb()
+	tree, err := block.GetTree()
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+}

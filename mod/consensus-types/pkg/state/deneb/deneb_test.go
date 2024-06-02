@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,4 +82,10 @@ func TestGetTree(t *testing.T) {
 	tree, err := state.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
+	state := &deneb.BeaconState{}
+	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
+	require.ErrorIs(t, err, ssz.ErrSize)
 }

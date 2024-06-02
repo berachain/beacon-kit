@@ -92,3 +92,47 @@ func TestBeaconBlockHeader_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 }
+
+func TestBeaconBlockHeader_SetStateRoot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newStateRoot := common.Root{}
+	header.SetStateRoot(newStateRoot)
+
+	require.Equal(t, newStateRoot, header.GetStateRoot())
+}
+
+func TestBeaconBlockHeader_New(t *testing.T) {
+	slot := math.Slot(100)
+	proposerIndex := math.ValidatorIndex(200)
+	parentBlockRoot := common.Root{}
+	stateRoot := common.Root{}
+	bodyRoot := common.Root{}
+
+	header := types.NewBeaconBlockHeader(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		stateRoot,
+		bodyRoot,
+	)
+
+	newHeader := header.New(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		stateRoot,
+		bodyRoot,
+	)
+	require.Equal(t, slot, newHeader.GetSlot())
+	require.Equal(t, proposerIndex, newHeader.GetProposerIndex())
+	require.Equal(t, parentBlockRoot, newHeader.GetParentBlockRoot())
+	require.Equal(t, stateRoot, newHeader.GetStateRoot())
+	require.Equal(t, bodyRoot, newHeader.BodyRoot)
+}
