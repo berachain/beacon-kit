@@ -27,14 +27,9 @@
 package engineprimitives
 
 import (
-	"fmt"
-	"math/big"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
 )
 
 // There are some types we can borrow from geth.
@@ -42,80 +37,6 @@ type (
 	ClientVersionV1 = engine.ClientVersionV1
 	ExecutableData  = engine.ExecutableData
 )
-
-var (
-	ExecutableDataToBlock = engine.ExecutableDataToBlock
-)
-
-// ExecutableDataToBlock constructs a block from executable data.
-// It verifies that the following fields:
-//
-//		len(extraData) <= 32
-//		uncleHash = emptyUncleHash
-//		difficulty = 0
-//	 	if versionedHashes != nil, versionedHashes match to blob transactions
-//
-// and that the blockhash of the constructed block matches the parameters. Nil
-// Withdrawals value will propagate through the returned block. Empty
-// Withdrawals value must be passed via non-nil, length 0 value in params.
-func ExecutableDataToBlock2(txs []*types.Transaction, params ExecutableData, versionedHashes []common.ExecutionHash, beaconRoot *common.ExecutionHash) (*types.Block, error) {
-	if len(params.ExtraData) > 32 {
-		return nil, fmt.Errorf("invalid extradata length: %v", len(params.ExtraData))
-	}
-	if len(params.LogsBloom) != 256 {
-		return nil, fmt.Errorf("invalid logsBloom length: %v", len(params.LogsBloom))
-	}
-	// Check that baseFeePerGas is not negative or too big
-	if params.BaseFeePerGas != nil && (params.BaseFeePerGas.Sign() == -1 || params.BaseFeePerGas.BitLen() > 256) {
-		return nil, fmt.Errorf("invalid baseFeePerGas: %v", params.BaseFeePerGas)
-	}
-	var blobHashes []common.ExecutionHash
-	for _, tx := range txs {
-		blobHashes = append(blobHashes, tx.BlobHashes()...)
-	}
-	if len(blobHashes) != len(versionedHashes) {
-		return nil, fmt.Errorf("invalid number of versionedHashes: %v blobHashes: %v", versionedHashes, blobHashes)
-	}
-	for i := 0; i < len(blobHashes); i++ {
-		if blobHashes[i] != versionedHashes[i] {
-			return nil, fmt.Errorf("invalid versionedHash at %v: %v blobHashes: %v", i, versionedHashes, blobHashes)
-		}
-	}
-	// Only set withdrawalsRoot if it is non-nil. This allows CLs to use
-	// ExecutableData before withdrawals are enabled by marshaling
-	// Withdrawals as the json null value.
-	var withdrawalsRoot *common.ExecutionHash
-	if params.Withdrawals != nil {
-		h := types.DeriveSha(types.Withdrawals(params.Withdrawals), trie.NewStackTrie(nil))
-		withdrawalsRoot = &h
-	}
-	header := &types.Header{
-		ParentHash:       params.ParentHash,
-		UncleHash:        types.EmptyUncleHash,
-		Coinbase:         params.FeeRecipient,
-		Root:             params.StateRoot,
-		TxHash:           types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-		ReceiptHash:      params.ReceiptsRoot,
-		Bloom:            types.BytesToBloom(params.LogsBloom),
-		Difficulty:       big.NewInt(0),
-		Number:           new(big.Int).SetUint64(params.Number),
-		GasLimit:         params.GasLimit,
-		GasUsed:          params.GasUsed,
-		Time:             params.Timestamp,
-		BaseFee:          params.BaseFeePerGas,
-		Extra:            params.ExtraData,
-		MixDigest:        params.Random,
-		WithdrawalsHash:  withdrawalsRoot,
-		ExcessBlobGas:    params.ExcessBlobGas,
-		BlobGasUsed:      params.BlobGasUsed,
-		ParentBeaconRoot: beaconRoot,
-	}
-	block := types.NewBlockWithHeader(header).WithBody(types.Body{Transactions: txs, Uncles: nil, Withdrawals: params.Withdrawals})
-	if block.Hash() != params.BlockHash {
-		return nil, fmt.Errorf("blockhash mismatch, want %x, got %x", params.BlockHash, block.Hash())
-	}
-	return block, nil
-}
 
 type PayloadStatusStr = string
 

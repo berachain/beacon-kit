@@ -99,13 +99,15 @@ func BuildNewPayloadRequest[
 //
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
-
 	var (
 		gethWithdrawals []*types.Withdrawal
 		withdrawalsHash *common.ExecutionHash
 		blobHashes      = make([]common.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
-		txs             = make([]*types.Transaction, len(payload.GetTransactions()))
+		txs             = make(
+			[]*types.Transaction,
+			len(payload.GetTransactions()),
+		)
 	)
 
 	// Extracts and validates the blob hashes from the transactions in the
@@ -157,7 +159,10 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 				Validator: wd.GetValidatorIndex().Unwrap(),
 			}
 		}
-		h := types.DeriveSha(types.Withdrawals(gethWithdrawals), trie.NewStackTrie(nil))
+		h := types.DeriveSha(
+			types.Withdrawals(gethWithdrawals),
+			trie.NewStackTrie(nil),
+		)
 		withdrawalsHash = &h
 	}
 
