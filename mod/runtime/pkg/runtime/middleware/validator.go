@@ -58,7 +58,9 @@ type ValidatorMiddleware[
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.ValidatorIndex, error)
+		ValidatorIndexByCometBFTAddress(
+			cometBFTAddress []byte,
+		) (math.ValidatorIndex, error)
 	},
 	BlobsSidecarsT ssz.Marshallable,
 	StorageBackendT any,
@@ -124,10 +126,12 @@ func NewValidatorMiddleware[
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobsSidecarsT, StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobsSidecarsT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,

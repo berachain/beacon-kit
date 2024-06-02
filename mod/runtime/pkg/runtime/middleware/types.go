@@ -95,8 +95,8 @@ type StorageBackend[BeaconStateT any] interface {
 	StateFromContext(ctx context.Context) BeaconStateT
 }
 
-// BeaconStore is an interface for accessing the beacon store.
-type BeaconStore interface {
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
 	ValidatorIndexByPubkey(
 		pubkey crypto.BLSPubkey,
 	) (math.ValidatorIndex, error)
