@@ -205,7 +205,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:
                 s.replicas = 1
-            next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
+            next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
+            # next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
+
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
         elif s.name == "grafana":
