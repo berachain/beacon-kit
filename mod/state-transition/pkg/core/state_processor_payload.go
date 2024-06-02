@@ -48,6 +48,7 @@ func (sp *StateProcessor[
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
+		header  ExecutionPayloadHeaderT
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
@@ -60,9 +61,14 @@ func (sp *StateProcessor[
 		})
 	}
 
-	// Convert the execution payload to a header.
-	header, err := payload.ToHeader()
-	if err != nil {
+	// Get the execution payload header.
+	g.Go(func() error {
+		var err error
+		header, err = payload.ToHeader()
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
 		return err
 	}
 
