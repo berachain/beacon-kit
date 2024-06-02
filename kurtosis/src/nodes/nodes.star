@@ -4,10 +4,10 @@ CONSENSUS_DEFAULT_SETTINGS = {
     "min_memory": 0,
     "max_memory": 2048,
     "images": {
-        "beaconkit": "beacond:kurtosis-local"
+        "beaconkit": "beacond:kurtosis-local",
     },
     "labels": {},
-    "node_selectors": {}
+    "node_selectors": {},
 }
 
 EXECUTION_DEFAULT_SETTINGS = {
@@ -24,7 +24,7 @@ EXECUTION_DEFAULT_SETTINGS = {
         "reth": "ghcr.io/paradigmxyz/reth:latest",
     },
     "labels": {},
-    "node_selectors": {}
+    "node_selectors": {},
 }
 
 CL_TYPE = "beaconkit"
@@ -81,7 +81,6 @@ def parse_node_settings(settings):
     if "node_selectors" not in node_settings:
         node_settings["node_selectors"] = CONSENSUS_DEFAULT_SETTINGS["node_selectors"]
 
-    
     return struct(
         min_cpu = node_settings["min_cpu"],
         max_cpu = node_settings["max_cpu"],
@@ -91,4 +90,3 @@ def parse_node_settings(settings):
         labels = node_settings["labels"],
         node_selectors = node_settings["node_selectors"],
     )
-

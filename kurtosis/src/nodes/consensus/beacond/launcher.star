@@ -3,7 +3,6 @@ execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
-
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
 COMETBFT_GRPC_PORT_NUM = 9090

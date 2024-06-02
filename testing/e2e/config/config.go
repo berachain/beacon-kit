@@ -33,15 +33,15 @@ import (
 // E2ETestConfig defines the configuration for end-to-end tests, including any
 // additional services and validators involved.
 type E2ETestConfig struct {
-	// AdditionalServices specifies any extra services that should be included
-	// in the test environment.
-	AdditionalServices []AdditionalService `json:"additional_services"`
 	// NetworkConfiguration specifies the configuration for the network.
 	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
 	// NodeSettings specifies the configuration for the nodes in the test.
 	NodeSettings NodeSettings `json:"node_settings"`
 	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
 	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
+	// AdditionalServices specifies any extra services that should be included
+	// in the test environment.
+	AdditionalServices []AdditionalService `json:"additional_services"`
 }
 
 type NetworkConfiguration struct {
@@ -88,13 +88,17 @@ type NodeSettings struct {
 
 // NodeLayerSettings holds the configuration for all clients in a single layer.
 type NodeLayerSettings struct {
-	// MinCPU specifies the minimum number of CPUs to use for all nodes in the layer.
+	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
+	// layer.
 	MinCPU int `json:"min_cpu"`
-	// MaxCPU specifies the maximum number of CPUs to use for all nodes in the layer.
+	// MaxCPU specifies the maximum number of CPUs to use for all nodes in the
+	// layer.
 	MaxCPU int `json:"max_cpu"`
-	// MinMemory specifies the minimum amount of memory to use for all nodes in the layer.
+	// MinMemory specifies the minimum amount of memory to use for all nodes in
+	// the layer.
 	MinMemory int `json:"min_memory"`
-	// MaxMemory specifies the maximum amount of memory to use for all nodes in the layer.
+	// MaxMemory specifies the maximum amount of memory to use for all nodes in
+	// the layer.
 	MaxMemory int `json:"max_memory"`
 	// Labels specifies the labels to use for all nodes in the layer.
 	// node_type is included by default in our kurtosis plan.
@@ -117,111 +121,147 @@ type AdditionalService struct {
 // services.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []AdditionalService{
+		NetworkConfiguration: defaultNetworkConfiguration(),
+		NodeSettings:         defaultNodeSettings(),
+		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
+		AdditionalServices:   defaultAdditionalServices(),
+	}
+}
+
+func defaultNetworkConfiguration() NetworkConfiguration {
+	return NetworkConfiguration{
+		Validators: defaultValidators(),
+		FullNodes:  defaultFullNodes(),
+		SeedNodes:  defaultSeedNodes(),
+	}
+}
+
+func defaultValidators() NodeSet {
+	return NodeSet{
+		Type: "validator",
+		Nodes: []Node{
 			{
-				Name:     "tx-fuzz",
+				ElType:   "nethermind",
+				Replicas: 0,
+			},
+			{
+				ElType:   "geth",
+				Replicas: 1,
+			},
+			{
+				ElType:   "reth",
+				Replicas: 2, //nolint:mnd // 2 replicas
+			},
+			{
+				ElType:   "erigon",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				Replicas: 0,
+			},
+		},
+	}
+}
+
+func defaultFullNodes() NodeSet {
+	return NodeSet{
+		Type: "full",
+		Nodes: []Node{
+			{
+				ElType:   "nethermind",
+				Replicas: 0,
+			},
+			{
+				ElType:   "reth",
+				Replicas: 2, //nolint:mnd // 2 replicas
+			},
+			{
+				ElType:   "geth",
+				Replicas: 1,
+			},
+			{
+				ElType:   "erigon",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				Replicas: 0,
+			},
+		},
+	}
+}
+
+func defaultSeedNodes() NodeSet {
+	return NodeSet{
+		Type: "seed",
+		Nodes: []Node{
+			{
+				ElType:   "reth",
 				Replicas: 1,
 			},
 		},
-		NetworkConfiguration: NetworkConfiguration{
-			Validators: NodeSet{
-				Type: "validator",
-				Nodes: []Node{
-					{
-						ElType:   "nethermind",
-						Replicas: 0,
-					},
-					{
-						ElType:   "geth",
-						Replicas: 1,
-					},
-					{
-						ElType:   "reth",
-						Replicas: 2, //nolint:mnd // 2 replicas
-					},
-					{
-						ElType:   "erigon",
-						Replicas: 1,
-					},
-					{
-						ElType:   "besu",
-						Replicas: 0,
-					},
-				},
-			},
-			FullNodes: NodeSet{
-				Type: "full",
-				Nodes: []Node{
-					{
-						ElType:   "nethermind",
-						Replicas: 0,
-					},
-					{
-						ElType:   "reth",
-						Replicas: 2, //nolint:mnd // 2 replicas
-					},
-					{
-						ElType:   "geth",
-						Replicas: 1,
-					},
-					{
-						ElType:   "erigon",
-						Replicas: 1,
-					},
-					{
-						ElType:   "besu",
-						Replicas: 0,
-					},
-				},
-			},
-			SeedNodes: NodeSet{
-				Type: "seed",
-				Nodes: []Node{
-					{
-						ElType:   "reth",
-						Replicas: 1,
-					},
-				},
+	}
+}
+
+func defaultNodeSettings() NodeSettings {
+	return NodeSettings{
+		ExecutionSettings: defaultExecutionSettings(),
+		ConsensusSettings: defaultConsensusSettings(),
+	}
+}
+
+func defaultExecutionSettings() NodeLayerSettings {
+	return NodeLayerSettings{
+		MinCPU:    0,
+		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+		MinMemory: 0,
+		MaxMemory: 2048, //nolint:mnd // 2 GB
+		Images: map[string]string{
+			"besu":       "hyperledger/besu:latest",
+			"erigon":     "thorax/erigon:latest",
+			"ethereumjs": "ethpandaops/ethereumjs:stable",
+			"geth":       "ethereum/client-go:latest",
+			"nethermind": "nethermind/nethermind:latest",
+			"reth":       "ghcr.io/paradigmxyz/reth:latest",
+		},
+	}
+}
+
+func defaultConsensusSettings() NodeLayerSettings {
+	return NodeLayerSettings{
+		MinCPU:    0,
+		MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+		MinMemory: 0,
+		MaxMemory: 2048, //nolint:mnd // 2 GB
+		Images: map[string]string{
+			"beaconkit": "beacond:kurtosis-local",
+		},
+	}
+}
+
+func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
+	return []EthJSONRPCEndpoint{
+		{
+			Type: "blutgang",
+			Clients: []string{
+				// "el-full-nethermind-0",
+				"el-full-reth-0",
+				"el-full-reth-1",
+				"el-full-geth-2",
+				// "el-full-erigon-3",
+				// Besu causing flakey tests.
+				// "el-full-besu-4",
 			},
 		},
-		NodeSettings: NodeSettings{
-			ExecutionSettings: NodeLayerSettings{
-				MinCPU: 0,
-				MaxCPU: 2000,
-				MinMemory: 0,
-				MaxMemory: 2048,
-				Images: map[string]string{
-					"besu":       "hyperledger/besu:latest",
-					"erigon":     "thorax/erigon:latest",
-					"ethereumjs": "ethpandaops/ethereumjs:stable",
-					"geth":       "ethereum/client-go:latest",
-					"nethermind": "nethermind/nethermind:latest",
-					"reth":       "ghcr.io/paradigmxyz/reth:latest",
-				},
-			},
-			ConsensusSettings: NodeLayerSettings{
-				MinCPU: 0,
-				MaxCPU: 2000,
-				MinMemory: 0,
-				MaxMemory: 2048,
-				Images: map[string]string{
-					"beaconkit": "beacond:kurtosis-local",
-				},
-			},
-		},
-		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
-			{
-				Type: "blutgang",
-				Clients: []string{
-					// "el-full-nethermind-0",
-					"el-full-reth-0",
-					"el-full-reth-1",
-					"el-full-geth-2",
-					// "el-full-erigon-3",
-					// Besu causing flakey tests.
-					// "el-full-besu-4",
-				},
-			},
+	}
+}
+
+func defaultAdditionalServices() []AdditionalService {
+	return []AdditionalService{
+		{
+			Name:     "tx-fuzz",
+			Replicas: 1,
 		},
 	}
 }

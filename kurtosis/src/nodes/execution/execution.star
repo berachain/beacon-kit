@@ -17,7 +17,6 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 ENGINE_WS_PORT_ID = "engineWs"
 METRICS_PORT_ID = "metrics"
 
-
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(node_struct, node_module):
     settings = node_struct.execution_settings
