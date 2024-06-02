@@ -233,4 +233,4 @@ coverage-test-unit-cover.txt
 .air.toml
 
 # eth1 genesis files
-./testing/files/eth.*
+testing/files/eth-*
