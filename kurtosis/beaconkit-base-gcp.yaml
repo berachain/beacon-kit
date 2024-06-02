@@ -69,7 +69,7 @@ node_settings:
     min_memory: 32768
     max_memory: 32768
     images:
-      beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:v0.0.24-optimistic
+      beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
     node_selectors:
       node_preference: fast
     config:
