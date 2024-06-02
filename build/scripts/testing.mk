@@ -13,19 +13,33 @@
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+ETH_DATA_DIR = .tmp/eth-home
+# URLs used for dialing the eth client
+IPC_PATH = .tmp/eth-home/eth-engine.ipc
+HTTP_URL = localhost:8551
+IPC_PREFIX = ipc://
+HTTP_PREFIX = http://
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
+# start-ipc is currently only supported while running eth client the host machine
+# Only works with geth-host rn
+start-ipc: ## start a local ephemeral `beacond` node with IPC
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	RPC_DIAL_URL=${IPC_PATH} \
+	RPC_PREFIX=${IPC_PREFIX} \
+	${TESTAPP_FILES_DIR}/entrypoint.sh 
 
 start-reth: ## start an ephemeral `reth` node
-	@rm -rf .tmp/eth-home
+	@rm -rf ${ETH_DATA_DIR}
 	@docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
@@ -33,14 +47,29 @@ start-reth: ## start an ephemeral `reth` node
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+
+start-reth-host: ## start a local ephemeral `reth` node on host machine
+	rm -rf ${ETH_DATA_DIR}
+	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
+	reth node \
+	--chain ${ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
 	
-start-geth: ## start an ephemeral `geth` node
-	rm -rf .tmp/geth
+start-geth: ## start an ephemeral `geth` node with docker
+	rm -rf ${ETH_DATA_DIR}
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
-	--datadir .tmp/geth \
+	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
 	docker run \
@@ -56,7 +85,21 @@ start-geth: ## start an ephemeral `geth` node
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir .tmp/geth
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+
+start-geth-host: ## start a local ephemeral `geth` node on host machine
+	rm -rf ${ETH_DATA_DIR}
+	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
+	geth \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*"
 
 start-nethermind: ## start an ephemeral `nethermind` node
 	docker run \

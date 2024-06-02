@@ -53,8 +53,8 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// StorageBackend is an interface that provides the
-// beacon state to the runtime.
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT,
@@ -62,11 +62,12 @@ type StorageBackend[
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
-	AvailabilityStore(
-		ctx context.Context,
-	) AvailabilityStoreT
-	StateFromContext(ctx context.Context) BeaconStateT
-	DepositStore(ctx context.Context) DepositStoreT
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // BlobSidecars is an interface that represents the sidecars.

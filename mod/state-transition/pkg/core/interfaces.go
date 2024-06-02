@@ -29,36 +29,52 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
-type BeaconState[ValidatorT any] interface {
-	Copy() BeaconState[ValidatorT]
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalT any,
+] interface {
+	Copy() BeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[ValidatorT]
-	WriteOnlyBeaconState[ValidatorT]
+	ReadOnlyBeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	]
+	WriteOnlyBeaconState[
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		ValidatorT,
+	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[ValidatorT any] interface {
-	ReadOnlyEth1Data
+type ReadOnlyBeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
+] interface {
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
-	ReadOnlyWithdrawals
+	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() ([]ValidatorT, error)
 	GetTotalSlashing() (math.Gwei, error)
@@ -71,9 +87,28 @@ type ReadOnlyBeaconState[ValidatorT any] interface {
 	) (math.ValidatorIndex, error)
 }
 
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() primitives.Root
+	GetStateRoot() primitives.Root
+	SetStateRoot(primitives.Root)
+}
+
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[ValidatorT any] interface {
-	WriteOnlyEth1Data
+type WriteOnlyBeaconState[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT any,
+] interface {
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
@@ -82,7 +117,7 @@ type WriteOnlyBeaconState[ValidatorT any] interface {
 	SetFork(*types.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -138,24 +173,24 @@ type ReadOnlyValidators[ValidatorT any] interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data interface {
+type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 	SetEth1Data(*types.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
-		engineprimitives.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data interface {
+type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 	GetEth1Data() (*types.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+type ReadOnlyWithdrawals[WithdrawalT any] interface {
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

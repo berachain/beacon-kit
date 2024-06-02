@@ -38,7 +38,9 @@ import (
 
 // RequestPayload builds a payload for the given slot and
 // returns the payload ID.
-func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAsync(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
@@ -101,7 +103,9 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadAsync(
 
 // RequestPayload request a payload for the given slot and
 // blocks until the payload is delivered.
-func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadSync(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
@@ -109,7 +113,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadSync(
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -158,11 +162,13 @@ func (pb *PayloadBuilder[BeaconStateT]) RequestPayloadSync(
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (pb *PayloadBuilder[BeaconStateT]) RetrievePayload(
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot primitives.Root,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -194,7 +200,7 @@ func (pb *PayloadBuilder[BeaconStateT]) RetrievePayload(
 	}
 
 	payload := envelope.GetExecutionPayload()
-	if payload != nil && !payload.IsNil() {
+	if !payload.IsNil() {
 		args = append(args,
 			"payload_block_hash", payload.GetBlockHash(),
 			"parent_hash", payload.GetParentHash(),

@@ -40,6 +40,7 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
+	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
@@ -66,7 +67,7 @@ type Service[
 	bp BlobProcessor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
-		types.BeaconBlock,
+		BeaconBlockT,
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
@@ -74,7 +75,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[types.BeaconBlock]]
+	blockFeed EventFeed[events.Block[BeaconBlockT]]
 }
 
 // NewService creates a new validator service.
@@ -82,6 +83,7 @@ func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
+	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
@@ -90,7 +92,10 @@ func NewService[
 	sb StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositStoreT],
+		BeaconStateT,
+		BlobSidecarsT,
+		DepositStoreT,
+	],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
@@ -101,17 +106,17 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		types.BeaconBlock, BeaconStateT,
+		BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[types.BeaconBlock]],
+	blockFeed EventFeed[events.Block[BeaconBlockT]],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
 		sb:        sb,
@@ -129,6 +134,7 @@ func NewService[
 // Name returns the name of the service.
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
@@ -139,6 +145,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
@@ -151,6 +158,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
@@ -161,6 +169,7 @@ func (s *Service[
 
 func (s *Service[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,

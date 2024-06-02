@@ -100,7 +100,6 @@ func NewValidatorsIndex[ValidatorT Validator](
 			validatorPubkeyToIndexPrefix,
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
-
 			func(_ uint64, validator ValidatorT) ([]byte, error) {
 				pk := validator.GetPubkey()
 				return pk[:], nil

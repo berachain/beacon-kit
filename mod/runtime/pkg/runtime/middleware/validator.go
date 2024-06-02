@@ -45,7 +45,17 @@ import (
 // ValidatorMiddleware is a middleware between ABCI and the validator logic.
 type ValidatorMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockBodyT any,
+	BeaconBlockT interface {
+		types.RawBeaconBlock[BeaconBlockBodyT]
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+	},
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
@@ -58,7 +68,7 @@ type ValidatorMiddleware[
 	chainSpec primitives.ChainSpec
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
-		types.BeaconBlock,
+		BeaconBlockT,
 		BeaconStateT,
 		BlobsSidecarsT,
 	]
@@ -70,10 +80,10 @@ type ValidatorMiddleware[
 	// TODO: we will eventually gossip the blocks separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	beaconBlockGossiper p2p.PublisherReceiver[
-		types.BeaconBlock,
+		BeaconBlockT,
 		[]byte,
 		encoding.ABCIRequest,
-		types.BeaconBlock,
+		BeaconBlockT,
 	]
 	// metrics is the metrics emitter.
 	metrics *validatorMiddlewareMetrics
@@ -85,7 +95,17 @@ type ValidatorMiddleware[
 // NewValidatorMiddleware creates a new instance of the Handler struct.
 func NewValidatorMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockBodyT any,
+	BeaconBlockT interface {
+		types.RawBeaconBlock[BeaconBlockBodyT]
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+	},
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
@@ -98,24 +118,24 @@ func NewValidatorMiddleware[
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
-		types.BeaconBlock,
+		BeaconBlockT,
 		BeaconStateT,
 		BlobsSidecarsT,
 	],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
-		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobsSidecarsT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
 		blobGossiper: rp2p.
 			NoopGossipHandler[BlobsSidecarsT, []byte]{},
 		beaconBlockGossiper: rp2p.
-			NewNoopBlockGossipHandler[encoding.ABCIRequest](
+			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
 		metrics:        newValidatorMiddlewareMetrics(telemetrySink),
@@ -128,6 +148,7 @@ func NewValidatorMiddleware[
 func (h *ValidatorMiddleware[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobsSidecarsT,
 	DepositStoreT,
@@ -179,7 +200,7 @@ func (h *ValidatorMiddleware[
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
-	if err != nil || blk == nil || blk.IsNil() {
+	if err != nil || blk.IsNil() {
 		logger.Error("failed to build block", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
@@ -214,6 +235,7 @@ func (h *ValidatorMiddleware[
 // that extracts the beacon block from the proposal and processes it.
 func (h *ValidatorMiddleware[
 	AvailabilityStoreT,
+	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobsSidecarsT,

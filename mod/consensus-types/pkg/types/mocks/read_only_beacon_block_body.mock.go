@@ -8,8 +8,6 @@ import (
 
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-
 	mock "github.com/stretchr/testify/mock"
 
 	ssz "github.com/ferranbt/fastssz"
@@ -172,19 +170,19 @@ func (_c *ReadOnlyBeaconBlockBody_GetEth1Data_Call) RunAndReturn(run func() *typ
 }
 
 // GetExecutionPayload provides a mock function with given fields:
-func (_m *ReadOnlyBeaconBlockBody) GetExecutionPayload() engineprimitives.ExecutionPayload {
+func (_m *ReadOnlyBeaconBlockBody) GetExecutionPayload() *types.ExecutionPayload {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetExecutionPayload")
 	}
 
-	var r0 engineprimitives.ExecutionPayload
-	if rf, ok := ret.Get(0).(func() engineprimitives.ExecutionPayload); ok {
+	var r0 *types.ExecutionPayload
+	if rf, ok := ret.Get(0).(func() *types.ExecutionPayload); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(engineprimitives.ExecutionPayload)
+			r0 = ret.Get(0).(*types.ExecutionPayload)
 		}
 	}
 
@@ -208,12 +206,12 @@ func (_c *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call) Run(run func()) *Rea
 	return _c
 }
 
-func (_c *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call) Return(_a0 engineprimitives.ExecutionPayload) *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call {
+func (_c *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call) Return(_a0 *types.ExecutionPayload) *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call) RunAndReturn(run func() engineprimitives.ExecutionPayload) *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call {
+func (_c *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call) RunAndReturn(run func() *types.ExecutionPayload) *ReadOnlyBeaconBlockBody_GetExecutionPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }

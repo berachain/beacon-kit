@@ -26,6 +26,8 @@
 package engineprimitives
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -56,6 +58,8 @@ type ExecutionPayloadBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	json.Marshaler
+	json.Unmarshaler
 	IsNil() bool
 	Version() uint32
 	IsBlinded() bool

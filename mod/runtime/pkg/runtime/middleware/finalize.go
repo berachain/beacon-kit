@@ -47,7 +47,10 @@ import (
 // components to handle
 // the proposal processes.
 type FinalizeBlockMiddleware[
-	BeaconBlockT ssz.Marshallable,
+	BeaconBlockT interface {
+		ssz.Marshallable
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	},
 	BeaconStateT any,
 	BlobsSidecarsT ssz.Marshallable,
 ] struct {
@@ -63,7 +66,10 @@ type FinalizeBlockMiddleware[
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
 func NewFinalizeBlockMiddleware[
-	BeaconBlockT ssz.Marshallable,
+	BeaconBlockT interface {
+		ssz.Marshallable
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	},
 	BeaconStateT any, BlobsSidecarsT ssz.Marshallable,
 ](
 	chainSpec primitives.ChainSpec,

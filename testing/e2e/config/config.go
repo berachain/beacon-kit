@@ -40,8 +40,8 @@ type E2ETestConfig struct {
 	Validators []Node `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
 	FullNodes []Node `json:"full_nodes"`
-	// BootSequence specifies the methodology for how the network boots.
-	BootSequence map[string]string `json:"boot_sequence"`
+	// SeedNodes specifies the number of seed nodes to include in the test.
+	SeedNodes []Node `json:"seed_nodes"`
 	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
 	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 }
@@ -82,7 +82,8 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		AdditionalServices: []AdditionalService{
 			{
-				Name: "tx-fuzz",
+				Name:     "tx-fuzz",
+				Replicas: 1,
 			},
 		},
 		Validators: []Node{
@@ -90,7 +91,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "nethermind",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 0,
 			},
 			{
 				ElType:   "geth",
@@ -114,7 +115,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "besu",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 0,
 			},
 		},
 		FullNodes: []Node{
@@ -122,7 +123,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "nethermind",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 0,
 			},
 			{
 				ElType:   "reth",
@@ -146,19 +147,25 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 				ElType:   "besu",
 				ClImage:  "beacond:kurtosis-local",
 				ClType:   "beaconkit",
-				Replicas: 1,
+				Replicas: 0,
 			},
 		},
-		BootSequence: map[string]string{
-			"type": "parallel",
+		SeedNodes: []Node{
+			{
+				ElType:   "reth",
+				ClImage:  "beacond:kurtosis-local",
+				ClType:   "beaconkit",
+				Replicas: 1,
+			},
 		},
 		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
 			{
 				Type: "blutgang",
 				Clients: []string{
-					"el-full-nethermind-0",
+					// "el-full-nethermind-0",
+					"el-full-reth-0",
 					"el-full-reth-1",
-					"el-full-geth-3",
+					"el-full-geth-2",
 					// "el-full-erigon-3",
 					// Besu causing flakey tests.
 					// "el-full-besu-4",

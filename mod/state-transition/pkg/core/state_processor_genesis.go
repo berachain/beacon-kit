@@ -27,7 +27,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -41,13 +40,14 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
 	fork := &types.Fork{
@@ -89,9 +89,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetLatestBlockHeader(&types.BeaconBlockHeader{
-		BodyRoot: bodyRoot,
-	}); err != nil {
+	var bbh BeaconBlockHeaderT
+	if err = st.SetLatestBlockHeader(bbh.New(
+		0, 0, common.Root{}, common.Root{}, bodyRoot,
+	)); err != nil {
 		return nil, err
 	}
 

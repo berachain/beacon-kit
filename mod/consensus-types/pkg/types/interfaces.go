@@ -26,7 +26,6 @@
 package types
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -46,7 +45,7 @@ type BeaconBlockBody interface {
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
-	SetExecutionData(engineprimitives.ExecutionPayload) error
+	SetExecutionData(*ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 }
@@ -64,16 +63,16 @@ type ReadOnlyBeaconBlockBody interface {
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
 	GetRandaoReveal() crypto.BLSSignature
-	GetExecutionPayload() engineprimitives.ExecutionPayload
+	GetExecutionPayload() *ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock interface {
+type RawBeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
-	ReadOnlyBeaconBlock[BeaconBlockBody]
+	ReadOnlyBeaconBlock[BeaconBlockBodyT]
 }
 
 type BeaconBlockG[BodyT any] struct {

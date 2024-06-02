@@ -62,7 +62,7 @@ type ReadOnlyBeaconState[T any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeader,
 		error,
 	)
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
@@ -85,9 +85,9 @@ type ReadOnlyBeaconState[T any] interface {
 // required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT types.BeaconBlockBody,
-	BeaconStateT any,
-	BlobSidecarsT BlobSidecars,
+	BeaconBlockBodyT any,
+	BeaconStateT,
+	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
@@ -140,7 +140,7 @@ type ExecutionEngine interface {
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv, error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
@@ -151,7 +151,7 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[engineprimitives.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[*types.ExecutionPayload],
 	) error
 }
 
@@ -185,7 +185,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
 		deposits []*types.Deposit,
-		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		executionPayloadHeader *types.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.
