@@ -333,16 +333,18 @@ func (s *Service[
 			"aborting block verification on nil block ⛔️ ",
 		)
 
-		go func() {
-			if pErr := s.rebuildPayloadForRejectedBlock(
-				ctx, st,
-			); pErr != nil {
-				s.logger.Error(
-					"failed to rebuild payload for nil block",
-					"error", pErr,
-				)
-			}
-		}()
+		if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
+			go func() {
+				if pErr := s.rebuildPayloadForRejectedBlock(
+					ctx, st,
+				); pErr != nil {
+					s.logger.Error(
+						"failed to rebuild payload for nil block",
+						"error", pErr,
+					)
+				}
+			}()
+		}
 
 		return ErrNilBlk
 	}
@@ -385,17 +387,19 @@ func (s *Service[
 			err,
 		)
 
-		go func() {
-			if pErr := s.rebuildPayloadForRejectedBlock(
-				ctx, st,
-			); pErr != nil {
-				s.logger.Error(
-					"failed to rebuild payload for rejected block",
-					"for_slot", blk.GetSlot(),
-					"error", pErr,
-				)
-			}
-		}()
+		if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
+			go func() {
+				if pErr := s.rebuildPayloadForRejectedBlock(
+					ctx, st,
+				); pErr != nil {
+					s.logger.Error(
+						"failed to rebuild payload for rejected block",
+						"for_slot", blk.GetSlot(),
+						"error", pErr,
+					)
+				}
+			}()
+		}
 
 		return err
 	}
@@ -405,8 +409,7 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
-	// TODO: Make optimistic explicitly feature flagged.
-	if s.localPayloadBuilder.Enabled() {
+	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
 		go func() {
 			if err := s.optimisticPayloadBuild(ctx, stCopy, blk); err != nil {
 				s.logger.Error(

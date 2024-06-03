@@ -117,9 +117,15 @@ func (s *Service[
 	// emit new block event
 	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
 
-	// No matter what happens we always want to forkchoice at the end of post
+	// If required, we want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
+	// We won't send a fcu if the block is bad, should be addressed
+	// via ticker later.
+	if !s.skipPostBlockFCU {
+		go s.sendFCU(ctx, st, blk.GetSlot())
+	}
+
 	go s.postBlockProcessTasks(ctx, st)
 
 	return valUpdates, nil
