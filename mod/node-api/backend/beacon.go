@@ -228,7 +228,6 @@ func (h Backend) GetBlockHeaders(
 	parentRoot primitives.Root,
 ) ([]*response.BlockHeaderData, error) {
 	blockDB := h.getNewBlockDB(ctx, "blockID")
-	var slotU64 math.Slot = 0
 	slotU64, slotErr := resolveUint64[math.Slot](slot)
 	if slotErr != nil {
 		return nil, slotErr
