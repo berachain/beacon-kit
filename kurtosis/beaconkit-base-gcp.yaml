@@ -90,7 +90,7 @@ node_settings:
       erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:1.26.0-chiseled
+      nethermind: nethermind/nethermind:1.26.0
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   - type: blutgang
