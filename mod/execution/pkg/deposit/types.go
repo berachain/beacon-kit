@@ -32,21 +32,35 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+type BeaconBlockBody[DepositT any] interface {
+	GetDeposits() []DepositT
+}
+
 // BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
+type BeaconBlock[
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
+] interface {
 	GetSlot() math.U64
+	GetBody() BeaconBlockBodyT
 }
 
 // BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
+type BlockEvent[
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
+] interface {
 	Context() context.Context
 	Block() BeaconBlockT
 }
 
 // BlockFeed is an interface for subscribing to block events.
 type BlockFeed[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
+	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, BeaconBlockT],
 	SubscriptionT interface {
 		Unsubscribe()
 	}] interface {
@@ -72,6 +86,8 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		crypto.BLSSignature,
 		uint64,
 	) DepositT
+
+	GetIndex() uint64
 }
 
 // Store defines the interface for managing deposit operations.

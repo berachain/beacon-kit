@@ -39,10 +39,11 @@ type Pruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	SubscriptionT Subscription,
 ] struct {
-	prunable interfaces.Prunable
-	logger   log.Logger[any]
-	name     string
-	feed     BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	prunable      interfaces.Prunable
+	logger        log.Logger[any]
+	name          string
+	feed          BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	pruneParamsFn func(BlockEventT) (uint64, uint64)
 }
 
 func NewPruner[
@@ -54,12 +55,14 @@ func NewPruner[
 	prunable interfaces.Prunable,
 	name string,
 	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
+	pruneParamsFn func(BlockEventT) (uint64, uint64),
 ) *Pruner[BeaconBlockT, BlockEventT, SubscriptionT] {
 	return &Pruner[BeaconBlockT, BlockEventT, SubscriptionT]{
-		logger:   logger,
-		prunable: prunable,
-		name:     name,
-		feed:     feed,
+		logger:        logger,
+		prunable:      prunable,
+		name:          name,
+		feed:          feed,
+		pruneParamsFn: pruneParamsFn,
 	}
 }
 
@@ -76,15 +79,15 @@ func (p *Pruner[
 			case <-ctx.Done():
 				return
 			case event := <-ch:
-				index := event.Block().GetSlot().Unwrap()
+				idx, n := p.pruneParamsFn(event)
 				p.logger.Info(
 					"🔪 pruning events 🔪",
-					"index", index,
+					"index", idx,
 				)
-				if err := p.prunable.PruneFromInclusive(index, 0); err != nil {
+				if err := p.prunable.PruneFromInclusive(idx, n); err != nil {
 					p.logger.Error(
 						"‼️ error pruning index ‼️",
-						"index", index,
+						"index", idx,
 						"error", err,
 					)
 				}
