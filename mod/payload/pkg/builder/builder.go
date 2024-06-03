@@ -45,7 +45,10 @@ type PayloadBuilder[
 		GetFeeRecipient() common.ExecutionAddress
 		GetParentHash() common.ExecutionHash
 	},
-	ExecutionPayloadHeaderT any,
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	},
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -72,7 +75,12 @@ func New[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetFeeRecipient() common.ExecutionAddress
-	}, ExecutionPayloadHeaderT any](
+	},
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	},
+](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
