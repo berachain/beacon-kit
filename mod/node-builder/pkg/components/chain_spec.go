@@ -40,6 +40,5 @@ type ChainSpecInput struct {
 }
 
 func ProvideChainSpec(in ChainSpecInput) (primitives.ChainSpec, error) {
-	spec, _ := spec.ReadFromAppOpts(in.AppOpts)
-	return spec, nil
+	return spec.ReadFromAppOpts(in.AppOpts)
 }
