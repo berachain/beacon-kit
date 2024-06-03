@@ -64,6 +64,7 @@ type ParamsEthash struct {
 }
 
 type Params struct {
+	ChainID                       string `json:"chainID"`
 	GasLimitBoundDivisor          string `json:"gasLimitBoundDivisor"`
 	Registrar                     string `json:"registrar"`
 	AccountStartNonce             string `json:"accountStartNonce"`
@@ -124,8 +125,8 @@ type NetherGenesis struct {
 
 type Account struct {
 	Balance string `json:"balance"`
-	Nonce   string `json:"nonce"`
-	Code    string `json:"code"`
+	Nonce   string `json:"nonce,omitempty"`
+	Code    string `json:"code,omitempty"`
 }
 
 func NewNethermind() *Nethermind {
@@ -193,6 +194,7 @@ func (n *Nethermind) WriteJSON(filename string) error {
 
 func defaultNethermindParams() Params {
 	return Params{
+		ChainID:                       strconv.Itoa(chainID),
 		GasLimitBoundDivisor:          "0x400",
 		Registrar:                     "0xe3389675d0338462dC76C6f9A3e432550c36A142",
 		AccountStartNonce:             "0x0",

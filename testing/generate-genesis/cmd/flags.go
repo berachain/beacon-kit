@@ -47,27 +47,33 @@ const (
 func sanitizeFlags(cmd *cobra.Command) (
 	[]string, []string, []string, []string, []string, []string, string, error,
 ) {
+	handleError := func(err error) ([]string, []string, []string, []string,
+		[]string, []string, string, error) {
+		return []string{}, []string{}, []string{}, []string{}, []string{},
+			[]string{}, "", err
+	}
+
 	// Check if all predeploy flags have the same length
 	predeployAddresses, err := cmd.Flags().
 		GetStringSlice(predeployAddressesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get predeployAddresses flag")
+		return handleError(errors.Wrap(err,
+			"failed to get predeployAddresses flag"))
 	}
 	predeployCodes, err := cmd.Flags().GetStringSlice(predeployCodesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get predeployCodes flag")
+		return handleError(errors.Wrap(err,
+			"failed to get predeployCodes flag"))
 	}
 	predeployBalances, err := cmd.Flags().GetStringSlice(predeployBalancesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get predeployBalances flag")
+		return handleError(errors.Wrap(err,
+			"failed to get predeployBalances flag"))
 	}
 	predeployNonces, err := cmd.Flags().GetStringSlice(predeployNoncesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get predeployNonces flag")
+		return handleError(errors.Wrap(err,
+			"failed to get predeployNonces flag"))
 	}
 	if len(predeployAddresses) != len(predeployCodes) ||
 		len(predeployAddresses) != len(predeployBalances) ||
@@ -79,23 +85,23 @@ func sanitizeFlags(cmd *cobra.Command) (
 	// Check if accountAddresses and accountBalances have the same length
 	accountAddresses, err := cmd.Flags().GetStringSlice(accountAddressesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get accountAddresses flag")
+		return handleError(errors.Wrap(err,
+			"failed to get accountAddresses flag"))
 	}
 	accountBalances, err := cmd.Flags().GetStringSlice(accountBalancesFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get accountBalances flag")
+		return handleError(errors.Wrap(err,
+			"failed to get accountBalances flag"))
 	}
 	if len(accountAddresses) != len(accountBalances) {
-		return nil, nil, nil, nil, nil, nil, "", errAccountFlagsLength
+		return handleError(errAccountFlagsLength)
 	}
 
 	// Get the output file name
 	outputFile, err := cmd.Flags().GetString(outputFileFlag)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, "", errors.Wrap(err,
-			"failed to get output flag")
+		return handleError(errors.Wrap(err,
+			"failed to get output flag"))
 	}
 
 	return accountAddresses,
