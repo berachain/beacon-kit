@@ -67,7 +67,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 
 			var deposits []*types.Deposit
 			if deposits, err = CollectValidatorJSONFiles(
-				filepath.Join(config.RootDir, "config", "gentx"),
+				filepath.Join(config.RootDir, "config", "premined-deposits"),
 				appGenesis,
 			); err != nil {
 				return errors.Wrap(

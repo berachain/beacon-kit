@@ -152,7 +152,7 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 }
 
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
-	writePath := filepath.Join(rootDir, "config", "gentx")
+	writePath := filepath.Join(rootDir, "config", "premined-deposits")
 	if err := afero.NewOsFs().MkdirAll(writePath, os.ModePerm); err != nil {
 		return "", errors.Newf(
 			"could not create directory %q: %w",
@@ -161,7 +161,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 		)
 	}
 
-	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", pubkey)), nil
+	return filepath.Join(writePath, fmt.Sprintf("premined-deposits-%v.json", pubkey)), nil
 }
 
 func writeDepositToFile(
