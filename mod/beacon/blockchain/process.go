@@ -42,6 +42,7 @@ import (
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -54,7 +55,9 @@ func (s *Service[
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		genesisData.ExecutionPayloadHeader,
+		&types.ExecutionPayloadHeader{
+			ExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+		},
 		genesisData.ForkVersion,
 	)
 }
@@ -64,6 +67,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -134,8 +138,12 @@ func (s *Service[
 // TODO: Deprecate this function and move it's usage outside of the main block
 // processing thread.
 func (s *Service[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) postBlockProcessTasks(
 	ctx context.Context,
 	st BeaconStateT,
@@ -151,7 +159,6 @@ func (s *Service[
 		return
 	}
 
-	// TODO: pruner shouldn't be in main block processing thread.
 	if err = s.PruneDepositEvents(ctx, idx); err != nil {
 		s.logger.Error(
 			"failed to prune deposit events in postBlockProcessTasks",
@@ -164,6 +171,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
@@ -204,6 +212,7 @@ func (s *Service[
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,

@@ -35,7 +35,6 @@ METRICS_PORT_ID = defaults.METRICS_PORT_ID
 METRICS_PATH = defaults.METRICS_PATH
 
 GENESIS_FILEPATH = "/home/erigon/genesis"
-IMAGE = "thorax/erigon:latest"
 ENTRYPOINT = ["sh", "-c"]
 
 # CONFIG_LOCATION = "/root/.erigon/{}".format(CONFIG_FILENAME)

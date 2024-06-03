@@ -90,6 +90,22 @@ func (kv *KVStore[
 // ValidatorByIndex returns the validator address by index.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+]) ValidatorIndexByCometBFTAddress(
+	cometBFTAddress []byte,
+) (math.ValidatorIndex, error) {
+	idx, err := kv.validators.Indexes.CometBFTAddress.MatchExact(
+		kv.ctx,
+		cometBFTAddress,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return math.ValidatorIndex(idx), nil
+}
+
+// ValidatorByIndex returns the validator address by index.
+func (kv *KVStore[
+	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {

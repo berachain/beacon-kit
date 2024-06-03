@@ -27,6 +27,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -57,9 +58,11 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BeaconBlock[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, WithdrawalsT,
+		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
 	// GetProposerIndex returns the index of the proposer.
@@ -78,7 +81,10 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	DepositT any,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -140,12 +146,20 @@ type Deposit[
 		forkData ForkDataT,
 		domainType common.DomainType,
 		signatureVerificationFn func(
-			pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
+			pubkey crypto.BLSPubkey,
+			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
 }
 
-type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
+type ExecutionPayload[
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	json.Marshaler
+	json.Unmarshaler
+	ssz.HashRoot
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -165,18 +179,41 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	GetBaseFeePerGas() math.U256L
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
+	ToHeader() (ExecutionPayloadHeaderT, error)
+	IsNil() bool
+}
+
+type ExecutionPayloadHeader interface {
+	Version() uint32
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetPrevRandao() bytes.B32
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() bytes.B32
+	GetReceiptsRoot() common.Root
+	GetLogsBloom() []byte
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetTimestamp() math.U64
+	GetGasUsed() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.U256L
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
-	WithdrawalsT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+	ExecutionPayloadHeaderT any,
+	WithdrawalT Withdrawal[WithdrawalT],
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT],
 	) error
 }
 
@@ -237,4 +274,6 @@ type Withdrawal[WithdrawalT any] interface {
 	GetIndex() math.U64
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
+	// GetAddress returns the address of the withdrawal.
+	GetAddress() common.ExecutionAddress
 }

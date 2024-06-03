@@ -43,7 +43,8 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
@@ -228,8 +229,14 @@ func (s *Service[
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return blk, sidecars, ErrNilDepositIndexStart
+	}
+
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.ExpectedDeposits(
+	deposits, err := s.ds.GetDepositsByIndex(
+		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {

@@ -99,8 +99,91 @@ func (cm *clientMetrics) incrementGetPayloadTimeout() {
 		"beacon_kit.execution.client.get_payload_duration")
 }
 
+// incrementHTTPTimeout increments the timeout counter for HTTP.
+func (cm *clientMetrics) incrementHTTPTimeoutCounter() {
+	cm.incrementTimeoutCounter("beacon_kit.execution.client.http")
+}
+
 // incrementTimeoutCounter increments the timeout counter for
 // the given metric.
 func (cm *clientMetrics) incrementTimeoutCounter(metricName string) {
 	cm.sink.IncrementCounter(metricName + "_timeout")
+}
+
+// incrementParseErrorCounter increments the parse error counter
+// for the given metric.
+func (cm *clientMetrics) incrementParseErrorCounter() {
+	cm.sink.IncrementCounter("beacon_kit.execution.client.parse_error")
+}
+
+// incrementInvalidRequestCounter increments the invalid request counter
+// for the given metric.
+func (cm *clientMetrics) incrementInvalidRequestCounter() {
+	cm.incrementErrorCounter("beacon_kit.execution.client.invalid_request")
+}
+
+// incrementMethodNotFoundCounter increments the method not found counter
+// for the given metric.
+func (cm *clientMetrics) incrementMethodNotFoundCounter() {
+	cm.incrementErrorCounter("beacon_kit.execution.client.method_not_found")
+}
+
+// incrementInvalidParamsCounter increments the invalid params counter
+// for the given metric.
+func (cm *clientMetrics) incrementInvalidParamsCounter() {
+	cm.incrementErrorCounter("beacon_kit.execution.client.invalid_params")
+}
+
+// incrementInternalErrorCounter increments the internal error counter
+// for the given metric.
+func (cm *clientMetrics) incrementInternalErrorCounter() {
+	cm.incrementErrorCounter("beacon_kit.execution.client.internal_error")
+}
+
+// incrementUnknownPayloadErrorCounter increments the unknown payload error
+// counter
+// for the given metric.
+func (cm *clientMetrics) incrementUnknownPayloadErrorCounter() {
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.unknown_payload_error",
+	)
+}
+
+// incrementInvalidForkchoiceStateCounter increments the invalid forkchoice
+// state counter
+// for the given metric.
+func (cm *clientMetrics) incrementInvalidForkchoiceStateCounter() {
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.invalid_forkchoice_state",
+	)
+}
+
+// incrementInvalidPayloadAttributesCounter increments the invalid payload
+// attributes counter
+// for the given metric.
+func (cm *clientMetrics) incrementInvalidPayloadAttributesCounter() {
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.invalid_payload_attributes",
+	)
+}
+
+// incrementRequestTooLargeCounter increments the request too large counter
+// for the given metric.
+func (cm *clientMetrics) incrementRequestTooLargeCounter() {
+	cm.incrementErrorCounter("beacon_kit.execution.client.request_too_large")
+}
+
+// incrementInternalServerErrorCounter increments the internal server error
+// counter
+// for the given metric.
+func (cm *clientMetrics) incrementInternalServerErrorCounter() {
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.internal_server_error",
+	)
+}
+
+// incrementErrorCounter increments the error counter for
+// the given metric.
+func (cm *clientMetrics) incrementErrorCounter(metricName string) {
+	cm.sink.IncrementCounter(metricName)
 }

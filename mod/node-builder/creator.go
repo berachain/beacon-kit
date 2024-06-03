@@ -31,7 +31,9 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
@@ -53,7 +55,11 @@ func (nb *NodeBuilder[T]) AppCreator(
 		appOpts,
 		nb.appInfo.DepInjectConfig,
 		nb.chainSpec,
-		server.DefaultBaseappOptions(appOpts)...,
+		append(
+			server.DefaultBaseappOptions(appOpts),
+			func(bApp *baseapp.BaseApp) {
+				bApp.SetParamStore(comet.NewConsensusParamsStore(nb.chainSpec))
+			})...,
 	)
 	return reflect.ValueOf(app).Convert(
 		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)

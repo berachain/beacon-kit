@@ -42,7 +42,7 @@ type AppOptions interface {
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
@@ -56,7 +56,8 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
@@ -79,16 +80,12 @@ type BlobSidecars interface {
 // DepositStore is an interface that provides the
 // expected deposits to the runtime.
 type DepositStore interface {
-	ExpectedDeposits(
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
-	DequeueDeposits(
-		numDequeue uint64,
-	) ([]*types.Deposit, error)
-	PruneToIndex(
-		index uint64,
-	) error
+	PruneFromInclusive(index uint64, numPrune uint64) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

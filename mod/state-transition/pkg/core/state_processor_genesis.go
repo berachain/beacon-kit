@@ -27,7 +27,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -43,19 +42,20 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
-	fork := &types.Fork{
-		PreviousVersion: genesisVersion,
-		CurrentVersion:  genesisVersion,
-		Epoch:           math.U64(constants.GenesisEpoch),
-	}
+	var fork ForkT
+	fork = fork.New(
+		genesisVersion,
+		genesisVersion,
+		math.U64(constants.GenesisEpoch),
+	)
 
 	if err := st.SetSlot(0); err != nil {
 		return nil, err

@@ -33,12 +33,22 @@ import (
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 ]) PruneDepositEvents(
 	ctx context.Context,
-	idx uint64,
+	eth1DepositIndex uint64,
 ) error {
-	return s.sb.DepositStore(ctx).PruneToIndex(idx)
+	var startIndex uint64
+	var numToPrune uint64
+	if eth1DepositIndex > s.cs.MaxDepositsPerBlock() {
+		startIndex = 0
+		numToPrune = eth1DepositIndex
+	} else {
+		startIndex = eth1DepositIndex - s.cs.MaxDepositsPerBlock()
+		numToPrune = s.cs.MaxDepositsPerBlock()
+	}
+	return s.sb.DepositStore(ctx).PruneFromInclusive(startIndex, numToPrune)
 }

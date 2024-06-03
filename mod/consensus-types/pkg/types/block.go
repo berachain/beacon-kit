@@ -34,7 +34,7 @@ import (
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock struct {
-	RawBeaconBlock
+	RawBeaconBlock[BeaconBlockBody]
 }
 
 // Empty creates an empty beacon block.
@@ -57,7 +57,7 @@ func (w *BeaconBlock) NewWithVersion(
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var (
-		block RawBeaconBlock
+		block RawBeaconBlock[BeaconBlockBody]
 		base  = BeaconBlockHeaderBase{
 			Slot:            slot.Unwrap(),
 			ProposerIndex:   proposerIndex.Unwrap(),

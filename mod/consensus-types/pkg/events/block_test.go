@@ -35,7 +35,7 @@ import (
 
 func TestNewBlock(t *testing.T) {
 	ctx := context.Background()
-	mockBeaconBlock := &mocks.RawBeaconBlock{}
+	mockBeaconBlock := &mocks.RawBeaconBlock[*mocks.BeaconBlockBody]{}
 
 	event := events.NewBlock(ctx, mockBeaconBlock)
 	if event.Context() != ctx {

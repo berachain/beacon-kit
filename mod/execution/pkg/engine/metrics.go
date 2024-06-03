@@ -180,6 +180,7 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 // the counter for accepted syncing forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
+	err error,
 ) {
 	em.errorLoggerFn(true)(
 		"received accepted syncing payload status during forkchoice update call",
@@ -189,10 +190,14 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 		state.SafeBlockHash,
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
+		"error",
+		err,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_accepted_syncing",
+		"error",
+		err.Error(),
 	)
 }
 
@@ -200,16 +205,20 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 // for invalid forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	state *engineprimitives.ForkchoiceStateV1,
+	err error,
 ) {
 	em.logger.Error(
 		"received invalid payload status during forkchoice update call",
 		"head_block_hash", state.HeadBlockHash,
 		"safe_block_hash", state.SafeBlockHash,
 		"finalized_block_hash", state.FinalizedBlockHash,
+		"error", err,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_invalid",
+		"error",
+		err.Error(),
 	)
 }
 
