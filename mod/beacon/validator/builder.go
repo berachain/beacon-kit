@@ -44,7 +44,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-]) GetEmptyBeaconBlock(
+]) getEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT
