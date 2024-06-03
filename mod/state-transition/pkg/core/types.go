@@ -221,16 +221,11 @@ type ExecutionEngine[
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
 	New(primitives.Version, primitives.Root) ForkDataT
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
-	// ProcessRandao processes the RANDAO reveal and ensures it
-	// matches the local state.
-	ProcessRandao(BeaconStateT, BeaconBlockT, bool) error
-	// ProcessRandaoMixesReset resets the RANDAO mixes as defined
-	// in the Ethereum 2.0 specification.
-	ProcessRandaoMixesReset(BeaconStateT) error
+	// ComputeRandaoSigningRoot returns the signing root for the fork data.
+	ComputeRandaoSigningRoot(
+		domainType common.DomainType,
+		epoch math.Epoch,
+	) (common.Root, error)
 }
 
 // Validator represents an interface for a validator with generic type

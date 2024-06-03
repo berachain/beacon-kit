@@ -25,7 +25,13 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+)
 
 // ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
@@ -50,7 +56,7 @@ func NewForkData(
 }
 
 // New creates a new ForkData struct.
-func (fv *ForkData) New(
+func (fd *ForkData) New(
 	currentVersion common.Version, genesisValidatorsRoot common.Root,
 ) *ForkData {
 	return NewForkData(currentVersion, genesisValidatorsRoot)
@@ -60,10 +66,10 @@ func (fv *ForkData) New(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 //
 //nolint:lll
-func (fv *ForkData) ComputeDomain(
+func (fd *ForkData) ComputeDomain(
 	domainType common.DomainType,
 ) (common.Domain, error) {
-	forkDataRoot, err := fv.HashTreeRoot()
+	forkDataRoot, err := fd.HashTreeRoot()
 	if err != nil {
 		return common.Domain{}, err
 	}
@@ -73,4 +79,26 @@ func (fv *ForkData) ComputeDomain(
 			domainType[:],
 			forkDataRoot[:28]...),
 	), nil
+}
+
+// ComputeRandaoSigningRoot computes the randao signing root.
+func (fd *ForkData) ComputeRandaoSigningRoot(
+	domainType common.DomainType,
+	epoch math.Epoch,
+) (common.Root, error) {
+	signingDomain, err := fd.ComputeDomain(domainType)
+	if err != nil {
+		return primitives.Root{}, err
+	}
+
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
+		uint64(epoch),
+		signingDomain,
+	)
+
+	if err != nil {
+		return primitives.Root{},
+			errors.Newf("failed to compute signing root: %w", err)
+	}
+	return signingRoot, nil
 }

@@ -32,7 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // GetEmptyBlock creates a new empty block.
@@ -185,4 +188,32 @@ func (s *Service[
 	}
 
 	return nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) buildRandaoReveal(
+	st BeaconStateT,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	signingRoot, err := types.NewForkData(
+		version.FromUint32[primitives.Version](
+			s.chainSpec.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	).ComputeRandaoSigningRoot(
+		s.chainSpec.DomainTypeRandao(),
+		epoch,
+	)
+
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return s.signer.Sign(signingRoot[:])
 }
