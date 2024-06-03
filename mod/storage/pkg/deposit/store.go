@@ -111,17 +111,13 @@ func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
 	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
 }
 
-// PruneFromInclusive removes up to N deposits from the given starting index.
-func (kv *KVStore[DepositT]) PruneFromInclusive(
-	index uint64,
-	numPrune uint64,
-) error {
+// Prune removes the [start, end) deposits from the store.
+func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	for i := range numPrune {
+	for i := range end {
 		// This only errors if the key passed in cannot be encoded.
-		err := kv.store.Remove(context.TODO(), index+i)
-		if err != nil {
+		if err := kv.store.Remove(context.TODO(), start+i); err != nil {
 			return err
 		}
 	}

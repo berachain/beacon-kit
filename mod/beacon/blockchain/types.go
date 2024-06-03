@@ -123,9 +123,8 @@ type EventFeed[EventT any] interface {
 
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	// PruneFromInclusive prunes the deposit store from the given
-	// index for N indexes.
-	PruneFromInclusive(index uint64, numPrune uint64) error
+	// Prune prunes the deposit store of [start, end)
+	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
 }

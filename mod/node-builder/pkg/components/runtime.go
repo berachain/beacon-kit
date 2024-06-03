@@ -47,6 +47,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
@@ -195,6 +198,66 @@ func ProvideRuntime(
 		ts,
 	)
 
+	// slice of pruners to pass to the DBManager.
+	pruners := []*pruner.Pruner[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription]{}
+
+	// Build the deposit pruner.\
+	depositPruner := pruner.NewPruner[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription,
+	](
+		logger.With("service", manager.DepositPrunerName),
+		storageBackend.DepositStore(nil),
+		manager.DepositPrunerName,
+		&blockFeed,
+		deposit.GetPruneRangeFn[
+			types.BeaconBlockBody,
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+			*types.Deposit,
+			*types.ExecutionPayload,
+			types.WithdrawalCredentials,
+		](chainSpec),
+	)
+	pruners = append(pruners, depositPruner)
+
+	avs := storageBackend.AvailabilityStore(nil).IndexDB
+	if avs != nil {
+		// build the availability pruner if IndexDB is available.
+		availabilityPruner := pruner.NewPruner[
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+			event.Subscription,
+		](
+			logger.With("service", manager.AvailabilityPrunerName),
+			avs.(*filedb.RangeDB),
+			manager.AvailabilityPrunerName,
+			&blockFeed,
+			dastore.GetPruneRangeFn[
+				*types.BeaconBlock,
+				events.Block[*types.BeaconBlock],
+			](chainSpec),
+		)
+		pruners = append(pruners, availabilityPruner)
+	}
+
+	// Build the DBManager service.
+	dbManagerService, err := manager.NewDBManager[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription,
+	](
+		logger.With("service", "db-manager"),
+		pruners...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
@@ -228,8 +291,8 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		*types.BeaconBlock,
 		types.BeaconBlockBody,
+		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,
@@ -255,6 +318,7 @@ func ProvideRuntime(
 			ts,
 			sdkversion.Version,
 		)),
+		service.WithService(dbManagerService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

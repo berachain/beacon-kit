@@ -18,29 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package store
 
 import (
-	"context"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// PruneDepositEvents prunes deposit events.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) PruneDepositEvents(
-	ctx context.Context,
-	eth1DepositIndex uint64,
-) error {
-	startIndex := uint64(0)
-	numToPrune := eth1DepositIndex
-	if eth1DepositIndex >= s.cs.MaxDepositsPerBlock() {
-		startIndex = eth1DepositIndex - s.cs.MaxDepositsPerBlock()
-		numToPrune = s.cs.MaxDepositsPerBlock()
+func GetPruneRangeFn[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
+	return func(event BlockEventT) (uint64, uint64) {
+		window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
+		if event.Block().GetSlot().Unwrap() < window {
+			return 0, 0
+		}
+
+		return 0, event.Block().GetSlot().Unwrap() - window
 	}
-	return s.sb.DepositStore(ctx).PruneFromInclusive(startIndex, numToPrune)
 }
