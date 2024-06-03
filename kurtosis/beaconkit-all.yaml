@@ -28,17 +28,17 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        replicas: 2
+        replicas: 1
       - el_type: nethermind
-        replicas: 2
+        replicas: 1
       - el_type: reth
-        replicas: 2
+        replicas: 1
       - el_type: geth
-        replicas: 2
+        replicas: 1
       - el_type: erigon
-        replicas: 2
+        replicas: 1
       - el_type: ethereumjs
-        replicas: 2
+        replicas: 0
   full_nodes:
     type: "full"
     nodes:
@@ -75,7 +75,8 @@ node_settings:
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 2.5s
+      payload_timeout: 2.5s
+      enable_optimistic_payload_builds: true
   execution_settings:
     specs:
       min_cpu: 0
