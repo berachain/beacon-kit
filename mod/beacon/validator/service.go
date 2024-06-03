@@ -518,7 +518,7 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	s.logger.Info("optimistically triggering payload build for next slot🛩️")
+	s.logger.Info("optimistically triggering payload build for next slot 🛩️ ")
 
 	// We know that this block was properly formed so we can
 	// calculate the block hash easily.
