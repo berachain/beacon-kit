@@ -450,6 +450,8 @@ func (s *Service[
 		slot              math.Slot
 	)
 
+	s.logger.Info("rebuilding payload for rejected block ⏳ ")
+
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is unmodified state.
 	// We can safely get the latest block header and then rebuild the
@@ -516,6 +518,8 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	s.logger.Info("optimistically triggering payload build for next slot🛩️")
+
 	// We know that this block was properly formed so we can
 	// calculate the block hash easily.
 	blkRoot, err := blk.HashTreeRoot()
