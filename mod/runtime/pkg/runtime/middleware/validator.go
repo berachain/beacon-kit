@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -48,6 +49,7 @@ type ValidatorMiddleware[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
@@ -100,6 +102,7 @@ func NewValidatorMiddleware[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
@@ -208,23 +211,16 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		logger    = ctx.Logger().With("service", "process-proposal")
-		startTime = time.Now()
-	)
-
+	startTime := time.Now()
 	defer h.metrics.measureProcessProposalDuration(startTime)
-	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		logger.Error(
-			"failed to retrieve beacon block from request",
-			"error",
-			err,
-		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	} else if err = h.validatorService.
-		VerifyIncomingBlock(ctx, blk); err != nil {
+
+	//#nosec:G703
+	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	if err != nil {
+		// TODO: Handle better.
+		blk = blk.Empty(version.Deneb)
+	}
+	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
