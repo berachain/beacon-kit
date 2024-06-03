@@ -71,6 +71,8 @@ type Service[
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[events.Block[BeaconBlockT]]
+	// skipPostBlockFCU is a flag used when the optimistic payload builder is enabled.
+	skipPostBlockFCU bool
 }
 
 // NewService creates a new validator service.
@@ -106,6 +108,7 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
+	skipPostBlockFCU bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT,
@@ -114,15 +117,16 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT,
 	]{
-		sb:        sb,
-		logger:    logger,
-		cs:        cs,
-		ee:        ee,
-		lb:        lb,
-		bp:        bp,
-		sp:        sp,
-		metrics:   newChainMetrics(ts),
-		blockFeed: blockFeed,
+		sb:               sb,
+		logger:           logger,
+		cs:               cs,
+		ee:               ee,
+		lb:               lb,
+		bp:               bp,
+		sp:               sp,
+		metrics:          newChainMetrics(ts),
+		blockFeed:        blockFeed,
+		skipPostBlockFCU: skipPostBlockFCU,
 	}
 }
 

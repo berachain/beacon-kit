@@ -30,11 +30,15 @@ type Config struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
 	Graffiti string `mapstructure:"graffiti"`
+
+	// OptimisticPayloadBuild is the optimistic block builder.
+	OptimisticPayloadBuild bool `mapstructure:"optimistic-payload-build"`
 }
 
 // DefaultConfig returns the default fork configuration.
 func DefaultConfig() Config {
 	return Config{
-		Graffiti: defaultGraffiti,
+		Graffiti:               defaultGraffiti,
+		OptimisticPayloadBuild: false,
 	}
 }
