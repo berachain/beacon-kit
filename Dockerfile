@@ -95,8 +95,8 @@ COPY --from=mod-cache /go/pkg /go/pkg
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
-COPY ./go.work ./go.work
-COPY ./go.work.sum ./go.work.sum
+COPY --from=mod-cache ./go.work ./go.work
+COPY --from=mod-cache ./go.work.sum ./go.work.sum
 
 # Build args
 ARG NAME
