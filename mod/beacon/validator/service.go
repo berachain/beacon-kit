@@ -62,9 +62,6 @@ type Service[
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT]
-	// randaoProcessor is responsible for building the reveal for the
-	// current slot.
-	randaoProcessor RandaoProcessor[BeaconStateT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -103,7 +100,6 @@ func NewService[
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
@@ -117,7 +113,6 @@ func NewService[
 		signer:                signer,
 		stateProcessor:        stateProcessor,
 		blobFactory:           blobFactory,
-		randaoProcessor:       randaoProcessor,
 		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
@@ -189,7 +184,7 @@ func (s *Service[
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel.
-	reveal, err := s.randaoProcessor.BuildReveal(st)
+	reveal, err := s.buildRandaoReveal(st, requestedSlot)
 	if err != nil {
 		return blk, sidecars, err
 	}

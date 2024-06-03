@@ -10,7 +10,6 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/go-faster/xor v1.0.0
-	github.com/minio/sha256-simd v1.0.1
 	golang.org/x/sync v0.7.0
 )
 
@@ -55,6 +54,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect

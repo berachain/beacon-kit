@@ -67,8 +67,6 @@ type StateProcessor[
 ] struct {
 	// cs is the chain specification for the beacon chain.
 	cs primitives.ChainSpec
-	// rp is the Randao processor used for randomness in the beacon chain.
-	rp RandaoProcessor[BeaconBlockT, BeaconStateT]
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
@@ -109,9 +107,6 @@ func NewStateProcessor[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs primitives.ChainSpec,
-	rp RandaoProcessor[
-		BeaconBlockT, BeaconStateT,
-	],
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
@@ -130,7 +125,6 @@ func NewStateProcessor[
 		WithdrawalCredentialsT,
 	]{
 		cs:              cs,
-		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
 	}
