@@ -42,6 +42,7 @@ type PayloadBuilder[
 		IsNil() bool
 		Empty(uint32) ExecutionPayloadT
 		GetBlockHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
 		GetParentHash() common.ExecutionHash
 	},
 	ExecutionPayloadHeaderT any,
@@ -70,6 +71,7 @@ func New[
 		Empty(uint32) ExecutionPayloadT
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
 	}, ExecutionPayloadHeaderT any](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,

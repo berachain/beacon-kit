@@ -26,25 +26,14 @@
 package engine
 
 import (
-	"encoding/json"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
 // ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload[ExecutionPayloadT any] interface {
-	json.Marshaler
-	json.Unmarshaler
+type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
+	engineprimitives.ExecutionPayload[WithdrawalT]
 	// Empty creates an empty execution payload.
 	Empty(uint32) ExecutionPayloadT
-	// GetTransactions returns the transactions included in the payload.
-	GetTransactions() [][]byte
-	// GetBlockHash returns the hash of the block.
-	GetBlockHash() common.ExecutionHash
-	// GetParentHash returns the hash of the parent block.
-	GetParentHash() common.ExecutionHash
-	// Version returns the version of the payload.
-	Version() uint32
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

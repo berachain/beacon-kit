@@ -27,6 +27,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -154,6 +155,11 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
+	ssz.Marshaler
+	ssz.Unmarshaler
+	json.Marshaler
+	json.Unmarshaler
+	ssz.HashRoot
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -174,6 +180,7 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader() (ExecutionPayloadHeaderT, error)
+	IsNil() bool
 }
 
 type ExecutionPayloadHeader interface {
@@ -198,15 +205,15 @@ type ExecutionPayloadHeader interface {
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
-	ExecutionPayloadHeaderT,
-	WithdrawalsT any,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+	ExecutionPayloadHeaderT any,
+	WithdrawalT Withdrawal[WithdrawalT],
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT],
 	) error
 }
 
@@ -267,4 +274,6 @@ type Withdrawal[WithdrawalT any] interface {
 	GetIndex() math.U64
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
+	// GetAddress returns the address of the withdrawal.
+	GetAddress() common.ExecutionAddress
 }
