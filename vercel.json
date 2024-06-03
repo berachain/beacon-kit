@@ -1,6 +1,0 @@
-{
-  "git": {
-    "deploymentEnabled": false
-  },
-  "outputDirectory": "dist"
-}

@@ -29,8 +29,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// LocalnetChainSpec is the ChainSpec for the localnet.
-func LocalnetChainSpec() chain.Spec[
+// TestnetChainSpec is the ChainSpec for the localnet.
+func TestnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
@@ -84,11 +84,11 @@ func LocalnetChainSpec() chain.Spec[
 			},
 			// Eth1-related values.
 			DepositContractAddress: common.HexToAddress(
-				"0x00000000219ab540356cbb839cbe05303d7705fa",
+				"0x4242424242424242424242424242424242424242",
 			),
 			DepositEth1ChainID:        uint64(80086),
 			Eth1FollowDistance:        1,
-			TargetSecondsPerEth1Block: 2,
+			TargetSecondsPerEth1Block: 3,
 			// Fork-related values.
 			ElectraForkEpoch: 9999999999999999,
 			// State list length constants.
