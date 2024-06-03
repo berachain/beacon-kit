@@ -100,6 +100,7 @@ func NewService[
 		dc:                 dc,
 		ds:                 ds,
 		newBlock:           make(chan BeaconBlockT),
+		failedBlocks:       make(map[math.U64]struct{}),
 	}
 }
 
