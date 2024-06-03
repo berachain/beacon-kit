@@ -244,6 +244,14 @@ func (pb *PayloadBuilder[
 		return err
 	}
 
+	pb.logger.Info(
+		"sending startup forkchoice update to execution client 🚀 ",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot,
+	)
+
 	// Submit the forkchoice update to the execution client.
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{

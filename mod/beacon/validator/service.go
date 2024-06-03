@@ -372,7 +372,6 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) {
-	s.logger.Info("sending startup forkchoice update to execution client 🚀 ")
 	slot, err := st.GetSlot()
 	if err != nil {
 		s.logger.Error(
