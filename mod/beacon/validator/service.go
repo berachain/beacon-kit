@@ -22,6 +22,7 @@ package validator
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -76,6 +77,8 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// forceStartupSyncOnce is used to force a sync of the startup head.
+	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -112,6 +115,7 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
+		forceStartupSyncOnce:  new(sync.Once),
 	}
 }
 
@@ -170,6 +174,12 @@ func (s *Service[
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
@@ -319,6 +329,12 @@ func (s *Service[
 	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
 
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
+
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
 		ctx, st, blk,
@@ -347,4 +363,32 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil
+}
+
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) forceStartupHead(
+	ctx context.Context,
+	st BeaconStateT,
+) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed to get slot for force startup head",
+			"error", err,
+		)
+		return
+	}
+
+	// TODO: Verify if the slot number is correct here, I believe in current
+	// form
+	// it should be +1'd. Not a big deal until hardforks are in play though.
+	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+		s.logger.Error(
+			"failed to send force head FCU",
+			"error", err,
+		)
+	}
 }
