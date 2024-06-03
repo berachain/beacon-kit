@@ -209,6 +209,7 @@ func ProvideRuntime(
 		logger.With("service", "blockchain"),
 		chainSpec,
 		executionEngine,
+		localBuilder,
 		dablob.NewProcessor[
 			*dastore.Store[types.BeaconBlockBody],
 			types.BeaconBlockBody,
@@ -220,7 +221,6 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
-		localBuilder,
 		ts,
 		&blockFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
