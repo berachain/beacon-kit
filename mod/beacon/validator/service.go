@@ -468,7 +468,8 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -542,7 +543,8 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
