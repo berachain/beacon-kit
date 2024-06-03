@@ -1,6 +1,7 @@
 pragma solidity 0.8.25;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
+import { Ownable } from "@solady/src/auth/Ownable.sol";
 
 /**
  * @title BeaconDepositContract
@@ -9,7 +10,7 @@ import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
-contract BeaconDepositContract is IBeaconDepositContract {
+contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -35,9 +36,16 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /// have been made to the contract.
     uint64 public depositCount;
 
+    /// @dev depositAuth is a mapping of number of deposits an authorized address can make.
+    mapping(address => uint64) private depositAuth;
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    constructor() Ownable() {
+        _initializeOwner(msg.sender);
+    }
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
@@ -49,6 +57,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         external
         payable
     {
+        if (depositAuth[msg.sender] == 0) {
+            revert UnauthorizedDeposit();
+        }
+
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -67,12 +79,25 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientDeposit();
         }
 
+        depositAuth[msg.sender]--;
+
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
                 pubkey, credentials, amountInGwei, signature, depositCount++
             );
         }
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function allowDeposit(
+        address depositor,
+        uint64 number
+    )
+        external
+        onlyOwner
+    {
+        depositAuth[depositor] = number;
     }
 
     /// @dev Validates the deposit amount and sends the native asset to the zero address.
