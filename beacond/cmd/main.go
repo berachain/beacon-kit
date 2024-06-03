@@ -43,7 +43,7 @@ func run() error {
 		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
 		WithDepInjectConfig(Config()).
 		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.LocalnetChainSpec())
+		WithChainSpec(spec.TestnetChainSpec())
 
 	return nb.RunNode()
 }
