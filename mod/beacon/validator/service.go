@@ -527,11 +527,10 @@ func (s *Service[
 		ctx, st,
 		// We are building for the next slot, so we increment the slot.
 		blk.GetSlot()+1,
-		// TODO: this is hood as fuck, also kind of dangerous if
-		// payload is malicious, we should fix it.
+		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
-			uint64(time.Now().Unix()+1),
+			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
 		),
 		// The previous block root is simply the root of the block we just
