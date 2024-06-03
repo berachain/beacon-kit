@@ -26,6 +26,8 @@
 package engineprimitives
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -56,9 +58,10 @@ type ExecutionPayloadBody interface {
 	ssz.Marshaler
 	ssz.Unmarshaler
 	ssz.HashRoot
+	json.Marshaler
+	json.Unmarshaler
 	IsNil() bool
 	Version() uint32
-	IsBlinded() bool
 	GetPrevRandao() primitives.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
@@ -77,11 +80,10 @@ type ExecutionPayloadBody interface {
 }
 
 // ExecutionPayload represents the execution data of a block.
-type ExecutionPayload interface {
+type ExecutionPayload[WithdrawalT any] interface {
 	ExecutionPayloadBody
 	GetTransactions() [][]byte
-	// TODO: decouple from consensus-types
-	GetWithdrawals() []*Withdrawal
+	GetWithdrawals() []WithdrawalT
 }
 
 // ExecutionPayloadHeader represents the execution header of a block.

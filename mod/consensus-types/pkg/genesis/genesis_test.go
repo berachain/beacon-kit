@@ -68,3 +68,9 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 	require.Equal(t, math.U64(0), payloadHeader.Timestamp,
 		"Unexpected Timestamp")
 }
+
+func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
+	header, err := genesis.DefaultGenesisExecutionPayloadHeaderDeneb()
+	require.NoError(t, err)
+	require.NotNil(t, header)
+}

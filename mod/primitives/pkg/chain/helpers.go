@@ -31,7 +31,7 @@ import (
 
 // ActiveForkVersion returns the active fork version for a given slot.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForSlot(
 	slot SlotT,
 ) uint32 {
@@ -40,7 +40,7 @@ func (c chainSpec[
 
 // ActiveForkVersionBySlot returns the active fork version for a given epoch.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForEpoch(
 	epoch EpochT,
 ) uint32 {
@@ -53,7 +53,7 @@ func (c chainSpec[
 
 // SlotToEpoch converts a slot to an epoch.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) SlotToEpoch(slot SlotT) EpochT {
 	//#nosec:G701 // realistically fine in practice.
 	return EpochT(uint64(slot) / c.SlotsPerEpoch())
@@ -63,7 +63,7 @@ func (c chainSpec[
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) WithinDAPeriod(
 	block, current SlotT,
 ) bool {

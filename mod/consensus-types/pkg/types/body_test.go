@@ -65,3 +65,23 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 	require.NotNil(t, body.GetBlobKzgCommitments())
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
 }
+
+func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
+	var byteArray [256]byte
+	byteSlice := byteArray[:]
+	body := types.BeaconBlockBodyDeneb{
+		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+		},
+		ExecutionPayload: &types.ExecutableDataDeneb{
+			LogsBloom: byteSlice,
+		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+	tree, err := body.GetTree()
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+}

@@ -24,6 +24,18 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+# function to resolve absolute path from relative
+resolve_path() {
+	if [[ "$1" =~ : ]]; then
+        # treat as an address or url, return as is
+        echo "$1"
+	fi
+    cd "$(dirname "$1")"
+    local abs_path
+    abs_path="$(pwd -P)/$(basename "$1")"
+    echo "$abs_path"
+}
+
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
@@ -33,7 +45,7 @@ HOMEDIR="./.tmp/beacond"
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
-ETH_GENESIS=./testing/files/eth-genesis.json # TODO: Fix this to not use a relative path or make it configurable
+ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
 
 # used to exit on first error (any non-zero exit code)
 set -e
@@ -63,8 +75,19 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
-# Start the node (remove the --pruning=nothing flag if historical queries are not needed)m
-./build/bin/beacond start --pruning=nothing "$TRACE" \
+# Start the node (remove the --pruning=nothing flag if historical queries are not needed)
+BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
---home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
+--home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
+
+# Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
+if [ -n "$RPC_DIAL_URL" ]; then
+	# this will overwrite the default dial url
+	RPC_DIAL_URL=$(resolve_path "$RPC_DIAL_URL")
+	echo "Overwriting the default dial url with $RPC_DIAL_URL"
+	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
+fi
+
+# run the beacon node
+eval $BEACON_START_CMD

@@ -46,5 +46,6 @@ var (
 	// ErrBadBlockProduced represents an error when the beacon
 	// chain has produced a bad block.
 	ErrBadBlockProduced = errors.New(
-		"beacon chain has produced a bad block, RIP walrus")
+		"proposer has produced a bad block, RIP walrus",
+	)
 )

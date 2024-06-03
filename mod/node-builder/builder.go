@@ -79,8 +79,6 @@ func (nb *NodeBuilder[T]) RunNode() error {
 	if err := nb.BuildRootCmd(); err != nil {
 		return err
 	}
-	// TODO: build cmds before calling NewNodeBuilder in main.go so that
-	// we can get depinject AppOpts during creation of dependencies.
 
 	// Run the root command.
 	if err := svrcmd.Execute(
@@ -107,7 +105,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				&depositdb.KVStore[*types.Deposit]{},
-				&engineclient.EngineClient[*types.ExecutableDataDeneb]{},
+				&engineclient.EngineClient[*types.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
 				&dastore.Store[types.BeaconBlockBody]{},
 				&signer.BLSSigner{},

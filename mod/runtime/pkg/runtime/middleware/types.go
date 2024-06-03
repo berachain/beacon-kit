@@ -31,6 +31,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -61,7 +63,7 @@ type BlockchainService[
 
 // ValidatorService is responsible for building beacon blocks.
 type ValidatorService[
-	BeaconBlockT types.BeaconBlock,
+	BeaconBlockT any,
 	BeaconStateT any,
 	BlobsSidecarsT ssz.Marshallable,
 ] interface {
@@ -86,4 +88,24 @@ type ValidatorService[
 type TelemetrySink interface {
 	// MeasureSince measures the time since the given time.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+// StorageBackend is an interface for accessing the storage backend.
+type StorageBackend[BeaconStateT any] interface {
+	StateFromContext(ctx context.Context) BeaconStateT
+}
+
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
+	ValidatorIndexByPubkey(
+		pubkey crypto.BLSPubkey,
+	) (math.ValidatorIndex, error)
+
+	GetBlockRootAtIndex(
+		index uint64,
+	) (primitives.Root, error)
+
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
 }

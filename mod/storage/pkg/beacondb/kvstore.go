@@ -41,7 +41,11 @@ import (
 type KVStore[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
@@ -66,6 +70,13 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
+	// latestExecutionPayload stores the latest execution payload version.
+	latestExecutionPayloadVersion sdkcollections.Item[uint32]
+	// latestExecutionPayloadCodec is the codec for the latest execution
+	// payload, it
+	// allows us to update the codec with the latest version.
+	latestExecutionPayloadCodec *encoding.
+					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
@@ -98,12 +109,16 @@ type KVStore[
 func New[
 	ForkT SSZMarshallable,
 	BeaconBlockHeaderT SSZMarshallable,
-	ExecutionPayloadHeaderT SSZMarshallable,
+	ExecutionPayloadHeaderT interface {
+		SSZMarshallable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
 	Eth1DataT SSZMarshallable,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
-	executionPayloadHeaderFactory func() ExecutionPayloadHeaderT,
+	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 ] {
@@ -113,68 +128,73 @@ func New[
 		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
 	]{
 		ctx: nil,
-		genesisValidatorsRoot: sdkcollections.NewItem[[]byte](
+		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
 			keys.GenesisValidatorsRootPrefixHumanReadable,
 			sdkcollections.BytesValue,
 		),
-		slot: sdkcollections.NewItem[uint64](
+		slot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.SlotPrefix}),
 			keys.SlotPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		fork: sdkcollections.NewItem[ForkT](
+		fork: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
 			encoding.SSZValueCodec[ForkT]{},
 		),
-		blockRoots: sdkcollections.NewMap[uint64, []byte](
+		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.BlockRootsPrefix}),
 			keys.BlockRootsPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
 		),
-		stateRoots: sdkcollections.NewMap[uint64, []byte](
+		stateRoots: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.StateRootsPrefix}),
 			keys.StateRootsPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
 		),
-		eth1Data: sdkcollections.NewItem[Eth1DataT](
+		eth1Data: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
 			encoding.SSZValueCodec[Eth1DataT]{},
 		),
-		eth1DepositIndex: sdkcollections.NewItem[uint64](
+		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DepositIndexPrefix}),
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestExecutionPayloadHeader: sdkcollections.NewItem[ExecutionPayloadHeaderT](
+		latestExecutionPayloadVersion: sdkcollections.NewItem(
+			schemaBuilder,
+			sdkcollections.NewPrefix(
+				[]byte{keys.LatestExecutionPayloadVersionPrefix},
+			),
+			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
+			sdkcollections.Uint32Value,
+		),
+		latestExecutionPayloadCodec: payloadCodec,
+		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
 			),
 			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
-			encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{
-				Factory: executionPayloadHeaderFactory,
-			},
+			payloadCodec,
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ValidatorIndexPrefix}),
 			keys.ValidatorIndexPrefixHumanReadable,
 		),
-		validators: sdkcollections.NewIndexedMap[
-			uint64, ValidatorT,
-		](
+		validators: sdkcollections.NewIndexedMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
@@ -182,34 +202,34 @@ func New[
 			encoding.SSZValueCodec[ValidatorT]{},
 			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
 		),
-		balances: sdkcollections.NewMap[uint64, uint64](
+		balances: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.BalancesPrefix}),
 			keys.BalancesPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		randaoMix: sdkcollections.NewMap[uint64, []byte](
+		randaoMix: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.RandaoMixPrefix}),
 			keys.RandaoMixPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
 		),
-		slashings: sdkcollections.NewMap[uint64, uint64](
+		slashings: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.SlashingsPrefix}),
 			keys.SlashingsPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Value,
 		),
-		nextWithdrawalIndex: sdkcollections.NewItem[uint64](
+		nextWithdrawalIndex: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
 			keys.NextWithdrawalIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		nextWithdrawalValidatorIndex: sdkcollections.NewItem[uint64](
+		nextWithdrawalValidatorIndex: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
@@ -217,13 +237,13 @@ func New[
 			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		totalSlashing: sdkcollections.NewItem[uint64](
+		totalSlashing: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.TotalSlashingPrefix}),
 			keys.TotalSlashingPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestBlockHeader: sdkcollections.NewItem[BeaconBlockHeaderT](
+		latestBlockHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},

@@ -32,7 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // GetEmptyBlock creates a new empty block.
@@ -41,7 +44,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-]) GetEmptyBeaconBlock(
+]) getEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT
@@ -67,8 +70,7 @@ func (s *Service[
 		)
 	}
 
-	// Create a new empty block from the current state.
-	return types.EmptyBeaconBlock[BeaconBlockT](
+	return blk.NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
@@ -84,7 +86,7 @@ func (s *Service[
 	BlobSidecarsT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
 		RetrievePayload(
@@ -101,7 +103,7 @@ func (s *Service[
 
 		// The latest execution payload header will be from the previous block
 		// during the block building phase.
-		var lph engineprimitives.ExecutionPayloadHeader
+		var lph *types.ExecutionPayloadHeader
 		lph, err = st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return nil, err
@@ -186,4 +188,32 @@ func (s *Service[
 	}
 
 	return nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) buildRandaoReveal(
+	st BeaconStateT,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	signingRoot, err := types.NewForkData(
+		version.FromUint32[primitives.Version](
+			s.chainSpec.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	).ComputeRandaoSigningRoot(
+		s.chainSpec.DomainTypeRandao(),
+		epoch,
+	)
+
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return s.signer.Sign(signingRoot[:])
 }

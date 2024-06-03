@@ -41,8 +41,10 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ] struct {
@@ -60,9 +62,6 @@ type Service[
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT]
-	// randaoProcessor is responsible for building the reveal for the
-	// current slot.
-	randaoProcessor RandaoProcessor[BeaconStateT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -86,8 +85,9 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[*types.Deposit, *types.Eth1Data],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[
+		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 ](
@@ -100,7 +100,6 @@ func NewService[
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	randaoProcessor RandaoProcessor[BeaconStateT],
 	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
@@ -114,7 +113,6 @@ func NewService[
 		signer:                signer,
 		stateProcessor:        stateProcessor,
 		blobFactory:           blobFactory,
-		randaoProcessor:       randaoProcessor,
 		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
@@ -186,13 +184,13 @@ func (s *Service[
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel.
-	reveal, err := s.randaoProcessor.BuildReveal(st)
+	reveal, err := s.buildRandaoReveal(st, requestedSlot)
 	if err != nil {
 		return blk, sidecars, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.GetEmptyBeaconBlock(
+	blk, err = s.getEmptyBeaconBlock(
 		st, requestedSlot,
 	)
 	if err != nil {
@@ -226,8 +224,14 @@ func (s *Service[
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return blk, sidecars, ErrNilDepositIndexStart
+	}
+
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.ExpectedDeposits(
+	deposits, err := s.ds.GetDepositsByIndex(
+		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -275,7 +279,7 @@ func (s *Service[
 		stateRoot, err = s.computeStateRoot(ctx, st, blk)
 		if err != nil {
 			s.logger.Error(
-				"failed to compute state root for block ❌ ",
+				"failed to compute state root while building block ❗️ ",
 				"slot", requestedSlot,
 				"error", err,
 			)

@@ -41,7 +41,7 @@ type (
 
 	// Export `pkg/chain`.
 	ChainSpec = chain.Spec[
-		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
+		DomainType, math.Epoch, common.ExecutionAddress, math.Slot, any,
 	]
 	ChainSpecData = chain.SpecData[
 		DomainType, math.Epoch, common.ExecutionAddress, math.Slot,
