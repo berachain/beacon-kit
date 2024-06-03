@@ -30,18 +30,15 @@ ACCOUNT = 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 BALANCE = 100
 
 generate-genesis-cmd:
-	go run ./testing/generate-genesis $(FORMAT) --predeployAddresses $(PREDEPLOY_ADDRESS) \
-	--predeployNonces $(NONCE) --predeployBalances $(PREDEPLOY_BALANCE) --predeployCodes $(CODE) \
-	--accountAddresses $(ACCOUNT) --accountBalances $(BALANCE) --output $(OUTPUT)
+	@if [ ! -f $(OUTPUT) ]; then \
+		go run ./testing/generate-genesis $(FORMAT) --predeployAddresses $(PREDEPLOY_ADDRESS) \
+		--predeployNonces $(NONCE) --predeployBalances $(PREDEPLOY_BALANCE) --predeployCodes $(CODE) \
+		--accountAddresses $(ACCOUNT) --accountBalances $(BALANCE) --output $(OUTPUT); \
+	fi
+	
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@if [ ! -f ${ETH_GENESIS_PATH} ]; then \
-		$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd; \
-	fi
-	@if [ ! -f ${NETHER_ETH_GENESIS_PATH} ]; then \
-		$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd; \
-	fi
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine
@@ -53,6 +50,7 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	${TESTAPP_FILES_DIR}/entrypoint.sh 
 
 start-reth: ## start an ephemeral `reth` node
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	@rm -rf ${ETH_DATA_DIR}
 	@docker run \
 	-p 30303:30303 \
@@ -71,6 +69,7 @@ start-reth: ## start an ephemeral `reth` node
 	--ipcpath ${IPC_PATH}
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	rm -rf ${ETH_DATA_DIR}
 	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
 	reth node \
@@ -84,6 +83,7 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 	--ipcpath ${IPC_PATH}
 	
 start-geth: ## start an ephemeral `geth` node with docker
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	rm -rf ${ETH_DATA_DIR}
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -109,6 +109,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--ipcpath ${IPC_PATH}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	rm -rf ${ETH_DATA_DIR}
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \
@@ -122,6 +123,7 @@ start-geth-host: ## start a local ephemeral `geth` node on host machine
 	--authrpc.vhosts "*"
 
 start-nethermind: ## start an ephemeral `nethermind` node
+	$(MAKE) FORMAT=nethermind OUTPUT=${NETHER_ETH_GENESIS_PATH} generate-genesis-cmd
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -138,6 +140,7 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
 start-besu: ## start an ephemeral `besu` node
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -156,6 +159,7 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-jwt-secret=../../${JWT_PATH}
 	
 start-erigon: ## start an ephemeral `erigon` node
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	rm -rf .tmp/erigon
 	docker run \
     --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -186,6 +190,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--datadir .tmp/erigon
 
 start-ethereumjs:
+	$(MAKE) FORMAT=geth OUTPUT=${ETH_GENESIS_PATH} generate-genesis-cmd
 	rm -rf .tmp/ethereumjs
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
