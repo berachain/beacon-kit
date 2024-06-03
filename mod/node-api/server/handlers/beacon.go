@@ -243,7 +243,8 @@ func (rh RouteHandlers) GetBlockHeaders(c echo.Context) error {
 	if params.ParentRoot != "" {
 		err = parentRoot.UnmarshalText([]byte(params.ParentRoot))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid parent_root: " + params.ParentRoot)
+			return echo.NewHTTPError(http.StatusBadRequest,
+				"Invalid parent_root: "+params.ParentRoot)
 		}
 	}
 	headers, err := rh.Backend.GetBlockHeaders(
