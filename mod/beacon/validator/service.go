@@ -477,6 +477,7 @@ func (s *Service[
 	var (
 		previousBlockRoot primitives.Root
 		lph               engineprimitives.ExecutionPayloadHeader
+		slot              math.Slot
 	)
 
 	s.logger.Info("rebuilding payload for rejected block ⏳ ")
@@ -508,7 +509,7 @@ func (s *Service[
 		return err
 	}
 
-	slot, err := st.GetSlot()
+	slot, err = st.GetSlot()
 	if err != nil {
 		return err
 	}
