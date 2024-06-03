@@ -379,6 +379,8 @@ func TestRangeDB_Invariants(t *testing.T) {
 func newTestFDB(path string) *file.DB {
 	fs := afero.NewMemMapFs()
 	return file.NewDB(
+		// don't reuse the same txt file for consecutive unit tests bc file
+		// db slow AF
 		file.WithRootDirectory(path),
 		file.WithFileExtension("txt"),
 		file.WithDirectoryPermissions(0700),
