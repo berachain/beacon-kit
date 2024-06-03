@@ -140,22 +140,31 @@ func (cm *clientMetrics) incrementInternalErrorCounter() {
 	cm.incrementErrorCounter("beacon_kit.execution.client.internal_error")
 }
 
-// incrementUnknownPayloadErrorCounter increments the unknown payload error counter
+// incrementUnknownPayloadErrorCounter increments the unknown payload error
+// counter
 // for the given metric.
 func (cm *clientMetrics) incrementUnknownPayloadErrorCounter() {
-	cm.incrementErrorCounter("beacon_kit.execution.client.unknown_payload_error")
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.unknown_payload_error",
+	)
 }
 
-// incrementInvalidForkchoiceStateCounter increments the invalid forkchoice state counter
+// incrementInvalidForkchoiceStateCounter increments the invalid forkchoice
+// state counter
 // for the given metric.
 func (cm *clientMetrics) incrementInvalidForkchoiceStateCounter() {
-	cm.incrementErrorCounter("beacon_kit.execution.client.invalid_forkchoice_state")
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.invalid_forkchoice_state",
+	)
 }
 
-// incrementInvalidPayloadAttributesCounter increments the invalid payload attributes counter
+// incrementInvalidPayloadAttributesCounter increments the invalid payload
+// attributes counter
 // for the given metric.
 func (cm *clientMetrics) incrementInvalidPayloadAttributesCounter() {
-	cm.incrementErrorCounter("beacon_kit.execution.client.invalid_payload_attributes")
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.invalid_payload_attributes",
+	)
 }
 
 // incrementRequestTooLargeCounter increments the request too large counter
@@ -164,10 +173,13 @@ func (cm *clientMetrics) incrementRequestTooLargeCounter() {
 	cm.incrementErrorCounter("beacon_kit.execution.client.request_too_large")
 }
 
-// incrementInternalServerErrorCounter increments the internal server error counter
+// incrementInternalServerErrorCounter increments the internal server error
+// counter
 // for the given metric.
 func (cm *clientMetrics) incrementInternalServerErrorCounter() {
-	cm.incrementErrorCounter("beacon_kit.execution.client.internal_server_error")
+	cm.incrementErrorCounter(
+		"beacon_kit.execution.client.internal_server_error",
+	)
 }
 
 // incrementErrorCounter increments the error counter for
