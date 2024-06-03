@@ -211,7 +211,6 @@ type StorageBackend[
 ] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
-
 	// DepositStore retrieves the deposit store.
 	DepositStore(context.Context) DepositStoreT
 }
