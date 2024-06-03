@@ -476,7 +476,6 @@ func (s *Service[
 ) error {
 	var (
 		previousBlockRoot primitives.Root
-		latestHeader      *types.BeaconBlockHeader
 		lph               engineprimitives.ExecutionPayloadHeader
 	)
 
@@ -486,7 +485,7 @@ func (s *Service[
 	// previous block root, since we know that this is unmodified state.
 	// We can safely get the latest block header and then rebuild the
 	// previous block and it's root.
-	latestHeader, err = st.GetLatestBlockHeader()
+	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
