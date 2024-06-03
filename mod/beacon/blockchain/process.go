@@ -126,8 +126,6 @@ func (s *Service[
 		go s.sendPostBlockFCU(ctx, st, blk)
 	}
 
-	go s.postBlockProcessTasks(ctx, st)
-
 	return valUpdates, nil
 }
 

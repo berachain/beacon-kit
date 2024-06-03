@@ -38,8 +38,7 @@ func GetPruneRangeFn[
 	],
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
-		blk := event.Block()
-		deposits := blk.GetBody().GetDeposits()
+		deposits := event.Block().GetBody().GetDeposits()
 		if len(deposits) == 0 {
 			return 0, 0
 		}
