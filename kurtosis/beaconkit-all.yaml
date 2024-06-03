@@ -28,15 +28,15 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        replicas: 3
+        replicas: 5
       - el_type: nethermind
-        replicas: 3
+        replicas: 5
       - el_type: reth
-        replicas: 3
+        replicas: 4
       - el_type: geth
-        replicas: 3
+        replicas: 4
       - el_type: erigon
-        replicas: 3
+        replicas: 4
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
