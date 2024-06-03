@@ -225,7 +225,6 @@ type ForkData[ForkDataT any] interface {
 	ComputeRandaoSigningRoot(
 		domainType common.DomainType,
 		epoch math.Epoch,
-		genesisValidatorsRoot primitives.Root,
 	) (common.Root, error)
 }
 

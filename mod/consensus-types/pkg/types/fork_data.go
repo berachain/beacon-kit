@@ -56,7 +56,7 @@ func NewForkData(
 }
 
 // New creates a new ForkData struct.
-func (fv *ForkData) New(
+func (fd *ForkData) New(
 	currentVersion common.Version, genesisValidatorsRoot common.Root,
 ) *ForkData {
 	return NewForkData(currentVersion, genesisValidatorsRoot)
@@ -66,10 +66,10 @@ func (fv *ForkData) New(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 //
 //nolint:lll
-func (fv *ForkData) ComputeDomain(
+func (fd *ForkData) ComputeDomain(
 	domainType common.DomainType,
 ) (common.Domain, error) {
-	forkDataRoot, err := fv.HashTreeRoot()
+	forkDataRoot, err := fd.HashTreeRoot()
 	if err != nil {
 		return common.Domain{}, err
 	}
@@ -85,14 +85,13 @@ func (fv *ForkData) ComputeDomain(
 func (fd *ForkData) ComputeRandaoSigningRoot(
 	domainType common.DomainType,
 	epoch math.Epoch,
-	genesisValidatorsRoot primitives.Root,
 ) (common.Root, error) {
 	signingDomain, err := fd.ComputeDomain(domainType)
 	if err != nil {
 		return primitives.Root{}, err
 	}
 
-	signingRoot, err := ssz.ComputeRandaoSigningRootUInt64(
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)

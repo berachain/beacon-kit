@@ -68,7 +68,7 @@ func CreateAndSignDepositMessage(
 		Amount:      amount,
 	}
 
-	signingRoot, err := ssz.ComputeRandaoSigningRoot(depositMessage, domain)
+	signingRoot, err := ssz.ComputeSigningRoot(depositMessage, domain)
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
 	}
@@ -109,7 +109,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	signingRoot, err := ssz.ComputeRandaoSigningRoot(d, domain)
+	signingRoot, err := ssz.ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}

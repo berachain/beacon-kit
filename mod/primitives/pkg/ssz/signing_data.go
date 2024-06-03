@@ -46,7 +46,7 @@ type SigningData struct {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 //
 //nolint:lll // link.
-func ComputeRandaoSigningRoot(
+func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() ([32]byte, error) },
 	domain common.Domain,
 ) (common.Root, error) {
@@ -61,7 +61,7 @@ func ComputeRandaoSigningRoot(
 }
 
 // ComputeRandaoSigningRootUInt64 computes the signing root of a uint64 value.
-func ComputeRandaoSigningRootUInt64(
+func ComputeSigningRootUInt64(
 	value uint64,
 	domain common.Domain,
 ) (common.Root, error) {

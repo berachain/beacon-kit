@@ -194,19 +194,14 @@ func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
+	slot math.Slot,
 ) (crypto.BLSSignature, error) {
-	// Get the current epoch.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
-
-	epoch := s.chainSpec.SlotToEpoch(slot)
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
 
+	epoch := s.chainSpec.SlotToEpoch(slot)
 	signingRoot, err := types.NewForkData(
 		version.FromUint32[primitives.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
@@ -214,7 +209,6 @@ func (s *Service[
 	).ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
-		genesisValidatorsRoot,
 	)
 
 	if err != nil {
