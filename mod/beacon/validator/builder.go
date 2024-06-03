@@ -190,6 +190,7 @@ func (s *Service[
 	return nil
 }
 
+// buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) buildRandaoReveal(
