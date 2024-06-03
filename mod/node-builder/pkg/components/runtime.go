@@ -226,6 +226,13 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
 		&blockFeed,
+		deposit.GetPruneParamsFn[
+			types.WithdrawalCredentials,
+			*types.Deposit,
+			types.BeaconBlockBody,
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+		](chainSpec),
 	)
 
 	defer func() {
@@ -245,6 +252,10 @@ func ProvideRuntime(
 			nil).IndexDB.(*filedb.RangeDB),
 		manager.AvailabilityPrunerName,
 		&blockFeed,
+		dastore.GetPruneParamsFn[
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+		](chainSpec),
 	)
 
 	dbManagerService, err := manager.NewDBManager[
@@ -291,6 +302,7 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
+		types.BeaconBlockBody,
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
