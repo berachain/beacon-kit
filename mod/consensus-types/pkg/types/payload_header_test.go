@@ -161,6 +161,7 @@ func TestExecutionPayloadHeaderDeneb_Empty(t *testing.T) {
 	require.Equal(t, version.Deneb, emptyHeader.Version())
 }
 
+//nolint:lll
 func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
 	original := generateExecutionPayloadHeaderDeneb()
 	validJSON, err := original.MarshalJSON()
