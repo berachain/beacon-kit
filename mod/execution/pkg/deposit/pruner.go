@@ -31,16 +31,17 @@ import (
 )
 
 func GetPruneRangeFn[
-	ExecutionPayloadT interface {
-		GetNumber() math.U64
-	},
-	WithdrawalCredentialsT any,
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	ExecutionPayloadT interface {
+		GetNumber() math.U64
+	},
+	WithdrawalCredentialsT any,
+
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		blk := event.Block()

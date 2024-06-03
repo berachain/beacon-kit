@@ -214,12 +214,12 @@ func ProvideRuntime(
 		manager.DepositPrunerName,
 		&blockFeed,
 		deposit.GetPruneRangeFn[
-			*types.ExecutionPayload,
-			types.WithdrawalCredentials,
-			*types.Deposit,
 			types.BeaconBlockBody,
 			*types.BeaconBlock,
 			events.Block[*types.BeaconBlock],
+			*types.Deposit,
+			*types.ExecutionPayload,
+			types.WithdrawalCredentials,
 		](chainSpec),
 	)
 
