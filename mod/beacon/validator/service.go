@@ -317,7 +317,7 @@ func (s *Service[
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block
 // and logs the process.
 //
-
+//nolint:gocognit // todo fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 ]) VerifyIncomingBlock(
@@ -326,6 +326,12 @@ func (s *Service[
 ) error {
 	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
@@ -360,12 +366,6 @@ func (s *Service[
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
 	stCopy := st.Copy()
-
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
