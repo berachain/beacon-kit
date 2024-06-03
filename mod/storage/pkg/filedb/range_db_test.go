@@ -21,6 +21,7 @@
 package filedb_test
 
 import (
+	"reflect"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -31,6 +32,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+// =========================== BASIC OPERATIONS ============================
 
 func TestRangeDB(t *testing.T) {
 	tests := []struct {
@@ -129,15 +132,7 @@ func TestRangeDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs := afero.NewMemMapFs()
-			db := file.NewDB(
-				file.WithRootDirectory("/tmp/testdb"),
-				file.WithFileExtension("txt"),
-				file.WithDirectoryPermissions(0700),
-				file.WithLogger(log.NewNopLogger()),
-				file.WithAferoFS(fs),
-			)
-			rdb := file.NewRangeDB(db)
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-1"))
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -197,6 +192,8 @@ func TestExtractIndex(t *testing.T) {
 	}
 }
 
+// =========================== PRUNING =====================================
+
 func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	tests := []struct {
 		name string
@@ -223,4 +220,205 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 				err.Error())
 		})
 	}
+}
+
+func TestRangeDB_Prune(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupFunc     func(rdb *file.RangeDB) error
+		start         uint64
+		end           uint64
+		expectedError bool
+		testFunc      func(t *testing.T, rdb *file.RangeDB)
+	}{
+		{
+			name: "PruneWithDeleteRange",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 0, 50)
+			},
+			start:         2,
+			end:           7,
+			expectedError: false,
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				requireNotExist(t, rdb, 2, 6)
+				requireExist(t, rdb, 7, 10)
+				requireExist(t, rdb, 0, 1)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
+
+			if tt.setupFunc != nil {
+				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
+					t.Fatalf(
+						"setupFunc() error = %v, expectedError %v",
+						err,
+						tt.expectedError,
+					)
+				}
+			}
+			err := rdb.Prune(tt.start, tt.end)
+			if (err != nil) != tt.expectedError {
+				t.Fatalf(
+					"Prune() error = %v, expectedError %v",
+					err,
+					tt.expectedError,
+				)
+			}
+
+			if tt.testFunc != nil {
+				tt.testFunc(t, rdb)
+			}
+		})
+	}
+}
+
+// =========================== INVARIANTS ================================.
+
+// invariant: all indexes up to the firstNonNilIndex should be nil.
+func TestRangeDB_Invariants(t *testing.T) {
+	// we ignore errors for most of the tests below because we want to ensure
+	// that the invariants hold in exceptional circumstances.
+	tests := []struct {
+		name      string
+		setupFunc func(rdb *file.RangeDB) error
+		testFunc  func(t *testing.T, rdb *file.RangeDB)
+	}{
+		{
+			name: "Populate from empty",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 1, 5)
+			},
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+			},
+		},
+		{
+			name: "Delete from populated",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 1, 5)
+			},
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				_ = rdb.Delete(2, []byte("key"))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+			},
+		},
+		{
+			name: "Prune from populated",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 1, 10)
+			},
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				_ = rdb.Prune(0, 3)
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+			},
+		},
+		{
+			name: "DeleteRange from populated",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 1, 10)
+			},
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				_ = rdb.DeleteRange(1, 5) // ignore error
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+			},
+		},
+		{
+			name: "Populate, Prune, Set round trip",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 1, 30)
+			},
+			testFunc: func(t *testing.T, rdb *file.RangeDB) {
+				t.Helper()
+				if err := rdb.Prune(0, 25); err != nil {
+					t.Fatalf("Prune() error = %v", err)
+				}
+				_ = populateTestDB(rdb, 5, 10)
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-3"))
+
+			if tt.setupFunc != nil {
+				if err := tt.setupFunc(rdb); err != nil {
+					requireNotExist(
+						t,
+						rdb,
+						0,
+						lastConsequetiveNilIndex(rdb),
+					)
+				}
+			}
+			if tt.testFunc != nil {
+				tt.testFunc(t, rdb)
+			}
+		})
+	}
+}
+
+// =============================== HELPERS ==================================
+
+// newTestFDB returns a new file DB instance with an in-memory filesystem.
+func newTestFDB(path string) *file.DB {
+	fs := afero.NewMemMapFs()
+	return file.NewDB(
+		// don't reuse the same txt file for consecutive unit tests bc file
+		// db slow AF
+		file.WithRootDirectory(path),
+		file.WithFileExtension("txt"),
+		file.WithDirectoryPermissions(0700),
+		file.WithLogger(log.NewNopLogger()),
+		file.WithAferoFS(fs),
+	)
+}
+
+func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
+	return reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
+}
+
+func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {
+	return uint64(max(int64(getFirstNonNilIndex(rdb))-1, 0))
+}
+
+// requireNotExist requires the indexes from `from` to `to` to be empty.
+//
+
+func requireNotExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+	t.Helper()
+	for i := from; i <= to; i++ {
+		exists, err := rdb.Has(i, []byte("key"))
+		require.NoError(t, err)
+		require.False(t, exists, "Index %d should have been pruned", i)
+	}
+}
+
+// requireExist requires the indexes from `from` to `to` not be empty.
+func requireExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
+	t.Helper()
+	for i := from; i <= to; i++ {
+		exists, err := rdb.Has(i, []byte("key"))
+		require.NoError(t, err)
+		require.True(t, exists, "Index %d should not have been pruned", i)
+	}
+}
+
+// populateTestDB populates the test DB with indexes from `from` to `to`.
+func populateTestDB(rdb *file.RangeDB, from, to uint64) error {
+	for i := from; i <= to; i++ {
+		if err := rdb.Set(i, []byte("key"), []byte("value")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
