@@ -46,21 +46,18 @@ func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
 }
 
 type eventFeed[BlockEventT pruner.BlockEvent[pruner.BeaconBlock]] struct {
-	subscribers []chan<- BlockEventT
+	subscriber chan<- BlockEventT
 }
 
 func (ef *eventFeed[BlockEventT]) Send(event BlockEventT) int {
-	for _, sub := range ef.subscribers {
-		sub <- event
-	}
-
-	return len(ef.subscribers)
+	ef.subscriber <- event
+	return 1
 }
 
 func (ef *eventFeed[BlockEventT]) Subscribe(
 	c chan<- BlockEventT,
 ) pruner.Subscription {
-	ef.subscribers = append(ef.subscribers, c)
+	ef.subscriber = c
 
 	subscription := &mocks.Subscription{}
 	subscription.On("Unsubscribe").Return()
@@ -93,12 +90,7 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			feed := eventFeed[pruner.BlockEvent[pruner.BeaconBlock]]{
-				subscribers: make(
-					[]chan<- pruner.BlockEvent[pruner.BeaconBlock],
-					0,
-				),
-			}
+			feed := eventFeed[pruner.BlockEvent[pruner.BeaconBlock]]{}
 
 			mockPrunable := new(interfacemocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
