@@ -181,6 +181,12 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	// SendForceHeadFCU sends a force head FCU to the execution client.
+	SendForceHeadFCU(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+	) error
 }
 
 // StateProcessor defines the interface for processing the state.
