@@ -133,6 +133,10 @@ func (s *Service[
 ]) Start(
 	context.Context,
 ) error {
+	s.logger.Info(
+		"starting validator service 🛜 ",
+		"optimistic_payload_builds", s.cfg.EnableOptimisticPayloadBuilds,
+	)
 	return nil
 }
 
