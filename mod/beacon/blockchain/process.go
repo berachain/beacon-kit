@@ -123,7 +123,7 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	if !s.skipPostBlockFCU {
-		go s.sendFCU(ctx, st, blk.GetSlot())
+		go s.sendPostBlockFCU(ctx, st, blk)
 	}
 
 	go s.postBlockProcessTasks(ctx, st)

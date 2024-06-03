@@ -97,6 +97,7 @@ func NewService[
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
 	ee ExecutionEngine,
+	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
@@ -106,7 +107,6 @@ func NewService[
 		BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
-	lb LocalBuilder[BeaconStateT],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
 	skipPostBlockFCU bool,
