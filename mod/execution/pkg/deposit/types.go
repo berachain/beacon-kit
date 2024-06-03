@@ -68,7 +68,9 @@ type BlockFeed[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
+	],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()

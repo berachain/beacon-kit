@@ -283,7 +283,7 @@ func TestRangeDB_Prune(t *testing.T) {
 	}
 }
 
-// =========================== INVARIANTS ================================
+// =========================== INVARIANTS ================================.
 func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
 	val := reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
 	// fmt.Println("VAL", val)
@@ -296,7 +296,7 @@ func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
 
 // invariant: all indexes up to the firstNonNilIndex should be nil.
 //
-//nolint:gocognit //23
+
 func TestRangeDB_Invariants(t *testing.T) {
 	// we ignore errors for most of the tests below because we want to ensure
 	// that the invariants hold in exceptional circumstances.
@@ -370,7 +370,12 @@ func TestRangeDB_Invariants(t *testing.T) {
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); err != nil {
 					// enforce invariant integrity on error
-					requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+					requireNotExist(
+						t,
+						rdb,
+						0,
+						min(getFirstNonNilIndex(rdb)-1, 0),
+					)
 				}
 			}
 			if tt.testFunc != nil {
@@ -396,7 +401,7 @@ func newTestFDB() *file.DB {
 
 // requireNotExist requires the indexes from `from` to `to` to be empty.
 //
-//nolint:unparam //lol
+
 func requireNotExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
 	t.Helper()
 	for i := from; i <= to; i++ {

@@ -51,7 +51,7 @@ func TestDBManager_Start(t *testing.T) {
 	sub.EXPECT().Unsubscribe().Return()
 	feed.EXPECT().Subscribe(mock.Anything).Return(&sub)
 	pruneParamsFn :=
-		func(event manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
+		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
 			return 0, 0
 		}
 

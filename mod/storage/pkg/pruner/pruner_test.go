@@ -32,7 +32,8 @@ package pruner_test
 
 // 	"cosmossdk.io/log"
 // 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-// 	interfacemocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
+// 	interfacemocks
+// "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 // 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 // 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 // 	"github.com/stretchr/testify/mock"
