@@ -25,6 +25,19 @@
 
 package core
 
+import (
+	"crypto/sha256"
+
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/go-faster/xor"
+)
+
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
@@ -37,7 +50,53 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 	skipVerification bool,
 ) error {
-	return sp.rp.ProcessRandao(st, blk, skipVerification)
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// Ensure the proposer index is valid.
+	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
+	if err != nil {
+		return err
+	}
+
+	root, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
+
+	epoch := sp.cs.SlotToEpoch(slot)
+	body := blk.GetBody()
+	if !skipVerification {
+		var signingRoot primitives.Root
+		signingRoot, err = sp.computeSigningRoot(epoch, root)
+		if err != nil {
+			return err
+		}
+
+		reveal := body.GetRandaoReveal()
+		if err = sp.signer.VerifySignature(
+			proposer.GetPubkey(),
+			signingRoot[:],
+			reveal,
+		); err != nil {
+			return err
+		}
+	}
+
+	prevMix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return err
+	}
+
+	mix := sp.buildMix(prevMix, body.GetRandaoReveal())
+	return st.UpdateRandaoMixAtIndex(
+		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
+		mix,
+	)
 }
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
@@ -52,5 +111,69 @@ func (sp *StateProcessor[
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
-	return sp.rp.ProcessRandaoMixesReset(st)
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	epoch := sp.cs.SlotToEpoch(slot)
+	mix, err := st.GetRandaoMixAtIndex(
+		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return err
+	}
+	return st.UpdateRandaoMixAtIndex(
+		uint64(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
+		mix,
+	)
+}
+
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) buildMix(
+	mix primitives.Bytes32,
+	reveal crypto.BLSSignature,
+) primitives.Bytes32 {
+	newMix := make([]byte, constants.RootLength)
+	revealHash := sha256.Sum256(reveal[:])
+	// Apparently this library giga fast? Good project? lmeow.
+	_ = xor.Bytes(newMix, mix[:], revealHash[:])
+	return primitives.Bytes32(newMix)
+}
+
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) computeSigningRoot(
+	epoch math.Epoch,
+	genesisValidatorsRoot primitives.Root,
+) (primitives.Root, error) {
+	var fd ForkDataT
+	fd = fd.New(
+		version.FromUint32[primitives.Version](
+			sp.cs.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+
+	signingDomain, err := fd.ComputeDomain(sp.cs.DomainTypeRandao())
+	if err != nil {
+		return primitives.Root{}, err
+	}
+
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
+		uint64(epoch),
+		signingDomain,
+	)
+
+	if err != nil {
+		return primitives.Root{},
+			errors.Newf("failed to compute signing root: %w", err)
+	}
+	return signingRoot, nil
 }
