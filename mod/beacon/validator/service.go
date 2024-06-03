@@ -372,7 +372,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) {
-	s.logger.Info("forcing execution to forkchoice update for startup 🚀")
+	s.logger.Info("sending startup forkchoice update to execution client 🚀 ")
 	slot, err := st.GetSlot()
 	if err != nil {
 		s.logger.Error(
@@ -381,11 +381,11 @@ func (s *Service[
 		)
 		return
 	}
-	if err := s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+
+	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
 		)
 	}
-	return
 }
