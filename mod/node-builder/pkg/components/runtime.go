@@ -214,6 +214,7 @@ func ProvideRuntime(
 		manager.DepositPrunerName,
 		&blockFeed,
 		deposit.GetPruneParamsFn[
+			*types.ExecutionPayload,
 			types.WithdrawalCredentials,
 			*types.Deposit,
 			types.BeaconBlockBody,
@@ -291,7 +292,6 @@ func ProvideRuntime(
 	depositService := deposit.NewService[
 		types.BeaconBlockBody,
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,

@@ -106,8 +106,9 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 }
 
 // PruneFromInclusive removes all values up to the given index from the db.
-func (db *RangeDB) PruneFromInclusive(pruneUntil uint64, _ uint64) error {
-	if err := db.DeleteRange(db.firstNonNilIndex, pruneUntil); err != nil {
+func (db *RangeDB) Prune(start, end uint64) error {
+	start = max(start, db.firstNonNilIndex)
+	if err := db.DeleteRange(start, end); err != nil {
 		// Resets last pruned index in case Delete somehow populates indices on
 		// err. This will cause the next prune operation is O(n), but next
 		// successful prune will set it to the correct value, so runtime is
@@ -115,7 +116,7 @@ func (db *RangeDB) PruneFromInclusive(pruneUntil uint64, _ uint64) error {
 		db.firstNonNilIndex = 0
 		return err
 	}
-	db.firstNonNilIndex = pruneUntil
+	db.firstNonNilIndex = end
 	return nil
 }
 

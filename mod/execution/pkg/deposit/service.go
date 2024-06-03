@@ -34,15 +34,16 @@ import (
 
 // Service represenst the deposit service that processes deposit events.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT interface{ GetIndex() uint64 },
+	WithdrawalCredentialsT any,
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
@@ -58,9 +59,9 @@ type Service[
 	feed BlockFeed[
 		DepositT,
 		BeaconBlockBodyT,
-		BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockT,
 		BlockEventT,
-		DepositT, ExecutionPayloadT,
+		ExecutionPayloadT,
 		SubscriptionT,
 	]
 	// newBlock is the channel for new blocks.
@@ -71,17 +72,19 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockBodyT BeaconBlockBody[DepositT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT][BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, 
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		DepositT, BeaconBlockBodyT,
+		BeaconBlockT, ExecutionPayloadT,
+	],
 	DepositStoreT Store[DepositT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT interface{ GetIndex() uint64 },
+	WithdrawalCredentialsT any,
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
@@ -89,16 +92,18 @@ func NewService[
 	ds Store[DepositT],
 	dc Contract[DepositT],
 	feed BlockFeed[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-		DepositT, ExecutionPayloadT, SubscriptionT,
+		DepositT, BeaconBlockBodyT, BeaconBlockT, BlockEventT,
+		ExecutionPayloadT, SubscriptionT,
 	],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-		ExecutionPayloadT, SubscriptionT, DepositT,
+		ExecutionPayloadT, SubscriptionT,
+		WithdrawalCredentialsT, DepositT,
 	]{
 		feed:               feed,
 		logger:             logger,
@@ -114,7 +119,8 @@ func NewService[
 // Start starts the service and begins processing block events.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -126,7 +132,8 @@ func (s *Service[
 
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) blockFeedListener(ctx context.Context) {
 	ch := make(chan BlockEventT)
 	sub := s.feed.Subscribe(ch)
@@ -144,7 +151,8 @@ func (s *Service[
 // Name returns the name of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Name() string {
 	return "deposit-handler"
 }
@@ -152,7 +160,8 @@ func (s *Service[
 // Status returns the current status of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Status() error {
 	return nil
 }
@@ -160,7 +169,8 @@ func (s *Service[
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) WaitForHealthy(
 	_ context.Context,
 ) {

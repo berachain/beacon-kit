@@ -25,15 +25,21 @@
 
 package deposit
 
-import "github.com/berachain/beacon-kit/mod/primitives"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 func GetPruneParamsFn[
+	ExecutionPayloadT interface {
+		GetNumber() math.U64
+	},
 	WithdrawalCredentialsT any,
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	BeaconBlockBodyT BeaconBlockBody[DepositT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT,
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {

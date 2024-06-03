@@ -26,6 +26,8 @@
 package filedb_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -230,24 +232,27 @@ func TestRangeDB_Prune(t *testing.T) {
 	tests := []struct {
 		name          string
 		setupFunc     func(rdb *file.RangeDB) error
-		pruneUntil    uint64
+		start         uint64
+		end           uint64
 		expectedError bool
 		testFunc      func(t *testing.T, rdb *file.RangeDB)
 	}{
 		{
 			name: "PruneWithDeleteRange",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 50); err != nil {
+				if err := populateTestDB(rdb, 0, 50); err != nil {
 					return err
 				}
 				return nil
 			},
-			pruneUntil:    7, // index 6 with window 2 means delete from 0 to 3
+			start:         2,
+			end:           7,
 			expectedError: false,
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				requireNotExist(t, rdb, 0, 6)
+				requireNotExist(t, rdb, 2, 6)
 				requireExist(t, rdb, 7, 10)
+				requireExist(t, rdb, 0, 1)
 			},
 		},
 	}
@@ -265,8 +270,7 @@ func TestRangeDB_Prune(t *testing.T) {
 					)
 				}
 			}
-			randInt := 69 // doesn't matter xD
-			err := rdb.PruneFromInclusive(tt.pruneUntil, uint64(randInt))
+			err := rdb.Prune(tt.start, tt.end)
 			if (err != nil) != tt.expectedError {
 				t.Fatalf(
 					"Prune() error = %v, expectedError %v",
@@ -283,6 +287,16 @@ func TestRangeDB_Prune(t *testing.T) {
 }
 
 // =========================== INVARIANTS ================================
+func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
+	val := reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
+	// fmt.Println("VAL", val)
+	if val != rdb.FirstNonNilIndex() {
+		panic(fmt.Errorf("i came %v times", rdb.FirstNonNilIndex()))
+	}
+
+	return val
+}
+
 // invariant: all indexes up to the firstNonNilIndex should be nil.
 //
 //nolint:gocognit //23
@@ -304,7 +318,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 			},
 		},
 		{
@@ -318,7 +332,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Delete(2, []byte("key"))
-				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 			},
 		},
 		{
@@ -331,8 +345,8 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				_ = rdb.PruneFromInclusive(0, 3)
-				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+				_ = rdb.Prune(0, 3)
+				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 			},
 		},
 		{
@@ -346,7 +360,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.DeleteRange(1, 5) // ignore error
-				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 			},
 		},
 		{
@@ -359,11 +373,11 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				if err := rdb.PruneFromInclusive(0, 25); err != nil {
+				if err := rdb.Prune(0, 25); err != nil {
 					t.Fatalf("Prune() error = %v", err)
 				}
 				_ = populateTestDB(rdb, 5, 10)
-				requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 			},
 		},
 	}
@@ -374,7 +388,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); err != nil {
 					// enforce invariant integrity on error
-					requireNotExist(t, rdb, 0, min(rdb.FirstNonNilIndex()-1, 0))
+					requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
 				}
 			}
 			if tt.testFunc != nil {

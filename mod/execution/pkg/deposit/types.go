@@ -34,8 +34,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type BeaconBlockBody[DepositT any] interface {
+type BeaconBlockBody[
+	DepositT any,
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
+] interface {
 	GetDeposits() []DepositT
+	GetExecutionPayload() ExecutionPayloadT
 }
 
 // BeaconBlock is an interface for beacon blocks.
@@ -52,7 +56,7 @@ type BeaconBlock[
 type BlockEvent[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	Context() context.Context
@@ -62,9 +66,9 @@ type BlockEvent[
 // BlockFeed is an interface for subscribing to block events.
 type BlockFeed[
 	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
-	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, BeaconBlockT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
@@ -105,9 +109,8 @@ type EthClient interface {
 
 // Store defines the interface for managing deposit operations.
 type Store[DepositT any] interface {
-	// PruneFromInclusive prunes the deposit store from the given
-	// index for N indexes.
-	PruneFromInclusive(index uint64, numPrune uint64) error
+	// Prune prunes the deposit store of [start, end)
+	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []DepositT) error
 }
