@@ -209,10 +209,10 @@ type StorageBackend[
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 ] interface {
-	// StateFromContext retrieves the beacon state from the context.
-	StateFromContext(context.Context) BeaconStateT
 	// DepositStore retrieves the deposit store.
 	DepositStore(context.Context) DepositStoreT
+	// StateFromContext retrieves the beacon state from the context.
+	StateFromContext(context.Context) BeaconStateT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
