@@ -233,12 +233,15 @@ func ProvideRuntime(
 	// Build the deposit service.
 	depositService := deposit.NewService[
 		*types.BeaconBlock,
+		types.BeaconBlockBody,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
 		event.Subscription,
 	](
 		logger.With("service", "deposit"),
 		math.U64(chainSpec.Eth1FollowDistance()),
+		engineClient,
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
 		&blockFeed,

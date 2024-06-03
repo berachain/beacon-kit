@@ -81,13 +81,13 @@ func (dc *WrappedBeaconDepositContract[
 	WithdrawalCredentialsT,
 ]) ReadDeposits(
 	ctx context.Context,
-	blkNum uint64,
+	blkNum math.U64,
 ) ([]DepositT, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   blkNum,
-			End:     &blkNum,
+			Start:   uint64(blkNum),
+			End:     (*uint64)(&blkNum),
 		},
 	)
 	if err != nil {
