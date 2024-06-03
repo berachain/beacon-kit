@@ -152,6 +152,7 @@ func NewBeaconKitRuntime[
 				*engineprimitives.Withdrawal,
 			],
 			BlobSidecarsT,
+			DepositStoreT,
 		]
 	)
 
