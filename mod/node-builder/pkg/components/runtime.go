@@ -198,8 +198,13 @@ func ProvideRuntime(
 		ts,
 	)
 
-	// Build the deposit pruner.
+	// slice of pruners to pass to the DBManager.
+	pruners := []*pruner.Pruner[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription]{}
 
+	// Build the deposit pruner.\
 	depositPruner := pruner.NewPruner[
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
@@ -218,12 +223,7 @@ func ProvideRuntime(
 			types.WithdrawalCredentials,
 		](chainSpec),
 	)
-
-	// slice of pruners to pass to the DBManager.
-	pruners := []*pruner.Pruner[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription]{depositPruner}
+	pruners = append(pruners, depositPruner)
 
 	avs := storageBackend.AvailabilityStore(nil).IndexDB
 	if avs != nil {
