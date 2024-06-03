@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -227,19 +226,9 @@ func (s *Service[
 		), genesisValidatorsRoot,
 	)
 
-	signingDomain, err := fd.ComputeDomain(s.chainSpec.DomainTypeRandao())
-	if err != nil {
-		return primitives.Root{}, err
-	}
-
-	signingRoot, err := ssz.ComputeSigningRootUInt64(
-		uint64(epoch),
-		signingDomain,
+	return fd.ComputeSigningRoot(
+		s.chainSpec.DomainTypeRandao(),
+		epoch,
+		genesisValidatorsRoot,
 	)
-
-	if err != nil {
-		return primitives.Root{},
-			errors.Newf("failed to compute signing root: %w", err)
-	}
-	return signingRoot, nil
 }

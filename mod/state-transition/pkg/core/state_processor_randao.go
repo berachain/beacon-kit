@@ -28,12 +28,9 @@ package core
 import (
 	"crypto/sha256"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
 )
@@ -61,16 +58,25 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	root, err := st.GetGenesisValidatorsRoot()
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return err
 	}
 
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
+
+	var fd ForkDataT
+	fd = fd.New(
+		version.FromUint32[primitives.Version](
+			sp.cs.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+
 	if !skipVerification {
 		var signingRoot primitives.Root
-		signingRoot, err = sp.computeSigningRoot(epoch, root)
+		signingRoot, err = fd.ComputeSigningRoot(
+			sp.cs.DomainTypeRandao(), epoch, genesisValidatorsRoot)
 		if err != nil {
 			return err
 		}
@@ -143,37 +149,4 @@ func (sp *StateProcessor[
 	// Apparently this library giga fast? Good project? lmeow.
 	_ = xor.Bytes(newMix, mix[:], revealHash[:])
 	return primitives.Bytes32(newMix)
-}
-
-func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) computeSigningRoot(
-	epoch math.Epoch,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.Root, error) {
-	var fd ForkDataT
-	fd = fd.New(
-		version.FromUint32[primitives.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	signingDomain, err := fd.ComputeDomain(sp.cs.DomainTypeRandao())
-	if err != nil {
-		return primitives.Root{}, err
-	}
-
-	signingRoot, err := ssz.ComputeSigningRootUInt64(
-		uint64(epoch),
-		signingDomain,
-	)
-
-	if err != nil {
-		return primitives.Root{},
-			errors.Newf("failed to compute signing root: %w", err)
-	}
-	return signingRoot, nil
 }

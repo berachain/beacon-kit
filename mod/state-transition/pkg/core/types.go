@@ -221,10 +221,12 @@ type ExecutionEngine[
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
 	New(primitives.Version, primitives.Root) ForkDataT
-	// ComputeDomain returns the domain for the fork data.
-	ComputeDomain(
+	// ComputeSigningRoot returns the signing root for the fork data.
+	ComputeSigningRoot(
 		domainType common.DomainType,
-	) (common.Domain, error)
+		epoch math.Epoch,
+		genesisValidatorsRoot primitives.Root,
+	) (common.Root, error)
 }
 
 // Validator represents an interface for a validator with generic type

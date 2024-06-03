@@ -25,7 +25,13 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+)
 
 // ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
@@ -73,4 +79,29 @@ func (fv *ForkData) ComputeDomain(
 			domainType[:],
 			forkDataRoot[:28]...),
 	), nil
+}
+
+// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
+//
+//nolint:lll
+func (fd *ForkData) ComputeSigningRoot(
+	domainType common.DomainType,
+	epoch math.Epoch,
+	genesisValidatorsRoot primitives.Root,
+) (common.Root, error) {
+	signingDomain, err := fd.ComputeDomain(domainType)
+	if err != nil {
+		return primitives.Root{}, err
+	}
+
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
+		uint64(epoch),
+		signingDomain,
+	)
+
+	if err != nil {
+		return primitives.Root{},
+			errors.Newf("failed to compute signing root: %w", err)
+	}
+	return signingRoot, nil
 }
