@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package components
 
@@ -52,6 +47,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
@@ -193,13 +191,72 @@ func ProvideRuntime(
 			types.KZGPositionDeneb,
 			ts,
 		),
-		storageBackend.DepositStore(nil),
 		localBuilder,
 		[]validator.PayloadBuilder[BeaconState]{
 			localBuilder,
 		},
 		ts,
 	)
+
+	// slice of pruners to pass to the DBManager.
+	pruners := []*pruner.Pruner[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription]{}
+
+	// Build the deposit pruner.\
+	depositPruner := pruner.NewPruner[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription,
+	](
+		logger.With("service", manager.DepositPrunerName),
+		storageBackend.DepositStore(nil),
+		manager.DepositPrunerName,
+		&blockFeed,
+		deposit.GetPruneRangeFn[
+			types.BeaconBlockBody,
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+			*types.Deposit,
+			*types.ExecutionPayload,
+			types.WithdrawalCredentials,
+		](chainSpec),
+	)
+	pruners = append(pruners, depositPruner)
+
+	avs := storageBackend.AvailabilityStore(nil).IndexDB
+	if avs != nil {
+		// build the availability pruner if IndexDB is available.
+		availabilityPruner := pruner.NewPruner[
+			*types.BeaconBlock,
+			events.Block[*types.BeaconBlock],
+			event.Subscription,
+		](
+			logger.With("service", manager.AvailabilityPrunerName),
+			avs.(*filedb.RangeDB),
+			manager.AvailabilityPrunerName,
+			&blockFeed,
+			dastore.GetPruneRangeFn[
+				*types.BeaconBlock,
+				events.Block[*types.BeaconBlock],
+			](chainSpec),
+		)
+		pruners = append(pruners, availabilityPruner)
+	}
+
+	// Build the DBManager service.
+	dbManagerService, err := manager.NewDBManager[
+		*types.BeaconBlock,
+		events.Block[*types.BeaconBlock],
+		event.Subscription,
+	](
+		logger.With("service", "db-manager"),
+		pruners...,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
@@ -228,12 +285,14 @@ func ProvideRuntime(
 		stateProcessor,
 		ts,
 		&blockFeed,
+		// If optimistic is enabled, we want to skip post finalization FCUs.
+		cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		*types.BeaconBlock,
 		types.BeaconBlockBody,
+		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,
@@ -259,6 +318,7 @@ func ProvideRuntime(
 			ts,
 			sdkversion.Version,
 		)),
+		service.WithService(dbManagerService),
 	)
 
 	// Pass all the services and options into the BeaconKitRuntime.

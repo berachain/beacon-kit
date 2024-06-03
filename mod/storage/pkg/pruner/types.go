@@ -23,18 +23,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package nodebuilder
+package pruner
 
 import (
-	"context"
-
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconApp is an interface that defines the PostStartup method.
-type BeaconApp interface {
-	PostStartup(
-		ctx context.Context,
-		clientCtx client.Context,
-	) error
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
+}
+
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Block() BeaconBlockT
+}
+
+type Subscription interface {
+	Unsubscribe()
+}
+
+// BlockFeed is an interface for subscribing to block events.
+type BlockFeed[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+	SubscriptionT Subscription,
+] interface {
+	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }

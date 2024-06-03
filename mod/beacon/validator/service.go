@@ -1,35 +1,32 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package validator
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -47,6 +44,7 @@ type Service[
 	],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore[*types.Deposit],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -61,16 +59,13 @@ type Service[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	]
 	// bsb is the beacon state backend.
-	bsb StorageBackend[BeaconStateT]
+	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
 	]
-	// ds is used to retrieve deposits that have been
-	// queued up for inclusion in the next block.
-	ds DepositStore[*types.Deposit]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
@@ -81,6 +76,8 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// forceStartupSyncOnce is used to force a sync of the startup head.
+	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -90,22 +87,31 @@ func NewService[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore[*types.Deposit],
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb StorageBackend[BeaconStateT],
+	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
-) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
-	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
+) *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+] {
+	return &Service[
+		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+		BlobSidecarsT, DepositStoreT,
+	]{
 		cfg:                   cfg,
 		logger:                logger,
 		bsb:                   bsb,
@@ -113,39 +119,59 @@ func NewService[
 		signer:                signer,
 		stateProcessor:        stateProcessor,
 		blobFactory:           blobFactory,
-		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
+		forceStartupSyncOnce:  new(sync.Once),
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Start(
 	context.Context,
 ) error {
+	s.logger.Info(
+		"starting validator service 🛜 ",
+		"optimistic_payload_builds", s.cfg.EnableOptimisticPayloadBuilds,
+	)
 	return nil
 }
 
 // Status returns the status of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
@@ -155,7 +181,11 @@ func (s *Service[
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -175,6 +205,12 @@ func (s *Service[
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
@@ -230,7 +266,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.GetDepositsByIndex(
+	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
@@ -310,23 +346,64 @@ func (s *Service[
 
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block
 // and logs the process.
+//
+//nolint:gocognit // todo fix.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
+	// Grab a copy of the state to verify the incoming block.
+	st := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
+
+	// If the block is nil or a nil pointer, exit early.
+	if blk.IsNil() {
+		s.logger.Error(
+			"aborting block verification on nil block ⛔️ ",
+		)
+
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
+			go func() {
+				if pErr := s.rebuildPayloadForRejectedBlock(
+					ctx, st,
+				); pErr != nil {
+					s.logger.Error(
+						"failed to rebuild payload for nil block",
+						"error", pErr,
+					)
+				}
+			}()
+		}
+
+		return ErrNilBlk
+	}
+
 	s.logger.Info(
 		"received incoming beacon block 📫 ",
 		"state_root", blk.GetStateRoot(),
 	)
 
-	// Grab a copy of the state to verify the incoming block.
-	st := s.bsb.StateFromContext(ctx)
+	// We purposefully make a copy of the BeaconState in orer
+	// to avoid modifying the underlying state, for the event in which
+	// we have to rebuild a payload for this slot again, if we do not agree
+	// with the incoming block.
+	stCopy := st.Copy()
 
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
-		ctx, st, blk,
+		ctx, stCopy, blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
@@ -340,10 +417,26 @@ func (s *Service[
 			"block_state_root",
 			blk.GetStateRoot(),
 			"local_state_root",
-			localStateRoot,
+			primitives.Root(localStateRoot),
 			"error",
 			err,
 		)
+
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
+			go func() {
+				if pErr := s.rebuildPayloadForRejectedBlock(
+					ctx, st,
+				); pErr != nil {
+					s.logger.Error(
+						"failed to rebuild payload for rejected block",
+						"for_slot", blk.GetSlot(),
+						"error", pErr,
+					)
+				}
+			}()
+		}
+
 		return err
 	}
 
@@ -351,5 +444,190 @@ func (s *Service[
 		"state root verification succeeded - accepting incoming block 🏎️ ",
 		"state_root", blk.GetStateRoot(),
 	)
+
+	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
+		go func() {
+			if err := s.optimisticPayloadBuild(ctx, stCopy, blk); err != nil {
+				s.logger.Error(
+					"failed to build optimistic payload",
+					"for_slot", blk.GetSlot()+1,
+					"error", err,
+				)
+			}
+		}()
+	}
+
 	return nil
+}
+
+// rebuildPayloadForRejectedBlock rebuilds a payload for the current
+// slot, if the incoming block was rejected.
+//
+// NOTE: We cannot use any data off the incoming block and must recompute
+// any required information from our local state. We do this since we have
+// rejected the incoming block and it would be unsafe to use any
+// information from it.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
+]) rebuildPayloadForRejectedBlock(
+	ctx context.Context,
+	st BeaconStateT,
+) error {
+	var (
+		previousBlockRoot primitives.Root
+		lph               engineprimitives.ExecutionPayloadHeader
+		slot              math.Slot
+	)
+
+	s.logger.Info("rebuilding payload for rejected block ⏳ ")
+
+	// In order to rebuild a payload for the current slot, we need to know the
+	// previous block root, since we know that this is unmodified state.
+	// We can safely get the latest block header and then rebuild the
+	// previous block and it's root.
+	latestHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+
+	stateRoot, err := st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	latestHeader.StateRoot = stateRoot
+	previousBlockRoot, err = latestHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// We need to get the *last* finalized execution payload, thus
+	// the BeaconState that was passed in must be `unmodified`.
+	lph, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	slot, err = st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	// Submit a request for a new payload.
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+		ctx,
+		st,
+		// We are rebuilding for the current slot.
+		slot,
+		// TODO: this is hood as fuck.
+		max(
+			//#nosec:G701
+			uint64(time.Now().Unix()+1),
+			uint64((lph.GetTimestamp()+1)),
+		),
+		// We set the parent root to the previous block root.
+		previousBlockRoot,
+		// We set the head of our chain to previous finalized block.
+		lph.GetBlockHash(),
+		// We can say that the payload from the previous block is *finalized*,
+		// TODO: This is making an assumption about the consensus rules
+		// and possibly should be made more explicit later on.
+		lph.GetBlockHash(),
+	); err != nil {
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
+		return err
+	}
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
+	return nil
+}
+
+// optimisticPayloadBuild builds a payload for the next slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
+]) optimisticPayloadBuild(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	s.logger.Info("optimistically triggering payload build for next slot 🛩️ ")
+
+	// We know that this block was properly formed so we can
+	// calculate the block hash easily.
+	blkRoot, err := blk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	// We process the slot to update any RANDAO values.
+	if _, err = s.stateProcessor.ProcessSlot(
+		st,
+	); err != nil {
+		return err
+	}
+
+	// We are building for the next slot, so we increment the slot relative
+	// to the block we just processed.
+	slot := blk.GetSlot() + 1
+
+	// We then trigger a request for the next payload.
+	payload := blk.GetBody().GetExecutionPayload()
+	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+		ctx, st,
+		slot,
+		// TODO: this is hood as fuck.
+		max(
+			//#nosec:G701
+			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
+			uint64((payload.GetTimestamp()+1)),
+		),
+		// The previous block root is simply the root of the block we just
+		// processed.
+		blkRoot,
+		// We set the head of our chain to the block we just processed.
+		payload.GetBlockHash(),
+		// We can say that the payload from the previous block is *finalized*,
+		// This is safe to do since this block was accepted and the thus the
+		// parent hash was deemed valid by the state transition function we
+		// just processed.
+		payload.GetParentHash(),
+	); err != nil {
+		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
+		return err
+	}
+	s.metrics.markOptimisticPayloadBuildSuccess(slot)
+	return nil
+}
+
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
+func (s *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) forceStartupHead(
+	ctx context.Context,
+	st BeaconStateT,
+) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed to get slot for force startup head",
+			"error", err,
+		)
+		return
+	}
+
+	// TODO: Verify if the slot number is correct here, I believe in current
+	// form
+	// it should be +1'd. Not a big deal until hardforks are in play though.
+	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+		s.logger.Error(
+			"failed to send force head FCU",
+			"error", err,
+		)
+	}
 }

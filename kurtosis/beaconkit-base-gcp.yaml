@@ -78,7 +78,7 @@ node_settings:
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 2s
+      payload_timeout: 2s
   execution_settings:
     specs:
       min_cpu: 8000
@@ -90,7 +90,7 @@ node_settings:
       erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:1.26.0
+      nethermind: nethermind/nethermind:latest
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   - type: blutgang

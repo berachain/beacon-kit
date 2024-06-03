@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package deposit
 
@@ -34,15 +29,16 @@ import (
 
 // Service represenst the deposit service that processes deposit events.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT interface{ GetIndex() uint64 },
+	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
@@ -55,8 +51,14 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-		DepositT, ExecutionPayloadT, SubscriptionT]
+	feed BlockFeed[
+		DepositT,
+		BeaconBlockBodyT,
+		BeaconBlockT,
+		BlockEventT,
+		ExecutionPayloadT,
+		SubscriptionT,
+	]
 	// newBlock is the channel for new blocks.
 	newBlock chan BeaconBlockT
 	// failedBlocks
@@ -65,16 +67,19 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+		DepositT, BeaconBlockBodyT,
+		BeaconBlockT, ExecutionPayloadT,
+	],
 	DepositStoreT Store[DepositT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT interface{ GetIndex() uint64 },
+	WithdrawalCredentialsT any,
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
@@ -82,16 +87,18 @@ func NewService[
 	ds Store[DepositT],
 	dc Contract[DepositT],
 	feed BlockFeed[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-		DepositT, ExecutionPayloadT, SubscriptionT,
+		DepositT, BeaconBlockBodyT, BeaconBlockT, BlockEventT,
+		ExecutionPayloadT, SubscriptionT,
 	],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-		ExecutionPayloadT, SubscriptionT, DepositT,
+		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
+		ExecutionPayloadT, SubscriptionT,
+		WithdrawalCredentialsT,
 	]{
 		feed:               feed,
 		logger:             logger,
@@ -107,7 +114,8 @@ func NewService[
 // Start starts the service and begins processing block events.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -119,7 +127,8 @@ func (s *Service[
 
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) blockFeedListener(ctx context.Context) {
 	ch := make(chan BlockEventT)
 	sub := s.feed.Subscribe(ch)
@@ -137,7 +146,8 @@ func (s *Service[
 // Name returns the name of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Name() string {
 	return "deposit-handler"
 }
@@ -145,7 +155,8 @@ func (s *Service[
 // Status returns the current status of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Status() error {
 	return nil
 }
@@ -153,7 +164,8 @@ func (s *Service[
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) WaitForHealthy(
 	_ context.Context,
 ) {
