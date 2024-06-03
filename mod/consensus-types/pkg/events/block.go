@@ -35,15 +35,19 @@ type Block[BeaconBlockT any] struct {
 	ctx context.Context
 	// block is the actual beacon block.
 	block BeaconBlockT
+	// eth1DepositIndex is the index of the eth1 deposit.
+	eth1DepositIndex uint64
 }
 
 // NewBlock creates a new Block with the given context and beacon block.
 func NewBlock[
 	BeaconBlockT any,
-](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
+](ctx context.Context, block BeaconBlockT,
+	eth1DepositIndex uint64) Block[BeaconBlockT] {
 	return Block[BeaconBlockT]{
-		ctx:   ctx,
-		block: block,
+		ctx:              ctx,
+		block:            block,
+		eth1DepositIndex: eth1DepositIndex,
 	}
 }
 
@@ -55,4 +59,9 @@ func (e Block[BeaconBlockT]) Context() context.Context {
 // Block returns the beacon block.
 func (e Block[BeaconBlockT]) Block() BeaconBlockT {
 	return e.block
+}
+
+// Eth1DepositIndex returns the eth1 deposit index.
+func (e Block[BeaconBlockT]) Eth1DepositIndex() uint64 {
+	return e.eth1DepositIndex
 }

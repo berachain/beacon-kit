@@ -120,7 +120,11 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return nil, err
+	}
+	s.blockFeed.Send(events.NewBlock(ctx, (blk), eth1DepositIndex))
 
 	// No matter what happens we always want to forkchoice at the end of post
 	// block processing.

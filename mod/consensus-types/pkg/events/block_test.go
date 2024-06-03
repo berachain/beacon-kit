@@ -37,7 +37,7 @@ func TestNewBlock(t *testing.T) {
 	ctx := context.Background()
 	mockBeaconBlock := &mocks.RawBeaconBlock[*mocks.BeaconBlockBody]{}
 
-	event := events.NewBlock(ctx, mockBeaconBlock)
+	event := events.NewBlock(ctx, mockBeaconBlock, 0)
 	if event.Context() != ctx {
 		t.Errorf("expected context %v, got %v", ctx, event.Context())
 	}
