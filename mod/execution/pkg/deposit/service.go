@@ -33,12 +33,12 @@ type Service[
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
 	WithdrawalCredentialsT any,
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
@@ -91,14 +91,14 @@ func NewService[
 		ExecutionPayloadT, SubscriptionT,
 	],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 		ExecutionPayloadT, SubscriptionT,
-		WithdrawalCredentialsT, DepositT,
+		WithdrawalCredentialsT,
 	]{
 		feed:               feed,
 		logger:             logger,
