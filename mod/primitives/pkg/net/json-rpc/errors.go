@@ -56,29 +56,6 @@ func IsPreDefinedError(err error) bool {
 	)
 }
 
-// GetPredefinedError returns a predefined error for the given error code.
-func GetPredefinedError(e Error) error {
-	switch e.ErrorCode() {
-	case -32700:
-		// telemetry.IncrCounter(1, MetricKeyParseErrorCount)
-		return ErrParse
-	case -32600:
-		// telemetry.IncrCounter(1, MetricKeyInvalidRequestCount)
-		return ErrInvalidRequest
-	case -32601:
-		// telemetry.IncrCounter(1, MetricKeyMethodNotFoundCount)
-		return ErrMethodNotFound
-	case -32602:
-		// telemetry.IncrCounter(1, MetricKeyInvalidParamsCount)
-		return ErrInvalidParams
-	case -32603:
-		// telemetry.IncrCounter(1, MetricKeyInternalErrorCount)
-		return ErrInternal
-	default:
-		return nil
-	}
-}
-
 var (
 	// ErrParseError indicates that invalid JSON was received by the server.
 	// (code: -32700).

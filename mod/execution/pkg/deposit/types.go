@@ -27,7 +27,9 @@ package deposit
 
 import (
 	"context"
+	"math/big"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -39,7 +41,8 @@ type BeaconBlockBody[DepositT any] interface {
 // BeaconBlock is an interface for beacon blocks.
 type BeaconBlock[
 	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	GetSlot() math.U64
 	GetBody() BeaconBlockBodyT
@@ -48,8 +51,9 @@ type BeaconBlock[
 // BlockEvent is an interface for block events.
 type BlockEvent[
 	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	Context() context.Context
 	Block() BeaconBlockT
@@ -61,6 +65,7 @@ type BlockFeed[
 	BeaconBlockBodyT BeaconBlockBody[DepositT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT],
 	BlockEventT BlockEvent[DepositT, BeaconBlockBodyT, BeaconBlockT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	}] interface {
@@ -72,7 +77,7 @@ type Contract[DepositT any] interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context,
-		blockNumber uint64,
+		blockNumber math.U64,
 	) ([]DepositT, error)
 }
 
@@ -88,6 +93,14 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 	) DepositT
 
 	GetIndex() uint64
+}
+
+// EthClient is an interface for interacting with the Ethereum 1.0 client.
+type EthClient interface {
+	BlockByNumber(
+		ctx context.Context,
+		number *big.Int,
+	) (*engineprimitives.Block, error)
 }
 
 // Store defines the interface for managing deposit operations.

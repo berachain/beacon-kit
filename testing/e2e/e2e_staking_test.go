@@ -196,9 +196,10 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 
 	val, _ := big.NewFloat(32e18).Int(nil)
 	return dc.Deposit(&bind.TransactOpts{
-		From:   sender,
-		Value:  val,
-		Signer: signer,
-		Nonce:  nonce,
+		From:     sender,
+		Value:    val,
+		Signer:   signer,
+		Nonce:    nonce,
+		GasLimit: 600000,
 	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
 }

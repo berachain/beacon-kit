@@ -63,6 +63,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 
 	// Check for timeout errors.
 	if http.IsTimeoutError(err) {
+		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
 
@@ -81,28 +82,37 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		)
 	}
 
-	// Check to see if the error is one of the predefined errors
-	// as per the JSON-RPC 2.0 specification.
-	if jsonErr := jsonrpc.GetPredefinedError(e); jsonErr != nil {
-		return jsonErr
-	}
-
 	// Otherwise check for our engine errors.
 	switch e.ErrorCode() {
+	case -32700:
+		s.metrics.incrementParseErrorCounter()
+		return jsonrpc.ErrParse
+	case -32600:
+		s.metrics.incrementInvalidRequestCounter()
+		return jsonrpc.ErrInvalidRequest
+	case -32601:
+		s.metrics.incrementMethodNotFoundCounter()
+		return jsonrpc.ErrMethodNotFound
+	case -32602:
+		s.metrics.incrementInvalidParamsCounter()
+		return jsonrpc.ErrInvalidParams
+	case -32603:
+		s.metrics.incrementInternalErrorCounter()
+		return jsonrpc.ErrInternal
 	case -38001:
-		// telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
+		s.metrics.incrementUnknownPayloadErrorCounter()
 		return engineerrors.ErrUnknownPayload
 	case -38002:
-		// telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
+		s.metrics.incrementInvalidForkchoiceStateCounter()
 		return engineerrors.ErrInvalidForkchoiceState
 	case -38003:
-		// telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
+		s.metrics.incrementInvalidPayloadAttributesCounter()
 		return engineerrors.ErrInvalidPayloadAttributes
 	case -38004:
-		// telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
+		s.metrics.incrementRequestTooLargeCounter()
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
-		// telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
+		s.metrics.incrementInternalServerErrorCounter()
 		// Only -32000 status codes are data errors in the RPC specification.
 		var errWithData gethRPC.DataError
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.

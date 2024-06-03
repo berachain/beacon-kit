@@ -64,14 +64,13 @@ network_configuration:
         replicas: 6
 node_settings:
   consensus_settings:
-    min_cpu: 8000
-    max_cpu: 8000
-    min_memory: 32768
-    max_memory: 32768
+    specs:
+      min_cpu: 8000
+      max_cpu: 8000
+      min_memory: 32768
+      max_memory: 32768
     images:
       beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    node_selectors:
-      node_preference: fast
     config:
       timeout_propose: 3s
       timeout_vote: 2s
@@ -81,18 +80,17 @@ node_settings:
     app:
       payload-timeout: 2s
   execution_settings:
-    min_cpu: 8000
-    max_cpu: 8000
-    min_memory: 32768
-    max_memory: 32768
-    node_selectors:
-      node_preference: fast
+    specs:
+      min_cpu: 8000
+      max_cpu: 8000
+      min_memory: 32768
+      max_memory: 32768
     images:
       besu: hyperledger/besu:latest
-      erigon: thorax/erigon:latest
+      erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:latest
+      nethermind: nethermind/nethermind:1.26.0
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   - type: blutgang
