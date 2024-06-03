@@ -88,9 +88,9 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     stored_configs.append(StoreSpec(src = "/tmp/config_genesis/.beacond/config/genesis.json", name = "cosmos-genesis-final"))
 
     multiple_gentx_file = plan.upload_files(
-        src = "./scripts/multiple-gentx.sh",
-        name = "multiple-gentx",
-        description = "Uploading multiple-gentx script",
+        src = "./scripts/multiple-premined-deposits.sh",
+        name = "multiple-premined-deposits",
+        description = "Uploading multiple-premined-deposits script",
     )
 
     multiple_gentx_env_vars = node.get_genesis_env_vars("cl-validator-beaconkit-0")
@@ -100,10 +100,10 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     plan.print(stored_configs)
 
     plan.run_sh(
-        run = "chmod +x /app/scripts/multiple-gentx.sh && /app/scripts/multiple-gentx.sh",
+        run = "chmod +x /app/scripts/multiple-premined-deposits.sh && /app/scripts/multiple-premined-deposits.sh",
         image = validators[0].cl_image,
         files = {
-            "/app/scripts": "multiple-gentx",
+            "/app/scripts": "multiple-premined-deposits",
             "/root/eth_genesis": "genesis_file",
         },
         env_vars = multiple_gentx_env_vars,
