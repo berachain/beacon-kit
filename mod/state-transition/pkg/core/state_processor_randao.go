@@ -98,10 +98,9 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	mix := sp.buildMix(prevMix, body.GetRandaoReveal())
 	return st.UpdateRandaoMixAtIndex(
 		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
-		mix,
+		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
 
@@ -135,12 +134,13 @@ func (sp *StateProcessor[
 	)
 }
 
+// buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) buildMix(
+]) buildRandaoMix(
 	mix primitives.Bytes32,
 	reveal crypto.BLSSignature,
 ) primitives.Bytes32 {
