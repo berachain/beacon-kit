@@ -36,7 +36,8 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
@@ -54,16 +55,20 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT, ExecutionPayloadT, SubscriptionT]
+	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+		DepositT, ExecutionPayloadT, SubscriptionT]
 	// newBlock is the channel for new blocks.
 	newBlock chan BeaconBlockT
+	// failedBlocks
+	failedBlocks map[math.U64]struct{}
 }
 
 // NewService creates a new instance of the Service struct.
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	DepositStoreT Store[DepositT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
@@ -76,7 +81,10 @@ func NewService[
 	ethclient EthClient,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT, ExecutionPayloadT, SubscriptionT],
+	feed BlockFeed[
+		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+		DepositT, ExecutionPayloadT, SubscriptionT,
+	],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
 	ExecutionPayloadT, SubscriptionT, DepositT,
@@ -104,6 +112,7 @@ func (s *Service[
 ) error {
 	go s.blockFeedListener(ctx)
 	go s.depositFetcher(ctx)
+	go s.depositCatchupFetcher(ctx)
 	return nil
 }
 

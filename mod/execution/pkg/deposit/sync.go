@@ -27,44 +27,81 @@ package deposit
 
 import (
 	"context"
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// defaultRetryInterval processes a deposit event.
+const defaultRetryInterval = 20 * time.Second
 
 // depositFetcher processes a deposit event.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
 	ExecutionPayloadT, SubscriptionT, DepositT,
-]) depositFetcher(ctx context.Context) error {
+]) depositFetcher(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return
 		case blk := <-s.newBlock:
-			querierBlockNum := blk.GetBody().GetExecutionPayload().
-				GetNumber() - s.eth1FollowDistance
+			querierBlockNum := blk.
+				GetBody().GetExecutionPayload().GetNumber() - s.eth1FollowDistance
+			s.fetchAndStoreDeposits(ctx, querierBlockNum)
+		}
+	}
+}
 
-			deposits, err := s.dc.ReadDeposits(ctx, querierBlockNum)
-			if err != nil {
-				s.logger.Error("Failed to read deposits", "error", err)
-				continue
-			}
-
-			if len(deposits) == 0 {
-				s.logger.Info(
-					"waiting for deposits from execution layer",
-					"block",
-					querierBlockNum,
-				)
-			} else {
-				s.logger.Info(
-					"found deposits on execution layer",
-					"block", querierBlockNum, "deposits", len(deposits),
-				)
-			}
-
-			if err = s.ds.EnqueueDeposits(deposits); err != nil {
-				s.logger.Error("Failed to enqueue deposits", "error", err)
-				continue
+// depositCatchupFetcher fetches deposits for blocks that failed to be
+// processed.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
+]) depositCatchupFetcher(ctx context.Context) {
+	ticker := time.NewTicker(defaultRetryInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			// Fetch deposits for blocks that failed to be processed.
+			for blockNum := range s.failedBlocks {
+				s.fetchAndStoreDeposits(ctx, blockNum)
 			}
 		}
+	}
+}
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
+]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
+	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
+	if err != nil {
+		s.logger.Error("Failed to read deposits", "error", err)
+		s.failedBlocks[blockNum] = struct{}{}
+		return
+	}
+
+	if len(deposits) == 0 {
+		s.logger.Info(
+			"waiting for deposits from execution layer",
+			"block",
+			blockNum,
+		)
+	} else {
+		s.logger.Info(
+			"found deposits on execution layer",
+			"block", blockNum, "deposits", len(deposits),
+		)
+	}
+
+	if err = s.ds.EnqueueDeposits(deposits); err != nil {
+		s.logger.Error("Failed to store deposits", "error", err)
+		s.failedBlocks[blockNum] = struct{}{}
+		return
+	}
+
+	if s.failedBlocks[blockNum] != struct{}{} {
+		delete(s.failedBlocks, blockNum)
 	}
 }

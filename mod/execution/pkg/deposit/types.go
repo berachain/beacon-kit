@@ -67,7 +67,8 @@ type BlockEvent[
 type BlockFeed[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
 	DepositT interface{ GetIndex() uint64 },
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
