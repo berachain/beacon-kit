@@ -333,7 +333,8 @@ func (s *Service[
 			"aborting block verification on nil block ⛔️ ",
 		)
 
-		if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
 			go func() {
 				if pErr := s.rebuildPayloadForRejectedBlock(
 					ctx, st,
@@ -387,7 +388,8 @@ func (s *Service[
 			err,
 		)
 
-		if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
 			go func() {
 				if pErr := s.rebuildPayloadForRejectedBlock(
 					ctx, st,

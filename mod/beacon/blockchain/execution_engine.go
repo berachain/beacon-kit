@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -58,13 +59,90 @@ func (s *Service[
 			s.cs.ActiveForkVersionForSlot(slot),
 		),
 	)
-	if err != nil {
+	return err
+}
+
+// sendPostBlockFCU sends a forkchoice update to the execution client.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+]) sendPostBlockFCU(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) {
+	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
+		stCopy := st.Copy()
+		if _, err := s.sp.ProcessSlot(
+			stCopy,
+		); err != nil {
+			return
+		}
+
+		prevBlockRoot, err := blk.HashTreeRoot()
+		if err != nil {
+			s.logger.
+				Error(
+					"failed to get block root in postBlockProcess",
+					"error",
+					err,
+				)
+			return
+		}
+
+		lph, err := st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			s.logger.Error(
+				"failed to get latest execution payload in postBlockProcess",
+				"error", err,
+			)
+			return
+		}
+
+		// Ask the builder to send a forkchoice update with attributes.
+		// This will trigger a new payload to be built.
+		if _, err = s.lb.RequestPayloadAsync(
+			ctx,
+			stCopy,
+			blk.GetSlot()+1,
+			//#nosec:G701 // won't realistically overflow.
+			// TODO: clock time properly.
+			uint64(max(
+				math.U64(time.Now().Unix()+1),
+				blk.GetBody().GetExecutionPayload().GetTimestamp()+
+					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			)),
+			prevBlockRoot,
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
+		); err == nil {
+			return
+		}
+
+		// If we error we log and continue, we try again without building a
+		// block
+		// just incase this can help get our execution client back on track.
 		s.logger.
 			Error(
-				"failed to send post block forkchoice update",
+				"failed to send forkchoice update with attributes",
 				"error",
 				err,
 			)
 	}
-	return err
+
+	// Otherwise we send a forkchoice update to the execution client.
+	if err := s.sendFCU(
+		ctx, st, blk.GetSlot(),
+	); err != nil {
+		s.logger.
+			Error(
+				"failed to send forkchoice update in postBlockProcess",
+				"error",
+				err,
+			)
+	}
 }

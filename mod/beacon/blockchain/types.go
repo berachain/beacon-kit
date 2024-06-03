@@ -76,6 +76,22 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
+// LocalBuilder is the interface for the builder service.
+type LocalBuilder[BeaconStateT any] interface {
+	// Enabled returns true if the local builder is enabled.
+	Enabled() bool
+	// RequestPayloadAsync requests a new payload for the given slot.
+	RequestPayloadAsync(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+		timestamp uint64,
+		parentBlockRoot primitives.Root,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
+	) (*engineprimitives.PayloadID, error)
+}
+
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[

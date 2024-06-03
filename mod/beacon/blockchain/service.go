@@ -56,6 +56,8 @@ type Service[
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
+	// lb is a local builder for constructing new beacon states.
+	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
 	bp BlobProcessor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT]
 	// sp is the state processor for beacon blocks and states.
@@ -104,6 +106,7 @@ func NewService[
 		BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, *transition.Context,
 	],
+	lb LocalBuilder[BeaconStateT],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
 	skipPostBlockFCU bool,
@@ -119,6 +122,7 @@ func NewService[
 		logger:           logger,
 		cs:               cs,
 		ee:               ee,
+		lb:               lb,
 		bp:               bp,
 		sp:               sp,
 		metrics:          newChainMetrics(ts),

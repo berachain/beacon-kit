@@ -220,6 +220,7 @@ func ProvideRuntime(
 			ts,
 		),
 		stateProcessor,
+		localBuilder,
 		ts,
 		&blockFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
