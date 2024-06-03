@@ -136,7 +136,7 @@ func TestRangeDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB(), 1)
+			rdb := file.NewRangeDB(newTestFDB())
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -215,7 +215,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
 				Return(errors.New("rangedb: delete range not supported for this db"))
 
-			rdb := file.NewRangeDB(tt.db, 1)
+			rdb := file.NewRangeDB(tt.db)
 
 			err := rdb.DeleteRange(1, 4)
 			require.Error(t, err)
@@ -272,7 +272,7 @@ func TestRangeDB_Prune(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB(), tt.dataWindow)
+			rdb := file.NewRangeDB(newTestFDB())
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -387,7 +387,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB(), 2)
+			rdb := file.NewRangeDB(newTestFDB())
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); err != nil {

@@ -46,15 +46,13 @@ var _ db.Prunable = (*RangeDB)(nil)
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	db.DB
-	dataWindow       uint64
 	firstNonNilIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB(db db.DB, dataWindow uint64) *RangeDB {
+func NewRangeDB(db db.DB) *RangeDB {
 	return &RangeDB{
 		DB:               db,
-		dataWindow:       dataWindow,
 		firstNonNilIndex: 0,
 	}
 }
