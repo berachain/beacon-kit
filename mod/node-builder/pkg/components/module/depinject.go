@@ -68,13 +68,7 @@ type DepInjectInput struct {
 	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
 	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
 	Signer            crypto.BLSSigner
-	StorageBackend    *storage.Backend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
-		core.BeaconState[*types.BeaconBlockHeader,
-			*types.ExecutionPayloadHeader, *types.Fork, *types.Validator, *engineprimitives.Withdrawal],
-		*depositdb.KVStore[*types.Deposit]]
-	TelemetrySink *metrics.TelemetrySink
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -87,13 +81,24 @@ type DepInjectOutput struct {
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-	in.StorageBackend.SetBeaconStore(beacondb.New[
-		*types.Fork,
-		*types.BeaconBlockHeader,
-		*types.ExecutionPayloadHeader,
-		*types.Eth1Data,
-		*types.Validator,
-	](in.Environment.KVStoreService, payloadCodec),
+	storageBackend := storage.NewBackend[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+		core.BeaconState[
+			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+			*types.Validator, *engineprimitives.Withdrawal,
+		],
+	](
+		in.ChainSpec,
+		in.AvailabilityStore,
+		beacondb.New[
+			*types.Fork,
+			*types.BeaconBlockHeader,
+			*types.ExecutionPayloadHeader,
+			*types.Eth1Data,
+			*types.Validator,
+		](in.Environment.KVStoreService, payloadCodec),
+		in.DepositStore,
 	)
 
 	// TODO: this is hood as fuck.
@@ -107,7 +112,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.Signer,
 		in.EngineClient,
 		in.KzgTrustedSetup,
-		in.StorageBackend,
+		storageBackend,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
 	)

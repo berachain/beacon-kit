@@ -115,7 +115,6 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideKeyring,
 				components.ProvideConfig,
 				components.ProvideTelemetrySink,
-				components.ProvideStorageBackend,
 			),
 		),
 		&autoCliOpts,

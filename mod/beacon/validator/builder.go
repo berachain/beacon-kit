@@ -39,7 +39,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-	epositStoreT,
+	DepositStoreT,
 ]) getEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
 ) (BeaconBlockT, error) {

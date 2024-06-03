@@ -205,7 +205,9 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconStateT BeaconState[BeaconStateT], DepositT any, DepositStoreT DepositStore[DepositT],
+	BeaconStateT BeaconState[BeaconStateT],
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
 ] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
