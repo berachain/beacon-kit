@@ -224,7 +224,7 @@ func ProvideRuntime(
 		ts,
 		&blockFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
-		cfg.Validator.OptimisticPayloadBuild,
+		cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 
 	// Build the deposit service.

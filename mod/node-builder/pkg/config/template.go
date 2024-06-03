@@ -70,7 +70,7 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 
-# OptimisticPayloadBuild enables building the next block's payload optimistically in
+# EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
 # process-proposal to allow for the execution client to have more time to assemble the block.
-optimistic-payload-build = "{{.BeaconKit.Validator.OptimisticPayloadBuild}}"
+enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPayloadBuilds}}"
 `
