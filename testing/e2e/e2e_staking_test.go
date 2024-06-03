@@ -33,7 +33,7 @@ import (
 
 const (
 	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress = "0x00000000219ab540356cbb839cbe05303d7705fa"
+	DepositContractAddress = "0x4242424242424242424242424242424242424242"
 	DefaultClient          = "cl-validator-beaconkit-0"
 	AlternateClient        = "cl-validator-beaconkit-1"
 	NumDepositsLoad        = 500

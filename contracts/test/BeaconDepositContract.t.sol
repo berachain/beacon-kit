@@ -44,7 +44,7 @@ contract DepositContractTest is SoladyTest {
 
     /// @dev the deposit contract address.
     address internal constant DEPOSIT_CONTRACT_ADDRESS =
-        0x00000000219ab540356cBB839Cbe05303d7705Fa;
+        0x4242424242424242424242424242424242424242;
 
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
