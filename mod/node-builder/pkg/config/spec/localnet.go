@@ -84,7 +84,7 @@ func LocalnetChainSpec() chain.Spec[
 			},
 			// Eth1-related values.
 			DepositContractAddress: common.HexToAddress(
-				"0x00000000219ab540356cbb839cbe05303d7705fa",
+				"0x4242424242424242424242424242424242424242",
 			),
 			DepositEth1ChainID:        uint64(80086),
 			Eth1FollowDistance:        1,
