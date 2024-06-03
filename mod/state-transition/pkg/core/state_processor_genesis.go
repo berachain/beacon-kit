@@ -43,18 +43,19 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
-	fork := &types.Fork{
-		PreviousVersion: genesisVersion,
-		CurrentVersion:  genesisVersion,
-		Epoch:           math.U64(constants.GenesisEpoch),
-	}
+	var fork ForkT
+	fork = fork.New(
+		genesisVersion,
+		genesisVersion,
+		math.U64(constants.GenesisEpoch),
+	)
 
 	if err := st.SetSlot(0); err != nil {
 		return nil, err

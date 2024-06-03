@@ -112,6 +112,9 @@ type BeaconState[BeaconStateT any] interface {
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+	// GetEth1DepositIndex retrieves the latest deposit index from the
+	// beacon state.
+	GetEth1DepositIndex() (uint64, error)
 }
 
 // BlobFactory is the interface for building blobs.
@@ -138,8 +141,9 @@ type BlobSidecars interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
-	// ExpectedDeposits returns `numView` expected deposits.
-	ExpectedDeposits(
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)
 }

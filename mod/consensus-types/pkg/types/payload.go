@@ -41,7 +41,7 @@ import (
 // ExecutionPayload represents an execution payload across
 // all fork versions.
 type ExecutionPayload struct {
-	engineprimitives.ExecutionPayload
+	engineprimitives.ExecutionPayload[*engineprimitives.Withdrawal]
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.

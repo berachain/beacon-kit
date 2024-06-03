@@ -39,11 +39,11 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ExecutionPayloadHeaderT,
+	ExecutionPayloadHeaderT, ForkT,
 	ValidatorT, WithdrawalT any,
 ] interface {
 	Copy() BeaconState[
-		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, WithdrawalT,
 	]
 	Save()
@@ -55,7 +55,7 @@ type BeaconState[
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ValidatorT,
+		ForkT, ValidatorT,
 	]
 }
 
@@ -106,7 +106,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT, ValidatorT any,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
 ] interface {
 	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
@@ -114,7 +114,7 @@ type WriteOnlyBeaconState[
 	WriteOnlyValidators[ValidatorT]
 
 	SetGenesisValidatorsRoot(root primitives.Root) error
-	SetFork(*types.Fork) error
+	SetFork(ForkT) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
 	SetLatestBlockHeader(BeaconBlockHeaderT) error

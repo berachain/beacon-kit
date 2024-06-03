@@ -34,7 +34,7 @@ import (
 //nolint:lll
 type (
 	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot]
+	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot, any]
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types

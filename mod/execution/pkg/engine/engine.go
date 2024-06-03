@@ -40,7 +40,8 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
@@ -53,7 +54,8 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 ](
 	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],
@@ -123,7 +125,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State)
+		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State, err)
 		return payloadID, nil, nil
 
 	// If we get invalid payload status, we will need to find a valid
@@ -136,14 +138,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateInvalid(req.State)
-		req.State.HeadBlockHash = req.State.SafeBlockHash
-		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
-		if err != nil {
-			// We have to return the error here since this function
-			// is recursive.
-			return nil, nil, err
-		}
+		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
 	// JSON-RPC errors are predefined and should be handled as such.
@@ -164,7 +159,8 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 // execution client.
 func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+	req *engineprimitives.NewPayloadRequest[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(

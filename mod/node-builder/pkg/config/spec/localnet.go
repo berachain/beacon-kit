@@ -29,7 +29,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 // LocalnetChainSpec is the ChainSpec for the localnet.
@@ -38,7 +40,11 @@ func LocalnetChainSpec() chain.Spec[
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
+	any,
 ] {
+	cmtConsensusParams := cmttypes.DefaultConsensusParams()
+	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
+
 	//nolint:mnd // default config.
 	return chain.NewChainSpec(
 		chain.SpecData[
@@ -46,6 +52,7 @@ func LocalnetChainSpec() chain.Spec[
 			math.Epoch,
 			common.ExecutionAddress,
 			math.Slot,
+			any,
 		]{
 			// // Gwei value constants.
 			MinDepositAmount:          uint64(1e9),
@@ -108,6 +115,7 @@ func LocalnetChainSpec() chain.Spec[
 			FieldElementsPerBlob:             4096,
 			BytesPerBlob:                     131072,
 			KZGCommitmentInclusionProofDepth: 17,
+			CometValues:                      cmtConsensusParams,
 		},
 	)
 }

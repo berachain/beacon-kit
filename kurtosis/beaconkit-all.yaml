@@ -61,23 +61,33 @@ network_configuration:
         replicas: 1
 node_settings:
   consensus_settings:
-    min_cpu: 0
-    max_cpu: 2000
-    min_memory: 0
-    max_memory: 2048
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
     images:
       beaconkit: beacond:kurtosis-local
+    config:
+      timeout_propose: 3s
+      timeout_vote: 2s
+      timeout_commit: 1s
+      max_num_inbound_peers: 40
+      max_num_outbound_peers: 10
+    app:
+      payload-timeout: 1.5s
   execution_settings:
-    min_cpu: 0
-    max_cpu: 2000
-    min_memory: 0
-    max_memory: 2048
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
     images:
       besu: hyperledger/besu:latest
-      erigon: thorax/erigon:latest
+      erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:latest
+      nethermind: nethermind/nethermind:1.26.0-chiseled
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx

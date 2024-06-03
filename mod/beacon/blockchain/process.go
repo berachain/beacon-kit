@@ -156,7 +156,6 @@ func (s *Service[
 		return
 	}
 
-	// TODO: pruner shouldn't be in main block processing thread.
 	if err = s.PruneDepositEvents(ctx, idx); err != nil {
 		s.logger.Error(
 			"failed to prune deposit events in postBlockProcessTasks",
