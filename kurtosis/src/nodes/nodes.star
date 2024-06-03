@@ -31,7 +31,7 @@ EXECUTION_DEFAULT_SETTINGS = {
     },
     "images": {
         "besu": "hyperledger/besu:latest",
-        "erigon": "thorax/erigon:latest",
+        "erigon": "thorax/erigon:v2.60.0",
         "ethereumjs": "ethpandaops/ethereumjs:stable",
         "geth": "ethereum/client-go:latest",
         "nethermind": "nethermind/nethermind:latest",

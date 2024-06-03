@@ -1,32 +1,28 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package validator
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -81,6 +77,8 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// forceStartupSyncOnce is used to force a sync of the startup head.
+	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -117,6 +115,7 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
+		forceStartupSyncOnce:  new(sync.Once),
 	}
 }
 
@@ -175,6 +174,12 @@ func (s *Service[
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
@@ -324,6 +329,12 @@ func (s *Service[
 	// Grab a copy of the state to verify the incoming block.
 	st := s.bsb.StateFromContext(ctx)
 
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
+
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
 		ctx, st, blk,
@@ -352,4 +363,32 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 	return nil
+}
+
+// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// and logs the process.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) forceStartupHead(
+	ctx context.Context,
+	st BeaconStateT,
+) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed to get slot for force startup head",
+			"error", err,
+		)
+		return
+	}
+
+	// TODO: Verify if the slot number is correct here, I believe in current
+	// form
+	// it should be +1'd. Not a big deal until hardforks are in play though.
+	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+		s.logger.Error(
+			"failed to send force head FCU",
+			"error", err,
+		)
+	}
 }
