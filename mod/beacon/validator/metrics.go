@@ -67,14 +67,13 @@ func (cm *validatorMetrics) measureStateRootComputationTime(start time.Time) {
 	)
 }
 
-// failedToRetrieveOptimisticPayload increments the counter for the number of
-// times the
-// validator failed to retrieve payloads.
-func (cm *validatorMetrics) failedToRetrieveOptimisticPayload(
+// failedToRetrievePayload increments the counter for the number of
+// times the validator failed to retrieve payloads.
+func (cm *validatorMetrics) failedToRetrievePayload(
 	slot math.Slot, err error,
 ) {
 	cm.sink.IncrementCounter(
-		"beacon_kit.validator.failed_to_retrieve_optimistic_payload",
+		"beacon_kit.validator.failed_to_retrieve_payload",
 		"slot",
 		string(slot.String()),
 		"error",

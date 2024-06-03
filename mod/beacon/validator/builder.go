@@ -92,7 +92,7 @@ func (s *Service[
 			blk.GetParentBlockRoot(),
 		)
 	if err != nil {
-		s.metrics.failedToRetrieveOptimisticPayload(
+		s.metrics.failedToRetrievePayload(
 			blk.GetSlot(),
 			err,
 		)
