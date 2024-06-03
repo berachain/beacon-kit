@@ -180,6 +180,12 @@ func (s *Service[
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
 
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
+
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
 	if err := s.prepareStateForBuilding(st, requestedSlot); err != nil {
@@ -381,6 +387,7 @@ func (s *Service[
 		return
 	}
 
+	// TODO: Verify if the slot number is correct here.
 	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
