@@ -80,7 +80,7 @@ type DepositStore interface {
 		numView uint64,
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
-	PruneFromInclusive(index uint64, numPrune uint64) error
+	Prune(index uint64, numPrune uint64) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

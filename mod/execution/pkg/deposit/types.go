@@ -29,29 +29,29 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	DepositT interface{ GetIndex() uint64 },
-	ExecutionPayloadT interface{ GetNumber() math.U64 },
-] interface {
-	GetSlot() math.U64
-	GetBody() BeaconBlockBodyT
-}
-
 type BeaconBlockBody[
-	DepositT interface{ GetIndex() uint64 },
+	DepositT any,
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	GetDeposits() []DepositT
 	GetExecutionPayload() ExecutionPayloadT
 }
 
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock[
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
+] interface {
+	GetSlot() math.U64
+	GetBody() BeaconBlockBodyT
+}
+
 // BlockEvent is an interface for block events.
 type BlockEvent[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	DepositT interface{ GetIndex() uint64 },
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	Context() context.Context
@@ -60,11 +60,12 @@ type BlockEvent[
 
 // BlockFeed is an interface for subscribing to block events.
 type BlockFeed[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, DepositT, ExecutionPayloadT],
+	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT],
-	DepositT interface{ GetIndex() uint64 },
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
+	],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
@@ -91,6 +92,8 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		crypto.BLSSignature,
 		uint64,
 	) DepositT
+
+	GetIndex() uint64
 }
 
 // EthClient is an interface for interacting with the Ethereum 1.0 client.
@@ -103,9 +106,8 @@ type EthClient interface {
 
 // Store defines the interface for managing deposit operations.
 type Store[DepositT any] interface {
-	// PruneFromInclusive prunes the deposit store from the given
-	// index for N indexes.
-	PruneFromInclusive(index uint64, numPrune uint64) error
+	// Prune prunes the deposit store of [start, end)
+	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []DepositT) error
 }

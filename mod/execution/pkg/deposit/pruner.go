@@ -18,33 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package deposit
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
-}
+func GetPruneRangeFn[
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
+	],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	ExecutionPayloadT interface {
+		GetNumber() math.U64
+	},
+	WithdrawalCredentialsT any,
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Block() BeaconBlockT
-}
+](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
+	return func(event BlockEventT) (uint64, uint64) {
+		deposits := event.Block().GetBody().GetDeposits()
+		if len(deposits) == 0 {
+			return 0, 0
+		}
+		index := deposits[len(deposits)-1].GetIndex()
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	// Has
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-}
+		end := min(index, cs.MaxDepositsPerBlock())
+		if index < cs.MaxDepositsPerBlock() {
+			return 0, end
+		}
 
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+		return index - cs.MaxDepositsPerBlock(), end
+	}
 }

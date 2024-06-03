@@ -126,43 +126,7 @@ func (s *Service[
 		go s.sendPostBlockFCU(ctx, st, blk)
 	}
 
-	go s.postBlockProcessTasks(ctx, st)
-
 	return valUpdates, nil
-}
-
-// postBlockProcessTasks performs post block processing tasks.
-//
-// TODO: Deprecate this function and move it's usage outside of the main block
-// processing thread.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) postBlockProcessTasks(
-	ctx context.Context,
-	st BeaconStateT,
-) {
-	// Prune deposits.
-	// TODO: This should be moved into a go-routine in the background.
-	// Watching for logs should be completely decoupled as well.
-	idx, err := st.GetEth1DepositIndex()
-	if err != nil {
-		s.logger.Error(
-			"failed to get eth1 deposit index in postBlockProcessTasks",
-			"error", err)
-		return
-	}
-
-	if err = s.PruneDepositEvents(ctx, idx); err != nil {
-		s.logger.Error(
-			"failed to prune deposit events in postBlockProcessTasks",
-			"error", err)
-		return
-	}
 }
 
 // ProcessBeaconBlock processes the beacon block.
