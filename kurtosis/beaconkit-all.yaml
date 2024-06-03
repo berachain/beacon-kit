@@ -28,17 +28,17 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        replicas: 0
+        replicas: 2
       - el_type: nethermind
-        replicas: 0
+        replicas: 2
       - el_type: reth
-        replicas: 1
+        replicas: 2
       - el_type: geth
-        replicas: 1
+        replicas: 2
       - el_type: erigon
-        replicas: 1
+        replicas: 2
       - el_type: ethereumjs
-        replicas: 0
+        replicas: 2
   full_nodes:
     type: "full"
     nodes:
@@ -70,12 +70,12 @@ node_settings:
       beaconkit: beacond:kurtosis-local
     config:
       timeout_propose: 3s
-      timeout_vote: 2s
-      timeout_commit: 1s
+      timeout_vote: 3s
+      timeout_commit: 2s
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 1.5s
+      payload-timeout: 2.5s
   execution_settings:
     specs:
       min_cpu: 0
@@ -87,7 +87,7 @@ node_settings:
       erigon: thorax/erigon:v2.60.0
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:1.26.0-chiseled
+      nethermind: nethermind/nethermind:1.26.0
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
@@ -103,7 +103,7 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 32
+    replicas: 16
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
