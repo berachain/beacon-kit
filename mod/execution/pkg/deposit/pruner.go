@@ -50,7 +50,7 @@ func GetPruneRangeFn[
 		}
 		index := deposits[len(deposits)-1].GetIndex()
 
-		return max(0, index-cs.MaxDepositsPerBlock()),
+		return uint64(max(0, int64(index-cs.MaxDepositsPerBlock()))),
 			min(index, cs.MaxDepositsPerBlock())
 	}
 }

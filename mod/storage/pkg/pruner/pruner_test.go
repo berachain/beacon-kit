@@ -1,27 +1,27 @@
-// // SPDX-License-Identifier: MIT
-// //
-// // Copyright (c) 2024 Berachain Foundation
-// //
-// // Permission is hereby granted, free of charge, to any person
-// // obtaining a copy of this software and associated documentation
-// // files (the "Software"), to deal in the Software without
-// // restriction, including without limitation the rights to use,
-// // copy, modify, merge, publish, distribute, sublicense, and/or sell
-// // copies of the Software, and to permit persons to whom the
-// // Software is furnished to do so, subject to the following
-// // conditions:
-// //
-// // The above copyright notice and this permission notice shall be
-// // included in all copies or substantial portions of the Software.
-// //
-// // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// // OTHER DEALINGS IN THE SOFTWARE.
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2024 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 package pruner_test
 
@@ -32,8 +32,7 @@ package pruner_test
 
 // 	"cosmossdk.io/log"
 // 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-// 	interfacemocks
-// "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
+// 	interfacemocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 // 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 // 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 // 	"github.com/stretchr/testify/mock"
@@ -69,6 +68,11 @@ package pruner_test
 // }
 
 // func TestPruner(t *testing.T) {
+// 	pruneParamsFn :=
+// 		func(_ pruner.BlockEvent[pruner.BeaconBlock]) (uint64, uint64) {
+// 			return 0, 0
+// 		}
+
 // 	tests := []struct {
 // 		name          string
 // 		pruneIndexes  []uint64
@@ -102,7 +106,7 @@ package pruner_test
 // 			}
 
 // 			mockPrunable := new(interfacemocks.Prunable)
-// 			mockPrunable.On("PruneFromInclusive", mock.Anything, mock.Anything).
+// 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 // 				Return(nil)
 
 // 			// create Pruner with a Noop logger
@@ -110,7 +114,7 @@ package pruner_test
 // 				pruner.BeaconBlock,
 // 				pruner.BlockEvent[pruner.BeaconBlock],
 // 				pruner.Subscription,
-// 			](logger, mockPrunable, "TestPruner", &feed)
+// 			](logger, mockPrunable, "TestPruner", &feed, pruneParamsFn)
 
 // 			ctx, cancel := context.WithCancel(context.Background())
 // 			// need to ensure goroutine is stopped
@@ -133,7 +137,7 @@ package pruner_test
 // 			// assert that prune was called expected number of times
 // 			mockPrunable.AssertNumberOfCalls(
 // 				t,
-// 				"PruneFromInclusive",
+// 				"Prune",
 // 				tt.expectedCalls,
 // 			)
 
@@ -141,7 +145,7 @@ package pruner_test
 // 			for _, index := range tt.pruneIndexes {
 // 				mockPrunable.AssertCalled(
 // 					t,
-// 					"PruneFromInclusive",
+// 					"Prune",
 // 					index,
 // 					mock.Anything,
 // 				)
