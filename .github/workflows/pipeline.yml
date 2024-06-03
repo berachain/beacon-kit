@@ -52,6 +52,7 @@ jobs:
       matrix:
         args:
           - "build"
+          - "build-docker"
           - "lint"
           - "slither"
           - "gosec"
