@@ -42,7 +42,7 @@ type SigningData struct {
 	Domain     common.Domain `ssz-size:"32"`
 }
 
-// ComputeRandaoSigningRoot as defined in the Ethereum 2.0 specification.
+// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 //
 //nolint:lll // link.
