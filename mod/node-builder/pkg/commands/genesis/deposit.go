@@ -161,7 +161,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 		)
 	}
 
-	return filepath.Join(writePath, fmt.Sprintf("premined-deposits-%v.json", pubkey)), nil
+	return filepath.Join(writePath, fmt.Sprintf("premined-deposit-%v.json", pubkey)), nil
 }
 
 func writeDepositToFile(
