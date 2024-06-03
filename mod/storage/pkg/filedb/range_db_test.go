@@ -240,10 +240,7 @@ func TestRangeDB_Prune(t *testing.T) {
 		{
 			name: "PruneWithDeleteRange",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 0, 50); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 0, 50)
 			},
 			start:         2,
 			end:           7,
@@ -311,10 +308,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 		{
 			name: "Populate from empty",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 5); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 1, 5)
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
@@ -324,10 +318,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 		{
 			name: "Delete from populated",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 5); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 1, 5)
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
@@ -338,10 +329,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 		{
 			name: "Prune from populated",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 10); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 1, 10)
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
@@ -352,10 +340,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 		{
 			name: "DeleteRange from populated",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 10); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 1, 10)
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
@@ -366,10 +351,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 		{
 			name: "Populate, Prune, Set round trip",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 30); err != nil {
-					return err
-				}
-				return nil
+				return populateTestDB(rdb, 1, 30)
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
