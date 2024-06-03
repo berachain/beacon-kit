@@ -32,7 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // GetEmptyBlock creates a new empty block.
@@ -185,4 +189,57 @@ func (s *Service[
 	}
 
 	return nil
+}
+
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) buildRandaoReveal(
+	st BeaconStateT,
+) (crypto.BLSSignature, error) {
+	// Get the current epoch.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+
+	signingRoot, err := s.computeRandaoSigningRoot(epoch, genesisValidatorsRoot)
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return s.signer.Sign(signingRoot[:])
+}
+
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+]) computeRandaoSigningRoot(
+	epoch math.Epoch,
+	genesisValidatorsRoot primitives.Root,
+) (primitives.Root, error) {
+	fd := types.NewForkData(
+		version.FromUint32[primitives.Version](
+			s.chainSpec.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+
+	signingDomain, err := fd.ComputeDomain(s.chainSpec.DomainTypeRandao())
+	if err != nil {
+		return primitives.Root{}, err
+	}
+
+	signingRoot, err := ssz.ComputeSigningRootUInt64(
+		uint64(epoch),
+		signingDomain,
+	)
+
+	if err != nil {
+		return primitives.Root{},
+			errors.Newf("failed to compute signing root: %w", err)
+	}
+	return signingRoot, nil
 }

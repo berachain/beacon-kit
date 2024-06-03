@@ -115,6 +115,8 @@ type BeaconState[BeaconStateT any] interface {
 	// GetEth1DepositIndex retrieves the latest deposit index from the
 	// beacon state.
 	GetEth1DepositIndex() (uint64, error)
+	// GetGenesisValidatorsRoot retrieves the genesis validators root.
+	GetGenesisValidatorsRoot() (primitives.Root, error)
 }
 
 // BlobFactory is the interface for building blobs.
@@ -146,15 +148,6 @@ type DepositStore[DepositT any] interface {
 		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)
-}
-
-// RandaoProcessor defines the interface for processing RANDAO reveals.
-type RandaoProcessor[
-	BeaconStateT BeaconState[BeaconStateT],
-] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for

@@ -200,6 +200,6 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Value:    val,
 		Signer:   signer,
 		Nonce:    nonce,
-		GasLimit: 1000000,
+		GasLimit: 600000,
 	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
 }
