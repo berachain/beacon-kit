@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func GetPruneParamsFn[
+func GetPruneRangeFn[
 	ExecutionPayloadT interface {
 		GetNumber() math.U64
 	},

@@ -213,7 +213,7 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
 		&blockFeed,
-		deposit.GetPruneParamsFn[
+		deposit.GetPruneRangeFn[
 			*types.ExecutionPayload,
 			types.WithdrawalCredentials,
 			*types.Deposit,
@@ -240,7 +240,7 @@ func ProvideRuntime(
 			nil).IndexDB.(*filedb.RangeDB),
 		manager.AvailabilityPrunerName,
 		&blockFeed,
-		dastore.GetPruneParamsFn[
+		dastore.GetPruneRangeFn[
 			*types.BeaconBlock,
 			events.Block[*types.BeaconBlock],
 		](chainSpec),
