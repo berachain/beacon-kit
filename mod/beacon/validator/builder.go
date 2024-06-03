@@ -207,28 +207,18 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot, err := s.computeRandaoSigningRoot(epoch, genesisValidatorsRoot)
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
-	return s.signer.Sign(signingRoot[:])
-}
-
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-]) computeRandaoSigningRoot(
-	epoch math.Epoch,
-	genesisValidatorsRoot primitives.Root,
-) (primitives.Root, error) {
-	fd := types.NewForkData(
+	signingRoot, err := types.NewForkData(
 		version.FromUint32[primitives.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
-	)
-
-	return fd.ComputeRandaoSigningRoot(
+	).ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 		genesisValidatorsRoot,
 	)
+
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return s.signer.Sign(signingRoot[:])
 }
