@@ -98,7 +98,7 @@ CMD = [
     "100000",
     "--txpool.queued-max-size",
     "100",
-    "--txpool.max-account-slots",
+    "--txpool.max_account_slots",
     "1000",
     "--txpool.max-cached-entries",
     "1000",
