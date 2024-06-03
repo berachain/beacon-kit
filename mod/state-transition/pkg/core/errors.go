@@ -72,4 +72,7 @@ var (
 	// ErrStateRootMismatch is returned when the state root in a block header
 	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
+
+	// ErrInvalidSignature is returned when the signature is invalid.
+	ErrInvalidSignature = errors.New("invalid signature")
 )

@@ -51,7 +51,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/randao"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -149,16 +148,6 @@ func ProvideRuntime(
 	// 	cfg.KZG.Implementation,
 	// )
 
-	// Build the Randao Processor.
-	randaoProcessor := randao.NewProcessor[
-		types.BeaconBlockBody,
-		*types.BeaconBlock,
-		BeaconState,
-	](
-		chainSpec,
-		signer,
-	)
-
 	stateProcessor := core.NewStateProcessor[
 		*types.BeaconBlock,
 		types.BeaconBlockBody,
@@ -176,7 +165,6 @@ func ProvideRuntime(
 		types.WithdrawalCredentials,
 	](
 		chainSpec,
-		randaoProcessor,
 		executionEngine,
 		signer,
 	)
@@ -205,7 +193,6 @@ func ProvideRuntime(
 			types.KZGPositionDeneb,
 			ts,
 		),
-		randaoProcessor,
 		storageBackend.DepositStore(nil),
 		localBuilder,
 		[]validator.PayloadBuilder[BeaconState]{
@@ -245,12 +232,15 @@ func ProvideRuntime(
 	// Build the deposit service.
 	depositService := deposit.NewService[
 		*types.BeaconBlock,
+		types.BeaconBlockBody,
 		events.Block[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
 		event.Subscription,
 	](
 		logger.With("service", "deposit"),
 		math.U64(chainSpec.Eth1FollowDistance()),
+		engineClient,
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
 		&blockFeed,
