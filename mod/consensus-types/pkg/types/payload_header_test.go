@@ -26,6 +26,7 @@
 package types_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -158,4 +159,107 @@ func TestExecutionPayloadHeaderDeneb_Empty(t *testing.T) {
 
 	require.NotNil(t, emptyHeader)
 	require.Equal(t, version.Deneb, emptyHeader.Version())
+}
+
+//nolint:lll
+func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
+	original := generateExecutionPayloadHeaderDeneb()
+	validJSON, err := original.MarshalJSON()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		removeField   string
+		expectedError string
+	}{
+		{
+			name:          "missing required field 'parentHash'",
+			removeField:   "parentHash",
+			expectedError: "missing required field 'parentHash' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'feeRecipient'",
+			removeField:   "feeRecipient",
+			expectedError: "missing required field 'feeRecipient' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'stateRoot'",
+			removeField:   "stateRoot",
+			expectedError: "missing required field 'stateRoot' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'receiptsRoot'",
+			removeField:   "receiptsRoot",
+			expectedError: "missing required field 'receiptsRoot' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'logsBloom'",
+			removeField:   "logsBloom",
+			expectedError: "missing required field 'logsBloom' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'prevRandao'",
+			removeField:   "prevRandao",
+			expectedError: "missing required field 'prevRandao' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'blockNumber'",
+			removeField:   "blockNumber",
+			expectedError: "missing required field 'blockNumber' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'gasLimit'",
+			removeField:   "gasLimit",
+			expectedError: "missing required field 'gasLimit' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'gasUsed'",
+			removeField:   "gasUsed",
+			expectedError: "missing required field 'gasUsed' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'timestamp'",
+			removeField:   "timestamp",
+			expectedError: "missing required field 'timestamp' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'extraData'",
+			removeField:   "extraData",
+			expectedError: "missing required field 'extraData' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'baseFeePerGas'",
+			removeField:   "baseFeePerGas",
+			expectedError: "missing required field 'baseFeePerGas' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'blockHash'",
+			removeField:   "blockHash",
+			expectedError: "missing required field 'blockHash' for ExecutionPayloadHeaderDeneb",
+		},
+		{
+			name:          "missing required field 'transactionsRoot'",
+			removeField:   "transactionsRoot",
+			expectedError: "missing required field 'transactionsRoot' for ExecutionPayloadHeaderDeneb",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var payload types.ExecutionPayloadHeaderDeneb
+			var jsonMap map[string]interface{}
+
+			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+			require.NoError(t, errUnmarshal)
+
+			delete(jsonMap, tc.removeField)
+
+			malformedJSON, errMarshal := json.Marshal(jsonMap)
+			require.NoError(t, errMarshal)
+
+			err = payload.UnmarshalJSON(malformedJSON)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
 }

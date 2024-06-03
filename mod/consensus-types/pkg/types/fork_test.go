@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,4 +84,13 @@ func TestFork_GetTree(t *testing.T) {
 	tree, err := fork.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
+	buf := make([]byte, 10) // size less than 16
+
+	var unmarshalledFork types.Fork
+	err := unmarshalledFork.UnmarshalSSZ(buf)
+
+	require.ErrorIs(t, err, ssz.ErrSize)
 }
