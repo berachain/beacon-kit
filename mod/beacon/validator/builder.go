@@ -39,6 +39,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositStoreT,
 ]) getEmptyBeaconBlock(
 	st BeaconStateT, slot math.Slot,
 ) (BeaconBlockT, error) {
@@ -79,6 +80,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositStoreT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
@@ -133,7 +135,8 @@ func (s *Service[
 // prepareStateForBuilding ensures that the state is at the requested slot
 // before building a block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
 ]) prepareStateForBuilding(
 	st BeaconStateT,
 	requestedSlot math.Slot,
@@ -187,7 +190,8 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
