@@ -199,6 +199,8 @@ func ProvideRuntime(
 		ts,
 	)
 
+	// Build the deposit pruner.
+
 	depositPruner := pruner.NewPruner[
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
@@ -218,37 +220,40 @@ func ProvideRuntime(
 		](chainSpec),
 	)
 
-	defer func() {
-		// TODO: at this point, Deposit store and Availability store are both
-		// nil.
-		// Recovering from casting nil to *filedb.RangeDB.
-		_ = recover()
-	}()
-
-	availabilityPruner := pruner.NewPruner[
+	// slice of pruners to pass to the DBManager.
+	pruners := []*pruner.Pruner[
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", manager.AvailabilityPrunerName),
-		storageBackend.AvailabilityStore(
-			nil).IndexDB.(*filedb.RangeDB),
-		manager.AvailabilityPrunerName,
-		&blockFeed,
-		dastore.GetPruneRangeFn[
+		event.Subscription]{depositPruner}
+
+	avs := storageBackend.AvailabilityStore(nil).IndexDB
+	if avs != nil {
+		// build the availability pruner if IndexDB is available.
+		availabilityPruner := pruner.NewPruner[
 			*types.BeaconBlock,
 			events.Block[*types.BeaconBlock],
-		](chainSpec),
-	)
+			event.Subscription,
+		](
+			logger.With("service", manager.AvailabilityPrunerName),
+			avs.(*filedb.RangeDB),
+			manager.AvailabilityPrunerName,
+			&blockFeed,
+			dastore.GetPruneRangeFn[
+				*types.BeaconBlock,
+				events.Block[*types.BeaconBlock],
+			](chainSpec),
+		)
+		pruners = append(pruners, availabilityPruner)
+	}
 
+	// Build the DBManager service.
 	dbManagerService, err := manager.NewDBManager[
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", "db-manager"),
-		depositPruner,
-		availabilityPruner,
+		pruners...,
 	)
 	if err != nil {
 		return nil, err
