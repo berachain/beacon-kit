@@ -43,7 +43,7 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    constructor() Ownable() {
+    constructor() {
         _initializeOwner(msg.sender);
     }
 
