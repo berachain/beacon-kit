@@ -81,10 +81,8 @@ func (fv *ForkData) ComputeDomain(
 	), nil
 }
 
-// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
-//
-//nolint:lll
-func (fd *ForkData) ComputeSigningRoot(
+// ComputeRandaoSigningRoot computes the randao signing root.
+func (fd *ForkData) ComputeRandaoSigningRoot(
 	domainType common.DomainType,
 	epoch math.Epoch,
 	genesisValidatorsRoot primitives.Root,
@@ -94,7 +92,7 @@ func (fd *ForkData) ComputeSigningRoot(
 		return primitives.Root{}, err
 	}
 
-	signingRoot, err := ssz.ComputeSigningRootUInt64(
+	signingRoot, err := ssz.ComputeRandaoSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)

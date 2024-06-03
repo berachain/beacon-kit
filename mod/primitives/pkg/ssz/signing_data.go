@@ -42,11 +42,11 @@ type SigningData struct {
 	Domain     common.Domain `ssz-size:"32"`
 }
 
-// ComputeSigningRoot as defined in the Ethereum 2.0 specification.
+// ComputeRandaoSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 //
 //nolint:lll // link.
-func ComputeSigningRoot(
+func ComputeRandaoSigningRoot(
 	sszObject interface{ HashTreeRoot() ([32]byte, error) },
 	domain common.Domain,
 ) (common.Root, error) {
@@ -60,8 +60,8 @@ func ComputeSigningRoot(
 	}).HashTreeRoot()
 }
 
-// ComputeSigningRootUInt64 computes the signing root of a uint64 value.
-func ComputeSigningRootUInt64(
+// ComputeRandaoSigningRootUInt64 computes the signing root of a uint64 value.
+func ComputeRandaoSigningRootUInt64(
 	value uint64,
 	domain common.Domain,
 ) (common.Root, error) {

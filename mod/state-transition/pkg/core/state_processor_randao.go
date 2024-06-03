@@ -75,7 +75,7 @@ func (sp *StateProcessor[
 
 	if !skipVerification {
 		var signingRoot primitives.Root
-		signingRoot, err = fd.ComputeSigningRoot(
+		signingRoot, err = fd.ComputeRandaoSigningRoot(
 			sp.cs.DomainTypeRandao(), epoch, genesisValidatorsRoot)
 		if err != nil {
 			return err

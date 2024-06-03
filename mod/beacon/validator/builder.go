@@ -226,7 +226,7 @@ func (s *Service[
 		), genesisValidatorsRoot,
 	)
 
-	return fd.ComputeSigningRoot(
+	return fd.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 		genesisValidatorsRoot,

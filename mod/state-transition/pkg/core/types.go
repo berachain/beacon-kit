@@ -221,8 +221,8 @@ type ExecutionEngine[
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
 	New(primitives.Version, primitives.Root) ForkDataT
-	// ComputeSigningRoot returns the signing root for the fork data.
-	ComputeSigningRoot(
+	// ComputeRandaoSigningRoot returns the signing root for the fork data.
+	ComputeRandaoSigningRoot(
 		domainType common.DomainType,
 		epoch math.Epoch,
 		genesisValidatorsRoot primitives.Root,
