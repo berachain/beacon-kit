@@ -106,7 +106,7 @@ func (cm *validatorMetrics) markRebuildPayloadForRejectedBlockFailure(
 	err error,
 ) {
 	cm.sink.IncrementCounter(
-		"beacon_kit.validator.optimistic_payload_build_failure",
+		"beacon_kit.validator.rebuild_payload_for_rejected_block_failure",
 		"slot",
 		string(slot.String()),
 		"error",
