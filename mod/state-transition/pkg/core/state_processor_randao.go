@@ -98,9 +98,13 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	mix, err := sp.buildRandaoMix(prevMix, body.GetRandaoReveal())
+	if err != nil {
+		return err
+	}
+
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
-		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
+		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(), mix,
 	)
 }
 
@@ -143,10 +147,14 @@ func (sp *StateProcessor[
 ]) buildRandaoMix(
 	mix primitives.Bytes32,
 	reveal crypto.BLSSignature,
-) primitives.Bytes32 {
+) (primitives.Bytes32, error) {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Sum256(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
-	_ = xor.Bytes(newMix, mix[:], revealHash[:])
-	return primitives.Bytes32(newMix)
+	if numXor := xor.Bytes(
+		newMix, mix[:], revealHash[:],
+	); numXor != constants.RootLength {
+		return primitives.Bytes32{}, ErrXorInvalid
+	}
+	return primitives.Bytes32(newMix), nil
 }

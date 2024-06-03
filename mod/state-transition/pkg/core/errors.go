@@ -75,4 +75,7 @@ var (
 
 	// ErrInvalidSignature is returned when the signature is invalid.
 	ErrInvalidSignature = errors.New("invalid signature")
+
+	// ErrXorInvalid is returned when the XOR operation is invalid.
+	ErrXorInvalid = errors.New("xor invalid")
 )
