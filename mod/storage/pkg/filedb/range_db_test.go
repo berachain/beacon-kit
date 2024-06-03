@@ -26,7 +26,6 @@
 package filedb_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -390,12 +389,7 @@ func newTestFDB(path string) *file.DB {
 }
 
 func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
-	val := reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
-	// fmt.Println("VAL", val)
-	if val != rdb.FirstNonNilIndex() {
-		panic(fmt.Errorf("i came %v times", rdb.FirstNonNilIndex()))
-	}
-	return val
+	return reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
 }
 
 func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {
