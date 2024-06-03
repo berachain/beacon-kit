@@ -36,12 +36,9 @@ func (s *Service[
 	ctx context.Context,
 	eth1DepositIndex uint64,
 ) error {
-	var startIndex uint64
-	var numToPrune uint64
-	if eth1DepositIndex > s.cs.MaxDepositsPerBlock() {
-		startIndex = 0
-		numToPrune = eth1DepositIndex
-	} else {
+	startIndex := uint64(0)
+	numToPrune := eth1DepositIndex
+	if eth1DepositIndex >= s.cs.MaxDepositsPerBlock() {
 		startIndex = eth1DepositIndex - s.cs.MaxDepositsPerBlock()
 		numToPrune = s.cs.MaxDepositsPerBlock()
 	}
