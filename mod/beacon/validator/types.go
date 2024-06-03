@@ -98,7 +98,7 @@ type BeaconState[BeaconStateT any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		*types.ExecutionPayloadHeader, error,
 	)
 	// GetLatestBlockHeader
 	GetLatestBlockHeader() (
@@ -112,6 +112,11 @@ type BeaconState[BeaconStateT any] interface {
 	// ValidatorIndexByPubkey finds the index of a validator based on their
 	// public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+	// GetEth1DepositIndex retrieves the latest deposit index from the
+	// beacon state.
+	GetEth1DepositIndex() (uint64, error)
+	// GetGenesisValidatorsRoot retrieves the genesis validators root.
+	GetGenesisValidatorsRoot() (primitives.Root, error)
 }
 
 // BlobFactory is the interface for building blobs.
@@ -138,19 +143,11 @@ type BlobSidecars interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
-	// ExpectedDeposits returns `numView` expected deposits.
-	ExpectedDeposits(
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)
-}
-
-// RandaoProcessor defines the interface for processing RANDAO reveals.
-type RandaoProcessor[
-	BeaconStateT BeaconState[BeaconStateT],
-] interface {
-	// BuildReveal generates a RANDAO reveal based on the given beacon state.
-	// It returns a Reveal object and any error encountered during the process.
-	BuildReveal(st BeaconStateT) (crypto.BLSSignature, error)
 }
 
 // PayloadBuilder represents a service that is responsible for

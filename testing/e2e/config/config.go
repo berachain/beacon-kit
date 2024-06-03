@@ -33,17 +33,24 @@ import (
 // E2ETestConfig defines the configuration for end-to-end tests, including any
 // additional services and validators involved.
 type E2ETestConfig struct {
+	// NetworkConfiguration specifies the configuration for the network.
+	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
+	// NodeSettings specifies the configuration for the nodes in the test.
+	NodeSettings NodeSettings `json:"node_settings"`
+	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
+	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []AdditionalService `json:"additional_services"`
+}
+
+type NetworkConfiguration struct {
 	// Validators lists the configurations for each validator in the test.
-	Validators []Node `json:"validators"`
+	Validators NodeSet `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
-	FullNodes []Node `json:"full_nodes"`
+	FullNodes NodeSet `json:"full_nodes"`
 	// SeedNodes specifies the number of seed nodes to include in the test.
-	SeedNodes []Node `json:"seed_nodes"`
-	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
-	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
+	SeedNodes NodeSet `json:"seed_nodes"`
 }
 
 type EthJSONRPCEndpoint struct {
@@ -51,19 +58,90 @@ type EthJSONRPCEndpoint struct {
 	Clients []string `json:"clients"`
 }
 
-// Validator holds the configuration for a single validator in the test,
+// NodeSet holds nodes that have a distinct role in the network.
+type NodeSet struct {
+	// Type is the type of node set.
+	Type string `json:"type"`
+	// Nodes is a list of nodes in the set.
+	Nodes []Node `json:"nodes"`
+}
+
+// Node holds the configuration for a single node in the test,
 // including client images and types.
 type Node struct {
-	// ClImage specifies the Docker image to use for the consensus layer
-	// client.
-	ClImage string `json:"cl_image"`
-	// ClType denotes the type of consensus layer client (e.g.,
-	// beaconkit).
-	ClType string `json:"cl_type"`
 	// ElType denotes the type of execution layer client (e.g., reth).
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
 	Replicas int `json:"replicas"`
+}
+
+// NodeSettings holds the configuration for a single node in the test,
+// including client images and types.
+type NodeSettings struct {
+	// ConsensusSettings holds the configuration for the consensus layer
+	// clients.
+	ConsensusSettings ConsensusSettings `json:"consensus_settings"`
+	// ExecutionSettings holds the configuration for the execution layer
+	// clients.
+	ExecutionSettings ExecutionSettings `json:"execution_settings"`
+}
+
+// ExecutionSettings holds the configuration for the execution layer
+// clients.
+type ExecutionSettings struct {
+	// Specs holds the node specs for all nodes in the execution layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the execution layer.
+	Images map[string]string `json:"images"`
+}
+
+// ConsensusSettings holds the configuration for the consensus layer
+// clients.
+type ConsensusSettings struct {
+	// Specs holds the node specs for all nodes in the consensus layer.
+	Specs NodeSpecs `json:"specs"`
+	// Images specifies the images available for the consensus layer.
+	Images map[string]string `json:"images"`
+	// Config specifies the config.toml edits for the consensus layer nodes.
+	Config ConsensusConfig `json:"config"`
+	// AppConfig specifies the app.toml edits for the consensus layer nodes.
+	AppConfig AppConfig `json:"app"`
+}
+
+// ConsensusConfig holds the configuration for the consensus layer.
+type ConsensusConfig struct {
+	// TimeoutPropose specifies the timeout for proposing a block.
+	TimeoutPropose string `json:"timeout_propose"`
+	// TimeoutVote specifies the timeout for voting on a block.
+	TimeoutVote string `json:"timeout_vote"`
+	// TimeoutCommit specifies the timeout for committing a block.
+	TimeoutCommit string `json:"timeout_commit"`
+	// MaxNumInboundPeers specifies the maximum number of inbound peers.
+	MaxNumInboundPeers int `json:"max_num_inbound_peers"`
+	// MaxNumOutboundPeers specifies the maximum number of outbound peers.
+	MaxNumOutboundPeers int `json:"max_num_outbound_peers"`
+}
+
+// AppConfig holds the configuration for the app layer.
+type AppConfig struct {
+	// PayloadTimeout specifies the timeout for the payload.
+	PayloadTimeout string `json:"payload-timeout"`
+}
+
+// NodeSpecs holds the node specs for all nodes in a single layer.
+type NodeSpecs struct {
+	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
+	// layer.
+	MinCPU int `json:"min_cpu"`
+	// MaxCPU specifies the maximum number of CPUs to use for all nodes in the
+	// layer.
+	MaxCPU int `json:"max_cpu"`
+	// MinMemory specifies the minimum amount of memory to use for all nodes in
+	// the layer.
+	MinMemory int `json:"min_memory"`
+	// MaxMemory specifies the maximum amount of memory to use for all nodes in
+	// the layer.
+	MaxMemory int `json:"max_memory"`
 }
 
 // AdditionalService holds the configuration for an additional service
@@ -80,99 +158,158 @@ type AdditionalService struct {
 // services.
 func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
-		AdditionalServices: []AdditionalService{
-			{
-				Name:     "tx-fuzz",
-				Replicas: 1,
-			},
-		},
-		Validators: []Node{
+		NetworkConfiguration: defaultNetworkConfiguration(),
+		NodeSettings:         defaultNodeSettings(),
+		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
+		AdditionalServices:   defaultAdditionalServices(),
+	}
+}
+
+func defaultNetworkConfiguration() NetworkConfiguration {
+	return NetworkConfiguration{
+		Validators: defaultValidators(),
+		FullNodes:  defaultFullNodes(),
+		SeedNodes:  defaultSeedNodes(),
+	}
+}
+
+func defaultValidators() NodeSet {
+	return NodeSet{
+		Type: "validator",
+		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
 				Replicas: 0,
 			},
 			{
 				ElType:   "geth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
 				Replicas: 1,
 			},
 			{
 				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
 				Replicas: 2, //nolint:mnd // 2 replicas
 			},
 			{
 				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
 				Replicas: 1,
 			},
 			{
 				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
 				Replicas: 0,
-			},
-		},
-		FullNodes: []Node{
-			{
-				ElType:   "nethermind",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
-			},
-			{
-				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 2, //nolint:mnd // 2 replicas
-			},
-			{
-				ElType:   "geth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "erigon",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-			{
-				ElType:   "besu",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 0,
-			},
-		},
-		SeedNodes: []Node{
-			{
-				ElType:   "reth",
-				ClImage:  "beacond:kurtosis-local",
-				ClType:   "beaconkit",
-				Replicas: 1,
-			},
-		},
-		EthJSONRPCEndpoints: []EthJSONRPCEndpoint{
-			{
-				Type: "blutgang",
-				Clients: []string{
-					// "el-full-nethermind-0",
-					"el-full-reth-0",
-					"el-full-reth-1",
-					"el-full-geth-2",
-					// "el-full-erigon-3",
-					// Besu causing flakey tests.
-					// "el-full-besu-4",
-				},
 			},
 		},
 	}
+}
+
+func defaultFullNodes() NodeSet {
+	return NodeSet{
+		Type: "full",
+		Nodes: []Node{
+			{
+				ElType:   "nethermind",
+				Replicas: 1,
+			},
+			{
+				ElType:   "reth",
+				Replicas: 1,
+			},
+			{
+				ElType:   "geth",
+				Replicas: 1,
+			},
+			{
+				ElType:   "erigon",
+				Replicas: 1,
+			},
+			{
+				ElType:   "besu",
+				Replicas: 1,
+			},
+		},
+	}
+}
+
+func defaultSeedNodes() NodeSet {
+	return NodeSet{
+		Type: "seed",
+		Nodes: []Node{
+			{
+				ElType:   "geth",
+				Replicas: 1,
+			},
+		},
+	}
+}
+
+func defaultNodeSettings() NodeSettings {
+	return NodeSettings{
+		ExecutionSettings: defaultExecutionSettings(),
+		ConsensusSettings: defaultConsensusSettings(),
+	}
+}
+
+func defaultExecutionSettings() ExecutionSettings {
+	return ExecutionSettings{
+		Specs: NodeSpecs{
+			MinCPU:    0,
+			MaxCPU:    0,
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
+		Images: map[string]string{
+			"besu":       "hyperledger/besu:latest",
+			"erigon":     "thorax/erigon:v2.60.0",
+			"ethereumjs": "ethpandaops/ethereumjs:stable",
+			"geth":       "ethereum/client-go:latest",
+			"nethermind": "nethermind/nethermind:latest",
+			"reth":       "ghcr.io/paradigmxyz/reth:latest",
+		},
+	}
+}
+
+func defaultConsensusSettings() ConsensusSettings {
+	return ConsensusSettings{
+		Specs: NodeSpecs{
+			MinCPU:    0,
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MinMemory: 0,
+			MaxMemory: 2048, //nolint:mnd // 2 GB
+		},
+		Images: map[string]string{
+			"beaconkit": "beacond:kurtosis-local",
+		},
+		Config: ConsensusConfig{
+			TimeoutPropose:      "3s",
+			TimeoutVote:         "2s",
+			TimeoutCommit:       "1s",
+			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
+			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
+		},
+		AppConfig: AppConfig{
+			PayloadTimeout: "1.5s",
+		},
+	}
+}
+
+func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
+	return []EthJSONRPCEndpoint{
+		{
+			Type: "blutgang",
+			Clients: []string{
+				// "el-full-nethermind-0",
+				"el-full-reth-1",
+				"el-full-geth-2",
+				"el-full-erigon-3",
+				// "el-full-erigon-3",
+				// Besu causing flakey tests.
+				// "el-full-besu-4",
+			},
+		},
+	}
+}
+
+func defaultAdditionalServices() []AdditionalService {
+	return []AdditionalService{}
 }
 
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.

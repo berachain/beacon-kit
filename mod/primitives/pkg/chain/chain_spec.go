@@ -31,6 +31,7 @@ type Spec[
 	EpochT ~uint64,
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
+	CometBFTConfigT any,
 ] interface {
 	// Gwei value constants.
 	//
@@ -147,6 +148,9 @@ type Spec[
 	// WithinDAPeriod checks if a given block slot is within the data
 	// availability period relative to the current slot.
 	WithinDAPeriod(block, current SlotT) bool
+
+	// CometBFT Consensus
+	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 }
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
@@ -156,9 +160,10 @@ type chainSpec[
 	EpochT ~uint64,
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
+	CometBFTConfigT any,
 ] struct {
 	// Data contains the actual chain-specific parameter values.
-	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT]
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
@@ -167,13 +172,14 @@ func NewChainSpec[
 	EpochT ~uint64,
 	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
+	CometBFTConfigT any,
 ](data SpecData[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) Spec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ] {
 	return &chainSpec[
-		DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 	]{
 		Data: data,
 	}
@@ -181,84 +187,84 @@ func NewChainSpec[
 
 // MinDepositAmount returns the minimum deposit amount required.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MinDepositAmount() uint64 {
 	return c.Data.MinDepositAmount
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxEffectiveBalance() uint64 {
 	return c.Data.MaxEffectiveBalance
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EjectionBalance() uint64 {
 	return c.Data.EjectionBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EffectiveBalanceIncrement() uint64 {
 	return c.Data.EffectiveBalanceIncrement
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) SlotsPerEpoch() uint64 {
 	return c.Data.SlotsPerEpoch
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) SlotsPerHistoricalRoot() uint64 {
 	return c.Data.SlotsPerHistoricalRoot
 }
 
 // DomainProposer returns the domain for beacon proposer signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeProposer() DomainTypeT {
 	return c.Data.DomainTypeProposer
 }
 
 // DomainAttester returns the domain for beacon attester signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeAttester() DomainTypeT {
 	return c.Data.DomainTypeAttester
 }
 
 // DomainRandao returns the domain for RANDAO reveal signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeRandao() DomainTypeT {
 	return c.Data.DomainTypeRandao
 }
 
 // DomainDeposit returns the domain for deposit contract signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeDeposit() DomainTypeT {
 	return c.Data.DomainTypeDeposit
 }
 
 // DomainVoluntaryExit returns the domain for voluntary exit signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeVoluntaryExit() DomainTypeT {
 	return c.Data.DomainTypeVoluntaryExit
 }
 
 // DomainSelectionProof returns the domain for selection proof signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeSelectionProof() DomainTypeT {
 	return c.Data.DomainTypeSelectionProof
 }
@@ -266,28 +272,28 @@ func (c chainSpec[
 // DomainAggregateAndProof returns the domain for aggregate and proof
 // signatures.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeAggregateAndProof() DomainTypeT {
 	return c.Data.DomainTypeAggregateAndProof
 }
 
 // DomainTypeApplicationMask returns the domain for the application mask.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeApplicationMask() DomainTypeT {
 	return c.Data.DomainTypeApplicationMask
 }
 
 // DepositContractAddress returns the address of the deposit contract.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DepositContractAddress() ExecutionAddressT {
 	return c.Data.DepositContractAddress
 }
 
 // DepositEth1ChainID returns the chain ID of the execution chain.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DepositEth1ChainID() uint64 {
 	return c.Data.DepositEth1ChainID
 }
@@ -295,63 +301,63 @@ func (c chainSpec[
 // Eth1FollowDistance returns the distance between the eth1 chain and the beacon
 // chain.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) Eth1FollowDistance() uint64 {
 	return c.Data.Eth1FollowDistance
 }
 
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) TargetSecondsPerEth1Block() uint64 {
 	return c.Data.TargetSecondsPerEth1Block
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ElectraForkEpoch() EpochT {
 	return c.Data.ElectraForkEpoch
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EpochsPerHistoricalVector() uint64 {
 	return c.Data.EpochsPerHistoricalVector
 }
 
 // EpochsPerSlashingsVector returns the number of epochs per slashings vector.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EpochsPerSlashingsVector() uint64 {
 	return c.Data.EpochsPerSlashingsVector
 }
 
 // HistoricalRootsLimit returns the limit of historical roots.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) HistoricalRootsLimit() uint64 {
 	return c.Data.HistoricalRootsLimit
 }
 
 // ValidatorRegistryLimit returns the limit of the validator registry.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ValidatorRegistryLimit() uint64 {
 	return c.Data.ValidatorRegistryLimit
 }
 
 // MaxDepositsPerBlock returns the maximum number of deposits per block.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxDepositsPerBlock() uint64 {
 	return c.Data.MaxDepositsPerBlock
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ProportionalSlashingMultiplier() uint64 {
 	return c.Data.ProportionalSlashingMultiplier
 }
@@ -359,7 +365,7 @@ func (c chainSpec[
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 // payload.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxWithdrawalsPerPayload() uint64 {
 	return c.Data.MaxWithdrawalsPerPayload
 }
@@ -367,7 +373,7 @@ func (c chainSpec[
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
 // withdrawals sweep.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxValidatorsPerWithdrawalsSweep() uint64 {
 	return c.Data.MaxValidatorsPerWithdrawalsSweep
 }
@@ -375,7 +381,7 @@ func (c chainSpec[
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 // blobs sidecars request.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MinEpochsForBlobsSidecarsRequest() uint64 {
 	return c.Data.MinEpochsForBlobsSidecarsRequest
 }
@@ -383,28 +389,36 @@ func (c chainSpec[
 // MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
 // block.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxBlobCommitmentsPerBlock() uint64 {
 	return c.Data.MaxBlobCommitmentsPerBlock
 }
 
 // MaxBlobsPerBlock returns the maximum number of blobs per block.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) MaxBlobsPerBlock() uint64 {
 	return c.Data.MaxBlobsPerBlock
 }
 
 // FieldElementsPerBlob returns the number of field elements per blob.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) FieldElementsPerBlob() uint64 {
 	return c.Data.FieldElementsPerBlob
 }
 
 // BytesPerBlob returns the number of bytes per blob.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) BytesPerBlob() uint64 {
 	return c.Data.BytesPerBlob
+}
+
+// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
+// slot.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
+	return c.Data.CometValues
 }

@@ -157,7 +157,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(client2)
 
 	// Give time for the node to catch up
-	err = s.WaitForNBlockNumbers(10)
+	err = s.WaitForNBlockNumbers(15)
 	s.Require().NoError(err)
 
 	// Compare height of node 1 and 2
@@ -196,9 +196,10 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 
 	val, _ := big.NewFloat(32e18).Int(nil)
 	return dc.Deposit(&bind.TransactOpts{
-		From:   sender,
-		Value:  val,
-		Signer: signer,
-		Nonce:  nonce,
+		From:     sender,
+		Value:    val,
+		Signer:   signer,
+		Nonce:    nonce,
+		GasLimit: 600000,
 	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
 }

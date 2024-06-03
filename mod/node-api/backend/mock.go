@@ -23,31 +23,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package mocks
+package backend
 
 import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/stretchr/testify/mock"
 )
 
-type Mock struct {
-}
-
-func NewMockBackend() *backend.Backend {
-	sdb := &StateDB{}
-	b := backend.New(func(context.Context, string) backend.StateDB {
+func NewMockBackend() *Backend {
+	sdb := &mocks.StateDB{}
+	b := New(func(context.Context, string) StateDB {
 		return sdb
 	})
 	setReturnValues(sdb)
 	return b
 }
 
-func setReturnValues(sdb *StateDB) {
+func setReturnValues(sdb *mocks.StateDB) {
 	sdb.EXPECT().GetGenesisValidatorsRoot().Return(primitives.Root{0x01}, nil)
 	sdb.EXPECT().GetSlot().Return(1, nil)
 	sdb.EXPECT().GetLatestExecutionPayloadHeader().Return(nil, nil)

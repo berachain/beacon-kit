@@ -38,8 +38,8 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -72,8 +72,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -81,10 +81,6 @@ func (sp *StateProcessor[
 	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
-			return err
-		}
-		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.GetIndex()); err != nil {
 			return err
 		}
 	}
@@ -95,8 +91,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -111,6 +107,31 @@ func (sp *StateProcessor[
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	if err = st.SetEth1DepositIndex(
+		depositIndex + 1,
+	); err != nil {
+		return err
+	}
+
+	return sp.applyDeposit(st, dep)
+}
+
+// processDeposit processes the deposit and ensures it matches the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) applyDeposit(
+	st BeaconStateT,
+	dep DepositT,
+) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
@@ -125,6 +146,7 @@ func (sp *StateProcessor[
 			math.Gwei(sp.cs.MaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
+
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
 	return sp.createValidator(st, dep)
@@ -134,8 +156,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -182,8 +204,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
@@ -215,8 +237,8 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT,
-	ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	body BeaconBlockBodyT,

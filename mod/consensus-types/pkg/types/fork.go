@@ -43,3 +43,16 @@ type Fork struct {
 	// Epoch is the epoch at which the fork occurred.
 	Epoch math.Epoch
 }
+
+// New creates a new fork.
+func (f *Fork) New(
+	previousVersion common.Version,
+	currentVersion common.Version,
+	epoch math.Epoch,
+) *Fork {
+	return &Fork{
+		PreviousVersion: previousVersion,
+		CurrentVersion:  currentVersion,
+		Epoch:           epoch,
+	}
+}

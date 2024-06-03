@@ -26,7 +26,7 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
 	"github.com/labstack/echo/v4"
@@ -45,7 +45,7 @@ func NewServer(corsConfig middleware.CORSConfig,
 		middleware.LoggerWithConfig(loggingConfig))
 	server.AssignRoutes(
 		e,
-		handlers.RouteHandlers{Backend: mocks.NewMockBackend()},
+		handlers.RouteHandlers{Backend: backend.NewMockBackend()},
 	)
 	return e
 }

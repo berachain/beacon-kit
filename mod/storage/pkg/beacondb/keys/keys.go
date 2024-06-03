@@ -44,6 +44,7 @@ const (
 	Eth1DataPrefix
 	Eth1DepositIndexPrefix
 	LatestExecutionPayloadHeaderPrefix
+	LatestExecutionPayloadVersionPrefix
 	GenesisValidatorsRootPrefix
 	NextWithdrawalIndexPrefix
 	NextWithdrawalValidatorIndexPrefix
@@ -70,6 +71,7 @@ const (
 	Eth1DataPrefixHumanReadable                         = "Eth1DataPrefix"
 	Eth1DepositIndexPrefixHumanReadable                 = "Eth1DepositIndexPrefix"
 	LatestExecutionPayloadHeaderPrefixHumanReadable     = "LatestExecutionPayloadHeaderPrefix"
+	LatestExecutionPayloadVersionPrefixHumanReadable    = "LatestExecutionPayloadVersionPrefix"
 	GenesisValidatorsRootPrefixHumanReadable            = "GenesisValidatorsRootPrefix"
 	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
 	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"

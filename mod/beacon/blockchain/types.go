@@ -62,7 +62,7 @@ type ReadOnlyBeaconState[T any] interface {
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeader,
 		error,
 	)
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
@@ -84,7 +84,8 @@ type ReadOnlyBeaconState[T any] interface {
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
 	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
@@ -99,7 +100,8 @@ type StorageBackend[
 
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT types.BeaconBlockBody,
 	BlobSidecarsT any,
 ] interface {
 	// ProcessBlobs processes the blobs and ensures they match the local state.
@@ -126,8 +128,9 @@ type EventFeed[EventT any] interface {
 
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore interface {
-	// PruneToIndex prunes the deposit store up to the specified index.
-	PruneToIndex(index uint64) error
+	// PruneFromInclusive prunes the deposit store from the given
+	// index for N indexes.
+	PruneFromInclusive(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []*types.Deposit) error
 }
@@ -149,7 +152,8 @@ type ExecutionEngine interface {
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[*types.ExecutionPayload],
+		req *engineprimitives.NewPayloadRequest[
+			*types.ExecutionPayload, *engineprimitives.Withdrawal],
 	) error
 }
 
@@ -183,7 +187,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
 		deposits []*types.Deposit,
-		executionPayloadHeader engineprimitives.ExecutionPayloadHeader,
+		executionPayloadHeader *types.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlot processes the state transition for a single slot.

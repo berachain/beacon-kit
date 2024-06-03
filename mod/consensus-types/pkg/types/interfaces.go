@@ -69,10 +69,10 @@ type ReadOnlyBeaconBlockBody interface {
 }
 
 // BeaconBlock is the interface for a beacon block.
-type RawBeaconBlock interface {
+type RawBeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
-	ReadOnlyBeaconBlock[BeaconBlockBody]
+	ReadOnlyBeaconBlock[BeaconBlockBodyT]
 }
 
 type BeaconBlockG[BodyT any] struct {
