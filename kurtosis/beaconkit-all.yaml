@@ -75,7 +75,7 @@ node_settings:
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 2.5s
+      payload_timeout: 2.5s
   execution_settings:
     specs:
       min_cpu: 0
