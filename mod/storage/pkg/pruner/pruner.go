@@ -82,7 +82,8 @@ func (p *Pruner[
 				start, end := p.pruneRangeFn(event)
 				p.logger.Info(
 					"🔪 pruning events 🔪",
-					"range:", start, end,
+					"range start:", start,
+					"range end:", end,
 				)
 				if err := p.prunable.Prune(start, end); err != nil {
 					p.logger.Error(
