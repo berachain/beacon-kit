@@ -138,7 +138,7 @@ func TestRangeDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB())
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-1"))
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -256,7 +256,7 @@ func TestRangeDB_Prune(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB())
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
@@ -284,19 +284,8 @@ func TestRangeDB_Prune(t *testing.T) {
 }
 
 // =========================== INVARIANTS ================================.
-func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
-	val := reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
-	// fmt.Println("VAL", val)
-	if val != rdb.FirstNonNilIndex() {
-		panic(fmt.Errorf("i came %v times", rdb.FirstNonNilIndex()))
-	}
-
-	return val
-}
 
 // invariant: all indexes up to the firstNonNilIndex should be nil.
-//
-
 func TestRangeDB_Invariants(t *testing.T) {
 	// we ignore errors for most of the tests below because we want to ensure
 	// that the invariants hold in exceptional circumstances.
@@ -312,7 +301,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
 		{
@@ -323,7 +312,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Delete(2, []byte("key"))
-				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
 		{
@@ -334,7 +323,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Prune(0, 3)
-				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
 		{
@@ -345,7 +334,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.DeleteRange(1, 5) // ignore error
-				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
 		{
@@ -359,22 +348,21 @@ func TestRangeDB_Invariants(t *testing.T) {
 					t.Fatalf("Prune() error = %v", err)
 				}
 				_ = populateTestDB(rdb, 5, 10)
-				requireNotExist(t, rdb, 0, min(getFirstNonNilIndex(rdb)-1, 0))
+				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rdb := file.NewRangeDB(newTestFDB())
+			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-3"))
 
 			if tt.setupFunc != nil {
 				if err := tt.setupFunc(rdb); err != nil {
-					// enforce invariant integrity on error
 					requireNotExist(
 						t,
 						rdb,
 						0,
-						min(getFirstNonNilIndex(rdb)-1, 0),
+						lastConsequetiveNilIndex(rdb),
 					)
 				}
 			}
@@ -388,15 +376,28 @@ func TestRangeDB_Invariants(t *testing.T) {
 // =============================== HELPERS ==================================
 
 // newTestFDB returns a new file DB instance with an in-memory filesystem.
-func newTestFDB() *file.DB {
+func newTestFDB(path string) *file.DB {
 	fs := afero.NewMemMapFs()
 	return file.NewDB(
-		file.WithRootDirectory("/tmp/testdb"),
+		file.WithRootDirectory(path),
 		file.WithFileExtension("txt"),
 		file.WithDirectoryPermissions(0700),
 		file.WithLogger(log.NewNopLogger()),
 		file.WithAferoFS(fs),
 	)
+}
+
+func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
+	val := reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
+	// fmt.Println("VAL", val)
+	if val != rdb.FirstNonNilIndex() {
+		panic(fmt.Errorf("i came %v times", rdb.FirstNonNilIndex()))
+	}
+	return val
+}
+
+func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {
+	return uint64(max(int64(getFirstNonNilIndex(rdb))-1, 0))
 }
 
 // requireNotExist requires the indexes from `from` to `to` to be empty.
