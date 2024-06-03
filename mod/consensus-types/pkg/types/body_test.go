@@ -30,9 +30,28 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/require"
 )
+
+func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
+	var byteArray [256]byte
+	byteSlice := byteArray[:]
+	return types.BeaconBlockBodyDeneb{
+		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+		},
+		ExecutionPayload: &types.ExecutableDataDeneb{
+			LogsBloom: byteSlice,
+		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+}
 
 func TestBeaconBlockBodyBase(t *testing.T) {
 	body := types.BeaconBlockBodyBase{
@@ -67,21 +86,55 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 }
 
 func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
-	body := types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
-		ExecutionPayload: &types.ExecutableDataDeneb{
-			LogsBloom: byteSlice,
-		},
-		BlobKzgCommitments: []eip4844.KZGCommitment{},
-	}
+	body := generateBeaconBlockBodyDeneb()
 	tree, err := body.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestBeaconBlockBodyDeneb_SetExecutionData_Error(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	executionData := &types.ExecutionPayload{}
+	err := body.SetExecutionData(executionData)
+
+	require.ErrorContains(t, err, "invalid execution data type")
+}
+
+func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
+	body.SetBlobKzgCommitments(commitments)
+
+	require.Equal(t, commitments, body.GetBlobKzgCommitments())
+}
+
+func TestBeaconBlockBodyDeneb_SetRandaoReveal(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	randaoReveal := crypto.BLSSignature{1, 2, 3}
+	body.SetRandaoReveal(randaoReveal)
+
+	require.Equal(t, randaoReveal, body.GetRandaoReveal())
+}
+
+func TestBeaconBlockBodyDeneb_SetEth1Data(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	eth1Data := &types.Eth1Data{}
+	body.SetEth1Data(eth1Data)
+
+	require.Equal(t, eth1Data, body.GetEth1Data())
+}
+
+func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	deposits := []*types.Deposit{}
+	body.SetDeposits(deposits)
+
+	require.Equal(t, deposits, body.GetDeposits())
+}
+
+func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
+	body := generateBeaconBlockBodyDeneb()
+	roots, err := body.GetTopLevelRoots()
+	require.NoError(t, err)
+	require.NotNil(t, roots)
 }

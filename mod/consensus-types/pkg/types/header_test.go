@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -135,4 +136,12 @@ func TestBeaconBlockHeader_New(t *testing.T) {
 	require.Equal(t, parentBlockRoot, newHeader.GetParentBlockRoot())
 	require.Equal(t, stateRoot, newHeader.GetStateRoot())
 	require.Equal(t, bodyRoot, newHeader.BodyRoot)
+}
+
+func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
+	header := &types.BeaconBlockHeader{}
+	buf := make([]byte, 100) // Incorrect size
+
+	err := header.UnmarshalSSZ(buf)
+	require.ErrorIs(t, err, ssz.ErrSize)
 }
