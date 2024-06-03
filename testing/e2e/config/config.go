@@ -251,14 +251,14 @@ func defaultNodeSettings() NodeSettings {
 func defaultExecutionSettings() ExecutionSettings {
 	return ExecutionSettings{
 		Specs: NodeSpecs{
-			MinCPU:    500,  //nolint:mnd // 1 vCPU
-			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-			MinMemory: 512,  //nolint:mnd // 1 GB
+			MinCPU:    0,    //nolint:mnd // 1 vCPU
+			MaxCPU:    0,    //nolint:mnd // 2 vCPUs
+			MinMemory: 1024, //nolint:mnd // 1 GB
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
-			"erigon":     "thorax/erigon:latest",
+			"erigon":     "thorax/erigon:v2.60.0",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:latest",
 			"nethermind": "nethermind/nethermind:latest",
@@ -270,9 +270,9 @@ func defaultExecutionSettings() ExecutionSettings {
 func defaultConsensusSettings() ConsensusSettings {
 	return ConsensusSettings{
 		Specs: NodeSpecs{
-			MinCPU:    500,  //nolint:mnd // 1 vCPU
+			MinCPU:    0,    //nolint:mnd // 1 vCPU
 			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
-			MinMemory: 512,  //nolint:mnd // 1 GB
+			MinMemory: 0,    //nolint:mnd // 1 GB
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
