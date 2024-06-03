@@ -122,7 +122,7 @@ def parse_consensus_config_settings(config_settings):
 def parse_consensus_app_settings(app_settings):
     app_settings = dict(app_settings)
 
-    if "payload-timeout" not in app_settings:
+    if "payload_timeout" not in app_settings:
         app_settings["payload_timeout"] = CONSENSUS_DEFAULT_SETTINGS["app"]["payload_timeout"]
     if "enable_optimistic_payload_builds" not in app_settings:
         app_settings["enable_optimistic_payload_builds"] = CONSENSUS_DEFAULT_SETTINGS["app"]["enable_optimistic_payload_builds"]
