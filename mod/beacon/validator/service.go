@@ -190,7 +190,7 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.GetEmptyBeaconBlock(
+	blk, err = s.getEmptyBeaconBlock(
 		st, requestedSlot,
 	)
 	if err != nil {
