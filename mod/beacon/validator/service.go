@@ -43,6 +43,7 @@ type Service[
 	],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore[*types.Deposit],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -57,16 +58,13 @@ type Service[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	]
 	// bsb is the beacon state backend.
-	bsb StorageBackend[BeaconStateT]
+	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
 	]
-	// ds is used to retrieve deposits that have been
-	// queued up for inclusion in the next block.
-	ds DepositStore[*types.Deposit]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
@@ -88,22 +86,31 @@ func NewService[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
+	DepositStoreT DepositStore[*types.Deposit],
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb StorageBackend[BeaconStateT],
+	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	ds DepositStore[*types.Deposit],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
-) *Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT] {
-	return &Service[BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT]{
+) *Service[
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+] {
+	return &Service[
+		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+		BlobSidecarsT, DepositStoreT,
+	]{
 		cfg:                   cfg,
 		logger:                logger,
 		bsb:                   bsb,
@@ -111,7 +118,6 @@ func NewService[
 		signer:                signer,
 		stateProcessor:        stateProcessor,
 		blobFactory:           blobFactory,
-		ds:                    ds,
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
@@ -121,14 +127,22 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Start(
 	context.Context,
 ) error {
@@ -137,14 +151,22 @@ func (s *Service[
 
 // Status returns the status of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
@@ -154,7 +176,11 @@ func (s *Service[
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -235,7 +261,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.ds.GetDepositsByIndex(
+	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
@@ -316,7 +342,11 @@ func (s *Service[
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -368,7 +398,11 @@ func (s *Service[
 // verifyIncomingBlockStateRoot verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,

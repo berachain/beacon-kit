@@ -191,7 +191,6 @@ func ProvideRuntime(
 			types.KZGPositionDeneb,
 			ts,
 		),
-		storageBackend.DepositStore(nil),
 		localBuilder,
 		[]validator.PayloadBuilder[BeaconState]{
 			localBuilder,
