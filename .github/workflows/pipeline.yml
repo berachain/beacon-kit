@@ -52,6 +52,7 @@ jobs:
       matrix:
         args:
           - "build"
+          - "build-docker"
           - "lint"
           - "slither"
           - "gosec"
@@ -84,10 +85,10 @@ jobs:
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-        if: ${{ matrix.args == 'test-e2e' }}
+        if: ${{ matrix.args == 'build-docker' || matrix.args == 'test-e2e' }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        if: ${{ matrix.args == 'test-e2e' }}
+        if: ${{ matrix.args == 'build-docker' || matrix.args == 'test-e2e' }}
       - name: Install Kurtosis
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
