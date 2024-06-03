@@ -229,43 +229,25 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 func TestRangeDB_Prune(t *testing.T) {
 	tests := []struct {
 		name          string
-		dataWindow    uint64
 		setupFunc     func(rdb *file.RangeDB) error
-		pruneIndex    uint64
+		pruneUntil    uint64
 		expectedError bool
 		testFunc      func(t *testing.T, rdb *file.RangeDB)
 	}{
 		{
-			name:       "PruneNoOp",
-			dataWindow: 5,
+			name: "PruneWithDeleteRange",
 			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 5); err != nil {
+				if err := populateTestDB(rdb, 1, 50); err != nil {
 					return err
 				}
 				return nil
 			},
-			pruneIndex:    3, // index less than prune window, should be no-op
+			pruneUntil:    7, // index 6 with window 2 means delete from 0 to 3
 			expectedError: false,
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				requireExist(t, rdb, 1, 5)
-			},
-		},
-		{
-			name:       "PruneWithDeleteRange",
-			dataWindow: 2,
-			setupFunc: func(rdb *file.RangeDB) error {
-				if err := populateTestDB(rdb, 1, 5); err != nil {
-					return err
-				}
-				return nil
-			},
-			pruneIndex:    6, // index 6 with window 2 means delete from 0 to 3
-			expectedError: false,
-			testFunc: func(t *testing.T, rdb *file.RangeDB) {
-				t.Helper()
-				requireNotExist(t, rdb, 0, 3)
-				requireExist(t, rdb, 4, 5)
+				requireNotExist(t, rdb, 0, 6)
+				requireExist(t, rdb, 7, 10)
 			},
 		},
 	}
@@ -283,8 +265,8 @@ func TestRangeDB_Prune(t *testing.T) {
 					)
 				}
 			}
-
-			err := rdb.PruneFromInclusive(0, tt.pruneIndex)
+			randInt := 69 // doesn't matter xD
+			err := rdb.PruneFromInclusive(tt.pruneUntil, uint64(randInt))
 			if (err != nil) != tt.expectedError {
 				t.Fatalf(
 					"Prune() error = %v, expectedError %v",
