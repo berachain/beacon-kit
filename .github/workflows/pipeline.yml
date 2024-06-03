@@ -30,13 +30,8 @@ on:
     branches:
       - main
   pull_request:
-    paths-ignore:
-      - "vercel.json"
-      - "docs/**"
   merge_group:
-    paths-ignore:
-      - "vercel.json"
-      - "docs/**"
+
 
 concurrency:
   group: ci-${{ github.ref }}-tests
