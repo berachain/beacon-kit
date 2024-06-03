@@ -204,9 +204,14 @@ type StateProcessor[
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[BeaconStateT BeaconState[BeaconStateT]] interface {
+type StorageBackend[
+	BeaconStateT BeaconState[BeaconStateT], DepositT any, DepositStoreT DepositStore[DepositT],
+] interface {
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
+
+	// DepositStore retrieves the deposit store.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

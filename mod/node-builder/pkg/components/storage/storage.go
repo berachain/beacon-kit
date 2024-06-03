@@ -22,6 +22,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -110,6 +111,16 @@ func (k Backend[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 ]) BeaconStore() *KVStore {
 	return k.bs
+}
+
+// SetBeaconStore sets the beacon store struct.
+func (k Backend[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+]) SetBeaconStore(
+	bs *KVStore,
+) {
+	fmt.Println("SETTING BEACON STORE")
+	k.bs = bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
