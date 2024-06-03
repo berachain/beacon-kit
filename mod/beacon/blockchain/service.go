@@ -71,7 +71,8 @@ type Service[
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[events.Block[BeaconBlockT]]
-	// skipPostBlockFCU is a flag used when the optimistic payload builder is enabled.
+	// skipPostBlockFCU is a flag used when the optimistic payload
+	// builder is enabled.
 	skipPostBlockFCU bool
 }
 
