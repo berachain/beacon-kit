@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -64,6 +65,9 @@ type AppInfo[T servertypes.Application] struct {
 type NodeBuilder[T servertypes.Application] struct {
 	// Every node has some application it is running.
 	appInfo *AppInfo[T]
+
+	// ChainSpec
+	chainSpec primitives.ChainSpec
 
 	// rootCmd is the root command for the application.
 	rootCmd *cobra.Command
@@ -168,12 +172,14 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		},
 	}
 
+	// TODO: Get a populated chain spec from depinject and use it here.
+	nb.chainSpec = spec.LocalnetChainSpec()
+
 	cmdlib.DefaultRootCommandSetup(
 		nb.rootCmd,
 		mm,
 		nb.AppCreator,
-		// TODO: Get a populated chain spec from depinject and use it here.
-		spec.LocalnetChainSpec(),
+		nb.chainSpec,
 	)
 
 	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)

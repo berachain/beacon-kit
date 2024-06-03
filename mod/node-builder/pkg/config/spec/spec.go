@@ -26,53 +26,36 @@
 package spec
 
 import (
-	"bytes"
-	"os"
-	"text/template"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	viperlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/config/viper"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
-// WriteToFile writes the chain spec data to a file.
-func WriteToFile(filepath string, spec primitives.ChainSpecData) error {
-	tmpl, err := template.New("specTemplate").Parse(Template)
-	if err != nil {
-		return err
-	}
-
-	var buffer bytes.Buffer
-	if err = tmpl.Execute(&buffer, spec); err != nil {
-		return err
-	}
-
-	return os.WriteFile(filepath, buffer.Bytes(), 0o600)
-}
-
 // MustReadFromAppOpts reads the configuration options from the given
 // application options.
 func MustReadFromAppOpts(
 	opts servertypes.AppOptions,
-) primitives.ChainSpecData {
-	specData, err := ReadFromAppOpts(opts)
+) primitives.ChainSpec {
+	spec, err := ReadFromAppOpts(opts)
 	if err != nil {
 		panic(err)
 	}
-	return specData
+	return spec
 }
 
 // ReadFromAppOpts reads the configuration options from the given
 // application options.
 func ReadFromAppOpts(
 	opts servertypes.AppOptions,
-) (primitives.ChainSpecData, error) {
+) (primitives.ChainSpec, error) {
 	v, ok := opts.(*viper.Viper)
 	if !ok {
-		return primitives.ChainSpecData{},
+		return nil,
 			errors.Newf("invalid application options type: %T", opts)
 	}
 
@@ -84,13 +67,14 @@ func ReadFromAppOpts(
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDomainTypeFunc(),
+			viperlib.StringToCometConsensusParamsFunc[*cmttypes.ConsensusParams](),
 		)),
 	); err != nil {
-		return primitives.ChainSpecData{}, errors.Newf(
+		return nil, errors.Newf(
 			"failed to decode chain-spec configuration: %w",
 			err,
 		)
 	}
 
-	return cfg.ChainSpec, nil
+	return chain.NewChainSpec(cfg.ChainSpec), nil
 }

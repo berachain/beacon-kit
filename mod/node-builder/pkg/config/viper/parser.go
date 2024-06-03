@@ -26,6 +26,7 @@
 package viper
 
 import (
+	"encoding/json"
 	"net/url"
 	"reflect"
 
@@ -51,6 +52,22 @@ func StringToDomainTypeFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
 		func(s string) (common.DomainType, error) {
 			return bytes.ToBytes4(common.FromHex(s)), nil
+		},
+	)
+}
+
+// StringToCometConsensusParamsFunc returns a DecodeHookFunc that converts
+// string to a `CometConsensusParamsT` by parsing the string.
+func StringToCometConsensusParamsFunc[
+	CometConsensusParamsT any,
+]() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (CometConsensusParamsT, error) {
+			var params CometConsensusParamsT
+			if err := json.Unmarshal([]byte(s), &params); err != nil {
+				return params, err
+			}
+			return params, nil
 		},
 	)
 }

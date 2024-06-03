@@ -126,4 +126,10 @@ field-elements-per-blob = "{{ .ChainSpec.FieldElementsPerBlob }}"
 # BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 bytes-per-blob = "{{ .ChainSpec.BytesPerBlob }}"
 # KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
-kzg-commitment-inclusion-proof-depth = "{{ .ChainSpec.KZGCommitmentInclusionProofDepth }}"`
+kzg-commitment-inclusion-proof-depth = "{{ .ChainSpec.KZGCommitmentInclusionProofDepth }}"
+
+# Comet Values
+#
+# CometValues is the consensus parameters for the Comet fork.
+comet-bft-config = "{{ .ChainSpec.CometValues }}"
+`

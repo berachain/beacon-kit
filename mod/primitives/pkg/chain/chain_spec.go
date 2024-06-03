@@ -34,7 +34,9 @@ type Spec[
 	CometBFTConfigT any,
 ] interface {
 	// GetData returns the underlying chain-specific parameter data.
-	GetData() SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT]
+	GetData() SpecData[
+		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+	]
 
 	// Gwei value constants.
 	//
@@ -190,9 +192,9 @@ func NewChainSpec[
 
 // Data returns the underlying chain-specific parameter data.
 func (c chainSpec[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetData() SpecData[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT,
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ] {
 	return c.Data
 }
