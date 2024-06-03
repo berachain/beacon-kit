@@ -82,13 +82,7 @@ func (s *Service[
 		return
 	}
 
-	if len(deposits) == 0 {
-		s.logger.Info(
-			"waiting for deposits from execution layer",
-			"block",
-			blockNum,
-		)
-	} else {
+	if len(deposits) > 0 {
 		s.logger.Info(
 			"found deposits on execution layer",
 			"block", blockNum, "deposits", len(deposits),
