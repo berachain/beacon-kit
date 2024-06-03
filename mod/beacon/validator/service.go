@@ -476,7 +476,6 @@ func (s *Service[
 ) error {
 	var (
 		previousBlockRoot primitives.Root
-		latestHeader      *types.BeaconBlockHeader
 		lph               engineprimitives.ExecutionPayloadHeader
 		slot              math.Slot
 	)
@@ -536,8 +535,10 @@ func (s *Service[
 		// and possibly should be made more explicit later on.
 		lph.GetBlockHash(),
 	); err != nil {
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
 	}
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
 	return nil
 }
 
@@ -566,12 +567,15 @@ func (s *Service[
 		return err
 	}
 
+	// We are building for the next slot, so we increment the slot relative
+	// to the block we just processed.
+	slot := blk.GetSlot() + 1
+
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
 	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
 		ctx, st,
-		// We are building for the next slot, so we increment the slot.
-		blk.GetSlot()+1,
+		slot,
 		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
@@ -589,8 +593,10 @@ func (s *Service[
 		// just processed.
 		payload.GetParentHash(),
 	); err != nil {
+		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err
 	}
+	s.metrics.markOptimisticPayloadBuildSuccess(slot)
 	return nil
 }
 
