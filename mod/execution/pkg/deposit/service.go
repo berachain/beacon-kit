@@ -27,7 +27,6 @@ package deposit
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -58,8 +57,6 @@ type Service[
 	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT, ExecutionPayloadT, SubscriptionT]
 	// newBlock is the channel for new blocks.
 	newBlock chan BeaconBlockT
-	// finalizedBlockNumber is the finalized block number on the EL
-	finalizedBlockNumber atomic.Uint64
 }
 
 // NewService creates a new instance of the Service struct.
@@ -81,10 +78,12 @@ func NewService[
 	dc Contract[DepositT],
 	feed BlockFeed[BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT, ExecutionPayloadT, SubscriptionT],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+		BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+		ExecutionPayloadT, SubscriptionT, DepositT,
 	]{
 		feed:               feed,
 		logger:             logger,
@@ -98,7 +97,8 @@ func NewService[
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -108,7 +108,8 @@ func (s *Service[
 }
 
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ]) blockFeedListener(ctx context.Context) {
 	ch := make(chan BlockEventT)
 	sub := s.feed.Subscribe(ch)
@@ -125,21 +126,24 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ]) Name() string {
 	return "deposit-handler"
 }
 
 // Status returns the current status of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, ExecutionPayloadT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT, DepositT,
 ]) WaitForHealthy(
 	_ context.Context,
 ) {

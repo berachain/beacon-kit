@@ -61,7 +61,6 @@ type BlockEvent[
 ] interface {
 	Context() context.Context
 	Block() BeaconBlockT
-	Eth1DepositIndex() uint64
 }
 
 // BlockFeed is an interface for subscribing to block events.
@@ -100,7 +99,10 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 
 // EthClient is an interface for interacting with the Ethereum 1.0 client.
 type EthClient interface {
-	BlockByNumber(ctx context.Context, number *big.Int) (*engineprimitives.Block, error)
+	BlockByNumber(
+		ctx context.Context,
+		number *big.Int,
+	) (*engineprimitives.Block, error)
 }
 
 // Store defines the interface for managing deposit operations.
