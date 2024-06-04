@@ -66,7 +66,7 @@ func (st *BeaconState) New(
 				LatestBlockHeader:     latestBlockHeader,
 				BlockRoots:            blockRoots,
 				StateRoots:            stateRoots,
-				//nolint:lll
+				
 				LatestExecutionPayloadHeader: latestExecutionPayloadHeader.
 					ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
 				Eth1Data:                     eth1Data,
@@ -83,5 +83,4 @@ func (st *BeaconState) New(
 	default:
 		return nil, fmt.Errorf("unsupported version %d", forkVersion)
 	}
-
 }
