@@ -10,8 +10,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	ssz "github.com/ferranbt/fastssz"
-
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 )
 
@@ -367,63 +365,6 @@ func (_c *BeaconBlockBody_GetTopLevelRoots_Call) RunAndReturn(run func() ([][32]
 	return _c
 }
 
-// GetTree provides a mock function with given fields:
-func (_m *BeaconBlockBody) GetTree() (*ssz.Node, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetTree")
-	}
-
-	var r0 *ssz.Node
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (*ssz.Node, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() *ssz.Node); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ssz.Node)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// BeaconBlockBody_GetTree_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTree'
-type BeaconBlockBody_GetTree_Call struct {
-	*mock.Call
-}
-
-// GetTree is a helper method to define mock.On call
-func (_e *BeaconBlockBody_Expecter) GetTree() *BeaconBlockBody_GetTree_Call {
-	return &BeaconBlockBody_GetTree_Call{Call: _e.mock.On("GetTree")}
-}
-
-func (_c *BeaconBlockBody_GetTree_Call) Run(run func()) *BeaconBlockBody_GetTree_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *BeaconBlockBody_GetTree_Call) Return(_a0 *ssz.Node, _a1 error) *BeaconBlockBody_GetTree_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BeaconBlockBody_GetTree_Call) RunAndReturn(run func() (*ssz.Node, error)) *BeaconBlockBody_GetTree_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // HashTreeRoot provides a mock function with given fields:
 func (_m *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
 	ret := _m.Called()
@@ -477,52 +418,6 @@ func (_c *BeaconBlockBody_HashTreeRoot_Call) Return(_a0 [32]byte, _a1 error) *Be
 }
 
 func (_c *BeaconBlockBody_HashTreeRoot_Call) RunAndReturn(run func() ([32]byte, error)) *BeaconBlockBody_HashTreeRoot_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// HashTreeRootWith provides a mock function with given fields: hh
-func (_m *BeaconBlockBody) HashTreeRootWith(hh ssz.HashWalker) error {
-	ret := _m.Called(hh)
-
-	if len(ret) == 0 {
-		panic("no return value specified for HashTreeRootWith")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(ssz.HashWalker) error); ok {
-		r0 = rf(hh)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// BeaconBlockBody_HashTreeRootWith_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HashTreeRootWith'
-type BeaconBlockBody_HashTreeRootWith_Call struct {
-	*mock.Call
-}
-
-// HashTreeRootWith is a helper method to define mock.On call
-//   - hh ssz.HashWalker
-func (_e *BeaconBlockBody_Expecter) HashTreeRootWith(hh interface{}) *BeaconBlockBody_HashTreeRootWith_Call {
-	return &BeaconBlockBody_HashTreeRootWith_Call{Call: _e.mock.On("HashTreeRootWith", hh)}
-}
-
-func (_c *BeaconBlockBody_HashTreeRootWith_Call) Run(run func(hh ssz.HashWalker)) *BeaconBlockBody_HashTreeRootWith_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(ssz.HashWalker))
-	})
-	return _c
-}
-
-func (_c *BeaconBlockBody_HashTreeRootWith_Call) Return(_a0 error) *BeaconBlockBody_HashTreeRootWith_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *BeaconBlockBody_HashTreeRootWith_Call) RunAndReturn(run func(ssz.HashWalker) error) *BeaconBlockBody_HashTreeRootWith_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -674,9 +569,9 @@ func (_c *BeaconBlockBody_MarshalSSZ_Call) RunAndReturn(run func() ([]byte, erro
 	return _c
 }
 
-// MarshalSSZTo provides a mock function with given fields: dst
-func (_m *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
-	ret := _m.Called(dst)
+// MarshalSSZTo provides a mock function with given fields: _a0
+func (_m *BeaconBlockBody) MarshalSSZTo(_a0 []byte) ([]byte, error) {
+	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MarshalSSZTo")
@@ -685,10 +580,10 @@ func (_m *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 	var r0 []byte
 	var r1 error
 	if rf, ok := ret.Get(0).(func([]byte) ([]byte, error)); ok {
-		return rf(dst)
+		return rf(_a0)
 	}
 	if rf, ok := ret.Get(0).(func([]byte) []byte); ok {
-		r0 = rf(dst)
+		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -696,7 +591,7 @@ func (_m *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func([]byte) error); ok {
-		r1 = rf(dst)
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -710,12 +605,12 @@ type BeaconBlockBody_MarshalSSZTo_Call struct {
 }
 
 // MarshalSSZTo is a helper method to define mock.On call
-//   - dst []byte
-func (_e *BeaconBlockBody_Expecter) MarshalSSZTo(dst interface{}) *BeaconBlockBody_MarshalSSZTo_Call {
-	return &BeaconBlockBody_MarshalSSZTo_Call{Call: _e.mock.On("MarshalSSZTo", dst)}
+//   - _a0 []byte
+func (_e *BeaconBlockBody_Expecter) MarshalSSZTo(_a0 interface{}) *BeaconBlockBody_MarshalSSZTo_Call {
+	return &BeaconBlockBody_MarshalSSZTo_Call{Call: _e.mock.On("MarshalSSZTo", _a0)}
 }
 
-func (_c *BeaconBlockBody_MarshalSSZTo_Call) Run(run func(dst []byte)) *BeaconBlockBody_MarshalSSZTo_Call {
+func (_c *BeaconBlockBody_MarshalSSZTo_Call) Run(run func(_a0 []byte)) *BeaconBlockBody_MarshalSSZTo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].([]byte))
 	})
@@ -955,9 +850,9 @@ func (_c *BeaconBlockBody_SizeSSZ_Call) RunAndReturn(run func() int) *BeaconBloc
 	return _c
 }
 
-// UnmarshalSSZ provides a mock function with given fields: buf
-func (_m *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
-	ret := _m.Called(buf)
+// UnmarshalSSZ provides a mock function with given fields: _a0
+func (_m *BeaconBlockBody) UnmarshalSSZ(_a0 []byte) error {
+	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UnmarshalSSZ")
@@ -965,7 +860,7 @@ func (_m *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func([]byte) error); ok {
-		r0 = rf(buf)
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -979,12 +874,12 @@ type BeaconBlockBody_UnmarshalSSZ_Call struct {
 }
 
 // UnmarshalSSZ is a helper method to define mock.On call
-//   - buf []byte
-func (_e *BeaconBlockBody_Expecter) UnmarshalSSZ(buf interface{}) *BeaconBlockBody_UnmarshalSSZ_Call {
-	return &BeaconBlockBody_UnmarshalSSZ_Call{Call: _e.mock.On("UnmarshalSSZ", buf)}
+//   - _a0 []byte
+func (_e *BeaconBlockBody_Expecter) UnmarshalSSZ(_a0 interface{}) *BeaconBlockBody_UnmarshalSSZ_Call {
+	return &BeaconBlockBody_UnmarshalSSZ_Call{Call: _e.mock.On("UnmarshalSSZ", _a0)}
 }
 
-func (_c *BeaconBlockBody_UnmarshalSSZ_Call) Run(run func(buf []byte)) *BeaconBlockBody_UnmarshalSSZ_Call {
+func (_c *BeaconBlockBody_UnmarshalSSZ_Call) Run(run func(_a0 []byte)) *BeaconBlockBody_UnmarshalSSZ_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].([]byte))
 	})
