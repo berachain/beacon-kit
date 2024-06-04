@@ -29,8 +29,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// LocalnetChainSpec is the ChainSpec for the localnet.
-func LocalnetChainSpec() chain.Spec[
+// TestnetChainSpec is the ChainSpec for the localnet.
+func TestnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
@@ -55,8 +55,8 @@ func LocalnetChainSpec() chain.Spec[
 			EjectionBalance:           uint64(16e9),
 			EffectiveBalanceIncrement: uint64(1e9),
 			// Time parameters constants.
-			SlotsPerEpoch:          8,
-			SlotsPerHistoricalRoot: 1,
+			SlotsPerEpoch:          32,
+			SlotsPerHistoricalRoot: 8,
 			// Signature domains.
 			DomainTypeProposer: common.DomainType{
 				0x00, 0x00, 0x00, 0x00,
@@ -88,13 +88,13 @@ func LocalnetChainSpec() chain.Spec[
 			),
 			DepositEth1ChainID:        uint64(80086),
 			Eth1FollowDistance:        1,
-			TargetSecondsPerEth1Block: 2,
+			TargetSecondsPerEth1Block: 3,
 			// Fork-related values.
 			ElectraForkEpoch: 9999999999999999,
 			// State list length constants.
 			EpochsPerHistoricalVector: 8,
-			EpochsPerSlashingsVector:  1,
-			HistoricalRootsLimit:      1,
+			EpochsPerSlashingsVector:  8,
+			HistoricalRootsLimit:      8,
 			ValidatorRegistryLimit:    1099511627776,
 			// Max operations per block constants.
 			MaxDepositsPerBlock: 16,

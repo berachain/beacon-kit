@@ -142,12 +142,13 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file
     persistent_peers = get_persistent_peers(plan, peers)
     config_settings = node_struct.consensus_settings.config
     app_settings = node_struct.consensus_settings.app
+    kzg_impl = node_struct.kzg_impl
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl))
     if node_struct.node_type == "validator":
-        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings)
+        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl)
     elif node_struct.node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl))
 
     beacond_config = get_config(
         node_struct,

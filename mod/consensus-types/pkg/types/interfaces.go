@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // BeaconBlockBody is the interface for a beacon block body.
@@ -48,9 +48,7 @@ type WriteOnlyBeaconBlockBody interface {
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	ssz.Marshallable
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
@@ -70,15 +68,9 @@ type RawBeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
 	ReadOnlyBeaconBlock[BeaconBlockBodyT]
 }
 
-type BeaconBlockG[BodyT any] struct {
-	ReadOnlyBeaconBlock[BodyT]
-}
-
 // ReadOnlyBeaconBlock is the interface for a read-only beacon block.
 type ReadOnlyBeaconBlock[BodyT any] interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	ssz.Marshallable
 	IsNil() bool
 	Version() uint32
 	GetSlot() math.Slot

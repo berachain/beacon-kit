@@ -114,6 +114,7 @@ func NewBeaconKitRuntime[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		*types.Deposit,
 		DepositStoreT,
 	],
 ](
@@ -139,6 +140,7 @@ func NewBeaconKitRuntime[
 				*engineprimitives.Withdrawal,
 			],
 			BlobSidecarsT,
+			*types.Deposit,
 			DepositStoreT,
 		]
 		validatorService *validator.Service[

@@ -41,13 +41,14 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositStoreT,
 ]) getEmptyBeaconBlock(
-	st BeaconStateT, slot math.Slot,
+	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
+		uint64(requestedSlot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
+
 	if err != nil {
 		return blk, errors.Newf(
 			"failed to get block root at index: %w",
@@ -67,10 +68,10 @@ func (s *Service[
 	}
 
 	return blk.NewWithVersion(
-		slot,
+		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
 	)
 }
 

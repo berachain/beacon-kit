@@ -25,14 +25,13 @@ import (
 	"errors"
 	"reflect"
 
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopGossipHandler[DataT interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
 }, BytesT ~[]byte] struct{}
 
 // Publish creates a new NoopGossipHandler.

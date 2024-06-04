@@ -68,6 +68,8 @@ type Node struct {
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
 	Replicas int `json:"replicas"`
+	// KzgImpl specifies the KZG implementation to use for the client.
+	KzgImpl string `json:"kzg_impl"`
 }
 
 // NodeSettings holds the configuration for a single node in the test,
@@ -183,6 +185,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "geth",
 				Replicas: 1,
+				KzgImpl:  "crate-crypto/go-kzg-4844", // by default impl
 			},
 			{
 				ElType:   "reth",
@@ -191,6 +194,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "erigon",
 				Replicas: 1,
+				KzgImpl:  "ethereum/c-kzg-4844",
 			},
 			{
 				ElType:   "besu",

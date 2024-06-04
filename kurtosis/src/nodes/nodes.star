@@ -65,6 +65,11 @@ def parse_nodes_from_dict(vals, settings):
     return node_list
 
 def parse_node_from_dict(node_type, val, consensus_settings, execution_settings, index):
+    # if kzg implementation is not provided, give default
+    if "kzg_impl" not in val:
+        kzg_impl = "crate-crypto/go-kzg-4844"
+    else:
+        kzg_impl = val["kzg_impl"]
     return struct(
         node_type = node_type,
         el_type = val["el_type"],
@@ -76,6 +81,7 @@ def parse_node_from_dict(node_type, val, consensus_settings, execution_settings,
         el_service_name = "el-{}-{}-{}".format(node_type, val["el_type"], index),
         consensus_settings = consensus_settings,
         execution_settings = execution_settings,
+        kzg_impl = kzg_impl,
     )
 
 def parse_consensus_settings(settings):

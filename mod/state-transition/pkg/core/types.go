@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -150,11 +150,9 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
 	json.Marshaler
 	json.Unmarshaler
-	ssz.HashRoot
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -229,8 +227,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	ssz.Marshaler
-	ssz.HashRoot
+	ssz.Marshallable
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -254,8 +251,6 @@ type Validator[
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
-	ssz.Marshaler
-	ssz.HashRoot
 	// Equals returns true if the withdrawal is equal to the other.
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.

@@ -39,7 +39,9 @@ type Service[
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
+
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -48,6 +50,7 @@ type Service[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		DepositT,
 		DepositStoreT,
 	]
 	// logger is used for logging messages in the service.
@@ -66,6 +69,7 @@ type Service[
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
+		DepositT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -85,13 +89,15 @@ func NewService[
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
+	DepositStoreT DepositStore[DepositT],
+	DepositT Deposit,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		DepositT,
 		DepositStoreT,
 	],
 	logger log.Logger[any],
@@ -105,18 +111,18 @@ func NewService[
 	],
 	sp StateProcessor[
 		BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, *transition.Context,
+		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
 	skipPostBlockFCU bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
+	BlobSidecarsT, DepositT, DepositStoreT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT,
+		BlobSidecarsT, DepositT, DepositStoreT,
 	]{
 		sb:               sb,
 		logger:           logger,
@@ -139,6 +145,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -150,6 +157,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Start(
 	context.Context,
 ) error {
@@ -163,6 +171,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) Status() error {
 	return nil
 }
@@ -174,6 +183,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
+	DepositT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
