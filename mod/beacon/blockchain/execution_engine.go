@@ -36,6 +36,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
@@ -69,6 +70,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
