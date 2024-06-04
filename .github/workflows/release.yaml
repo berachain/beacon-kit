@@ -33,8 +33,19 @@ on:
       - 'release/*'
 
 jobs:
+  extract-version:
+    name: extract version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        run: echo "VERSION=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_OUTPUT
+        id: extract_version
+    outputs:
+      VERSION: ${{ steps.extract_version.outputs.VERSION }}
+
   build-linux:
     runs-on: ubuntu-latest
+    needs: extract-version
     strategy:
       matrix:
         arch: [amd64, arm64]
@@ -53,22 +64,23 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build-${{ matrix.targetos }}-${{ matrix.arch }}
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
         with:
-          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
           path: build/bin
 
   build-mac:
     runs-on: macos-latest
+    needs: extract-version
     strategy:
       matrix:
         arch: [arm64]
         targetos: [darwin]
 
-    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -83,34 +95,49 @@ jobs:
       # Build and capture an artifact
       - name: Build beacond
         run: |
-          make build-${{ matrix.targetos }}-${{ matrix.arch }}
+          make build-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
 
       # Uploads binaries
       - uses: actions/upload-artifact@v3
         with:
-          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
           path: build/bin
 
   draft-release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-mac]
-    permissions: write-all
+    needs: [build-linux, build-mac, extract-version]
+    env:
+      VERSION: ${{ needs.extract-version.outputs.VERSION }}
+    permissions:
+      # Required to post the release
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
+      # This is necessary for generating the changelog.
+      # It has to come before "Download Artifacts" or else it deletes the artifacts.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           path: .
+      - name: Generate full changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 ${{ env.VERSION }}^)..${{ env.VERSION }})" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Draft Release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           files: |
-            ./beacond-linux-arm64/beacond-linux-arm64
-            ./beacond-linux-amd64/beacond-linux-amd64
-            ./beacond-darwin-arm64/beacond-darwin-arm64
+            ./beacond-linux-arm64/beacond-linux-arm64-${{ env.VERSION }}
+            ./beacond-linux-amd64/beacond-linux-amd64-${{ env.VERSION }}
+            ./beacond-darwin-arm64/beacond-darwin-arm64-${{ env.VERSION }}
         env:
           GIT_TOKEN: ${{ secrets.DEV_PAT }}
