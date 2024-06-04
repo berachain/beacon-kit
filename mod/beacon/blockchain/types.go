@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	ssz "github.com/ferranbt/fastssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -92,8 +92,7 @@ type BlobProcessor[
 
 // BlobsSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
 	Len() int
 }
 
