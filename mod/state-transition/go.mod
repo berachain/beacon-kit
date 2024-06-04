@@ -8,7 +8,6 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/go-faster/xor v1.0.0
 	golang.org/x/sync v0.7.0
 )
@@ -42,6 +41,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
 	github.com/ethereum/go-ethereum v1.14.4-0.20240530142416-2262bf34158e // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
+	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/getsentry/sentry-go v0.28.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
