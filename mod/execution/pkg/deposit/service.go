@@ -59,6 +59,8 @@ type Service[
 		ExecutionPayloadT,
 		SubscriptionT,
 	]
+	// metrics is the metrics for the deposit service.
+	metrics *depositMetrics
 	// newBlock is the channel for new blocks.
 	newBlock chan BeaconBlockT
 	// failedBlocks
@@ -84,6 +86,7 @@ func NewService[
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
 	ethclient EthClient,
+	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
 	feed BlockFeed[
@@ -104,6 +107,7 @@ func NewService[
 		logger:             logger,
 		ethclient:          ethclient,
 		eth1FollowDistance: eth1FollowDistance,
+		metrics:            newDepositMetrics(telemetrySink),
 		dc:                 dc,
 		ds:                 ds,
 		newBlock:           make(chan BeaconBlockT),
