@@ -28,14 +28,19 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
+        kzg_impl: ethereum/c-kzg-4844
         replicas: 1
       - el_type: nethermind
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: erigon
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: ethereumjs
         replicas: 0
@@ -43,8 +48,10 @@ network_configuration:
     type: "full"
     nodes:
       - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 2
       - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: nethermind
         replicas: 0
