@@ -31,7 +31,7 @@ on:
       - 'v*'
     branches:
       - 'release/*'
-      - 'update-release'
+
 env:
   REPO_NAME: "beacon-kit"
   
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Extract version
-        run: echo "VERSION=test-tag" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_OUTPUT
         id: extract_version
     outputs:
       VERSION: ${{ steps.extract_version.outputs.VERSION }}
