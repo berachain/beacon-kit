@@ -33,6 +33,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /// @dev A flag to check if the contract has been initialized.
+    bool private initialized = false;
+
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
@@ -44,8 +47,11 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    constructor() {
+    /// @dev Initializes the owner of the contract.
+    function initializeOwner() external {
+        require(!initialized, "Already initialized");
         _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        initialized = true;
     }
 
     /// @inheritdoc IBeaconDepositContract
