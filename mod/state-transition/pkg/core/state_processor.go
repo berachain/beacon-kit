@@ -228,8 +228,7 @@ func (sp *StateProcessor[
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
-		prevStateRoot,
+		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return nil, err
 	}
@@ -388,7 +387,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Wrapf(ErrSlotMismatch,
+		return errors.Wrapf(
+			ErrSlotMismatch,
 			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
@@ -406,8 +406,8 @@ func (sp *StateProcessor[
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
-			"expected: %x, got: %x",
-			parentBlockRoot, blk.GetParentBlockRoot(),
+			"expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
 	}
 

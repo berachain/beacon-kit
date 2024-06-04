@@ -55,8 +55,8 @@ func TestnetChainSpec() chain.Spec[
 			EjectionBalance:           uint64(16e9),
 			EffectiveBalanceIncrement: uint64(1e9),
 			// Time parameters constants.
-			SlotsPerEpoch:          8,
-			SlotsPerHistoricalRoot: 1,
+			SlotsPerEpoch:          32,
+			SlotsPerHistoricalRoot: 8,
 			// Signature domains.
 			DomainTypeProposer: common.DomainType{
 				0x00, 0x00, 0x00, 0x00,
@@ -93,8 +93,8 @@ func TestnetChainSpec() chain.Spec[
 			ElectraForkEpoch: 9999999999999999,
 			// State list length constants.
 			EpochsPerHistoricalVector: 8,
-			EpochsPerSlashingsVector:  1,
-			HistoricalRootsLimit:      1,
+			EpochsPerSlashingsVector:  8,
+			HistoricalRootsLimit:      8,
 			ValidatorRegistryLimit:    1099511627776,
 			// Max operations per block constants.
 			MaxDepositsPerBlock: 16,
