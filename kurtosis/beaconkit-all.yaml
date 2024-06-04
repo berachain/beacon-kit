@@ -28,32 +28,32 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        replicas: 2
+        replicas: 1
       - el_type: nethermind
-        replicas: 2
+        replicas: 1
       - el_type: reth
-        replicas: 2
+        replicas: 1
       - el_type: geth
-        replicas: 2
+        replicas: 1
       - el_type: erigon
-        replicas: 2
+        replicas: 1
       - el_type: ethereumjs
-        replicas: 2
+        replicas: 1
   full_nodes:
     type: "full"
     nodes:
       - el_type: reth
-        replicas: 2
+        replicas: 1
       - el_type: geth
         replicas: 1
       - el_type: nethermind
-        replicas: 0
+        replicas: 1
       - el_type: besu
-        replicas: 0
+        replicas: 1
       - el_type: erigon
-        replicas: 0
+        replicas: 1
       - el_type: ethereumjs
-        replicas: 0
+        replicas: 1
   seed_nodes:
     type: "seed"
     nodes:
@@ -103,7 +103,8 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 16
+    replicas: 1
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
+  - name: "blobscan"

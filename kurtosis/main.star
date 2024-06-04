@@ -16,6 +16,7 @@ grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
+blobscan = import_module("./src/services/blobscan/blobscan.star")
 
 def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -207,12 +208,15 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
                 s.replicas = 1
             next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
             # next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
-
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
         elif s.name == "grafana":
             grafana.start(plan, prometheus_url)
         elif s.name == "pyroscope":
             pyroscope.run(plan)
+        elif s.name == "blobscan":
+            cl_contexts = [struct(beacon_http_url="localhost:8080")]
+            el_contexts = [struct(ip_addr="localhost", rpc_port_num="4000")]
+            blobscan.launch_blobscan(plan, cl_contexts, el_contexts, 1, False, {})
 
     plan.print("Successfully launched development network")
