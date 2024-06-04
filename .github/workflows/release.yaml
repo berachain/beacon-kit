@@ -32,85 +32,142 @@ on:
     branches:
       - 'release/*'
 
+env:
+  REPO_NAME: ${{ github.repository_owner }}/beacon-kit
+  IMAGE_NAME: ${{ github.repository_owner }}/beacon-kit
+  
 jobs:
-  build-linux:
+  extract-version:
+    name: extract version
     runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        run: echo "VERSION=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_OUTPUT
+        id: extract_version
+    outputs:
+      VERSION: ${{ steps.extract_version.outputs.VERSION }}
+  
+  build:
+    name: build release
+    needs: extract-version
     strategy:
       matrix:
-        arch: [amd64, arm64]
-        targetos: [linux]
-
-    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
+        configs:
+          - arch: arm64
+            target-os: linux
+            runs-on: ubuntu-latest
+          - arch: amd64
+            target-os: linux
+            runs-on: ubuntu-latest
+          - arch: arm64
+            target-os: darwin
+            runs-on: macos-14
+        build:
+          - binary: beacond
+    runs-on: ${{ matrix.configs.runs-on }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.22"
         env:
-          GOOS: ${{ matrix.targetos }}
-          GOARCH: ${{ matrix.arch }}
+          GOOS: ${{ matrix.configs.target-os }}
+          GOARCH: ${{ matrix.configs.arch }}
 
-      # Build and capture an artifact
-      - name: Build beacond
+      - name: Build ${{ matrix.build.binary }}
         run: |
-          make build-${{ matrix.targetos }}-${{ matrix.arch }}
-
+          make build-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}-${{ needs.extract-version.outputs.VERSION }}
+          tar -czvf ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz -C build/bin .
+      
       # Uploads binaries
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin
+          name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+          path: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
 
-  build-mac:
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        arch: [arm64]
-        targetos: [darwin]
-
-    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "^1.22"
-        env:
-          GOOS: ${{ matrix.targetos }}
-          GOARCH: ${{ matrix.arch }}
-          CGO_CFLAGS: "-O -D__BLST_PORTABLE__"
-          CGO_CFLAGS_ALLOW: "-O -D__BLST_PORTABLE__"
-
-      # Build and capture an artifact
-      - name: Build beacond
-        run: |
-          make build-${{ matrix.targetos }}-${{ matrix.arch }}
-
-      # Uploads binaries
-      - uses: actions/upload-artifact@v3
-        with:
-          name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
-          path: build/bin
 
   draft-release:
+    name: draft release
+    needs: [build, extract-version]
     runs-on: ubuntu-latest
-    needs: [build-linux, build-mac]
-    permissions: write-all
+    env:
+      VERSION: ${{ needs.extract-version.outputs.VERSION }}
+    permissions:
+      # Required to post the release
+      contents: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
+      # This is necessary for generating the changelog.
+      # It has to come before "Download Artifacts" or else it deletes the artifacts.
+      - uses: actions/checkout@v4
         with:
-          path: .
-
-      - name: Draft Release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          files: |
-            ./beacond-linux-arm64/beacond-linux-arm64
-            ./beacond-linux-amd64/beacond-linux-amd64
-            ./beacond-darwin-arm64/beacond-darwin-arm64
+          fetch-depth: 0
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+      - name: Generate full changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 ${{ env.VERSION }}^)..${{ env.VERSION }})" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Create release draft
         env:
-          GIT_TOKEN: ${{ secrets.DEV_PAT }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # The formatting here is borrowed from Lighthouse (which is borrowed from OpenEthereum):
+        # https://github.com/openethereum/openethereum/blob/6c2d392d867b058ff867c4373e40850ca3f96969/.github/workflows/build.yml
+        run: |
+          body=$(cat <<- "ENDBODY"
+          ![image](https://github.com/berachain/beacon-kit/blob/main/.github/assets/banner.png?raw=true)
+          ## Testing Checklist (DELETE ME)
+
+          - [ ] Run on testnet for 1-3 days.
+          - [ ] Resync a mainnet node.
+          - [ ] Ensure all CI checks pass.
+
+          ## Release Checklist (DELETE ME)
+
+          - [ ] Ensure all crates have had their versions bumped.
+          - [ ] Write the summary.
+          - [ ] Fill out the update priority.
+          - [ ] Ensure all binaries have been added.
+          - [ ] Prepare release posts (Twitter, ...).
+
+          ## Summary
+
+          Add a summary, including:
+
+          - Critical bug fixes
+          - New features
+          - Any breaking changes (and what to expect)
+
+          ## Update Priority
+
+          This table provides priorities for which classes of users should update particular components.
+
+          | User Class           | Priority        |
+          |----------------------|-----------------|
+          | Payload Builders     | <TODO> |
+          | Non-Payload Builders | <TODO>    |
+
+          ## All Changes
+
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ## Binaries
+
+          | System | Architecture | Binary | PGP Signature |
+          |:---:|:---:|:---:|:---|
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-amd64-linux.tar.gz) |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-arm64-linux.tar.gz) | 
+          | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) |
+          | | | | |
+          | **System** | **Option** | - | **Resource** |
+          | <img src="https://simpleicons.org/icons/docker.svg" style="width: 32px;"/> | Docker | | [${{ env.IMAGE_NAME }}](https://ghcr.io/berachain/beacon-kit) |
+          ENDBODY
+          )
+          assets=()
+          for asset in ./*beacond-*.tar.gz*; do
+              assets+=("$asset/$asset")
+          done
+          tag_name="${{ env.VERSION }}"
+          echo "$body" | gh release create --draft -t "BeaconKit $tag_name" -F "-" "$tag_name" "${assets[@]}"
