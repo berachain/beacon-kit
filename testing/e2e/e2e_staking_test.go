@@ -114,8 +114,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	for i := range NumDepositsLoad {
-		var receipt *coretypes.Receipt
-		var tx *coretypes.Transaction
 		// Create a deposit transaction.
 		tx, err = s.generateNewDepositTx(
 			dc,
