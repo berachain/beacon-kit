@@ -158,14 +158,15 @@ type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
-	ContextT any,
+	ContextT,
+	DepositT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		st BeaconStateT,
-		deposits []*types.Deposit,
+		deposits []DepositT,
 		executionPayloadHeader *types.ExecutionPayloadHeader,
 		genesisVersion primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)

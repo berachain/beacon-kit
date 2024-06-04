@@ -69,6 +69,7 @@ type Service[
 		BeaconStateT,
 		BlobSidecarsT,
 		*transition.Context,
+		DepositT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -110,7 +111,7 @@ func NewService[
 	],
 	sp StateProcessor[
 		BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, *transition.Context,
+		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
