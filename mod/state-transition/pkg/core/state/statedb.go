@@ -364,7 +364,7 @@ func (s *StateDB[
 	}
 
 	// TODO: Update generics so that on BeaconState to prevent reflection usage.
-	return new(state.BeaconState).New(
+	st, err := new(state.BeaconState).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 		slot,
@@ -386,6 +386,9 @@ func (s *StateDB[
 		nextWithdrawalValidatorIndex,
 		slashings,
 		totalSlashings,
-	).HashTreeRoot()
-
+	)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return st.HashTreeRoot()
 }
