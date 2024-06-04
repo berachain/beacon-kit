@@ -46,8 +46,9 @@ func (s *Service[
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
+		uint64(slot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
+
 	if err != nil {
 		return blk, errors.Newf(
 			"failed to get block root at index: %w",

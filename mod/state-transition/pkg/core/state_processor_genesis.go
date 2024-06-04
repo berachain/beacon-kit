@@ -86,9 +86,10 @@ func (sp *StateProcessor[
 	}
 
 	var bbh BeaconBlockHeaderT
-	if err = st.SetLatestBlockHeader(bbh.New(
+	bbh = bbh.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
-	)); err != nil {
+	)
+	if err = st.SetLatestBlockHeader(bbh); err != nil {
 		return nil, err
 	}
 
@@ -168,6 +169,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+
 	st.Save()
 	return updates, nil
 }

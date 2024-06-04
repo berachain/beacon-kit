@@ -101,7 +101,7 @@ func (sp *StateProcessor[
 	// block that passes block validity checks.
 	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
-			ErrParentRootMismatch,
+			ErrParentPayloadHashMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,
