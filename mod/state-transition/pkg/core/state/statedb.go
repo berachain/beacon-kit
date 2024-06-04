@@ -23,14 +23,13 @@ package state
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -364,41 +363,29 @@ func (s *StateDB[
 		return [32]byte{}, err
 	}
 
-	activeFork := s.cs.ActiveForkVersionForSlot(slot)
-	switch activeFork {
-	case version.Deneb:
-		executionPayloadHeader, ok :=
-			latestExecutionPayloadHeader.
-				ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb)
-		if !ok {
-			return [32]byte{}, errors.New(
-				"latest execution payload is not of type ExecutableDataDeneb")
-		}
+	// TODO: Update generics so that on BeaconState to prevent reflection usage.
+	return new(state.BeaconState).New(
+		s.cs.ActiveForkVersionForSlot(slot),
+		genesisValidatorsRoot,
+		slot,
+		reflect.ValueOf(fork).
+			Interface().(*types.Fork),
+		reflect.ValueOf(latestBlockHeader).
+			Interface().(*types.BeaconBlockHeader),
+		blockRoots,
+		stateRoots,
+		reflect.ValueOf(eth1Data).
+			Interface().(*types.Eth1Data),
+		eth1DepositIndex,
+		latestExecutionPayloadHeader,
+		reflect.ValueOf(validators).
+			Interface().([]*types.Validator),
+		balances,
+		randaoMixes,
+		nextWithdrawalIndex,
+		nextWithdrawalValidatorIndex,
+		slashings,
+		totalSlashings,
+	).HashTreeRoot()
 
-		// TODO: Use New() on BeaconState to prevent reflection usage.
-		return (&deneb.BeaconState{
-			Slot:                  slot,
-			GenesisValidatorsRoot: genesisValidatorsRoot,
-			Fork: reflect.ValueOf(fork).
-				Interface().(*types.Fork),
-			LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
-				Interface().(*types.BeaconBlockHeader),
-			BlockRoots:                   blockRoots,
-			StateRoots:                   stateRoots,
-			LatestExecutionPayloadHeader: executionPayloadHeader,
-			Eth1Data: reflect.ValueOf(eth1Data).
-				Interface().(*types.Eth1Data),
-			Eth1DepositIndex: eth1DepositIndex,
-			Validators: reflect.ValueOf(validators).
-				Interface().([]*types.Validator),
-			Balances:                     balances,
-			RandaoMixes:                  randaoMixes,
-			NextWithdrawalIndex:          nextWithdrawalIndex,
-			NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-			Slashings:                    slashings,
-			TotalSlashing:                totalSlashings,
-		}).HashTreeRoot()
-	default:
-		return [32]byte{}, errors.New("unknown fork version")
-	}
 }
