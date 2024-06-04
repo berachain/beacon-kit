@@ -197,12 +197,8 @@ jobs:
           ENDBODY
           )
           assets=()
-          for asset in ./*beacond-*.tar.gz*; do
+          for asset in ./build/bin/*beacond-*.tar.gz*; do
               assets+=("$asset/$asset")
           done
           tag_name="${{ env.VERSION }}"
           echo "$body" | gh release create --draft -t "BeaconKit $tag_name" -F "-" "$tag_name" "${assets[@]}"
-
-          ./beacond-linux-arm64/beacond-linux-arm64-${{ env.VERSION }}
-          ./beacond-linux-amd64/beacond-linux-amd64-${{ env.VERSION }}
-          ./beacond-darwin-arm64/beacond-darwin-arm64-${{ env.VERSION }}
