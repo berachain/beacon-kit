@@ -73,6 +73,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
 ]
@@ -92,6 +93,7 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
 	ts *metrics.TelemetrySink,
@@ -334,6 +336,7 @@ func ProvideRuntime(
 			types.BeaconBlockBody,
 			BeaconState,
 			*datypes.BlobSidecars,
+			*types.Deposit,
 			*depositdb.KVStore[*types.Deposit],
 		],
 	](

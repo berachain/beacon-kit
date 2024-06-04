@@ -40,6 +40,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) ProcessGenesisData(
 	ctx context.Context,
@@ -65,6 +66,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
@@ -136,6 +138,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) processBeaconBlock(
 	ctx context.Context,
@@ -177,6 +180,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) processBlobSidecars(
 	ctx context.Context,

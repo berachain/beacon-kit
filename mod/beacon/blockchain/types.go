@@ -76,23 +76,6 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-// StorageBackend defines an interface for accessing various storage components
-// required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	BeaconStateT,
-	BlobSidecarsT any,
-	DepositStoreT DepositStore,
-] interface {
-	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
-	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
-	// DepositStore returns the deposit store for the given context.
-	DepositStore(context.Context) DepositStoreT
-}
-
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
@@ -114,19 +97,14 @@ type BlobSidecars interface {
 	Len() int
 }
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Send sends an event and returns the number of
-	// subscribers that received it.
-	Send(event EventT) int
-}
+type Deposit interface{}
 
 // DepositStore defines the interface for managing deposit operations.
-type DepositStore interface {
+type DepositStore[DepositT any] interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*types.Deposit) error
+	EnqueueDeposits(deposits []DepositT) error
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -149,6 +127,13 @@ type ExecutionEngine interface {
 		req *engineprimitives.NewPayloadRequest[
 			*types.ExecutionPayload, *engineprimitives.Withdrawal],
 	) error
+}
+
+// EventFeed is a generic interface for sending events.
+type EventFeed[EventT any] interface {
+	// Send sends an event and returns the number of
+	// subscribers that received it.
+	Send(event EventT) int
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -196,6 +181,25 @@ type StateProcessor[
 		st BeaconStateT,
 		blk BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
+}
+
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
+type StorageBackend[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+
+] interface {
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
