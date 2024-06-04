@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
@@ -79,7 +80,7 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
             revert InsufficientDeposit();
         }
 
-        depositAuth[msg.sender]--;
+        --depositAuth[msg.sender];
 
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
