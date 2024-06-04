@@ -24,23 +24,15 @@ import (
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/davecgh/go-spew/spew"
-	fssz "github.com/ferranbt/fastssz"
 )
 
-// SSZMarshallable defines an interface for types that can be
-// marshaled and unmarshaled using SSZ encoding,
-// and also provides a string representation of the type.
-type SSZMarshallable interface {
-	fssz.Marshaler
-	fssz.Unmarshaler
-}
-
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T SSZMarshallable] struct{}
+type SSZValueCodec[T ssz.Marshallable] struct{}
 
 // Assert that SSZValueCodec implements codec.ValueCodec.
-var _ codec.ValueCodec[SSZMarshallable] = SSZValueCodec[SSZMarshallable]{}
+var _ codec.ValueCodec[ssz.Marshallable] = SSZValueCodec[ssz.Marshallable]{}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -84,7 +76,7 @@ func (SSZValueCodec[T]) ValueType() string {
 // to create new instances of the underlying hard type since reflect cannot
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
-	SSZMarshallable
+	ssz.Marshallable
 	NewFromSSZ([]byte, uint32) (T, error)
 	Version() uint32
 }] struct {

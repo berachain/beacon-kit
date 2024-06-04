@@ -23,7 +23,18 @@ package store
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// BeaconBlock is an interface for beacon blocks.
+type BeaconBlock interface {
+	GetSlot() math.U64
+}
+
+// BlockEvent is an interface for block events.
+type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	Block() BeaconBlockT
+}
 
 // IndexDB is a database that allows prefixing by index.
 type IndexDB interface {

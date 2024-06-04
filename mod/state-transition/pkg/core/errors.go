@@ -39,6 +39,10 @@ var (
 	// payload does not match the expected value.
 	ErrParentRootMismatch = errors.New("parent root mismatch")
 
+	// ErrParentPayloadHashMismatch is returned when the parent hash of an
+	// execution payload does not match the expected value.
+	ErrParentPayloadHashMismatch = errors.New("payload parent hash mismatch")
+
 	// ErrRandaoMixMismatch is returned when the randao mix in an execution
 	// payload does not match the expected value.
 	ErrRandaoMixMismatch = errors.New("randao mix mismatch")

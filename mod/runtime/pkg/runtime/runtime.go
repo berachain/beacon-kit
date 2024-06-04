@@ -48,6 +48,7 @@ type BeaconKitRuntime[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
@@ -99,6 +100,7 @@ func NewBeaconKitRuntime[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
@@ -112,6 +114,7 @@ func NewBeaconKitRuntime[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
+		*types.Deposit,
 		DepositStoreT,
 	],
 ](
@@ -137,6 +140,7 @@ func NewBeaconKitRuntime[
 				*engineprimitives.Withdrawal,
 			],
 			BlobSidecarsT,
+			*types.Deposit,
 			DepositStoreT,
 		]
 		validatorService *validator.Service[

@@ -36,6 +36,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) sendFCU(
 	ctx context.Context,
@@ -69,6 +70,7 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
@@ -111,10 +113,9 @@ func (s *Service[
 			blk.GetSlot()+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(max(
-				math.U64(time.Now().Unix()+1),
-				blk.GetBody().GetExecutionPayload().GetTimestamp()+
-					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			(max(
+				uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
+				uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
 			)),
 			prevBlockRoot,
 			lph.GetBlockHash(),

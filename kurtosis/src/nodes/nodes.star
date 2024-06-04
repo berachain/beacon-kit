@@ -19,6 +19,7 @@ CONSENSUS_DEFAULT_SETTINGS = {
     },
     "app": {
         "payload-timeout": "1.5s",
+        "enable_optimistic_payload_builds": "false",
     },
 }
 
@@ -64,6 +65,11 @@ def parse_nodes_from_dict(vals, settings):
     return node_list
 
 def parse_node_from_dict(node_type, val, consensus_settings, execution_settings, index):
+    # if kzg implementation is not provided, give default
+    if "kzg_impl" not in val:
+        kzg_impl = "crate-crypto/go-kzg-4844"
+    else:
+        kzg_impl = val["kzg_impl"]
     return struct(
         node_type = node_type,
         el_type = val["el_type"],
@@ -75,6 +81,7 @@ def parse_node_from_dict(node_type, val, consensus_settings, execution_settings,
         el_service_name = "el-{}-{}-{}".format(node_type, val["el_type"], index),
         consensus_settings = consensus_settings,
         execution_settings = execution_settings,
+        kzg_impl = kzg_impl,
     )
 
 def parse_consensus_settings(settings):
@@ -121,11 +128,14 @@ def parse_consensus_config_settings(config_settings):
 def parse_consensus_app_settings(app_settings):
     app_settings = dict(app_settings)
 
-    if "payload-timeout" not in app_settings:
-        app_settings["payload-timeout"] = CONSENSUS_DEFAULT_SETTINGS["app"]["payload-timeout"]
+    if "payload_timeout" not in app_settings:
+        app_settings["payload_timeout"] = CONSENSUS_DEFAULT_SETTINGS["app"]["payload_timeout"]
+    if "enable_optimistic_payload_builds" not in app_settings:
+        app_settings["enable_optimistic_payload_builds"] = CONSENSUS_DEFAULT_SETTINGS["app"]["enable_optimistic_payload_builds"]
 
     return struct(
-        payload_timeout = app_settings["payload-timeout"],
+        payload_timeout = app_settings["payload_timeout"],
+        enable_optimistic_payload_builds = app_settings["enable_optimistic_payload_builds"],
     )
 
 def parse_execution_settings(settings):

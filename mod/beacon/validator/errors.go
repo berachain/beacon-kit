@@ -31,6 +31,9 @@ var (
 	// in a beacon block.
 	ErrNilPayload = errors.New("nil payload in beacon block")
 
+	// ErrNilBlk is an error for when the block is nil.
+	ErrNilBlk = errors.New("nil block")
+
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
 

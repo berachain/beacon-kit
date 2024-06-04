@@ -68,6 +68,8 @@ type Node struct {
 	ElType string `json:"el_type"`
 	// Replicas specifies the number of replicas to use for the client.
 	Replicas int `json:"replicas"`
+	// KzgImpl specifies the KZG implementation to use for the client.
+	KzgImpl string `json:"kzg_impl"`
 }
 
 // NodeSettings holds the configuration for a single node in the test,
@@ -120,7 +122,11 @@ type ConsensusConfig struct {
 // AppConfig holds the configuration for the app layer.
 type AppConfig struct {
 	// PayloadTimeout specifies the timeout for the payload.
-	PayloadTimeout string `json:"payload-timeout"`
+	PayloadTimeout string `json:"payload_timeout"`
+	// EnableOptimisticPayloadBuilds enables building the next block's payload
+	// optimistically in process-proposal to allow for the execution client to
+	// have more time to assemble the block.
+	EnableOptimisticPayloadBuilds bool `json:"enable_optimistic_payload_builds"`
 }
 
 // NodeSpecs holds the node specs for all nodes in a single layer.
@@ -179,6 +185,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "geth",
 				Replicas: 1,
+				KzgImpl:  "crate-crypto/go-kzg-4844", // by default impl
 			},
 			{
 				ElType:   "reth",
@@ -187,6 +194,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "erigon",
 				Replicas: 1,
+				KzgImpl:  "ethereum/c-kzg-4844",
 			},
 			{
 				ElType:   "besu",
@@ -281,7 +289,8 @@ func defaultConsensusSettings() ConsensusSettings {
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout: "1.5s",
+			PayloadTimeout:                "1.5s",
+			EnableOptimisticPayloadBuilds: false,
 		},
 	}
 }

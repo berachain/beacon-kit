@@ -37,7 +37,7 @@ func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 	switch forkVersion {
 	case version.Deneb:
 		return &BeaconBlock{
-			RawBeaconBlock: &BeaconBlockDeneb{},
+			RawBeaconBlock: (*BeaconBlockDeneb)(nil),
 		}
 	default:
 		panic("fork version not supported")
@@ -93,6 +93,11 @@ func (w *BeaconBlock) NewFromSSZ(
 		return block, err
 	}
 	return block, nil
+}
+
+// IsNil checks if the beacon block is nil.
+func (w *BeaconBlock) IsNil() bool {
+	return w.RawBeaconBlock == nil || w.RawBeaconBlock.IsNil()
 }
 
 // BeaconBlockDeneb represents a block in the beacon chain during
