@@ -158,7 +158,7 @@ func (h *ValidatorMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		logger    = ctx.Logger().With("service", "prepare-proposal")
+		logger    = ctx.Logger()
 		startTime = time.Now()
 	)
 
@@ -211,7 +211,11 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	startTime := time.Now()
+	var (
+		logger    = ctx.Logger()
+		startTime = time.Now()
+	)
+
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	//#nosec:G703
@@ -226,6 +230,7 @@ func (h *ValidatorMiddleware[
 		}, err
 	}
 
+	logger.Info("waiting for consensus to be achieved... ", "block")
 	return &cmtabci.ProcessProposalResponse{
 		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 	}, nil

@@ -440,11 +440,6 @@ func (s *Service[
 		return err
 	}
 
-	s.logger.Info(
-		"state root verification succeeded - accepting incoming block 🏎️ ",
-		"state_root", blk.GetStateRoot(),
-	)
-
 	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
 		go func() {
 			if err := s.optimisticPayloadBuild(ctx, stCopy, blk); err != nil {
@@ -456,6 +451,11 @@ func (s *Service[
 			}
 		}()
 	}
+
+	s.logger.Info(
+		"state root verification succeeded - accepting incoming block 🏎️ ",
+		"state_root", blk.GetStateRoot(),
+	)
 
 	return nil
 }

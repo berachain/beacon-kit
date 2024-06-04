@@ -17,7 +17,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/cometbft/cometbft v0.38.6
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2.0.20240604145638-7d393870103b
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
