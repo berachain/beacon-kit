@@ -80,6 +80,7 @@ func (s *Service[
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
+		s.metrics.markFailedToGetBlockLogs(blockNum)
 		s.failedBlocks[blockNum] = struct{}{}
 		return
 	}
