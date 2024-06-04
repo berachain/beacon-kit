@@ -64,7 +64,11 @@ func (s *Service[
 			if len(s.failedBlocks) == 0 {
 				continue
 			}
-			s.logger.Warn("failed to get deposits from block(s), retrying...", "num_blocks", s.failedBlocks)
+			s.logger.Warn(
+				"failed to get deposits from block(s), retrying...",
+				"num_blocks",
+				s.failedBlocks,
+			)
 
 			// Fetch deposits for blocks that failed to be processed.
 			for blockNum := range s.failedBlocks {
