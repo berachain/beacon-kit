@@ -33,6 +33,7 @@ contract DepositContractTest is SoladyTest {
         // Set the STAKE_ASSET to the NATIVE token.
         depositContract = new BeaconDepositContract();
         depositContract.initializeOwner();
+        vm.prank(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
         depositContract.allowDeposit(depositor, 100);
     }
 
