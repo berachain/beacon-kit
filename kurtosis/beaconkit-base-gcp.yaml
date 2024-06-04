@@ -73,8 +73,9 @@ node_settings:
       beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
     config:
       timeout_propose: 3s
-      timeout_vote: 2s
-      timeout_commit: 1s
+      timeout_prevote: 1s
+      timeout_precommit: 1s
+      timeout_commit: 2s
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:

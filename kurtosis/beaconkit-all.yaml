@@ -77,7 +77,8 @@ node_settings:
       beaconkit: beacond:kurtosis-local
     config:
       timeout_propose: 3s
-      timeout_vote: 3s
+      timeout_prevote: 1s
+      timeout_precommit: 1s
       timeout_commit: 2s
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
