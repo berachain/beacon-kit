@@ -24,7 +24,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -363,23 +362,25 @@ func (s *StateDB[
 		return [32]byte{}, err
 	}
 
-	// TODO: Update generics so that on BeaconState to prevent reflection usage.
-	st, err := new(state.BeaconState).New(
+	// TODO: Properly move BeaconState into full generics.
+	st, err := new(state.BeaconState[
+		BeaconBlockHeaderT,
+		engineprimitives.ExecutionPayloadHeader,
+		Eth1DataT,
+		ForkT,
+		ValidatorT,
+	]).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 		slot,
-		reflect.ValueOf(fork).
-			Interface().(*types.Fork),
-		reflect.ValueOf(latestBlockHeader).
-			Interface().(*types.BeaconBlockHeader),
+		fork,
+		latestBlockHeader,
 		blockRoots,
 		stateRoots,
-		reflect.ValueOf(eth1Data).
-			Interface().(*types.Eth1Data),
+		eth1Data,
 		eth1DepositIndex,
 		latestExecutionPayloadHeader,
-		reflect.ValueOf(validators).
-			Interface().([]*types.Validator),
+		validators,
 		balances,
 		randaoMixes,
 		nextWithdrawalIndex,

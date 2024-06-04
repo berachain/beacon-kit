@@ -22,6 +22,7 @@ package state
 
 import (
 	"fmt"
+	"reflect"
 
 	deneb "github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -31,47 +32,74 @@ import (
 )
 
 // BeaconState is the interface for the beacon state.
-type BeaconState struct {
+type BeaconState[
+	BeaconBlockHeaderT,
+	ExecutionPayloadHeaderT,
+	Eth1DataT,
+	ForkT,
+	ValidatorT any,
+] struct {
 	// TODO: decouple from deneb.BeaconState
 	*deneb.BeaconState
 }
 
 // New creates a new BeaconState.
-func (st *BeaconState) New(
+func (st *BeaconState[
+	BeaconBlockHeaderT,
+	ExecutionPayloadHeaderT,
+	Eth1DataT,
+	ForkT,
+	ValidatorT,
+]) New(
 	forkVersion uint32,
 	genesisValidatorsRoot primitives.Root,
 	slot math.Slot,
-	fork *types.Fork,
-	latestBlockHeader *types.BeaconBlockHeader,
+	fork ForkT,
+	latestBlockHeader BeaconBlockHeaderT,
 	blockRoots []primitives.Root,
 	stateRoots []primitives.Root,
-	eth1Data *types.Eth1Data,
+	eth1Data Eth1DataT,
 	eth1DepositIndex uint64,
-	latestExecutionPayloadHeader *types.ExecutionPayloadHeader,
-	validators []*types.Validator,
+	latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+	validators []ValidatorT,
 	balances []uint64,
 	randaoMixes []primitives.Bytes32,
 	nextWithdrawalIndex uint64,
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []uint64,
 	totalSlashing math.Gwei,
-) (*BeaconState, error) {
+) (*BeaconState[
+	BeaconBlockHeaderT,
+	ExecutionPayloadHeaderT,
+	Eth1DataT,
+	ForkT,
+	ValidatorT,
+], error) {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconState{
+		return &BeaconState[
+			BeaconBlockHeaderT,
+			ExecutionPayloadHeaderT,
+			Eth1DataT,
+			ForkT,
+			ValidatorT,
+		]{
 			BeaconState: &deneb.BeaconState{
 				Slot:                  slot,
 				GenesisValidatorsRoot: genesisValidatorsRoot,
-				Fork:                  fork,
-				LatestBlockHeader:     latestBlockHeader,
-				BlockRoots:            blockRoots,
-				StateRoots:            stateRoots,
-				
-				LatestExecutionPayloadHeader: latestExecutionPayloadHeader.
+				Fork: reflect.ValueOf(fork).
+					Interface().(*types.Fork),
+				LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
+					Interface().(*types.BeaconBlockHeader),
+				BlockRoots: blockRoots,
+				StateRoots: stateRoots,
+
+				LatestExecutionPayloadHeader: reflect.ValueOf(latestExecutionPayloadHeader).
+					Interface().(*types.ExecutionPayloadHeader).
 					ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
-				Eth1Data:                     eth1Data,
+				Eth1Data:                     reflect.ValueOf(eth1Data).Interface().(*types.Eth1Data),
 				Eth1DepositIndex:             eth1DepositIndex,
-				Validators:                   validators,
+				Validators:                   reflect.ValueOf(validators).Interface().([]*types.Validator),
 				Balances:                     balances,
 				RandaoMixes:                  randaoMixes,
 				NextWithdrawalIndex:          nextWithdrawalIndex,
