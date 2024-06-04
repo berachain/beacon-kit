@@ -109,8 +109,10 @@ type ConsensusSettings struct {
 type ConsensusConfig struct {
 	// TimeoutPropose specifies the timeout for proposing a block.
 	TimeoutPropose string `json:"timeout_propose"`
-	// TimeoutVote specifies the timeout for voting on a block.
-	TimeoutVote string `json:"timeout_vote"`
+	// TimeoutPrevote specifies the timeout for prevoting on a block.
+	TimeoutPrevote string `json:"timeout_prevote"`
+	// TimeoutVote specifies the timeout for precommiting on a block.
+	TimeoutPrecommit string `json:"timeout_precommit"`
 	// TimeoutCommit specifies the timeout for committing a block.
 	TimeoutCommit string `json:"timeout_commit"`
 	// MaxNumInboundPeers specifies the maximum number of inbound peers.
@@ -283,7 +285,8 @@ func defaultConsensusSettings() ConsensusSettings {
 		},
 		Config: ConsensusConfig{
 			TimeoutPropose:      "3s",
-			TimeoutVote:         "2s",
+			TimeoutPrevote:      "1s",
+			TimeoutPrecommit:    "1s",
 			TimeoutCommit:       "1s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
