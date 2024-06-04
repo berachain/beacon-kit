@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,7 +34,7 @@ import (
 // ConvertPubkey converts a string to a public key.
 func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	// convert the public key to a BLSPubkey.
-	pubkeyBytes, err := DecodeFrom0xPrefixedString(pubkey)
+	pubkeyBytes, err := bytes.FromHex(pubkey)
 	if err != nil {
 		return crypto.BLSPubkey{}, err
 	}
@@ -50,7 +51,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
-	credentialsBytes, err := DecodeFrom0xPrefixedString(credentials)
+	credentialsBytes, err := bytes.FromHex(credentials)
 	if err != nil {
 		return types.WithdrawalCredentials{}, err
 	}
@@ -76,7 +77,7 @@ func ConvertAmount(amount string) (math.Gwei, error) {
 // ConvertSignature converts a string to a signature.
 func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	// convert the signature to a BLSSignature.
-	signatureBytes, err := DecodeFrom0xPrefixedString(signature)
+	signatureBytes, err := bytes.FromHex(signature)
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
@@ -88,7 +89,7 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 
 // ConvertVersion converts a string to a version.
 func ConvertVersion(version string) (primitives.Version, error) {
-	versionBytes, err := DecodeFrom0xPrefixedString(version)
+	versionBytes, err := bytes.FromHex(version)
 	if err != nil {
 		return primitives.Version{}, err
 	}
@@ -100,7 +101,7 @@ func ConvertVersion(version string) (primitives.Version, error) {
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
 func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
-	rootBytes, err := DecodeFrom0xPrefixedString(root)
+	rootBytes, err := bytes.FromHex(root)
 	if err != nil {
 		return primitives.Root{}, err
 	}
