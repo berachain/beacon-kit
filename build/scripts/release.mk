@@ -10,11 +10,11 @@ define build_release
 endef
 
 build-linux-amd64-%:
-	$(call build_release,linux,amd64,1,$*)
+	$(call build_release,linux,amd64,1,$(subst /,-,$*))
 
 build-linux-arm64-%:
-	$(call build_release,linux,arm64,1,$*)
+	$(call build_release,linux,arm64,1,$(subst /,-,$*))
 
 build-darwin-arm64-%:
-	$(call build_release,darwin,arm64,1,$*)
+	$(call build_release,darwin,arm64,1,$(subst /,-,$*))
 
