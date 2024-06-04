@@ -107,7 +107,13 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts \
 	trailofbits/eth-security-toolbox:edge \
-	/bin/bash -c "cd /contracts && slither ./."
+	/bin/bash -c "cd /contracts && \
+		echo '## Directory Structure ##' && ls -R && \
+		echo '## Remappings ##' && cat remappings.txt && forge remappings && \
+		echo '## Environment Variables ##' && env && \
+		forge clean && \
+		forge build --build-info --skip */test/** */script/** --force && \
+		slither ./."
 
 #################
 # markdown-lint #
