@@ -404,7 +404,7 @@ func (sp *StateProcessor[
 		)
 	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
 		return err
-	} else if slot != 1 && parentBlockRoot != blk.GetParentBlockRoot() {
+	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
