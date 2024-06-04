@@ -84,6 +84,7 @@ func (st *BeaconState[
 			ForkT,
 			ValidatorT,
 		]{
+			// TODO: Unhack reflection.
 			BeaconState: &deneb.BeaconState{
 				Slot:                  slot,
 				GenesisValidatorsRoot: genesisValidatorsRoot,
@@ -93,13 +94,15 @@ func (st *BeaconState[
 					Interface().(*types.BeaconBlockHeader),
 				BlockRoots: blockRoots,
 				StateRoots: stateRoots,
-
-				LatestExecutionPayloadHeader: reflect.ValueOf(latestExecutionPayloadHeader).
+				LatestExecutionPayloadHeader: reflect.
+					ValueOf(latestExecutionPayloadHeader).
 					Interface().(*types.ExecutionPayloadHeader).
 					ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
-				Eth1Data:                     reflect.ValueOf(eth1Data).Interface().(*types.Eth1Data),
-				Eth1DepositIndex:             eth1DepositIndex,
-				Validators:                   reflect.ValueOf(validators).Interface().([]*types.Validator),
+				Eth1Data: reflect.ValueOf(eth1Data).
+					Interface().(*types.Eth1Data),
+				Eth1DepositIndex: eth1DepositIndex,
+				Validators: reflect.ValueOf(validators).
+					Interface().([]*types.Validator),
 				Balances:                     balances,
 				RandaoMixes:                  randaoMixes,
 				NextWithdrawalIndex:          nextWithdrawalIndex,
