@@ -84,11 +84,14 @@ type BeaconBlockBody[
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
-	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon block body.
+	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon
+	// block body.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block body.
+	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
+	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	// GetExecutionPayload returns the execution payload of the beacon block body.
+	// GetExecutionPayload returns the execution payload of the beacon block
+	// body.
 	GetExecutionPayload() ExecutionPayloadT
 }
 
@@ -98,7 +101,8 @@ type BeaconState[BeaconStateT any] interface {
 	Copy() BeaconStateT
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	// GetLatestExecutionPayloadHeader returns the latest execution payload header.
+	// GetLatestExecutionPayloadHeader returns the latest execution payload
+	// header.
 	GetLatestExecutionPayloadHeader() (
 		*types.ExecutionPayloadHeader, error,
 	)
@@ -113,7 +117,8 @@ type BeaconState[BeaconStateT any] interface {
 	HashTreeRoot() ([32]byte, error)
 	// ValidatorIndexByPubkey returns the validator index by public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
-	// GetEth1DepositIndex returns the latest deposit index from the beacon state.
+	// GetEth1DepositIndex returns the latest deposit index from the beacon
+	// state.
 	GetEth1DepositIndex() (uint64, error)
 	// GetGenesisValidatorsRoot returns the genesis validators root.
 	GetGenesisValidatorsRoot() (primitives.Root, error)
