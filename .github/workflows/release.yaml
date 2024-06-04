@@ -84,7 +84,7 @@ jobs:
         arch: [arm64]
         targetos: [darwin]
 
-    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}-${{ needs.extract-version.outputs.VERSION }}
+    name: beacond-${{ matrix.targetos }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
