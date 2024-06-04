@@ -34,8 +34,3 @@ func DecodeFrom0xPrefixedString(data string) ([]byte, error) {
 	}
 	return hex.DecodeString(data[2:])
 }
-
-// EncodeTo0xPrefixedString encodes a byte slice to a 0x prefixed hex string.
-func EncodeTo0xPrefixedString(data []byte) string {
-	return "0x" + hex.EncodeToString(data)
-}

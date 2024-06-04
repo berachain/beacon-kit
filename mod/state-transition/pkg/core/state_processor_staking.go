@@ -222,6 +222,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
