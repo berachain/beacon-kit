@@ -78,6 +78,7 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	// These settings are set by default for performance reasons.
 	cfg.TxIndex.Indexer = "null"
 	cfg.Mempool.Type = "nop"
+	cfg.Mempool.Size = 0
 	cfg.Storage.DiscardABCIResponses = true
 	return cfg
 }
