@@ -167,7 +167,7 @@ jobs:
           )
           assets=()
           for asset in ./*beacond-*.tar.gz*; do
-              assets+=("$asset/$asset")ß
+              assets+=("$asset/$asset")
           done
           tag_name="${{ env.VERSION }}"
           echo "$body" | gh release create --draft -t "BeaconKit $tag_name" -F "-" "$tag_name" "${assets[@]}"

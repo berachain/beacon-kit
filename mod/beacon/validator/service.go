@@ -480,7 +480,7 @@ func (s *Service[
 		slot              math.Slot
 	)
 
-	s.logger.Info("rebuilding payload for rejected block  ")
+	s.logger.Info("rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is unmodified state.
