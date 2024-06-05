@@ -73,7 +73,7 @@ func NewDBManager[
 func (m *DBManager[
 	BeaconBlockT, BlockEventT, SubscriptionT,
 ]) Name() string {
-	return "DBManager"
+	return "db-manager"
 }
 
 // TODO: fr implementation

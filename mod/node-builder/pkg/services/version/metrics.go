@@ -43,7 +43,12 @@ func newVersionMetrics(
 
 // reportVersion increments the versionReported counter.
 func (vm *versionMetrics) reportVersion(version string) {
-	vm.logger.Info("this node is running", "version", version)
+	vm.logger.Info(
+		"this node is running beacon-kit software",
+		"version",
+		version,
+	)
 	vm.sink.IncrementCounter(
-		"beacon_kit.runtime.version.reported", "version", version)
+		"beacon_kit.runtime.version.reported", "version", version,
+	)
 }
