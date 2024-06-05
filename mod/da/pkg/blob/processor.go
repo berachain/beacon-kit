@@ -104,13 +104,6 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
 		return err
 	}
 
-	sp.logger.Info(
-		"successfully verified all blob sidecars 💦 ",
-		"num-sidecars",
-		numSidecars,
-		"slot",
-		slot,
-	)
 	return nil
 }
 
@@ -128,5 +121,4 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 		startTime, numSidecars,
 	)
 	return avs.Persist(slot, sidecars)
-
 }

@@ -216,22 +216,36 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	startTime := time.Now()
-	defer h.metrics.measureProcessProposalDuration(startTime)
+	var (
+		startTime = time.Now()
+		g, gCtx   = errgroup.WithContext(ctx)
+	)
 
-	//#nosec:G703
-	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	defer h.metrics.measureProcessProposalDuration(startTime)
+	blk, err := h.beaconBlockGossiper.Request(gCtx, req)
 	if err != nil {
-		// TODO: Handle better.
 		blk = blk.Empty(version.Deneb)
 	}
-	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	}
 
+	// Receive the BeaconBlock.
+	g.Go(func() error {
+		return h.validatorService.ReceiveBeaconBlock(gCtx, blk)
+	})
+
+	// Receive the blobs.
+	g.Go(func() error {
+		blobs, localErr := h.blobGossiper.Request(gCtx, req)
+		if localErr != nil {
+			return localErr
+		}
+		return h.validatorService.ReceiveBlobs(gCtx, blk, blobs)
+	})
+
+	resp := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+	if err = g.Wait(); err != nil {
+		resp = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	}
 	return &cmtabci.ProcessProposalResponse{
-		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-	}, nil
+		Status: resp,
+	}, err
 }

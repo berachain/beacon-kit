@@ -102,7 +102,6 @@ func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT,
 ]) verifyBlobProofs(
-	ctx context.Context,
 	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
