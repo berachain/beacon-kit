@@ -72,10 +72,9 @@ func NewProcessor[
 	}
 }
 
-// ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
+// VerifyBlobs verifies the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
 	slot math.Slot,
-	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
 	var (
@@ -83,7 +82,9 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 		startTime   = time.Now()
 	)
 
-	defer sp.metrics.measureProcessBlobsDuration(startTime, numSidecars)
+	defer sp.metrics.measureVerifySidecarsDuration(
+		startTime, numSidecars,
+	)
 
 	// If there are no blobs to verify, return early.
 	if numSidecars == 0 {
@@ -110,7 +111,22 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 		"slot",
 		slot,
 	)
+	return nil
+}
 
-	// Lastly, we store the blobs in the availability store.
+// ProcessBlobs processes the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
+	slot math.Slot,
+	avs AvailabilityStoreT,
+	sidecars *types.BlobSidecars,
+) error {
+	var (
+		numSidecars = math.U64(sidecars.Len())
+		startTime   = time.Now()
+	)
+	defer sp.metrics.measureProcessBlobsDuration(
+		startTime, numSidecars,
+	)
 	return avs.Persist(slot, sidecars)
+
 }

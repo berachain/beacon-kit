@@ -27,6 +27,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -94,4 +95,16 @@ func (s *Service[
 	}
 
 	return nil
+}
+
+// verifyBlobProofs verifies the blob proofs of an incoming block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT,
+]) verifyBlobProofs(
+	ctx context.Context,
+	slot math.Slot,
+	sidecars BlobSidecarsT,
+) error {
+	return s.blobProcessor.VerifyBlobs(slot, sidecars)
 }

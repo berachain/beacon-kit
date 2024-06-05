@@ -60,6 +60,9 @@ type Service[
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
+	// blobProcessor is used to process blobs.
+	blobProcessor BlobProcessor[BlobSidecarsT]
+
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -93,6 +96,7 @@ func NewService[
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
+	blobProcessor BlobProcessor[BlobSidecarsT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
@@ -114,6 +118,7 @@ func NewService[
 	]{
 		cfg:                   cfg,
 		logger:                logger,
+		blobProcessor:         blobProcessor,
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
