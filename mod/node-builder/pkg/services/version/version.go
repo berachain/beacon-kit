@@ -38,8 +38,8 @@ type ReportingService struct {
 	logger log.Logger[any]
 	// version represents the current version of the running chain.
 	version string
-	// ticker is used to trigger periodic logging at specified intervals.
-	ticker *time.Ticker
+	// reportingInterval is the interval at which the version is reported.
+	reportingInterval time.Duration
 	// metrics contains the metrics for the version service.
 	metrics *versionMetrics
 }
@@ -51,30 +51,31 @@ func NewReportingService(
 	version string,
 ) *ReportingService {
 	return &ReportingService{
-		logger:  logger,
-		version: version,
-		ticker: time.NewTicker(
-			defaultReportingInterval,
-		),
-		metrics: newVersionMetrics(logger, telemetrySink),
+		logger:            logger,
+		version:           version,
+		reportingInterval: defaultReportingInterval,
+		metrics:           newVersionMetrics(logger, telemetrySink),
 	}
 }
 
 // Name returns the name of the service.
 func (*ReportingService) Name() string {
-	return "ReportingService"
+	return "reporting"
 }
 
 // Start begins the periodic logging of the chain version.
 func (v *ReportingService) Start(ctx context.Context) error {
+	ticker := time.NewTicker(v.reportingInterval)
+	v.metrics.reportVersion(v.version)
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
-				v.ticker.Stop()
-				return
-			case <-v.ticker.C:
+			case <-ticker.C:
 				v.metrics.reportVersion(v.version)
+				continue
+			case <-ctx.Done():
+				ticker.Stop()
+				return
 			}
 		}
 	}()

@@ -551,7 +551,14 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	s.logger.Info("optimistically triggering payload build for next slot 🛩️ ")
+	// We are building for the next slot, so we increment the slot relative
+	// to the block we just processed.
+	slot := blk.GetSlot() + 1
+
+	s.logger.Info(
+		"optimistically triggering payload build for next slot 🛩️ ",
+		"next_slot", slot,
+	)
 
 	// We know that this block was properly formed so we can
 	// calculate the block hash easily.
@@ -566,10 +573,6 @@ func (s *Service[
 	); err != nil {
 		return err
 	}
-
-	// We are building for the next slot, so we increment the slot relative
-	// to the block we just processed.
-	slot := blk.GetSlot() + 1
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()

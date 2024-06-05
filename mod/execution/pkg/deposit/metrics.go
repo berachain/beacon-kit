@@ -18,24 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package parser
+package deposit
 
 import (
-	"encoding/hex"
-	"strings"
+	"strconv"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// DecodeFrom0xPrefixedString decodes a 0x prefixed hex string.
-// Note: Use of this function would force the input to contain a 0x prefix
-// since otherwise it would cause ambiguity in the conversion.
-func DecodeFrom0xPrefixedString(data string) ([]byte, error) {
-	if !strings.HasPrefix(data, "0x") {
-		return nil, ErrInvalid0xPrefixedHexString
-	}
-	return hex.DecodeString(data[2:])
+// depositMetrics is a struct that contains metrics for the deposit service.
+type depositMetrics struct {
+	// sink is the telemetry sink.
+	sink TelemetrySink
 }
 
-// EncodeTo0xPrefixedString encodes a byte slice to a 0x prefixed hex string.
-func EncodeTo0xPrefixedString(data []byte) string {
-	return "0x" + hex.EncodeToString(data)
+// newDepositMetrics creates a new instance of the depositMetrics struct.
+func newDepositMetrics(sink TelemetrySink) *depositMetrics {
+	return &depositMetrics{
+		sink: sink,
+	}
+}
+
+// markFailedToGetBlockLogs increments the counter for failed to get block logs.
+func (m *depositMetrics) markFailedToGetBlockLogs(blockNum math.U64) {
+	m.sink.IncrementCounter(
+		"beacon_kit.execution.deposit.failed_to_get_block_logs",
+		"block_num",
+		strconv.FormatUint(uint64(blockNum), 10),
+	)
 }

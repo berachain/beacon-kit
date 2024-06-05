@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // Marshallable is an interface that combines the ssz.Marshaler and
@@ -50,9 +50,7 @@ type SSZMarshallable interface {
 // It contains all the fields that are part of both an execution payload header
 // and a full execution payload.
 type ExecutionPayloadBody interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
-	ssz.HashRoot
+	ssz.Marshallable
 	json.Marshaler
 	json.Unmarshaler
 	IsNil() bool

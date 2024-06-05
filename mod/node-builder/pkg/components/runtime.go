@@ -73,6 +73,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
 ]
@@ -92,16 +93,17 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
-	ts *metrics.TelemetrySink,
+	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
 	// Build the execution engine.
 	executionEngine := execution.New[*types.ExecutionPayload](
 		engineClient,
 		logger.With("service", "execution-engine"),
-		ts,
+		telemetrySink,
 	)
 
 	// Build the deposit contract.
@@ -189,13 +191,13 @@ func ProvideRuntime(
 		](
 			chainSpec,
 			types.KZGPositionDeneb,
-			ts,
+			telemetrySink,
 		),
 		localBuilder,
 		[]validator.PayloadBuilder[BeaconState]{
 			localBuilder,
 		},
-		ts,
+		telemetrySink,
 	)
 
 	// slice of pruners to pass to the DBManager.
@@ -278,12 +280,12 @@ func ProvideRuntime(
 		](
 			logger.With("service", "blob-processor"),
 			chainSpec,
-			dablob.NewVerifier(blobProofVerifier, ts),
+			dablob.NewVerifier(blobProofVerifier, telemetrySink),
 			types.BlockBodyKZGOffset,
-			ts,
+			telemetrySink,
 		),
 		stateProcessor,
-		ts,
+		telemetrySink,
 		&blockFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		cfg.Validator.EnableOptimisticPayloadBuilds,
@@ -301,6 +303,7 @@ func ProvideRuntime(
 		logger.With("service", "deposit"),
 		math.U64(chainSpec.Eth1FollowDistance()),
 		engineClient,
+		telemetrySink,
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
 		&blockFeed,
@@ -315,7 +318,7 @@ func ProvideRuntime(
 		service.WithService(engineClient),
 		service.WithService(version.NewReportingService(
 			logger,
-			ts,
+			telemetrySink,
 			sdkversion.Version,
 		)),
 		service.WithService(dbManagerService),
@@ -334,6 +337,7 @@ func ProvideRuntime(
 			types.BeaconBlockBody,
 			BeaconState,
 			*datypes.BlobSidecars,
+			*types.Deposit,
 			*depositdb.KVStore[*types.Deposit],
 		],
 	](
@@ -341,6 +345,6 @@ func ProvideRuntime(
 		logger,
 		svcRegistry,
 		storageBackend,
-		ts,
+		telemetrySink,
 	)
 }

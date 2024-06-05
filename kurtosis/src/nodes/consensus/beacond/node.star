@@ -22,14 +22,15 @@ def collect_validator(plan, cl_service_name):
     command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     bash.exec_on_service(plan, cl_service_name, command)
 
-def start(persistent_peers, is_seed, validator_index, config_settings, app_settings):
+def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^prometheus_listen_addr = \\":26660\\"$/prometheus_listen_addr = \\"0.0.0.0:26660\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^flush_throttle_timeout = \\".*\\"$/flush_throttle_timeout = \\"10ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_propose, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_vote = \\".*\\"$/timeout_vote = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_vote, "$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_prevote = \\".*\\"$/timeout_prevote = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_prevote, "$BEACOND_HOME")
+    set_config += '\nsed -i "s/^timeout_precommit = \\".*\\"$/timeout_precommit = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_precommit, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_commit, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^unsafe = false$/unsafe = true/" "{}/config/config.toml"'.format("$BEACOND_HOME")
@@ -56,6 +57,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     start_node = "/usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
+    --beacon-kit.kzg.implementation=kzg_impl \
     --beacon-kit.engine.rpc-dial-url {} \
     --rpc.laddr tcp://0.0.0.0:26657 \
     --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \

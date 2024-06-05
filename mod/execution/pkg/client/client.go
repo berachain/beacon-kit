@@ -343,8 +343,9 @@ func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) 
 	return header, nil
 }
 
+// Name returns the name of the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Name() string {
-	return "EngineClient"
+	return "engine-client"
 }
 
 // ================================ Info ================================

@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -67,8 +67,7 @@ type StorageBackend[
 
 // BlobSidecars is an interface that represents the sidecars.
 type BlobSidecars interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
 	Len() int
 }
 
