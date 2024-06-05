@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
@@ -89,4 +90,19 @@ type Service interface {
 	Start(ctx context.Context)
 	// Status returns error if the service is not considered healthy.
 	Status() error
+}
+
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT types.BeaconBlockBody,
+] interface {
+	types.RawBeaconBlock[BeaconBlockBodyT]
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	NewWithVersion(
+		math.Slot,
+		math.ValidatorIndex,
+		primitives.Root,
+		uint32,
+	) (BeaconBlockT, error)
+	Empty(uint32) BeaconBlockT
 }
