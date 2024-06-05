@@ -1,0 +1,6 @@
+========== CL SEEDS ==========
+c28827cb96c14c905b127b92065a3fb4cd77d7f6@testnet-seeds.whispernode.com:25456
+6f64d0497d3b8f3e3a22cc2e55f0b91978f5d12c@seeds.bh.rocks:46656
+
+======== EL BOOTNODES ========
+enode://1c641f22b7bec7b6a9129f81cd23086020f43bf7aa53dbdbfc8bdcbdd8a17da95ac453cfa72608ac57febe58b726bcc9abc0c2b84aced113e75635bea848295c@peer.bartio.bera.bh.rocks:30303
