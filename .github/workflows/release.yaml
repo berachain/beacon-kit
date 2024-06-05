@@ -30,13 +30,15 @@ on:
     tags:
       - 'v*'
     branches:
-      - 'release/*'
+      - 'release/*' 
 
 env:
   REPO_NAME: ${{ github.repository_owner }}/beacon-kit
   IMAGE_NAME: ${{ github.repository_owner }}/beacon-kit
   
+
 jobs:
+  # Job to extract version
   extract-version:
     name: extract version
     runs-on: ubuntu-latest
@@ -47,6 +49,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.extract_version.outputs.VERSION }}
   
+  # Job to build release
   build:
     name: build release
     needs: extract-version
@@ -79,13 +82,13 @@ jobs:
           make build-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}-${{ needs.extract-version.outputs.VERSION }}
           tar -czvf ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz -C build/bin .
       
-      # Uploads binaries
+      # Upload binaries
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
           path: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
 
-
+  # Job to draft release
   draft-release:
     name: draft release
     needs: [build, extract-version]
@@ -93,14 +96,11 @@ jobs:
     env:
       VERSION: ${{ needs.extract-version.outputs.VERSION }}
     permissions:
-      # Required to post the release
-      contents: write
+      contents: write # Required to post the release
     steps:
-      # This is necessary for generating the changelog.
-      # It has to come before "Download Artifacts" or else it deletes the artifacts.
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # This is necessary for generating the changelog. It has to come before "Download Artifacts" or else it deletes the artifacts.
       - name: Download artifacts
         uses: actions/download-artifact@v4
       - name: Generate full changelog
@@ -113,7 +113,7 @@ jobs:
         env:
           GITHUB_USER: ${{ github.repository_owner }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # The formatting here is borrowed from Lighthouse (which is borrowed from OpenEthereum):
+        # The formatting here is borrowed from Reth (which is borrowed from Lighthouse (which is borrowed from OpenEthereum)):
         # https://github.com/openethereum/openethereum/blob/6c2d392d867b058ff867c4373e40850ca3f96969/.github/workflows/build.yml
         run: |
           body=$(cat <<- "ENDBODY"
@@ -146,8 +146,8 @@ jobs:
 
           | User Class           | Priority        |
           |----------------------|-----------------|
-          | Payload Builders     | <TODO> |
-          | Non-Payload Builders | <TODO>    |
+          | Payload Builders     | <TODO>          |
+          | Non-Payload Builders | <TODO>          |
 
           ## All Changes
 
