@@ -1,0 +1,1 @@
+enode://1c641f22b7bec7b6a9129f81cd23086020f43bf7aa53dbdbfc8bdcbdd8a17da95ac453cfa72608ac57febe58b726bcc9abc0c2b84aced113e75635bea848295c@peer.bartio.bera.bh.rocks:30303
