@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 /usr/bin/beacond init --chain-id $BEACOND_CHAIN_ID $BEACOND_MONIKER --home /tmp/config0/.beacond --consensus-key-algo $BEACOND_CONSENSUS_KEY_ALGO
 /usr/bin/beacond genesis add-premined-deposit --home /tmp/config0/.beacond

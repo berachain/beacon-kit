@@ -30,6 +30,7 @@
             go_1_22
             nil
             nixfmt-classic
+            gnumake
           ];
 
           GOPRIVATE = "github.com/berachain/*";
