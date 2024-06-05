@@ -32,15 +32,15 @@ func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT interface {
 		ssz.Marshallable
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	}, BlobsSidecarsT ssz.Marshallable,
+	}, BlobSidecarsT ssz.Marshallable,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
-) (BeaconBlockT, BlobsSidecarsT, error) {
+) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
-		blobs BlobsSidecarsT
+		blobs BlobSidecarsT
 		blk   BeaconBlockT
 	)
 
@@ -57,7 +57,7 @@ func ExtractBlobsAndBlockFromRequest[
 		return blk, blobs, err
 	}
 
-	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobsSidecarsT](
+	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
 		req,
 		blobSidecarsIndex,
 	)
