@@ -63,10 +63,10 @@ type DepInjectInput struct {
 	// BeaconKit components
 	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
 	BeaconConfig      *config.Config
+	BlobVerifier      kzg.BlobProofVerifier
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
 	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
-	BlobVerifier      kzg.BlobProofVerifier
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink
 }
