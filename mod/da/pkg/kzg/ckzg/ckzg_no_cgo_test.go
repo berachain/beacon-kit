@@ -62,7 +62,8 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 			)
 			if tc.expectError {
 				require.Error(
-					t, err,
+					t,
+					err,
 					//nolint:lll
 					"github.com/ethereum/c-kzg-4844 requires an executable built with CGO_ENABLED=1",
 				)
@@ -119,7 +120,11 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 
 	err = globalVerifier.VerifyBlobProofBatch(args)
 	//nolint:lll
-	require.Error(t, err, "github.com/ethereum/c-kzg-4844 requires an executable built with CGO_ENABLED=1")
+	require.Error(
+		t,
+		err,
+		"github.com/ethereum/c-kzg-4844 requires an executable built with CGO_ENABLED=1",
+	)
 }
 
 // TestVerifyBlobKZGInvalidProof tests the VerifyBlobProof function for invalid
