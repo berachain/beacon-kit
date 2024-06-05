@@ -78,6 +78,53 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	],
 ]
 
+func ProvideExecutionEngine(
+	englineClient *engineclient.EngineClient[*types.ExecutionPayload],
+	logger log.Logger,
+	telemetrySink *metrics.TelemetrySink,
+) *execution.Engine[*types.ExecutionPayload] {
+	return execution.New[*types.ExecutionPayload](
+		englineClient,
+		logger.With("service", "execution-engine"),
+		telemetrySink,
+	)
+}
+
+func ProvideBeaconDepositContract(
+	chainSpec primitives.ChainSpec,
+	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
+) (*deposit.WrappedBeaconDepositContract[
+	*types.Deposit,
+	types.WithdrawalCredentials,
+], error) {
+	return deposit.NewWrappedBeaconDepositContract[
+		*types.Deposit,
+		types.WithdrawalCredentials,
+	](
+		chainSpec.DepositContractAddress(),
+		engineClient,
+	)
+}
+
+func ProvideLocalBuilder(
+	cfg *config.Config,
+	chainSpec primitives.ChainSpec,
+	logger log.Logger,
+	executionEngine *execution.Engine[*types.ExecutionPayload],
+) *payloadbuilder.PayloadBuilder[
+	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+] {
+	return payloadbuilder.New[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	](
+		&cfg.PayloadBuilder,
+		chainSpec,
+		logger.With("service", "payload-builder"),
+		executionEngine,
+		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
+	)
+}
+
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
@@ -87,6 +134,13 @@ func ProvideRuntime(
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
+	executionEngine *execution.Engine[*types.ExecutionPayload],
+	beaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit, types.WithdrawalCredentials,
+	],
+	localBuilder *payloadbuilder.PayloadBuilder[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	],
 	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
@@ -99,35 +153,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the execution engine.
-	executionEngine := execution.New[*types.ExecutionPayload](
-		engineClient,
-		logger.With("service", "execution-engine"),
-		telemetrySink,
-	)
-
-	// Build the deposit contract.
-	beaconDepositContract, err := deposit.
-		NewWrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
-	](
-		chainSpec.DepositContractAddress(),
-		engineClient,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the local builder service.
-	localBuilder := payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	](
-		&cfg.PayloadBuilder,
-		chainSpec,
-		logger.With("service", "payload-builder"),
-		executionEngine,
-		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
-	)
 
 	// Build the Blobs Verifier
 	//#nosec:G703 // todo fix depinject stuff.

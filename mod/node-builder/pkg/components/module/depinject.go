@@ -28,11 +28,14 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -48,7 +51,9 @@ import (
 //nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
-		appconfig.Provide(ProvideModule),
+		appconfig.Provide(
+			ProvideModule,
+		),
 	)
 }
 
@@ -61,14 +66,17 @@ type DepInjectInput struct {
 	Environment appmodule.Environment
 
 	// BeaconKit components
-	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
-	BeaconConfig      *config.Config
-	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
-	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
-	Signer            crypto.BLSSigner
-	TelemetrySink     *metrics.TelemetrySink
+	AvailabilityStore     *dastore.Store[types.BeaconBlockBody]
+	BeaconConfig          *config.Config
+	ChainSpec             primitives.ChainSpec
+	DepositStore          *depositdb.KVStore[*types.Deposit]
+	EngineClient          *engineclient.EngineClient[*types.ExecutionPayload]
+	ExecutionEngine       *execution.Engine[*types.ExecutionPayload]
+	BeaconDepositContract *deposit.WrappedBeaconDepositContract[*types.Deposit, types.WithdrawalCredentials]
+	KzgTrustedSetup       *gokzg4844.JSONTrustedSetup
+	Signer                crypto.BLSSigner
+	TelemetrySink         *metrics.TelemetrySink
+	LocalBuilder          *payloadbuilder.PayloadBuilder[components.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader]
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -111,6 +119,9 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,
+		in.ExecutionEngine,
+		in.BeaconDepositContract,
+		in.LocalBuilder,
 		in.KzgTrustedSetup,
 		storageBackend,
 		in.TelemetrySink,
