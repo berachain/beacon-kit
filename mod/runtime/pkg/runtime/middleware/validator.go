@@ -136,10 +136,8 @@ func NewValidatorMiddleware[
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
-		blobGossiper: rp2p.
-			NewNoopBlobHandler[BlobSidecarsT, encoding.ABCIRequest](
-			chainSpec,
-		),
+		blobGossiper: rp2p.NewNoopBlobHandler[
+			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,

@@ -23,7 +23,6 @@ package p2p
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
@@ -32,15 +31,13 @@ import (
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlobHandler[BlobT ssz.Marshallable, ReqT encoding.ABCIRequest] struct {
 	NoopGossipHandler[BlobT, []byte]
-	chainSpec common.ChainSpec
 }
 
-func NewNoopBlobHandler[BlobT ssz.Marshallable, ReqT encoding.ABCIRequest](
-	chainSpec common.ChainSpec,
-) NoopBlobHandler[BlobT, ReqT] {
+func NewNoopBlobHandler[
+	BlobT ssz.Marshallable, ReqT encoding.ABCIRequest,
+]() NoopBlobHandler[BlobT, ReqT] {
 	return NoopBlobHandler[BlobT, ReqT]{
 		NoopGossipHandler: NoopGossipHandler[BlobT, []byte]{},
-		chainSpec:         chainSpec,
 	}
 }
 
