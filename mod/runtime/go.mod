@@ -5,6 +5,7 @@ go 1.22.3
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
+	cosmossdk.io/server/v2/cometbft => ../../../cosmos-sdk/server/v2/cometbft
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6
 
 	// Required because private repo, TODO: fix.
@@ -21,6 +22,7 @@ replace (
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
+	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c
@@ -32,6 +34,7 @@ require (
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cosmos/cosmos-sdk v0.51.0
+	github.com/cosmos/gogoproto v1.4.12
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
@@ -69,8 +72,6 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
-	github.com/cosmos/gogoproto v1.4.12 // indirect
-	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
@@ -149,7 +150,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10 // indirect
+	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect

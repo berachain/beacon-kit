@@ -40,7 +40,7 @@ mkdir -p cosmos/api
 (cd cosmos/api; find ./ -type f \( -iname \*.pulsar.go -o -iname \*.pb.go -o -iname \*.cosmos_orm.go -o -iname \*.pb.gw.go \) -delete; find . -empty -type d -delete; cd ../../..)
 
 echo "Generating API module"
-(cd mod/node-builder/pkg/components/module/proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
+(cd mod/node/builder/pkg/components/module/proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
 # # cp -r api cosmos
 # cp -r api/mod/node-builder/pkg/components/module/* mod/node-builder/pkg/components/module/api

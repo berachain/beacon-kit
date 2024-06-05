@@ -10,8 +10,8 @@ use (
 	./mod/errors
 	./mod/execution
 	./mod/log
-	./mod/node-api
-	./mod/node-builder
+	./mod/node/api
+	./mod/node/builder
 	./mod/p2p
 	./mod/payload
 	./mod/primitives

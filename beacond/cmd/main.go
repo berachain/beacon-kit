@@ -24,9 +24,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder/pkg/node-builder"
+	"github.com/berachain/beacon-kit/mod/node/builder/pkg/app"
+	"github.com/berachain/beacon-kit/mod/node/builder/pkg/config/spec"
+	nodebuilder "github.com/berachain/beacon-kit/mod/node/builder/pkg/node-builder"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
