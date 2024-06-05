@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
 /// @title IBeaconDepositContract
@@ -46,6 +47,9 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
+    /// @dev Error thrown when the deposit is not authorized.
+    error UnauthorizedDeposit();
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -67,4 +71,11 @@ interface IBeaconDepositContract {
     )
         external
         payable;
+
+    /**
+     * @notice Permits an address to use the deposit contract for N number of deposits.
+     * @param depositor the address to allow deposits for.
+     * @param number the number of deposits to allow.
+     */
+    function allowDeposit(address depositor, uint64 number) external;
 }
