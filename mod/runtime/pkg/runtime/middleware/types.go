@@ -77,7 +77,7 @@ type ValidatorService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-	// ReceiveBlobs handles receving of incoming blobs.
+	// ReceiveBlobs handles receiving of incoming blobs.
 	ReceiveBlobs(
 		ctx context.Context,
 		blk BeaconBlockT,
