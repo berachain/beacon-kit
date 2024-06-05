@@ -19,7 +19,7 @@ endif
 
 # process build tags
 build_tags = netgo
-build_tags += ARCH
+build_tags += $(ARCH)
 
 ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
   build_tags += app_v1
