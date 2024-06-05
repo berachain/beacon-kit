@@ -26,10 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// ReceiveBeaconBlock verifies the state root of an incoming block
 // and logs the process.
-//
-//nolint:gocognit // todo fix.
 func (s *Service[
 	BeaconBlockT,
 	BeaconBlockBodyT,
@@ -55,20 +53,7 @@ func (s *Service[
 			"aborting block verification on nil block ⛔️ ",
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
-			go func() {
-				if pErr := s.rebuildPayloadForRejectedBlock(
-					ctx, st,
-				); pErr != nil {
-					s.logger.Error(
-						"failed to rebuild payload for nil block",
-						"error", pErr,
-					)
-				}
-			}()
-		}
-
+		go s.handleRebuildPayloadForRejectedBlock(ctx, st)
 		return ErrNilBlk
 	}
 
@@ -104,21 +89,7 @@ func (s *Service[
 			err,
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
-			go func() {
-				if pErr := s.rebuildPayloadForRejectedBlock(
-					ctx, st,
-				); pErr != nil {
-					s.logger.Error(
-						"failed to rebuild payload for rejected block",
-						"for_slot", blk.GetSlot(),
-						"error", pErr,
-					)
-				}
-			}()
-		}
-
+		go s.handleRebuildPayloadForRejectedBlock(ctx, st)
 		return err
 	}
 
@@ -127,18 +98,7 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
-	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
-		go func() {
-			if err := s.optimisticPayloadBuild(ctx, stCopy, blk); err != nil {
-				s.logger.Error(
-					"failed to build optimistic payload",
-					"for_slot", blk.GetSlot()+1,
-					"error", err,
-				)
-			}
-		}()
-	}
-
+	go s.handleOptimisticPayloadBuild(ctx, st, blk)
 	return nil
 }
 
