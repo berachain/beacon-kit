@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/v2/client"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/commands/v2/cometbft"
 	beaconconfig "github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder/pkg/node-builder/v2"
+	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder/pkg/node-builder/v2/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/server"

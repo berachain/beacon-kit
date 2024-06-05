@@ -168,9 +168,16 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	cmdlib.DefaultRootCommandSetup[T](
 		nb.rootCmd,
 		mm,
-		nb.AppCreator,
+		nb,
 		nb.chainSpec,
 	)
+
+	// command.DefaultRootCommandSetup[T](
+	// 	nb.rootCmd,
+	// 	mm,
+	// 	nb.AppCreator,
+	// 	nb.chainSpec,
+	// )
 
 	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)
 }
