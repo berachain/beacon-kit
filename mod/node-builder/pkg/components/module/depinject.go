@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -44,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -84,6 +86,7 @@ type DepInjectInput struct {
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 	]
+	BlockFeed *event.FeedOf[events.Block[*types.BeaconBlock]]
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -130,6 +133,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.BeaconDepositContract,
 		in.LocalBuilder,
 		in.BlobProofVerifier,
+		in.BlockFeed,
 		storageBackend,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),

@@ -93,6 +93,7 @@ func ProvideRuntime(
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	],
 	blobProofVerifier kzg.BlobProofVerifier,
+	blockFeed *event.FeedOf[events.Block[*types.BeaconBlock]],
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -124,9 +125,6 @@ func ProvideRuntime(
 		executionEngine,
 		signer,
 	)
-
-	// Build the event feed.
-	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
 
 	// Build the builder service.
 	validatorService := validator.NewService[
@@ -171,7 +169,7 @@ func ProvideRuntime(
 		logger.With("service", manager.DepositPrunerName),
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
-		&blockFeed,
+		blockFeed,
 		deposit.GetPruneRangeFn[
 			types.BeaconBlockBody,
 			*types.BeaconBlock,
@@ -194,7 +192,7 @@ func ProvideRuntime(
 			logger.With("service", manager.AvailabilityPrunerName),
 			avs.(*filedb.RangeDB),
 			manager.AvailabilityPrunerName,
-			&blockFeed,
+			blockFeed,
 			dastore.GetPruneRangeFn[
 				*types.BeaconBlock,
 				events.Block[*types.BeaconBlock],
@@ -242,7 +240,7 @@ func ProvideRuntime(
 		),
 		stateProcessor,
 		telemetrySink,
-		&blockFeed,
+		blockFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
@@ -262,7 +260,7 @@ func ProvideRuntime(
 		telemetrySink,
 		storageBackend.DepositStore(nil),
 		beaconDepositContract,
-		&blockFeed,
+		blockFeed,
 	)
 
 	// Build the service registry.

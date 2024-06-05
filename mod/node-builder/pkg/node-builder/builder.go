@@ -119,6 +119,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideBeaconDepositContract,
 				components.ProvideLocalBuilder,
 				components.ProvideBlobProofVerifier,
+				components.ProvideBlockFeed,
 			),
 		),
 		&autoCliOpts,
