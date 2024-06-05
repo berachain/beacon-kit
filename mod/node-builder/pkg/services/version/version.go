@@ -29,7 +29,7 @@ import (
 
 // defaultReportingInterval is the default interval at which the version is
 // reported.
-const defaultReportingInterval = 5 * time.Second
+const defaultReportingInterval = 5 * time.Minute
 
 // ReportingService is a service that periodically logs the running chain
 // version.
