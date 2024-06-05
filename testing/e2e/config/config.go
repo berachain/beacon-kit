@@ -249,6 +249,7 @@ func defaultSeedNodes() NodeSet {
 			{
 				ElType:   "geth",
 				Replicas: 1,
+				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
 	}
