@@ -5,6 +5,10 @@ go 1.22.3
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
+	cosmossdk.io/server/v2 => cosmossdk.io/server/v2 v2.0.0-20240604154554-4fea3fba73ab
+	cosmossdk.io/server/v2/cometbft => ../../../cosmos-sdk/server/v2/cometbft
+	cosmossdk.io/server/v2/stf => cosmossdk.io/server/v2/stf v0.0.0-20240604154554-4fea3fba73ab
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 
 	// Required because private repo, TODO: fix.
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
@@ -29,7 +33,9 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
+	cosmossdk.io/runtime/v2 v2.0.0-20240604154554-4fea3fba73ab
+	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
+	cosmossdk.io/store/v2 v2.0.0
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
@@ -49,6 +55,7 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
+	github.com/cosmos/gogoproto v1.4.12
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/go-ethereum v1.14.4-0.20240530142416-2262bf34158e
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -71,6 +78,9 @@ require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/server/v2 v2.0.0-20240604154554-4fea3fba73ab // indirect
+	cosmossdk.io/server/v2/appmanager v0.0.0-20240604154554-4fea3fba73ab // indirect
+	cosmossdk.io/server/v2/stf v0.0.0-20240604154554-4fea3fba73ab // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6 // indirect
@@ -106,7 +116,6 @@ require (
 	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/gogoproto v1.4.12 // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
@@ -183,6 +192,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mdp/qrterminal/v3 v3.2.0 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
@@ -200,7 +210,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.53.0 // indirect
+	github.com/prometheus/common v0.54.0 // indirect
 	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
@@ -231,7 +241,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10 // indirect
+	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
