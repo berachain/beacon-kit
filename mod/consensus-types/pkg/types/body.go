@@ -49,10 +49,6 @@ const (
 	KZGMerkleIndexDeneb = 26
 )
 
-type BeaconBlockBodyX struct {
-	BeaconBlockBody
-}
-
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the block
 // body.
 // TODO: I still feel like we need to clean this up somehow.

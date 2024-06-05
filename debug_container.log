@@ -1,0 +1,153 @@
+Initializing logger
+Registering providers
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113)
+  Registering resolver for simple type *runtime.AppBuilder
+  Registering resolver for simple type *baseapp.MsgServiceRouter
+  Registering resolver for simple type *baseapp.GRPCQueryRouter
+  Registering resolver for one-per-module type appmodule.AppModule
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+  Registering resolver for simple type protodesc.Resolver
+  Registering resolver for simple type protoregistry.MessageTypeResolver
+ Registering resolver for many-per-container type signing.CustomGetSigner
+ Registering github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:19)
+  Registering resolver for simple type types.InterfaceRegistry
+ Registering github.com/cosmos/cosmos-sdk/codec.ProvideLegacyAmino (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:47)
+  Registering resolver for simple type legacy.Amino
+ Registering github.com/cosmos/cosmos-sdk/codec.ProvideProtoCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:51)
+  Registering resolver for simple type *codec.ProtoCodec
+ Registering github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:68)
+  Registering resolver for simple type address.Codec
+  Registering resolver for simple type address.ValidatorAddressCodec
+  Registering resolver for simple type address.ConsensusAddressCodec
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideKVStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:191)
+  Registering resolver for module-scoped type *types.KVStoreKey
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideTransientStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:214)
+  Registering resolver for module-scoped type *types.TransientStoreKey
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideMemoryStoreKey (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:228)
+  Registering resolver for module-scoped type *types.MemoryStoreKey
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideGenesisTxHandler (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:247)
+  Registering resolver for simple type genesis.TxHandler
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:250)
+  Registering resolver for module-scoped type store.KVStoreService
+  Registering resolver for module-scoped type store.MemoryStoreService
+  Registering resolver for module-scoped type appmodule.Environment
+ Registering module-scoped provider: github.com/cosmos/cosmos-sdk/runtime.ProvideTransientStoreService (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:281)
+  Registering resolver for module-scoped type store.TransientStoreService
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideModuleManager (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:242)
+  Registering resolver for simple type *module.Manager
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideAppVersionModifier (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:295)
+  Registering resolver for simple type app.VersionModifier
+ Registering github.com/cosmos/cosmos-sdk/runtime.ProvideCometService (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:299)
+  Registering resolver for simple type comet.Service
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/depinject.go:81)
+  Found resolver for appmodule.AppModule: *depinject.onePerModuleResolver
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/avs.go:37)
+  Registering resolver for simple type *store.Store[github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.BeaconBlockBody]
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlsSigner (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer.go:44)
+  Registering resolver for simple type crypto.BLSSigner
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTrustedSetup (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/trusted_setup.go:39)
+  Registering resolver for simple type *gokzg4844.JSONTrustedSetup
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideDepositStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/deposit_store.go:41)
+  Registering resolver for simple type *deposit.KVStore[*github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.Deposit]
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/config.go:36)
+  Registering resolver for simple type *config.Config
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/engine_client.go:54)
+  Registering resolver for simple type *client.EngineClient[*github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.ExecutionPayload]
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideJWTSecret (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/jwt_secret.go:41)
+  Registering resolver for simple type *jwt.Secret
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/blob_verifier.go:22)
+  Registering resolver for simple type kzg.BlobProofVerifier
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTelemetrySink (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/telemetry_sink.go:27)
+  Registering resolver for simple type *metrics.TelemetrySink
+Registering outputs
+ Registering github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:64)
+Building container
+Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:64)
+ Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113) to github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp
+ Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113)
+  Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:19) to github.com/cosmos/cosmos-sdk/runtime.ProvideApp
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:19)
+   Providing address.Codec from github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:68) to github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry
+   Resolving dependencies for github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:68)
+    Providing zero value for optional dependency *modulev1.Module
+    Providing zero value for optional dependency *modulev1.Module
+    Supplying func() address.Codec from main.Config (github.com/berachain/beacon-kit/beacond/cmd/config.go:59) to github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec
+    Supplying func() address.ValidatorAddressCodec from main.Config (github.com/berachain/beacon-kit/beacond/cmd/config.go:59) to github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec
+    Supplying func() address.ConsensusAddressCodec from main.Config (github.com/berachain/beacon-kit/beacond/cmd/config.go:59) to github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec
+   Calling github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:68)
+   Providing address.ValidatorAddressCodec from github.com/cosmos/cosmos-sdk/codec.ProvideAddressCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:68) to github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry
+   Providing many-per-container type slice []signing.CustomGetSigner to github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry from:
+  Calling github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:19)
+  Providing legacy.Amino from github.com/cosmos/cosmos-sdk/codec.ProvideLegacyAmino (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:47) to github.com/cosmos/cosmos-sdk/runtime.ProvideApp
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/codec.ProvideLegacyAmino (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:47)
+  Calling github.com/cosmos/cosmos-sdk/codec.ProvideLegacyAmino (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:47)
+  Providing *codec.ProtoCodec from github.com/cosmos/cosmos-sdk/codec.ProvideProtoCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:51) to github.com/cosmos/cosmos-sdk/runtime.ProvideApp
+  Resolving dependencies for github.com/cosmos/cosmos-sdk/codec.ProvideProtoCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:51)
+   Providing types.InterfaceRegistry from github.com/cosmos/cosmos-sdk/codec.ProvideInterfaceRegistry (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:19) to github.com/cosmos/cosmos-sdk/codec.ProvideProtoCodec
+  Calling github.com/cosmos/cosmos-sdk/codec.ProvideProtoCodec (github.com/cosmos/cosmos-sdk@v0.51.0/codec/depinject.go:51)
+ Calling github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113)
+Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:64)
+Done building container
+Calling invokers
+Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:167)
+ Implicitly registering resolver log.zeroLogWrapper for interface type log.Logger
+ Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder
+ Supplying *appv1alpha1.Config from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240506202947-fbddf0a55044/appconfig/config.go:55) to github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder
+ Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240506202947-fbddf0a55044/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder
+ Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113) to github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder
+ Providing *module.Manager from github.com/cosmos/cosmos-sdk/runtime.ProvideModuleManager (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:242) to github.com/cosmos/cosmos-sdk/runtime.SetupAppBuilder
+ Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideModuleManager (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:242)
+  Providing one-per-module type map map[string]appmodule.AppModule to github.com/cosmos/cosmos-sdk/runtime.ProvideModuleManager from:
+   runtime: github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113)
+   beacon: github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/depinject.go:81)
+  Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/depinject.go:81)
+   Implicitly registering resolver *viper.Viper for interface type types.AppOptions
+   Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Providing appmodule.Environment from github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:250) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:250)
+    Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+    Supplying *runtimev1alpha1.Module from cosmossdk.io/depinject/appconfig.Compose (cosmossdk.io/depinject@v1.0.0-alpha.4.0.20240506202947-fbddf0a55044/appconfig/config.go:95) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+    Providing ModuleKey beacon
+    Providing *runtime.AppBuilder from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+    Providing *baseapp.MsgServiceRouter from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+    Providing *baseapp.GRPCQueryRouter from github.com/cosmos/cosmos-sdk/runtime.ProvideApp (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:113) to github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment
+   Calling github.com/cosmos/cosmos-sdk/runtime.ProvideEnvironment (github.com/cosmos/cosmos-sdk@v0.51.0/runtime/module.go:250)
+   Providing *store.Store[github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.BeaconBlockBody] from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/avs.go:37) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/avs.go:37)
+    Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore
+    Implicitly registering resolver *chain.chainSpec[github.com/berachain/beacon-kit/mod/primitives/pkg/bytes.B4,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,github.com/ethereum/go-ethereum/common.Address,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,interface {}] for interface type chain.Spec[github.com/berachain/beacon-kit/mod/primitives/pkg/bytes.B4,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,github.com/ethereum/go-ethereum/common.Address,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,interface {}]
+    Supplying *chain.chainSpec[github.com/berachain/beacon-kit/mod/primitives/pkg/bytes.B4,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,github.com/ethereum/go-ethereum/common.Address,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,interface {}] from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore
+    Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore
+   Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideAvailibilityStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/avs.go:37)
+   Providing *config.Config from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/config.go:36) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/config.go:36)
+    Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig
+   Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/config.go:36)
+   Supplying *chain.chainSpec[github.com/berachain/beacon-kit/mod/primitives/pkg/bytes.B4,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,github.com/ethereum/go-ethereum/common.Address,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,interface {}] from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Providing *deposit.KVStore[*github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.Deposit] from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideDepositStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/deposit_store.go:41) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideDepositStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/deposit_store.go:41)
+    Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideDepositStore
+   Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideDepositStore (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/deposit_store.go:41)
+   Providing *client.EngineClient[*github.com/berachain/beacon-kit/mod/consensus-types/pkg/types.ExecutionPayload] from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/engine_client.go:54) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/engine_client.go:54)
+    Supplying *chain.chainSpec[github.com/berachain/beacon-kit/mod/primitives/pkg/bytes.B4,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,github.com/ethereum/go-ethereum/common.Address,github.com/berachain/beacon-kit/mod/primitives/pkg/math.U64,interface {}] from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient
+    Providing *config.Config from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/config.go:36) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient
+    Supplying log.zeroLogWrapper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient
+    Providing *metrics.TelemetrySink from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTelemetrySink (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/telemetry_sink.go:27) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient
+    Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTelemetrySink (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/telemetry_sink.go:27)
+    Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTelemetrySink (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/telemetry_sink.go:27)
+    Providing *jwt.Secret from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideJWTSecret (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/jwt_secret.go:41) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient
+    Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideJWTSecret (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/jwt_secret.go:41)
+     Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideJWTSecret
+    Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideJWTSecret (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/jwt_secret.go:41)
+   Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideEngineClient (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/engine_client.go:54)
+   Providing kzg.BlobProofVerifier from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/blob_verifier.go:22) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module.ProvideModule
+   Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/blob_verifier.go:22)
+    Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier
+    Providing *gokzg4844.JSONTrustedSetup from github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTrustedSetup (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/trusted_setup.go:39) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier
+    Resolving dependencies for github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTrustedSetup (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/trusted_setup.go:39)
+     Supplying *viper.Viper from github.com/berachain/beacon-kit/mod/node-builder/pkg/app.NewBeaconKitApp (github.com/berachain/beacon-kit/mod/node-builder/pkg/app/app.go:78) to github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTrustedSetup
+    Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideTrustedSetup (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/trusted_setup.go:39)
+   Calling github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/blob_verifier.go:22)
+   Error: error calling provider github.com/berachain/beacon-kit/mod/node-builder/pkg/components.ProvideBlobProofVerifier (github.com/berachain/beacon-kit/mod/node-builder/pkg/components/blob_verifier.go:22): supplied: crate-cryxxxpto/go-kzg-4844, supported: crate-crypto/go-kzg-4844, ethereum/c-kzg-4844: unsupported KZG implementation
+   Saved graph of container to /Users/dev/code/v2/beacon-kit/debug_container.dot
