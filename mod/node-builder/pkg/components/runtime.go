@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -51,7 +50,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -78,53 +76,6 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	],
 ]
 
-func ProvideExecutionEngine(
-	englineClient *engineclient.EngineClient[*types.ExecutionPayload],
-	logger log.Logger,
-	telemetrySink *metrics.TelemetrySink,
-) *execution.Engine[*types.ExecutionPayload] {
-	return execution.New[*types.ExecutionPayload](
-		englineClient,
-		logger.With("service", "execution-engine"),
-		telemetrySink,
-	)
-}
-
-func ProvideBeaconDepositContract(
-	chainSpec primitives.ChainSpec,
-	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
-) (*deposit.WrappedBeaconDepositContract[
-	*types.Deposit,
-	types.WithdrawalCredentials,
-], error) {
-	return deposit.NewWrappedBeaconDepositContract[
-		*types.Deposit,
-		types.WithdrawalCredentials,
-	](
-		chainSpec.DepositContractAddress(),
-		engineClient,
-	)
-}
-
-func ProvideLocalBuilder(
-	cfg *config.Config,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger,
-	executionEngine *execution.Engine[*types.ExecutionPayload],
-) *payloadbuilder.PayloadBuilder[
-	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-] {
-	return payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	](
-		&cfg.PayloadBuilder,
-		chainSpec,
-		logger.With("service", "payload-builder"),
-		executionEngine,
-		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
-	)
-}
-
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
@@ -141,7 +92,7 @@ func ProvideRuntime(
 	localBuilder *payloadbuilder.PayloadBuilder[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	],
-	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
+	blobProofVerifier kzg.BlobProofVerifier,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -153,26 +104,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-
-	// Build the Blobs Verifier
-	//#nosec:G703 // todo fix depinject stuff.
-	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
-		cfg.KZG.Implementation, kzgTrustedSetup,
-	)
-
-	// // TODO: we need to handle this in the depinject case when the trusted
-	// setup
-	// // is not ready yet nicer.
-	// if err != nil {
-	// 	logger.Warn("failed to load blob verifier", "err", err)
-	// }
-
-	// logger.Info(
-	// 	"successfully loaded blob verifier",
-	// 	"impl",
-	// 	cfg.KZG.Implementation,
-	// )
-
 	stateProcessor := core.NewStateProcessor[
 		*types.BeaconBlock,
 		types.BeaconBlockBody,

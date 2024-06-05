@@ -25,6 +25,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -43,7 +44,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -72,11 +72,18 @@ type DepInjectInput struct {
 	DepositStore          *depositdb.KVStore[*types.Deposit]
 	EngineClient          *engineclient.EngineClient[*types.ExecutionPayload]
 	ExecutionEngine       *execution.Engine[*types.ExecutionPayload]
-	BeaconDepositContract *deposit.WrappedBeaconDepositContract[*types.Deposit, types.WithdrawalCredentials]
-	KzgTrustedSetup       *gokzg4844.JSONTrustedSetup
-	Signer                crypto.BLSSigner
-	TelemetrySink         *metrics.TelemetrySink
-	LocalBuilder          *payloadbuilder.PayloadBuilder[components.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader]
+	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit,
+		types.WithdrawalCredentials,
+	]
+	BlobProofVerifier kzg.BlobProofVerifier
+	Signer            crypto.BLSSigner
+	TelemetrySink     *metrics.TelemetrySink
+	LocalBuilder      *payloadbuilder.PayloadBuilder[
+		components.BeaconState,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+	]
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -122,7 +129,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.ExecutionEngine,
 		in.BeaconDepositContract,
 		in.LocalBuilder,
-		in.KzgTrustedSetup,
+		in.BlobProofVerifier,
 		storageBackend,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),

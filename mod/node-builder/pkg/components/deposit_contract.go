@@ -21,38 +21,33 @@
 package components
 
 import (
-	"os"
-
-	"cosmossdk.io/log"
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
 )
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
-	appOpts servertypes.AppOptions,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger,
-) (*dastore.Store[types.BeaconBlockBody], error) {
-	return dastore.New[types.BeaconBlockBody](
-		filedb.NewRangeDB(
-			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						appOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(logger),
-			),
-		),
-		logger.With("service", "beacon-kit.da.store"),
-		chainSpec,
-	), nil
+type BeaconDepositContractInput struct {
+	depinject.In
+	// ChainSpec is the chain spec.
+	ChainSpec primitives.ChainSpec
+	// EngineClient is the engine client.
+	EngineClient *engineclient.EngineClient[*types.ExecutionPayload]
+}
+
+// DepositContractInput is the input for the deposit contract.
+func ProvideBeaconDepositContract(
+	in BeaconDepositContractInput,
+) (*deposit.WrappedBeaconDepositContract[
+	*types.Deposit,
+	types.WithdrawalCredentials,
+], error) {
+	return deposit.NewWrappedBeaconDepositContract[
+		*types.Deposit,
+		types.WithdrawalCredentials,
+	](
+		in.ChainSpec.DepositContractAddress(),
+		in.EngineClient,
+	)
 }

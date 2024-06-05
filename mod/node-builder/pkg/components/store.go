@@ -21,16 +21,52 @@
 package components
 
 import (
+	"os"
+
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
+// AvailabilityStoreInput is the input for the dep inject framework.
+type AvailabilityStoreInput struct {
+	depinject.In
+	AppOpts   servertypes.AppOptions
+	ChainSpec primitives.ChainSpec
+	Logger    log.Logger
+}
+
+// ProvideAvailibilityStore provides the availability store.
+func ProvideAvailibilityStore(
+	in AvailabilityStoreInput,
+) (*dastore.Store[types.BeaconBlockBody], error) {
+	return dastore.New[types.BeaconBlockBody](
+		filedb.NewRangeDB(
+			filedb.NewDB(
+				filedb.WithRootDirectory(
+					cast.ToString(
+						in.AppOpts.Get(flags.FlagHome),
+					)+"/data/blobs",
+				),
+				filedb.WithFileExtension("ssz"),
+				filedb.WithDirectoryPermissions(os.ModePerm),
+				filedb.WithLogger(in.Logger),
+			),
+		),
+		in.Logger.With("service", "beacon-kit.da.store"),
+		in.ChainSpec,
+	), nil
+}
+
+// DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions

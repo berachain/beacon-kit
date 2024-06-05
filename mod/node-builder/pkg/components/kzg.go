@@ -22,7 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	blobkzg "github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -35,11 +37,31 @@ type TrustedSetupInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ProvideBlsSigner is a function that provides the module to the application.
+// ProvideTrustedSetup provides the trusted setup to the depinject framework.
 func ProvideTrustedSetup(
 	in TrustedSetupInput,
 ) (*gokzg4844.JSONTrustedSetup, error) {
 	return kzg.ReadTrustedSetup(
 		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
 	)
+}
+
+type BlobProofVerifierInput struct {
+	depinject.In
+	// Cfg is the BeaconKit configuration.
+	Cfg *config.Config
+	// KZGTrustedSetup is the trusted setup.
+	KZGTrustedSetup *gokzg4844.JSONTrustedSetup
+}
+
+// ProvideBlobProofVerifier provides the blob proof verifier to the depinject
+// framework.
+func ProvideBlobProofVerifier(
+	in BlobProofVerifierInput,
+) blobkzg.BlobProofVerifier {
+	// #nosec:G703 // F
+	verifier, _ := blobkzg.NewBlobProofVerifier(
+		in.Cfg.KZG.Implementation, in.KZGTrustedSetup,
+	)
+	return verifier
 }
