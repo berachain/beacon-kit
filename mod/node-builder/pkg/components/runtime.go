@@ -152,34 +152,6 @@ func ProvideRuntime(
 	// Build the event feed.
 	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
 
-	// Build the builder service.
-	validatorService := validator.NewService[
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-	](
-		&cfg.Validator,
-		logger.With("service", "validator"),
-		chainSpec,
-		storageBackend,
-		stateProcessor,
-		signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			types.BeaconBlockBody,
-		](
-			chainSpec,
-			types.KZGPositionDeneb,
-			telemetrySink,
-		),
-		localBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
-			localBuilder,
-		},
-		telemetrySink,
-	)
-
 	// slice of pruners to pass to the DBManager.
 	pruners := []*pruner.Pruner[
 		*types.BeaconBlock,
@@ -240,6 +212,45 @@ func ProvideRuntime(
 		return nil, err
 	}
 
+	blobProcessor := dablob.NewProcessor[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+	](
+		logger.With("service", "blob-processor"),
+		chainSpec,
+		dablob.NewVerifier(blobProofVerifier, telemetrySink),
+		types.BlockBodyKZGOffset,
+		telemetrySink,
+	)
+
+	// Build the builder service.
+	validatorService := validator.NewService[
+		*types.BeaconBlock,
+		types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+	](
+		&cfg.Validator,
+		logger.With("service", "validator"),
+		chainSpec,
+		storageBackend,
+		stateProcessor,
+		signer,
+		dablob.NewSidecarFactory[
+			*types.BeaconBlock,
+			types.BeaconBlockBody,
+		](
+			chainSpec,
+			types.KZGPositionDeneb,
+			telemetrySink,
+		),
+		localBuilder,
+		[]validator.PayloadBuilder[BeaconState]{
+			localBuilder,
+		},
+		telemetrySink,
+	)
+
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
@@ -254,16 +265,7 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		dablob.NewProcessor[
-			*dastore.Store[types.BeaconBlockBody],
-			types.BeaconBlockBody,
-		](
-			logger.With("service", "blob-processor"),
-			chainSpec,
-			dablob.NewVerifier(blobProofVerifier, telemetrySink),
-			types.BlockBodyKZGOffset,
-			telemetrySink,
-		),
+		blobProcessor,
 		stateProcessor,
 		telemetrySink,
 		&blockFeed,
