@@ -51,7 +51,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -84,10 +83,10 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 //nolint:funlen // bullish.
 func ProvideRuntime(
 	cfg *config.Config,
+	blobProofVerifier kzg.BlobProofVerifier,
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
-	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -128,25 +127,6 @@ func ProvideRuntime(
 		executionEngine,
 		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 	)
-
-	// Build the Blobs Verifier
-	//#nosec:G703 // todo fix depinject stuff.
-	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
-		cfg.KZG.Implementation, kzgTrustedSetup,
-	)
-
-	// // TODO: we need to handle this in the depinject case when the trusted
-	// setup
-	// // is not ready yet nicer.
-	// if err != nil {
-	// 	logger.Warn("failed to load blob verifier", "err", err)
-	// }
-
-	// logger.Info(
-	// 	"successfully loaded blob verifier",
-	// 	"impl",
-	// 	cfg.KZG.Implementation,
-	// )
 
 	stateProcessor := core.NewStateProcessor[
 		*types.BeaconBlock,

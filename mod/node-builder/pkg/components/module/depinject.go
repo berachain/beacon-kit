@@ -25,6 +25,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -40,7 +41,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -66,7 +66,7 @@ type DepInjectInput struct {
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
 	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
-	KzgTrustedSetup   *gokzg4844.JSONTrustedSetup
+	BlobVerifier      kzg.BlobProofVerifier
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink
 }
@@ -108,10 +108,10 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
+		in.BlobVerifier,
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,
-		in.KzgTrustedSetup,
 		storageBackend,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
