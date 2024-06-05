@@ -72,6 +72,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideConfig,
 				bkcomponents.ProvideEngineClient,
 				bkcomponents.ProvideJWTSecret,
+				bkcomponents.ProvideBlobProofVerifier,
 				bkcomponents.ProvideTelemetrySink,
 			),
 			depinject.Supply(

@@ -51,7 +51,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -84,10 +83,10 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 //nolint:funlen // bullish.
 func ProvideRuntime(
 	cfg *config.Config,
+	blobProofVerifier kzg.BlobProofVerifier,
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
-	kzgTrustedSetup *gokzg4844.JSONTrustedSetup,
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -129,25 +128,6 @@ func ProvideRuntime(
 		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 	)
 
-	// Build the Blobs Verifier
-	//#nosec:G703 // todo fix depinject stuff.
-	blobProofVerifier, _ := kzg.NewBlobProofVerifier(
-		cfg.KZG.Implementation, kzgTrustedSetup,
-	)
-
-	// // TODO: we need to handle this in the depinject case when the trusted
-	// setup
-	// // is not ready yet nicer.
-	// if err != nil {
-	// 	logger.Warn("failed to load blob verifier", "err", err)
-	// }
-
-	// logger.Info(
-	// 	"successfully loaded blob verifier",
-	// 	"impl",
-	// 	cfg.KZG.Implementation,
-	// )
-
 	stateProcessor := core.NewStateProcessor[
 		*types.BeaconBlock,
 		types.BeaconBlockBody,
@@ -171,34 +151,6 @@ func ProvideRuntime(
 
 	// Build the event feed.
 	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
-
-	// Build the builder service.
-	validatorService := validator.NewService[
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-	](
-		&cfg.Validator,
-		logger.With("service", "validator"),
-		chainSpec,
-		storageBackend,
-		stateProcessor,
-		signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			types.BeaconBlockBody,
-		](
-			chainSpec,
-			types.KZGPositionDeneb,
-			telemetrySink,
-		),
-		localBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
-			localBuilder,
-		},
-		telemetrySink,
-	)
 
 	// slice of pruners to pass to the DBManager.
 	pruners := []*pruner.Pruner[
@@ -260,6 +212,45 @@ func ProvideRuntime(
 		return nil, err
 	}
 
+	blobProcessor := dablob.NewProcessor[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+	](
+		logger.With("service", "blob-processor"),
+		chainSpec,
+		dablob.NewVerifier(blobProofVerifier, telemetrySink),
+		types.BlockBodyKZGOffset,
+		telemetrySink,
+	)
+
+	// Build the builder service.
+	validatorService := validator.NewService[
+		*types.BeaconBlock,
+		types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+	](
+		&cfg.Validator,
+		logger.With("service", "validator"),
+		chainSpec,
+		storageBackend,
+		stateProcessor,
+		signer,
+		dablob.NewSidecarFactory[
+			*types.BeaconBlock,
+			types.BeaconBlockBody,
+		](
+			chainSpec,
+			types.KZGPositionDeneb,
+			telemetrySink,
+		),
+		localBuilder,
+		[]validator.PayloadBuilder[BeaconState]{
+			localBuilder,
+		},
+		telemetrySink,
+	)
+
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[types.BeaconBlockBody],
@@ -274,16 +265,7 @@ func ProvideRuntime(
 		chainSpec,
 		executionEngine,
 		localBuilder,
-		dablob.NewProcessor[
-			*dastore.Store[types.BeaconBlockBody],
-			types.BeaconBlockBody,
-		](
-			logger.With("service", "blob-processor"),
-			chainSpec,
-			dablob.NewVerifier(blobProofVerifier, telemetrySink),
-			types.BlockBodyKZGOffset,
-			telemetrySink,
-		),
+		blobProcessor,
 		stateProcessor,
 		telemetrySink,
 		&blockFeed,

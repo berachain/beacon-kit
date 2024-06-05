@@ -33,6 +33,11 @@ func NewVerifier() *Verifier {
 	return &Verifier{}
 }
 
+// GetImplementation returns the implementation of the verifier.
+func (v Verifier) GetImplementation() string {
+	return "noop"
+}
+
 // VerifyProof is a no-op.
 func (v Verifier) VerifyBlobProof(
 	*eip4844.Blob,

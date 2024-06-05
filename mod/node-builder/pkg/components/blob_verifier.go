@@ -18,38 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blob
+package components
 
 import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// processorMetrics is a struct that contains metrics for the processor.
-type processorMetrics struct {
-	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+// BlobProofVerifierInput is the input for the
+// dep inject framework.
+type BlobProofVerifierInput struct {
+	depinject.In
+	AppOpts          servertypes.AppOptions
+	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
-// newProcessorMetrics creates a new processorMetrics.
-func newProcessorMetrics(
-	sink TelemetrySink,
-) *processorMetrics {
-	return &processorMetrics{
-		sink: sink,
-	}
-}
-
-// measureProcessBlobsDuration measures the duration of the blob processing.
-func (pm *processorMetrics) measureProcessBlobsDuration(
-	startTime time.Time,
-	numSidecars math.U64,
-) {
-	pm.sink.MeasureSince(
-		"beacon_kit.da.blob.processor.process_blob_duration",
-		startTime,
-		"num_sidecars",
-		string(numSidecars.String()),
+// ProvideBlobProofVerifier is a function that provides the module to the
+// application.
+func ProvideBlobProofVerifier(
+	in BlobProofVerifierInput,
+) (kzg.BlobProofVerifier, error) {
+	return kzg.NewBlobProofVerifier(
+		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
+		in.JSONTrustedSetup,
 	)
 }
