@@ -61,7 +61,6 @@ type Service[
 	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
 	// blobProcessor is used to process blobs.
 	blobProcessor BlobProcessor[BlobSidecarsT]
-
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
