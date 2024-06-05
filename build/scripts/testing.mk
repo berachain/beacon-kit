@@ -46,7 +46,7 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	RPC_DIAL_URL=${IPC_PATH} \
 	RPC_PREFIX=${IPC_PREFIX} \
-	${TESTAPP_FILES_DIR}/entrypoint.sh 
+	${TESTAPP_FILES_DIR}/entrypoint.sh
 
 start-reth: ## start an ephemeral `reth` node
 	@rm -rf ${ETH_DATA_DIR}
@@ -97,7 +97,7 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
-	
+
 start-geth: ## start an ephemeral `geth` node with docker
 	rm -rf ${ETH_DATA_DIR}
 	docker run \
@@ -196,7 +196,7 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-rpc-enabled \
 	--engine-host-allowlist="*" \
 	--engine-jwt-secret=../../${JWT_PATH}
-	
+
 start-erigon: ## start an ephemeral `erigon` node
 	rm -rf .tmp/erigon
 	docker run \
@@ -245,13 +245,42 @@ start-ethereumjs:
 	--rpc \
 	--rpcAddr 0.0.0.0
 
+start-nimbus:
+	rm -rf .tmp/nimbus
+	docker run \
+	--rm -v $(PWD)/.tmp:/.tmp \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	ethpandaops/nimbus-eth1:master \
+    --log-level=DEBUG \
+    --data-dir=.tmp/nimbus \
+    --http-port=8545 \
+    --http-address=0.0.0.0 \
+    --rpc \
+    --rpc-api=eth,debug,exp \
+    --ws \
+    --ws-api=eth,debug,exp \
+    --engine-api \
+    --engine-api-address=0.0.0.0 \
+    --engine-api-port=8551 \
+    --allowed-origins="*" \
+    --engine-api-ws \
+    --tcp-port=30303 \
+    --custom-network=/${ETH_GENESIS_PATH} \
+    --jwt-secret=/${JWT_PATH} \
+    --sync-mode=full \
+    --listen-address=0.0.0.0 \
+    --nat=extip:0.0.0.0 \
+
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
 test:
 	@$(MAKE) test-unit test-forge-fuzz
-	
+
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
@@ -260,14 +289,14 @@ test-unit: ## run golang unit tests
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt 
+		go test -race -coverprofile=test-unit-cover.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -bench=. -run=^$ -benchmem
 
-# On MacOS, if there is a linking issue on the fuzz tests, 
+# On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
