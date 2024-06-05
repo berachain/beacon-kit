@@ -10,8 +10,16 @@ TESTAPP_FILES_DIR = testing/files
 TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
+
+# Variables
+ARCH ?= $(shell uname -m)
+ifeq ($(ARCH),)
+	ARCH = arm64
+endif
+
 # process build tags
 build_tags = netgo
+build_tags += ARCH
 
 ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
   build_tags += app_v1
@@ -89,11 +97,6 @@ $(BUILD_TARGETS): $(OUT_DIR)/
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
 
-	# Variables
-ARCH ?= $(shell uname -m)
-ifeq ($(ARCH),)
-	ARCH = arm64
-endif
 IMAGE_NAME ?= beacond
 
 # Docker Paths
