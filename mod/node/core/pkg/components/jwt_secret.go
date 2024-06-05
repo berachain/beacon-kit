@@ -18,41 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package components
 
 import (
-	"log/slog"
-	"os"
+	"strings"
 
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node/core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node/core/pkg/config/flags"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
-
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
-
-	return nb.RunNode()
+// TrustedSetupInput is the input for the dep inject framework.
+type JWTSecretInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
+// ProvideJWTSecret is a function that provides the module to the application.
+func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
+	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
+}
+
+// LoadJWTFromFile reads the JWT secret from a file and returns it.
+func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
+	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
+	if err != nil {
+		// Return an error if the file cannot be read.
+		return nil, err
 	}
+	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

@@ -18,41 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package client
 
 import (
-	"log/slog"
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node/core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"github.com/berachain/beacon-kit/mod/node/core/pkg/commands/client/cosmos"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cobra"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
+// Commands creates a new command for managing CometBFT
+// related commands.
+func Commands[T servertypes.Application]() *cobra.Command {
+	clientCmd := &cobra.Command{
+		Use:   "client",
+		Short: "client subcommands",
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			return nil
+		},
 	}
 
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
+	clientCmd.AddCommand(
+		cosmos.QueryCommands(),
+	)
 
-	return nb.RunNode()
-}
-
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+	return clientCmd
 }

@@ -18,41 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package components
 
 import (
-	"log/slog"
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node/core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node/core/pkg/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
-
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
-
-	return nb.RunNode()
+// ConfigInput is the input for the dependency injection framework.
+type ConfigInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+// ProvideConfig is a function that provides the JWT secret to the application.
+func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	return config.ReadConfigFromAppOpts(in.AppOpts)
 }

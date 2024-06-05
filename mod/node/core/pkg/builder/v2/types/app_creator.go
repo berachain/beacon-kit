@@ -18,41 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package types
 
 import (
-	"log/slog"
-	"os"
+	"context"
+	"io"
 
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node/core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node/core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node/core/pkg/app/v2"
+	"github.com/cosmos/cosmos-sdk/client"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
-
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
-
-	return nb.RunNode()
+type AppCreator[T types.Tx] interface {
+	AppCreator(
+		logger log.Logger,
+		db store.KVStoreWithBatch,
+		traceStore io.Writer,
+		appOpts servertypes.AppOptions,
+	) *app.BeaconApp[T]
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+// BeaconApp is an interface that defines the PostStartup method.
+type BeaconApp interface {
+	PostStartup(
+		ctx context.Context,
+		clientCtx client.Context,
+	) error
 }
