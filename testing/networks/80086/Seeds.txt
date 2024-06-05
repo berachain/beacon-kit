@@ -1,5 +1,5 @@
-====== CL SEEDS =======
+========== CL SEEDS ==========
 c28827cb96c14c905b127b92065a3fb4cd77d7f6@testnet-seeds.whispernode.com:25456
 
-====== EL BOOTNODES ==========
+======== EL BOOTNODES ========
 xxxx
