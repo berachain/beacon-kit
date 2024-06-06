@@ -142,17 +142,6 @@ type BlobFactory[
 	) (BlobSidecarsT, error)
 }
 
-// BlobProcessor represents a blob processor interface.
-type BlobProcessor[
-	BlobSidecarsT BlobSidecars,
-] interface {
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // BlobSidecars represents a blob sidecars interface.
 type BlobSidecars interface {
 	// BlobSidecars must be ssz.Marshallable.
