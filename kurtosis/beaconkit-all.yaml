@@ -28,7 +28,7 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: besu
-        kzg_impl: ethereum/c-kzg-4844
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: nethermind
         kzg_impl: crate-crypto/go-kzg-4844

@@ -27,65 +27,8 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
-
-// prepareStateForBuilding ensures that the state is at the requested slot
-// before building a block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) prepareStateForBuilding(
-	st BeaconStateT,
-	requestedSlot math.Slot,
-) error {
-	// Get the current state slot.
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	slotDifference := requestedSlot - stateSlot
-	switch {
-	case slotDifference == 1:
-		// If our BeaconState is not up to date, we need to process
-		// a slot to get it up to date.
-		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
-			return err
-		}
-
-		// Request the slot again, it should've been incremented by 1.
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return err
-		}
-
-		// If after doing so, we aren't exactly at the requested slot,
-		// we should return an error.
-		if requestedSlot != stateSlot {
-			return errors.Newf(
-				"requested slot could not be processed, requested: %d, state: %d",
-				requestedSlot,
-				stateSlot,
-			)
-		}
-	case slotDifference > 1:
-		return errors.Newf(
-			"requested slot is too far ahead, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	case slotDifference < 1:
-		return errors.Newf(
-			"requested slot is in the past, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	}
-
-	return nil
-}
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[

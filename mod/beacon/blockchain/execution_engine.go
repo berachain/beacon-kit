@@ -79,8 +79,8 @@ func (s *Service[
 ) {
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlot(
-			stCopy,
+		if _, err := s.sp.ProcessSlots(
+			stCopy, blk.GetSlot()+1,
 		); err != nil {
 			return
 		}
@@ -130,8 +130,7 @@ func (s *Service[
 		s.logger.
 			Error(
 				"failed to send forkchoice update with attributes",
-				"error",
-				err,
+				"error", err,
 			)
 	}
 

@@ -6,7 +6,7 @@ replace github.com/berachain/beacon-kit/mod/errors => ../errors
 
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.14.4-0.20240530142416-2262bf34158e
+	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/holiman/uint256 v1.2.4

@@ -68,17 +68,10 @@ type ValidatorService[
 	RequestBestBlock(
 		context.Context, // The context for the request.
 		math.Slot, // The slot for which the best block is requested.
-	) (
-		BeaconBlockT, BlobSidecarsT, error,
-	)
-	// VerifyIncomingBlock verifies the incoming block and returns an error if
-	// the block is invalid.
-	VerifyIncomingBlock(
-		ctx context.Context,
-		blk BeaconBlockT,
-	) error
-	// VerifyIncomingBlobs handles receiving of incoming blobs.
-	VerifyIncomingBlobs(
+	) (BeaconBlockT, BlobSidecarsT, error)
+	// ReceiveBlockAndBlobs receives a beacon block and
+	// associated blobs sidecars for processing.
+	ReceiveBlockAndBlobs(
 		ctx context.Context,
 		blk BeaconBlockT,
 		blobs BlobSidecarsT,

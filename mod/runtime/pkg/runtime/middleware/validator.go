@@ -24,12 +24,12 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -161,22 +161,25 @@ func (h *ValidatorMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		logger    = ctx.Logger().With("service", "prepare-proposal")
-		startTime = time.Now()
+		startTime     = time.Now()
+		sidecarsBz    []byte
+		beaconBlockBz []byte
+		logger        = ctx.Logger().With(
+			"service", "prepare-proposal",
+		)
 	)
-
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk.IsNil() {
-		logger.Error("failed to build block", "error", err, "block", blk)
+		logger.Error(
+			"failed to assemble proposal", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
 	// "Publish" the blobs and the beacon block.
-	var sidecarsBz, beaconBlockBz []byte
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var localErr error
@@ -214,28 +217,29 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	startTime := time.Now()
+	var (
+		startTime = time.Now()
+		logger    = ctx.Logger().With(
+			"service", "prepare-proposal",
+		)
+	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	args := []any{"beacon_block", true, "blob_sidecars", true}
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		blk = blk.Empty(version.Deneb)
+		args[1] = false
 	}
 
-	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	}
-
-	blobs, err := h.blobGossiper.Request(ctx, req)
+	sidecars, err := h.blobGossiper.Request(ctx, req)
 	if err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
+		args[3] = false
 	}
 
-	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
+	logger.Info("received proposal with", args...)
+	if err = h.validatorService.ReceiveBlockAndBlobs(
+		ctx, blk, sidecars,
+	); errors.IsFatal(err) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
