@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -225,7 +224,12 @@ func (h *ValidatorMiddleware[
 
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		blk = blk.Empty(version.Deneb)
+		// do nothing
+	}
+
+	sidecars, err := h.blobGossiper.Request(ctx, req)
+	if err != nil {
+		// do nothing
 	}
 
 	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
@@ -234,14 +238,7 @@ func (h *ValidatorMiddleware[
 		}, nil
 	}
 
-	blobs, err := h.blobGossiper.Request(ctx, req)
-	if err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-		}, nil
-	}
-
-	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
+	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, sidecars); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 		}, err
