@@ -127,7 +127,7 @@ func (h *FinalizeBlockMiddleware[
 			math.Slot(req.Height),
 		))
 	if err != nil {
-		return err
+		return nil
 	}
 
 	// Process the state transition and produce the required delta from

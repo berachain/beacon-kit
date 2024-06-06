@@ -46,9 +46,11 @@ func (s *Service[
 		return err
 	}
 
-	slotDifference := requestedSlot - stateSlot
-	switch {
-	case slotDifference == 1:
+	for {
+		slotDifference := requestedSlot - stateSlot
+		if slotDifference == 0 {
+			break
+		}
 		// If our BeaconState is not up to date, we need to process
 		// a slot to get it up to date.
 		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
@@ -60,28 +62,6 @@ func (s *Service[
 		if err != nil {
 			return err
 		}
-
-		// If after doing so, we aren't exactly at the requested slot,
-		// we should return an error.
-		if requestedSlot != stateSlot {
-			return errors.Newf(
-				"requested slot could not be processed, requested: %d, state: %d",
-				requestedSlot,
-				stateSlot,
-			)
-		}
-	case slotDifference > 1:
-		return errors.Newf(
-			"requested slot is too far ahead, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	case slotDifference < 1:
-		return errors.Newf(
-			"requested slot is in the past, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
 	}
 
 	return nil

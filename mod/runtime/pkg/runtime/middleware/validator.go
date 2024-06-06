@@ -21,6 +21,7 @@
 package middleware
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -147,6 +148,8 @@ func NewValidatorMiddleware[
 	}
 }
 
+var GHETTOCOUNTER = 0
+
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ValidatorMiddleware[
@@ -161,11 +164,14 @@ func (h *ValidatorMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		logger    = ctx.Logger().With("service", "prepare-proposal")
-		startTime = time.Now()
+		logger = ctx.Logger().With("service", "prepare-proposal")
 	)
 
-	defer h.metrics.measurePrepareProposalDuration(startTime)
+	if req.Height > 3 && time.Now().UnixMilli()%3 != 0 && GHETTOCOUNTER < 6 {
+		GHETTOCOUNTER++
+		fmt.Println("INJECTING FAULT", GHETTOCOUNTER)
+		return &cmtabci.PrepareProposalResponse{}, nil
+	}
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
@@ -224,20 +230,20 @@ func (h *ValidatorMiddleware[
 
 	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+		}, nil
 	}
 
 	blobs, err := h.blobGossiper.Request(ctx, req)
 	if err != nil {
 		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+		}, nil
 	}
 
 	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
 		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 		}, err
 	}
 

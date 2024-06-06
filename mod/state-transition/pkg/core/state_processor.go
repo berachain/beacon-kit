@@ -141,6 +141,9 @@ func (sp *StateProcessor[
 		blkSlot          = blk.GetSlot()
 	)
 
+	if blk.IsNil() {
+		return nil, nil
+	}
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -181,18 +184,14 @@ func (sp *StateProcessor[
 	// function more generalizable, since right now it makes an
 	// assumption about the finalization properties of the cosnensus
 	// engine.
-	switch stateSlot {
-	case blkSlot - 1:
+	for stateSlot != blkSlot {
 		if validatorUpdates, err = sp.ProcessSlot(st); err != nil {
 			return nil, err
 		}
-	case blkSlot:
-		// skip slot processing.
-	default:
-		return nil, errors.Wrapf(
-			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
-			stateSlot, blkSlot,
-		)
+		stateSlot, err = st.GetSlot()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Process the block.

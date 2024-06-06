@@ -60,6 +60,7 @@ type BeaconBlock[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
+	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
 	// GetSlot returns the slot number of the block.

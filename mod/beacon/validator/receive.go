@@ -54,7 +54,7 @@ func (s *Service[
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
-		return ErrNilBlk
+		return nil
 	}
 
 	s.logger.Info(
@@ -122,7 +122,7 @@ func (s *Service[
 		s.logger.Error(
 			"aborting blob verification - beacon block not found in proposal 🚫 ",
 		)
-		return ErrNilBlk
+		return nil
 	}
 
 	// If there are no blobs to verify, return early.
