@@ -108,3 +108,52 @@ func (s *Service[
 
 	return nil
 }
+
+// VerifyIncomingBlobs receives blobs from the network and processes them.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) VerifyIncomingBlobs(
+	_ context.Context,
+	blk BeaconBlockT,
+	sidecars BlobSidecarsT,
+) error {
+	if blk.IsNil() {
+		s.logger.Error(
+			"aborting blob verification - beacon block not found in proposal 🚫 ",
+		)
+		return ErrNilBlk
+	}
+
+	// If there are no blobs to verify, return early.
+	if sidecars.Len() == 0 {
+		s.logger.Info(
+			"no blob sidecars to verify, skipping verifier 🧢 ",
+			"slot",
+			blk.GetSlot(),
+		)
+		return nil
+	}
+
+	s.logger.Info(
+		"received incoming blob sidecars 🚔 ",
+		"state_root", blk.GetStateRoot(),
+	)
+
+	// Verify the blobs and ensure they match the local state.
+	if err := s.blobProcessor.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
+		s.logger.Error(
+			"rejecting incoming blob sidecars ❌ ",
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"blob sidecars verification succeeded - accepting incoming blob sidecars 💦 ",
+		"num_blobs",
+		sidecars.Len(),
+	)
+
+	return nil
+}
