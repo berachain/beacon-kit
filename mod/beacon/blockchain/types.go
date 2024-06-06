@@ -174,7 +174,7 @@ type StateProcessor[
 	// TODO: This eventually needs to be deprecated.
 	ProcessSlot(
 		st BeaconStateT,
-	) ([]*transition.ValidatorUpdate, error)
+	) error
 	// Transition processes the state transition for a given block.
 	Transition(
 		ctx ContextT,

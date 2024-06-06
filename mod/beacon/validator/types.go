@@ -224,7 +224,7 @@ type StateProcessor[
 	// ProcessSlot processes the slot.
 	ProcessSlot(
 		st BeaconStateT,
-	) ([]*transition.ValidatorUpdate, error)
+	) error
 
 	// Transition performs the core state transition.
 	Transition(

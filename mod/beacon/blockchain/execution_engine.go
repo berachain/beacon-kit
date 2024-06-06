@@ -79,7 +79,7 @@ func (s *Service[
 ) {
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlot(
+		if err := s.sp.ProcessSlot(
 			stCopy,
 		); err != nil {
 			return

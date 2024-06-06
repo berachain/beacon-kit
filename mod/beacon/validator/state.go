@@ -53,7 +53,7 @@ func (s *Service[
 		}
 		// If our BeaconState is not up to date, we need to process
 		// a slot to get it up to date.
-		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
+		if err := s.stateProcessor.ProcessSlot(st); err != nil {
 			return err
 		}
 

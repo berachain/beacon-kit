@@ -258,7 +258,7 @@ func (s *Service[
 	}
 
 	// We process the slot to update any RANDAO values.
-	if _, err = s.stateProcessor.ProcessSlot(
+	if err = s.stateProcessor.ProcessSlot(
 		st,
 	); err != nil {
 		return err

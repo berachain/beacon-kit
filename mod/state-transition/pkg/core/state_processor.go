@@ -136,17 +136,8 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) ([]*transition.ValidatorUpdate, error) {
-	var (
-		validatorUpdates []*transition.ValidatorUpdate
-		blkSlot          = blk.GetSlot()
-	)
-
 	if blk.IsNil() {
 		return nil, nil
-	}
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
 	}
 
 	// We perform some initial logic to ensure the BeaconState is in the correct
@@ -184,14 +175,10 @@ func (sp *StateProcessor[
 	// function more generalizable, since right now it makes an
 	// assumption about the finalization properties of the cosnensus
 	// engine.
-	for stateSlot != blkSlot {
-		if validatorUpdates, err = sp.ProcessSlot(st); err != nil {
-			return nil, err
-		}
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return nil, err
-		}
+
+	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
+	if err != nil {
+		return nil, err
 	}
 
 	// Process the block.
@@ -205,6 +192,42 @@ func (sp *StateProcessor[
 	return validatorUpdates, nil
 }
 
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) ProcessSlots(st BeaconStateT, slot math.U64) ([]*transition.ValidatorUpdate, error) {
+	var (
+		validatorUpdates      []*transition.ValidatorUpdate
+		epochValidatorUpdates = make([]*transition.ValidatorUpdate, 0)
+	)
+
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate until we are "caught up".
+	for stateSlot < slot {
+		// Process the slot
+		if err := sp.ProcessSlot(st); err != nil {
+			return nil, err
+		}
+
+		// Process the Epoch Boundary.
+		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
+			if epochValidatorUpdates, err = sp.processEpoch(st); err != nil {
+				return nil, err
+			}
+			validatorUpdates = append(validatorUpdates, epochValidatorUpdates...)
+		}
+		stateSlot += 1
+	}
+
+	return validatorUpdates, st.SetSlot(stateSlot)
+}
+
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -213,30 +236,30 @@ func (sp *StateProcessor[
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) ProcessSlot(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
-	slot, err := st.GetSlot()
+) error {
+	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
-		return nil, err
+		return err
 	}
 
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
@@ -244,7 +267,7 @@ func (sp *StateProcessor[
 	if (latestHeader.GetStateRoot() == primitives.Root{}) {
 		latestHeader.SetStateRoot(prevStateRoot)
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -252,24 +275,16 @@ func (sp *StateProcessor[
 	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
+		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
-		return nil, err
+		return err
 	}
 
-	// Process the Epoch Boundary.
-	var validatorUpdates []*transition.ValidatorUpdate
-	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
-		if validatorUpdates, err = sp.processEpoch(st); err != nil {
-			return nil, err
-		}
-	}
-
-	return validatorUpdates, st.SetSlot(slot + 1)
+	return nil
 }
 
 // ProcessBlock processes the block, it optionally verifies the
