@@ -96,7 +96,10 @@ type BeaconBlockBody[
 }
 
 // BeaconState represents a beacon state interface.
-type BeaconState[BeaconStateT any] interface {
+type BeaconState[
+	BeaconBlockHeader interface{ HashTreeRoot() ([32]byte, error) },
+	BeaconStateT, ExecutionPayloadHeaderT any,
+] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() BeaconStateT
 	// GetBlockRootAtIndex returns the block root at the given index.
@@ -104,11 +107,11 @@ type BeaconState[BeaconStateT any] interface {
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (
-		*types.BeaconBlockHeader,
+		BeaconBlockHeader,
 		error,
 	)
 	// GetSlot returns the current slot of the beacon state.
@@ -158,7 +161,7 @@ type DepositStore[DepositT any] interface {
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
+type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 	// Enabled returns true if the payload builder is enabled.
 	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
@@ -166,7 +169,7 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// RequestPayloadAsync requests a payload for the given slot and returns
 	// immediately.
 	RequestPayloadAsync(
@@ -200,7 +203,11 @@ type PayloadBuilder[BeaconStateT BeaconState[BeaconStateT]] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.
@@ -218,7 +225,11 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 ] interface {

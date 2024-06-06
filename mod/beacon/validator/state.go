@@ -35,7 +35,7 @@ import (
 // before building a block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) prepareStateForBuilding(
 	st BeaconStateT,
 	requestedSlot math.Slot,
@@ -90,7 +90,7 @@ func (s *Service[
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -120,7 +120,7 @@ func (s *Service[
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
