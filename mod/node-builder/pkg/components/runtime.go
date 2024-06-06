@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -35,20 +34,14 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -110,134 +103,8 @@ func ProvideRuntime(
 	],
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
-	validatorService service.Basic,
+	ServiceRegistry *service.Registry,
 ) (*BeaconKitRuntime, error) {
-
-	// slice of pruners to pass to the DBManager.
-	pruners := []*pruner.Pruner[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription]{}
-
-	// Build the deposit pruner.
-	depositPruner := pruner.NewPruner[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", manager.DepositPrunerName),
-		storageBackend.DepositStore(nil),
-		manager.DepositPrunerName,
-		blockFeed,
-		deposit.BuildPruneRangeFn[
-			types.BeaconBlockBody,
-			*types.BeaconBlock,
-			events.Block[*types.BeaconBlock],
-			*types.Deposit,
-			*types.ExecutionPayload,
-			types.WithdrawalCredentials,
-		](chainSpec),
-	)
-	pruners = append(pruners, depositPruner)
-
-	avs := storageBackend.AvailabilityStore(nil).IndexDB
-	if avs != nil {
-		// build the availability pruner if IndexDB is available.
-		availabilityPruner := pruner.NewPruner[
-			*types.BeaconBlock,
-			events.Block[*types.BeaconBlock],
-			event.Subscription,
-		](
-			logger.With("service", manager.AvailabilityPrunerName),
-			avs.(*filedb.RangeDB),
-			manager.AvailabilityPrunerName,
-			blockFeed,
-			dastore.BuildPruneRangeFn[
-				*types.BeaconBlock,
-				events.Block[*types.BeaconBlock],
-			](chainSpec),
-		)
-		pruners = append(pruners, availabilityPruner)
-	}
-
-	// Build the DBManager service.
-	dbManagerService, err := manager.NewDBManager[
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", "db-manager"),
-		pruners...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	blobProcessor := dablob.NewProcessor[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
-	](
-		logger.With("service", "blob-processor"),
-		chainSpec,
-		dablob.NewVerifier(blobProofVerifier, telemetrySink),
-		types.BlockBodyKZGOffset,
-		telemetrySink,
-	)
-
-	// Build the blockchain service.
-	chainService := blockchain.NewService[
-		*dastore.Store[types.BeaconBlockBody],
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-	](
-		storageBackend,
-		logger.With("service", "blockchain"),
-		chainSpec,
-		executionEngine,
-		localBuilder,
-		blobProcessor,
-		stateProcessor,
-		telemetrySink,
-		blockFeed,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		cfg.Validator.EnableOptimisticPayloadBuilds,
-	)
-
-	// Build the deposit service.
-	depositService := deposit.NewService[
-		types.BeaconBlockBody,
-		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
-		*depositdb.KVStore[*types.Deposit],
-		*types.ExecutionPayload,
-		event.Subscription,
-	](
-		logger.With("service", "deposit"),
-		math.U64(chainSpec.Eth1FollowDistance()),
-		engineClient,
-		telemetrySink,
-		storageBackend.DepositStore(nil),
-		beaconDepositContract,
-		blockFeed,
-	)
-
-	// Build the service registry.
-	svcRegistry := service.NewRegistry(
-		service.WithLogger(logger.With("service", "service-registry")),
-		service.WithService(validatorService),
-		service.WithService(chainService),
-		service.WithService(depositService),
-		service.WithService(engineClient),
-		service.WithService(version.NewReportingService(
-			logger,
-			telemetrySink,
-			sdkversion.Version,
-		)),
-		service.WithService(dbManagerService),
-	)
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
@@ -258,7 +125,7 @@ func ProvideRuntime(
 	](
 		chainSpec,
 		logger,
-		svcRegistry,
+		ServiceRegistry,
 		storageBackend,
 		telemetrySink,
 	)

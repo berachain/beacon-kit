@@ -81,6 +81,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideStateProcessor,
 				bkcomponents.ProvideValidatorService,
 				bkcomponents.ProvideBlobProcessor,
+				bkcomponents.ProvideStorageBackend,
 			),
 			depinject.Supply(
 				appOpts,
