@@ -176,7 +176,7 @@ func (sp *StateProcessor[
 	}
 
 	// Iterate until we are "caught up".
-	for stateSlot < slot {
+	for ; stateSlot < slot; stateSlot++ {
 		// Process the slot
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
@@ -193,8 +193,8 @@ func (sp *StateProcessor[
 				epochValidatorUpdates...,
 			)
 		}
-		stateSlot++
-		if err = st.SetSlot(stateSlot); err != nil {
+
+		if err = st.SetSlot(stateSlot + 1); err != nil {
 			return nil, err
 		}
 
