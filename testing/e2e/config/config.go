@@ -192,12 +192,12 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "reth",
-				Replicas: 3, //nolint:mnd // 2 replicas
+				Replicas: 2, //nolint:mnd // 2 replicas
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -230,7 +230,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -315,7 +315,7 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 				// "el-full-nethermind-0",
 				"el-full-reth-1",
 				"el-full-geth-2",
-				// "el-full-erigon-3",
+				"el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",
