@@ -76,6 +76,10 @@ func IsFatal(err error) bool {
 	// Otherwise check for our custom error.
 	var customErr *DetailedError
 	if errors.As(err, &customErr) {
+		if customErr == nil {
+			return false
+		}
+
 		// If the underlying error is nil, we
 		// return false.
 		if customErr.error == nil {

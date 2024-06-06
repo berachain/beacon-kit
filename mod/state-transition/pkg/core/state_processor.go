@@ -197,7 +197,6 @@ func (sp *StateProcessor[
 		if err = st.SetSlot(stateSlot + 1); err != nil {
 			return nil, err
 		}
-
 	}
 
 	return validatorUpdates, nil
