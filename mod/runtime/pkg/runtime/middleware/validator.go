@@ -245,10 +245,9 @@ func (h *ValidatorMiddleware[
 	if err = h.validatorService.ReceiveBlockAndBlobs(
 		ctx, blk, sidecars,
 	); errors.IsFatal(err) {
-		logger.Debug("rejecting proposal due to fatal error")
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		}, err
 	}
 
 	return &cmtabci.ProcessProposalResponse{

@@ -194,6 +194,8 @@ func (sp *StateProcessor[
 			)
 		}
 
+		// We update on the state because we need to
+		// update the state for calls within processSlot/Epoch().
 		if err = st.SetSlot(stateSlot + 1); err != nil {
 			return nil, err
 		}
