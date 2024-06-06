@@ -23,26 +23,16 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 type BeaconState = core.BeaconState[
@@ -68,24 +58,11 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	],
 ]
 
+// TODO: Make input struct
 // NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
 // services.
-//
-//nolint:funlen // bullish.
 func ProvideRuntime(
-	cfg *config.Config,
-	blobProofVerifier kzg.BlobProofVerifier,
 	chainSpec primitives.ChainSpec,
-	signer crypto.BLSSigner,
-	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
-	executionEngine *execution.Engine[*types.ExecutionPayload],
-	beaconDepositContract *deposit.WrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
-	],
-	localBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	],
-	blockFeed *event.FeedOf[events.Block[*types.BeaconBlock]],
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -94,18 +71,10 @@ func ProvideRuntime(
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
-	stateProcessor blockchain.StateProcessor[
-		*types.BeaconBlock,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*transition.Context,
-		*types.Deposit,
-	],
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
-	ServiceRegistry *service.Registry,
+	serviceRegistry *service.Registry,
 ) (*BeaconKitRuntime, error) {
-
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
 		*dastore.Store[types.BeaconBlockBody],
@@ -125,7 +94,7 @@ func ProvideRuntime(
 	](
 		chainSpec,
 		logger,
-		ServiceRegistry,
+		serviceRegistry,
 		storageBackend,
 		telemetrySink,
 	)

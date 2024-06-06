@@ -279,7 +279,7 @@ func ProvideDepositService(
 	)
 }
 
-// ==============================reporting=============================
+// ==============================reporting=============================.
 type ReportingServiceInput struct {
 	depinject.In
 	Logger        log.Logger

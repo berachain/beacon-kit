@@ -25,6 +25,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -58,6 +59,7 @@ func init() {
 	)
 }
 
+// TODO: DEPINJECT RUNTIME AND REMOVE UNNECESSARY FIELDS
 // DepInjectInput is the input for the dep inject framework.
 type DepInjectInput struct {
 	depinject.In
@@ -101,7 +103,15 @@ type DepInjectInput struct {
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	]
-	ValidatorService service.Basic
+	ValidatorService *validator.Service[
+		*types.BeaconBlock,
+		types.BeaconBlockBody,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
+		*types.ForkData,
+	]
+	ServiceRegistry *service.Registry
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -118,20 +128,11 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	}
 
 	runtime, err := components.ProvideRuntime(
-		in.BeaconConfig,
-		in.BlobVerifier,
 		in.ChainSpec,
-		in.Signer,
-		in.EngineClient,
-		in.ExecutionEngine,
-		in.BeaconDepositContract,
-		in.LocalBuilder,
-		in.BlockFeed,
 		in.StorageBackend,
-		in.StateProcessor,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
-		in.ValidatorService,
+		in.ServiceRegistry,
 	)
 	if err != nil {
 		return DepInjectOutput{}, err

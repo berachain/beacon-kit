@@ -123,9 +123,21 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideBlobProofVerifier,
 				components.ProvideBlockFeed,
 				components.ProvideStateProcessor,
-				components.ProvideValidatorService,
 				components.ProvideBlobProcessor,
 				components.ProvideStorageBackend,
+
+				components.ProvideAvailibilityStore,
+				components.ProvideDepositStore,
+				components.ProvidePruners,
+
+				// services
+				components.ProvideDBManager,
+				components.ProvideChainService,
+				components.ProvideValidatorService,
+				components.ProvideDepositService,
+				components.ProvideReportingService,
+
+				components.ProvideServiceRegistry,
 			),
 		),
 		&autoCliOpts,

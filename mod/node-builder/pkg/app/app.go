@@ -65,10 +65,8 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			dCfg,
 			depinject.Provide(
-				bkcomponents.ProvideAvailibilityStore,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideDepositStore,
 				bkcomponents.ProvideConfig,
 				bkcomponents.ProvideEngineClient,
 				bkcomponents.ProvideJWTSecret,
@@ -79,9 +77,20 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideLocalBuilder,
 				bkcomponents.ProvideBlockFeed,
 				bkcomponents.ProvideStateProcessor,
-				bkcomponents.ProvideValidatorService,
 				bkcomponents.ProvideBlobProcessor,
+				// storage
 				bkcomponents.ProvideStorageBackend,
+				bkcomponents.ProvideAvailibilityStore,
+				bkcomponents.ProvideDepositStore,
+				bkcomponents.ProvidePruners,
+				// services
+				bkcomponents.ProvideDBManager,
+				bkcomponents.ProvideChainService,
+				bkcomponents.ProvideValidatorService,
+				bkcomponents.ProvideDepositService,
+				bkcomponents.ProvideReportingService,
+				// registry
+				bkcomponents.ProvideServiceRegistry,
 			),
 			depinject.Supply(
 				appOpts,
