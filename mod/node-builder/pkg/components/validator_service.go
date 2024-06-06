@@ -43,6 +43,10 @@ type ValidatorServiceInput struct {
 	LocalBuilder *payloadbuilder.PayloadBuilder[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
+	BlobProcessor *dablob.Processor[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+	]
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -54,11 +58,14 @@ func ProvideValidatorService(
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
+		*types.ForkData,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
 		in.StorageBackend,
+		in.BlobProcessor,
 		in.StateProcessor,
 		in.Signer,
 		dablob.NewSidecarFactory[
@@ -70,7 +77,7 @@ func ProvideValidatorService(
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
+		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

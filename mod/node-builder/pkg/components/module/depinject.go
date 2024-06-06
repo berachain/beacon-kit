@@ -82,10 +82,10 @@ type DepInjectInput struct {
 		*types.Deposit,
 		types.WithdrawalCredentials,
 	]
-	BlobProofVerifier kzg.BlobProofVerifier
-	Signer            crypto.BLSSigner
-	TelemetrySink     *metrics.TelemetrySink
-	LocalBuilder      *payloadbuilder.PayloadBuilder[
+	BlobVerifier  kzg.BlobProofVerifier
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
+	LocalBuilder  *payloadbuilder.PayloadBuilder[
 		components.BeaconState,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
@@ -145,7 +145,6 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.ExecutionEngine,
 		in.BeaconDepositContract,
 		in.LocalBuilder,
-		in.BlobProofVerifier,
 		in.BlockFeed,
 		storageBackend,
 		in.StateProcessor,

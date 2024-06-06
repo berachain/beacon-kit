@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -93,7 +92,6 @@ func ProvideRuntime(
 	localBuilder *payloadbuilder.PayloadBuilder[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	],
-	blobProofVerifier kzg.BlobProofVerifier,
 	blockFeed *event.FeedOf[events.Block[*types.BeaconBlock]],
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
@@ -131,7 +129,7 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
 		blockFeed,
-		deposit.GetPruneRangeFn[
+		deposit.BuildPruneRangeFn[
 			types.BeaconBlockBody,
 			*types.BeaconBlock,
 			events.Block[*types.BeaconBlock],
@@ -154,7 +152,7 @@ func ProvideRuntime(
 			avs.(*filedb.RangeDB),
 			manager.AvailabilityPrunerName,
 			blockFeed,
-			dastore.GetPruneRangeFn[
+			dastore.BuildPruneRangeFn[
 				*types.BeaconBlock,
 				events.Block[*types.BeaconBlock],
 			](chainSpec),
@@ -183,37 +181,6 @@ func ProvideRuntime(
 		chainSpec,
 		dablob.NewVerifier(blobProofVerifier, telemetrySink),
 		types.BlockBodyKZGOffset,
-		telemetrySink,
-	)
-
-	// Build the builder service.
-	validatorService := validator.NewService[
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-		*types.ForkData,
-	](
-		&cfg.Validator,
-		logger.With("service", "validator"),
-		chainSpec,
-		storageBackend,
-		blobProcessor,
-		stateProcessor,
-		signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			types.BeaconBlockBody,
-		](
-			chainSpec,
-			types.KZGPositionDeneb,
-			telemetrySink,
-		),
-		localBuilder,
-		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
-			localBuilder,
-		},
 		telemetrySink,
 	)
 

@@ -124,6 +124,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideBlockFeed,
 				components.ProvideStateProcessor,
 				components.ProvideValidatorService,
+				components.ProvideBlobProcessor,
 			),
 		),
 		&autoCliOpts,
