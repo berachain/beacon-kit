@@ -161,12 +161,14 @@ func (h *ValidatorMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
+		startTime     = time.Now()
 		sidecarsBz    []byte
 		beaconBlockBz []byte
 		logger        = ctx.Logger().With(
 			"service", "prepare-proposal",
 		)
 	)
+	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
