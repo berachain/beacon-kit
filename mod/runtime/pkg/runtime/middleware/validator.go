@@ -223,7 +223,7 @@ func (h *ValidatorMiddleware[
 		// TODO: Handle better.
 		blk = blk.Empty(version.Deneb)
 	}
-	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
+	if err = h.validatorService.ReceiveBeaconBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
