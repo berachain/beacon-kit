@@ -344,7 +344,7 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// ReceiveBeaconBlock verifies the state root of an incoming block
+// VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
 //nolint:gocognit // todo fix.
@@ -354,7 +354,7 @@ func (s *Service[
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
-]) ReceiveBeaconBlock(
+]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
