@@ -170,11 +170,6 @@ func (h *ValidatorMiddleware[
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	if req.Height > 10 && time.Now().UnixMilli()%2 == 0 {
-		logger.Info("breaking in prepare proposal due to random chance")
-		return &cmtabci.PrepareProposalResponse{}, nil
-	}
-
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
