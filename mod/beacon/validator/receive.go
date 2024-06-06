@@ -49,7 +49,6 @@ func (s *Service[
 		s.logger.Error(
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
-
 		return nil
 	}
 
@@ -122,7 +121,7 @@ func (s *Service[
 	}
 
 	// If there are no blobs to verify, return early.
-	if sidecars.Len() == 0 {
+	if sidecars.IsNil() || sidecars.Len() == 0 {
 		s.logger.Info(
 			"no blob sidecars to verify, skipping verifier 🧢 ",
 			"slot",

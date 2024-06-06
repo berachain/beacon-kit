@@ -97,7 +97,9 @@ func (w *BeaconBlock) NewFromSSZ(
 
 // IsNil checks if the beacon block is nil.
 func (w *BeaconBlock) IsNil() bool {
-	return w.RawBeaconBlock == nil || w.RawBeaconBlock.IsNil()
+	return w == nil ||
+		w.RawBeaconBlock == nil ||
+		w.RawBeaconBlock.IsNil()
 }
 
 // BeaconBlockDeneb represents a block in the beacon chain during

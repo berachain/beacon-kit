@@ -157,6 +157,8 @@ type BlobProcessor[
 type BlobSidecars interface {
 	// BlobSidecars must be ssz.Marshallable.
 	ssz.Marshallable
+	// IsNil checks if the blob sidecars is nil.
+	IsNil() bool
 	// Len returns the length of the blob sidecars.
 	Len() int
 }
