@@ -197,10 +197,12 @@ func (sp *StateProcessor[
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) ProcessSlots(st BeaconStateT, slot math.U64) ([]*transition.ValidatorUpdate, error) {
+]) ProcessSlots(
+	st BeaconStateT, slot math.U64,
+) ([]*transition.ValidatorUpdate, error) {
 	var (
 		validatorUpdates      []*transition.ValidatorUpdate
-		epochValidatorUpdates = make([]*transition.ValidatorUpdate, 0)
+		epochValidatorUpdates []*transition.ValidatorUpdate
 	)
 
 	stateSlot, err := st.GetSlot()
@@ -211,7 +213,7 @@ func (sp *StateProcessor[
 	// Iterate until we are "caught up".
 	for stateSlot < slot {
 		// Process the slot
-		if err := sp.processSlot(st); err != nil {
+		if err = sp.processSlot(st); err != nil {
 			return nil, err
 		}
 
@@ -222,9 +224,10 @@ func (sp *StateProcessor[
 			}
 			validatorUpdates = append(
 				validatorUpdates,
-				epochValidatorUpdates...)
+				epochValidatorUpdates...,
+			)
 		}
-		stateSlot += 1
+		stateSlot++
 	}
 
 	return validatorUpdates, st.SetSlot(stateSlot)
