@@ -130,8 +130,7 @@ func (s *Service[
 		s.logger.
 			Error(
 				"failed to send forkchoice update with attributes",
-				"error",
-				err,
+				"error", err,
 			)
 	}
 
