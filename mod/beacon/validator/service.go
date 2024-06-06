@@ -44,6 +44,16 @@ type Service[
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ForkDataT interface {
+		New(
+			primitives.Version,
+			primitives.Root,
+		) ForkDataT
+		ComputeRandaoSigningRoot(
+			primitives.DomainType,
+			math.Epoch,
+		) (primitives.Root, error)
+	},
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -87,6 +97,16 @@ func NewService[
 	BeaconStateT BeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ForkDataT interface {
+		New(
+			primitives.Version,
+			primitives.Root,
+		) ForkDataT
+		ComputeRandaoSigningRoot(
+			primitives.DomainType,
+			math.Epoch,
+		) (primitives.Root, error)
+	},
 ](
 	cfg *Config,
 	logger log.Logger[any],
@@ -101,15 +121,12 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
 ) *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT,
+		BlobSidecarsT, DepositStoreT, ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -127,22 +144,16 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Start(
 	context.Context,
 ) error {
@@ -155,22 +166,16 @@ func (s *Service[
 
 // Status returns the status of the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
@@ -180,11 +185,8 @@ func (s *Service[
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -348,11 +350,8 @@ func (s *Service[
 //
 //nolint:gocognit // todo fix.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,

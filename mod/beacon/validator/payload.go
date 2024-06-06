@@ -32,11 +32,8 @@ import (
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -63,11 +60,8 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
@@ -122,7 +116,7 @@ func (s *Service[
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -149,7 +143,7 @@ func (s *Service[
 // information from it.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -226,7 +220,7 @@ func (s *Service[
 // building for the next slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -246,7 +240,7 @@ func (s *Service[
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

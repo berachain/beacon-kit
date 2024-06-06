@@ -155,6 +155,7 @@ func NewBeaconKitRuntime[
 			],
 			BlobSidecarsT,
 			DepositStoreT,
+			*types.ForkData,
 		]
 	)
 
