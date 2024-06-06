@@ -67,10 +67,10 @@ func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
 func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = 3000 * time.Millisecond
+	consensus.TimeoutPropose = 1750 * time.Millisecond
 	consensus.TimeoutPrecommit = 1000 * time.Millisecond
 	consensus.TimeoutPrevote = 1000 * time.Millisecond
-	consensus.TimeoutCommit = 1000 * time.Millisecond
+	consensus.TimeoutCommit = 1250 * time.Millisecond
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.DBBackend = "pebbledb"
@@ -79,6 +79,13 @@ func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
 	cfg.TxIndex.Indexer = "null"
 	cfg.Mempool.Type = "nop"
 	cfg.Mempool.Size = 0
+	cfg.Mempool.Recheck = false
+	cfg.Mempool.Broadcast = false
 	cfg.Storage.DiscardABCIResponses = true
+	cfg.Storage.DiscardABCIResponses = true
+	cfg.Instrumentation.Prometheus = true
+
+	cfg.P2P.MaxNumInboundPeers = 100
+	cfg.P2P.MaxNumOutboundPeers = 40
 	return cfg
 }
