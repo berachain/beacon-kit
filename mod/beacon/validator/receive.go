@@ -47,7 +47,7 @@ func (s *Service[
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Error(
-			"aborting block verification on nil beacon block ⛔️ ",
+			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
@@ -120,7 +120,7 @@ func (s *Service[
 ) error {
 	if blk.IsNil() {
 		s.logger.Error(
-			"aborting blob verification on nil beacon block ⛔️ ",
+			"aborting blob verification - beacon block not found in proposal 🚫 ",
 		)
 		return ErrNilBlk
 	}
