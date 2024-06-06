@@ -26,8 +26,8 @@ import (
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	beacon "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module"
-	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
+	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
+	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )

@@ -18,41 +18,44 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package nodebuilder
 
 import (
-	"log/slog"
-	"os"
+	"io"
+	"reflect"
 
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
+// NodeBuilder is a struct that holds the.
+func (nb *NodeBuilder[T]) AppCreator(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) T {
+	// Check for goleveldb cause bad project.
+	if appOpts.Get("app-db-backend") == "goleveldb" {
+		panic("goleveldb is not supported")
 	}
 
-	// Build the node using the node-core.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
-
-	return nb.RunNode()
-}
-
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+	app := *app.NewBeaconKitApp(
+		logger, db, traceStore, true,
+		appOpts,
+		nb.appInfo.DepInjectConfig,
+		nb.chainSpec,
+		append(
+			server.DefaultBaseappOptions(appOpts),
+			func(bApp *baseapp.BaseApp) {
+				bApp.SetParamStore(comet.NewConsensusParamsStore(nb.chainSpec))
+			})...,
+	)
+	return reflect.ValueOf(app).Convert(
+		reflect.TypeOf((*T)(nil)).Elem()).Interface().(T)
 }

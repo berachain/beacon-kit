@@ -18,41 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package components
 
 import (
-	"log/slog"
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
-	"go.uber.org/automaxprocs/maxprocs"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
-
-	// Build the node using the node-core.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
-
-	return nb.RunNode()
+// BlobProofVerifierInput is the input for the
+// dep inject framework.
+type BlobProofVerifierInput struct {
+	depinject.In
+	AppOpts          servertypes.AppOptions
+	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
-	}
+// ProvideBlobProofVerifier is a function that provides the module to the
+// application.
+func ProvideBlobProofVerifier(
+	in BlobProofVerifierInput,
+) (kzg.BlobProofVerifier, error) {
+	return kzg.NewBlobProofVerifier(
+		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
+		in.JSONTrustedSetup,
+	)
 }
