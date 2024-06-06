@@ -27,5 +27,8 @@ var (
 	ErrInvalidProof = errors.New("invalid proof")
 
 	// ErrCGONotEnabled is returned when cgo is not enabled.
-	ErrCGONotEnabled = errors.New("cgo is not enabled")
+	ErrCGONotEnabled = errors.New(
+		"github.com/ethereum/c-kzg-4844 " +
+			"requires an executable built with CGO_ENABLED=1",
+	)
 )
