@@ -225,6 +225,13 @@ func (h *ValidatorMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	if req.Height > 10 && time.Now().UnixMilli()%4 == 0 {
+		logger.Info("rejecting proposal due to random chance")
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
+	}
+
 	args := []any{"beacon_block", true, "blob_sidecars", true}
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
