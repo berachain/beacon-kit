@@ -40,7 +40,7 @@ func (s *Service[
 
 	// Force a sync of the startup head if we haven't done so already.
 	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// TODO: This is a super hacky. It sh ould be handled better elsewhere,
 	// ideally via some broader sync service.
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 

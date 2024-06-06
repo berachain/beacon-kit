@@ -48,7 +48,7 @@ start-reth: ## start an ephemeral `reth` node
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
 	rm -rf ${ETH_DATA_DIR}
@@ -86,7 +86,8 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--bootnodes enode://1c641f22b7bec7b6a9129f81cd23086020f43bf7aa53dbdbfc8bdcbdd8a17da95ac453cfa72608ac57febe58b726bcc9abc0c2b84aced113e75635bea848295c@peer.bartio.bera.bh.rocks:30303
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
 	rm -rf ${ETH_DATA_DIR}

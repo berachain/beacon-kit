@@ -43,4 +43,10 @@ var (
 	ErrBadBlockProduced = errors.New(
 		"proposer has produced a bad block, RIP walrus",
 	)
+
+	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
+	// received on a VALID engine response.
+	ErrNilPayloadOnValidResponse = errors.New(
+		"received nil payload ID on VALID engine response",
+	)
 )
