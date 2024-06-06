@@ -198,7 +198,7 @@ func defaultValidators() NodeSet {
 			{
 				ElType:   "erigon",
 				Replicas: 1,
-				KZGImpl:  "ethereum/c-kzg-4844",
+				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "besu",
@@ -216,12 +216,12 @@ func defaultFullNodes() NodeSet {
 			{
 				ElType:   "nethermind",
 				Replicas: 1,
-				KZGImpl:  "ethereum/c-kzg-4844",
+				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
 				Replicas: 1,
-				KZGImpl:  "ethereum/c-kzg-4844",
+				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
