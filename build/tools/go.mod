@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/build/tools
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/bazelbuild/buildtools v0.0.0-20240422193413-1429e15ae755
