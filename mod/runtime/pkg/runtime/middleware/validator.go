@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -160,19 +161,23 @@ func (h *ValidatorMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		logger = ctx.Logger().With("service", "prepare-proposal")
+		sidecarsBz    []byte
+		beaconBlockBz []byte
+		logger        = ctx.Logger().With(
+			"service", "prepare-proposal",
+		)
 	)
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk.IsNil() {
-		logger.Error("failed to build block", "error", err, "block", blk)
+		logger.Error(
+			"failed to assemble proposal", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
 	// "Publish" the blobs and the beacon block.
-	var sidecarsBz, beaconBlockBz []byte
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var localErr error
@@ -210,27 +215,30 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	startTime := time.Now()
+	var (
+		startTime = time.Now()
+		logger    = ctx.Logger().With(
+			"service", "prepare-proposal",
+		)
+	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	args := []any{"beacon_block", true, "blob_sidecars", true}
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		// do nothing
+		args[1] = false
 	}
 
 	sidecars, err := h.blobGossiper.Request(ctx, req)
 	if err != nil {
-		// do nothing
+		args[3] = false
 	}
 
-	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
-		//nolint:nilerr // err is not nil, but we want to return nil.
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
-	}
-
-	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, sidecars); err != nil {
+	logger.Info("received proposal with", args...)
+	if err = h.validatorService.ReceiveBlockAndBlobs(
+		ctx, blk, sidecars,
+	); errors.IsFatal(err) {
+		logger.Debug("rejecting proposal due to fatal error")
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, nil

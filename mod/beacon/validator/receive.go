@@ -22,9 +22,42 @@ package validator
 
 import (
 	"context"
+	"sync"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// ReceiveBlockAndBlobs receives a block and blobs from the
+// network and processes them.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) ReceiveBlockAndBlobs(
+	ctx context.Context,
+	blk BeaconBlockT,
+	blobs BlobSidecarsT,
+) error {
+	var (
+		blockErr, blobsErr error
+		wg                 sync.WaitGroup
+	)
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		blockErr = s.VerifyIncomingBlock(ctx, blk)
+	}()
+
+	go func() {
+		defer wg.Done()
+		blobsErr = s.VerifyIncomingBlobs(ctx, blk, blobs)
+	}()
+
+	wg.Wait()
+
+	return errors.JoinFatal(blockErr, blobsErr)
+}
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
@@ -49,7 +82,7 @@ func (s *Service[
 		s.logger.Error(
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
-		return nil
+		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	s.logger.Info(
@@ -117,7 +150,7 @@ func (s *Service[
 		s.logger.Error(
 			"aborting blob verification - beacon block not found in proposal 🚫 ",
 		)
-		return nil
+		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	// If there are no blobs to verify, return early.
