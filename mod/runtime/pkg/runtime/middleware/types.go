@@ -73,12 +73,12 @@ type ValidatorService[
 	)
 	// VerifyIncomingBlock verifies the incoming block and returns an error if
 	// the block is invalid.
-	ReceiveBeaconBlock(
+	VerifyIncomingBlock(
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-	// ReceiveBlobs handles receiving of incoming blobs.
-	ReceiveBlobs(
+	// VerifyIncomingBlobs handles receiving of incoming blobs.
+	VerifyIncomingBlobs(
 		ctx context.Context,
 		blk BeaconBlockT,
 		blobs BlobSidecarsT,

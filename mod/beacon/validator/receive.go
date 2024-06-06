@@ -22,90 +22,12 @@ package validator
 
 import (
 	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
-
-// ReceiveBeaconBlock verifies the state root of an incoming block
-// and logs the process.
-func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) ReceiveBeaconBlock(
-	ctx context.Context,
-	blk BeaconBlockT,
-) error {
-	// Grab a copy of the state to verify the incoming block.
-	st := s.bsb.StateFromContext(ctx)
-
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
-
-	// If the block is nil or a nil pointer, exit early.
-	if blk.IsNil() {
-		s.logger.Error(
-			"aborting block verification on nil block ⛔️ ",
-		)
-
-		go s.handleRebuildPayloadForRejectedBlock(ctx, st)
-		return ErrNilBlk
-	}
-
-	s.logger.Info(
-		"received incoming beacon block 📫 ",
-		"state_root", blk.GetStateRoot(),
-	)
-
-	// We purposefully make a copy of the BeaconState in orer
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	stCopy := st.Copy()
-
-	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(
-		ctx, stCopy, blk,
-	); err != nil {
-		// TODO: this is expensive because we are not caching the
-		// previous result of HashTreeRoot().
-		localStateRoot, htrErr := st.HashTreeRoot()
-		if htrErr != nil {
-			return htrErr
-		}
-
-		s.logger.Error(
-			"rejecting incoming block ❌ ",
-			"block_state_root",
-			blk.GetStateRoot(),
-			"local_state_root",
-			primitives.Root(localStateRoot),
-			"error",
-			err,
-		)
-
-		go s.handleRebuildPayloadForRejectedBlock(ctx, st)
-		return err
-	}
-
-	s.logger.Info(
-		"state root verification succeeded - accepting incoming block 🏎️ ",
-		"state_root", blk.GetStateRoot(),
-	)
-
-	go s.handleOptimisticPayloadBuild(ctx, st, blk)
-	return nil
-}
 
 // ReceiveBlobs receives blobs from the network and processes them.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) ReceiveBlobs(
 	_ context.Context,
 	blk BeaconBlockT,

@@ -21,7 +21,6 @@
 package validator
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -31,11 +30,8 @@ import (
 
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) getEmptyBeaconBlock(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -74,18 +70,19 @@ func (s *Service[
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
+	var forkData ForkDataT
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
 
 	epoch := s.chainSpec.SlotToEpoch(slot)
-	signingRoot, err := types.NewForkData(
+	signingRoot, err := forkData.New(
 		version.FromUint32[primitives.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,

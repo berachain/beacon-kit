@@ -227,7 +227,7 @@ func (h *ValidatorMiddleware[
 
 	// Receive the BeaconBlock.
 	g.Go(func() error {
-		return h.validatorService.ReceiveBeaconBlock(gCtx, blk)
+		return h.validatorService.VerifyIncomingBlock(gCtx, blk)
 	})
 
 	// Receive the blobs.
@@ -236,7 +236,7 @@ func (h *ValidatorMiddleware[
 		if localErr != nil {
 			return localErr
 		}
-		return h.validatorService.ReceiveBlobs(gCtx, blk, blobs)
+		return h.validatorService.VerifyIncomingBlobs(gCtx, blk, blobs)
 	})
 
 	resp := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT

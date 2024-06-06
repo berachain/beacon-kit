@@ -229,6 +229,8 @@ func ProvideRuntime(
 		types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
+		*types.ForkData,
 	](
 		&cfg.Validator,
 		logger.With("service", "validator"),
@@ -246,7 +248,7 @@ func ProvideRuntime(
 			telemetrySink,
 		),
 		localBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
+		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
 			localBuilder,
 		},
 		telemetrySink,

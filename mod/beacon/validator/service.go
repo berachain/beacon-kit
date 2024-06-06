@@ -41,9 +41,23 @@ type Service[
 	BeaconBlockBodyT BeaconBlockBody[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
 	],
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ForkDataT interface {
+		New(
+			primitives.Version,
+			primitives.Root,
+		) ForkDataT
+		ComputeRandaoSigningRoot(
+			primitives.DomainType,
+			math.Epoch,
+		) (primitives.Root, error)
+	},
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -71,10 +85,10 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT]
+	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
@@ -86,9 +100,23 @@ func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ForkDataT interface {
+		New(
+			primitives.Version,
+			primitives.Root,
+		) ForkDataT
+		ComputeRandaoSigningRoot(
+			primitives.DomainType,
+			math.Epoch,
+		) (primitives.Root, error)
+	},
 ](
 	cfg *Config,
 	logger log.Logger[any],
@@ -100,19 +128,16 @@ func NewService[
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
+	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
 	ts TelemetrySink,
 ) *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT,
+		BlobSidecarsT, DepositStoreT, ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -131,22 +156,16 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Start(
 	context.Context,
 ) error {
@@ -159,22 +178,16 @@ func (s *Service[
 
 // Status returns the status of the service.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) WaitForHealthy(
 	context.Context,
 ) {
@@ -184,11 +197,8 @@ func (s *Service[
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) RequestBestBlock(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -345,4 +355,85 @@ func (s *Service[
 	)
 
 	return blk, sidecars, nil
+}
+
+// VerifyIncomingBlock verifies the state root of an incoming block
+// and logs the process.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) VerifyIncomingBlock(
+	ctx context.Context,
+	blk BeaconBlockT,
+) error {
+	// Grab a copy of the state to verify the incoming block.
+	preState := s.bsb.StateFromContext(ctx)
+
+	// Force a sync of the startup head if we haven't done so already.
+	//
+	// TODO: This is a super hacky. It should be handled better elsewhere,
+	// ideally via some broader sync service.
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+
+	// If the block is nil or a nil pointer, exit early.
+	if blk.IsNil() {
+		s.logger.Error(
+			"aborting block verification on nil block ⛔️ ",
+		)
+
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+		}
+
+		return ErrNilBlk
+	}
+
+	s.logger.Info(
+		"received incoming beacon block 📫 ",
+		"state_root", blk.GetStateRoot(),
+	)
+
+	// We purposefully make a copy of the BeaconState in orer
+	// to avoid modifying the underlying state, for the event in which
+	// we have to rebuild a payload for this slot again, if we do not agree
+	// with the incoming block.
+	postState := preState.Copy()
+
+	// Verify the state root of the incoming block.
+	if err := s.verifyStateRoot(
+		ctx, postState, blk,
+	); err != nil {
+		// TODO: this is expensive because we are not caching the
+		// previous result of HashTreeRoot().
+		localStateRoot, htrErr := preState.HashTreeRoot()
+		if htrErr != nil {
+			return htrErr
+		}
+
+		s.logger.Error(
+			"rejecting incoming block ❌ ",
+			"block_state_root",
+			blk.GetStateRoot(),
+			"local_state_root",
+			primitives.Root(localStateRoot),
+			"error",
+			err,
+		)
+
+		if s.localPayloadBuilder.Enabled() &&
+			s.cfg.EnableOptimisticPayloadBuilds {
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+		}
+
+		return err
+	}
+
+	s.logger.Info(
+		"state root verification succeeded - accepting incoming block 🏎️ ",
+		"state_root", blk.GetStateRoot(),
+	)
+
+	go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+	return nil
 }
