@@ -77,12 +77,6 @@ type ValidatorService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-	// VerifyIncomingBlobs handles receiving of incoming blobs.
-	VerifyIncomingBlobs(
-		ctx context.Context,
-		blk BeaconBlockT,
-		blobs BlobSidecarsT,
-	) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
