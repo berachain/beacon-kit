@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/state-transition
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
