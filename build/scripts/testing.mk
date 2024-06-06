@@ -161,7 +161,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--networkid 80086 \
+	--networkid 80084 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon
 
