@@ -75,9 +75,9 @@ func (pb *PayloadBuilder[
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1BlockHash,  // some 2954 of some description
-				SafeBlockHash:      finalEth1BlockHash, // 2953
-				FinalizedBlockHash: finalEth1BlockHash, // 2953
+				HeadBlockHash:      headEth1BlockHash,
+				SafeBlockHash:      finalEth1BlockHash,
+				FinalizedBlockHash: finalEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
