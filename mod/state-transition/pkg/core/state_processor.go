@@ -220,7 +220,9 @@ func (sp *StateProcessor[
 			if epochValidatorUpdates, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
-			validatorUpdates = append(validatorUpdates, epochValidatorUpdates...)
+			validatorUpdates = append(
+				validatorUpdates,
+				epochValidatorUpdates...)
 		}
 		stateSlot += 1
 	}
