@@ -35,7 +35,7 @@ on:
 env:
   REPO_NAME: ${{ github.repository_owner }}/beacon-kit
   IMAGE_NAME: ${{ github.repository_owner }}/beacon-kit
-  
+  GH_TOKEN: ${{ secrets.DEV_PAT }}
 
 jobs:
   # Job to extract version
