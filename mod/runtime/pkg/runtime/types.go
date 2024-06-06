@@ -68,6 +68,7 @@ type StorageBackend[
 // BlobSidecars is an interface that represents the sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
+	IsNil() bool
 	Len() int
 }
 
