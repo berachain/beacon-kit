@@ -24,10 +24,12 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -40,6 +42,8 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
@@ -86,7 +90,15 @@ type DepInjectInput struct {
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 	]
-	BlockFeed *event.FeedOf[events.Block[*types.BeaconBlock]]
+	BlockFeed      *event.FeedOf[events.Block[*types.BeaconBlock]]
+	StateProcessor blockchain.StateProcessor[
+		*types.BeaconBlock,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*transition.Context,
+		*types.Deposit,
+	]
+	ValidatorService service.Basic
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -135,8 +147,10 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.BlobProofVerifier,
 		in.BlockFeed,
 		storageBackend,
+		in.StateProcessor,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
+		in.ValidatorService,
 	)
 	if err != nil {
 		return DepInjectOutput{}, err

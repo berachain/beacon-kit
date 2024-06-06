@@ -78,6 +78,8 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideLocalBuilder,
 				bkcomponents.ProvideBlobProofVerifier,
 				bkcomponents.ProvideBlockFeed,
+				bkcomponents.ProvideStateProcessor,
+				bkcomponents.ProvideValidatorService,
 			),
 			depinject.Supply(
 				appOpts,

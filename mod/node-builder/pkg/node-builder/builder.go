@@ -120,6 +120,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideLocalBuilder,
 				components.ProvideBlobProofVerifier,
 				components.ProvideBlockFeed,
+				components.ProvideStateProcessor,
+				components.ProvideValidatorService,
 			),
 		),
 		&autoCliOpts,

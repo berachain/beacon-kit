@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -102,57 +101,17 @@ func ProvideRuntime(
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
-	telemetrySink *metrics.TelemetrySink,
-	logger log.Logger,
-) (*BeaconKitRuntime, error) {
-	stateProcessor := core.NewStateProcessor[
+	stateProcessor blockchain.StateProcessor[
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*types.Validator,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
-	](
-		chainSpec,
-		executionEngine,
-		signer,
-	)
-
-	// Build the builder service.
-	validatorService := validator.NewService[
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-	](
-		&cfg.Validator,
-		logger.With("service", "validator"),
-		chainSpec,
-		storageBackend,
-		stateProcessor,
-		signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			types.BeaconBlockBody,
-		](
-			chainSpec,
-			types.KZGPositionDeneb,
-			telemetrySink,
-		),
-		localBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
-			localBuilder,
-		},
-		telemetrySink,
-	)
+	],
+	telemetrySink *metrics.TelemetrySink,
+	logger log.Logger,
+	validatorService service.Basic,
+) (*BeaconKitRuntime, error) {
 
 	// slice of pruners to pass to the DBManager.
 	pruners := []*pruner.Pruner[
@@ -160,7 +119,7 @@ func ProvideRuntime(
 		events.Block[*types.BeaconBlock],
 		event.Subscription]{}
 
-	// Build the deposit pruner.\
+	// Build the deposit pruner.
 	depositPruner := pruner.NewPruner[
 		*types.BeaconBlock,
 		events.Block[*types.BeaconBlock],

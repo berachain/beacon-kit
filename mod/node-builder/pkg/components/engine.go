@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
-// EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+// EngineClientInput is the input for the EngineClient.
+type EngineClientInput struct {
 	depinject.In
 	// ChainSpec is the chain spec.
 	ChainSpec primitives.ChainSpec
@@ -53,7 +53,7 @@ type EngineClientInputs struct {
 
 // ProvideEngineClient provides the engine client to the depinject framework.
 func ProvideEngineClient(
-	in EngineClientInputs,
+	in EngineClientInput,
 ) *engineclient.EngineClient[*types.ExecutionPayload] {
 	return engineclient.New[*types.ExecutionPayload](
 		&in.Config.Engine,
