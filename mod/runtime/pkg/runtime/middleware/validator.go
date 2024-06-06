@@ -177,10 +177,10 @@ func (h *ValidatorMiddleware[
 
 	// "Publish" the blobs and the beacon block.
 	var sidecarsBz, beaconBlockBz []byte
-	g, gCtx := errgroup.WithContext(ctx)
+	g, _ := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
+		sidecarsBz, localErr = h.blobGossiper.Publish(ctx, blobs)
 		if localErr != nil {
 			logger.Error("failed to publish blobs", "error", err)
 		}
@@ -189,7 +189,7 @@ func (h *ValidatorMiddleware[
 
 	g.Go(func() error {
 		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
+		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(ctx, blk)
 		if localErr != nil {
 			logger.Error("failed to publish beacon block", "error", err)
 		}
@@ -231,7 +231,8 @@ func (h *ValidatorMiddleware[
 
 	// Receive the BeaconBlock.
 	g.Go(func() error {
-		return h.validatorService.VerifyIncomingBlock(gCtx, blk)
+		// TODO: figure out why gCtx is getting instantly cancelled here.
+		return h.validatorService.VerifyIncomingBlock(ctx, blk)
 	})
 
 	// Receive the blobs.
