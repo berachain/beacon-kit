@@ -80,7 +80,7 @@ func (s *Service[
 
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
-		s.logger.Error(
+		s.logger.Warn(
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
 		return errors.WrapNonFatal(ErrNilBlk)
@@ -148,7 +148,7 @@ func (s *Service[
 	sidecars BlobSidecarsT,
 ) error {
 	if blk.IsNil() {
-		s.logger.Error(
+		s.logger.Warn(
 			"aborting blob verification - beacon block not found in proposal 🚫 ",
 		)
 		return errors.WrapNonFatal(ErrNilBlk)
