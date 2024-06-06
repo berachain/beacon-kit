@@ -135,7 +135,6 @@ func (s *Service[
 		return nil
 	}
 
-	// Verify the blobs and ensure they match the local state.
 	s.logger.Info(
 		"received incoming blob sidecars 🚔 ",
 		"state_root", blk.GetStateRoot(),

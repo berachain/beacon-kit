@@ -77,13 +77,9 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {
-	var (
-		numSidecars = math.U64(sidecars.Len())
-		startTime   = time.Now()
-	)
-
+	startTime := time.Now()
 	defer sp.metrics.measureVerifySidecarsDuration(
-		startTime, numSidecars,
+		startTime, math.U64(sidecars.Len()),
 	)
 
 	return sp.verifier.VerifyBlobs(
@@ -102,5 +98,6 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	defer sp.metrics.measureProcessBlobsDuration(
 		startTime, math.U64(sidecars.Len()),
 	)
+
 	return avs.Persist(slot, sidecars)
 }
