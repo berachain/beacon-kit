@@ -47,11 +47,10 @@ func (s *Service[
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Error(
-			"aborting block verification on nil block ⛔️ ",
+			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
+		if s.shouldBuildOptimisticPayloads() {
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
@@ -81,7 +80,7 @@ func (s *Service[
 		}
 
 		s.logger.Error(
-			"rejecting incoming block ❌ ",
+			"rejecting incoming beacon block ❌ ",
 			"block_state_root",
 			blk.GetStateRoot(),
 			"local_state_root",
@@ -90,8 +89,7 @@ func (s *Service[
 			err,
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
+		if s.shouldBuildOptimisticPayloads() {
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
@@ -99,10 +97,14 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"state root verification succeeded - accepting incoming block 🏎️ ",
-		"state_root", blk.GetStateRoot(),
+		"state root verification succeeded - accepting incoming beacon block 🏎️ ",
+		"state_root",
+		blk.GetStateRoot(),
 	)
 
-	go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+	if s.shouldBuildOptimisticPayloads() {
+		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+	}
+
 	return nil
 }
