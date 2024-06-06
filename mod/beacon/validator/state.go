@@ -27,45 +27,8 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
-
-// prepareStateForBuilding ensures that the state is at the requested slot
-// before building a block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) prepareStateForBuilding(
-	st BeaconStateT,
-	requestedSlot math.Slot,
-) error {
-	// Get the current state slot.
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	for {
-		slotDifference := requestedSlot - stateSlot
-		if slotDifference == 0 {
-			break
-		}
-		// If our BeaconState is not up to date, we need to process
-		// a slot to get it up to date.
-		if err := s.stateProcessor.ProcessSlot(st); err != nil {
-			return err
-		}
-
-		// Request the slot again, it should've been incremented by 1.
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[

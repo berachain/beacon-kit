@@ -68,7 +68,7 @@ func (s *Service[
 
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
-	if err := s.prepareStateForBuilding(st, requestedSlot); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
 		return blk, sidecars, err
 	}
 

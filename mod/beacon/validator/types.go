@@ -222,9 +222,9 @@ type StateProcessor[
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.
-	ProcessSlot(
-		st BeaconStateT,
-	) error
+	ProcessSlots(
+		st BeaconStateT, slot math.Slot,
+	) ([]*transition.ValidatorUpdate, error)
 
 	// Transition performs the core state transition.
 	Transition(

@@ -211,7 +211,7 @@ func (sp *StateProcessor[
 	// Iterate until we are "caught up".
 	for stateSlot < slot {
 		// Process the slot
-		if err := sp.ProcessSlot(st); err != nil {
+		if err := sp.processSlot(st); err != nil {
 			return nil, err
 		}
 
@@ -236,7 +236,7 @@ func (sp *StateProcessor[
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) ProcessSlot(
+]) processSlot(
 	st BeaconStateT,
 ) error {
 	stateSlot, err := st.GetSlot()
