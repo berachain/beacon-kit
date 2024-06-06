@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/engine-primitives
 
-go 1.22.3
+go 1.22.4
 
 replace (
 	// TODO: DECOUPLE
