@@ -128,6 +128,7 @@ func (h *FinalizeBlockMiddleware[
 			math.Slot(req.Height),
 		))
 	if err != nil {
+		//nolint:nilerr // err is not nil, but we want to return nil.
 		return nil
 	}
 
