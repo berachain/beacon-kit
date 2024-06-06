@@ -29,8 +29,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// TestnetChainSpec is the ChainSpec for the localnet.
-func TestnetChainSpec() chain.Spec[
+// DevnetChainSpec is the ChainSpec for the localnet.
+func DevnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,

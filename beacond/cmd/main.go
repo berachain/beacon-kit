@@ -21,19 +21,32 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"go.uber.org/automaxprocs/maxprocs"
+)
+
+const (
+	Devnet = "Devnet"
 )
 
 // run runs the beacon node.
 func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
+		return err
+	}
+
+	chainSpec, err := getChainSpec()
+	if err != nil {
 		return err
 	}
 
@@ -45,14 +58,32 @@ func run() error {
 		),
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
 		// TODO: Don't hardcode the default chain spec.
-		nodebuilder.WithChainSpec[types.NodeI](spec.TestnetChainSpec()),
+		nodebuilder.WithChainSpec[types.NodeI](chainSpec),
 	)
+
 
 	node, err := nb.Build()
 	if err != nil {
 		return err
 	}
 	return node.Run()
+}
+
+func getChainSpec() (chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+], error) {
+	chainSpec := os.Getenv("CHAIN_SPEC")
+	switch chainSpec {
+	case Devnet:
+		return spec.DevnetChainSpec(), nil
+	// Add more cases as needed
+	default:
+		return nil, fmt.Errorf("unknown chainSpec: %s", chainSpec)
+	}
 }
 
 // main is the entry point.

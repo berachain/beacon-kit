@@ -137,4 +137,6 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
 
-# ENTRYPOINT [ "./beacond" ]
+# Set the environment variable for the chainSpec needed.
+ENV CHAIN_SPEC=Devnet
+#ENTRYPOINT [ "./beacond" ]
