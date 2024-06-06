@@ -216,11 +216,6 @@ func (h *ValidatorMiddleware[
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
 		startTime = time.Now()
-		g, gCtx   = errgroup.WithContext(ctx)
-		resp      = &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-		}
-		logger = ctx.Logger()
 	)
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
@@ -229,25 +224,26 @@ func (h *ValidatorMiddleware[
 		blk = blk.Empty(version.Deneb)
 	}
 
-	// Receive the BeaconBlock.
-	g.Go(func() error {
-		// TODO: figure out why gCtx is getting instantly cancelled here.
-		return h.validatorService.VerifyIncomingBlock(ctx, blk)
-	})
-
-	// Receive the blobs.
-	g.Go(func() error {
-		blobs, localErr := h.blobGossiper.Request(gCtx, req)
-		if localErr != nil {
-			return localErr
-		}
-		return h.validatorService.VerifyIncomingBlobs(gCtx, blk, blobs)
-	})
-
-	// If either the block or the blobs are invalid, reject the proposal.
-	if err = g.Wait(); err != nil {
-		logger.Info("rejecting comet-bft proposal due to", "error", err)
-		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
 	}
-	return resp, nil
+
+	blobs, err := h.blobGossiper.Request(ctx, req)
+	if err != nil {
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
+	}
+
+	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
+	}
+
+	return &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+	}, nil
 }
