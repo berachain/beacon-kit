@@ -190,10 +190,11 @@ func (s *Service[
 ) {
 }
 
-// shouldBuildOptimisticPayloads returns true if the service should build
+// shouldBuildOptimisticPayloads returns true if the service should build.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) shouldBuildOptimisticPayloads() bool {
-	return s.cfg.EnableOptimisticPayloadBuilds && s.localPayloadBuilder.Enabled()
+	return s.cfg.EnableOptimisticPayloadBuilds &&
+		s.localPayloadBuilder.Enabled()
 }

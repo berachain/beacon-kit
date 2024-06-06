@@ -113,12 +113,9 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
-	var (
-		numSidecars = math.U64(sidecars.Len())
-		startTime   = time.Now()
-	)
+	startTime := time.Now()
 	defer sp.metrics.measureProcessBlobsDuration(
-		startTime, numSidecars,
+		startTime, math.U64(sidecars.Len()),
 	)
 	return avs.Persist(slot, sidecars)
 }
