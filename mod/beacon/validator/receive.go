@@ -31,10 +31,9 @@ import (
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) VerifyIncomingBlockAndSidecars(
+]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
-	sidecars BlobSidecarsT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
 	preState := s.bsb.StateFromContext(ctx)
@@ -50,6 +49,10 @@ func (s *Service[
 		s.logger.Error(
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
+
+		if s.shouldBuildOptimisticPayloads() {
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+		}
 
 		return nil
 	}
