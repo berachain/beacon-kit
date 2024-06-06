@@ -148,7 +148,8 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		return nil, nil, err
 	}
 
-	// If we reached here, and we have a nil payload ID, we should log a warning.
+	// If we reached here, and we have a nil payload ID, we should log a
+	// warning.
 	if payloadID == nil && hasPayloadAttributes {
 		ee.logger.Warn(
 			"received nil payload ID on VALID engine response",
