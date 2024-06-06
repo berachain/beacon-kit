@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export VERSION := $(shell echo $(shell git describe --tags --always --match "v*") | sed 's/^v//')
+export VERSION := $(shell echo $(shell git describe --tags --always --match "v*")'')
 export COMMIT := $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
@@ -104,7 +104,7 @@ build-docker: ## build a docker image containing `beacond`
 	docker build \
 	--platform linux/$(ARCH) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
-	--build-arg GIT_VERSION=$(shell git describe --tags --always --dirty) \
+	--build-arg GIT_VERSION=$(VERSION) \
 	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
 	--build-arg GOOS=linux \
 	--build-arg GOARCH=$(ARCH) \
