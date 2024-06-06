@@ -50,6 +50,10 @@ func (s *Service[
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
 
+		if s.shouldBuildOptimisticPayloads() {
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+		}
+
 		return ErrNilBlk
 	}
 
