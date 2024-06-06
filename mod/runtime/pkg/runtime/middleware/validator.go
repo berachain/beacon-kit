@@ -234,14 +234,14 @@ func (h *ValidatorMiddleware[
 
 	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, nil
 	}
 
 	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, sidecars); err != nil {
 		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-		}, err
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
 	}
 
 	return &cmtabci.ProcessProposalResponse{
