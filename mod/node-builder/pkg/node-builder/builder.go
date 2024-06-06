@@ -137,7 +137,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 
 				components.ProvideServiceRegistry,
 				// runtime
-				components.ProvideRuntime,
+				// components.ProvideRuntime,
 			),
 		),
 		&autoCliOpts,

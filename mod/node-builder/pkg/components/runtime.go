@@ -93,7 +93,7 @@ func ProvideRuntime(
 		],
 	](
 		chainSpec,
-		logger,
+		logger.With("module", "beacon-kit"),
 		serviceRegistry,
 		storageBackend,
 		telemetrySink,

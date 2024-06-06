@@ -24,9 +24,28 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -44,8 +63,55 @@ func init() {
 // DepInjectInput is the input for the dep inject framework.
 type DepInjectInput struct {
 	depinject.In
-	BeaconConfig *config.Config
-	BKRuntime    *components.BeaconKitRuntime
+
+	// Cosmos components
+	AppOpts     servertypes.AppOptions
+	Environment appmodule.Environment
+
+	// BeaconKit components
+	AvailabilityStore     *dastore.Store[types.BeaconBlockBody]
+	BeaconConfig          *config.Config
+	ChainSpec             primitives.ChainSpec
+	DepositStore          *depositdb.KVStore[*types.Deposit]
+	EngineClient          *engineclient.EngineClient[*types.ExecutionPayload]
+	ExecutionEngine       *execution.Engine[*types.ExecutionPayload]
+	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit,
+		types.WithdrawalCredentials,
+	]
+	BlobVerifier  kzg.BlobProofVerifier
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
+	LocalBuilder  *payloadbuilder.PayloadBuilder[
+		components.BeaconState,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+	]
+	BlockFeed      *event.FeedOf[events.Block[*types.BeaconBlock]]
+	StateProcessor blockchain.StateProcessor[
+		*types.BeaconBlock,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*transition.Context,
+		*types.Deposit,
+	]
+	StorageBackend blockchain.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
+	]
+	ValidatorService *validator.Service[
+		*types.BeaconBlock,
+		types.BeaconBlockBody,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
+		*types.ForkData,
+	]
+	ServiceRegistry *service.Registry
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -57,22 +123,23 @@ type DepInjectOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	// TODO: this is hood as fuck.
-	// if in.BeaconConfig.KZG.Implementation == "" {
-	// 	in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
-	// }
+	if in.BeaconConfig.KZG.Implementation == "" {
+		in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
+	}
 
-	// runtime, err := components.ProvideRuntime(
-	// 	in.ChainSpec,
-	// 	in.StorageBackend,
-	// 	in.TelemetrySink,
-	// 	in.Environment.Logger.With("module", "beacon-kit"),
-	// 	in.ServiceRegistry,
-	// )
-	// if err != nil {
-	// 	return DepInjectOutput{}, err
-	// }
+	// todo depinject this
+	runtime, err := components.ProvideRuntime(
+		in.ChainSpec,
+		in.StorageBackend,
+		in.TelemetrySink,
+		in.Environment.Logger.With("module", "beacon-kit"),
+		in.ServiceRegistry,
+	)
+	if err != nil {
+		return DepInjectOutput{}, err
+	}
 
 	return DepInjectOutput{
-		Module: NewAppModule(in.BKRuntime),
+		Module: NewAppModule(runtime),
 	}, nil
 }
