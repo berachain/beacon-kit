@@ -177,10 +177,10 @@ func (h *ValidatorMiddleware[
 
 	// "Publish" the blobs and the beacon block.
 	var sidecarsBz, beaconBlockBz []byte
-	g, _ := errgroup.WithContext(ctx)
+	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(ctx, blobs)
+		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
 		if localErr != nil {
 			logger.Error("failed to publish blobs", "error", err)
 		}
@@ -189,7 +189,7 @@ func (h *ValidatorMiddleware[
 
 	g.Go(func() error {
 		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(ctx, blk)
+		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
 		if localErr != nil {
 			logger.Error("failed to publish beacon block", "error", err)
 		}
