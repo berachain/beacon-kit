@@ -111,7 +111,8 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Create release draft
         env:
-          GH_TOKEN: ${{ secrets.DEV_PAT }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The formatting here is borrowed from Reth (which is borrowed from Lighthouse (which is borrowed from OpenEthereum)):
         # https://github.com/openethereum/openethereum/blob/6c2d392d867b058ff867c4373e40850ca3f96969/.github/workflows/build.yml
         run: |
