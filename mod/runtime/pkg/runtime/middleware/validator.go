@@ -217,6 +217,9 @@ func (h *ValidatorMiddleware[
 	var (
 		startTime = time.Now()
 		g, gCtx   = errgroup.WithContext(ctx)
+		resp      = &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+		}
 	)
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
@@ -239,11 +242,9 @@ func (h *ValidatorMiddleware[
 		return h.validatorService.VerifyIncomingBlobs(gCtx, blk, blobs)
 	})
 
-	resp := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+	// If either the block or the blobs are invalid, reject the proposal.
 	if err = g.Wait(); err != nil {
-		resp = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	}
-	return &cmtabci.ProcessProposalResponse{
-		Status: resp,
-	}, err
+	return resp, err
 }
