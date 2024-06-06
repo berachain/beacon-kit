@@ -72,7 +72,7 @@ func (pb *PayloadBuilder[
 	}
 
 	// Only add to cache if we received back a payload ID.
-	if payloadID == nil {
+	if payloadID != nil {
 		pb.logger.Info(
 			"bob the builder; can we forkchoice update it?;"+
 				" bob the builder; yes we can 🚧",
@@ -85,7 +85,6 @@ func (pb *PayloadBuilder[
 			"payload_id",
 			payloadID,
 		)
-
 		pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	}
 
