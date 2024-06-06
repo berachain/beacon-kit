@@ -358,13 +358,13 @@ func (s *Service[
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
-	st := s.bsb.StateFromContext(ctx)
+	preState := s.bsb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	//
 	// TODO: This is a super hacky. It should be handled better elsewhere,
 	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
+	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
@@ -374,16 +374,7 @@ func (s *Service[
 
 		if s.localPayloadBuilder.Enabled() &&
 			s.cfg.EnableOptimisticPayloadBuilds {
-			go func() {
-				if pErr := s.rebuildPayloadForRejectedBlock(
-					ctx, st,
-				); pErr != nil {
-					s.logger.Error(
-						"failed to rebuild payload for nil block",
-						"error", pErr,
-					)
-				}
-			}()
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
 		return ErrNilBlk
@@ -398,15 +389,15 @@ func (s *Service[
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
-	stCopy := st.Copy()
+	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
 	if err := s.verifyStateRoot(
-		ctx, stCopy, blk,
+		ctx, postState, blk,
 	); err != nil {
 		// TODO: this is expensive because we are not caching the
 		// previous result of HashTreeRoot().
-		localStateRoot, htrErr := st.HashTreeRoot()
+		localStateRoot, htrErr := preState.HashTreeRoot()
 		if htrErr != nil {
 			return htrErr
 		}
@@ -423,17 +414,7 @@ func (s *Service[
 
 		if s.localPayloadBuilder.Enabled() &&
 			s.cfg.EnableOptimisticPayloadBuilds {
-			go func() {
-				if pErr := s.rebuildPayloadForRejectedBlock(
-					ctx, st,
-				); pErr != nil {
-					s.logger.Error(
-						"failed to rebuild payload for rejected block",
-						"for_slot", blk.GetSlot(),
-						"error", pErr,
-					)
-				}
-			}()
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
 		return err
@@ -444,17 +425,6 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(),
 	)
 
-	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
-		go func() {
-			if err := s.optimisticPayloadBuild(ctx, stCopy, blk); err != nil {
-				s.logger.Error(
-					"failed to build optimistic payload",
-					"for_slot", blk.GetSlot()+1,
-					"error", err,
-				)
-			}
-		}()
-	}
-
+	go s.handleOptimisticPayloadBuild(ctx, postState, blk)
 	return nil
 }
