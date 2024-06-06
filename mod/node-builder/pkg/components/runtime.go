@@ -168,7 +168,7 @@ func ProvideRuntime(
 		storageBackend.DepositStore(nil),
 		manager.DepositPrunerName,
 		&blockFeed,
-		deposit.GetPruneRangeFn[
+		deposit.BuildPruneRangeFn[
 			types.BeaconBlockBody,
 			*types.BeaconBlock,
 			events.Block[*types.BeaconBlock],
@@ -191,7 +191,7 @@ func ProvideRuntime(
 			avs.(*filedb.RangeDB),
 			manager.AvailabilityPrunerName,
 			&blockFeed,
-			dastore.GetPruneRangeFn[
+			dastore.BuildPruneRangeFn[
 				*types.BeaconBlock,
 				events.Block[*types.BeaconBlock],
 			](chainSpec),
