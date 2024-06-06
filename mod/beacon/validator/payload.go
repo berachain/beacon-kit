@@ -121,16 +121,13 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) {
-	if s.localPayloadBuilder.Enabled() &&
-		s.cfg.EnableOptimisticPayloadBuilds {
-		if pErr := s.rebuildPayloadForRejectedBlock(
-			ctx, st,
-		); pErr != nil {
-			s.logger.Error(
-				"failed to rebuild payload for nil block",
-				"error", pErr,
-			)
-		}
+	if pErr := s.rebuildPayloadForRejectedBlock(
+		ctx, st,
+	); pErr != nil {
+		s.logger.Error(
+			"failed to rebuild payload for nil block",
+			"error", pErr,
+		)
 	}
 }
 
@@ -226,14 +223,12 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) {
-	if s.localPayloadBuilder.Enabled() && s.cfg.EnableOptimisticPayloadBuilds {
-		if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
-			s.logger.Error(
-				"failed to build optimistic payload",
-				"for_slot", blk.GetSlot()+1,
-				"error", err,
-			)
-		}
+	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
+		s.logger.Error(
+			"failed to build optimistic payload",
+			"for_slot", blk.GetSlot()+1,
+			"error", err,
+		)
 	}
 }
 

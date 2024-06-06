@@ -23,16 +23,13 @@ package validator
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"golang.org/x/sync/errgroup"
 )
 
 // Service is responsible for building beacon blocks.
@@ -73,6 +70,8 @@ type Service[
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
+	// blobProcessor is used to process blobs.
+	blobProcessor BlobProcessor[BlobSidecarsT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -120,6 +119,7 @@ func NewService[
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
+	blobProcessor BlobProcessor[BlobSidecarsT],
 	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
@@ -138,6 +138,7 @@ func NewService[
 	]{
 		cfg:                   cfg,
 		logger:                logger,
+		blobProcessor:         blobProcessor,
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
@@ -189,249 +190,11 @@ func (s *Service[
 ) {
 }
 
-// RequestBestBlock builds a new beacon block.
-//
-//nolint:funlen // todo:fix.
+// shouldBuildOptimisticPayloads returns true if the service should build.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) RequestBestBlock(
-	ctx context.Context,
-	requestedSlot math.Slot,
-) (BeaconBlockT, BlobSidecarsT, error) {
-	var (
-		blk       BeaconBlockT
-		sidecars  BlobSidecarsT
-		startTime = time.Now()
-		g, _      = errgroup.WithContext(ctx)
-	)
-	defer s.metrics.measureRequestBestBlockTime(startTime)
-	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
-
-	// The goal here is to acquire a payload whose parent is the previously
-	// finalized block, such that, if this payload is accepted, it will be
-	// the next finalized block in the chain. A byproduct of this design
-	// is that we get the nice property of lazily propogating the finalized
-	// and safe block hashes to the execution client.
-	st := s.bsb.StateFromContext(ctx)
-
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
-
-	// Prepare the state such that it is ready to build a block for
-	// the request slot
-	if err := s.prepareStateForBuilding(st, requestedSlot); err != nil {
-		return blk, sidecars, err
-	}
-
-	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel.
-	reveal, err := s.buildRandaoReveal(st, requestedSlot)
-	if err != nil {
-		return blk, sidecars, err
-	}
-
-	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlock(
-		st, requestedSlot,
-	)
-	if err != nil {
-		return blk, sidecars, err
-	}
-
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return blk, sidecars, ErrNilBlkBody
-	}
-
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
-
-	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
-	if err != nil {
-		return blk, sidecars, err
-	} else if envelope == nil {
-		return blk, sidecars, ErrNilPayload
-	}
-
-	// If we get returned a nil blobs bundle, we should return an error.
-	// TODO: allow external block builders to override the payload.
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
-		return blk, sidecars, ErrNilBlobsBundle
-	}
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return blk, sidecars, ErrNilDepositIndexStart
-	}
-
-	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return blk, sidecars, err
-	}
-
-	// Set the deposits on the block body.
-	body.SetDeposits(deposits)
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	// TODO: assemble real eth1data.
-	body.SetEth1Data(&types.Eth1Data{
-		DepositRoot:  primitives.Bytes32{},
-		DepositCount: 0,
-		BlockHash:    common.ZeroHash,
-	})
-
-	// Set the execution data.
-	if err = body.SetExecutionData(
-		envelope.GetExecutionPayload(),
-	); err != nil {
-		return blk, sidecars, err
-	}
-
-	// Produce block sidecars.
-	g.Go(func() error {
-		var sidecarErr error
-		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
-			blk,
-			envelope.GetBlobsBundle(),
-		)
-		return sidecarErr
-	})
-
-	// Compute and set the state root for the block.
-	g.Go(func() error {
-		s.logger.Info(
-			"computing state root for block 🌲",
-			"slot", blk.GetSlot(),
-		)
-
-		var stateRoot primitives.Root
-		stateRoot, err = s.computeStateRoot(ctx, st, blk)
-		if err != nil {
-			s.logger.Error(
-				"failed to compute state root while building block ❗️ ",
-				"slot", requestedSlot,
-				"error", err,
-			)
-			return err
-		}
-
-		s.logger.Info("state root computed for block 💻 ",
-			"slot", requestedSlot,
-			"state_root", stateRoot,
-		)
-		blk.SetStateRoot(stateRoot)
-		return nil
-	})
-
-	if err = g.Wait(); err != nil {
-		return blk, sidecars, err
-	}
-
-	s.logger.Info(
-		"beacon block successfully built 🛠️ ",
-		"slot", requestedSlot,
-		"state_root", blk.GetStateRoot(),
-		"duration", time.Since(startTime).String(),
-	)
-
-	return blk, sidecars, nil
-}
-
-// VerifyIncomingBlock verifies the state root of an incoming block
-// and logs the process.
-//
-
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) VerifyIncomingBlock(
-	ctx context.Context,
-	blk BeaconBlockT,
-) error {
-	// Grab a copy of the state to verify the incoming block.
-	preState := s.bsb.StateFromContext(ctx)
-
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
-
-	// If the block is nil or a nil pointer, exit early.
-	if blk.IsNil() {
-		s.logger.Error(
-			"aborting block verification on nil block ⛔️ ",
-		)
-
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
-		}
-
-		return ErrNilBlk
-	}
-
-	s.logger.Info(
-		"received incoming beacon block 📫 ",
-		"state_root", blk.GetStateRoot(),
-	)
-
-	// We purposefully make a copy of the BeaconState in orer
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	postState := preState.Copy()
-
-	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(
-		ctx, postState, blk,
-	); err != nil {
-		// TODO: this is expensive because we are not caching the
-		// previous result of HashTreeRoot().
-		localStateRoot, htrErr := preState.HashTreeRoot()
-		if htrErr != nil {
-			return htrErr
-		}
-
-		s.logger.Error(
-			"rejecting incoming block ❌ ",
-			"block_state_root",
-			blk.GetStateRoot(),
-			"local_state_root",
-			primitives.Root(localStateRoot),
-			"error",
-			err,
-		)
-
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
-		}
-
-		return err
-	}
-
-	s.logger.Info(
-		"state root verification succeeded - accepting incoming block 🏎️ ",
-		"state_root", blk.GetStateRoot(),
-	)
-
-	go s.handleOptimisticPayloadBuild(ctx, postState, blk)
-	return nil
+]) shouldBuildOptimisticPayloads() bool {
+	return s.cfg.EnableOptimisticPayloadBuilds &&
+		s.localPayloadBuilder.Enabled()
 }

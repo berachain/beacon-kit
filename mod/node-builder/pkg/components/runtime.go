@@ -236,6 +236,7 @@ func ProvideRuntime(
 		logger.With("service", "validator"),
 		chainSpec,
 		storageBackend,
+		blobProcessor,
 		stateProcessor,
 		signer,
 		dablob.NewSidecarFactory[
