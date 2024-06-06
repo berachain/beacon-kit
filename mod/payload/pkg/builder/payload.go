@@ -69,6 +69,14 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
+	} else if payloadID == nil {
+		pb.logger.Warn(
+			"received nil payload ID on VALID engine response",
+			"head_eth1_hash", headEth1BlockHash,
+			"for_slot", slot,
+		)
+
+		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
 	pb.logger.Info(
