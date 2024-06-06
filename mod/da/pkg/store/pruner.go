@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-func GetPruneRangeFn[
+func BuildPruneRangeFn[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {

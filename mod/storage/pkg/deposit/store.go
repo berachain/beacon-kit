@@ -28,11 +28,13 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
-const (
-	KeyDepositPrefix = "deposit"
-)
+// Deposit is a struct that holds the deposit information.
+var _ pruner.Prunable = (*KVStore[Deposit])(nil)
+
+const KeyDepositPrefix = "deposit"
 
 type KVStoreProvider struct {
 	store.KVStoreWithBatch

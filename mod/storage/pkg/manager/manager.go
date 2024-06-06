@@ -38,10 +38,8 @@ type DBManager[
 	BlockEventT BlockEvent[BeaconBlockT],
 	SubscriptionT Subscription,
 ] struct {
-	pruners map[string]*pruner.Pruner[
-		BeaconBlockT, BlockEventT, SubscriptionT,
-	]
-	logger log.Logger[any]
+	pruners []*pruner.Pruner[BeaconBlockT, BlockEventT, SubscriptionT]
+	logger  log.Logger[any]
 }
 
 func NewDBManager[
@@ -52,21 +50,12 @@ func NewDBManager[
 	logger log.Logger[any],
 	pruners ...*pruner.Pruner[BeaconBlockT, BlockEventT, SubscriptionT],
 ) (*DBManager[BeaconBlockT, BlockEventT, SubscriptionT], error) {
-	m := &DBManager[
+	return &DBManager[
 		BeaconBlockT, BlockEventT, SubscriptionT,
 	]{
-		logger: logger,
-		pruners: make(map[string]*pruner.Pruner[
-			BeaconBlockT, BlockEventT, SubscriptionT,
-		]),
-	}
-	for _, p := range pruners {
-		if _, ok := m.pruners[p.Name()]; ok {
-			return nil, ErrDuplicatePruner
-		}
-		m.pruners[p.Name()] = p
-	}
-	return m, nil
+		logger:  logger,
+		pruners: pruners,
+	}, nil
 }
 
 // Name returns the name of the Basic Service.

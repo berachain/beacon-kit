@@ -30,7 +30,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 )
 
 // Pruner is a struct that holds the prunable interface and a notifier channel.
@@ -39,7 +38,7 @@ type Pruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	SubscriptionT Subscription,
 ] struct {
-	prunable     interfaces.Prunable
+	prunable     Prunable
 	logger       log.Logger[any]
 	name         string
 	feed         BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
@@ -52,7 +51,7 @@ func NewPruner[
 	SubscriptionT Subscription,
 ](
 	logger log.Logger[any],
-	prunable interfaces.Prunable,
+	prunable Prunable,
 	name string,
 	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
