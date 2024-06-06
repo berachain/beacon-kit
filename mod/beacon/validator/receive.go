@@ -50,8 +50,7 @@ func (s *Service[
 			"aborting block verification on nil beacon block ⛔️ ",
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
+		if s.shouldBuildOptimisticPayloads() {
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
@@ -90,8 +89,7 @@ func (s *Service[
 			err,
 		)
 
-		if s.localPayloadBuilder.Enabled() &&
-			s.cfg.EnableOptimisticPayloadBuilds {
+		if s.shouldBuildOptimisticPayloads() {
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
 		}
 
@@ -104,7 +102,10 @@ func (s *Service[
 		blk.GetStateRoot(),
 	)
 
-	go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+	if s.shouldBuildOptimisticPayloads() {
+		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+	}
+
 	return nil
 }
 
