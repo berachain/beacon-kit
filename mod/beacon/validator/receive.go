@@ -42,6 +42,7 @@ func (s *Service[
 		blockErr, blobsErr error
 		wg                 sync.WaitGroup
 	)
+	//nolint:mnd
 	wg.Add(2)
 
 	go func() {
