@@ -14,7 +14,6 @@ require (
 	github.com/segmentio/golines v0.12.2
 	github.com/vektra/mockery/v2 v2.42.3
 	go.uber.org/nilaway v0.0.0-20240524204351-885be9df8ef4
-	honnef.co/go/tools v0.4.7
 )
 
 require (
@@ -330,6 +329,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
+	honnef.co/go/tools v0.4.7 // indirect
 	mvdan.cc/gofumpt v0.6.0 // indirect
 	mvdan.cc/unparam v0.0.0-20240427195214-063aff900ca1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
