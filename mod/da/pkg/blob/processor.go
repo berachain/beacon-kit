@@ -72,45 +72,32 @@ func NewProcessor[
 	}
 }
 
+// VerifyBlobs verifies the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
+	slot math.Slot,
+	sidecars *types.BlobSidecars,
+) error {
+	startTime := time.Now()
+	defer sp.metrics.measureVerifySidecarsDuration(
+		startTime, math.U64(sidecars.Len()),
+	)
+
+	return sp.verifier.VerifyBlobs(
+		sidecars,
+		sp.blockBodyOffsetFn(slot, sp.chainSpec),
+	)
+}
+
 // ProcessBlobs processes the blobs and ensures they match the local state.
 func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
 	slot math.Slot,
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
-	var (
-		numSidecars = math.U64(sidecars.Len())
-		startTime   = time.Now()
+	startTime := time.Now()
+	defer sp.metrics.measureProcessBlobsDuration(
+		startTime, math.U64(sidecars.Len()),
 	)
 
-	defer sp.metrics.measureProcessBlobsDuration(startTime, numSidecars)
-
-	// If there are no blobs to verify, return early.
-	if numSidecars == 0 {
-		sp.logger.Info(
-			"no blob sidecars to verify, skipping verifier 🧢 ",
-			"slot",
-			slot,
-		)
-		return nil
-	}
-
-	// Otherwise, we run the verification checks on the blobs.
-	if err := sp.verifier.VerifyBlobs(
-		sidecars,
-		sp.blockBodyOffsetFn(slot, sp.chainSpec),
-	); err != nil {
-		return err
-	}
-
-	sp.logger.Info(
-		"successfully verified all blob sidecars 💦 ",
-		"num-sidecars",
-		numSidecars,
-		"slot",
-		slot,
-	)
-
-	// Lastly, we store the blobs in the availability store.
 	return avs.Persist(slot, sidecars)
 }
