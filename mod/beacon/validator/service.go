@@ -190,7 +190,8 @@ func (s *Service[
 ) {
 }
 
-// shouldBuildOptimisticPayloads returns true if the service should build.
+// shouldBuildOptimisticPayloads returns true if optimistic
+// payload builds are enabled.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
