@@ -48,6 +48,13 @@ func (pb *PayloadBuilder[
 		return nil, ErrPayloadBuilderDisabled
 	}
 
+	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
+		pb.logger.Warn("aborting payload build; payload already exists in cache",
+			"for_slot", slot, "parent_block_root", parentBlockRoot,
+		)
+		return &payloadID, nil
+	}
+
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
@@ -107,6 +114,7 @@ func (pb *PayloadBuilder[
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
+
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
 	payloadID, err := pb.RequestPayloadAsync(
