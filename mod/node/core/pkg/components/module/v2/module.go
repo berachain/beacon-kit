@@ -40,9 +40,12 @@ const (
 )
 
 var (
-	_ appmodulev2.AppModule  = AppModule{}
-	_ module.HasABCIGenesis  = AppModule{}
-	_ module.HasABCIEndBlock = AppModule{}
+	_ appmodulev2.HasPreBlocker = AppModule{}
+	// _ appmodulev2.HasEndBlocker       = AppModule{}
+	_ appmodulev2.HasUpdateValidators = AppModule{}
+	_ appmodulev2.AppModule           = AppModule{}
+	_ module.HasABCIGenesis           = AppModule{}
+	_ module.HasABCIEndBlock          = AppModule{}
 )
 
 // AppModule implements an application module for the evm module.
@@ -107,4 +110,16 @@ func (am AppModule) ExportGenesis(
 			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 		]{},
 	)
+}
+
+func (am AppModule) PreBlock(ctx context.Context) error {
+	return am.ABCIFinalizeBlockMiddleware().PreBlock(ctx)
+}
+
+func (am AppModule) EndBlock(ctx context.Context) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIFinalizeBlockMiddleware().EndBlock(ctx)
+}
+
+func (am AppModule) UpdateValidators(ctx context.Context) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIFinalizeBlockMiddleware().EndBlock(ctx)
 }

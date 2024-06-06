@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -114,7 +113,7 @@ func (h *FinalizeBlockMiddleware[
 func (h *FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobsSidecarsT,
 ]) PreBlock(
-	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
+	ctx sdk.Context,
 ) error {
 	startTime := time.Now()
 	defer h.metrics.measureEndBlockDuration(startTime)

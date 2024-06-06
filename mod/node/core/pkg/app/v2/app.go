@@ -125,4 +125,5 @@ func (app *BeaconApp[TransactionT]) setupModule() {
 		module.ABCIValidatorMiddleware().ProcessProposalHandler(),
 	)
 
+	app.App.ModuleManager().PreBlocker()
 }
