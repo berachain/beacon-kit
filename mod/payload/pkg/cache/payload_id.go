@@ -55,7 +55,17 @@ func NewPayloadIDCache[
 }
 
 // Get retrieves the payload ID associated with a given slot and eth1 hash.
-// It returns the found payload ID and a boolean indicating whether the lookup
+// Has checks if a payload ID exists for a given slot and eth1 hash.
+func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
+	slot SlotT,
+	stateRoot RootT,
+) bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	_, ok := p.slotToStateRootToPayloadID[slot][stateRoot]
+	return ok
+}
+
 // was successful.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Get(
 	slot SlotT,
