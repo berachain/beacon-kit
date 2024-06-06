@@ -1,6 +1,6 @@
 {
   "app_name": "beacond",
-  "app_version": "0.1.0-alpha.1",
+  "app_version": "v0.2.0-alpha.0",
   "genesis_time": "2024-06-05T14:00:00Z",
   "chain_id": "bartio-beacon-80084",
   "initial_height": 1,
