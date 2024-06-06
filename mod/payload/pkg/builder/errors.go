@@ -27,12 +27,6 @@ var (
 	// disabled.
 	ErrPayloadBuilderDisabled = errors.New("payload builder is disabled")
 
-	// ErrNilPayloadOnValidResponse is returned when a nil payload ID is
-	// received on a VALID engine response.
-	ErrNilPayloadOnValidResponse = errors.New(
-		"received nil payload ID on VALID engine response",
-	)
-
 	// ErrNilPayloadID is returned when a nil payload ID is received.
 	ErrNilPayloadID = errors.New("received nil payload ID")
 
