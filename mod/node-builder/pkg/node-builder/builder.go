@@ -27,14 +27,12 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -104,10 +102,10 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				nb.chainSpec,
-				&depositdb.KVStore[*types.Deposit]{},
+				// &depositdb.KVStore[*types.Deposit]{},
 				&engineclient.EngineClient[*types.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
-				&noop.Verifier{},
+				// &noop.Verifier{},
 				&dastore.Store[types.BeaconBlockBody]{},
 				&signer.BLSSigner{},
 			),
@@ -138,6 +136,8 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				components.ProvideReportingService,
 
 				components.ProvideServiceRegistry,
+				// runtime
+				components.ProvideRuntime,
 			),
 		),
 		&autoCliOpts,

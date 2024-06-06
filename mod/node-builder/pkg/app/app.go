@@ -91,6 +91,8 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideReportingService,
 				// registry
 				bkcomponents.ProvideServiceRegistry,
+				// runtime
+				bkcomponents.ProvideRuntime,
 			),
 			depinject.Supply(
 				appOpts,
