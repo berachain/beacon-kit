@@ -182,11 +182,6 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return nil, err
-		}
-
 		// Process the Epoch Boundary.
 		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
 			if epochValidatorUpdates, err =
@@ -198,10 +193,11 @@ func (sp *StateProcessor[
 				epochValidatorUpdates...,
 			)
 		}
-
-		if err = st.SetSlot(stateSlot + 1); err != nil {
+		stateSlot++
+		if err = st.SetSlot(stateSlot); err != nil {
 			return nil, err
 		}
+
 	}
 
 	return validatorUpdates, nil
