@@ -83,10 +83,10 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks is done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT]
+	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
@@ -125,8 +125,8 @@ func NewService[
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
+	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
 	ts TelemetrySink,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,

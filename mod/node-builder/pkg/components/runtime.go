@@ -247,7 +247,7 @@ func ProvideRuntime(
 			telemetrySink,
 		),
 		localBuilder,
-		[]validator.PayloadBuilder[BeaconState]{
+		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
 			localBuilder,
 		},
 		telemetrySink,

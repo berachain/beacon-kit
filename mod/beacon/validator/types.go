@@ -161,7 +161,7 @@ type DepositStore[DepositT any] interface {
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT any] interface {
+type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 	// Enabled returns true if the payload builder is enabled.
 	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
@@ -169,7 +169,7 @@ type PayloadBuilder[BeaconStateT any] interface {
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// RequestPayloadAsync requests a payload for the given slot and returns
 	// immediately.
 	RequestPayloadAsync(
