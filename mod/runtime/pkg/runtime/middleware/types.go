@@ -36,7 +36,7 @@ import (
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
 type BlockchainService[
-	BeaconBlockT any, BlobsSidecarsT ssz.Marshallable,
+	BeaconBlockT any, BlobSidecarsT ssz.Marshallable,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
@@ -51,7 +51,7 @@ type BlockchainService[
 	ProcessBlockAndBlobs(
 		context.Context,
 		BeaconBlockT,
-		BlobsSidecarsT,
+		BlobSidecarsT,
 		bool,
 	) ([]*transition.ValidatorUpdate, error)
 }
@@ -60,7 +60,7 @@ type BlockchainService[
 type ValidatorService[
 	BeaconBlockT any,
 	BeaconStateT any,
-	BlobsSidecarsT ssz.Marshallable,
+	BlobSidecarsT ssz.Marshallable,
 ] interface {
 	// RequestBestBlock requests the best beacon block for a given slot.
 	// It returns the beacon block, associated blobs sidecars, and an error if
@@ -69,13 +69,19 @@ type ValidatorService[
 		context.Context, // The context for the request.
 		math.Slot, // The slot for which the best block is requested.
 	) (
-		BeaconBlockT, BlobsSidecarsT, error,
+		BeaconBlockT, BlobSidecarsT, error,
 	)
 	// VerifyIncomingBlock verifies the incoming block and returns an error if
 	// the block is invalid.
 	VerifyIncomingBlock(
 		ctx context.Context,
 		blk BeaconBlockT,
+	) error
+	// VerifyIncomingBlobs handles receiving of incoming blobs.
+	VerifyIncomingBlobs(
+		ctx context.Context,
+		blk BeaconBlockT,
+		blobs BlobSidecarsT,
 	) error
 }
 

@@ -69,30 +69,25 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
-	} else if payloadID == nil {
-		pb.logger.Warn(
-			"received nil payload ID on VALID engine response",
-			"head_eth1_hash", headEth1BlockHash,
-			"for_slot", slot,
-		)
-
-		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	pb.logger.Info(
-		"bob the builder; can we forkchoice update it?;"+
-			" bob the builder; yes we can 🚧",
-		"head_eth1_hash",
-		headEth1BlockHash,
-		"for_slot",
-		slot,
-		"parent_block_root",
-		parentBlockRoot,
-		"payload_id",
-		payloadID,
-	)
+	// Only add to cache if we received back a payload ID.
+	if payloadID != nil {
+		pb.logger.Info(
+			"bob the builder; can we forkchoice update it?;"+
+				" bob the builder; yes we can 🚧",
+			"head_eth1_hash",
+			headEth1BlockHash,
+			"for_slot",
+			slot,
+			"parent_block_root",
+			parentBlockRoot,
+			"payload_id",
+			payloadID,
+		)
+		pb.pc.Set(slot, parentBlockRoot, *payloadID)
+	}
 
-	pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	return payloadID, nil
 }
 

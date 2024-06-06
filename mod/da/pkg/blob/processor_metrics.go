@@ -41,7 +41,20 @@ func newProcessorMetrics(
 	}
 }
 
-// MeasureProcessBlobDuration measures the duration of the blob processing.
+// measureVerifySidecarsDuration measures the duration of the blob verification.
+func (pm *processorMetrics) measureVerifySidecarsDuration(
+	startTime time.Time,
+	numSidecars math.U64,
+) {
+	pm.sink.MeasureSince(
+		"beacon_kit.da.blob.processor.verify_blobs_duration",
+		startTime,
+		"num_sidecars",
+		string(numSidecars.String()),
+	)
+}
+
+// measureProcessBlobsDuration measures the duration of the blob processing.
 func (pm *processorMetrics) measureProcessBlobsDuration(
 	startTime time.Time,
 	numSidecars math.U64,

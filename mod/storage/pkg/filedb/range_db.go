@@ -28,13 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 // two is a constant for the number 2.
 const two = 2
 
 // Compile-time assertion of prunable interface.
-var _ db.Prunable = (*RangeDB)(nil)
+var _ pruner.Prunable = (*RangeDB)(nil)
 
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
@@ -100,7 +101,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	return nil
 }
 
-// PruneFromInclusive removes all values up to the given index from the db.
+// Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
 	start = max(start, db.firstNonNilIndex)
 	if err := db.DeleteRange(start, end); err != nil {
@@ -113,10 +114,6 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	}
 	db.firstNonNilIndex = end
 	return nil
-}
-
-func (db *RangeDB) FirstNonNilIndex() uint64 {
-	return db.firstNonNilIndex
 }
 
 // prefix prefixes the given key with the index and a slash.

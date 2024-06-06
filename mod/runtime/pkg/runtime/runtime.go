@@ -35,6 +35,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
+type BeaconState = core.BeaconState[
+	*types.BeaconBlockHeader,
+	*types.ExecutionPayloadHeader,
+	*types.Fork,
+	*types.Validator,
+	*engineprimitives.Withdrawal,
+]
+
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
@@ -132,13 +140,7 @@ func NewBeaconKitRuntime[
 			AvailabilityStoreT,
 			BeaconBlockT,
 			BeaconBlockBodyT,
-			core.BeaconState[
-				*types.BeaconBlockHeader,
-				*types.ExecutionPayloadHeader,
-				*types.Fork,
-				*types.Validator,
-				*engineprimitives.Withdrawal,
-			],
+			BeaconState,
 			BlobSidecarsT,
 			*types.Deposit,
 			DepositStoreT,
@@ -146,15 +148,10 @@ func NewBeaconKitRuntime[
 		validatorService *validator.Service[
 			BeaconBlockT,
 			BeaconBlockBodyT,
-			core.BeaconState[
-				*types.BeaconBlockHeader,
-				*types.ExecutionPayloadHeader,
-				*types.Fork,
-				*types.Validator,
-				*engineprimitives.Withdrawal,
-			],
+			BeaconState,
 			BlobSidecarsT,
 			DepositStoreT,
+			*types.ForkData,
 		]
 	)
 

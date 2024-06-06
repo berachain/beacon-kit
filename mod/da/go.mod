@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/da
 
-go 1.22.3
+go 1.22.4
 
 replace (
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types

@@ -157,8 +157,8 @@ jobs:
 
           | System | Architecture | Binary | PGP Signature |
           |:---:|:---:|:---:|:---|
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-amd64-linux.tar.gz) |
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-arm64-linux.tar.gz) | 
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz) |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz) | 
           | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) |
           | | | | |
           | **System** | **Option** | - | **Resource** |

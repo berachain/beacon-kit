@@ -59,7 +59,7 @@ type ValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobsSidecarsT ssz.Marshallable,
+	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -68,12 +68,15 @@ type ValidatorMiddleware[
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobsSidecarsT,
+		BlobSidecarsT,
 	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
-	blobGossiper p2p.Publisher[
-		BlobsSidecarsT, []byte,
+	blobGossiper p2p.PublisherReceiver[
+		BlobSidecarsT,
+		[]byte,
+		encoding.ABCIRequest,
+		BlobSidecarsT,
 	]
 	// TODO: we will eventually gossip the blocks separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -112,29 +115,29 @@ func NewValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobsSidecarsT ssz.Marshallable,
+	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobsSidecarsT,
+		BlobSidecarsT,
 	],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobsSidecarsT, StorageBackendT,
+	BeaconStateT, BlobSidecarsT, StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobsSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
-		blobGossiper: rp2p.
-			NoopGossipHandler[BlobsSidecarsT, []byte]{},
+		blobGossiper: rp2p.NewNoopBlobHandler[
+			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
@@ -151,7 +154,7 @@ func (h *ValidatorMiddleware[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
-	BlobsSidecarsT,
+	BlobSidecarsT,
 	DepositStoreT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
@@ -205,7 +208,7 @@ func (h *ValidatorMiddleware[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
-	BlobsSidecarsT,
+	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,
@@ -214,13 +217,25 @@ func (h *ValidatorMiddleware[
 	startTime := time.Now()
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
-	//#nosec:G703
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		// TODO: Handle better.
 		blk = blk.Empty(version.Deneb)
 	}
+
 	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, err
+	}
+
+	blobs, err := h.blobGossiper.Request(ctx, req)
+	if err != nil {
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, err
+	}
+
+	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err

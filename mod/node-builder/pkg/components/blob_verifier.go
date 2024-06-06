@@ -18,38 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package noop
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/cast"
 )
 
-// Verifier is a no-op KZG proof verifier.
-type Verifier struct{}
-
-// NewVerifier creates a new GoKZGVerifier.
-func NewVerifier() *Verifier {
-	return &Verifier{}
+// BlobProofVerifierInput is the input for the
+// dep inject framework.
+type BlobProofVerifierInput struct {
+	depinject.In
+	AppOpts          servertypes.AppOptions
+	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
-// GetImplementation returns the implementation of the verifier.
-func (v Verifier) GetImplementation() string {
-	return "noop"
-}
-
-// VerifyProof is a no-op.
-func (v Verifier) VerifyBlobProof(
-	*eip4844.Blob,
-	eip4844.KZGProof,
-	eip4844.KZGCommitment,
-) error {
-	return nil
-}
-
-// VerifyBlobProofBatch is a no-op.
-func (v Verifier) VerifyBlobProofBatch(
-	*types.BlobProofArgs,
-) error {
-	return nil
+// ProvideBlobProofVerifier is a function that provides the module to the
+// application.
+func ProvideBlobProofVerifier(
+	in BlobProofVerifierInput,
+) (kzg.BlobProofVerifier, error) {
+	return kzg.NewBlobProofVerifier(
+		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
+		in.JSONTrustedSetup,
+	)
 }

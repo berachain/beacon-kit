@@ -138,6 +138,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
+		in.BlobVerifier,
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,

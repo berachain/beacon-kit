@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-builder/pkg/commands"
@@ -106,6 +107,7 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 				&depositdb.KVStore[*types.Deposit]{},
 				&engineclient.EngineClient[*types.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
+				&noop.Verifier{},
 				&dastore.Store[types.BeaconBlockBody]{},
 				&signer.BLSSigner{},
 			),

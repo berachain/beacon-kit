@@ -34,7 +34,6 @@ import (
 type BlobProofVerifier interface {
 	// GetImplementation returns the implementation of the verifier.
 	GetImplementation() string
-
 	// VerifyBlobProof verifies that the blob data corresponds to the provided
 	// commitment.
 	VerifyBlobProof(

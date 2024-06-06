@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.3
+ARG GO_VERSION=1.22.4
 ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
@@ -82,20 +82,22 @@ ARG GIT_VERSION
 ARG GIT_COMMIT
 ARG BUILD_TAGS
 
-# Consolidate RUN commands to reduce layers
-RUN apk add --no-cache ca-certificates build-base linux-headers git && \
-    set -eux
-
 # Set the working directory
 WORKDIR /workdir
 
-# Copy the go.mod and go.sum files for each module
+# Consolidate RUN commands to reduce layers
+RUN apk add ca-certificates build-base linux-headers git && \
+    set -eux
+
+# Copy the dependencies from the cache stage as well as the
+# go.work file to the working directory
 COPY --from=mod-cache /go/pkg /go/pkg
+COPY --from=mod-cache ./workdir/go.work ./go.work
 
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
-COPY --from=mod-cache ./workdir/go.work ./go.work
+
 
 # Build args
 ARG NAME
@@ -135,4 +137,4 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
 
-#ENTRYPOINT [ "./beacond" ]
+# ENTRYPOINT [ "./beacond" ]
