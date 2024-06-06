@@ -60,7 +60,10 @@ type ValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT interface {
+		ssz.Marshallable
+		IsNil() bool
+	},
 	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -116,7 +119,10 @@ func NewValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT interface {
+		ssz.Marshallable
+		IsNil() bool
+	},
 	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
@@ -167,12 +173,6 @@ func (h *ValidatorMiddleware[
 		logger = ctx.Logger().With("service", "prepare-proposal")
 	)
 
-	if req.Height > 3 && time.Now().UnixMilli()%3 != 0 && GHETTOCOUNTER < 6 {
-		GHETTOCOUNTER++
-		fmt.Println("INJECTING FAULT", GHETTOCOUNTER)
-		return &cmtabci.PrepareProposalResponse{}, nil
-	}
-
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
@@ -181,18 +181,13 @@ func (h *ValidatorMiddleware[
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
+	if req.Height > 3 && time.Now().UnixMilli()%2 != 0 {
+		fmt.Println("INJECTING BLOCK FAULT", GHETTOCOUNTER)
+		blk = blk.Empty(version.Deneb)
+	}
 	// "Publish" the blobs and the beacon block.
 	var sidecarsBz, beaconBlockBz []byte
 	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
-		if localErr != nil {
-			logger.Error("failed to publish blobs", "error", err)
-		}
-		return err
-	})
-
 	g.Go(func() error {
 		var localErr error
 		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
@@ -201,6 +196,21 @@ func (h *ValidatorMiddleware[
 		}
 		return err
 	})
+
+	if req.Height > 3 && time.Now().UnixMilli()%6 != 0 {
+		var b BlobSidecarsT
+		blobs = b
+		fmt.Println("INJECTING BLOB FAULT", GHETTOCOUNTER)
+	} else {
+		g.Go(func() error {
+			var localErr error
+			sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
+			if localErr != nil {
+				logger.Error("failed to publish blobs", "error", err)
+			}
+			return err
+		})
+	}
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
@@ -228,20 +238,16 @@ func (h *ValidatorMiddleware[
 		blk = blk.Empty(version.Deneb)
 	}
 
-	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-		}, nil
-	}
+	var x BlobSidecarsT
+
+	_ = x.IsNil()
 
 	blobs, err := h.blobGossiper.Request(ctx, req)
 	if err != nil {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-		}, nil
+		// do nothing
 	}
 
-	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
+	if err = h.validatorService.VerifyIncomingBlockAndSidecars(ctx, blk, blobs); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 		}, err

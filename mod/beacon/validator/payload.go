@@ -78,6 +78,8 @@ func (s *Service[
 			err,
 		)
 
+		s.logger.Info("no cached payload found, requesting sync payload 😴 ")
+
 		// The latest execution payload header will be from the previous block
 		// during the block building phase.
 		var lph *types.ExecutionPayloadHeader
@@ -106,7 +108,7 @@ func (s *Service[
 			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
-			lph.GetParentHash(),
+			lph.GetBlockHash(),
 		)
 	}
 	return envelope, nil
