@@ -128,6 +128,7 @@ func (h *FinalizeBlockMiddleware[
 			math.Slot(req.Height),
 		))
 	if err != nil {
+		//nolint:nilerr // err is not nil, but we want to return nil.
 		return nil
 	}
 
@@ -145,7 +146,8 @@ func (h FinalizeBlockMiddleware[
 ]) EndBlock(
 	context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Deduplicate h.valUpdates by pubkey, keeping the later element over any earlier ones
+	// Deduplicate h.valUpdates by pubkey, keeping the later element over any
+	// earlier ones
 	valUpdatesMap := make(map[string]*transition.ValidatorUpdate)
 	for _, update := range h.valUpdates {
 		pubKey := string(update.Pubkey[:])
@@ -153,12 +155,20 @@ func (h FinalizeBlockMiddleware[
 	}
 
 	// Convert map back to slice and sort by pubkey
-	dedupedValUpdates := make([]*transition.ValidatorUpdate, 0, len(valUpdatesMap))
+	dedupedValUpdates := make(
+		[]*transition.ValidatorUpdate,
+		0,
+		len(valUpdatesMap),
+	)
 	for _, update := range valUpdatesMap {
 		dedupedValUpdates = append(dedupedValUpdates, update)
 	}
 	sort.Slice(dedupedValUpdates, func(i, j int) bool {
-		return string(dedupedValUpdates[i].Pubkey[:]) < string(dedupedValUpdates[j].Pubkey[:])
+		return string(
+			dedupedValUpdates[i].Pubkey[:],
+		) < string(
+			dedupedValUpdates[j].Pubkey[:],
+		)
 	})
 	h.valUpdates = dedupedValUpdates
 	return iter.MapErr(h.valUpdates, convertValidatorUpdate)
