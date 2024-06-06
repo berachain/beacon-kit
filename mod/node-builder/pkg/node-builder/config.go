@@ -43,6 +43,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.AppDBBackend = "pebbledb"
+	cfg.Pruning = "everything"
 
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
