@@ -140,42 +140,7 @@ func (sp *StateProcessor[
 		return nil, nil
 	}
 
-	// We perform some initial logic to ensure the BeaconState is in the correct
-	// state before we process the block.
-	//
-	//            +-------------------------------+
-	//            |  Is state slot equal to the   |
-	//            |  block slot minus one?        |
-	//            +-------------------------------+
-	//                           |
-	//                           |
-	//              +------------+------------+
-	//              |                         |
-	//           Yes, it is               No, it isn't
-	//              |                         |
-	//              |                         |
-	//       Process the slot                 |
-	//                                        |
-	//                           +------------+
-	//                           |
-	//          Is state slot equal to the block slot?
-	//                           |
-	//              +------------+------------+
-	//              |                         |
-	//           Yes, it is               No, it isn't
-	//              |                         |
-	//     Skip slot processing          Return error:
-	//                                   "out of sync"
-	//
-	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
-	// behind.
-	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
-	//
-	// TODO: We should probably not assume this to make our Transition
-	// function more generalizable, since right now it makes an
-	// assumption about the finalization properties of the cosnensus
-	// engine.
-
+	// Process the slots.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
 		return nil, err
