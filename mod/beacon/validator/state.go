@@ -152,14 +152,3 @@ func (s *Service[
 
 	return nil
 }
-
-// verifyBlobProofs verifies the blob proofs of an incoming block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT,
-]) verifyBlobProofs(
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	return s.blobProcessor.VerifyBlobs(slot, sidecars)
-}

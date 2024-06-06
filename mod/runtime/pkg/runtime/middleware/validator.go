@@ -220,10 +220,11 @@ func (h *ValidatorMiddleware[
 		resp      = &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
 		}
+		logger = ctx.Logger()
 	)
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
-	blk, err := h.beaconBlockGossiper.Request(gCtx, req)
+	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
 		blk = blk.Empty(version.Deneb)
 	}
@@ -244,7 +245,8 @@ func (h *ValidatorMiddleware[
 
 	// If either the block or the blobs are invalid, reject the proposal.
 	if err = g.Wait(); err != nil {
+		logger.Info("rejecting comet-bft proposal due to", "error", err)
 		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	}
-	return resp, err
+	return resp, nil
 }
