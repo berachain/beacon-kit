@@ -24,11 +24,11 @@ import (
 	"context"
 )
 
-// ReceiveBlobs receives blobs from the network and processes them.
+// VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) ReceiveBlobs(
+]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
 	blobs BlobSidecarsT,
