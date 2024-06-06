@@ -68,7 +68,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 
 	// Check if the state size is greater than 0
 	size := state.SizeSSZ()
-	require.Positive(t, size)
+	require.Greater(t, size, 0)
 }
 
 func TestHashTreeRoot(t *testing.T) {

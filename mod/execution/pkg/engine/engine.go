@@ -98,11 +98,10 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
-	hasPayloadAttributes := req.PayloadAttributes != nil &&
-		!req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(
 		req.State,
-		hasPayloadAttributes,
+		req.PayloadAttributes != nil &&
+			!req.PayloadAttributes.IsNil(),
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -146,18 +145,6 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
-	}
-
-	// If we reached here, and we have a nil payload ID, we should log a
-	// warning.
-	if payloadID == nil && hasPayloadAttributes {
-		ee.logger.Warn(
-			"received nil payload ID on VALID engine response",
-			"head_eth1_hash", req.State.HeadBlockHash,
-			"safe_eth1_hash", req.State.SafeBlockHash,
-			"finalized_eth1_hash", req.State.FinalizedBlockHash,
-		)
-		return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
 	}
 
 	return payloadID, latestValidHash, nil
