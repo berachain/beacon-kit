@@ -356,7 +356,7 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
-//nolint:gocognit // todo fix.
+
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
