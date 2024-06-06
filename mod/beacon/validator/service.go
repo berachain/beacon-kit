@@ -41,7 +41,11 @@ type Service[
 	BeaconBlockBodyT BeaconBlockBody[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
 	],
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
 	ForkDataT interface {
@@ -94,7 +98,11 @@ func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
-	BeaconStateT BeaconState[BeaconStateT],
+	BeaconStateT BeaconState[
+		*types.BeaconBlockHeader,
+		BeaconStateT,
+		*types.ExecutionPayloadHeader,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
 	ForkDataT interface {
