@@ -344,7 +344,7 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block
+// VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
 //nolint:gocognit // todo fix.
@@ -601,36 +601,4 @@ func (s *Service[
 	}
 	s.metrics.markOptimisticPayloadBuildSuccess(slot)
 	return nil
-}
-
-// verifyIncomingBlockStateRoot verifies the state root of an incoming block
-// and logs the process.
-func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) forceStartupHead(
-	ctx context.Context,
-	st BeaconStateT,
-) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get slot for force startup head",
-			"error", err,
-		)
-		return
-	}
-
-	// TODO: Verify if the slot number is correct here, I believe in current
-	// form
-	// it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
-		s.logger.Error(
-			"failed to send force head FCU",
-			"error", err,
-		)
-	}
 }

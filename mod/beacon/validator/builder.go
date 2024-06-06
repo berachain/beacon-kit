@@ -21,11 +21,7 @@
 package validator
 
 import (
-	"context"
-	"time"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -73,119 +69,6 @@ func (s *Service[
 		parentBlockRoot,
 		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
 	)
-}
-
-// retrieveExecutionPayload retrieves the execution payload for the block.
-func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) retrieveExecutionPayload(
-	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
-	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.
-		RetrievePayload(
-			ctx,
-			blk.GetSlot(),
-			blk.GetParentBlockRoot(),
-		)
-	if err != nil {
-		s.metrics.failedToRetrievePayload(
-			blk.GetSlot(),
-			err,
-		)
-
-		// The latest execution payload header will be from the previous block
-		// during the block building phase.
-		var lph *types.ExecutionPayloadHeader
-		lph, err = st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return nil, err
-		}
-
-		// If we failed to retrieve the payload, request a synchrnous payload.
-		//
-		// NOTE: The state here is properly configured by the
-		// prepareStateForBuilding
-		//
-		// call that needs to be called before requesting the Payload.
-		// TODO: We should decouple the PayloadBuilder from BeaconState to make
-		// this less confusing.
-		return s.localPayloadBuilder.RequestPayloadSync(
-			ctx,
-			st,
-			blk.GetSlot(),
-			// TODO: this is hood.
-			max(
-				//#nosec:G701
-				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+1)),
-			),
-			blk.GetParentBlockRoot(),
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		)
-	}
-	return envelope, nil
-}
-
-// prepareStateForBuilding ensures that the state is at the requested slot
-// before building a block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT,
-]) prepareStateForBuilding(
-	st BeaconStateT,
-	requestedSlot math.Slot,
-) error {
-	// Get the current state slot.
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	slotDifference := requestedSlot - stateSlot
-	switch {
-	case slotDifference == 1:
-		// If our BeaconState is not up to date, we need to process
-		// a slot to get it up to date.
-		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
-			return err
-		}
-
-		// Request the slot again, it should've been incremented by 1.
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return err
-		}
-
-		// If after doing so, we aren't exactly at the requested slot,
-		// we should return an error.
-		if requestedSlot != stateSlot {
-			return errors.Newf(
-				"requested slot could not be processed, requested: %d, state: %d",
-				requestedSlot,
-				stateSlot,
-			)
-		}
-	case slotDifference > 1:
-		return errors.Newf(
-			"requested slot is too far ahead, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	case slotDifference < 1:
-		return errors.Newf(
-			"requested slot is in the past, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	}
-
-	return nil
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
