@@ -30,23 +30,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-builder/pkg/components/module/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/ethereum/go-ethereum/event"
@@ -98,6 +93,14 @@ type DepInjectInput struct {
 		*transition.Context,
 		*types.Deposit,
 	]
+	StorageBackend blockchain.StorageBackend[
+		*dastore.Store[types.BeaconBlockBody],
+		types.BeaconBlockBody,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
+	]
 	ValidatorService service.Basic
 }
 
@@ -109,28 +112,6 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
-	payloadCodec := &encoding.
-		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
-		core.BeaconState[
-			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
-			*types.Validator, *engineprimitives.Withdrawal,
-		],
-	](
-		in.ChainSpec,
-		in.AvailabilityStore,
-		beacondb.New[
-			*types.Fork,
-			*types.BeaconBlockHeader,
-			*types.ExecutionPayloadHeader,
-			*types.Eth1Data,
-			*types.Validator,
-		](in.Environment.KVStoreService, payloadCodec),
-		in.DepositStore,
-	)
-
 	// TODO: this is hood as fuck.
 	if in.BeaconConfig.KZG.Implementation == "" {
 		in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
@@ -146,7 +127,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.BeaconDepositContract,
 		in.LocalBuilder,
 		in.BlockFeed,
-		storageBackend,
+		in.StorageBackend,
 		in.StateProcessor,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
