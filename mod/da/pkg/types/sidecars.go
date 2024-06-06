@@ -33,6 +33,11 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
+// IsNil checks to see if blobs are nil.
+func (bs *BlobSidecars) IsNil() bool {
+	return bs == nil || bs.Sidecars == nil
+}
+
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
