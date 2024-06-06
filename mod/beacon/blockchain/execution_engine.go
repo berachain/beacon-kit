@@ -120,6 +120,7 @@ func (s *Service[
 			prevBlockRoot,
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
+			false,
 		); err == nil {
 			return
 		}

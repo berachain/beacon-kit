@@ -191,6 +191,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
+		forceUpdate bool,
 	) (*engineprimitives.PayloadID, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
@@ -202,6 +203,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
+		forceUpdate bool,
 	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
 	// SendForceHeadFCU sends a force head FCU to the execution client.
 	SendForceHeadFCU(

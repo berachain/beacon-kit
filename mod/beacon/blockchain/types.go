@@ -148,6 +148,7 @@ type LocalBuilder[BeaconStateT any] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
+		forceUpdate bool,
 	) (*engineprimitives.PayloadID, error)
 }
 

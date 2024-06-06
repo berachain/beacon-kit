@@ -107,6 +107,7 @@ func (s *Service[
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
+			false,
 		)
 	}
 	return envelope, nil
@@ -205,6 +206,7 @@ func (s *Service[
 		// TODO: This is making an assumption about the consensus rules
 		// and possibly should be made more explicit later on.
 		lph.GetBlockHash(),
+		false,
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
@@ -285,6 +287,7 @@ func (s *Service[
 		// parent hash was deemed valid by the state transition function we
 		// just processed.
 		payload.GetParentHash(),
+		false,
 	); err != nil {
 		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err

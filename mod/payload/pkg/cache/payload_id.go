@@ -74,6 +74,23 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Get(
 	return pid, true
 }
 
+// Has checks if a payload ID associated with a given slot and eth1 hash exists
+// in the cache. It returns a boolean indicating whether the lookup was
+// successful.
+func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
+	slot SlotT,
+	stateRoot RootT,
+) bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	innerMap, ok := p.slotToStateRootToPayloadID[slot]
+	if !ok {
+		return false
+	}
+	_, ok = innerMap[stateRoot]
+	return ok
+}
+
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.

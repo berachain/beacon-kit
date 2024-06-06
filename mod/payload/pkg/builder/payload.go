@@ -43,9 +43,25 @@ func (pb *PayloadBuilder[
 	parentBlockRoot primitives.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
+	forceUpdate bool,
 ) (*engineprimitives.PayloadID, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
+	}
+
+	// Attempt to see if we previously fired off a payload built for
+	// this particular slot and parent block root.
+	prevBuiltPayloadID, found := pb.pc.Get(slot, parentBlockRoot)
+
+	// If we find a payload and we are not in force mode, we can skip
+	// building the payload.
+	if found && !forceUpdate {
+		pb.logger.Warn(
+			"skipping payload build and forkchoice update; already built for slot",
+			"for_slot", slot,
+			"parent_block_root", parentBlockRoot,
+		)
+		return &prevBuiltPayloadID, nil
 	}
 
 	// Assemble the payload attributes.
@@ -59,35 +75,55 @@ func (pb *PayloadBuilder[
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1BlockHash,
-				SafeBlockHash:      finalEth1BlockHash,
-				FinalizedBlockHash: finalEth1BlockHash,
+				HeadBlockHash:      headEth1BlockHash,  // some 2954 of some description
+				SafeBlockHash:      finalEth1BlockHash, // 2953
+				FinalizedBlockHash: finalEth1BlockHash, // 2953
 			},
 			PayloadAttributes: attrs,
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
-	if err != nil {
-		return nil, err
-	}
 
-	// Only add to cache if we received back a payload ID.
-	if payloadID != nil {
-		pb.logger.Info(
-			"bob the builder; can we forkchoice update it?;"+
-				" bob the builder; yes we can 🚧",
-			"head_eth1_hash",
-			headEth1BlockHash,
-			"for_slot",
-			slot,
-			"parent_block_root",
-			parentBlockRoot,
-			"payload_id",
-			payloadID,
+	// If we got a nil response when we were expecting a payload ID and we
+	// have something to fall back to we can use the previous payload ID.
+	if payloadID == nil && prevBuiltPayloadID != (engineprimitives.PayloadID{}) {
+		args := []any{
+			"for_slot", slot,
+			"parent_block_root", parentBlockRoot,
+			"prev_payload_id", prevBuiltPayloadID,
+			"force_update", forceUpdate,
+		}
+
+		if err != nil {
+			args = append(args, "error", err)
+		}
+
+		pb.logger.Warn(
+			"payload build produced nil payload ID - "+
+				"falling back to previously built payload", args,
 		)
-		pb.pc.Set(slot, parentBlockRoot, *payloadID)
+
+		return &prevBuiltPayloadID, nil
+	} else if err != nil {
+		return nil, err
+	} else if payloadID == nil {
+		return nil, ErrNilPayloadID
 	}
 
+	pb.logger.Info(
+		"bob the builder; can we forkchoice update it?;"+
+			" bob the builder; yes we can 🚧",
+		"head_eth1_hash",
+		headEth1BlockHash,
+		"for_slot",
+		slot,
+		"parent_block_root",
+		parentBlockRoot,
+		"payload_id",
+		payloadID,
+	)
+
+	pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	return payloadID, nil
 }
 
@@ -103,6 +139,7 @@ func (pb *PayloadBuilder[
 	parentBlockRoot primitives.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
+	forceUpdate bool,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -117,6 +154,7 @@ func (pb *PayloadBuilder[
 		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,
+		forceUpdate,
 	)
 	if err != nil {
 		return nil, err
