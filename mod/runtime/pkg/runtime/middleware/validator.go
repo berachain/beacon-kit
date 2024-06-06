@@ -214,33 +214,31 @@ func (h *ValidatorMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		startTime = time.Now()
-	)
-
+	startTime := time.Now()
 	defer h.metrics.measureProcessProposalDuration(startTime)
+
 	blk, err := h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
 		blk = blk.Empty(version.Deneb)
 	}
 
-	if err := h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
+	if err = h.validatorService.VerifyIncomingBlock(ctx, blk); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		}, err
 	}
 
 	blobs, err := h.blobGossiper.Request(ctx, req)
 	if err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		}, err
 	}
 
 	if err = h.validatorService.VerifyIncomingBlobs(ctx, blk, blobs); err != nil {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		}, err
 	}
 
 	return &cmtabci.ProcessProposalResponse{
