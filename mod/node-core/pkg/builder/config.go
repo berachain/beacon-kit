@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package nodebuilder
+package builder
 
 import (
 	"time"
@@ -29,7 +29,7 @@ import (
 )
 
 // DefaultAppConfig returns the default configuration for the application.
-func (nb *NodeBuilder[T]) DefaultAppConfig() any {
+func DefaultAppConfig() any {
 	// Define a struct for the custom app configuration.
 	type CustomAppConfig struct {
 		serverconfig.Config
@@ -55,7 +55,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfig() any {
 
 // DefaultAppConfigTemplate returns the default configuration template for the
 // application.
-func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
+func DefaultAppConfigTemplate() string {
 	return serverconfig.DefaultConfigTemplate +
 		"\n" + config.Template
 }
@@ -64,7 +64,7 @@ func (nb *NodeBuilder[T]) DefaultAppConfigTemplate() string {
 // consensus engine.
 //
 //nolint:mnd // magic numbers are fine here.
-func (nb *NodeBuilder[T]) DefaultCometConfig() *cmtcfg.Config {
+func DefaultCometConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
 	consensus.TimeoutPropose = 3000 * time.Millisecond

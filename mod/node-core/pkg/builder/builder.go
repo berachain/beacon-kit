@@ -1,24 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
-//
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
-// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
-//
-// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
-// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
-// VERSIONS OF THE LICENSED WORK.
-//
-// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
-// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
-//
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
-// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
-// TITLE.
-
-package nodebuilder
+package builder
 
 import (
 	"os"
@@ -30,6 +10,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	node "github.com/berachain/beacon-kit/mod/node-core/pkg"
 	cmdlib "github.com/berachain/beacon-kit/mod/node-core/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
@@ -38,60 +19,45 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// AppInfo is a struct that holds the application information.
-type AppInfo[T servertypes.Application] struct {
-	// Name is the name of the application.
-	Name string
-	// Description is a short description of the application.
-	Description string
-	// DepInjectConfig is the configuration for the application.
-	DepInjectConfig depinject.Config
+type Builder[NodeT node.NodeI] struct {
+	node NodeT
+
+	name         string
+	description  string
+	depInjectCfg depinject.Config
+	chainSpec    primitives.ChainSpec
 }
 
-// NodeBuilder is a struct that holds the application information.
-type NodeBuilder[T servertypes.Application] struct {
-	// Every node has some application it is running.
-	appInfo *AppInfo[T]
-
-	// chainSpec is the chain specification for the application.
-	chainSpec primitives.ChainSpec
-
-	// rootCmd is the root command for the application.
-	rootCmd *cobra.Command
+// NewBuilder returns a new Builder.
+func NewBuilder[NodeT node.NodeI](opts ...Opt[NodeT]) *Builder[NodeT] {
+	b := &Builder[NodeT]{
+		node: node.New[NodeT](),
+	}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
 }
 
-// NewNodeBuilder creates a new NodeBuilder.
-func NewNodeBuilder[T servertypes.Application]() *NodeBuilder[T] {
-	return &NodeBuilder[T]{}
-}
-
-// Run runs the application.
-func (nb *NodeBuilder[T]) RunNode() error {
-	if err := nb.BuildRootCmd(); err != nil {
-		return err
+// Build builds the application.
+func (b *Builder[NodeT]) Build() (NodeT, error) {
+	rootCmd, err := b.buildRootCmd()
+	if err != nil {
+		return b.node, err
 	}
 
-	// Run the root command.
-	if err := svrcmd.Execute(
-		nb.rootCmd, "", components.DefaultNodeHome,
-	); err != nil {
-		log.NewLogger(nb.rootCmd.OutOrStderr()).
-			Error("failure when running app", "error", err)
-		return err
-	}
-	return nil
+	b.node.SetRootCmd(rootCmd)
+	return b.node, nil
 }
 
-// BuildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[T]) BuildRootCmd() error {
+// buildRootCmd builds the root command for the application.
+func (b *Builder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
@@ -99,11 +65,11 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.appInfo.DepInjectConfig,
+			b.depInjectCfg,
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				nb.chainSpec,
+				b.chainSpec,
 				&depositdb.KVStore[*types.Deposit]{},
 				&engineclient.EngineClient[*types.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
@@ -123,12 +89,12 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 		&mm,
 		&clientCtx,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
-	nb.rootCmd = &cobra.Command{
-		Use:   nb.appInfo.Name,
-		Short: nb.appInfo.Description,
+	cmd := &cobra.Command{
+		Use:   b.name,
+		Short: b.description,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -161,19 +127,23 @@ func (nb *NodeBuilder[T]) BuildRootCmd() error {
 
 			return server.InterceptConfigsPreRunHandler(
 				cmd,
-				nb.DefaultAppConfigTemplate(),
-				nb.DefaultAppConfig(),
-				nb.DefaultCometConfig(),
+				DefaultAppConfigTemplate(),
+				DefaultAppConfig(),
+				DefaultCometConfig(),
 			)
 		},
 	}
 
 	cmdlib.DefaultRootCommandSetup(
-		nb.rootCmd,
+		cmd,
 		mm,
-		nb.AppCreator,
-		nb.chainSpec,
+		b.AppCreator,
+		b.chainSpec,
 	)
 
-	return autoCliOpts.EnhanceRootCommand(nb.rootCmd)
+	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
 }
