@@ -187,7 +187,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "geth",
-				Replicas: 2, //nolint:mnd
+				Replicas: 2, //nolint:mnd // bet.
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
