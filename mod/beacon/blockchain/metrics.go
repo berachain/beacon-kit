@@ -21,7 +21,6 @@
 package blockchain
 
 import (
-	"strconv"
 	"time"
 )
 
@@ -43,13 +42,11 @@ func newChainMetrics(
 // measureStateTransitionDuration measures the time to process
 // the state transition for a block.
 func (cm *chainMetrics) measureStateTransitionDuration(
-	start time.Time, skipPayloadVerification bool,
+	start time.Time,
 ) {
 	cm.sink.MeasureSince(
 		"beacon_kit.beacon.blockchain.state_transition_duration",
 		start,
-		"skip_payload_verification",
-		strconv.FormatBool(skipPayloadVerification),
 	)
 }
 
