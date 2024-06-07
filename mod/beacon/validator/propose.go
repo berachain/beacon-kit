@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,13 +35,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// RequestBestBlock builds a new beacon block.
+// RequestBlockForProposal builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) RequestBestBlock(
+]) RequestBlockForProposal(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
@@ -50,7 +51,7 @@ func (s *Service[
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
-	defer s.metrics.measureRequestBestBlockTime(startTime)
+	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -60,12 +61,6 @@ func (s *Service[
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
 
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
-
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
 	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
@@ -73,7 +68,7 @@ func (s *Service[
 	}
 
 	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel.
+	// TODO: We can optimize to pre-compute this in parallel?
 	reveal, err := s.buildRandaoReveal(st, requestedSlot)
 	if err != nil {
 		return blk, sidecars, err
@@ -105,7 +100,6 @@ func (s *Service[
 	}
 
 	// If we get returned a nil blobs bundle, we should return an error.
-	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return blk, sidecars, ErrNilBlobsBundle
@@ -158,30 +152,8 @@ func (s *Service[
 		return sidecarErr
 	})
 
-	// Compute and set the state root for the block.
 	g.Go(func() error {
-		s.logger.Info(
-			"computing state root for block 🌲",
-			"slot", blk.GetSlot(),
-		)
-
-		var stateRoot primitives.Root
-		stateRoot, err = s.computeStateRoot(ctx, st, blk)
-		if err != nil {
-			s.logger.Error(
-				"failed to compute state root while building block ❗️ ",
-				"slot", requestedSlot,
-				"error", err,
-			)
-			return err
-		}
-
-		s.logger.Info("state root computed for block 💻 ",
-			"slot", requestedSlot,
-			"state_root", stateRoot,
-		)
-		blk.SetStateRoot(stateRoot)
-		return nil
+		return s.computeAndSetStateRoot(ctx, st, blk)
 	})
 
 	if err = g.Wait(); err != nil {
@@ -265,4 +237,61 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 	return s.signer.Sign(signingRoot[:])
+}
+
+// retrieveExecutionPayload retrieves the execution payload for the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) retrieveExecutionPayload(
+	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
+) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
+	//
+	// TODO: Add external block builders to this flow.
+	//
+	// Get the payload for the block.
+	envelope, err := s.localPayloadBuilder.
+		RetrievePayload(
+			ctx,
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+		)
+	if err != nil {
+		s.metrics.failedToRetrievePayload(
+			blk.GetSlot(),
+			err,
+		)
+
+		// The latest execution payload header will be from the previous block
+		// during the block building phase.
+		var lph *types.ExecutionPayloadHeader
+		lph, err = st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return nil, err
+		}
+
+		// If we failed to retrieve the payload, request a synchrnous payload.
+		//
+		// NOTE: The state here is properly configured by the
+		// prepareStateForBuilding
+		//
+		// call that needs to be called before requesting the Payload.
+		// TODO: We should decouple the PayloadBuilder from BeaconState to make
+		// this less confusing.
+		return s.localPayloadBuilder.RequestPayloadSync(
+			ctx,
+			st,
+			blk.GetSlot(),
+			// TODO: this is hood.
+			max(
+				//#nosec:G701
+				uint64(time.Now().Unix()+1),
+				uint64((lph.GetTimestamp()+1)),
+			),
+			blk.GetParentBlockRoot(),
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
+		)
+	}
+	return envelope, nil
 }

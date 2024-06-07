@@ -21,7 +21,7 @@
     "accountStartNonce": "0x0",
     "maximumExtraDataSize": "0x20",
     "minGasLimit": "0x1c9c380",
-    "networkID": "0x138d4",
+    "networkID": "0x138d7",
     "forkBlock": "0x0",
     "maxCodeSize": "0x6000",
     "maxCodeSizeTransition": "0x0",

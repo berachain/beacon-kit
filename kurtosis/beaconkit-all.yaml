@@ -35,13 +35,13 @@ network_configuration:
         replicas: 1
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: erigon
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
@@ -93,7 +93,7 @@ node_settings:
       max_memory: 2048
     images:
       besu: hyperledger/besu:latest
-      erigon: thorax/erigon:v2.60.0
+      erigon: thorax/erigon:v2.60.1
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
