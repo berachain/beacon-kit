@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -59,12 +60,6 @@ func (s *Service[
 	// is that we get the nice property of lazily propogating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
-
-	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, st) })
 
 	// Prepare the state such that it is ready to build a block for
 	// the request slot
@@ -265,4 +260,58 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 	return s.signer.Sign(signingRoot[:])
+}
+
+// retrieveExecutionPayload retrieves the execution payload for the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) retrieveExecutionPayload(
+	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
+) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
+	// Get the payload for the block.
+	envelope, err := s.localPayloadBuilder.
+		RetrievePayload(
+			ctx,
+			blk.GetSlot(),
+			blk.GetParentBlockRoot(),
+		)
+	if err != nil {
+		s.metrics.failedToRetrievePayload(
+			blk.GetSlot(),
+			err,
+		)
+
+		// The latest execution payload header will be from the previous block
+		// during the block building phase.
+		var lph *types.ExecutionPayloadHeader
+		lph, err = st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return nil, err
+		}
+
+		// If we failed to retrieve the payload, request a synchrnous payload.
+		//
+		// NOTE: The state here is properly configured by the
+		// prepareStateForBuilding
+		//
+		// call that needs to be called before requesting the Payload.
+		// TODO: We should decouple the PayloadBuilder from BeaconState to make
+		// this less confusing.
+		return s.localPayloadBuilder.RequestPayloadSync(
+			ctx,
+			st,
+			blk.GetSlot(),
+			// TODO: this is hood.
+			max(
+				//#nosec:G701
+				uint64(time.Now().Unix()+1),
+				uint64((lph.GetTimestamp()+1)),
+			),
+			blk.GetParentBlockRoot(),
+			lph.GetBlockHash(),
+			lph.GetParentHash(),
+		)
+	}
+	return envelope, nil
 }

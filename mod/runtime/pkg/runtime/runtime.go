@@ -82,9 +82,9 @@ type BeaconKitRuntime[
 	storageBackend StorageBackendT
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
-	// abciFinalizeBlockMiddleware handles ABCI interactions for the
+	// abciBlockchainMiddleware handles ABCI interactions for the
 	// BeaconKitRuntime.
-	abciFinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
+	abciBlockchainMiddleware *middleware.BlockchainMiddleware[
 		BeaconBlockT, BeaconStateT, BlobSidecarsT,
 	]
 	// abciValidatorMiddleware is responsible for forward ABCI requests to the
@@ -167,8 +167,8 @@ func NewBeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		abciFinalizeBlockMiddleware: middleware.
-			NewFinalizeBlockMiddleware[
+		abciBlockchainMiddleware: middleware.
+			NewBlockchainMiddleware[
 			BeaconBlockT, BeaconStateT, BlobSidecarsT,
 		](
 			chainSpec,
@@ -179,6 +179,7 @@ func NewBeaconKitRuntime[
 			NewValidatorMiddleware[AvailabilityStoreT](
 			chainSpec,
 			validatorService,
+			chainService,
 			telemetrySink,
 			storageBackend,
 		),
@@ -203,10 +204,10 @@ func (r *BeaconKitRuntime[
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
-]) ABCIFinalizeBlockMiddleware() *middleware.FinalizeBlockMiddleware[
+]) ABCIBlockchainMiddleware() *middleware.BlockchainMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ] {
-	return r.abciFinalizeBlockMiddleware
+	return r.abciBlockchainMiddleware
 }
 
 // ABCIValidatorMiddleware returns the ABCI validator middleware.

@@ -18,21 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package blockchain
 
 import (
 	"context"
 	"sync"
 
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ReceiveBlockAndBlobs receives a block and blobs from the
 // network and processes them.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) ReceiveBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -63,14 +70,19 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
-	preState := s.bsb.StateFromContext(ctx)
+	preState := s.sb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	//
@@ -138,10 +150,56 @@ func (s *Service[
 	return nil
 }
 
+// verifyStateRoot verifies the state root of an incoming block.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
+]) verifyStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	// startTime := time.Now()
+	// defer s.metrics.measureStateRootVerificationTime(startTime)
+	if _, err := s.sp.Transition(
+		// We run with a non-optimistic engine here to ensure
+		// that the proposer does not try to push through a bad block.
+		&transition.Context{
+			Context:                 ctx,
+			OptimisticEngine:        false,
+			SkipPayloadVerification: false,
+			SkipValidateResult:      false,
+			SkipValidateRandao:      false,
+		},
+		st, blk,
+	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
+		// It is safe for the validator to ignore this error since
+		// the state transition will enforce that the block is part
+		// of the canonical chain.
+		//
+		// TODO: this is only true because we are assuming SSF.
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -170,7 +228,7 @@ func (s *Service[
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.blobProcessor.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
+	if err := s.bp.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌ ",
 			"error", err,
@@ -185,4 +243,19 @@ func (s *Service[
 	)
 
 	return nil
+}
+
+// shouldBuildOptimisticPayloads returns true if optimistic
+// payload builds are enabled.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
+]) shouldBuildOptimisticPayloads() bool {
+	return /*s.cfg.EnableOptimisticPayloadBuilds*/ true &&
+		s.lb.Enabled()
 }

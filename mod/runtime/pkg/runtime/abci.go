@@ -36,7 +36,7 @@ func (r BeaconKitRuntime[
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciFinalizeBlockMiddleware.InitGenesis(ctx, bz)
+	return r.abciBlockchainMiddleware.InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -47,5 +47,5 @@ func (r BeaconKitRuntime[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciFinalizeBlockMiddleware.EndBlock(ctx)
+	return r.abciBlockchainMiddleware.EndBlock(ctx)
 }

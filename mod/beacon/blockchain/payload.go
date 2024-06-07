@@ -18,13 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package blockchain
 
 import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -32,8 +31,13 @@ import (
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -50,7 +54,7 @@ func (s *Service[
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form
 	// it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localPayloadBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	if err = s.lb.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -58,65 +62,16 @@ func (s *Service[
 	}
 }
 
-// retrieveExecutionPayload retrieves the execution payload for the block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) retrieveExecutionPayload(
-	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
-	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.
-		RetrievePayload(
-			ctx,
-			blk.GetSlot(),
-			blk.GetParentBlockRoot(),
-		)
-	if err != nil {
-		s.metrics.failedToRetrievePayload(
-			blk.GetSlot(),
-			err,
-		)
-
-		// The latest execution payload header will be from the previous block
-		// during the block building phase.
-		var lph *types.ExecutionPayloadHeader
-		lph, err = st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return nil, err
-		}
-
-		// If we failed to retrieve the payload, request a synchrnous payload.
-		//
-		// NOTE: The state here is properly configured by the
-		// prepareStateForBuilding
-		//
-		// call that needs to be called before requesting the Payload.
-		// TODO: We should decouple the PayloadBuilder from BeaconState to make
-		// this less confusing.
-		return s.localPayloadBuilder.RequestPayloadSync(
-			ctx,
-			st,
-			blk.GetSlot(),
-			// TODO: this is hood.
-			max(
-				//#nosec:G701
-				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+1)),
-			),
-			blk.GetParentBlockRoot(),
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		)
-	}
-	return envelope, nil
-}
-
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -139,8 +94,13 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -186,7 +146,7 @@ func (s *Service[
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+	if _, err = s.lb.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
@@ -206,18 +166,23 @@ func (s *Service[
 		// and possibly should be made more explicit later on.
 		lph.GetBlockHash(),
 	); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
+		// s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
 	}
-	s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
+	// s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
 	return nil
 }
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -234,8 +199,13 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -258,7 +228,7 @@ func (s *Service[
 	}
 
 	// We process the slot to update any RANDAO values.
-	if _, err = s.stateProcessor.ProcessSlots(
+	if _, err = s.sp.ProcessSlots(
 		st, slot,
 	); err != nil {
 		return err
@@ -266,13 +236,13 @@ func (s *Service[
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err = s.localPayloadBuilder.RequestPayloadAsync(
+	if _, err = s.lb.RequestPayloadAsync(
 		ctx, st,
 		slot,
 		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
-			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
+			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
 		),
 		// The previous block root is simply the root of the block we just
@@ -286,9 +256,9 @@ func (s *Service[
 		// just processed.
 		payload.GetParentHash(),
 	); err != nil {
-		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
+		// s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err
 	}
-	s.metrics.markOptimisticPayloadBuildSuccess(slot)
+	// s.metrics.markOptimisticPayloadBuildSuccess(slot)
 	return nil
 }

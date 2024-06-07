@@ -88,11 +88,18 @@ type BlobProcessor[
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
+
+	// VerifyBlobs verifies the blobs and ensures they match the local state.
+	VerifyBlobs(
+		slot math.Slot,
+		sidecars BlobSidecarsT,
+	) error
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
+	IsNil() bool
 	Len() int
 }
 
@@ -149,6 +156,11 @@ type LocalBuilder[BeaconStateT any] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
+	SendForceHeadFCU(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+	) error
 }
 
 // StateProcessor defines the interface for processing various state transitions

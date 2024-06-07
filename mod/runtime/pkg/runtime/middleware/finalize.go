@@ -39,10 +39,10 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// FinalizeBlockMiddleware is a struct that encapsulates the necessary
+// BlockchainMiddleware is a struct that encapsulates the necessary
 // components to handle
 // the proposal processes.
-type FinalizeBlockMiddleware[
+type BlockchainMiddleware[
 	BeaconBlockT interface {
 		ssz.Marshallable
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
@@ -60,8 +60,8 @@ type FinalizeBlockMiddleware[
 	valUpdates []*transition.ValidatorUpdate
 }
 
-// NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
-func NewFinalizeBlockMiddleware[
+// NewBlockchainMiddleware creates a new instance of the Handler struct.
+func NewBlockchainMiddleware[
 	BeaconBlockT interface {
 		ssz.Marshallable
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
@@ -71,13 +71,13 @@ func NewFinalizeBlockMiddleware[
 	chainSpec primitives.ChainSpec,
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	telemetrySink TelemetrySink,
-) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
+) *BlockchainMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
 		panic("chain service is nil")
 	}
 
-	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
+	return &BlockchainMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
 		metrics:      newFinalizeMiddlewareMetrics(telemetrySink),
@@ -85,7 +85,7 @@ func NewFinalizeBlockMiddleware[
 }
 
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *FinalizeBlockMiddleware[
+func (h *BlockchainMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) InitGenesis(
 	ctx context.Context,
@@ -112,7 +112,7 @@ func (h *FinalizeBlockMiddleware[
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *FinalizeBlockMiddleware[
+func (h *BlockchainMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
@@ -142,7 +142,7 @@ func (h *FinalizeBlockMiddleware[
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (h FinalizeBlockMiddleware[
+func (h BlockchainMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) EndBlock(
 	context.Context,
