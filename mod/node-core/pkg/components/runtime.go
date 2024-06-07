@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
@@ -99,20 +98,13 @@ func ProvideRuntime(
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	],
+	localBuilder *payloadbuilder.PayloadBuilder[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	],
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the local builder service.
-	localBuilder := payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	](
-		&cfg.PayloadBuilder,
-		chainSpec,
-		logger.With("service", "payload-builder"),
-		executionEngine,
-		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
-	)
-
+	// build the state processor.
 	stateProcessor := core.NewStateProcessor[
 		*types.BeaconBlock,
 		types.BeaconBlockBody,
