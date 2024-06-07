@@ -120,7 +120,7 @@ func (app *BeaconApp) setupBeaconModule() {
 			ABCIValidatorMiddleware().
 			ProcessProposalHandler,
 	)
-	app.SetPreBlocker(beaconModule.ABCIBlockchainMiddleware().PreBlock)
+	app.SetPreBlocker(beaconModule.ABCIFinalizeBlockMiddleware().PreBlock)
 
 	// TODO: this needs to be made un-hood.
 	if err := beaconModule.StartServices(

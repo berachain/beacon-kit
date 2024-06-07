@@ -302,10 +302,10 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 ) {
 	s.logger.Info("starting JWT refresh loop 🔄")
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
-	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
+			ticker.Stop()
 			return
 		case <-ticker.C:
 			s.statusErrMu.Lock()
