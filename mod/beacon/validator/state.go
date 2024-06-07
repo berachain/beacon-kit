@@ -28,6 +28,40 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// computeAndSetStateRoot computes the state root of an outgoing block
+// and sets it in the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) computeAndSetStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	s.logger.Info(
+		"computing state root for block 🌲",
+		"slot", blk.GetSlot(),
+	)
+
+	var stateRoot primitives.Root
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	if err != nil {
+		s.logger.Error(
+			"failed to compute state root while building block ❗️ ",
+			"slot", blk.GetSlot(),
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info("state root computed for block 💻 ",
+		"slot", blk.GetSlot(),
+		"state_root", stateRoot,
+	)
+	blk.SetStateRoot(stateRoot)
+	return nil
+}
+
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
