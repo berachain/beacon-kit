@@ -46,7 +46,7 @@ func New[NodeT types.NodeI]() NodeT {
 	return types.NodeI(&Node{}).(NodeT)
 }
 
-// Run runs the node application.
+// Run runs the node's server application.
 func (n *Node) Run() error {
 	return svrcmd.Execute(
 		n.rootCmd, "", components.DefaultNodeHome,

@@ -39,8 +39,7 @@ type Config struct {
 	// Enabled determines if the local builder is enabled.
 	Enabled bool `mapstructure:"enabled"`
 	// SuggestedFeeRecipient is the address that will receive the transaction
-	// fees
-	// produced by any blocks from this node.
+	// fees produced by any blocks from this node.
 	SuggestedFeeRecipient common.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 	// PayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
