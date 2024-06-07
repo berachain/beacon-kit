@@ -21,6 +21,7 @@
 package nodebuilder
 
 import (
+	"fmt"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -84,6 +85,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
+		chainSpec   primitives.ChainSpec
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -110,9 +112,12 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
+		&chainSpec,
 	); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("A;LSDKJF;ALKSDJ🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩", chainSpec)
 
 	cmd := &cobra.Command{
 		Use:   nb.name,
