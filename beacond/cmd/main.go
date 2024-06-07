@@ -61,7 +61,6 @@ func run() error {
 		nodebuilder.WithChainSpec[types.NodeI](chainSpec),
 	)
 
-
 	node, err := nb.Build()
 	if err != nil {
 		return err
