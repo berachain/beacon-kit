@@ -18,48 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package nodebuilder
 
 import (
-	"log/slog"
-	"os"
-
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"go.uber.org/automaxprocs/maxprocs"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// run runs the beacon node.
-func run() error {
-	// Set the uber max procs
-	if _, err := maxprocs.Set(); err != nil {
-		return err
-	}
+type Opt[NodeT types.NodeI] func(*NodeBuilder[NodeT])
 
-	// Build the node using the node-core.
-	nb := nodebuilder.New[types.NodeI](
-		nodebuilder.WithName[types.NodeI]("beacond"),
-		nodebuilder.WithDescription[types.NodeI](
-			"beacond is a beacon node for any beacon-kit chain",
-		),
-		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
-		// TODO: Don't hardcode the default chain spec.
-		nodebuilder.WithChainSpec[types.NodeI](spec.TestnetChainSpec()),
-	)
-
-	node, err := nb.Build()
-	if err != nil {
-		return err
+func WithName[NodeT types.NodeI](name string) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.node.SetAppName(name)
+		nb.name = name
 	}
-	return node.Run()
 }
 
-// main is the entry point.
-func main() {
-	if err := run(); err != nil {
-		//nolint:sloglint // todo fix.
-		slog.Error("startup failure", "error", err)
-		os.Exit(1)
+func WithDescription[NodeT types.NodeI](description string) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.node.SetAppDescription(description)
+		nb.description = description
+	}
+}
+
+func WithDepInjectConfig[NodeT types.NodeI](cfg depinject.Config) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.depInjectCfg = cfg
+	}
+}
+
+func WithChainSpec[NodeT types.NodeI](cs primitives.ChainSpec) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.chainSpec = cs
 	}
 }
