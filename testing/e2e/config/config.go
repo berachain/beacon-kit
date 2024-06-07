@@ -276,7 +276,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
-			"reth":       "ghcr.io/paradigmxyz/reth:v0.2.0-beta.9",
+			"reth":       "ghcr.io/paradigmxyz/reth:latest",
 		},
 	}
 }
