@@ -188,7 +188,7 @@ func writeDepositToFile(
 	return err
 }
 
-// getBLSSigner returns a BLS signer based on the override commands key flag.
+// getBLSSigner returns a BLS signer based on the override node key flag.
 func getBLSSigner() (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
 	if err := depinject.Inject(

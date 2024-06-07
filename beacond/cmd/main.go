@@ -30,18 +30,18 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-// run runs the beacon commands.
+// run runs the beacon node.
 func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
 	}
 
-	// Build the commands using the commands-core.
+	// Build the node using the node-core.
 	nb := nodebuilder.New[types.NodeI](
 		nodebuilder.WithName[types.NodeI]("beacond"),
 		nodebuilder.WithDescription[types.NodeI](
-			"beacond is a beacon commands for any beacon-kit chain",
+			"beacond is a beacon node for any beacon-kit chain",
 		),
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
 		// TODO: Don't hardcode the default chain spec.

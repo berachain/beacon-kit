@@ -55,13 +55,13 @@ type EthJSONRPCEndpoint struct {
 
 // NodeSet holds nodes that have a distinct role in the network.
 type NodeSet struct {
-	// Type is the type of commands set.
+	// Type is the type of node set.
 	Type string `json:"type"`
 	// Nodes is a list of nodes in the set.
 	Nodes []Node `json:"nodes"`
 }
 
-// Node holds the configuration for a single commands in the test,
+// Node holds the configuration for a single node in the test,
 // including client images and types.
 type Node struct {
 	// ElType denotes the type of execution layer client (e.g., reth).
@@ -72,7 +72,7 @@ type Node struct {
 	KZGImpl string `json:"kzg_impl"`
 }
 
-// NodeSettings holds the configuration for a single commands in the test,
+// NodeSettings holds the configuration for a single node in the test,
 // including client images and types.
 type NodeSettings struct {
 	// ConsensusSettings holds the configuration for the consensus layer
@@ -86,7 +86,7 @@ type NodeSettings struct {
 // ExecutionSettings holds the configuration for the execution layer
 // clients.
 type ExecutionSettings struct {
-	// Specs holds the commands specs for all nodes in the execution layer.
+	// Specs holds the node specs for all nodes in the execution layer.
 	Specs NodeSpecs `json:"specs"`
 	// Images specifies the images available for the execution layer.
 	Images map[string]string `json:"images"`
@@ -95,7 +95,7 @@ type ExecutionSettings struct {
 // ConsensusSettings holds the configuration for the consensus layer
 // clients.
 type ConsensusSettings struct {
-	// Specs holds the commands specs for all nodes in the consensus layer.
+	// Specs holds the node specs for all nodes in the consensus layer.
 	Specs NodeSpecs `json:"specs"`
 	// Images specifies the images available for the consensus layer.
 	Images map[string]string `json:"images"`
@@ -131,7 +131,7 @@ type AppConfig struct {
 	EnableOptimisticPayloadBuilds bool `json:"enable_optimistic_payload_builds"`
 }
 
-// NodeSpecs holds the commands specs for all nodes in a single layer.
+// NodeSpecs holds the node specs for all nodes in a single layer.
 type NodeSpecs struct {
 	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
 	// layer.

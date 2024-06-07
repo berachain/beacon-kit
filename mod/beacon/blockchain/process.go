@@ -90,7 +90,7 @@ func (s *Service[
 		var err error
 		// We set `OptimisticEngine` to true since this is called during
 		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the commands will simply AppHash,
+		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
 		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, syncedToHead)
