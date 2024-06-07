@@ -272,7 +272,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
-			"erigon":     "thorax/erigon:v2.60.0",
+			"erigon":     "thorax/erigon:v2.60.1",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
