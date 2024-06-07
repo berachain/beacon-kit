@@ -36,6 +36,7 @@ import (
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -73,8 +74,13 @@ type DepInjectInput struct {
 	DepositStore    *depositdb.KVStore[*types.Deposit]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
-	Signer          crypto.BLSSigner
-	TelemetrySink   *metrics.TelemetrySink
+	LocalBuilder    *payloadbuilder.PayloadBuilder[
+		components.BeaconState,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+	]
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -121,6 +127,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.EngineClient,
 		in.ExecutionEngine,
 		storageBackend,
+		in.LocalBuilder,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
 	)
