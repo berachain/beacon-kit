@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -63,7 +64,49 @@ func (s *Service[
 	}()
 
 	wg.Wait()
-	return errors.JoinFatal(blockErr, blobsErr)
+
+	err := errors.JoinFatal(blockErr, blobsErr)
+	if err != nil {
+		st := s.sb.StateFromContext(ctx)
+		lph, err := st.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			s.logger.Error(
+				"failed to get latest processed header",
+				"error", err,
+			)
+		}
+
+		stateSlot, err := st.GetSlot()
+		if err != nil {
+			s.logger.Error(
+				"failed to get slot from state",
+				"error", err,
+			)
+		}
+
+		// If we are not building blocks, or we failed to build a block
+		// we can just send the forkchoice update without attributes.
+		_, _, err = s.ee.NotifyForkchoiceUpdate(
+			ctx,
+			engineprimitives.BuildForkchoiceUpdateRequest(
+				&engineprimitives.ForkchoiceStateV1{
+					HeadBlockHash:      lph.GetBlockHash(),
+					SafeBlockHash:      lph.GetParentHash(),
+					FinalizedBlockHash: lph.GetParentHash(),
+				},
+				nil,
+				s.cs.ActiveForkVersionForSlot(stateSlot),
+			),
+		)
+		if err != nil {
+			s.logger.Error(
+				"failed to send forkchoice update without attributes",
+				"error", err,
+			)
+		}
+	}
+
+	return err
 }
 
 // VerifyIncomingBlock verifies the state root of an incoming block
@@ -80,7 +123,7 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
-	// Grab a copy of the state to verify the incoming block.
+
 	preState := s.sb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
