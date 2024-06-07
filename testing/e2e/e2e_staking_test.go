@@ -177,7 +177,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	err = s.WaitForNBlockNumbers(20)
 	s.Require().NoError(err)
 
-	// Compare height of commands 1 and 2
+	// Compare height of nodes 1 and 2
 	height, err := client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
 	height2, err := client2.ABCIInfo(s.Ctx())

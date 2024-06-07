@@ -28,7 +28,7 @@ const (
 	privateKey = "private-key"
 
 	// overrideNodeKey is the flag for overriding the commands key.
-	overrideNodeKey = "override-commands-key"
+	overrideNodeKey = "override-node-key"
 
 	// validatorPrivateKey is the flag for the validator private key.
 	valPrivateKey = "validator-private-key"
