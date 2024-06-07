@@ -24,7 +24,7 @@ def collect_validator(plan, cl_service_name):
 
 def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
-    set_config = 'export CHAIN_SPEC = \"devnet\"'
+    set_config = 'export CHAIN_SPEC=\"devnet\"'
     set_config += '\nsed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^prometheus_listen_addr = \\":26660\\"$/prometheus_listen_addr = \\"0.0.0.0:26660\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^flush_throttle_timeout = \\".*\\"$/flush_throttle_timeout = \\"10ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
