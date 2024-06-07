@@ -278,10 +278,10 @@ addr_book_file = "config/addrbook.json"
 addr_book_strict = true
 
 # Maximum number of inbound peers
-max_num_inbound_peers = 40
+max_num_inbound_peers = 100
 
 # Maximum number of outbound peers to connect to, excluding persistent peers
-max_num_outbound_peers = 10
+max_num_outbound_peers = 40
 
 # List of node IDs, to which a connection will be (re)established ignoring any existing limits
 unconditional_peer_ids = ""
@@ -340,13 +340,13 @@ type = "nop"
 # Since a block affects the application state, some transactions in the
 # mempool may become invalid. If this does not apply to your application,
 # you can disable rechecking.
-recheck = true
+recheck = false
 
 # recheck_timeout is the time the application has during the rechecking process
 # to return CheckTx responses, once all requests have been sent. Responses that
 # arrive after the timeout expires are discarded. It only applies to
 # non-local ABCI clients and when recheck is enabled.
-recheck_timeout = "1s"
+recheck_timeout = "0s"
 
 # broadcast (default: true) defines whether the mempool should relay
 # transactions to other peers. Setting this to false will stop the mempool
@@ -453,7 +453,7 @@ version = "v0"
 wal_file = "data/cs.wal/wal"
 
 # How long we wait for a proposal block before prevoting nil
-timeout_propose = "1.75s"
+timeout_propose = "1.7s"
 # How much timeout_propose increases with each round
 timeout_propose_delta = "500ms"
 # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
@@ -468,7 +468,7 @@ timeout_precommit_delta = "500ms"
 # height (this gives us a chance to receive some more precommits, even
 # though we already have +2/3).
 # Set to 0 if you want to make progress as soon as the node has all the precommits.
-timeout_commit = "1.75s"
+timeout_commit = "1.2s"
 
 # Deprecated: set `timeout_commit` to 0 instead.
 skip_timeout_commit = false
