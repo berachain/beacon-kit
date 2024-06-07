@@ -31,7 +31,7 @@ import (
 
 // DevnetChainSpec is the ChainSpec for the localnet.
 //
-//nolint:mnd,dupl // bet.
+//nolint:mnd // bet.
 func DevnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
