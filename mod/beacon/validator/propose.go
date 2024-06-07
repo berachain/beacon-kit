@@ -270,6 +270,12 @@ func (s *Service[
 			return nil, err
 		}
 
+		if err = s.localPayloadBuilder.SendForceHeadFCU(
+			ctx, st, blk.GetSlot(),
+		); err != nil {
+			return nil, err
+		}
+
 		// If we failed to retrieve the payload, request a synchrnous payload.
 		//
 		// NOTE: The state here is properly configured by the
