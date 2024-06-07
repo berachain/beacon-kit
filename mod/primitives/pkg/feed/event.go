@@ -18,36 +18,49 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package feed
 
 import (
 	"context"
 )
 
-// Block represents a generic block in the beacon chain.
-type Block[BeaconBlockT any] struct {
-	// ctx is the context associated with the block.
+// Event represents a generic event in the beacon chain.
+type Event[DataT any] struct {
+	// ctx is the context associated with the event.
 	ctx context.Context
-	// block is the actual beacon block.
-	block BeaconBlockT
+	// name is the name of the event.
+	name string
+	// event is the actual beacon event.
+	data DataT
 }
 
-// NewBlock creates a new Block with the given context and beacon block.
-func NewBlock[
-	BeaconBlockT any,
-](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
-	return Block[BeaconBlockT]{
-		ctx:   ctx,
-		block: block,
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
+	DataT any,
+](ctx context.Context, name string, data DataT) Event[DataT] {
+	return Event[DataT]{
+		ctx:  ctx,
+		name: name,
+		data: data,
 	}
 }
 
-// Context returns the context associated with the block.
-func (e Block[BeaconBlockT]) Context() context.Context {
+// Name returns the name of the event.
+func (e Event[DataT]) Name() string {
+	return e.name
+}
+
+// Context returns the context associated with the event.
+func (e Event[DataT]) Context() context.Context {
 	return e.ctx
 }
 
-// Block returns the beacon block.
-func (e Block[BeaconBlockT]) Block() BeaconBlockT {
-	return e.block
+// Event returns the beacon event.
+func (e Event[DataT]) Data() DataT {
+	return e.data
+}
+
+// Is returns true if the event has the given name.
+func (e Event[DataT]) Is(name string) bool {
+	return e.name == name
 }

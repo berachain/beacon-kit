@@ -30,6 +30,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // Pruner is a struct that holds the prunable interface and a notifier channel.
@@ -78,12 +79,14 @@ func (p *Pruner[
 			case <-ctx.Done():
 				return
 			case event := <-ch:
-				start, end := p.pruneRangeFn(event)
-				if err := p.prunable.Prune(start, end); err != nil {
-					p.logger.Error(
-						"‼️ error pruning index ‼️",
-						"error", err,
-					)
+				if event.Is(events.BeaconBlockFinalized) {
+					start, end := p.pruneRangeFn(event)
+					if err := p.prunable.Prune(start, end); err != nil {
+						p.logger.Error(
+							"‼️ error pruning index ‼️",
+							"error", err,
+						)
+					}
 				}
 			}
 		}

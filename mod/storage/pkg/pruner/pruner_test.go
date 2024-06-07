@@ -41,7 +41,7 @@ import (
 func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
 	event EventT,
 ) (uint64, uint64) {
-	slot := event.Block().GetSlot().Unwrap()
+	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
 }
 
@@ -114,7 +114,8 @@ func TestPruner(t *testing.T) {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
 				event := mocks.BlockEvent[pruner.BeaconBlock]{}
-				event.On("Block").Return(&block)
+				event.On("Data").Return(&block)
+				event.On("Is", mock.Anything).Return(true)
 				feed.Send(&event)
 			}
 
