@@ -176,7 +176,7 @@ func (h *ValidatorMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// Get the best block and blobs.
-	blk, blobs, err := h.validatorService.RequestBestBlock(
+	blk, blobs, err := h.validatorService.RequestBlockForProposal(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk.IsNil() {
 		logger.Error(

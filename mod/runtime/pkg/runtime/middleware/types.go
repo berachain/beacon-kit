@@ -70,10 +70,10 @@ type ValidatorService[
 	BeaconStateT any,
 	BlobSidecarsT ssz.Marshallable,
 ] interface {
-	// RequestBestBlock requests the best beacon block for a given slot.
+	// RequestBlockForProposal requests the best beacon block for a given slot.
 	// It returns the beacon block, associated blobs sidecars, and an error if
 	// any.
-	RequestBestBlock(
+	RequestBlockForProposal(
 		context.Context, // The context for the request.
 		math.Slot, // The slot for which the best block is requested.
 	) (BeaconBlockT, BlobSidecarsT, error)
