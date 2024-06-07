@@ -246,6 +246,5 @@ func (s *Service[
 	DepositStoreT,
 	DepositT,
 ]) shouldBuildOptimisticPayloads() bool {
-	return /*s.cfg.EnableOptimisticPayloadBuilds*/ true &&
-		s.lb.Enabled()
+	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }

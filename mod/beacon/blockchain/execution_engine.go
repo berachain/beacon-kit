@@ -51,7 +51,9 @@ func (s *Service[
 		return
 	}
 
-	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
+	// This is technically not an optimistic payload
+	// TODO: This needs a refactor, big hood energy.
+	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
 		stCopy := st.Copy()
 		if _, err = s.sp.ProcessSlots(
 			stCopy, blk.GetSlot()+1,
@@ -98,26 +100,26 @@ func (s *Service[
 				"failed to send forkchoice update with attributes",
 				"error", err,
 			)
-	}
 
-	// If we are not building blocks, or we failed to build a block
-	// we can just send the forkchoice update without attributes.
-	_, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			nil,
-			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
-		),
-	)
-	if err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update without attributes",
-			"error", err,
+		// If we are not building blocks, or we failed to build a block
+		// we can just send the forkchoice update without attributes.
+		_, _, err = s.ee.NotifyForkchoiceUpdate(
+			ctx,
+			engineprimitives.BuildForkchoiceUpdateRequest(
+				&engineprimitives.ForkchoiceStateV1{
+					HeadBlockHash:      lph.GetBlockHash(),
+					SafeBlockHash:      lph.GetParentHash(),
+					FinalizedBlockHash: lph.GetParentHash(),
+				},
+				nil,
+				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+			),
 		)
+		if err != nil {
+			s.logger.Error(
+				"failed to send forkchoice update without attributes",
+				"error", err,
+			)
+		}
 	}
 }
