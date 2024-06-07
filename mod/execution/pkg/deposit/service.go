@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -142,7 +143,9 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case event := <-ch:
-			s.newBlock <- event.Data()
+			if event.Name() == feed.BeaconBlockFinalized {
+				s.newBlock <- event.Data()
+			}
 		}
 	}
 }

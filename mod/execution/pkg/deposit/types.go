@@ -54,6 +54,7 @@ type BlockEvent[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
+	Name() string
 	Context() context.Context
 	Data() BeaconBlockT
 }

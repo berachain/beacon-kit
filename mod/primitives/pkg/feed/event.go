@@ -18,24 +18,51 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events_test
+package feed
 
 import (
 	"context"
-	"testing"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-func TestNewEvent(t *testing.T) {
-	ctx := context.Background()
-	mockBeaconEvent := uint64(12345)
+const (
+	MissedSlot           = "MissedSlot"
+	BeaconBlockAccepted  = "BeaconBlockAccepted"
+	BeaconBlockRejected  = "BeaconBlockRejected"
+	BeaconBlockFinalized = "BeaconBlockFinalized"
+)
 
-	event := events.NewEvent(ctx, mockBeaconEvent)
-	if event.Context() != ctx {
-		t.Errorf("expected context %v, got %v", ctx, event.Context())
+// Event represents a generic event in the beacon chain.
+type Event[DataT any] struct {
+	// ctx is the context associated with the event.
+	ctx context.Context
+	// name is the name of the event.
+	name string
+	// event is the actual beacon event.
+	data DataT
+}
+
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
+	DataT any,
+](ctx context.Context, name string, data DataT) Event[DataT] {
+	return Event[DataT]{
+		ctx:  ctx,
+		name: name,
+		data: data,
 	}
-	if event.Data() != mockBeaconEvent {
-		t.Errorf("expected event %v, got %v", mockBeaconEvent, event.Data())
-	}
+}
+
+// Name returns the name of the event.
+func (e Event[DataT]) Name() string {
+	return e.name
+}
+
+// Context returns the context associated with the event.
+func (e Event[DataT]) Context() context.Context {
+	return e.ctx
+}
+
+// Event returns the beacon event.
+func (e Event[DataT]) Data() DataT {
+	return e.data
 }
