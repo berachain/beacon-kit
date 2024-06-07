@@ -34,7 +34,7 @@ type Backend struct {
 }
 
 // TODO: need to add state_id resolver; possible values are: "head" (canonical
-// head in commands's view), "genesis", "finalized", "justified", <slot>, <hex
+// head in node's view), "genesis", "finalized", "justified", <slot>, <hex
 // encoded stateRoot with 0x prefix>.
 func New(
 	getNewStateDB func(ctx context.Context, stateId string) StateDB,

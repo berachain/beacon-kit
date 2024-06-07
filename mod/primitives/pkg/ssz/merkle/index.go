@@ -137,7 +137,7 @@ func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 }
 
 // Concatenates multiple generalized indices into a single generalized index
-// representing the path from the first to the last commands.
+// representing the path from the first to the last node.
 func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {

@@ -43,7 +43,7 @@ echo "Generating API module"
 (cd mod/node-core/pkg/components/module/proto; buf generate --template buf.gen.pulsar.yaml; cd ../)
 
 # # cp -r api cosmos
-# cp -r api/mod/commands-core/pkg/components/module/* mod/commands-core/pkg/components/module/api
+# cp -r api/mod/node-core/pkg/components/module/* mod/node-core/pkg/components/module/api
 # rm -rf api
 # # rm -rf cosmos/api/ethereum
 # # rm -rf cosmos/api/types

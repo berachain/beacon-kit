@@ -58,7 +58,7 @@ implementation = "{{.BeaconKit.KZG.Implementation}}"
 enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
 
 # Post bellatrix, this address will receive the transaction fees produced by any blocks 
-# from this commands.
+# from this node.
 suggested-fee-recipient = "{{.BeaconKit.PayloadBuilder.SuggestedFeeRecipient}}"
 
 # The timeout for local build payload. This should match, or be slightly less
