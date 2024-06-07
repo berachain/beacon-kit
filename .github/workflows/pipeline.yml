@@ -98,9 +98,27 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v2
+
+      - name: Upload coverage as artifact
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./${{ matrix.args }}.txt
+          name: coverage
+          path: ./${{ matrix.args }}.txt
         if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
+
+
+  codecov:
+    runs-on : ubuntu-latest
+    needs: ci 
+    steps:
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage
+        path: .
+
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./test-unit-cover.txt,./test-forge-cover.txt
