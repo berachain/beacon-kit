@@ -68,7 +68,7 @@ func (s *Service[
 	}
 
 	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel.
+	// TODO: We can optimize to pre-compute this in parallel?
 	reveal, err := s.buildRandaoReveal(st, requestedSlot)
 	if err != nil {
 		return blk, sidecars, err
@@ -100,7 +100,6 @@ func (s *Service[
 	}
 
 	// If we get returned a nil blobs bundle, we should return an error.
-	// TODO: allow external block builders to override the payload.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
 		return blk, sidecars, ErrNilBlobsBundle
@@ -269,6 +268,9 @@ func (s *Service[
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
+	//
+	// TODO: Add external block builders to this flow.
+	//
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
 		RetrievePayload(
