@@ -30,10 +30,10 @@ func BuildPruneRangeFn[
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
-		if event.Block().GetSlot().Unwrap() < window {
+		if event.Data().GetSlot().Unwrap() < window {
 			return 0, 0
 		}
 
-		return 0, event.Block().GetSlot().Unwrap() - window
+		return 0, event.Data().GetSlot().Unwrap() - window
 	}
 }

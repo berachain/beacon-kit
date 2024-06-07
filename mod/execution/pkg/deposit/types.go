@@ -55,7 +55,7 @@ type BlockEvent[
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	Context() context.Context
-	Block() BeaconBlockT
+	Data() BeaconBlockT
 }
 
 // BlockFeed is an interface for subscribing to block events.

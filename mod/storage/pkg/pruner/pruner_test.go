@@ -41,7 +41,7 @@ import (
 func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
 	event EventT,
 ) (uint64, uint64) {
-	slot := event.Block().GetSlot().Unwrap()
+	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
 }
 

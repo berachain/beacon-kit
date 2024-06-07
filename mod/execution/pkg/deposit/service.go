@@ -142,7 +142,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case event := <-ch:
-			s.newBlock <- event.Block()
+			s.newBlock <- event.Data()
 		}
 	}
 }

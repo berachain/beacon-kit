@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -41,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
@@ -144,18 +144,18 @@ func ProvideRuntime(
 	)
 
 	// Build the event feed.
-	blockFeed := event.FeedOf[events.Block[*types.BeaconBlock]]{}
+	blockFeed := event.FeedOf[events.Data[*types.BeaconBlock]]{}
 
 	// slice of pruners to pass to the DBManager.
 	pruners := []*pruner.Pruner[
 		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
+		events.Data[*types.BeaconBlock],
 		event.Subscription]{}
 
 	// Build the deposit pruner.\
 	depositPruner := pruner.NewPruner[
 		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
+		events.Data[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", manager.DepositPrunerName),
@@ -165,7 +165,7 @@ func ProvideRuntime(
 		deposit.BuildPruneRangeFn[
 			types.BeaconBlockBody,
 			*types.BeaconBlock,
-			events.Block[*types.BeaconBlock],
+			events.Data[*types.BeaconBlock],
 			*types.Deposit,
 			*types.ExecutionPayload,
 			types.WithdrawalCredentials,
@@ -178,7 +178,7 @@ func ProvideRuntime(
 		// build the availability pruner if IndexDB is available.
 		availabilityPruner := pruner.NewPruner[
 			*types.BeaconBlock,
-			events.Block[*types.BeaconBlock],
+			events.Data[*types.BeaconBlock],
 			event.Subscription,
 		](
 			logger.With("service", manager.AvailabilityPrunerName),
@@ -187,7 +187,7 @@ func ProvideRuntime(
 			&blockFeed,
 			dastore.BuildPruneRangeFn[
 				*types.BeaconBlock,
-				events.Block[*types.BeaconBlock],
+				events.Data[*types.BeaconBlock],
 			](chainSpec),
 		)
 		pruners = append(pruners, availabilityPruner)
@@ -196,7 +196,7 @@ func ProvideRuntime(
 	// Build the DBManager service.
 	dbManagerService, err := manager.NewDBManager[
 		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
+		events.Data[*types.BeaconBlock],
 		event.Subscription,
 	](
 		logger.With("service", "db-manager"),
@@ -274,7 +274,7 @@ func ProvideRuntime(
 	depositService := deposit.NewService[
 		types.BeaconBlockBody,
 		*types.BeaconBlock,
-		events.Block[*types.BeaconBlock],
+		events.Data[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,
 		event.Subscription,

@@ -24,19 +24,18 @@ import (
 	"context"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/mocks"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-func TestNewBlock(t *testing.T) {
+func TestNewEvent(t *testing.T) {
 	ctx := context.Background()
-	mockBeaconBlock := &mocks.RawBeaconBlock[*mocks.BeaconBlockBody]{}
+	mockBeaconEvent := uint64(12345)
 
-	event := events.NewBlock(ctx, mockBeaconBlock)
+	event := events.NewEvent(ctx, mockBeaconEvent)
 	if event.Context() != ctx {
 		t.Errorf("expected context %v, got %v", ctx, event.Context())
 	}
-	if event.Block() != mockBeaconBlock {
-		t.Errorf("expected block %v, got %v", mockBeaconBlock, event.Block())
+	if event.Data() != mockBeaconEvent {
+		t.Errorf("expected event %v, got %v", mockBeaconEvent, event.Data())
 	}
 }

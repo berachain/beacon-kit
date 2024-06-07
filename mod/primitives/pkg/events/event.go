@@ -24,30 +24,30 @@ import (
 	"context"
 )
 
-// Block represents a generic block in the beacon chain.
-type Block[BeaconBlockT any] struct {
-	// ctx is the context associated with the block.
+// Data represents a generic event in the beacon chain.
+type Data[DataT any] struct {
+	// ctx is the context associated with the event.
 	ctx context.Context
-	// block is the actual beacon block.
-	block BeaconBlockT
+	// event is the actual beacon event.
+	data DataT
 }
 
-// NewBlock creates a new Block with the given context and beacon block.
-func NewBlock[
-	BeaconBlockT any,
-](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
-	return Block[BeaconBlockT]{
-		ctx:   ctx,
-		block: block,
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
+	DataT any,
+](ctx context.Context, data DataT) Data[DataT] {
+	return Data[DataT]{
+		ctx:  ctx,
+		data: data,
 	}
 }
 
-// Context returns the context associated with the block.
-func (e Block[BeaconBlockT]) Context() context.Context {
+// Context returns the context associated with the event.
+func (e Data[DataT]) Context() context.Context {
 	return e.ctx
 }
 
-// Block returns the beacon block.
-func (e Block[BeaconBlockT]) Block() BeaconBlockT {
-	return e.block
+// Event returns the beacon event.
+func (e Data[DataT]) Data() DataT {
+	return e.data
 }
