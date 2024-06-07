@@ -42,8 +42,6 @@ LOGLEVEL="info"
 CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
-
-
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json

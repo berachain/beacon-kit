@@ -31,7 +31,7 @@ import (
 
 // TestnetChainSpec is the ChainSpec for the localnet.
 //
-//nolint:dupl // its a spec.
+
 func TestnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
@@ -42,7 +42,7 @@ func TestnetChainSpec() chain.Spec[
 	cmtConsensusParams := cmttypes.DefaultConsensusParams()
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
-	//nolint:mnd // default config.
+	//nolint:mnd,dupl // bet.
 	return chain.NewChainSpec(
 		chain.SpecData[
 			primitives.Bytes4,
