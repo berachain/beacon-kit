@@ -114,7 +114,7 @@ func TestPruner(t *testing.T) {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
 				event := mocks.BlockEvent[pruner.BeaconBlock]{}
-				event.On("Block").Return(&block)
+				event.On("Data").Return(&block)
 				feed.Send(&event)
 			}
 
