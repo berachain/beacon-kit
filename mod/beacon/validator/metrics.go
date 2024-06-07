@@ -41,9 +41,12 @@ func newValidatorMetrics(
 	}
 }
 
-// measureRequestBlockForProposalTime measures the time taken to run the request best
+// measureRequestBlockForProposalTime measures the time taken to run the request
+// best
 // block function.
-func (cm *validatorMetrics) measureRequestBlockForProposalTime(start time.Time) {
+func (cm *validatorMetrics) measureRequestBlockForProposalTime(
+	start time.Time,
+) {
 	cm.sink.MeasureSince(
 		"beacon_kit.validator.request_block_for_proposal", start,
 	)
