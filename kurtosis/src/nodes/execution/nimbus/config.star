@@ -85,18 +85,18 @@ CMD = [
     "--engine-api-address=0.0.0.0",
     "--engine-api-port={0}".format(ENGINE_RPC_PORT_NUM),
     "--jwt-secret={0}".format(global_constants.JWT_MOUNT_PATH_ON_CONTAINER),
-    # "--metrics",
-    # "--metrics-address=0.0.0.0",
-    # "--metrics-port={0}".format(METRICS_PORT_NUM),
+    "--metrics",
+    "--metrics-address=0.0.0.0",
+    "--metrics-port={0}".format(METRICS_PORT_NUM),
     "--nat=extip:{0}".format(KURTOSIS_IP_ADDRESS_PLACEHOLDER),
     "--tcp-port={0}".format(DISCOVERY_PORT_NUM),
     "--log-level={0}".format("DEBUG"),
     "--custom-network={}/{}".format(GENESIS_FILEPATH, "genesis.json"),
+    "--engine-api-ws",
+    "--allowed-origins=*",
+    "--listen-address=0.0.0.0",
+    "--http-address=0.0.0.0",
 ]
 
 # "nimbus_eth1_max_mem": 16384,  # 16GB
 # "nimbus_eth1_max_cpu": 4000,  # 4 cores
-# "--engine-api-ws",
-# "--allowed-origins=*",
-# "--listen-address=0.0.0.0",
-# "--http-address=0.0.0.0",
