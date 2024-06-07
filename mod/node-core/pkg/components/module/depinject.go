@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
@@ -66,6 +67,7 @@ type DepInjectInput struct {
 	BlobVerifier      kzg.BlobProofVerifier
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
+	ExecutionEngine   *execution.Engine[*types.ExecutionPayload]
 	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
 	Signer            crypto.BLSSigner
 	TelemetrySink     *metrics.TelemetrySink
@@ -112,6 +114,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,
+		in.ExecutionEngine,
 		storageBackend,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
