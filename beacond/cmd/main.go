@@ -37,15 +37,23 @@ func run() error {
 		return err
 	}
 
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	chainSpec := os.Getenv("CHAIN_SPEC")
+	loadedSpec := spec.TestnetChainSpec()
+	if chainSpec == "devnet" {
+		loadedSpec = spec.DevnetChainSpec()
+	}
+
 	// Build the node using the node-core.
-	nb := nodebuilder.New[types.NodeI](
+	nb := nodebuilder.New(
 		nodebuilder.WithName[types.NodeI]("beacond"),
 		nodebuilder.WithDescription[types.NodeI](
 			"beacond is a beacon node for any beacon-kit chain",
 		),
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
 		// TODO: Don't hardcode the default chain spec.
-		nodebuilder.WithChainSpec[types.NodeI](spec.TestnetChainSpec()),
+		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 	)
 
 	node, err := nb.Build()

@@ -54,6 +54,14 @@ type BlockchainService[
 		BlobSidecarsT,
 		bool,
 	) ([]*transition.ValidatorUpdate, error)
+
+	// ReceiveBlockAndBlobs receives a beacon block and
+	// associated blobs sidecars for processing.
+	ReceiveBlockAndBlobs(
+		ctx context.Context,
+		blk BeaconBlockT,
+		blobs BlobSidecarsT,
+	) error
 }
 
 // ValidatorService is responsible for building beacon blocks.
@@ -69,13 +77,6 @@ type ValidatorService[
 		context.Context, // The context for the request.
 		math.Slot, // The slot for which the best block is requested.
 	) (BeaconBlockT, BlobSidecarsT, error)
-	// ReceiveBlockAndBlobs receives a beacon block and
-	// associated blobs sidecars for processing.
-	ReceiveBlockAndBlobs(
-		ctx context.Context,
-		blk BeaconBlockT,
-		blobs BlobSidecarsT,
-	) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

@@ -24,8 +24,6 @@ import (
 	"context"
 	"time"
 
-	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -58,40 +56,4 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot()
-}
-
-// verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) verifyStateRoot(
-	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	startTime := time.Now()
-	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
-		// We run with a non-optimistic engine here to ensure
-		// that the proposer does not try to push through a bad block.
-		&transition.Context{
-			Context:                 ctx,
-			OptimisticEngine:        false,
-			SkipPayloadVerification: false,
-			SkipValidateResult:      false,
-			SkipValidateRandao:      false,
-		},
-		st, blk,
-	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -18,21 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package blockchain
 
 import (
 	"context"
 	"sync"
+	"time"
 
+	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ReceiveBlockAndBlobs receives a block and blobs from the
 // network and processes them.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) ReceiveBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -56,21 +63,25 @@ func (s *Service[
 	}()
 
 	wg.Wait()
-
 	return errors.JoinFatal(blockErr, blobsErr)
 }
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
-	preState := s.bsb.StateFromContext(ctx)
+	preState := s.sb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	//
@@ -101,20 +112,11 @@ func (s *Service[
 	if err := s.verifyStateRoot(
 		ctx, postState, blk,
 	); err != nil {
-		// TODO: this is expensive because we are not caching the
-		// previous result of HashTreeRoot().
-		localStateRoot, htrErr := preState.HashTreeRoot()
-		if htrErr != nil {
-			return htrErr
-		}
-
 		s.logger.Error(
 			"rejecting incoming beacon block ❌ ",
-			"block_state_root",
+			"state_root",
 			blk.GetStateRoot(),
-			"local_state_root",
-			primitives.Root(localStateRoot),
-			"error",
+			"reason",
 			err,
 		)
 
@@ -138,10 +140,56 @@ func (s *Service[
 	return nil
 }
 
+// verifyStateRoot verifies the state root of an incoming block.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
+]) verifyStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	startTime := time.Now()
+	defer s.metrics.measureStateRootVerificationTime(startTime)
+	if _, err := s.sp.Transition(
+		// We run with a non-optimistic engine here to ensure
+		// that the proposer does not try to push through a bad block.
+		&transition.Context{
+			Context:                 ctx,
+			OptimisticEngine:        false,
+			SkipPayloadVerification: false,
+			SkipValidateResult:      false,
+			SkipValidateRandao:      false,
+		},
+		st, blk,
+	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
+		// It is safe for the validator to ignore this error since
+		// the state transition will enforce that the block is part
+		// of the canonical chain.
+		//
+		// TODO: this is only true because we are assuming SSF.
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -166,14 +214,13 @@ func (s *Service[
 
 	s.logger.Info(
 		"received incoming blob sidecars 🚔 ",
-		"state_root", blk.GetStateRoot(),
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.blobProcessor.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
+	if err := s.bp.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌ ",
-			"error", err,
+			"reason", err,
 		)
 		return err
 	}
@@ -185,4 +232,18 @@ func (s *Service[
 	)
 
 	return nil
+}
+
+// shouldBuildOptimisticPayloads returns true if optimistic
+// payload builds are enabled.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositStoreT,
+	DepositT,
+]) shouldBuildOptimisticPayloads() bool {
+	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }

@@ -70,6 +70,9 @@ type ValidatorMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	]
+
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -124,6 +127,7 @@ func NewValidatorMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	],
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
@@ -136,6 +140,7 @@ func NewValidatorMiddleware[
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
+		chainService:     chainService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
@@ -237,7 +242,7 @@ func (h *ValidatorMiddleware[
 	}
 
 	logger.Info("received proposal with", args...)
-	if err = h.validatorService.ReceiveBlockAndBlobs(
+	if err = h.chainService.ReceiveBlockAndBlobs(
 		ctx, blk, sidecars,
 	); errors.IsFatal(err) {
 		return &cmtabci.ProcessProposalResponse{

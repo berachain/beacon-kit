@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"sync"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -41,7 +42,6 @@ type Service[
 	BlobSidecarsT BlobSidecars,
 	DepositT Deposit,
 	DepositStoreT DepositStore[DepositT],
-
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -75,9 +75,11 @@ type Service[
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[events.Block[BeaconBlockT]]
-	// skipPostBlockFCU is a flag used when the optimistic payload
+	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
-	skipPostBlockFCU bool
+	optimisticPayloadBuilds bool
+	// forceStartupSyncOnce is used to force a sync of the startup head.
+	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -115,7 +117,7 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[events.Block[BeaconBlockT]],
-	skipPostBlockFCU bool,
+	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT,
@@ -124,16 +126,17 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT,
 	]{
-		sb:               sb,
-		logger:           logger,
-		cs:               cs,
-		ee:               ee,
-		lb:               lb,
-		bp:               bp,
-		sp:               sp,
-		metrics:          newChainMetrics(ts),
-		blockFeed:        blockFeed,
-		skipPostBlockFCU: skipPostBlockFCU,
+		sb:                      sb,
+		logger:                  logger,
+		cs:                      cs,
+		ee:                      ee,
+		lb:                      lb,
+		bp:                      bp,
+		sp:                      sp,
+		metrics:                 newChainMetrics(ts),
+		blockFeed:               blockFeed,
+		optimisticPayloadBuilds: optimisticPayloadBuilds,
+		forceStartupSyncOnce:    new(sync.Once),
 	}
 }
 

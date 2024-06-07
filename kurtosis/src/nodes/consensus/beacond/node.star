@@ -54,7 +54,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_inbound_peers, "$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_outbound_peers, "$BEACOND_HOME")
 
-    start_node = "/usr/bin/beacond start \
+    start_node = "CHAIN_SPEC=devnet /usr/bin/beacond start \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
@@ -89,11 +89,11 @@ def get_genesis_env_vars(cl_service_name):
         "BEACOND_MONIKER": cl_service_name,
         "BEACOND_NET": "VALUE_2",
         "BEACOND_HOME": "/root/.beacond",
-        "BEACOND_CHAIN_ID": "beacon-kurtosis-80084",
+        "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
         "BEACOND_DEBUG": "false",
         "BEACOND_KEYRING_BACKEND": "test",
         "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
-        "BEACOND_ETH_CHAIN_ID": "80084",
+        "BEACOND_ETH_CHAIN_ID": "80087",
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
