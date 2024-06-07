@@ -27,9 +27,9 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/commands/utils/parser"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -60,7 +60,7 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			if err != nil {
 				return errors.Wrap(
 					err,
-					"failed to initialize node validator files",
+					"failed to initialize commands validator files",
 				)
 			}
 
@@ -188,7 +188,7 @@ func writeDepositToFile(
 	return err
 }
 
-// getBLSSigner returns a BLS signer based on the override node key flag.
+// getBLSSigner returns a BLS signer based on the override commands key flag.
 func getBLSSigner() (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
 	if err := depinject.Inject(

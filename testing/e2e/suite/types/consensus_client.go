@@ -85,19 +85,19 @@ func (cc ConsensusClient) Stop(
 	return cc.WrappedServiceContext.Stop(ctx)
 }
 
-// GetPubKey returns the public key of the validator running on this node.
+// GetPubKey returns the public key of the validator running on this commands.
 func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
 		return nil, err
 	} else if res.ValidatorInfo.PubKey == nil {
-		return nil, errors.New("node public key is nil")
+		return nil, errors.New("commands public key is nil")
 	}
 
 	return res.ValidatorInfo.PubKey.Bytes(), nil
 }
 
-// GetConsensusPower returns the consensus power of the node.
+// GetConsensusPower returns the consensus power of the commands.
 func (cc ConsensusClient) GetConsensusPower(
 	ctx context.Context,
 ) (uint64, error) {
@@ -110,7 +110,7 @@ func (cc ConsensusClient) GetConsensusPower(
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
 
-// IsActive returns true if the node is an active validator.
+// IsActive returns true if the commands is an active validator.
 func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {

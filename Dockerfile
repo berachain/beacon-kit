@@ -36,6 +36,7 @@ WORKDIR /workdir
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
+COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
@@ -53,6 +54,7 @@ COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
+RUN go work use ./mod/cli
 RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution

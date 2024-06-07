@@ -21,7 +21,7 @@
 package client
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/commands/client/cosmos"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client/cosmos"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
