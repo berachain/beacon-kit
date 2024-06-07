@@ -227,6 +227,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
+	s.logger.Info("chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
