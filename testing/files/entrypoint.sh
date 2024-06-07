@@ -42,6 +42,8 @@ LOGLEVEL="info"
 CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
+
+
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
@@ -74,6 +76,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
+
+export CHAIN_SPEC = "devnet"
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
