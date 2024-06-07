@@ -48,7 +48,7 @@ func (cm *validatorMetrics) measureRequestBlockForProposalTime(
 	start time.Time,
 ) {
 	cm.sink.MeasureSince(
-		"beacon_kit.validator.request_block_for_proposal", start,
+		"beacon_kit.validator.request_block_for_proposal_duration", start,
 	)
 }
 

@@ -36,7 +36,8 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Block() BeaconBlockT
+	Is(string) bool
+	Data() BeaconBlockT
 }
 
 type Subscription interface {

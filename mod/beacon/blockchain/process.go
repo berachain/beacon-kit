@@ -24,9 +24,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -117,7 +118,10 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
+	s.blockFeed.Send(
+		// TODO: decouple from feed package.
+		feed.NewEvent(ctx, events.BeaconBlockFinalized, (blk)),
+	)
 
 	// If required, we want to forkchoice at the end of post
 	// block processing.
