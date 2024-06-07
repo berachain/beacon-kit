@@ -274,9 +274,9 @@ func defaultExecutionSettings() ExecutionSettings {
 			"besu":       "hyperledger/besu:latest",
 			"erigon":     "thorax/erigon:v2.60.0",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
-			"geth":       "ethereum/client-go:latest",
+			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
-			"reth":       "ghcr.io/paradigmxyz/reth:latest",
+			"reth":       "ghcr.io/paradigmxyz/reth:v0.2.0-beta.9",
 		},
 	}
 }
