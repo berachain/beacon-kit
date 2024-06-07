@@ -296,9 +296,9 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:      "3s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "1s",
-			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
-			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
+			TimeoutCommit:       "2s",
+			MaxNumInboundPeers:  80, //nolint:mnd // 40 inbound peers
+			MaxNumOutboundPeers: 20, //nolint:mnd // 10 outbound peers
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout:                "1.5s",
