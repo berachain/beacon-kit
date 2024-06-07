@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -62,15 +63,18 @@ type DepInjectInput struct {
 	Environment appmodule.Environment
 
 	// BeaconKit components
-	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
-	BeaconConfig      *config.Config
-	BlobVerifier      kzg.BlobProofVerifier
-	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-	ExecutionEngine   *execution.Engine[*types.ExecutionPayload]
-	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
-	Signer            crypto.BLSSigner
-	TelemetrySink     *metrics.TelemetrySink
+	AvailabilityStore     *dastore.Store[types.BeaconBlockBody]
+	BeaconConfig          *config.Config
+	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit, types.WithdrawalCredentials,
+	]
+	BlobVerifier    kzg.BlobProofVerifier
+	ChainSpec       primitives.ChainSpec
+	DepositStore    *depositdb.KVStore[*types.Deposit]
+	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
+	Signer          crypto.BLSSigner
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -111,6 +115,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
 		in.BlobVerifier,
+		in.BeaconDepositContract,
 		in.ChainSpec,
 		in.Signer,
 		in.EngineClient,

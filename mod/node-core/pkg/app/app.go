@@ -75,6 +75,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideBlobProofVerifier,
 				bkcomponents.ProvideTelemetrySink,
 				bkcomponents.ProvideExecutionEngine,
+				bkcomponents.ProvideBeaconDepositContract,
 			),
 			depinject.Supply(
 				appOpts,

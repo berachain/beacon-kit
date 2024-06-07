@@ -105,6 +105,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				components.ProvideConfig,
 				components.ProvideTelemetrySink,
 				components.ProvideExecutionEngine,
+				components.ProvideBeaconDepositContract,
 			),
 		),
 		&autoCliOpts,
