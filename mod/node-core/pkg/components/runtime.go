@@ -87,6 +87,7 @@ func ProvideRuntime(
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
+	executionEngine *execution.Engine[*types.ExecutionPayload],
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -98,13 +99,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the execution engine.
-	executionEngine := execution.New[*types.ExecutionPayload](
-		engineClient,
-		logger.With("service", "execution-engine"),
-		telemetrySink,
-	)
-
 	// Build the deposit contract.
 	beaconDepositContract, err := deposit.
 		NewWrappedBeaconDepositContract[
