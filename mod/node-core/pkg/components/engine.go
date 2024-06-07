@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -60,5 +61,26 @@ func ProvideEngineClient(
 		in.JWTSecret,
 		in.TelemetrySink,
 		new(big.Int).SetUint64(in.ChainSpec.DepositEth1ChainID()),
+	)
+}
+
+// ExecutionEngineInput is the input for the execution engine for the depinject
+// framework.
+type ExecutionEngineInput struct {
+	depinject.In
+	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
+	Logger        log.Logger
+	TelemetrySink *metrics.TelemetrySink
+}
+
+// ProvideExecutionEngine provides the execution engine to the depinject
+// framework.
+func ProvideExecutionEngine(
+	in ExecutionEngineInput,
+) *execution.Engine[*types.ExecutionPayload] {
+	return execution.New[*types.ExecutionPayload](
+		in.EngineClient,
+		in.Logger.With("service", "execution-engine"),
+		in.TelemetrySink,
 	)
 }
