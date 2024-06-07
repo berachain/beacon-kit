@@ -267,7 +267,7 @@ suggested-fee-recipient = "0x0000000000000000000000000000000000000000"
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
 # timeout_proposal in the CometBFT configuration.
-payload-timeout = "1.25s"
+payload-timeout = "1.2s"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.
