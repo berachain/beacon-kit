@@ -84,6 +84,9 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 func ProvideRuntime(
 	cfg *config.Config,
 	blobProofVerifier kzg.BlobProofVerifier,
+	beaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit, types.WithdrawalCredentials,
+	],
 	chainSpec primitives.ChainSpec,
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
@@ -99,18 +102,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the deposit contract.
-	beaconDepositContract, err := deposit.
-		NewWrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
-	](
-		chainSpec.DepositContractAddress(),
-		engineClient,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Build the local builder service.
 	localBuilder := payloadbuilder.New[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
