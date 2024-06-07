@@ -49,10 +49,7 @@ type NetworkConfiguration struct {
 }
 
 type EthJSONRPCEndpoint struct {
-	// Type specifies the type of JSON RPC endpoint.
-	Type string `json:"type"`
-	// Clients specifies the clients that should be included as
-	// the backing to the JSON RPC endpoint (useful for load balancers).
+	Type    string   `json:"type"`
 	Clients []string `json:"clients"`
 }
 
@@ -185,7 +182,7 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -195,7 +192,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // 2 replicas
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -238,7 +235,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -270,8 +267,8 @@ func defaultExecutionSettings() ExecutionSettings {
 		Specs: NodeSpecs{
 			MinCPU:    0,
 			MaxCPU:    0,
-			MinMemory: 512, //nolint:mnd // 1 GB
-			MaxMemory: 512, //nolint:mnd // 2 GB
+			MinMemory: 1024, //nolint:mnd // 1 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
@@ -288,9 +285,9 @@ func defaultConsensusSettings() ConsensusSettings {
 	return ConsensusSettings{
 		Specs: NodeSpecs{
 			MinCPU:    0,
-			MaxCPU:    512, //nolint:mnd // 2 vCPUs
+			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
 			MinMemory: 0,
-			MaxMemory: 512, //nolint:mnd // 2 GB
+			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",
@@ -299,9 +296,9 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:      "3s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "2s",
-			MaxNumInboundPeers:  80, //nolint:mnd // 80 inbound peers
-			MaxNumOutboundPeers: 20, //nolint:mnd // 20 outbound peers
+			TimeoutCommit:       "1s",
+			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
+			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout:                "1.5s",
@@ -315,10 +312,10 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 		{
 			Type: "blutgang",
 			Clients: []string{
-				"el-full-nethermind-0",
+				// "el-full-nethermind-0",
 				"el-full-reth-1",
 				"el-full-geth-2",
-				// "el-full-erigon-3",
+				"el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",
