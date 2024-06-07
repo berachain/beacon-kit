@@ -166,10 +166,10 @@ func (s *Service[
 		// and possibly should be made more explicit later on.
 		lph.GetBlockHash(),
 	); err != nil {
-		// s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
 	}
-	// s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
 	return nil
 }
 
@@ -256,9 +256,9 @@ func (s *Service[
 		// just processed.
 		payload.GetParentHash(),
 	); err != nil {
-		// s.metrics.markOptimisticPayloadBuildFailure(slot, err)
+		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err
 	}
-	// s.metrics.markOptimisticPayloadBuildSuccess(slot)
+	s.metrics.markOptimisticPayloadBuildSuccess(slot)
 	return nil
 }
