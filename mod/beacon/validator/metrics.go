@@ -49,15 +49,6 @@ func (cm *validatorMetrics) measureRequestBestBlockTime(start time.Time) {
 	)
 }
 
-// measureStateRootVerificationTime measures the time taken to verify the state
-// root of a block.
-// It records the duration from the provided start time to the current time.
-func (cm *validatorMetrics) measureStateRootVerificationTime(start time.Time) {
-	cm.sink.MeasureSince(
-		"beacon_kit.validator.state_root_verification_duration", start,
-	)
-}
-
 // measureStateRootComputationTime measures the time taken to compute the state
 // root of a block.
 // It records the duration from the provided start time to the current time.
@@ -74,62 +65,6 @@ func (cm *validatorMetrics) failedToRetrievePayload(
 ) {
 	cm.sink.IncrementCounter(
 		"beacon_kit.validator.failed_to_retrieve_payload",
-		"slot",
-		string(slot.String()),
-		"error",
-		err.Error(),
-	)
-}
-
-// markRebuildPayloadForRejectedBlockSuccess increments the counter for the
-// number of times
-// the validator successfully rebuilt the payload for a rejected block.
-func (cm *validatorMetrics) markRebuildPayloadForRejectedBlockSuccess(
-	slot math.Slot,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.validator.rebuild_payload_for_rejected_block_success",
-		"slot",
-		string(slot.String()),
-	)
-}
-
-// markRebuildPayloadForRejectedBlockFailure increments the counter for the
-// number of times
-// the validator failed to build an optimistic payload due to a failure.
-func (cm *validatorMetrics) markRebuildPayloadForRejectedBlockFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.validator.rebuild_payload_for_rejected_block_failure",
-		"slot",
-		string(slot.String()),
-		"error",
-		err.Error(),
-	)
-}
-
-// measureOptimisticPayloadBuildSuccess increments the counter for the number of
-// times
-// the validator successfully built an optimistic payload.
-func (cm *validatorMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.validator.optimistic_payload_build_success",
-		"slot",
-		string(slot.String()),
-	)
-}
-
-// measureOptimisticPayloadBuildFailure increments the counter for the number of
-// times
-// the validator failed to build an optimistic payload.
-func (cm *validatorMetrics) markOptimisticPayloadBuildFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.validator.optimistic_payload_build_failure",
 		"slot",
 		string(slot.String()),
 		"error",
