@@ -90,7 +90,7 @@ func (s *Service[
 			ctx,
 			engineprimitives.BuildForkchoiceUpdateRequest(
 				&engineprimitives.ForkchoiceStateV1{
-					HeadBlockHash:      lph.GetBlockHash(),
+					HeadBlockHash:      lph.GetParentHash(),
 					SafeBlockHash:      lph.GetParentHash(),
 					FinalizedBlockHash: lph.GetParentHash(),
 				},
