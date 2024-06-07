@@ -187,7 +187,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "geth",
-				Replicas: 2,
+				Replicas: 2, //nolint:mnd
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -296,7 +296,7 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:      "3s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "1s",
+			TimeoutCommit:       "3s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
