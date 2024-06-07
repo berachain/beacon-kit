@@ -25,6 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
@@ -41,7 +42,6 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) {
-
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		s.logger.Error(
@@ -53,13 +53,14 @@ func (s *Service[
 
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlots(
+		if _, err = s.sp.ProcessSlots(
 			stCopy, blk.GetSlot()+1,
 		); err != nil {
 			return
 		}
 
-		prevBlockRoot, err := blk.HashTreeRoot()
+		var prevBlockRoot primitives.Root
+		prevBlockRoot, err = blk.HashTreeRoot()
 		if err != nil {
 			s.logger.
 				Error(
@@ -113,5 +114,10 @@ func (s *Service[
 			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
 	)
-	return
+	if err != nil {
+		s.logger.Error(
+			"failed to send forkchoice update without attributes",
+			"error", err,
+		)
+	}
 }

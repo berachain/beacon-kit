@@ -49,7 +49,10 @@ type NetworkConfiguration struct {
 }
 
 type EthJSONRPCEndpoint struct {
-	Type    string   `json:"type"`
+	// Type specifies the type of JSON RPC endpoint.
+	Type string `json:"type"`
+	// Clients specifies the clients that should be included as
+	// the backing to the JSON RPC endpoint (useful for load balancers).
 	Clients []string `json:"clients"`
 }
 
@@ -192,7 +195,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1, //nolint:mnd // 2 replicas
+				Replicas: 1, 
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -297,8 +300,8 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
 			TimeoutCommit:       "2s",
-			MaxNumInboundPeers:  80, //nolint:mnd // 40 inbound peers
-			MaxNumOutboundPeers: 20, //nolint:mnd // 10 outbound peers
+			MaxNumInboundPeers:  80, //nolint:mnd // 80 inbound peers
+			MaxNumOutboundPeers: 20, //nolint:mnd // 20 outbound peers
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout:                "1.5s",
