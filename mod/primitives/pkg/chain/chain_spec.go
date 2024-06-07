@@ -48,6 +48,9 @@ type Spec[
 	SlotsPerEpoch() uint64
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
+	// MinEpochsToInactivityPenalty returns the minimum number of epochs before
+	// an inactivity penalty is applied.
+	MinEpochsToInactivityPenalty() uint64
 
 	// Signature Domains
 	//
@@ -72,6 +75,9 @@ type Spec[
 	//
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() ExecutionAddressT
+	// MaxDepositsPerBlock returns the maximum number of deposit operations per
+	// block.
+	MaxDepositsPerBlock() uint64
 	// DepositEth1ChainID returns the chain ID of the deposit contract.
 	DepositEth1ChainID() uint64
 	// Eth1FollowDistance returns the distance between the eth1 chain and the
@@ -99,9 +105,10 @@ type Spec[
 	// registry.
 	ValidatorRegistryLimit() uint64
 
-	// MaxDepositsPerBlock returns the maximum number of deposit operations per
-	// block.
-	MaxDepositsPerBlock() uint64
+	// Rewards and Penalties
+	//
+	// InactivityPenaltyQuotient returns the inactivity penalty quotient.
+	InactivityPenaltyQuotient() uint64
 	// ProportionalSlashingMultiplier returns the multiplier for calculating
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
@@ -222,6 +229,14 @@ func (c chainSpec[
 	return c.Data.SlotsPerHistoricalRoot
 }
 
+// MinEpochsToInactivityPenalty returns the minimum number of epochs before an
+// inactivity penalty is applied.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) MinEpochsToInactivityPenalty() uint64 {
+	return c.Data.MinEpochsToInactivityPenalty
+}
+
 // DomainProposer returns the domain for beacon proposer signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
@@ -286,6 +301,13 @@ func (c chainSpec[
 	return c.Data.DepositContractAddress
 }
 
+// MaxDepositsPerBlock returns the maximum number of deposits per block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) MaxDepositsPerBlock() uint64 {
+	return c.Data.MaxDepositsPerBlock
+}
+
 // DepositEth1ChainID returns the chain ID of the execution chain.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
@@ -343,11 +365,11 @@ func (c chainSpec[
 	return c.Data.ValidatorRegistryLimit
 }
 
-// MaxDepositsPerBlock returns the maximum number of deposits per block.
+// InactivityPenaltyQuotient returns the inactivity penalty quotient.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxDepositsPerBlock() uint64 {
-	return c.Data.MaxDepositsPerBlock
+]) InactivityPenaltyQuotient() uint64 {
+	return c.Data.InactivityPenaltyQuotient
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.

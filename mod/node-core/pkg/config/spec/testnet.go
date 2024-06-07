@@ -65,8 +65,9 @@ func BaseSpec() chain.SpecData[
 		EjectionBalance:           uint64(16e9),
 		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
-		SlotsPerEpoch:          32,
-		SlotsPerHistoricalRoot: 8,
+		SlotsPerEpoch:                32,
+		MinEpochsToInactivityPenalty: 4,
+		SlotsPerHistoricalRoot:       8,
 		// Signature domains.
 		DomainTypeProposer: common.DomainType{
 			0x00, 0x00, 0x00, 0x00,
