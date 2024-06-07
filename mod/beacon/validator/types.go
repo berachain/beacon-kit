@@ -157,6 +157,8 @@ type BlobProcessor[
 type BlobSidecars interface {
 	// BlobSidecars must be ssz.Marshallable.
 	ssz.Marshallable
+	// IsNil checks if the blob sidecars is nil.
+	IsNil() bool
 	// Len returns the length of the blob sidecars.
 	Len() int
 }
@@ -222,8 +224,8 @@ type StateProcessor[
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.
-	ProcessSlot(
-		st BeaconStateT,
+	ProcessSlots(
+		st BeaconStateT, slot math.Slot,
 	) ([]*transition.ValidatorUpdate, error)
 
 	// Transition performs the core state transition.

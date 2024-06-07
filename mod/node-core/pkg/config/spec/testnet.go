@@ -86,7 +86,7 @@ func TestnetChainSpec() chain.Spec[
 			DepositContractAddress: common.HexToAddress(
 				"0x4242424242424242424242424242424242424242",
 			),
-			DepositEth1ChainID:        uint64(80086),
+			DepositEth1ChainID:        uint64(80084),
 			Eth1FollowDistance:        1,
 			TargetSecondsPerEth1Block: 3,
 			// Fork-related values.

@@ -1,0 +1,63 @@
+{
+  "app_name": "beacond",
+  "app_version": "v0.2.0-alpha.0",
+  "genesis_time": "2024-06-05T14:00:00Z",
+  "chain_id": "bartio-beacon-80084",
+  "initial_height": 1,
+  "app_hash": null,
+  "app_state": {
+    "beacon": {
+      "fork_version": "0x04000000",
+      "deposits": [],
+      "execution_payload_header": {
+        "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "feeRecipient": "0x0000000000000000000000000000000000000000",
+        "stateRoot": "0x6baa63317ef13224ccbb368320b6270f08591c452773354384826e7018961c5e",
+        "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "blockNumber": "0x0",
+        "gasLimit": "0x1c9c380",
+        "gasUsed": "0x0",
+        "timestamp": "0x66606f60",
+        "extraData": "0x",
+        "baseFeePerGas": "0x3b9aca00",
+        "blockHash": "0xa42850da28e09e0e7f75a76fe2b96c8b869a206bfadc9a4450ca345153b0c7d9",
+        "transactionsRoot": "0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
+        "withdrawalsRoot": "0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
+        "blobGasUsed": "0x0",
+        "excessBlobGas": "0x0"
+      }
+    },
+    "runtime": {}
+  },
+  "consensus": {
+    "params": {
+      "block": {
+        "max_bytes": "4194304",
+        "max_gas": "10000000"
+      },
+      "evidence": {
+        "max_age_num_blocks": "100000",
+        "max_age_duration": "172800000000000",
+        "max_bytes": "1048576"
+      },
+      "validator": {
+        "pub_key_types": [
+          "bls12_381"
+        ]
+      },
+      "version": {
+        "app": "0"
+      },
+      "synchrony": {
+        "precision": "500000000",
+        "message_delay": "2000000000"
+      },
+      "feature": {
+        "vote_extensions_enable_height": "0",
+        "pbts_enable_height": "0"
+      }
+    }
+  }
+}

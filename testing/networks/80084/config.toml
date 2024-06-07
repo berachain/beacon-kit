@@ -48,7 +48,7 @@ moniker = "localtestnet"
 #   - stable
 #   - pure go
 #   - use pebbledb build tag (go build -tags pebbledb)
-db_backend = "goleveldb"
+db_backend = "pebbledb"
 
 # Database directory
 db_dir = "data"

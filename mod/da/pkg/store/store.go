@@ -78,7 +78,7 @@ func (s *Store[BeaconBlockT]) Persist(
 	sidecars *types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
-	if sidecars.Len() == 0 {
+	if sidecars.IsNil() || sidecars.Len() == 0 {
 		return nil
 	}
 

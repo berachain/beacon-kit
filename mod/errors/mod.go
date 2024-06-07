@@ -38,3 +38,75 @@ var (
 	As    = errors.As
 	Join  = errors.Join
 )
+
+// DetailedError is a custom error type that includes a message and a flag
+// indicating if the error is fatal.
+type DetailedError struct {
+	// Msg is the error message.
+	error
+	// fatal indicates if the error is fatal.
+	fatal bool
+}
+
+// Error returns the error message.
+func WrapNonFatal(err error) error {
+	return &DetailedError{
+		error: err,
+		fatal: false,
+	}
+}
+
+// WrapFatal creates a new DetailedError with the
+// provided message and fatal flag.
+func WrapFatal(err error) error {
+	return &DetailedError{
+		error: err,
+		fatal: true,
+	}
+}
+
+// IsFatal checks if the provided error is a
+// DetailedError and if it is fatal.
+func IsFatal(err error) bool {
+	// If the error is nil, obviouisly it is not fatal.
+	if err == nil {
+		return false
+	}
+
+	// Otherwise check for our custom error.
+	var customErr *DetailedError
+	if errors.As(err, &customErr) {
+		if customErr == nil {
+			return false
+		}
+
+		// If the underlying error is nil, we
+		// return false.
+		if customErr.error == nil {
+			return false
+		}
+
+		// Otherwise check the custom fatal field.
+		return customErr.fatal
+	}
+
+	// All other errors are fatal.
+	return true
+}
+
+// JoinFatal checks if any of the provided errors is a
+// DetailedError and if it is fatal.
+func JoinFatal(errs ...error) error {
+	fatal := false
+	for _, err := range errs {
+		if IsFatal(err) {
+			fatal = true
+			break
+		}
+	}
+	retErr := errors.Join(errs...)
+	if fatal {
+		return WrapFatal(retErr)
+	}
+	return WrapNonFatal(retErr)
+}

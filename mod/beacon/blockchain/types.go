@@ -164,22 +164,20 @@ type StateProcessor[
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		st BeaconStateT,
-		deposits []DepositT,
-		executionPayloadHeader *types.ExecutionPayloadHeader,
-		genesisVersion primitives.Version,
+		BeaconStateT,
+		[]DepositT,
+		*types.ExecutionPayloadHeader,
+		primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
-	// ProcessSlot processes the state transition for a single slot.
-	//
-	// TODO: This eventually needs to be deprecated.
-	ProcessSlot(
-		st BeaconStateT,
+	// ProcessSlots processes the state transition for a range of slots.
+	ProcessSlots(
+		BeaconStateT, math.Slot,
 	) ([]*transition.ValidatorUpdate, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		ctx ContextT,
-		st BeaconStateT,
-		blk BeaconBlockT,
+		ContextT,
+		BeaconStateT,
+		BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
 }
 

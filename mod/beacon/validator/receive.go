@@ -22,9 +22,43 @@ package validator
 
 import (
 	"context"
+	"sync"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// ReceiveBlockAndBlobs receives a block and blobs from the
+// network and processes them.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) ReceiveBlockAndBlobs(
+	ctx context.Context,
+	blk BeaconBlockT,
+	blobs BlobSidecarsT,
+) error {
+	var (
+		blockErr, blobsErr error
+		wg                 sync.WaitGroup
+	)
+	//nolint:mnd // 2 go-routines.
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		blockErr = s.VerifyIncomingBlock(ctx, blk)
+	}()
+
+	go func() {
+		defer wg.Done()
+		blobsErr = s.VerifyIncomingBlobs(ctx, blk, blobs)
+	}()
+
+	wg.Wait()
+
+	return errors.JoinFatal(blockErr, blobsErr)
+}
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
@@ -46,11 +80,10 @@ func (s *Service[
 
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
-		s.logger.Error(
+		s.logger.Warn(
 			"aborting block verification - beacon block not found in proposal 🚫 ",
 		)
-
-		return ErrNilBlk
+		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	s.logger.Info(
@@ -115,14 +148,14 @@ func (s *Service[
 	sidecars BlobSidecarsT,
 ) error {
 	if blk.IsNil() {
-		s.logger.Error(
+		s.logger.Warn(
 			"aborting blob verification - beacon block not found in proposal 🚫 ",
 		)
-		return ErrNilBlk
+		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	// If there are no blobs to verify, return early.
-	if sidecars.Len() == 0 {
+	if sidecars.IsNil() || sidecars.Len() == 0 {
 		s.logger.Info(
 			"no blob sidecars to verify, skipping verifier 🧢 ",
 			"slot",
