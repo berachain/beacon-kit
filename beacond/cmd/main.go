@@ -41,8 +41,7 @@ func run() error {
 	// but for now we ball to get CI unblocked.
 	chainSpec := os.Getenv("CHAIN_SPEC")
 	loadedSpec := spec.TestnetChainSpec()
-	switch chainSpec {
-	case "devnet":
+	if chainSpec == "devnet" {
 		loadedSpec = spec.DevnetChainSpec()
 	}
 
