@@ -195,7 +195,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1, 
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
