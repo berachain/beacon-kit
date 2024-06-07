@@ -33,6 +33,7 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/node-core/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -90,7 +91,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				nb.chainSpec,
 				&depositdb.KVStore[*consensustypes.Deposit]{},
 				&engineclient.EngineClient[*consensustypes.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
@@ -99,6 +99,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				&signer.BLSSigner{},
 			),
 			depinject.Provide(
+				components.ProvideChainSpec,
 				components.ProvideNoopTxConfig,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
@@ -159,7 +160,8 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		cmd,
 		mm,
 		nb.AppCreator,
-		nb.chainSpec,
+		// nb.chainSpec,
+		spec.TestnetChainSpec(),
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {

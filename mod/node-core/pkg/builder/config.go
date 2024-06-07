@@ -24,6 +24,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
@@ -33,7 +35,8 @@ func DefaultAppConfig() any {
 	// Define a struct for the custom app configuration.
 	type CustomAppConfig struct {
 		serverconfig.Config
-		BeaconKit *config.Config `mapstructure:"beacon-kit"`
+		BeaconKit *config.Config           `mapstructure:"beacon-kit"`
+		ChainSpec primitives.ChainSpecData `mapstructure:"chain-spec"`
 	}
 
 	// Start with the default server configuration.
@@ -49,6 +52,7 @@ func DefaultAppConfig() any {
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
 		BeaconKit: config.DefaultConfig(),
+		ChainSpec: spec.TestnetChainSpec().SpecData(),
 	}
 
 	return customAppConfig
@@ -58,7 +62,7 @@ func DefaultAppConfig() any {
 // application.
 func DefaultAppConfigTemplate() string {
 	return serverconfig.DefaultConfigTemplate +
-		"\n" + config.Template
+		"\n" + config.Template + "\n" + spec.Template
 }
 
 // DefaultCometConfig returns the default configuration for the CometBFT

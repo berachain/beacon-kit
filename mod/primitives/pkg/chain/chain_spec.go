@@ -28,6 +28,9 @@ type Spec[
 	SlotT ~uint64,
 	CometBFTConfigT any,
 ] interface {
+	// SpecData returns the all chain-specific data values.
+	SpecData() SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT]
+
 	// Gwei value constants.
 	//
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -178,6 +181,15 @@ func NewChainSpec[
 	]{
 		Data: data,
 	}
+}
+
+// SpecData returns the chain-specific data values.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) SpecData() SpecData[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+] {
+	return c.Data
 }
 
 // MinDepositAmount returns the minimum deposit amount required.

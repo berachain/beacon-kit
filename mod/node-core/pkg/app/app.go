@@ -28,7 +28,6 @@ import (
 	"cosmossdk.io/log"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -56,7 +55,7 @@ func NewBeaconKitApp(
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	dCfg depinject.Config,
-	chainSpec primitives.ChainSpec,
+	// chainSpec primitives.ChainSpec,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
@@ -65,6 +64,7 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			dCfg,
 			depinject.Provide(
+				bkcomponents.ProvideChainSpec,
 				bkcomponents.ProvideAvailibilityStore,
 				bkcomponents.ProvideBlsSigner,
 				bkcomponents.ProvideTrustedSetup,
@@ -78,7 +78,6 @@ func NewBeaconKitApp(
 			depinject.Supply(
 				appOpts,
 				logger,
-				chainSpec,
 			),
 		),
 		&appBuilder,

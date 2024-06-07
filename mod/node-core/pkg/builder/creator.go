@@ -49,7 +49,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		logger, db, traceStore, true,
 		appOpts,
 		nb.depInjectCfg,
-		nb.chainSpec,
+		// nb.chainSpec,
 		append(
 			server.DefaultBaseappOptions(appOpts),
 			func(bApp *baseapp.BaseApp) {

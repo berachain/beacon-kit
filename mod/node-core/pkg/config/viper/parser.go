@@ -21,9 +21,11 @@
 package viper
 
 import (
+	"encoding/json"
 	"net/url"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	beaconurl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/mitchellh/mapstructure"
@@ -57,6 +59,35 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 // string to *beaconurl.ConnectionURL by parsing the string.
 func StringToConnectionURLFunc() mapstructure.DecodeHookFunc {
 	return StringTo(beaconurl.NewFromRaw)
+}
+
+// StringToBytesFunc returns a DecodeHookFunc that converts
+// string to a `common.DomainType` by parsing the string.
+func StringToDomainTypeFunc() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (common.DomainType, error) {
+			bz, err := bytes.FromHex(s)
+			if err != nil {
+				return common.DomainType{}, err
+			}
+
+			return bytes.ToBytes4(bz), nil
+		},
+	)
+}
+
+// StringToCometConsensusParamsFunc returns a DecodeHookFunc that converts
+// string to a `*cmttypes.ConsensusParams` by parsing the string.
+func StringToCometConsensusParamsFunc[T any]() mapstructure.DecodeHookFunc {
+	return StringTo(
+		func(s string) (T, error) {
+			var params T
+			if err := json.Unmarshal([]byte(s), &params); err != nil {
+				return params, err
+			}
+			return params, nil
+		},
+	)
 }
 
 // StringTo is a helper function for creating DecodeHookFuncs that convert
