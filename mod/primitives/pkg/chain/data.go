@@ -125,7 +125,8 @@ type SpecData[
 
 	// Deneb Values
 	//
-	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the node
+	// MinEpochsForBlobsSidecarsRequest is the minimum number of epochs the
+	// commands
 	// will keep the blobs for.
 	MinEpochsForBlobsSidecarsRequest uint64 `mapstructure:"min-epochs-for-blobs-sidecars-request"`
 	// MaxBlobCommitmentsPerBlock specifies the maximum number of blob

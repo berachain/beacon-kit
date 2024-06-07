@@ -27,8 +27,8 @@ const (
 	// privateKey is the flag for the private key to sign the deposit message.
 	privateKey = "private-key"
 
-	// overrideNodeKey is the flag for overriding the node key.
-	overrideNodeKey = "override-node-key"
+	// overrideNodeKey is the flag for overriding the commands key.
+	overrideNodeKey = "override-commands-key"
 
 	// validatorPrivateKey is the flag for the validator private key.
 	valPrivateKey = "validator-private-key"
@@ -84,12 +84,12 @@ const (
 
 	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
 	// flag.
-	overrideNodeKeyMsg = "override the node private key"
+	overrideNodeKeyMsg = "override the commands private key"
 
 	// valPrivateKeyMsg is the usage description for the
 	// valPrivateKey flag.
 	valPrivateKeyMsg = `validator private key. This is required if the 
-	override-node-key flag is set.`
+	override-commands-key flag is set.`
 
 	// jwtSecretPathMsg is the usage description for the jwtSecretPath flag.
 	// #nosec G101 // This is a descriptor
