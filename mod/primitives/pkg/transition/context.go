@@ -30,7 +30,7 @@ type Context struct {
 	// are returned by the execution engine.
 	OptimisticEngine bool
 	// SkipPayloadVerification indicates whether to skip calling NewPayload
-	// on the execution client. This can be done when the node is not
+	// on the execution client. This can be done when the commands is not
 	// syncing, and the payload is already known to the execution client.
 	SkipPayloadVerification bool
 	// SkipValidateRandao indicates whether to skip validating the Randao mix.
@@ -48,7 +48,7 @@ func (c *Context) GetOptimisticEngine() bool {
 }
 
 // GetSkipPayloadVerification returns whether to skip calling NewPayload on the
-// execution client. This can be done when the node is not syncing, and the
+// execution client. This can be done when the commands is not syncing, and the
 // payload is already known to the execution client.
 func (c *Context) GetSkipPayloadVerification() bool {
 	return c.SkipPayloadVerification

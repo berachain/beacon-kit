@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Node represents the node application.
+// Node represents the commands application.
 type Node struct {
 	*app.BeaconApp
 
@@ -46,7 +46,7 @@ func New[NodeT types.NodeI]() NodeT {
 	return types.NodeI(&Node{}).(NodeT)
 }
 
-// Run runs the node application.
+// Run runs the commands application.
 func (n *Node) Run() error {
 	return svrcmd.Execute(
 		n.rootCmd, "", components.DefaultNodeHome,

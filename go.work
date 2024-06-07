@@ -4,6 +4,7 @@ use (
 	./beacond
 	./build/tools
 	./mod/beacon
+	./mod/cli
 	./mod/consensus-types
 	./mod/da
 	./mod/engine-primitives
