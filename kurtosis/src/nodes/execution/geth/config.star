@@ -59,7 +59,7 @@ CMD = [
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "--networkid",
-    "80084",
+    "80087",
 ]
 BOOTNODE_CMD = "--bootnodes"
 MAX_PEERS_CMD = "--maxpeers"
