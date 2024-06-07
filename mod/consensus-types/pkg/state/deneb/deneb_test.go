@@ -67,8 +67,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.Equal(t, state, newState)
 
 	// Check if the state size is greater than 0
-	size := state.SizeSSZ()
-	require.Greater(t, size, 0)
+	require.Positive(t, state.SizeSSZ())
 }
 
 func TestHashTreeRoot(t *testing.T) {
@@ -88,4 +87,18 @@ func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
 	state := &deneb.BeaconState{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, ssz.ErrSize)
+}
+
+func TestBeaconState_MarshalSSZTo(t *testing.T) {
+	state := generateValidBeaconState()
+	data, err := state.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var buf []byte
+	buf, err = state.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }

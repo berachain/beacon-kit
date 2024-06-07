@@ -1,4 +1,3 @@
-
 # syntax=docker/dockerfile:1
 #
 # Copyright (C) 2022, Berachain Foundation. All rights reserved.
@@ -19,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.3
+ARG GO_VERSION=1.22.4
 ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
@@ -27,34 +26,24 @@ ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
 
-
 #######################################################
-###         Stage 1 - Build the Application         ###
+###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 
-ARG GIT_VERSION
-ARG GIT_COMMIT
-ARG BUILD_TAGS
-
-# Consolidate RUN commands to reduce layers
-RUN apk add --no-cache ca-certificates build-base linux-headers git && \
-    set -eux
-
-# Set the working directory
 WORKDIR /workdir
 
-# Copy the go.mod and go.sum files for each module
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
+COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
-COPY ./mod/node-builder/go.mod ./mod/node-builder/go.sum ./mod/node-builder/
+COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
 COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
@@ -65,12 +54,13 @@ COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
+RUN go work use ./mod/cli
 RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution
 RUN go work use ./mod/log
 RUN go work use ./mod/node-api
-RUN go work use ./mod/node-builder
+RUN go work use ./mod/node-core
 RUN go work use ./mod/p2p
 RUN go work use ./mod/payload
 RUN go work use ./mod/primitives
@@ -80,15 +70,36 @@ RUN go work use ./mod/state-transition
 RUN go work use ./mod/storage
 RUN go work use ./mod/errors
 
-
-# Download the go module dependencies
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     go mod download
 
+#######################################################
+###         Stage 2 - Build the Application         ###
+#######################################################
+
+FROM golang:${GO_VERSION}-alpine3.19 as builder
+
+ARG GIT_VERSION
+ARG GIT_COMMIT
+ARG BUILD_TAGS
+
+# Set the working directory
+WORKDIR /workdir
+
+# Consolidate RUN commands to reduce layers
+RUN apk add ca-certificates build-base linux-headers git && \
+    set -eux
+
+# Copy the dependencies from the cache stage as well as the
+# go.work file to the working directory
+COPY --from=mod-cache /go/pkg /go/pkg
+COPY --from=mod-cache ./workdir/go.work ./go.work
+
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
+
 
 # Build args
 ARG NAME
@@ -115,7 +126,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###        Stage 2 - Prepare the Final Image        ###
+###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
 FROM ${RUNNER_IMAGE}
@@ -128,4 +139,4 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
 
-#ENTRYPOINT [ "./beacond" ]
+# ENTRYPOINT [ "./beacond" ]

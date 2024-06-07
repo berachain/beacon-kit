@@ -64,32 +64,31 @@ network_configuration:
         replicas: 6
 node_settings:
   consensus_settings:
-    min_cpu: 8000
-    max_cpu: 8000
-    min_memory: 32768
-    max_memory: 32768
+    specs:
+      min_cpu: 8000
+      max_cpu: 8000
+      min_memory: 32768
+      max_memory: 32768
     images:
       beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
-    node_selectors:
-      node_preference: fast
     config:
       timeout_propose: 3s
-      timeout_vote: 2s
-      timeout_commit: 1s
+      timeout_prevote: 1s
+      timeout_precommit: 1s
+      timeout_commit: 2s
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload-timeout: 2s
+      payload_timeout: 2s
   execution_settings:
-    min_cpu: 8000
-    max_cpu: 8000
-    min_memory: 32768
-    max_memory: 32768
-    node_selectors:
-      node_preference: fast
+    specs:
+      min_cpu: 8000
+      max_cpu: 8000
+      min_memory: 32768
+      max_memory: 32768
     images:
       besu: hyperledger/besu:latest
-      erigon: thorax/erigon:latest
+      erigon: thorax/erigon:v2.60.1
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest

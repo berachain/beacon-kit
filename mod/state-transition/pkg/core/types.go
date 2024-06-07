@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
@@ -36,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -65,6 +60,7 @@ type BeaconBlock[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
+	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
 	// GetSlot returns the slot number of the block.
@@ -155,11 +151,9 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
 	json.Marshaler
 	json.Unmarshaler
-	ssz.HashRoot
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
 	GetTransactions() [][]byte
@@ -221,16 +215,11 @@ type ExecutionEngine[
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
 	New(primitives.Version, primitives.Root) ForkDataT
-}
-
-// RandaoProcessor is the interface for the randao processor.
-type RandaoProcessor[BeaconBlockT, BeaconStateT any] interface {
-	// ProcessRandao processes the RANDAO reveal and ensures it
-	// matches the local state.
-	ProcessRandao(BeaconStateT, BeaconBlockT, bool) error
-	// ProcessRandaoMixesReset resets the RANDAO mixes as defined
-	// in the Ethereum 2.0 specification.
-	ProcessRandaoMixesReset(BeaconStateT) error
+	// ComputeRandaoSigningRoot returns the signing root for the fork data.
+	ComputeRandaoSigningRoot(
+		domainType common.DomainType,
+		epoch math.Epoch,
+	) (common.Root, error)
 }
 
 // Validator represents an interface for a validator with generic type
@@ -239,8 +228,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	ssz.Marshaler
-	ssz.HashRoot
+	ssz.Marshallable
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -264,8 +252,6 @@ type Validator[
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
-	ssz.Marshaler
-	ssz.HashRoot
 	// Equals returns true if the withdrawal is equal to the other.
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.

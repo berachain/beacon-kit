@@ -57,12 +57,12 @@ def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persiste
             "BEACOND_MONIKER": node_struct.cl_service_name,
             "BEACOND_NET": "VALUE_2",
             "BEACOND_HOME": "/root/.beacond",
-            "BEACOND_CHAIN_ID": "beacon-kurtosis-80086",
+            "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
             "BEACOND_DEBUG": "false",
             "BEACOND_KEYRING_BACKEND": "test",
             "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
             "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
-            "BEACOND_ETH_CHAIN_ID": "80086",
+            "BEACOND_ETH_CHAIN_ID": "80087",
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
@@ -88,9 +88,9 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     stored_configs.append(StoreSpec(src = "/tmp/config_genesis/.beacond/config/genesis.json", name = "cosmos-genesis-final"))
 
     multiple_gentx_file = plan.upload_files(
-        src = "./scripts/multiple-gentx.sh",
-        name = "multiple-gentx",
-        description = "Uploading multiple-gentx script",
+        src = "./scripts/multiple-premined-deposits.sh",
+        name = "multiple-premined-deposits",
+        description = "Uploading multiple-premined-deposits script",
     )
 
     multiple_gentx_env_vars = node.get_genesis_env_vars("cl-validator-beaconkit-0")
@@ -100,10 +100,10 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
     plan.print(stored_configs)
 
     plan.run_sh(
-        run = "chmod +x /app/scripts/multiple-gentx.sh && /app/scripts/multiple-gentx.sh",
+        run = "chmod +x /app/scripts/multiple-premined-deposits.sh && /app/scripts/multiple-premined-deposits.sh",
         image = validators[0].cl_image,
         files = {
-            "/app/scripts": "multiple-gentx",
+            "/app/scripts": "multiple-premined-deposits",
             "/root/eth_genesis": "genesis_file",
         },
         env_vars = multiple_gentx_env_vars,
@@ -142,12 +142,13 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file
     persistent_peers = get_persistent_peers(plan, peers)
     config_settings = node_struct.consensus_settings.config
     app_settings = node_struct.consensus_settings.app
+    kzg_impl = node_struct.kzg_impl
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl))
     if node_struct.node_type == "validator":
-        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings)
+        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl)
     elif node_struct.node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl))
 
     beacond_config = get_config(
         node_struct,

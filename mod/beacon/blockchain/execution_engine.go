@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package blockchain
 
@@ -30,42 +25,8 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
-
-// sendFCU sends a forkchoice update to the execution client.
-// It sets the head and finalizes the latest.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-]) sendFCU(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-) error {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	_, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			nil,
-			s.cs.ActiveForkVersionForSlot(slot),
-		),
-	)
-	return err
-}
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
@@ -74,21 +35,35 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	DepositT,
 	DepositStoreT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) {
-	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcess",
+			"error", err,
+		)
+		return
+	}
+
+	// This is technically not an optimistic payload
+	// TODO: This needs a refactor, big hood energy.
+	//nolint:nestif // todo fix.5
+	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
 		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlot(
-			stCopy,
+		if _, err = s.sp.ProcessSlots(
+			stCopy, blk.GetSlot()+1,
 		); err != nil {
 			return
 		}
 
-		prevBlockRoot, err := blk.HashTreeRoot()
+		var prevBlockRoot primitives.Root
+		prevBlockRoot, err = blk.HashTreeRoot()
 		if err != nil {
 			s.logger.
 				Error(
@@ -96,15 +71,6 @@ func (s *Service[
 					"error",
 					err,
 				)
-			return
-		}
-
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
 			return
 		}
 
@@ -116,10 +82,9 @@ func (s *Service[
 			blk.GetSlot()+1,
 			//#nosec:G701 // won't realistically overflow.
 			// TODO: clock time properly.
-			uint64(max(
-				math.U64(time.Now().Unix()+1),
-				blk.GetBody().GetExecutionPayload().GetTimestamp()+
-					math.U64(s.cs.TargetSecondsPerEth1Block()),
+			(max(
+				uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
+				uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
 			)),
 			prevBlockRoot,
 			lph.GetBlockHash(),
@@ -134,20 +99,28 @@ func (s *Service[
 		s.logger.
 			Error(
 				"failed to send forkchoice update with attributes",
-				"error",
-				err,
+				"error", err,
 			)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(),
-	); err != nil {
-		s.logger.
-			Error(
-				"failed to send forkchoice update in postBlockProcess",
-				"error",
-				err,
+	} else {
+		// If we are not building blocks, or we failed to build a block
+		// we can just send the forkchoice update without attributes.
+		_, _, err = s.ee.NotifyForkchoiceUpdate(
+			ctx,
+			engineprimitives.BuildForkchoiceUpdateRequest(
+				&engineprimitives.ForkchoiceStateV1{
+					HeadBlockHash:      lph.GetBlockHash(),
+					SafeBlockHash:      lph.GetParentHash(),
+					FinalizedBlockHash: lph.GetParentHash(),
+				},
+				nil,
+				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+			),
+		)
+		if err != nil {
+			s.logger.Error(
+				"failed to send forkchoice update without attributes",
+				"error", err,
 			)
+		}
 	}
 }

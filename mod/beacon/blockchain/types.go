@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package blockchain
 
@@ -35,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	ssz "github.com/ferranbt/fastssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -81,23 +76,6 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-// StorageBackend defines an interface for accessing various storage components
-// required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	BeaconStateT,
-	BlobSidecarsT any,
-	DepositStoreT DepositStore,
-] interface {
-	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
-	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
-	// DepositStore returns the deposit store for the given context.
-	DepositStore(context.Context) DepositStoreT
-}
-
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
@@ -110,29 +88,29 @@ type BlobProcessor[
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
+
+	// VerifyBlobs verifies the blobs and ensures they match the local state.
+	VerifyBlobs(
+		slot math.Slot,
+		sidecars BlobSidecarsT,
+	) error
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
+	IsNil() bool
 	Len() int
 }
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Send sends an event and returns the number of
-	// subscribers that received it.
-	Send(event EventT) int
-}
+type Deposit interface{}
 
 // DepositStore defines the interface for managing deposit operations.
-type DepositStore interface {
-	// PruneFromInclusive prunes the deposit store from the given
-	// index for N indexes.
-	PruneFromInclusive(index uint64, numPrune uint64) error
+type DepositStore[DepositT any] interface {
+	// Prune prunes the deposit store of [start, end)
+	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*types.Deposit) error
+	EnqueueDeposits(deposits []DepositT) error
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -157,6 +135,13 @@ type ExecutionEngine interface {
 	) error
 }
 
+// EventFeed is a generic interface for sending events.
+type EventFeed[EventT any] interface {
+	// Send sends an event and returns the number of
+	// subscribers that received it.
+	Send(event EventT) int
+}
+
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
 	// Enabled returns true if the local builder is enabled.
@@ -171,6 +156,11 @@ type LocalBuilder[BeaconStateT any] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
+	SendForceHeadFCU(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+	) error
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -179,33 +169,55 @@ type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
 	BlobSidecarsT,
-	ContextT any,
+	ContextT,
+	DepositT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		st BeaconStateT,
-		deposits []*types.Deposit,
-		executionPayloadHeader *types.ExecutionPayloadHeader,
-		genesisVersion primitives.Version,
+		BeaconStateT,
+		[]DepositT,
+		*types.ExecutionPayloadHeader,
+		primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
-	// ProcessSlot processes the state transition for a single slot.
-	//
-	// TODO: This eventually needs to be deprecated.
-	ProcessSlot(
-		st BeaconStateT,
+	// ProcessSlots processes the state transition for a range of slots.
+	ProcessSlots(
+		BeaconStateT, math.Slot,
 	) ([]*transition.ValidatorUpdate, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		ctx ContextT,
-		st BeaconStateT,
-		blk BeaconBlockT,
+		ContextT,
+		BeaconStateT,
+		BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
+}
+
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
+type StorageBackend[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+
+] interface {
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
+
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)

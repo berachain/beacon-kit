@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
@@ -67,8 +62,6 @@ type StateProcessor[
 ] struct {
 	// cs is the chain specification for the beacon chain.
 	cs primitives.ChainSpec
-	// rp is the Randao processor used for randomness in the beacon chain.
-	rp RandaoProcessor[BeaconBlockT, BeaconStateT]
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
@@ -109,9 +102,6 @@ func NewStateProcessor[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs primitives.ChainSpec,
-	rp RandaoProcessor[
-		BeaconBlockT, BeaconStateT,
-	],
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
@@ -130,7 +120,6 @@ func NewStateProcessor[
 		WithdrawalCredentialsT,
 	]{
 		cs:              cs,
-		rp:              rp,
 		executionEngine: executionEngine,
 		signer:          signer,
 	}
@@ -147,63 +136,14 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) ([]*transition.ValidatorUpdate, error) {
-	var (
-		validatorUpdates []*transition.ValidatorUpdate
-		blkSlot          = blk.GetSlot()
-	)
-
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
+	if blk.IsNil() {
+		return nil, nil
 	}
 
-	// We perform some initial logic to ensure the BeaconState is in the correct
-	// state before we process the block.
-	//
-	//            +-------------------------------+
-	//            |  Is state slot equal to the   |
-	//            |  block slot minus one?        |
-	//            +-------------------------------+
-	//                           |
-	//                           |
-	//              +------------+------------+
-	//              |                         |
-	//           Yes, it is               No, it isn't
-	//              |                         |
-	//              |                         |
-	//       Process the slot                 |
-	//                                        |
-	//                           +------------+
-	//                           |
-	//          Is state slot equal to the block slot?
-	//                           |
-	//              +------------+------------+
-	//              |                         |
-	//           Yes, it is               No, it isn't
-	//              |                         |
-	//     Skip slot processing          Return error:
-	//                                   "out of sync"
-	//
-	// Unlike Ethereum, we error if the on disk state is greater than 1 slot
-	// behind.
-	// Due to CometBFT SSF nature, this SHOULD NEVER occur.
-	//
-	// TODO: We should probably not assume this to make our Transition
-	// function more generalizable, since right now it makes an
-	// assumption about the finalization properties of the cosnensus
-	// engine.
-	switch stateSlot {
-	case blkSlot - 1:
-		if validatorUpdates, err = sp.ProcessSlot(st); err != nil {
-			return nil, err
-		}
-	case blkSlot:
-		// skip slot processing.
-	default:
-		return nil, errors.Wrapf(
-			ErrBeaconStateOutOfSync, "expected: %d, got: %d",
-			stateSlot, blkSlot,
-		)
+	// Process the slots.
+	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
+	if err != nil {
+		return nil, err
 	}
 
 	// Process the block.
@@ -217,39 +157,85 @@ func (sp *StateProcessor[
 	return validatorUpdates, nil
 }
 
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) ProcessSlots(
+	st BeaconStateT, slot math.U64,
+) ([]*transition.ValidatorUpdate, error) {
+	var (
+		validatorUpdates      []*transition.ValidatorUpdate
+		epochValidatorUpdates []*transition.ValidatorUpdate
+	)
+
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate until we are "caught up".
+	for ; stateSlot < slot; stateSlot++ {
+		// Process the slot
+		if err = sp.processSlot(st); err != nil {
+			return nil, err
+		}
+
+		// Process the Epoch Boundary.
+		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
+			if epochValidatorUpdates, err =
+				sp.processEpoch(st); err != nil {
+				return nil, err
+			}
+			validatorUpdates = append(
+				validatorUpdates,
+				epochValidatorUpdates...,
+			)
+		}
+
+		// We update on the state because we need to
+		// update the state for calls within processSlot/Epoch().
+		if err = st.SetSlot(stateSlot + 1); err != nil {
+			return nil, err
+		}
+	}
+
+	return validatorUpdates, nil
+}
+
 // ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
 	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) ProcessSlot(
+]) processSlot(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
-	slot, err := st.GetSlot()
+) error {
+	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(),
-		prevStateRoot,
+		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
-		return nil, err
+		return err
 	}
 
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
@@ -257,7 +243,7 @@ func (sp *StateProcessor[
 	if (latestHeader.GetStateRoot() == primitives.Root{}) {
 		latestHeader.SetStateRoot(prevStateRoot)
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -265,24 +251,16 @@ func (sp *StateProcessor[
 	var prevBlockRoot primitives.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(slot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
+		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
-		return nil, err
+		return err
 	}
 
-	// Process the Epoch Boundary.
-	var validatorUpdates []*transition.ValidatorUpdate
-	if uint64(slot+1)%sp.cs.SlotsPerEpoch() == 0 {
-		if validatorUpdates, err = sp.processEpoch(st); err != nil {
-			return nil, err
-		}
-	}
-
-	return validatorUpdates, st.SetSlot(slot + 1)
+	return nil
 }
 
 // ProcessBlock processes the block, it optionally verifies the
@@ -399,7 +377,8 @@ func (sp *StateProcessor[
 	if slot, err = st.GetSlot(); err != nil {
 		return err
 	} else if blk.GetSlot() != slot {
-		return errors.Wrapf(ErrSlotMismatch,
+		return errors.Wrapf(
+			ErrSlotMismatch,
 			"expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
@@ -417,8 +396,8 @@ func (sp *StateProcessor[
 		return err
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
-			"expected: %x, got: %x",
-			parentBlockRoot, blk.GetParentBlockRoot(),
+			"expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
 	}
 

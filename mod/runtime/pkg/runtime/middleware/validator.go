@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package middleware
 
@@ -30,6 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -55,6 +51,7 @@ type ValidatorMiddleware[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
@@ -64,7 +61,7 @@ type ValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobsSidecarsT ssz.Marshallable,
+	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -73,12 +70,18 @@ type ValidatorMiddleware[
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobsSidecarsT,
+		BlobSidecarsT,
 	]
+
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
-	blobGossiper p2p.Publisher[
-		BlobsSidecarsT, []byte,
+	blobGossiper p2p.PublisherReceiver[
+		BlobSidecarsT,
+		[]byte,
+		encoding.ABCIRequest,
+		BlobSidecarsT,
 	]
 	// TODO: we will eventually gossip the blocks separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -107,6 +110,7 @@ func NewValidatorMiddleware[
 			primitives.Root,
 			uint32,
 		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT interface {
@@ -116,29 +120,31 @@ func NewValidatorMiddleware[
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
 	},
-	BlobsSidecarsT ssz.Marshallable,
+	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobsSidecarsT,
+		BlobSidecarsT,
 	],
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobsSidecarsT, StorageBackendT,
+	BeaconStateT, BlobSidecarsT, StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobsSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
-		blobGossiper: rp2p.
-			NoopGossipHandler[BlobsSidecarsT, []byte]{},
+		chainService:     chainService,
+		blobGossiper: rp2p.NewNoopBlobHandler[
+			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
@@ -155,24 +161,28 @@ func (h *ValidatorMiddleware[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
-	BlobsSidecarsT,
+	BlobSidecarsT,
 	DepositStoreT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		logger    = ctx.Logger().With("service", "prepare-proposal")
-		startTime = time.Now()
+		startTime     = time.Now()
+		sidecarsBz    []byte
+		beaconBlockBz []byte
+		logger        = ctx.Logger().With(
+			"service", "prepare-proposal",
+		)
 	)
-
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// Get the best block and blobs.
 	blk, blobs, err := h.validatorService.RequestBestBlock(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk.IsNil() {
-		logger.Error("failed to build block", "error", err, "block", blk)
+		logger.Error(
+			"failed to assemble proposal", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
@@ -200,7 +210,6 @@ func (h *ValidatorMiddleware[
 	blk.GetBody().SetSlashingInfo(slashingInfo)
 
 	// "Publish" the blobs and the beacon block.
-	var sidecarsBz, beaconBlockBz []byte
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var localErr error
@@ -300,29 +309,35 @@ func (h *ValidatorMiddleware[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	BeaconStateT,
-	BlobsSidecarsT,
+	BlobSidecarsT,
 	DepositStoreT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
-		logger    = ctx.Logger().With("service", "process-proposal")
 		startTime = time.Now()
-	)
-
-	defer h.metrics.measureProcessProposalDuration(startTime)
-	if blk, err := h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		logger.Error(
-			"failed to retrieve beacon block from request",
-			"error",
-			err,
+		logger    = ctx.Logger().With(
+			"service", "prepare-proposal",
 		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	} else if err = h.validatorService.
-		VerifyIncomingBlock(ctx, blk); err != nil {
+	)
+	defer h.metrics.measureProcessProposalDuration(startTime)
+
+	args := []any{"beacon_block", true, "blob_sidecars", true}
+	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	if err != nil {
+		args[1] = false
+	}
+
+	sidecars, err := h.blobGossiper.Request(ctx, req)
+	if err != nil {
+		args[3] = false
+	}
+
+	logger.Info("received proposal with", args...)
+	if err = h.chainService.ReceiveBlockAndBlobs(
+		ctx, blk, sidecars,
+	); errors.IsFatal(err) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err

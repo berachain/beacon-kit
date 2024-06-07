@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package client
 
@@ -63,6 +58,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 
 	// Check for timeout errors.
 	if http.IsTimeoutError(err) {
+		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
 
@@ -81,28 +77,37 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		)
 	}
 
-	// Check to see if the error is one of the predefined errors
-	// as per the JSON-RPC 2.0 specification.
-	if jsonErr := jsonrpc.GetPredefinedError(e); jsonErr != nil {
-		return jsonErr
-	}
-
 	// Otherwise check for our engine errors.
 	switch e.ErrorCode() {
+	case -32700:
+		s.metrics.incrementParseErrorCounter()
+		return jsonrpc.ErrParse
+	case -32600:
+		s.metrics.incrementInvalidRequestCounter()
+		return jsonrpc.ErrInvalidRequest
+	case -32601:
+		s.metrics.incrementMethodNotFoundCounter()
+		return jsonrpc.ErrMethodNotFound
+	case -32602:
+		s.metrics.incrementInvalidParamsCounter()
+		return jsonrpc.ErrInvalidParams
+	case -32603:
+		s.metrics.incrementInternalErrorCounter()
+		return jsonrpc.ErrInternal
 	case -38001:
-		// telemetry.IncrCounter(1, MetricKeyUnknownPayloadErrorCount)
+		s.metrics.incrementUnknownPayloadErrorCounter()
 		return engineerrors.ErrUnknownPayload
 	case -38002:
-		// telemetry.IncrCounter(1, MetricKeyInvalidForkchoiceStateCount)
+		s.metrics.incrementInvalidForkchoiceStateCounter()
 		return engineerrors.ErrInvalidForkchoiceState
 	case -38003:
-		// telemetry.IncrCounter(1, MetricKeyInvalidPayloadAttributesCount)
+		s.metrics.incrementInvalidPayloadAttributesCounter()
 		return engineerrors.ErrInvalidPayloadAttributes
 	case -38004:
-		// telemetry.IncrCounter(1, MetricKeyRequestTooLargeCount)
+		s.metrics.incrementRequestTooLargeCounter()
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
-		// telemetry.IncrCounter(1, MetricKeyInternalServerErrorCount)
+		s.metrics.incrementInternalServerErrorCounter()
 		// Only -32000 status codes are data errors in the RPC specification.
 		var errWithData gethRPC.DataError
 		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.

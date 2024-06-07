@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package builder
 
@@ -53,6 +48,17 @@ func (pb *PayloadBuilder[
 		return nil, ErrPayloadBuilderDisabled
 	}
 
+	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
+		pb.logger.Warn(
+			"aborting payload build; payload already exists in cache",
+			"for_slot",
+			slot,
+			"parent_block_root",
+			parentBlockRoot,
+		)
+		return &payloadID, nil
+	}
+
 	// Assemble the payload attributes.
 	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
@@ -74,30 +80,25 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
-	} else if payloadID == nil {
-		pb.logger.Warn(
-			"received nil payload ID on VALID engine response",
-			"head_eth1_hash", headEth1BlockHash,
-			"for_slot", slot,
-		)
-
-		return payloadID, ErrNilPayloadOnValidResponse
 	}
 
-	pb.logger.Info(
-		"bob the builder; can we forkchoice update it?;"+
-			" bob the builder; yes we can 🚧",
-		"head_eth1_hash",
-		headEth1BlockHash,
-		"for_slot",
-		slot,
-		"parent_block_root",
-		parentBlockRoot,
-		"payload_id",
-		payloadID,
-	)
+	// Only add to cache if we received back a payload ID.
+	if payloadID != nil {
+		pb.logger.Info(
+			"bob the builder; can we forkchoice update it?;"+
+				" bob the builder; yes we can 🚧",
+			"head_eth1_hash",
+			headEth1BlockHash,
+			"for_slot",
+			slot,
+			"parent_block_root",
+			parentBlockRoot,
+			"payload_id",
+			payloadID,
+		)
+		pb.pc.Set(slot, parentBlockRoot, *payloadID)
+	}
 
-	pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	return payloadID, nil
 }
 
@@ -117,6 +118,7 @@ func (pb *PayloadBuilder[
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
+
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
 	payloadID, err := pb.RequestPayloadAsync(
@@ -225,4 +227,44 @@ func (pb *PayloadBuilder[
 		)
 	}
 	return envelope, err
+}
+
+// RequestPayload builds a payload for the given slot and
+// returns the payload ID.
+//
+// TODO: This should be moved onto a "sync service"
+// of some kind.
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) SendForceHeadFCU(
+	ctx context.Context,
+	st BeaconStateT,
+	slot math.Slot,
+) error {
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	pb.logger.Info(
+		"sending startup forkchoice update to execution client 🚀 ",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot,
+	)
+
+	// Submit the forkchoice update to the execution client.
+	_, _, err = pb.ee.NotifyForkchoiceUpdate(
+		ctx, &engineprimitives.ForkchoiceUpdateRequest{
+			State: &engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			PayloadAttributes: nil,
+			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+		},
+	)
+	return err
 }

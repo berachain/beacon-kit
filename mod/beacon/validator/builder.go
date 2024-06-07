@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package validator
 
@@ -32,23 +27,184 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"golang.org/x/sync/errgroup"
 )
+
+// RequestBestBlock builds a new beacon block.
+//
+//nolint:funlen // todo:fix.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) RequestBestBlock(
+	ctx context.Context,
+	requestedSlot math.Slot,
+) (BeaconBlockT, BlobSidecarsT, error) {
+	var (
+		blk       BeaconBlockT
+		sidecars  BlobSidecarsT
+		startTime = time.Now()
+		g, _      = errgroup.WithContext(ctx)
+	)
+	defer s.metrics.measureRequestBestBlockTime(startTime)
+	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
+
+	// The goal here is to acquire a payload whose parent is the previously
+	// finalized block, such that, if this payload is accepted, it will be
+	// the next finalized block in the chain. A byproduct of this design
+	// is that we get the nice property of lazily propogating the finalized
+	// and safe block hashes to the execution client.
+	st := s.bsb.StateFromContext(ctx)
+
+	// Prepare the state such that it is ready to build a block for
+	// the request slot
+	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
+		return blk, sidecars, err
+	}
+
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel?
+	reveal, err := s.buildRandaoReveal(st, requestedSlot)
+	if err != nil {
+		return blk, sidecars, err
+	}
+
+	// Create a new empty block from the current state.
+	blk, err = s.getEmptyBeaconBlock(
+		st, requestedSlot,
+	)
+	if err != nil {
+		return blk, sidecars, err
+	}
+
+	// Assemble a new block with the payload.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return blk, sidecars, ErrNilBlkBody
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
+	// Get the payload for the block.
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
+	if err != nil {
+		return blk, sidecars, err
+	} else if envelope == nil {
+		return blk, sidecars, ErrNilPayload
+	}
+
+	// If we get returned a nil blobs bundle, we should return an error.
+	blobsBundle := envelope.GetBlobsBundle()
+	if blobsBundle == nil {
+		return blk, sidecars, ErrNilBlobsBundle
+	}
+
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return blk, sidecars, ErrNilDepositIndexStart
+	}
+
+	// Dequeue deposits from the state.
+	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
+		depositIndex,
+		s.chainSpec.MaxDepositsPerBlock(),
+	)
+	if err != nil {
+		return blk, sidecars, err
+	}
+
+	// Set the deposits on the block body.
+	body.SetDeposits(deposits)
+
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+	// TODO: assemble real eth1data.
+	body.SetEth1Data(&types.Eth1Data{
+		DepositRoot:  primitives.Bytes32{},
+		DepositCount: 0,
+		BlockHash:    common.ZeroHash,
+	})
+
+	// Set the execution data.
+	if err = body.SetExecutionData(
+		envelope.GetExecutionPayload(),
+	); err != nil {
+		return blk, sidecars, err
+	}
+
+	// Produce block sidecars.
+	g.Go(func() error {
+		var sidecarErr error
+		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
+			blk,
+			envelope.GetBlobsBundle(),
+		)
+		return sidecarErr
+	})
+
+	// Compute and set the state root for the block.
+	g.Go(func() error {
+		s.logger.Info(
+			"computing state root for block 🌲",
+			"slot", blk.GetSlot(),
+		)
+
+		var stateRoot primitives.Root
+		stateRoot, err = s.computeStateRoot(ctx, st, blk)
+		if err != nil {
+			s.logger.Error(
+				"failed to compute state root while building block ❗️ ",
+				"slot", requestedSlot,
+				"error", err,
+			)
+			return err
+		}
+
+		s.logger.Info("state root computed for block 💻 ",
+			"slot", requestedSlot,
+			"state_root", stateRoot,
+		)
+		blk.SetStateRoot(stateRoot)
+		return nil
+	})
+
+	if err = g.Wait(); err != nil {
+		return blk, sidecars, err
+	}
+
+	s.logger.Info(
+		"beacon block successfully built 🛠️ ",
+		"slot", requestedSlot,
+		"state_root", blk.GetStateRoot(),
+		"duration", time.Since(startTime).String(),
+	)
+
+	return blk, sidecars, nil
+}
 
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-]) GetEmptyBeaconBlock(
-	st BeaconStateT, slot math.Slot,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) getEmptyBeaconBlock(
+	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(slot) % s.chainSpec.SlotsPerHistoricalRoot(),
+		uint64(requestedSlot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
+
 	if err != nil {
 		return blk, errors.Newf(
 			"failed to get block root at index: %w",
@@ -68,22 +224,53 @@ func (s *Service[
 	}
 
 	return blk.NewWithVersion(
-		slot,
+		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
 	)
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) buildRandaoReveal(
+	st BeaconStateT,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	var forkData ForkDataT
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	signingRoot, err := forkData.New(
+		version.FromUint32[primitives.Version](
+			s.chainSpec.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	).ComputeRandaoSigningRoot(
+		s.chainSpec.DomainTypeRandao(),
+		epoch,
+	)
+
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return s.signer.Sign(signingRoot[:])
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
+	//
+	// TODO: Add external block builders to this flow.
+	//
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.
 		RetrievePayload(
@@ -92,9 +279,8 @@ func (s *Service[
 			blk.GetParentBlockRoot(),
 		)
 	if err != nil {
-		s.metrics.failedToRetrieveOptimisticPayload(
+		s.metrics.failedToRetrievePayload(
 			blk.GetSlot(),
-			blk.GetParentBlockRoot(),
 			err,
 		)
 
@@ -130,59 +316,4 @@ func (s *Service[
 		)
 	}
 	return envelope, nil
-}
-
-// prepareStateForBuilding ensures that the state is at the requested slot
-// before building a block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-]) prepareStateForBuilding(
-	st BeaconStateT,
-	requestedSlot math.Slot,
-) error {
-	// Get the current state slot.
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	slotDifference := requestedSlot - stateSlot
-	switch {
-	case slotDifference == 1:
-		// If our BeaconState is not up to date, we need to process
-		// a slot to get it up to date.
-		if _, err = s.stateProcessor.ProcessSlot(st); err != nil {
-			return err
-		}
-
-		// Request the slot again, it should've been incremented by 1.
-		stateSlot, err = st.GetSlot()
-		if err != nil {
-			return err
-		}
-
-		// If after doing so, we aren't exactly at the requested slot,
-		// we should return an error.
-		if requestedSlot != stateSlot {
-			return errors.Newf(
-				"requested slot could not be processed, requested: %d, state: %d",
-				requestedSlot,
-				stateSlot,
-			)
-		}
-	case slotDifference > 1:
-		return errors.Newf(
-			"requested slot is too far ahead, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	case slotDifference < 1:
-		return errors.Newf(
-			"requested slot is in the past, requested: %d, state: %d",
-			requestedSlot,
-			stateSlot,
-		)
-	}
-
-	return nil
 }
