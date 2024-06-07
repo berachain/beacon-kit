@@ -18,43 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package nodebuilder
+package types
 
 import (
-	"io"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cobra"
 )
 
-// AppCreator is a function that creates an application.
-// It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT]) AppCreator(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) NodeT {
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
-	}
+// NodeI is an interface for the node application.
+// It extends the Application interface from the Cosmos SDK.
+type NodeI interface {
+	servertypes.Application
 
-	nb.node.SetApplication(app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		nb.depInjectCfg,
-		nb.chainSpec,
-		append(
-			server.DefaultBaseappOptions(appOpts),
-			func(bApp *baseapp.BaseApp) {
-				bApp.SetParamStore(comet.NewConsensusParamsStore(nb.chainSpec))
-			})...,
-	))
-	return nb.node
+	Run() error
+
+	SetAppName(name string)
+	SetAppDescription(description string)
+	SetRootCmd(cmd *cobra.Command)
+	SetApplication(app servertypes.Application)
 }

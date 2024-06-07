@@ -49,8 +49,12 @@ func (pb *PayloadBuilder[
 	}
 
 	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
-		pb.logger.Warn("aborting payload build; payload already exists in cache",
-			"for_slot", slot, "parent_block_root", parentBlockRoot,
+		pb.logger.Warn(
+			"aborting payload build; payload already exists in cache",
+			"for_slot",
+			slot,
+			"parent_block_root",
+			parentBlockRoot,
 		)
 		return &payloadID, nil
 	}
