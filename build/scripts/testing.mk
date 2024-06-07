@@ -254,7 +254,6 @@ start-nimbus:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	ethpandaops/nimbus-eth1:master \
-    --log-level=DEBUG \
     --data-dir=.tmp/nimbus \
     --http-port=8545 \
     --http-address=0.0.0.0 \
@@ -271,8 +270,7 @@ start-nimbus:
     --custom-network=/${ETH_GENESIS_PATH} \
     --jwt-secret=/${JWT_PATH} \
     --sync-mode=full \
-    --listen-address=0.0.0.0 \
-    --nat=extip:0.0.0.0 \
+    --listen-address=0.0.0.0
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
