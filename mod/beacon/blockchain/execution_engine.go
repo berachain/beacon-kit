@@ -25,43 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
-
-// sendFCU sends a forkchoice update to the execution client.
-// It sets the head and finalizes the latest.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
-]) sendFCU(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-) error {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	_, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			nil,
-			s.cs.ActiveForkVersionForSlot(slot),
-		),
-	)
-	return err
-}
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
@@ -77,6 +41,16 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) {
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcess",
+			"error", err,
+		)
+		return
+	}
+
 	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
 		stCopy := st.Copy()
 		if _, err := s.sp.ProcessSlots(
@@ -93,15 +67,6 @@ func (s *Service[
 					"error",
 					err,
 				)
-			return
-		}
-
-		lph, err := st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
-				"error", err,
-			)
 			return
 		}
 
@@ -134,15 +99,19 @@ func (s *Service[
 			)
 	}
 
-	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(),
-	); err != nil {
-		s.logger.
-			Error(
-				"failed to send forkchoice update in postBlockProcess",
-				"error",
-				err,
-			)
-	}
+	// If we are not building blocks, or we failed to build a block
+	// we can just send the forkchoice update without attributes.
+	_, _, err = s.ee.NotifyForkchoiceUpdate(
+		ctx,
+		engineprimitives.BuildForkchoiceUpdateRequest(
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			nil,
+			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+		),
+	)
+	return
 }

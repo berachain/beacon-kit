@@ -106,9 +106,10 @@ func (s *Service[
 	st BeaconStateT,
 ) error {
 	var (
-		previousBlockRoot primitives.Root
-		lph               engineprimitives.ExecutionPayloadHeader
-		slot              math.Slot
+		prevStateRoot primitives.Root
+		prevBlockRoot primitives.Root
+		lph           engineprimitives.ExecutionPayloadHeader
+		slot          math.Slot
 	)
 
 	s.logger.Info("rebuilding payload for rejected block ⏳ ")
@@ -122,13 +123,18 @@ func (s *Service[
 		return err
 	}
 
-	stateRoot, err := st.HashTreeRoot()
+	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
 
-	latestHeader.StateRoot = stateRoot
-	previousBlockRoot, err = latestHeader.HashTreeRoot()
+	prevStateRoot, err = st.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	latestHeader.StateRoot = prevStateRoot
+	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
 	}
@@ -140,17 +146,12 @@ func (s *Service[
 		return err
 	}
 
-	slot, err = st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Submit a request for a new payload.
 	if _, err = s.lb.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
-		slot,
+		stateSlot,
 		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
@@ -158,7 +159,7 @@ func (s *Service[
 			uint64((lph.GetTimestamp()+1)),
 		),
 		// We set the parent root to the previous block root.
-		previousBlockRoot,
+		prevBlockRoot,
 		// We set the head of our chain to previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
