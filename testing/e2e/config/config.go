@@ -270,8 +270,8 @@ func defaultExecutionSettings() ExecutionSettings {
 		Specs: NodeSpecs{
 			MinCPU:    0,
 			MaxCPU:    0,
-			MinMemory: 1024, //nolint:mnd // 1 GB
-			MaxMemory: 2048, //nolint:mnd // 2 GB
+			MinMemory: 512, //nolint:mnd // 1 GB
+			MaxMemory: 512, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
@@ -288,9 +288,9 @@ func defaultConsensusSettings() ConsensusSettings {
 	return ConsensusSettings{
 		Specs: NodeSpecs{
 			MinCPU:    0,
-			MaxCPU:    2000, //nolint:mnd // 2 vCPUs
+			MaxCPU:    512, //nolint:mnd // 2 vCPUs
 			MinMemory: 0,
-			MaxMemory: 2048, //nolint:mnd // 2 GB
+			MaxMemory: 512, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"beaconkit": "beacond:kurtosis-local",

@@ -100,7 +100,7 @@ func (s *Service[
 				"failed to send forkchoice update with attributes",
 				"error", err,
 			)
-
+	} else {
 		// If we are not building blocks, or we failed to build a block
 		// we can just send the forkchoice update without attributes.
 		_, _, err = s.ee.NotifyForkchoiceUpdate(
