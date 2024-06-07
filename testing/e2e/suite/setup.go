@@ -299,7 +299,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			// Wait an extra block to ensure all clients are in sync.
-			//nolint:contextcheck // its okay.
+			//nolint:mnd,contextcheck // its okay.
 			if err = s.WaitForFinalizedBlockNumber(
 				receipt.BlockNumber.Uint64() + 2,
 			); err != nil {

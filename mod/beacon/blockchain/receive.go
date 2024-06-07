@@ -63,7 +63,6 @@ func (s *Service[
 	}()
 
 	wg.Wait()
-
 	return errors.JoinFatal(blockErr, blobsErr)
 }
 
