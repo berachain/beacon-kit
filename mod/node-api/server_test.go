@@ -333,37 +333,37 @@ func getTestcases() []testcase {
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/identity",
+			endpoint:       "/eth/v1/commands/identity",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/peers",
+			endpoint:       "/eth/v1/commands/peers",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/peers/:peer_id",
+			endpoint:       "/eth/v1/commands/peers/:peer_id",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/peers/peer_count",
+			endpoint:       "/eth/v1/commands/peers/peer_count",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/version",
+			endpoint:       "/eth/v1/commands/version",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/syncing",
+			endpoint:       "/eth/v1/commands/syncing",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{
 			method:         "GET",
-			endpoint:       "/eth/v1/node/health",
+			endpoint:       "/eth/v1/commands/health",
 			expectedStatus: http.StatusNotImplemented,
 		},
 		{

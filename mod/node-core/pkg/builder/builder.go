@@ -26,7 +26,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/node"
+	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"

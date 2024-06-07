@@ -25,8 +25,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/cli/pkg/node/utils/prompt"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/node/utils/prompt/mocks"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/prompt"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/prompt/mocks"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
