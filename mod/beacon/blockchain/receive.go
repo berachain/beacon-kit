@@ -23,6 +23,7 @@ package blockchain
 import (
 	"context"
 	"sync"
+	"time"
 
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -164,8 +165,8 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// startTime := time.Now()
-	// defer s.metrics.measureStateRootVerificationTime(startTime)
+	startTime := time.Now()
+	defer s.metrics.measureStateRootVerificationTime(startTime)
 	if _, err := s.sp.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
