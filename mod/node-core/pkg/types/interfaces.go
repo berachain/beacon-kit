@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NodeI is an interface for the commands application.
+// NodeI is an interface for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type NodeI interface {
 	servertypes.Application

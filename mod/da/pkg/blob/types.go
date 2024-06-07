@@ -38,7 +38,7 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	// securely stored before it returns without an error.
 	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
 	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon commands's operation.
+	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
 }
 

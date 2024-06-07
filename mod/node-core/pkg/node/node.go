@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Node represents the commands application.
+// Node represents the node application.
 type Node struct {
 	*app.BeaconApp
 
