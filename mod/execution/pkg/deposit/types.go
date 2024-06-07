@@ -55,6 +55,7 @@ type BlockEvent[
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
 	Name() string
+	Is(string) bool
 	Context() context.Context
 	Data() BeaconBlockT
 }

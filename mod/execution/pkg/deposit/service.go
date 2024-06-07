@@ -143,7 +143,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case event := <-ch:
-			if event.Name() == events.BeaconBlockFinalized {
+			if event.Is(events.BeaconBlockFinalized) {
 				s.newBlock <- event.Data()
 			}
 		}

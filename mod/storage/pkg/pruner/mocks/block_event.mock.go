@@ -65,6 +65,52 @@ func (_c *BlockEvent_Data_Call[BeaconBlockT]) RunAndReturn(run func() BeaconBloc
 	return _c
 }
 
+// Is provides a mock function with given fields: _a0
+func (_m *BlockEvent[BeaconBlockT]) Is(_a0 string) bool {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Is")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// BlockEvent_Is_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Is'
+type BlockEvent_Is_Call[BeaconBlockT pruner.BeaconBlock] struct {
+	*mock.Call
+}
+
+// Is is a helper method to define mock.On call
+//   - _a0 string
+func (_e *BlockEvent_Expecter[BeaconBlockT]) Is(_a0 interface{}) *BlockEvent_Is_Call[BeaconBlockT] {
+	return &BlockEvent_Is_Call[BeaconBlockT]{Call: _e.mock.On("Is", _a0)}
+}
+
+func (_c *BlockEvent_Is_Call[BeaconBlockT]) Run(run func(_a0 string)) *BlockEvent_Is_Call[BeaconBlockT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *BlockEvent_Is_Call[BeaconBlockT]) Return(_a0 bool) *BlockEvent_Is_Call[BeaconBlockT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BlockEvent_Is_Call[BeaconBlockT]) RunAndReturn(run func(string) bool) *BlockEvent_Is_Call[BeaconBlockT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewBlockEvent creates a new instance of BlockEvent. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBlockEvent[BeaconBlockT pruner.BeaconBlock](t interface {

@@ -115,6 +115,7 @@ func TestPruner(t *testing.T) {
 				block.On("GetSlot").Return(math.U64(index))
 				event := mocks.BlockEvent[pruner.BeaconBlock]{}
 				event.On("Data").Return(&block)
+				event.On("Is", mock.Anything).Return(true)
 				feed.Send(&event)
 			}
 

@@ -24,13 +24,6 @@ import (
 	"context"
 )
 
-const (
-	MissedSlot           = "MissedSlot"
-	BeaconBlockAccepted  = "BeaconBlockAccepted"
-	BeaconBlockRejected  = "BeaconBlockRejected"
-	BeaconBlockFinalized = "BeaconBlockFinalized"
-)
-
 // Event represents a generic event in the beacon chain.
 type Event[DataT any] struct {
 	// ctx is the context associated with the event.
@@ -65,4 +58,9 @@ func (e Event[DataT]) Context() context.Context {
 // Event returns the beacon event.
 func (e Event[DataT]) Data() DataT {
 	return e.data
+}
+
+// Is returns true if the event has the given name.
+func (e Event[DataT]) Is(name string) bool {
+	return e.name == name
 }

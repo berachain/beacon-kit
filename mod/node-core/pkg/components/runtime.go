@@ -143,7 +143,7 @@ func ProvideRuntime(
 		feed.Event[*types.BeaconBlock],
 		event.Subscription]{}
 
-	// Build the deposit pruner.\
+	// Build the deposit pruner.
 	depositPruner := pruner.NewPruner[
 		*types.BeaconBlock,
 		feed.Event[*types.BeaconBlock],
