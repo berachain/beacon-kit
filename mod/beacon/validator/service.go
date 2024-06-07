@@ -62,7 +62,7 @@ type Service[
 	logger log.Logger[any]
 	// chainSpec is the chain spec.
 	chainSpec primitives.ChainSpec
-	// signer is used to retrieve the public key of this node.
+	// signer is used to retrieve the public key of this commands.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[

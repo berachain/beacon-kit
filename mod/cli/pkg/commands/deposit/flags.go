@@ -84,12 +84,12 @@ const (
 
 	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
 	// flag.
-	overrideNodeKeyMsg = "override the node private key"
+	overrideNodeKeyMsg = "override the commands private key"
 
 	// valPrivateKeyMsg is the usage description for the
 	// valPrivateKey flag.
 	valPrivateKeyMsg = `validator private key. This is required if the 
-	override-node-key flag is set.`
+	override-commands-key flag is set.`
 
 	// jwtSecretPathMsg is the usage description for the jwtSecretPath flag.
 	// #nosec G101 // This is a descriptor

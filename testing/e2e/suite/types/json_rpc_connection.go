@@ -28,7 +28,7 @@ import (
 )
 
 // JSONRPCConnection wraps an Ethereum client connection.
-// It provides JSON-RPC communication with an Ethereum node.
+// It provides JSON-RPC communication with an Ethereum commands.
 type JSONRPCConnection struct {
 	*ethclient.Client
 	isWebSocket bool

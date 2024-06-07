@@ -62,7 +62,7 @@ else
 overwrite="Y"
 fi
 
-# Setup local node if overwrite is set to Yes, otherwise skip setup
+# Setup local commands if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
 	./build/bin/beacond init $MONIKER \
@@ -75,7 +75,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
-# Start the node (remove the --pruning=nothing flag if historical queries are not needed)
+# Start the commands (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
@@ -89,5 +89,5 @@ if [ -n "$RPC_DIAL_URL" ]; then
 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
 fi
 
-# run the beacon node
+# run the beacon commands
 eval $BEACON_START_CMD
