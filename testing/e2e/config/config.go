@@ -182,17 +182,17 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 0,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "geth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
+				ElType:   "geth",
+				Replicas: 2, //nolint:mnd // bet.
+				KZGImpl:  "crate-crypto/go-kzg-4844",
+			},
+			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // 2 replicas
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -202,7 +202,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -272,9 +272,9 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
-			"erigon":     "thorax/erigon:v2.60.0",
+			"erigon":     "thorax/erigon:v2.60.1",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
-			"geth":       "ethereum/client-go:latest",
+			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
 			"reth":       "ghcr.io/paradigmxyz/reth:latest",
 		},
@@ -296,7 +296,7 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:      "3s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "1s",
+			TimeoutCommit:       "3s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
@@ -313,9 +313,9 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 			Type: "blutgang",
 			Clients: []string{
 				// "el-full-nethermind-0",
-				"el-full-reth-1",
+				// "el-full-reth-0",
 				"el-full-geth-2",
-				"el-full-erigon-3",
+				// "el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",

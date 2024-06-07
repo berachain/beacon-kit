@@ -179,6 +179,7 @@ func NewBeaconKitRuntime[
 			NewValidatorMiddleware[AvailabilityStoreT](
 			chainSpec,
 			validatorService,
+			chainService,
 			telemetrySink,
 			storageBackend,
 		),
