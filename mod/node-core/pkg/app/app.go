@@ -77,6 +77,7 @@ func NewBeaconKitApp(
 				bkcomponents.ProvideExecutionEngine,
 				bkcomponents.ProvideBeaconDepositContract,
 				bkcomponents.ProvideLocalBuilder,
+				bkcomponents.ProvideStateProcessor,
 			),
 			depinject.Supply(
 				appOpts,
