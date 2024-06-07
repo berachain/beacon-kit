@@ -27,7 +27,6 @@ import (
 
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -114,20 +113,11 @@ func (s *Service[
 	if err := s.verifyStateRoot(
 		ctx, postState, blk,
 	); err != nil {
-		// TODO: this is expensive because we are not caching the
-		// previous result of HashTreeRoot().
-		localStateRoot, htrErr := preState.HashTreeRoot()
-		if htrErr != nil {
-			return htrErr
-		}
-
 		s.logger.Error(
 			"rejecting incoming beacon block ❌ ",
-			"block_state_root",
+			"state_root",
 			blk.GetStateRoot(),
-			"local_state_root",
-			primitives.Root(localStateRoot),
-			"error",
+			"reason",
 			err,
 		)
 
@@ -225,14 +215,13 @@ func (s *Service[
 
 	s.logger.Info(
 		"received incoming blob sidecars 🚔 ",
-		"state_root", blk.GetStateRoot(),
 	)
 
 	// Verify the blobs and ensure they match the local state.
 	if err := s.bp.VerifyBlobs(blk.GetSlot(), sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌ ",
-			"error", err,
+			"reason", err,
 		)
 		return err
 	}

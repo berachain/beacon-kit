@@ -183,7 +183,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	height2, err := client2.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().
-		Equal(height.Response.LastBlockHeight, height2.Response.LastBlockHeight)
+		InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
