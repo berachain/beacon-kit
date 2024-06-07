@@ -67,6 +67,7 @@ func ProvideEngineClient(
 // ExecutionEngineInput is the input for the execution engine for the depinject
 // framework.
 type ExecutionEngineInput struct {
+	depinject.In
 	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
