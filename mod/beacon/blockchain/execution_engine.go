@@ -53,6 +53,7 @@ func (s *Service[
 
 	// This is technically not an optimistic payload
 	// TODO: This needs a refactor, big hood energy.
+	//nolint:nestif // todo fix.5
 	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
 		stCopy := st.Copy()
 		if _, err = s.sp.ProcessSlots(
