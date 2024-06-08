@@ -49,8 +49,8 @@ type Backend[
 	],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, *engineprimitives.Withdrawal],
+		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
+		*types.Fork, *types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ] struct {
 	cs primitives.ChainSpec
@@ -65,7 +65,8 @@ func NewBackend[
 	],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.BeaconBlockHeader, *types.Eth1Data,
+		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ](

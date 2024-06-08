@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -34,22 +33,22 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ExecutionPayloadHeaderT, ForkT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 	ValidatorT, WithdrawalT any,
 ] interface {
 	Copy() BeaconState[
-		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, WithdrawalT,
 	]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ValidatorT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]
 }
@@ -57,9 +56,9 @@ type BeaconState[
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
+	Eth1DataT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
 ] interface {
-	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
+	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
@@ -101,9 +100,9 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
 ] interface {
-	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
+	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
@@ -168,8 +167,8 @@ type ReadOnlyValidators[ValidatorT any] interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
-	SetEth1Data(*types.Eth1Data) error
+type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
+	SetEth1Data(Eth1DataT) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
 		ExecutionPayloadHeaderT,
@@ -177,8 +176,8 @@ type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
-	GetEth1Data() (*types.Eth1Data, error)
+type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
+	GetEth1Data() (Eth1DataT, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,

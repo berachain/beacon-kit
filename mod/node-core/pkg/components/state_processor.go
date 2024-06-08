@@ -61,6 +61,7 @@ func ProvideStateProcessor(
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,
+		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,

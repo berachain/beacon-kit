@@ -37,7 +37,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
@@ -64,11 +64,13 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err := st.SetEth1Data(&types.Eth1Data{
-		DepositRoot:  bytes.B32(common.ZeroHash),
-		DepositCount: 0,
-		BlockHash:    executionPayloadHeader.GetBlockHash(),
-	}); err != nil {
+	var eth1Data Eth1DataT
+
+	if err := st.SetEth1Data(eth1Data.New(
+		bytes.B32(common.ZeroHash),
+		0,
+		executionPayloadHeader.GetBlockHash(),
+	)); err != nil {
 		return nil, err
 	}
 

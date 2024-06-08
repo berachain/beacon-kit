@@ -107,7 +107,8 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
 		core.BeaconState[
-			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+			*types.BeaconBlockHeader, *types.Eth1Data,
+			*types.ExecutionPayloadHeader, *types.Fork,
 			*types.Validator, *engineprimitives.Withdrawal,
 		],
 	](
