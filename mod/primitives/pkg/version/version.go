@@ -31,7 +31,6 @@ const (
 	Capella
 	Deneb
 	Electra
-	Ottawa
 )
 
 // FromUint32 returns a Version from a uint32.
