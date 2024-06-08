@@ -37,7 +37,9 @@ type Eth1Data struct {
 
 // New creates a new Eth1Data.
 func (e *Eth1Data) New(
-	depositRoot common.Root, depositCount math.U64, blockHash common.ExecutionHash,
+	depositRoot common.Root,
+	depositCount math.U64,
+	blockHash common.ExecutionHash,
 ) *Eth1Data {
 	e = &Eth1Data{
 		DepositRoot:  depositRoot,
