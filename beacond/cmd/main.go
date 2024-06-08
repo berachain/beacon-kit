@@ -48,12 +48,18 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		nodebuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),
+		// Set the Name to the Default.
+		nodebuilder.WithName[types.NodeI](
+			nodebuilder.DefaultAppName),
+		// Set the Description to the Default.
 		nodebuilder.WithDescription[types.NodeI](
-			nodebuilder.DefaultDescription,
-		),
-		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
+			nodebuilder.DefaultDescription),
+		// Set the DepInject Configuration to the Default.
+		nodebuilder.WithDepInjectConfig[types.NodeI](
+			nodebuilder.DefaultDepInjectConfig()),
+		// Set the ChainSpec to the Default.
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
+		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[types.NodeI](
 			components.DefaultComponents(),
 		),
