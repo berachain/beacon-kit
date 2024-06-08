@@ -24,11 +24,8 @@ import (
 	"context"
 	"io"
 
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -50,45 +47,13 @@ type BeaconApp struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
-	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	appOpts servertypes.AppOptions,
-	dCfg depinject.Config,
-	chainSpec primitives.ChainSpec,
+	appBuilder *runtime.AppBuilder,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
-	appBuilder := &runtime.AppBuilder{}
-	if err := depinject.Inject(
-		depinject.Configs(
-			dCfg,
-			depinject.Provide(
-				bkcomponents.ProvideAvailibilityStore,
-				bkcomponents.ProvideBlsSigner,
-				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideDepositStore,
-				bkcomponents.ProvideConfig,
-				bkcomponents.ProvideEngineClient,
-				bkcomponents.ProvideJWTSecret,
-				bkcomponents.ProvideBlobProofVerifier,
-				bkcomponents.ProvideTelemetrySink,
-				bkcomponents.ProvideExecutionEngine,
-				bkcomponents.ProvideBeaconDepositContract,
-				bkcomponents.ProvideLocalBuilder,
-				bkcomponents.ProvideStateProcessor,
-			),
-			depinject.Supply(
-				appOpts,
-				logger,
-				chainSpec,
-			),
-		),
-		&appBuilder,
-	); err != nil {
-		panic(err)
-	}
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)

@@ -21,11 +21,13 @@
 package components
 
 import (
+	"encoding/json"
+
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/kzg"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 )
 
@@ -39,7 +41,23 @@ type TrustedSetupInput struct {
 func ProvideTrustedSetup(
 	in TrustedSetupInput,
 ) (*gokzg4844.JSONTrustedSetup, error) {
-	return kzg.ReadTrustedSetup(
+	return ReadTrustedSetup(
 		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
 	)
+}
+
+// ReadTrustedSetup reads the trusted setup from the file system.
+func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
+	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
+	if err != nil {
+		return nil, err
+	}
+	params := new(gokzg4844.JSONTrustedSetup)
+	if err = json.Unmarshal(config, params); err != nil {
+		return nil, err
+	}
+	if err = gokzg4844.CheckTrustedSetupIsWellFormed(params); err != nil {
+		return nil, err
+	}
+	return params, nil
 }

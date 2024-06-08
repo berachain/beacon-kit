@@ -20,20 +20,22 @@
 
 package components
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-)
-
-// ConfigInput is the input for the dependency injection framework.
-type ConfigInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
-
-// ProvideConfig is a function that provides the BeaconConfig to the
-// application.
-func ProvideConfig(in ConfigInput) (*config.Config, error) {
-	return config.ReadConfigFromAppOpts(in.AppOpts)
+// DefaultComponents returns the default set of components
+// that are provided by beacon-kit.
+func DefaultComponents() []any {
+	return []any{
+		ProvideAvailibilityStore,
+		ProvideBlsSigner,
+		ProvideTrustedSetup,
+		ProvideDepositStore,
+		ProvideConfig,
+		ProvideEngineClient,
+		ProvideJWTSecret,
+		ProvideBlobProofVerifier,
+		ProvideTelemetrySink,
+		ProvideExecutionEngine,
+		ProvideBeaconDepositContract,
+		ProvideLocalBuilder,
+		ProvideStateProcessor,
+	}
 }

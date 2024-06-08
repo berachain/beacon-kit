@@ -18,22 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package builder
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+const (
+	// DefaultAppName is the default name of the application.
+	DefaultAppName = "BeaconKit"
+	// DefaultDescription is the default description of the application.
+	DefaultDescription = "A basic beacon node, usable most standard networks."
 )
-
-// ConfigInput is the input for the dependency injection framework.
-type ConfigInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
-
-// ProvideConfig is a function that provides the BeaconConfig to the
-// application.
-func ProvideConfig(in ConfigInput) (*config.Config, error) {
-	return config.ReadConfigFromAppOpts(in.AppOpts)
-}

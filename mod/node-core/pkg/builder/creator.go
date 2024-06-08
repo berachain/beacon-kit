@@ -18,16 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package nodebuilder
+package builder
 
 import (
 	"io"
 
+	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
@@ -45,16 +47,33 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		panic("goleveldb is not supported")
 	}
 
-	nb.node.SetApplication(app.NewBeaconKitApp(
-		logger, db, traceStore, true,
-		appOpts,
-		nb.depInjectCfg,
-		nb.chainSpec,
-		append(
-			server.DefaultBaseappOptions(appOpts),
-			func(bApp *baseapp.BaseApp) {
-				bApp.SetParamStore(comet.NewConsensusParamsStore(nb.chainSpec))
-			})...,
-	))
+	appBuilder := &runtime.AppBuilder{}
+	if err := depinject.Inject(
+		depinject.Configs(
+			nb.depInjectCfg,
+			depinject.Provide(
+				nb.components...,
+			),
+			depinject.Supply(
+				appOpts,
+				logger,
+				nb.chainSpec,
+			),
+		),
+		&appBuilder,
+	); err != nil {
+		panic(err)
+	}
+
+	nb.node.SetApplication(
+		app.NewBeaconKitApp(
+			db, traceStore, true, appBuilder,
+			append(
+				server.DefaultBaseappOptions(appOpts),
+				func(bApp *baseapp.BaseApp) {
+					bApp.SetParamStore(
+						comet.NewConsensusParamsStore(nb.chainSpec))
+				})...,
+		))
 	return nb.node
 }

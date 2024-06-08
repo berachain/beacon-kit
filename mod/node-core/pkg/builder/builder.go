@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package nodebuilder
+package builder
 
 import (
 	"os"
@@ -31,7 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -53,6 +55,9 @@ type NodeBuilder[NodeT types.NodeI] struct {
 	description  string
 	depInjectCfg depinject.Config
 	chainSpec    primitives.ChainSpec
+
+	// components is a list of components to provide.
+	components []any
 }
 
 // New returns a new NodeBuilder.
@@ -87,6 +92,13 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
+			// TODO: the reason these all need to be supplied here is because
+			// we build the runtime in ProvideModule, which is forced to be
+			// called every time we do Inject.
+			//
+			// TODO: we have to decouple the instatiation of the runtime from
+			// the beacon module so that we don't need to define these empty
+			// placeholders to get the depinject framework to not freak out.
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
@@ -97,17 +109,20 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				&noop.Verifier{},
 				&dastore.Store[consensustypes.BeaconBlockBody]{},
 				&signer.BLSSigner{},
+				&metrics.TelemetrySink{},
+				&deposit.WrappedBeaconDepositContract[
+					*consensustypes.Deposit,
+					consensustypes.WithdrawalCredentials,
+				]{},
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
-				components.ProvideTelemetrySink,
-				components.ProvideExecutionEngine,
-				components.ProvideBeaconDepositContract,
 				components.ProvideLocalBuilder,
 				components.ProvideStateProcessor,
+				components.ProvideExecutionEngine,
 			),
 		),
 		&autoCliOpts,
