@@ -20,13 +20,6 @@
 
 package kzg
 
-import (
-	"encoding/json"
-
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/afero"
-)
-
 const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
 	defaultTrustedSetupPath = "./testing/files/kzg-trusted-setup.json"
@@ -48,20 +41,4 @@ func DefaultConfig() Config {
 		TrustedSetupPath: defaultTrustedSetupPath,
 		Implementation:   defaultImplementation,
 	}
-}
-
-// ReadTrustedSetup reads the trusted setup from the file system.
-func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
-	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
-	if err != nil {
-		return nil, err
-	}
-	params := new(gokzg4844.JSONTrustedSetup)
-	if err = json.Unmarshal(config, params); err != nil {
-		return nil, err
-	}
-	if err = gokzg4844.CheckTrustedSetupIsWellFormed(params); err != nil {
-		return nil, err
-	}
-	return params, nil
 }
