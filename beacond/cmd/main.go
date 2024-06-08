@@ -48,20 +48,22 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		nodebuilder.WithName[types.NodeI]("beacond"),
-		nodebuilder.WithDescription[types.NodeI](
-			"beacond is a beacon node for any beacon-kit chain",
-		),
+		nodebuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),
+		nodebuilder.WithDescription[types.NodeI](nodebuilder.DefaultDescription),
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
-		// TODO: Don't hardcode the default chain spec.
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
-		nodebuilder.WithComponents[types.NodeI](components.DefaultComponents()),
+		nodebuilder.WithComponents[types.NodeI](
+			components.DefaultComponents(),
+		),
 	)
 
+	// Assmeble the noe with all our components.
 	node, err := nb.Build()
 	if err != nil {
 		return err
 	}
+
+	// TODO: create a "runner" type harness that takes the node as a parameter.
 	return node.Run()
 }
 
