@@ -25,6 +25,7 @@ import (
 	"os"
 
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -54,6 +55,7 @@ func run() error {
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
 		// TODO: Don't hardcode the default chain spec.
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
+		nodebuilder.WithComponents[types.NodeI](components.DefaultComponents()),
 	)
 
 	node, err := nb.Build()

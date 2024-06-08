@@ -47,6 +47,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 
 	nb.node.SetApplication(app.NewBeaconKitApp(
 		logger, db, traceStore, true,
+		nb.components,
 		appOpts,
 		nb.depInjectCfg,
 		nb.chainSpec,

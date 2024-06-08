@@ -54,6 +54,7 @@ func NewBeaconKitApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
+	components []any,
 	appOpts servertypes.AppOptions,
 	dCfg depinject.Config,
 	chainSpec primitives.ChainSpec,
@@ -65,19 +66,7 @@ func NewBeaconKitApp(
 		depinject.Configs(
 			dCfg,
 			depinject.Provide(
-				bkcomponents.ProvideAvailibilityStore,
-				bkcomponents.ProvideBlsSigner,
-				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideDepositStore,
-				bkcomponents.ProvideConfig,
-				bkcomponents.ProvideEngineClient,
-				bkcomponents.ProvideJWTSecret,
-				bkcomponents.ProvideBlobProofVerifier,
-				bkcomponents.ProvideTelemetrySink,
-				bkcomponents.ProvideExecutionEngine,
-				bkcomponents.ProvideBeaconDepositContract,
-				bkcomponents.ProvideLocalBuilder,
-				bkcomponents.ProvideStateProcessor,
+				components...,
 			),
 			depinject.Supply(
 				appOpts,

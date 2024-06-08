@@ -53,3 +53,9 @@ func WithChainSpec[NodeT types.NodeI](cs primitives.ChainSpec) Opt[NodeT] {
 		nb.chainSpec = cs
 	}
 }
+
+func WithComponents[NodeT types.NodeI](components ...any) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.components = components
+	}
+}
