@@ -37,6 +37,7 @@ import (
 
 type BeaconState = core.BeaconState[
 	*types.BeaconBlockHeader,
+	*types.Eth1Data,
 	*types.ExecutionPayloadHeader,
 	*types.Fork,
 	*types.Validator,
@@ -61,6 +62,7 @@ type BeaconKitRuntime[
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
+		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -112,7 +114,8 @@ func NewBeaconKitRuntime[
 	},
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.BeaconBlockHeader, *types.Eth1Data,
+		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
