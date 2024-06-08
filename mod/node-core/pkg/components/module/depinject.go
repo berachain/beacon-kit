@@ -24,9 +24,11 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -39,6 +41,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
@@ -79,7 +82,14 @@ type DepInjectInput struct {
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 	]
-	Signer        crypto.BLSSigner
+	Signer         crypto.BLSSigner
+	StateProcessor blockchain.StateProcessor[
+		*types.BeaconBlock,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*transition.Context,
+		*types.Deposit,
+	]
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -126,6 +136,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.Signer,
 		in.EngineClient,
 		in.ExecutionEngine,
+		in.StateProcessor,
 		storageBackend,
 		in.LocalBuilder,
 		in.TelemetrySink,

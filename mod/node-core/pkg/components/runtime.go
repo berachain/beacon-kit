@@ -90,6 +90,13 @@ func ProvideRuntime(
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
 	executionEngine *execution.Engine[*types.ExecutionPayload],
+	stateProcessor blockchain.StateProcessor[
+		*types.BeaconBlock,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*transition.Context,
+		*types.Deposit,
+	],
 	storageBackend blockchain.StorageBackend[
 		*dastore.Store[types.BeaconBlockBody],
 		types.BeaconBlockBody,
@@ -104,28 +111,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// build the state processor.
-	stateProcessor := core.NewStateProcessor[
-		*types.BeaconBlock,
-		types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*transition.Context,
-		*types.Deposit,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*types.Validator,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
-	](
-		chainSpec,
-		executionEngine,
-		signer,
-	)
-
 	// Build the event feed.
 	blockFeed := event.FeedOf[feed.Event[*types.BeaconBlock]]{}
 
