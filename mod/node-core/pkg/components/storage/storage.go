@@ -65,7 +65,8 @@ func NewBackend[
 	],
 	BeaconBlockBodyT types.BeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.BeaconBlockHeader, *types.Eth1Data,
+		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ](
