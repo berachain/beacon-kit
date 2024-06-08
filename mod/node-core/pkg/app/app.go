@@ -24,7 +24,6 @@ import (
 	"context"
 	"io"
 
-	"cosmossdk.io/log"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	dbm "github.com/cosmos/cosmos-db"
@@ -48,7 +47,6 @@ type BeaconApp struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
-	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,

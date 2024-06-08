@@ -67,8 +67,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 
 	nb.node.SetApplication(
 		app.NewBeaconKitApp(
-			logger, db, traceStore, true,
-			appBuilder,
+			db, traceStore, true, appBuilder,
 			append(
 				server.DefaultBaseappOptions(appOpts),
 				func(bApp *baseapp.BaseApp) {

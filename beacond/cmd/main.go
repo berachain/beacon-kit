@@ -49,7 +49,9 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		nodebuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),
-		nodebuilder.WithDescription[types.NodeI](nodebuilder.DefaultDescription),
+		nodebuilder.WithDescription[types.NodeI](
+			nodebuilder.DefaultDescription,
+		),
 		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 		nodebuilder.WithComponents[types.NodeI](
@@ -57,7 +59,7 @@ func run() error {
 		),
 	)
 
-	// Assmeble the noe with all our components.
+	// Assemble the noe with all our components.
 	node, err := nb.Build()
 	if err != nil {
 		return err

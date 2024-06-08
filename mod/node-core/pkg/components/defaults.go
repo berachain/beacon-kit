@@ -20,7 +20,7 @@
 
 package components
 
-// DefaultComponents is the default set of components
+// DefaultComponents returns the default set of components
 // that are provided by beacon-kit.
 func DefaultComponents() []any {
 	return []any{
