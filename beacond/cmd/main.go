@@ -59,7 +59,7 @@ func run() error {
 		),
 	)
 
-	// Assemble the noe with all our components.
+	// Assemble the node with all our components.
 	node, err := nb.Build()
 	if err != nil {
 		return err
