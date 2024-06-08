@@ -30,7 +30,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240530132603-f8935ea1205c
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
-	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
+	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0

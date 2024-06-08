@@ -46,7 +46,7 @@ require (
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240530132603-f8935ea1205c
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
-	github.com/cometbft/cometbft/api v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
+	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
