@@ -103,8 +103,6 @@ type BlobSidecars interface {
 	Len() int
 }
 
-type Deposit interface{}
-
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore[DepositT any] interface {
 	// Prune prunes the deposit store of [start, end)

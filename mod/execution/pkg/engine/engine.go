@@ -51,7 +51,8 @@ type Engine[
 // New creates a new Engine.
 func New[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ](
 	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],
