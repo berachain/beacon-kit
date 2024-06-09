@@ -40,7 +40,7 @@ network_configuration:
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: erigon
-        kzg_impl: rate-crypto/go-kzg-4844
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: ethereumjs
         replicas: 0
