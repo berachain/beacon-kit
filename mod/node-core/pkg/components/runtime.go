@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -84,15 +83,21 @@ func ProvideRuntime(
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	],
-	beaconDepositContract *deposit.WrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
-	],
 	blockFeed *event.FeedOf[*feed.Event[*types.BeaconBlock]],
 	chainSpec primitives.ChainSpec,
 	dbManagerService *manager.DBManager[
 		*types.BeaconBlock,
 		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
+	],
+	depositService *deposit.Service[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*feed.Event[*types.BeaconBlock],
+		*types.Deposit,
+		*types.ExecutionPayload,
+		event.Subscription,
+		types.WithdrawalCredentials,
 	],
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
@@ -170,25 +175,6 @@ func ProvideRuntime(
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
-
-	// Build the deposit service.
-	depositService := deposit.NewService[
-		*types.BeaconBlockBody,
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*depositdb.KVStore[*types.Deposit],
-		*types.ExecutionPayload,
-		event.Subscription,
-	](
-		logger.With("service", "deposit"),
-		math.U64(chainSpec.Eth1FollowDistance()),
-		engineClient,
-		telemetrySink,
-		storageBackend.DepositStore(nil),
-		beaconDepositContract,
-		blockFeed,
-	)
-
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(logger.With("service", "service-registry")),
