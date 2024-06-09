@@ -82,9 +82,6 @@ func ProvideRuntime(
 	blobProcessor *dablob.Processor[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
-  ],
-	beaconDepositContract *deposit.WrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
 	],
 	blockFeed *event.FeedOf[*feed.Event[*types.BeaconBlock]],
 	chainSpec primitives.ChainSpec,
