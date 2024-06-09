@@ -22,6 +22,12 @@ package components
 
 import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 
+// DefaultComponentsWithStandardTypes returns the default set of components
+// that are provided by beacon-kit with standard types.
+func DefaultComponentsWithStandardTypes() []any {
+	return DefaultComponents[*types.BeaconBlockBody]()
+}
+
 // DefaultComponents returns the default set of components
 // that are provided by beacon-kit.
 func DefaultComponents[

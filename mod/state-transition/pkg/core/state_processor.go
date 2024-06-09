@@ -38,7 +38,8 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
@@ -83,6 +84,7 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT,
 		DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		WithdrawalT,
