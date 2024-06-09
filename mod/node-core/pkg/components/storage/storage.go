@@ -76,9 +76,12 @@ func NewBackend[
 	as AvailabilityStoreT,
 	bs *KVStore,
 	ds DepositStoreT,
-) *Backend[AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, DepositStoreT] {
+) *Backend[AvailabilityStoreT, BeaconBlockT,
+	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+] {
 	return &Backend[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockT,
+		BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 	]{
 		cs: cs,
 		as: as,

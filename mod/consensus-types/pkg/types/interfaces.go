@@ -63,20 +63,14 @@ type ReadOnlyBeaconBlockBody interface {
 
 // BeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
+	ssz.Marshallable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
-	ReadOnlyBeaconBlock[BeaconBlockBodyT]
-}
-
-// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock[BodyT any] interface {
-	ssz.Marshallable
 	IsNil() bool
 	Version() uint32
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBody() BodyT
+	GetBody() BeaconBlockBodyT
 	GetHeader() *BeaconBlockHeader
 }
