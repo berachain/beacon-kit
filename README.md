@@ -13,9 +13,7 @@ This project is work in progress and subject to frequent changes as we are still
 ## What is BeaconKit
 
 BeaconKit is a modular consensus framework for building EVM based consensus clients.
-The framework offers the most user-friendly way to build and
-operate an EVM blockchain, while ensuring a functionally identical execution
-environment to that of the Ethereum Mainnet.
+The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
 First there was EVM Compatibility; next, EVM Equivalence; and now with
 BeaconKit, **EVM Identicality**.
