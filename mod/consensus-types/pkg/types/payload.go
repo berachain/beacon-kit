@@ -22,7 +22,6 @@ package types
 
 import (
 	"context"
-	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -30,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -39,29 +37,6 @@ import (
 // all fork versions.
 type ExecutionPayload struct {
 	InnerExecutionPayload
-}
-
-type executionPayloadBody interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
-	IsNil() bool
-	Version() uint32
-	GetPrevRandao() primitives.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
-	GetLogsBloom() []byte
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
 }
 
 // InnerExecutionPayload represents the inner execution payload.

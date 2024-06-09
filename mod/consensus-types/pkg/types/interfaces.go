@@ -21,6 +21,9 @@
 package types
 
 import (
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -73,4 +76,28 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 	GetParentBlockRoot() common.Root
 	GetBody() BeaconBlockBodyT
 	GetHeader() *BeaconBlockHeader
+}
+
+// executionPayloadBody is the interface for the execution data of a block.
+type executionPayloadBody interface {
+	ssz.Marshallable
+	json.Marshaler
+	json.Unmarshaler
+	IsNil() bool
+	Version() uint32
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }
