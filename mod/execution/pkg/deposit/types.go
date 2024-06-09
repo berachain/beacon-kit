@@ -94,7 +94,7 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		crypto.BLSSignature,
 		uint64,
 	) DepositT
-
+	// GetIndex returns the index of the deposit.
 	GetIndex() uint64
 }
 

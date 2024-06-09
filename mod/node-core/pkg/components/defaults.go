@@ -20,18 +20,32 @@
 
 package components
 
-import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+)
 
 // DefaultComponentsWithStandardTypes returns the default set of components
 // that are provided by beacon-kit with standard types.
 func DefaultComponentsWithStandardTypes() []any {
-	return DefaultComponents[*types.BeaconBlockBody]()
+	return DefaultComponents[
+		*types.BeaconBlockBody,
+		*types.Deposit,
+		*types.ExecutionPayload,
+		*engineprimitives.Withdrawal,
+		types.WithdrawalCredentials,
+	]()
 }
 
 // DefaultComponents returns the default set of components
 // that are provided by beacon-kit.
 func DefaultComponents[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
+	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
+	ExecutionPayloadT engineprimitives.ExecutionPayload[WithdrawalT],
+	WithdrawalT any,
+	WithdrawalCredentialsT ~[32]byte,
 ]() []any {
 	return []any{
 		ProvideAvailibilityStore[BeaconBlockBodyT],
@@ -44,7 +58,12 @@ func DefaultComponents[
 		ProvideBlobProofVerifier,
 		ProvideTelemetrySink,
 		ProvideExecutionEngine,
-		ProvideBeaconDepositContract,
+		ProvideBeaconDepositContract[
+			DepositT,
+			ExecutionPayloadT,
+			WithdrawalT,
+			WithdrawalCredentialsT,
+		],
 		ProvideLocalBuilder,
 		ProvideStateProcessor,
 	}
