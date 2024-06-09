@@ -107,7 +107,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				&engineclient.EngineClient[*consensustypes.ExecutionPayload]{},
 				&gokzg4844.JSONTrustedSetup{},
 				&noop.Verifier{},
-				&dastore.Store[consensustypes.BeaconBlockBody]{},
+				&dastore.Store[*consensustypes.BeaconBlockBody]{},
 				&signer.BLSSigner{},
 				&metrics.TelemetrySink{},
 				&deposit.WrappedBeaconDepositContract[
