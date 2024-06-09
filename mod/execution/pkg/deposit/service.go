@@ -29,6 +29,9 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
+// defaultMissedBlocksWindow is the default number of blocks to keep track of.
+const defaultMissedBlocksWindow = 8192
+
 // Service represenst the deposit service that processes deposit events.
 type Service[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
@@ -100,13 +103,15 @@ func NewService[
 	ExecutionPayloadT, SubscriptionT,
 	WithdrawalCredentialsT,
 ] {
-
-	c, err := lru.New[math.U64, struct{}](8192)
+	c, err := lru.New[math.U64, struct{}](
+		defaultMissedBlocksWindow,
+	)
 	if err != nil {
 		logger.Error(
 			"failed to create LRU cache",
 			"error", err,
 		)
+		panic(err)
 	}
 
 	return &Service[
