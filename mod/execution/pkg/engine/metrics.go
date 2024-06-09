@@ -158,7 +158,7 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
-	em.logger.Info("notifying forkchoice update",
+	em.logger.Info("notifying forkchoice update 🍕 ",
 		"head_eth1_hash", state.HeadBlockHash,
 		"safe_eth1_hash", state.SafeBlockHash,
 		"finalized_eth1_hash", state.FinalizedBlockHash,
