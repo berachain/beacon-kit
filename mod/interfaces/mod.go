@@ -100,6 +100,7 @@ type ExecutionPayload[
 	Bytes32T any,
 	U64T ~uint64,
 	U256T any,
+	TransactionsT any,
 	WithdrawalT any,
 ] interface {
 	ExecutionPayloadBody[
@@ -109,7 +110,7 @@ type ExecutionPayload[
 		U64T,
 		U256T,
 	]
-	GetTransactions() [][]byte
+	GetTransactions() []TransactionsT
 	GetWithdrawals() []WithdrawalT
 }
 

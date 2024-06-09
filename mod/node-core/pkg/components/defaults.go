@@ -51,7 +51,7 @@ func DefaultComponents[
 	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT interfaces.ExecutionPayload[
 		common.ExecutionAddress, common.ExecutionHash, primitives.Bytes32,
-		math.U64, math.Wei, WithdrawalT,
+		math.U64, math.Wei, []byte, WithdrawalT,
 	],
 	WithdrawalT any,
 	WithdrawalCredentialsT ~[32]byte,
