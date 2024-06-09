@@ -64,7 +64,7 @@ type executionPayloadBody interface {
 	GetExcessBlobGas() math.U64
 }
 
-// InnerExecutionPayload represents the inner execution payload
+// InnerExecutionPayload represents the inner execution payload.
 type InnerExecutionPayload interface {
 	executionPayloadBody
 	GetTransactions() [][]byte
