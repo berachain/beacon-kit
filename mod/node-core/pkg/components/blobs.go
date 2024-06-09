@@ -22,8 +22,14 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
@@ -45,5 +51,33 @@ func ProvideBlobProofVerifier(
 	return kzg.NewBlobProofVerifier(
 		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
 		in.JSONTrustedSetup,
+	)
+}
+
+// BlobProcessorIn is the input for the BlobProcessor.
+type BlobProcessorIn struct {
+	depinject.In
+
+	Logger            log.Logger
+	BlobProofVerifier kzg.BlobProofVerifier
+	ChainSpec         primitives.ChainSpec
+	TelemetrySink     *metrics.TelemetrySink
+}
+
+// ProvideBlobProcessor is a function that provides the BlobProcessor to the
+// depinject framework.
+func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor[
+	*dastore.Store[*types.BeaconBlockBody],
+	*types.BeaconBlockBody,
+] {
+	return dablob.NewProcessor[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
+	](
+		in.Logger.With("service", "blob-processor"),
+		in.ChainSpec,
+		dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink),
+		types.BlockBodyKZGOffset,
+		in.TelemetrySink,
 	)
 }

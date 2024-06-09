@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -81,7 +80,10 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 //nolint:funlen // bullish.
 func ProvideRuntime(
 	cfg *config.Config,
-	blobProofVerifier kzg.BlobProofVerifier,
+	blobProcessor *dablob.Processor[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
+	],
 	beaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	],
@@ -116,18 +118,6 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the blob processor.
-	blobProcessor := dablob.NewProcessor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-	](
-		logger.With("service", "blob-processor"),
-		chainSpec,
-		dablob.NewVerifier(blobProofVerifier, telemetrySink),
-		types.BlockBodyKZGOffset,
-		telemetrySink,
-	)
-
 	// Build the builder service.
 	validatorService := validator.NewService[
 		*types.BeaconBlock,
