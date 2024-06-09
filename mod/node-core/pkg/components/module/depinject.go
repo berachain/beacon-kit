@@ -80,7 +80,7 @@ type DepInjectInput struct {
 	ChainSpec    primitives.ChainSpec
 	DBManager    *manager.DBManager[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
 	]
 	DepositStore    *depositdb.KVStore[*types.Deposit]

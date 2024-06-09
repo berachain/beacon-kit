@@ -23,38 +23,89 @@ package components
 import (
 	"os"
 
+	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
+
+// AvailabilityStoreInput is the input for the ProviderAvailabilityStore
+// function for the depinject framework.
+type AvailabilityStoreInput struct {
+	depinject.In
+	AppOpts   servertypes.AppOptions
+	ChainSpec primitives.ChainSpec
+	Logger    log.Logger
+}
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 ](
-	appOpts servertypes.AppOptions,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger,
+	in AvailabilityStoreInput,
 ) (*dastore.Store[BeaconBlockBodyT], error) {
 	return dastore.New[BeaconBlockBodyT](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(
 					cast.ToString(
-						appOpts.Get(flags.FlagHome),
+						in.AppOpts.Get(flags.FlagHome),
 					)+"/data/blobs",
 				),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(logger),
+				filedb.WithLogger(in.Logger),
 			),
 		),
-		logger.With("service", "beacon-kit.da.store"),
-		chainSpec,
+		in.Logger.With("service", "beacon-kit.da.store"),
+		in.ChainSpec,
 	), nil
+}
+
+// AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
+// function for the depinject framework.
+type AvailabilityPrunerInput struct {
+	depinject.In
+	Logger            log.Logger
+	ChainSpec         primitives.ChainSpec
+	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+}
+
+// ProvideAvailabilityPruner provides a availability pruner for the depinject
+// framework.
+func ProvideAvailabilityPruner(
+	in AvailabilityPrunerInput,
+) *pruner.DBPruner[
+	*types.BeaconBlock,
+	*feed.Event[*types.BeaconBlock],
+	*filedb.RangeDB,
+	event.Subscription,
+] {
+	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
+	// build the availability pruner if IndexDB is available.
+	return pruner.NewPruner[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		*filedb.RangeDB,
+		event.Subscription,
+	](
+		in.Logger.With("service", manager.AvailabilityPrunerName),
+		rangeDB,
+		manager.AvailabilityPrunerName,
+		in.BlockFeed,
+		dastore.BuildPruneRangeFn[
+			*types.BeaconBlock,
+			*feed.Event[*types.BeaconBlock],
+		](in.ChainSpec),
+	)
 }

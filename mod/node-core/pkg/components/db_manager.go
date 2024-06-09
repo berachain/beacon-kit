@@ -54,12 +54,12 @@ type DBManagerInput struct {
 func ProvideDBManager(
 	in DBManagerInput,
 ) (*manager.DBManager[*types.BeaconBlock,
-	feed.Event[*types.BeaconBlock],
+	*feed.Event[*types.BeaconBlock],
 	event.Subscription,
 ], error) {
 	return manager.NewDBManager[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
 	](
 		in.Logger.With("service", "db-manager"),

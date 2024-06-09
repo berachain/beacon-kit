@@ -89,7 +89,7 @@ func ProvideRuntime(
 	chainSpec primitives.ChainSpec,
 	dbManagerService *manager.DBManager[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
 	],
 	signer crypto.BLSSigner,
