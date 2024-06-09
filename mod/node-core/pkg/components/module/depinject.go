@@ -86,7 +86,16 @@ type DepInjectInput struct {
 		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
 	]
-	DepositStore    *depositdb.KVStore[*types.Deposit]
+	DepositStore   *depositdb.KVStore[*types.Deposit]
+	DepositService *deposit.Service[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*feed.Event[*types.BeaconBlock],
+		*types.Deposit,
+		*types.ExecutionPayload,
+		event.Subscription,
+		types.WithdrawalCredentials,
+	]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
 	LocalBuilder    *payloadbuilder.PayloadBuilder[
@@ -145,10 +154,10 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
 		in.BlobProcessor,
-		in.BeaconDepositContract,
 		in.BlockFeed,
 		in.ChainSpec,
 		in.DBManager,
+		in.DepositService,
 		in.Signer,
 		in.EngineClient,
 		in.ExecutionEngine,
