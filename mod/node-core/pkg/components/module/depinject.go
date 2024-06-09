@@ -41,12 +41,15 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -72,8 +75,14 @@ type DepInjectInput struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlobVerifier    kzg.BlobProofVerifier
-	ChainSpec       primitives.ChainSpec
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlobVerifier kzg.BlobProofVerifier
+	ChainSpec    primitives.ChainSpec
+	DBManager    *manager.DBManager[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		event.Subscription,
+	]
 	DepositStore    *depositdb.KVStore[*types.Deposit]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
@@ -134,7 +143,9 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 		in.BeaconConfig,
 		in.BlobVerifier,
 		in.BeaconDepositContract,
+		in.BlockFeed,
 		in.ChainSpec,
+		in.DBManager,
 		in.Signer,
 		in.EngineClient,
 		in.ExecutionEngine,

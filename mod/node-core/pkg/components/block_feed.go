@@ -22,32 +22,11 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/ethereum/go-ethereum/event"
 )
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideAvailibilityStore[*types.BeaconBlockBody],
-		ProvideBlsSigner,
-		ProvideTrustedSetup,
-		ProvideDepositStore[*types.Deposit],
-		ProvideConfig,
-		ProvideEngineClient,
-		ProvideJWTSecret,
-		ProvideBlobProofVerifier,
-		ProvideTelemetrySink,
-		ProvideExecutionEngine,
-		ProvideBeaconDepositContract[
-			*types.Deposit,
-			*types.ExecutionPayload,
-			*engineprimitives.Withdrawal,
-			types.WithdrawalCredentials,
-		],
-		ProvideLocalBuilder,
-		ProvideStateProcessor,
-		ProvideBlockFeed,
-		ProvideDepositPruner,
-		ProvideAvailabilityPruner,
-		ProvideDBManager,
-	}
+// ProvideBlockFeed provides a block feed for the depinject framework.
+func ProvideBlockFeed() *event.FeedOf[*feed.Event[*types.BeaconBlock]] {
+	return &event.FeedOf[*feed.Event[*types.BeaconBlock]]{}
 }

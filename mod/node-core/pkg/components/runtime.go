@@ -46,9 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/ethereum/go-ethereum/event"
 )
@@ -87,7 +85,13 @@ func ProvideRuntime(
 	beaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	],
+	blockFeed *event.FeedOf[*feed.Event[*types.BeaconBlock]],
 	chainSpec primitives.ChainSpec,
+	dbManagerService *manager.DBManager[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		event.Subscription,
+	],
 	signer crypto.BLSSigner,
 	engineClient *engineclient.EngineClient[*types.ExecutionPayload],
 	executionEngine *execution.Engine[*types.ExecutionPayload],
@@ -112,69 +116,7 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
-	// Build the event feed.
-	blockFeed := &event.FeedOf[*feed.Event[*types.BeaconBlock]]{}
-
-	// slice of pruners to pass to the DBManager.
-	pruners := []*pruner.Pruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription]{}
-
-	// Build the deposit pruner.
-	depositPruner := pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", manager.DepositPrunerName),
-		storageBackend.DepositStore(nil),
-		manager.DepositPrunerName,
-		blockFeed,
-		deposit.BuildPruneRangeFn[
-			*types.BeaconBlockBody,
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-			*types.Deposit,
-			*types.ExecutionPayload,
-			types.WithdrawalCredentials,
-		](chainSpec),
-	)
-	pruners = append(pruners, depositPruner)
-
-	avs := storageBackend.AvailabilityStore(nil).IndexDB
-	if avs != nil {
-		// build the availability pruner if IndexDB is available.
-		availabilityPruner := pruner.NewPruner[
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-			event.Subscription,
-		](
-			logger.With("service", manager.AvailabilityPrunerName),
-			avs.(*filedb.RangeDB),
-			manager.AvailabilityPrunerName,
-			blockFeed,
-			dastore.BuildPruneRangeFn[
-				*types.BeaconBlock,
-				*feed.Event[*types.BeaconBlock],
-			](chainSpec),
-		)
-		pruners = append(pruners, availabilityPruner)
-	}
-
-	// Build the DBManager service.
-	dbManagerService, err := manager.NewDBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription,
-	](
-		logger.With("service", "db-manager"),
-		pruners...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
+	// Build the blob processor.
 	blobProcessor := dablob.NewProcessor[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
