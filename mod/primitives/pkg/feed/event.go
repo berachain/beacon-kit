@@ -37,8 +37,8 @@ type Event[DataT any] struct {
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
-](ctx context.Context, name string, data DataT) Event[DataT] {
-	return Event[DataT]{
+](ctx context.Context, name string, data DataT) *Event[DataT] {
+	return &Event[DataT]{
 		ctx:  ctx,
 		name: name,
 		data: data,

@@ -51,7 +51,7 @@ type ValidatorMiddleware[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
@@ -110,7 +110,7 @@ func NewValidatorMiddleware[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)

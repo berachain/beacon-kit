@@ -55,7 +55,7 @@ func ProvideStateProcessor(
 ] {
 	return core.NewStateProcessor[
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
+		*types.BeaconBlockBody,
 		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
