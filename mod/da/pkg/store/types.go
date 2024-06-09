@@ -33,7 +33,7 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Block() BeaconBlockT
+	Data() BeaconBlockT
 }
 
 // IndexDB is a database that allows prefixing by index.

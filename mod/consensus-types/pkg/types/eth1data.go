@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
@@ -32,4 +33,23 @@ type Eth1Data struct {
 	DepositCount uint64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
 	BlockHash common.ExecutionHash `json:"blockHash"    ssz-size:"32"`
+}
+
+// New creates a new Eth1Data.
+func (e *Eth1Data) New(
+	depositRoot common.Root,
+	depositCount math.U64,
+	blockHash common.ExecutionHash,
+) *Eth1Data {
+	e = &Eth1Data{
+		DepositRoot:  depositRoot,
+		DepositCount: uint64(depositCount),
+		BlockHash:    blockHash,
+	}
+	return e
+}
+
+// GetDepositCount returns the deposit count.
+func (e *Eth1Data) GetDepositCount() math.U64 {
+	return math.U64(e.DepositCount)
 }

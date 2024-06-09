@@ -152,7 +152,7 @@ func (s *EngineClient[ExecutionPayloadT]) callUpdatedForkchoiceRPC(
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	case version.Electra:
-		return nil, errors.New("TODO: implement Electra forkchoice")
+		return nil, errors.New("TODO: implement Electra hardfork")
 	default:
 		return nil, engineerrors.ErrInvalidPayloadAttributes
 	}

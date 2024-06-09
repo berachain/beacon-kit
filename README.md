@@ -1,11 +1,14 @@
 # beacon-kit
 
-[![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
-[![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
+[![Telegram Chat](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit)](https://t.me/beacon_kit)
 
-## A modular and customizable consensus layer for Ethereum based blockchains
+## A modular consensus framework for building layer 1/2 evm blockchains ⛵️✨
 
 ![banner](.github/assets/banner.png)
+
+## 🚧 WARNING: UNDER CONSTRUCTION 🚧
+
+This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. It has not been audited for security purposes and should not be used in production yet.
 
 ## What is BeaconKit
 

@@ -23,7 +23,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -35,6 +34,7 @@ type KVStore[
 	ForkT any,
 	BeaconBlockHeaderT any,
 	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ValidatorT any,
 ] interface {
 	Context() context.Context
@@ -43,10 +43,10 @@ type KVStore[
 	) KVStoreT
 	Save()
 	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 	SetLatestExecutionPayloadHeader(
-		payloadHeader *types.ExecutionPayloadHeader,
+		payloadHeader ExecutionPayloadHeaderT,
 	) error
 	GetEth1DepositIndex() (uint64, error)
 	SetEth1DepositIndex(

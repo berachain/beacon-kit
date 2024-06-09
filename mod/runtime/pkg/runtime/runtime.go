@@ -37,6 +37,7 @@ import (
 
 type BeaconState = core.BeaconState[
 	*types.BeaconBlockHeader,
+	*types.Eth1Data,
 	*types.ExecutionPayloadHeader,
 	*types.Fork,
 	*types.Validator,
@@ -58,9 +59,10 @@ type BeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
+		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -110,9 +112,10 @@ func NewBeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+		*types.BeaconBlockHeader, *types.Eth1Data,
+		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
@@ -179,6 +182,7 @@ func NewBeaconKitRuntime[
 			NewValidatorMiddleware[AvailabilityStoreT](
 			chainSpec,
 			validatorService,
+			chainService,
 			telemetrySink,
 			storageBackend,
 		),

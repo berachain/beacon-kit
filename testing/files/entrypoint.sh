@@ -75,6 +75,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
+export CHAIN_SPEC="devnet"
+
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \

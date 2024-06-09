@@ -49,6 +49,28 @@ const (
 	KZGMerkleIndexDeneb = 26
 )
 
+type BeaconBlockBody struct {
+	RawBeaconBlockBody
+}
+
+// RawBeaconBlockBody is an interface for the different beacon block body.
+func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDeneb{
+			BeaconBlockBodyBase: BeaconBlockBodyBase{},
+			ExecutionPayload: &ExecutableDataDeneb{
+				//nolint:mnd // todo fix.
+				LogsBloom: make([]byte, 256),
+				//nolint:mnd // todo fix.
+				ExtraData: make([]byte, 32),
+			},
+		}}
+	default:
+		panic("unsupported fork version")
+	}
+}
+
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the block
 // body.
 // TODO: I still feel like we need to clean this up somehow.
@@ -134,7 +156,7 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 func (
 	b *BeaconBlockBodyDeneb,
 ) GetExecutionPayload() *ExecutionPayload {
-	return &ExecutionPayload{ExecutionPayload: b.ExecutionPayload}
+	return &ExecutionPayload{InnerExecutionPayload: b.ExecutionPayload}
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
@@ -142,7 +164,8 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	executionData *ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.ExecutionPayload.(*ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.
+		InnerExecutionPayload.(*ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}

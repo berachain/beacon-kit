@@ -39,3 +39,8 @@ func FromUint32[VersionT ~[4]byte](version uint32) VersionT {
 	binary.LittleEndian.PutUint32(versionBz[:], version)
 	return versionBz
 }
+
+// ToUint32 returns a uint32 from a Version.
+func ToUint32[VersionT ~[4]byte](version VersionT) uint32 {
+	return binary.LittleEndian.Uint32(version[:])
+}

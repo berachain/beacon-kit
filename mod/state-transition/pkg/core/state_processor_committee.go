@@ -27,7 +27,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,

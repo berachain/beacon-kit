@@ -21,6 +21,9 @@
 package types
 
 import (
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -30,7 +33,7 @@ import (
 )
 
 // BeaconBlockBody is the interface for a beacon block body.
-type BeaconBlockBody interface {
+type RawBeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
 	ReadOnlyBeaconBlockBody
 	Length() uint64
@@ -62,21 +65,39 @@ type ReadOnlyBeaconBlockBody interface {
 }
 
 // BeaconBlock is the interface for a beacon block.
-type RawBeaconBlock[BeaconBlockBodyT BeaconBlockBody] interface {
+type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
+	ssz.Marshallable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
-	ReadOnlyBeaconBlock[BeaconBlockBodyT]
-}
-
-// ReadOnlyBeaconBlock is the interface for a read-only beacon block.
-type ReadOnlyBeaconBlock[BodyT any] interface {
-	ssz.Marshallable
 	IsNil() bool
 	Version() uint32
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBody() BodyT
+	GetBody() BeaconBlockBodyT
 	GetHeader() *BeaconBlockHeader
+}
+
+// executionPayloadBody is the interface for the execution data of a block.
+type executionPayloadBody interface {
+	ssz.Marshallable
+	json.Marshaler
+	json.Unmarshaler
+	IsNil() bool
+	Version() uint32
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
 }

@@ -22,11 +22,12 @@ package blockchain
 
 import (
 	"context"
+	"sync"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -36,12 +37,11 @@ type Service[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositT Deposit,
+	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -74,10 +74,12 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[BeaconBlockT]]
-	// skipPostBlockFCU is a flag used when the optimistic payload
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
+	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
-	skipPostBlockFCU bool
+	optimisticPayloadBuilds bool
+	// forceStartupSyncOnce is used to force a sync of the startup head.
+	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -86,11 +88,11 @@ func NewService[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[DepositT],
-	DepositT Deposit,
+	DepositT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -114,8 +116,8 @@ func NewService[
 		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[BeaconBlockT]],
-	skipPostBlockFCU bool,
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
+	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT,
@@ -124,16 +126,17 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT,
 	]{
-		sb:               sb,
-		logger:           logger,
-		cs:               cs,
-		ee:               ee,
-		lb:               lb,
-		bp:               bp,
-		sp:               sp,
-		metrics:          newChainMetrics(ts),
-		blockFeed:        blockFeed,
-		skipPostBlockFCU: skipPostBlockFCU,
+		sb:                      sb,
+		logger:                  logger,
+		cs:                      cs,
+		ee:                      ee,
+		lb:                      lb,
+		bp:                      bp,
+		sp:                      sp,
+		metrics:                 newChainMetrics(ts),
+		blockFeed:               blockFeed,
+		optimisticPayloadBuilds: optimisticPayloadBuilds,
+		forceStartupSyncOnce:    new(sync.Once),
 	}
 }
 

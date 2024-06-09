@@ -54,8 +54,10 @@ type BlockEvent[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	ExecutionPayloadT interface{ GetNumber() math.U64 },
 ] interface {
+	Name() string
+	Is(string) bool
 	Context() context.Context
-	Block() BeaconBlockT
+	Data() BeaconBlockT
 }
 
 // BlockFeed is an interface for subscribing to block events.
@@ -92,7 +94,7 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		crypto.BLSSignature,
 		uint64,
 	) DepositT
-
+	// GetIndex returns the index of the deposit.
 	GetIndex() uint64
 }
 

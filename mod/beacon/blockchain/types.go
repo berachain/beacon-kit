@@ -79,7 +79,7 @@ type ReadOnlyBeaconState[T any] interface {
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BlobSidecarsT any,
 ] interface {
 	// ProcessBlobs processes the blobs and ensures they match the local state.
@@ -88,15 +88,20 @@ type BlobProcessor[
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
+
+	// VerifyBlobs verifies the blobs and ensures they match the local state.
+	VerifyBlobs(
+		slot math.Slot,
+		sidecars BlobSidecarsT,
+	) error
 }
 
 // BlobsSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
+	IsNil() bool
 	Len() int
 }
-
-type Deposit interface{}
 
 // DepositStore defines the interface for managing deposit operations.
 type DepositStore[DepositT any] interface {
@@ -149,6 +154,11 @@ type LocalBuilder[BeaconStateT any] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
+	SendForceHeadFCU(
+		ctx context.Context,
+		st BeaconStateT,
+		slot math.Slot,
+	) error
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -202,6 +212,10 @@ type StorageBackend[
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
+
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)

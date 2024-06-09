@@ -21,14 +21,37 @@
 package engine
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
-	engineprimitives.ExecutionPayload[WithdrawalT]
-	// Empty creates an empty execution payload.
+	json.Marshaler
+	json.Unmarshaler
+	IsNil() bool
+	Version() uint32
 	Empty(uint32) ExecutionPayloadT
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
+	GetWithdrawals() []WithdrawalT
+	GetTransactions() [][]byte
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

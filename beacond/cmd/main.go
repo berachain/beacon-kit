@@ -24,9 +24,10 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/app"
-	"github.com/berachain/beacon-kit/mod/node-builder/pkg/config/spec"
-	nodebuilder "github.com/berachain/beacon-kit/mod/node-builder/pkg/node-builder"
+	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -37,15 +38,41 @@ func run() error {
 		return err
 	}
 
-	// Build the node using the node-builder.
-	nb := nodebuilder.NewNodeBuilder[app.BeaconApp]().
-		WithAppName("beacond").
-		WithAppDescription("beacond is a beacon node for any beacon-kit chain").
-		WithDepInjectConfig(Config()).
-		// TODO: Don't hardcode the default chain spec.
-		WithChainSpec(spec.TestnetChainSpec())
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	chainSpec := os.Getenv("CHAIN_SPEC")
+	loadedSpec := spec.TestnetChainSpec()
+	if chainSpec == "devnet" {
+		loadedSpec = spec.DevnetChainSpec()
+	}
 
-	return nb.RunNode()
+	// Build the node using the node-core.
+	nb := nodebuilder.New(
+		// Set the Name to the Default.
+		nodebuilder.WithName[types.NodeI](
+			nodebuilder.DefaultAppName),
+		// Set the Description to the Default.
+		nodebuilder.WithDescription[types.NodeI](
+			nodebuilder.DefaultDescription),
+		// Set the DepInject Configuration to the Default.
+		nodebuilder.WithDepInjectConfig[types.NodeI](
+			nodebuilder.DefaultDepInjectConfig()),
+		// Set the ChainSpec to the Default.
+		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
+		// Set the Runtime Components to the Default.
+		nodebuilder.WithComponents[types.NodeI](
+			components.DefaultComponentsWithStandardTypes(),
+		),
+	)
+
+	// Assemble the node with all our components.
+	node, err := nb.Build()
+	if err != nil {
+		return err
+	}
+
+	// TODO: create a "runner" type harness that takes the node as a parameter.
+	return node.Run()
 }
 
 // main is the entry point.

@@ -36,13 +36,15 @@ WORKDIR /workdir
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
+COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
+COPY ./mod/interfaces/go.mod ./mod/interfaces/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
-COPY ./mod/node-builder/go.mod ./mod/node-builder/go.sum ./mod/node-builder/
+COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
 COPY ./mod/p2p/go.mod ./mod/p2p/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
@@ -53,12 +55,14 @@ COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
+RUN go work use ./mod/cli
 RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution
+RUN go work use ./mod/interfaces
 RUN go work use ./mod/log
 RUN go work use ./mod/node-api
-RUN go work use ./mod/node-builder
+RUN go work use ./mod/node-core
 RUN go work use ./mod/p2p
 RUN go work use ./mod/payload
 RUN go work use ./mod/primitives
