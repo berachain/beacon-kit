@@ -2,7 +2,7 @@
 
 [![Telegram Chat](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit)](https://t.me/beacon_kit)
 
-## A modular consensus framework for building layer 1/2 evm blockchains ⛵️✨
+## A modular framework for building EVM consensus clients ⛵️✨
 
 ![banner](.github/assets/banner.png)
 
