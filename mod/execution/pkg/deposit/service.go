@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 // Service represenst the deposit service that processes deposit events.
@@ -65,7 +66,7 @@ type Service[
 	// newBlock is the channel for new blocks.
 	newBlock chan BeaconBlockT
 	// failedBlocks
-	failedBlocks map[math.U64]struct{}
+	failedBlocks *lru.Cache[math.U64, struct{}]
 }
 
 // NewService creates a new instance of the Service struct.
@@ -99,6 +100,15 @@ func NewService[
 	ExecutionPayloadT, SubscriptionT,
 	WithdrawalCredentialsT,
 ] {
+
+	c, err := lru.New[math.U64, struct{}](8192)
+	if err != nil {
+		logger.Error(
+			"failed to create LRU cache",
+			"error", err,
+		)
+	}
+
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 		ExecutionPayloadT, SubscriptionT,
@@ -112,7 +122,7 @@ func NewService[
 		dc:                 dc,
 		ds:                 ds,
 		newBlock:           make(chan BeaconBlockT),
-		failedBlocks:       make(map[math.U64]struct{}),
+		failedBlocks:       c,
 	}
 }
 
