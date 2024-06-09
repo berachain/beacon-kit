@@ -49,7 +49,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.extract_version.outputs.VERSION }}
   
-
+  # Job to build release
   build:
     name: build release
     needs: extract-version
