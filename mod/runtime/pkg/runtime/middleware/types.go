@@ -52,7 +52,6 @@ type BlockchainService[
 		context.Context,
 		BeaconBlockT,
 		BlobSidecarsT,
-		bool,
 	) ([]*transition.ValidatorUpdate, error)
 
 	// ReceiveBlockAndBlobs receives a beacon block and

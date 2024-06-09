@@ -136,7 +136,10 @@ func (h *FinalizeBlockMiddleware[
 	// Process the state transition and produce the required delta from
 	// the sync committee.
 	h.valUpdates, err = h.chainService.ProcessBlockAndBlobs(
-		ctx, blk, blobs, req.SyncingToHeight == req.Height,
+		ctx, blk, blobs,
+		// TODO: Speak with @melekes about this, doesn't seem to
+		// work reliably.
+		/*req.SyncingToHeight == req.Height*/
 	)
 	return err
 }
