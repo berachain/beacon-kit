@@ -102,7 +102,5 @@ func (s *Service[
 		return
 	}
 
-	if s.failedBlocks[blockNum] != struct{}{} {
-		delete(s.failedBlocks, blockNum)
-	}
+	delete(s.failedBlocks, blockNum)
 }
