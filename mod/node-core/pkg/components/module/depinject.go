@@ -70,12 +70,12 @@ type DepInjectInput struct {
 	Environment appmodule.Environment
 
 	// BeaconKit components
-	AvailabilityStore     *dastore.Store[types.BeaconBlockBody]
+	AvailabilityStore     *dastore.Store[*types.BeaconBlockBody]
 	BeaconConfig          *config.Config
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed    *event.FeedOf[feed.Event[*types.BeaconBlock]]
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	BlobVerifier kzg.BlobProofVerifier
 	ChainSpec    primitives.ChainSpec
 	DBManager    *manager.DBManager[
@@ -113,8 +113,9 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
 		core.BeaconState[
 			*types.BeaconBlockHeader, *types.Eth1Data,
 			*types.ExecutionPayloadHeader, *types.Fork,

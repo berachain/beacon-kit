@@ -65,12 +65,10 @@ func (s *Service[
 		var prevBlockRoot primitives.Root
 		prevBlockRoot, err = blk.HashTreeRoot()
 		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block root in postBlockProcess",
-					"error",
-					err,
-				)
+			s.logger.Error(
+				"failed to get block root in postBlockProcess",
+				"error", err,
+			)
 			return
 		}
 

@@ -59,15 +59,15 @@ type BeaconState = core.BeaconState[
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
-	*dastore.Store[types.BeaconBlockBody],
+	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlock,
-	types.BeaconBlockBody,
+	*types.BeaconBlockBody,
 	BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
 	blockchain.StorageBackend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
@@ -85,7 +85,7 @@ func ProvideRuntime(
 	beaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	],
-	blockFeed *event.FeedOf[feed.Event[*types.BeaconBlock]],
+	blockFeed *event.FeedOf[*feed.Event[*types.BeaconBlock]],
 	chainSpec primitives.ChainSpec,
 	dbManagerService *manager.DBManager[
 		*types.BeaconBlock,
@@ -103,8 +103,8 @@ func ProvideRuntime(
 		*types.Deposit,
 	],
 	storageBackend blockchain.StorageBackend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
@@ -116,9 +116,10 @@ func ProvideRuntime(
 	telemetrySink *metrics.TelemetrySink,
 	logger log.Logger,
 ) (*BeaconKitRuntime, error) {
+	// Build the blob processor.
 	blobProcessor := dablob.NewProcessor[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
 	](
 		logger.With("service", "blob-processor"),
 		chainSpec,
@@ -130,7 +131,7 @@ func ProvideRuntime(
 	// Build the builder service.
 	validatorService := validator.NewService[
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
+		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -145,7 +146,7 @@ func ProvideRuntime(
 		signer,
 		dablob.NewSidecarFactory[
 			*types.BeaconBlock,
-			types.BeaconBlockBody,
+			*types.BeaconBlockBody,
 		](
 			chainSpec,
 			types.KZGPositionDeneb,
@@ -160,9 +161,9 @@ func ProvideRuntime(
 
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
+		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
@@ -182,9 +183,9 @@ func ProvideRuntime(
 
 	// Build the deposit service.
 	depositService := deposit.NewService[
-		types.BeaconBlockBody,
+		*types.BeaconBlockBody,
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,
 		event.Subscription,
@@ -215,15 +216,15 @@ func ProvideRuntime(
 
 	// Pass all the services and options into the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
-		*dastore.Store[types.BeaconBlockBody],
+		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
-		types.BeaconBlockBody,
+		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		blockchain.StorageBackend[
-			*dastore.Store[types.BeaconBlockBody],
-			types.BeaconBlockBody,
+			*dastore.Store[*types.BeaconBlockBody],
+			*types.BeaconBlockBody,
 			BeaconState,
 			*datypes.BlobSidecars,
 			*types.Deposit,

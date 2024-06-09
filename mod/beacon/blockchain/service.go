@@ -37,7 +37,7 @@ type Service[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositT Deposit,
@@ -74,7 +74,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[feed.Event[BeaconBlockT]]
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -88,7 +88,7 @@ func NewService[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[DepositT],
@@ -116,7 +116,7 @@ func NewService[
 		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[feed.Event[BeaconBlockT]],
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,

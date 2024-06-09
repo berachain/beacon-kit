@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	dastore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/ethereum/go-ethereum/event"
@@ -37,14 +38,14 @@ type DBManagerInput struct {
 	Logger        log.Logger
 	DepositPruner *pruner.DBPruner[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		*dastore.KVStore[*types.Deposit],
 		event.Subscription,
 	]
 	AvailabilityPruner *pruner.DBPruner[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
-		pruner.Prunable,
+		*feed.Event[*types.BeaconBlock],
+		*filedb.RangeDB,
 		event.Subscription,
 	]
 }

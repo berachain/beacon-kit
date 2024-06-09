@@ -27,6 +27,6 @@ import (
 )
 
 // ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *event.FeedOf[feed.Event[*types.BeaconBlock]] {
-	return &event.FeedOf[feed.Event[*types.BeaconBlock]]{}
+func ProvideBlockFeed() *event.FeedOf[*feed.Event[*types.BeaconBlock]] {
+	return &event.FeedOf[*feed.Event[*types.BeaconBlock]]{}
 }

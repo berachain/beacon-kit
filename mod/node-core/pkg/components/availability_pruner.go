@@ -39,8 +39,8 @@ type AvailabilityPrunerInput struct {
 	depinject.In
 	Logger            log.Logger
 	ChainSpec         primitives.ChainSpec
-	BlockFeed         *event.FeedOf[feed.Event[*types.BeaconBlock]]
-	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
+	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
@@ -49,16 +49,16 @@ func ProvideAvailabilityPruner(
 	in AvailabilityPrunerInput,
 ) *pruner.DBPruner[
 	*types.BeaconBlock,
-	feed.Event[*types.BeaconBlock],
-	pruner.Prunable,
+	*feed.Event[*types.BeaconBlock],
+	*filedb.RangeDB,
 	event.Subscription,
 ] {
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
-
+	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
-		pruner.Prunable,
+		*feed.Event[*types.BeaconBlock],
+		*filedb.RangeDB,
 		event.Subscription,
 	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
@@ -67,7 +67,7 @@ func ProvideAvailabilityPruner(
 		in.BlockFeed,
 		dastore.BuildPruneRangeFn[
 			*types.BeaconBlock,
-			feed.Event[*types.BeaconBlock],
+			*feed.Event[*types.BeaconBlock],
 		](in.ChainSpec),
 	)
 }

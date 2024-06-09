@@ -59,7 +59,7 @@ type BeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -112,7 +112,7 @@ func NewBeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
 		*types.ExecutionPayloadHeader, *types.Fork,

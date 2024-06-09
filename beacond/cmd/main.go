@@ -61,7 +61,7 @@ func run() error {
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[types.NodeI](
-			components.DefaultComponents(),
+			components.DefaultComponentsWithStandardTypes(),
 		),
 	)
 

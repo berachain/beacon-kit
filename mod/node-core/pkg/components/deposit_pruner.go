@@ -37,7 +37,7 @@ type DepositPrunerInput struct {
 	depinject.In
 	Logger       log.Logger
 	ChainSpec    primitives.ChainSpec
-	BlockFeed    *event.FeedOf[feed.Event[*types.BeaconBlock]]
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	DepositStore *dastore.KVStore[*types.Deposit]
 }
 
@@ -46,14 +46,13 @@ func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) *pruner.DBPruner[
 	*types.BeaconBlock,
-	feed.Event[*types.BeaconBlock],
+	*feed.Event[*types.BeaconBlock],
 	*dastore.KVStore[*types.Deposit],
 	event.Subscription,
 ] {
-	// Build the deposit pruner.
 	return pruner.NewPruner[
 		*types.BeaconBlock,
-		feed.Event[*types.BeaconBlock],
+		*feed.Event[*types.BeaconBlock],
 		*dastore.KVStore[*types.Deposit],
 		event.Subscription,
 	](
@@ -62,9 +61,9 @@ func ProvideDepositPruner(
 		manager.DepositPrunerName,
 		in.BlockFeed,
 		deposit.BuildPruneRangeFn[
-			types.BeaconBlockBody,
+			*types.BeaconBlockBody,
 			*types.BeaconBlock,
-			feed.Event[*types.BeaconBlock],
+			*feed.Event[*types.BeaconBlock],
 			*types.Deposit,
 			*types.ExecutionPayload,
 			types.WithdrawalCredentials,
