@@ -3,7 +3,7 @@
 [![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
 [![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
 
-## A modular consensus framework for layer-1/2 evm blockchains ⛵️✨
+## A modular consensus framework for building layer 1/2 evm blockchains ⛵️✨
 
 ![banner](.github/assets/banner.png)
 
