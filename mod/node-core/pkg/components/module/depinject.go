@@ -26,7 +26,7 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dablobs "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -75,10 +75,13 @@ type DepInjectInput struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	BlobVerifier kzg.BlobProofVerifier
-	ChainSpec    primitives.ChainSpec
-	DBManager    *manager.DBManager[
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlobProcessor *dablobs.Processor[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
+	]
+	ChainSpec primitives.ChainSpec
+	DBManager *manager.DBManager[
 		*types.BeaconBlock,
 		*feed.Event[*types.BeaconBlock],
 		event.Subscription,
@@ -141,7 +144,7 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
-		in.BlobVerifier,
+		in.BlobProcessor,
 		in.BeaconDepositContract,
 		in.BlockFeed,
 		in.ChainSpec,

@@ -126,6 +126,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				components.ProvideBlockFeed,
 				components.ProvideDepositPruner,
 				components.ProvideAvailabilityPruner,
+				components.ProvideBlobProcessor,
 				components.ProvideDBManager,
 			),
 		),
