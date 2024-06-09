@@ -27,11 +27,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// PayloadAttributes is the attributes of a block payload.
-//
+// PayloadAttributer represents payload attributes of a block.
+type PayloadAttributer interface {
+	// IsNil returns true if the PayloadAttributer is nil.
+	IsNil() bool
+	// Version returns the version of the PayloadAttributer.
+	Version() uint32
+	// Validate checks if the PayloadAttributer is valid and returns an error if
+	// it is not.
+	Validate() error
+	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
+	// block.
+	GetSuggestedFeeRecipient() common.ExecutionAddress
+}
 
+// PayloadAttributes is the attributes of a block payload.
 type PayloadAttributes[
-	Withdrawal SSZMarshallable,
+	WithdrawalT any,
 ] struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
@@ -46,7 +58,7 @@ type PayloadAttributes[
 	SuggestedFeeRecipient common.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
-	Withdrawals []Withdrawal `json:"withdrawals"`
+	Withdrawals []WithdrawalT `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
 	// to the block currently being processed. This field was added for
@@ -56,16 +68,16 @@ type PayloadAttributes[
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes[
-	Withdrawal SSZMarshallable,
+	WithdrawalT any,
 ](
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
-	withdrawals []Withdrawal,
+	withdrawals []WithdrawalT,
 	parentBeaconBlockRoot primitives.Root,
-) (*PayloadAttributes[Withdrawal], error) {
-	p := &PayloadAttributes[Withdrawal]{
+) (*PayloadAttributes[WithdrawalT], error) {
+	p := &PayloadAttributes[WithdrawalT]{
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,

@@ -1,8 +1,14 @@
 # beacon-kit
 
-## A modular and customizable consensus layer for Ethereum based blockchains
+[![Telegram Chat](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit)](https://t.me/beacon_kit)
+
+## A modular consensus framework for building layer 1/2 evm blockchains ⛵️✨
 
 ![banner](.github/assets/banner.png)
+
+## 🚧 WARNING: UNDER CONSTRUCTION 🚧
+
+This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. It has not been audited for security purposes and should not be used in production yet.
 
 ## What is BeaconKit
 

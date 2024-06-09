@@ -97,7 +97,7 @@ func (st *BeaconState[
 				LatestExecutionPayloadHeader: reflect.
 					ValueOf(latestExecutionPayloadHeader).
 					Interface().(*types.ExecutionPayloadHeader).
-					ExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
+					InnerExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
 				Eth1Data: reflect.ValueOf(eth1Data).
 					Interface().(*types.Eth1Data),
 				Eth1DepositIndex: eth1DepositIndex,

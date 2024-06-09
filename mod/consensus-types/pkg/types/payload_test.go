@@ -150,7 +150,7 @@ func TestExecutionPayload_Empty(t *testing.T) {
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := types.ExecutionPayload{
-		ExecutionPayload: &types.ExecutableDataDeneb{
+		InnerExecutionPayload: &types.ExecutableDataDeneb{
 			ParentHash:    common.ExecutionHash{},
 			FeeRecipient:  common.ExecutionAddress{},
 			StateRoot:     bytes.B32{},

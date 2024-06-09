@@ -156,7 +156,7 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 func (
 	b *BeaconBlockBodyDeneb,
 ) GetExecutionPayload() *ExecutionPayload {
-	return &ExecutionPayload{ExecutionPayload: b.ExecutionPayload}
+	return &ExecutionPayload{InnerExecutionPayload: b.ExecutionPayload}
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
@@ -164,7 +164,8 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 	executionData *ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.ExecutionPayload.(*ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.
+		InnerExecutionPayload.(*ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}

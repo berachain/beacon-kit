@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -108,7 +108,7 @@ func (s *Service[
 	var (
 		prevStateRoot primitives.Root
 		prevBlockRoot primitives.Root
-		lph           engineprimitives.ExecutionPayloadHeader
+		lph           *types.ExecutionPayloadHeader
 		slot          math.Slot
 	)
 
