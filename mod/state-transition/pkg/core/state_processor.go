@@ -306,6 +306,8 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	// TODO:
+	//
 	// phase0.ProcessProposerSlashings
 	// phase0.ProcessAttesterSlashings
 
@@ -316,10 +318,10 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// phase0.ProcessEth1Vote ? forkchoice?
-
-	// TODO: LOOK HERE
+	// TODO:
 	//
+	// phase0.ProcessEth1Vote
+
 	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, blk); err != nil {
 		return err
@@ -331,9 +333,8 @@ func (sp *StateProcessor[
 		return nil
 	}
 
-	// Ensure the state root matches the block.
-	//
-	// TODO: We need to validate this in ProcessProposal as well.
+	// Ensure the calculated state root matches the state root on
+	// the block.
 	if stateRoot, err := st.HashTreeRoot(); err != nil {
 		return err
 	} else if blk.GetStateRoot() != stateRoot {
