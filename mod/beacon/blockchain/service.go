@@ -40,7 +40,7 @@ type Service[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositT Deposit,
+	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 ] struct {
 	// sb represents the backend storage for beacon states and associated
@@ -92,7 +92,7 @@ func NewService[
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[DepositT],
-	DepositT Deposit,
+	DepositT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,

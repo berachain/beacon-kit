@@ -36,7 +36,14 @@ import (
 // ExecutionPayload represents an execution payload across
 // all fork versions.
 type ExecutionPayload struct {
-	engineprimitives.ExecutionPayload[*engineprimitives.Withdrawal]
+	InnerExecutionPayload
+}
+
+// InnerExecutionPayload represents the inner execution payload.
+type InnerExecutionPayload interface {
+	executionPayloadBody
+	GetTransactions() [][]byte
+	GetWithdrawals() []*engineprimitives.Withdrawal
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -44,7 +51,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	e = new(ExecutionPayload)
 	switch forkVersion {
 	case version.Deneb:
-		e.ExecutionPayload = &ExecutableDataDeneb{}
+		e.InnerExecutionPayload = &ExecutableDataDeneb{}
 	default:
 		panic("unknown fork version")
 	}
@@ -84,7 +91,7 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch e.Version() {
 	case version.Deneb:
 		return &ExecutionPayloadHeader{
-			ExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
+			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),
 				FeeRecipient:     e.GetFeeRecipient(),
 				StateRoot:        e.GetStateRoot(),

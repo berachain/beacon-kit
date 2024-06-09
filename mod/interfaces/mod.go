@@ -61,6 +61,8 @@ type SSZMarshallable interface {
 	SizeSSZ() int
 }
 
+// -------------------------- ExecutionPayload --------------------------
+
 // ExecutionPayloadBody is the interface for the execution data of a block.
 // It contains all the fields that are part of both an execution payload header
 // and a full execution payload.
@@ -91,6 +93,46 @@ type ExecutionPayloadBody[
 	GetLogsBloom() []byte
 	GetBlobGasUsed() U64T
 	GetExcessBlobGas() U64T
+}
+
+// ExecutionPayloadWithTransactions is the interface for the execution data of a
+// block that includes transactions.
+type ExecutionPayloadWithTransactions[
+	ExecutionAddressT any,
+	ExecutionHashT any,
+	Bytes32T any,
+	U64T ~uint64,
+	U256T any,
+	TransactionsT any,
+] interface {
+	ExecutionPayloadBody[
+		ExecutionAddressT,
+		ExecutionHashT,
+		Bytes32T,
+		U64T,
+		U256T,
+	]
+	GetTransactions() []TransactionsT
+}
+
+// ExecutionPayloadWithWithdrawals is the interface for the execution data of a
+// block that includes withdrawals.
+type ExecutionPayloadWithWithdrawals[
+	ExecutionAddressT any,
+	ExecutionHashT any,
+	Bytes32T any,
+	U64T ~uint64,
+	U256T any,
+	WithdrawalsT any,
+] interface {
+	ExecutionPayloadBody[
+		ExecutionAddressT,
+		ExecutionHashT,
+		Bytes32T,
+		U64T,
+		U256T,
+	]
+	GetTransactions() []WithdrawalsT
 }
 
 // ExecutionPayload represents the execution data of a block.

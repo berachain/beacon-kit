@@ -38,8 +38,25 @@ import (
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		Empty(uint32) ExecutionPayloadT
+		IsNil() bool
 		Version() uint32
-		ExecutionPayload[WithdrawalT]
+		GetPrevRandao() primitives.Bytes32
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetNumber() math.U64
+		GetGasLimit() math.U64
+		GetGasUsed() math.U64
+		GetTimestamp() math.U64
+		GetExtraData() []byte
+		GetBaseFeePerGas() math.Wei
+		GetFeeRecipient() common.ExecutionAddress
+		GetStateRoot() primitives.Bytes32
+		GetReceiptsRoot() primitives.Bytes32
+		GetLogsBloom() []byte
+		GetBlobGasUsed() math.U64
+		GetExcessBlobGas() math.U64
+		GetWithdrawals() []WithdrawalT
+		GetTransactions() [][]byte
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -63,8 +80,25 @@ type NewPayloadRequest[
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		Empty(uint32) ExecutionPayloadT
+		IsNil() bool
 		Version() uint32
-		ExecutionPayload[WithdrawalT]
+		GetPrevRandao() primitives.Bytes32
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetNumber() math.U64
+		GetGasLimit() math.U64
+		GetGasUsed() math.U64
+		GetTimestamp() math.U64
+		GetExtraData() []byte
+		GetBaseFeePerGas() math.Wei
+		GetFeeRecipient() common.ExecutionAddress
+		GetStateRoot() primitives.Bytes32
+		GetReceiptsRoot() primitives.Bytes32
+		GetLogsBloom() []byte
+		GetBlobGasUsed() math.U64
+		GetExcessBlobGas() math.U64
+		GetWithdrawals() []WithdrawalT
+		GetTransactions() [][]byte
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64

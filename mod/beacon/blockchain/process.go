@@ -53,7 +53,7 @@ func (s *Service[
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
 		&types.ExecutionPayloadHeader{
-			ExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
 		},
 		genesisData.ForkVersion,
 	)
