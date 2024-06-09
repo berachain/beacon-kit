@@ -30,7 +30,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideAvailibilityStore[*types.BeaconBlockBody],
 		ProvideBlsSigner,
 		ProvideTrustedSetup,
-		ProvideDepositStore,
+		ProvideDepositStore[*types.Deposit],
 		ProvideConfig,
 		ProvideEngineClient,
 		ProvideJWTSecret,
