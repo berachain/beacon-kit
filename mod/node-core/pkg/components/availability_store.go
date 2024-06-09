@@ -85,12 +85,7 @@ type AvailabilityPrunerInput struct {
 // framework.
 func ProvideAvailabilityPruner(
 	in AvailabilityPrunerInput,
-) *pruner.DBPruner[
-	*types.BeaconBlock,
-	*feed.Event[*types.BeaconBlock],
-	*filedb.RangeDB,
-	event.Subscription,
-] {
+) pruner.Pruner[*filedb.RangeDB] {
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
