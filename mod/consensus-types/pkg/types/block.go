@@ -29,7 +29,7 @@ import (
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock struct {
-	RawBeaconBlock[BeaconBlockBody]
+	RawBeaconBlock[*BeaconBlockBody]
 }
 
 // Empty creates an empty beacon block.
@@ -52,7 +52,7 @@ func (w *BeaconBlock) NewWithVersion(
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var (
-		block RawBeaconBlock[BeaconBlockBody]
+		block RawBeaconBlock[*BeaconBlockBody]
 		base  = BeaconBlockHeaderBase{
 			Slot:            slot.Unwrap(),
 			ProposerIndex:   proposerIndex.Unwrap(),
@@ -130,8 +130,8 @@ func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
 }
 
 // GetBody retrieves the body of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetBody() BeaconBlockBody {
-	return b.Body
+func (b *BeaconBlockDeneb) GetBody() *BeaconBlockBody {
+	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.

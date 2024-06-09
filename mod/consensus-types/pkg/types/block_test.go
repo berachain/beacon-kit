@@ -112,7 +112,10 @@ func TestBeaconBlockDeneb(t *testing.T) {
 	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
 	// Test the GetBody method
-	require.Equal(t, block.Body, block.GetBody())
+	require.Equal(
+		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
+		block.GetBody(),
+	)
 
 	// Test the GetHeader method
 	header := block.GetHeader()

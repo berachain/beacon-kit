@@ -47,7 +47,7 @@ type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
 		*types.Fork, *types.Validator, *engineprimitives.Withdrawal],
@@ -63,7 +63,7 @@ func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
 		*types.ExecutionPayloadHeader, *types.Fork,

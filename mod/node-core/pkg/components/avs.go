@@ -38,8 +38,8 @@ func ProvideAvailibilityStore(
 	appOpts servertypes.AppOptions,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger,
-) (*dastore.Store[types.BeaconBlockBody], error) {
-	return dastore.New[types.BeaconBlockBody](
+) (*dastore.Store[types.RawBeaconBlockBody], error) {
+	return dastore.New[types.RawBeaconBlockBody](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(
