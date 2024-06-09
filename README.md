@@ -8,13 +8,12 @@
 
 ## 🚧 WARNING: UNDER CONSTRUCTION 🚧
 
-This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. It has not been audited for security purposes and should not be used in production yet.
+This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. Audits on BeaconKit are still ongoing, and in progress at the moment. We don't recommend using BeaconKit in a production environment yet.
 
 ## What is BeaconKit
 
-BeaconKit introduces an innovative framework that utilizes the Cosmos-SDK to
-create a flexible, customizable consensus layer tailored for Ethereum-based
-blockchains. The framework offers the most user-friendly way to build and
+BeaconKit is a modular consensus framework for building EVM based consensus clients.
+The framework offers the most user-friendly way to build and
 operate an EVM blockchain, while ensuring a functionally identical execution
 environment to that of the Ethereum Mainnet.
 
@@ -61,3 +60,7 @@ The account with
 `private-key=0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306`
 corresponding with `address=0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4` is
 preloaded with the native EVM token.
+
+## Multinode Local Devnet
+
+Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
