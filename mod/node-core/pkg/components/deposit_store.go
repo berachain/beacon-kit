@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -38,9 +38,15 @@ type DepositStoreInput struct {
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore(
+func ProvideDepositStore[
+	DepositT interface {
+		interfaces.SSZMarshallable
+		GetIndex() uint64
+		HashTreeRoot() ([32]byte, error)
+	},
+](
 	in DepositStoreInput,
-) (*deposit.KVStore[*types.Deposit], error) {
+) (*deposit.KVStore[DepositT], error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -48,7 +54,7 @@ func ProvideDepositStore(
 		return nil, err
 	}
 
-	return deposit.NewStore[*types.Deposit](&deposit.KVStoreProvider{
+	return deposit.NewStore[DepositT](&deposit.KVStoreProvider{
 		KVStoreWithBatch: kvp,
 	}), nil
 }

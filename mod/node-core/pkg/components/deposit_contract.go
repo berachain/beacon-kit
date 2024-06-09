@@ -25,7 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconDepositContractInput is the input for the beacon deposit contract
@@ -38,15 +42,27 @@ type BeaconDepositContractInput struct {
 
 // ProvideBeaconDepositContract provides a beacon deposit contract through the
 // dep inject framework.
-func ProvideBeaconDepositContract(
+func ProvideBeaconDepositContract[
+	DepositT interfaces.Deposit[
+		crypto.BLSPubkey, crypto.BLSSignature,
+		DepositT, math.U64, WithdrawalCredentialsT,
+	],
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		common.ExecutionAddress, common.ExecutionHash,
+		primitives.Bytes32, math.U64, math.Wei,
+		[]byte, WithdrawalT,
+	],
+	WithdrawalT any,
+	WithdrawalCredentialsT ~[32]byte,
+](
 	in BeaconDepositContractInput,
 ) (*deposit.WrappedBeaconDepositContract[
-	*types.Deposit,
-	types.WithdrawalCredentials,
+	DepositT,
+	WithdrawalCredentialsT,
 ], error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
-		*types.Deposit, types.WithdrawalCredentials,
+		DepositT, WithdrawalCredentialsT,
 	](
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,

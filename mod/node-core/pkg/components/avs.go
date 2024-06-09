@@ -34,12 +34,14 @@ import (
 )
 
 // ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
+func ProvideAvailibilityStore[
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+](
 	appOpts servertypes.AppOptions,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger,
-) (*dastore.Store[types.RawBeaconBlockBody], error) {
-	return dastore.New[types.RawBeaconBlockBody](
+) (*dastore.Store[BeaconBlockBodyT], error) {
+	return dastore.New[BeaconBlockBodyT](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(

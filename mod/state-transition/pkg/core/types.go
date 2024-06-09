@@ -53,10 +53,12 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BeaconBlock[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
@@ -76,6 +78,7 @@ type BeaconBlock[
 // BeaconBlockBody represents a generic interface for the body of a beacon
 // block.
 type BeaconBlockBody[
+	BeaconBlockBodyT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
@@ -83,6 +86,8 @@ type BeaconBlockBody[
 	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
+	// Empty returns an empty beacon block body.
+	Empty(uint32) BeaconBlockBodyT
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.

@@ -20,21 +20,29 @@
 
 package components
 
-// DefaultComponents returns the default set of components
-// that are provided by beacon-kit.
-func DefaultComponents() []any {
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+)
+
+func DefaultComponentsWithStandardTypes() []any {
 	return []any{
-		ProvideAvailibilityStore,
+		ProvideAvailibilityStore[*types.BeaconBlockBody],
 		ProvideBlsSigner,
 		ProvideTrustedSetup,
-		ProvideDepositStore,
+		ProvideDepositStore[*types.Deposit],
 		ProvideConfig,
 		ProvideEngineClient,
 		ProvideJWTSecret,
 		ProvideBlobProofVerifier,
 		ProvideTelemetrySink,
 		ProvideExecutionEngine,
-		ProvideBeaconDepositContract,
+		ProvideBeaconDepositContract[
+			*types.Deposit,
+			*types.ExecutionPayload,
+			*engineprimitives.Withdrawal,
+			types.WithdrawalCredentials,
+		],
 		ProvideLocalBuilder,
 		ProvideStateProcessor,
 	}
