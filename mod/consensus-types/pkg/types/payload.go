@@ -22,6 +22,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -29,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -36,7 +38,37 @@ import (
 // ExecutionPayload represents an execution payload across
 // all fork versions.
 type ExecutionPayload struct {
-	engineprimitives.ExecutionPayload[*engineprimitives.Withdrawal]
+	InnerExecutionPayload
+}
+
+type executionPayloadBody interface {
+	ssz.Marshallable
+	json.Marshaler
+	json.Unmarshaler
+	IsNil() bool
+	Version() uint32
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
+}
+
+// InnerExecutionPayload represents the inner execution payload
+type InnerExecutionPayload interface {
+	executionPayloadBody
+	GetTransactions() [][]byte
+	GetWithdrawals() []*engineprimitives.Withdrawal
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -44,7 +76,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	e = new(ExecutionPayload)
 	switch forkVersion {
 	case version.Deneb:
-		e.ExecutionPayload = &ExecutableDataDeneb{}
+		e.InnerExecutionPayload = &ExecutableDataDeneb{}
 	default:
 		panic("unknown fork version")
 	}
@@ -84,7 +116,7 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch e.Version() {
 	case version.Deneb:
 		return &ExecutionPayloadHeader{
-			ExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
+			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),
 				FeeRecipient:     e.GetFeeRecipient(),
 				StateRoot:        e.GetStateRoot(),

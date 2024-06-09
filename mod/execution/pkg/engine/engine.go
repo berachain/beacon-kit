@@ -36,7 +36,8 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.

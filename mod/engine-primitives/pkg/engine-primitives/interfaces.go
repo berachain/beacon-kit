@@ -21,12 +21,7 @@
 package engineprimitives
 
 import (
-	"encoding/json"
-
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // Marshallable is an interface that combines the ssz.Marshaler and
@@ -44,46 +39,6 @@ type SSZMarshallable interface {
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
 	SizeSSZ() int
-}
-
-// ExecutionPayloadBody is the interface for the execution data of a block.
-// It contains all the fields that are part of both an execution payload header
-// and a full execution payload.
-type ExecutionPayloadBody interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
-	IsNil() bool
-	Version() uint32
-	GetPrevRandao() primitives.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
-	GetLogsBloom() []byte
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-}
-
-// ExecutionPayload represents the execution data of a block.
-type ExecutionPayload[WithdrawalT any] interface {
-	ExecutionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []WithdrawalT
-}
-
-// ExecutionPayloadHeader represents the execution header of a block.
-type ExecutionPayloadHeader interface {
-	ExecutionPayloadBody
-	GetTransactionsRoot() primitives.Root
-	GetWithdrawalsRoot() primitives.Root
 }
 
 // PayloadAttributer represents payload attributes of a block.
