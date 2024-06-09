@@ -33,7 +33,7 @@ type Prunable interface {
 }
 
 // Pruner is an interface for pruning the store.
-type Pruner interface {
+type Pruner[PrunableT Prunable] interface {
 	Name() string
 	Start(ctx context.Context)
 }

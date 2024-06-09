@@ -32,22 +32,12 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 )
 
-// DepositPrunerInput is the input for the deposit pruner.
+// DBManagerInput is the input for the dep inject framework.
 type DBManagerInput struct {
 	depinject.In
-	Logger        log.Logger
-	DepositPruner *pruner.DBPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*dastore.KVStore[*types.Deposit],
-		event.Subscription,
-	]
-	AvailabilityPruner *pruner.DBPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*filedb.RangeDB,
-		event.Subscription,
-	]
+	Logger             log.Logger
+	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
+	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
