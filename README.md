@@ -21,10 +21,6 @@ environment to that of the Ethereum Mainnet.
 First there was EVM Compatibility; next, EVM Equivalence; and now with
 BeaconKit, **EVM Identicality**.
 
-## Why BeaconKit
-
-TODO: Talk about Polaris / Ethermint compatibility issue.
-
 ## Supported Execution Clients
 
 Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine)
