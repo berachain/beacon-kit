@@ -20,27 +20,13 @@
 
 package components
 
-// DefaultComponents returns the default set of components
-// that are provided by beacon-kit.
-func DefaultComponents() []any {
-	return []any{
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideTrustedSetup,
-		ProvideDepositStore,
-		ProvideConfig,
-		ProvideEngineClient,
-		ProvideJWTSecret,
-		ProvideBlobProofVerifier,
-		ProvideTelemetrySink,
-		ProvideExecutionEngine,
-		ProvideBeaconDepositContract,
-		ProvideLocalBuilder,
-		ProvideStateProcessor,
-		// pruner shite
-		ProvideBlockFeed,
-		ProvideDepositPruner,
-		ProvideAvailabilityPruner,
-		ProvideDBManager,
-	}
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/ethereum/go-ethereum/event"
+)
+
+// ProvideBlockFeed provides a block feed for the depinject framework.
+func ProvideBlockFeed() *event.FeedOf[feed.Event[*types.BeaconBlock]] {
+	return &event.FeedOf[feed.Event[*types.BeaconBlock]]{}
 }

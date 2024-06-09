@@ -123,6 +123,11 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				components.ProvideLocalBuilder,
 				components.ProvideStateProcessor,
 				components.ProvideExecutionEngine,
+				// pruner shite
+				components.ProvideBlockFeed,
+				components.ProvideDepositPruner,
+				components.ProvideAvailabilityPruner,
+				components.ProvideDBManager,
 			),
 		),
 		&autoCliOpts,

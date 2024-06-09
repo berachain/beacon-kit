@@ -100,6 +100,7 @@ func TestPruner(t *testing.T) {
 			testPruner := pruner.NewPruner[
 				pruner.BeaconBlock,
 				pruner.BlockEvent[pruner.BeaconBlock],
+				pruner.Prunable,
 				pruner.Subscription,
 			](logger, mockPrunable, "TestPruner", &feed, pruneRangeFn)
 
