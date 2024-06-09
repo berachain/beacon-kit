@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types_test
 
@@ -30,9 +25,28 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/require"
 )
+
+func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
+	var byteArray [256]byte
+	byteSlice := byteArray[:]
+	return types.BeaconBlockBodyDeneb{
+		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+		},
+		ExecutionPayload: &types.ExecutableDataDeneb{
+			LogsBloom: byteSlice,
+		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+}
 
 func TestBeaconBlockBodyBase(t *testing.T) {
 	body := types.BeaconBlockBodyBase{
@@ -64,4 +78,58 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 	require.NotNil(t, body.GetExecutionPayload())
 	require.NotNil(t, body.GetBlobKzgCommitments())
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
+}
+
+func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
+	body := generateBeaconBlockBodyDeneb()
+	tree, err := body.GetTree()
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+}
+
+func TestBeaconBlockBodyDeneb_SetExecutionData_Error(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	executionData := &types.ExecutionPayload{}
+	err := body.SetExecutionData(executionData)
+
+	require.ErrorContains(t, err, "invalid execution data type")
+}
+
+func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
+	body.SetBlobKzgCommitments(commitments)
+
+	require.Equal(t, commitments, body.GetBlobKzgCommitments())
+}
+
+func TestBeaconBlockBodyDeneb_SetRandaoReveal(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	randaoReveal := crypto.BLSSignature{1, 2, 3}
+	body.SetRandaoReveal(randaoReveal)
+
+	require.Equal(t, randaoReveal, body.GetRandaoReveal())
+}
+
+func TestBeaconBlockBodyDeneb_SetEth1Data(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	eth1Data := &types.Eth1Data{}
+	body.SetEth1Data(eth1Data)
+
+	require.Equal(t, eth1Data, body.GetEth1Data())
+}
+
+func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
+	body := types.BeaconBlockBodyDeneb{}
+	deposits := []*types.Deposit{}
+	body.SetDeposits(deposits)
+
+	require.Equal(t, deposits, body.GetDeposits())
+}
+
+func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
+	body := generateBeaconBlockBodyDeneb()
+	roots, err := body.GetTopLevelRoots()
+	require.NoError(t, err)
+	require.NotNil(t, roots)
 }

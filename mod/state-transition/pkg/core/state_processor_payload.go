@@ -1,48 +1,40 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"golang.org/x/sync/errgroup"
 )
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-//
-//nolint:funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -51,14 +43,50 @@ func (sp *StateProcessor[
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
+		header  ExecutionPayloadHeaderT
+		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
-	// Get the merkle roots of transactions and withdrawals in parallel.
-	g, gCtx := errgroup.WithContext(context.Background())
-	var (
-		txsRoot         primitives.Root
-		withdrawalsRoot primitives.Root
-	)
+	// Skip payload verification if the context is configured as such.
+	if !ctx.GetSkipPayloadVerification() {
+		g.Go(func() error {
+			return sp.validateExecutionPayload(
+				gCtx, st, blk, ctx.GetOptimisticEngine(),
+			)
+		})
+	}
+
+	// Get the execution payload header.
+	g.Go(func() error {
+		var err error
+		header, err = payload.ToHeader()
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// Set the latest execution payload header.
+	return st.SetLatestExecutionPayloadHeader(header)
+}
+
+// validateExecutionPayload validates the execution payload against both local
+// state
+// and the execution engine.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) validateExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	optimisticEngine bool,
+) error {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
 
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -66,51 +94,31 @@ func (sp *StateProcessor[
 	}
 
 	// We want to check to ensure the chain is canonical with respect to the
-	// parent hash before we let the execution client know about the payload,
+	// parent hash before we let the execution client know about the
+	// payload,
 	// this is to prevent Polygon style re-orgs from being triggered by a
 	// malicious actor who tries to force clients to accept a non-canonical
 	// block that passes block validity checks.
 	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
-			ErrParentRootMismatch,
+			ErrParentPayloadHashMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
 			payload.GetParentHash(),
 			safeHash,
 		)
 	}
 
-	// Verify and notify the new payload early in the function.
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	g.Go(func() error {
-		if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-			gCtx, engineprimitives.BuildNewPayloadRequest(
-				payload,
-				body.GetBlobKzgCommitments().ToVersionedHashes(),
-				&parentBeaconBlockRoot,
-				ctx.GetSkipPayloadIfExists(),
-				ctx.GetOptimisticEngine(),
-			),
-		); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			payload.GetTransactions(),
-		).HashTreeRoot()
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			payload.GetWithdrawals(),
-		).HashTreeRoot()
-		return withdrawalsRootErr
-	})
+	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
+		ctx, engineprimitives.BuildNewPayloadRequest(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			optimisticEngine,
+		),
+	); err != nil {
+		return err
+	}
 
 	// Get the current epoch.
 	slot, err := st.GetSlot()
@@ -136,8 +144,9 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: Verify timestamp data once Clock is done.
-	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err != nil {
-	// 	return errors.Newf("slot or genesis time in state is corrupt, cannot
+	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err !=
+	// nil { 	return errors.Newf("slot or genesis time in state is corrupt,
+	// cannot
 	// compute time: %v", err)
 	// } else if payload.Timestamp != expectedTime {
 	// 	return errors.Newf("state at slot %d, genesis time %d, expected
@@ -166,33 +175,5 @@ func (sp *StateProcessor[
 			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
-
-	// If deriving either of the roots or verifying the payload fails, return
-	// the error.
-	if err = g.Wait(); err != nil {
-		return err
-	}
-
-	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(
-		&types.ExecutionPayloadHeaderDeneb{
-			ParentHash:       payload.GetParentHash(),
-			FeeRecipient:     payload.GetFeeRecipient(),
-			StateRoot:        payload.GetStateRoot(),
-			ReceiptsRoot:     payload.GetReceiptsRoot(),
-			LogsBloom:        payload.GetLogsBloom(),
-			Random:           payload.GetPrevRandao(),
-			Number:           payload.GetNumber(),
-			GasLimit:         payload.GetGasLimit(),
-			GasUsed:          payload.GetGasUsed(),
-			Timestamp:        payload.GetTimestamp(),
-			ExtraData:        payload.GetExtraData(),
-			BaseFeePerGas:    payload.GetBaseFeePerGas(),
-			BlockHash:        payload.GetBlockHash(),
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      payload.GetBlobGasUsed(),
-			ExcessBlobGas:    payload.GetExcessBlobGas(),
-		},
-	)
+	return nil
 }

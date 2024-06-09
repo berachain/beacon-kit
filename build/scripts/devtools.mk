@@ -29,10 +29,10 @@ tidy: ## run go mod tidy in all modules
 	@find . -name 'go.mod' ! -path './go.mod' -execdir go mod tidy \;
 
 yap: ## the yap cave
-	@go run ./mod/node-builder/pkg/utils/yap/yap.go
+	@go run ./mod/node-core/pkg/utils/yap/yap.go
 
 tidy-sync-check:
-	@$(MAKE) tidy sync repo-rinse
+	@$(MAKE) repo-rinse tidy sync 
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "Tidy and sync operations resulted in changes"; \
 		git status -s; \

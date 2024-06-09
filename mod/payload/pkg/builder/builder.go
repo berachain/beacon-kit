@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package builder
 
@@ -30,13 +25,25 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
+		GetParentHash() common.ExecutionHash
+	},
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	},
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -45,7 +52,7 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine
+	ee ExecutionEngine[ExecutionPayloadT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -55,16 +62,33 @@ type PayloadBuilder[
 }
 
 // NewService creates a new service.
-func New[BeaconStateT BeaconState](
+func New[
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ExecutionPayloadT interface {
+		IsNil() bool
+		Empty(uint32) ExecutionPayloadT
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetFeeRecipient() common.ExecutionAddress
+	},
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+	},
+](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine,
+	ee ExecutionEngine[ExecutionPayloadT],
 	pc *cache.PayloadIDCache[
 		engineprimitves.PayloadID, [32]byte, math.Slot,
 	],
-) *PayloadBuilder[BeaconStateT] {
-	return &PayloadBuilder[BeaconStateT]{
+) *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+] {
+	return &PayloadBuilder[
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -74,6 +98,8 @@ func New[BeaconStateT BeaconState](
 }
 
 // Enabled returns true if the payload builder is enabled.
-func (pb *PayloadBuilder[BeaconStateT]) Enabled() bool {
+func (pb *PayloadBuilder[
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+]) Enabled() bool {
 	return pb.cfg.Enabled
 }

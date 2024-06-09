@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
@@ -36,9 +31,10 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -56,7 +52,7 @@ func (sp *StateProcessor[
 	}
 	depositCount := min(
 		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.DepositCount-index,
+		uint64(eth1Data.GetDepositCount())-index,
 	)
 	_ = depositCount
 	// TODO: Update eth1data count and check this.
@@ -69,9 +65,10 @@ func (sp *StateProcessor[
 // ProcessDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -81,19 +78,16 @@ func (sp *StateProcessor[
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
-		// TODO: unhood this in better spot later
-		if err := st.SetEth1DepositIndex(dep.GetIndex()); err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -108,6 +102,31 @@ func (sp *StateProcessor[
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	if err = st.SetEth1DepositIndex(
+		depositIndex + 1,
+	); err != nil {
+		return err
+	}
+
+	return sp.applyDeposit(st, dep)
+}
+
+// processDeposit processes the deposit and ensures it matches the local state.
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+]) applyDeposit(
+	st BeaconStateT,
+	dep DepositT,
+) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
@@ -122,6 +141,7 @@ func (sp *StateProcessor[
 			math.Gwei(sp.cs.MaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
+
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
 	return sp.createValidator(st, dep)
@@ -129,9 +149,10 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -176,9 +197,10 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
@@ -200,6 +222,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
@@ -208,9 +231,10 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, ContextT, DepositT, ForkDataT,
-	ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, ContextT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processWithdrawals(
 	st BeaconStateT,
 	body BeaconBlockBodyT,
@@ -248,7 +272,9 @@ func (sp *StateProcessor[
 		}
 
 		// Then we process the withdrawal.
-		if err = st.DecreaseBalance(wd.Validator, wd.Amount); err != nil {
+		if err = st.DecreaseBalance(
+			wd.GetValidatorIndex(), wd.GetAmount(),
+		); err != nil {
 			return err
 		}
 	}
@@ -257,7 +283,7 @@ func (sp *StateProcessor[
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].Index + 1).Unwrap(),
+			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
 		); err != nil {
 			return err
 		}
@@ -273,7 +299,7 @@ func (sp *StateProcessor[
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index
 		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].Index + 1) %
+			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
 				math.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not

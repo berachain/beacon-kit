@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package validator
 
@@ -29,15 +24,48 @@ import (
 	"context"
 	"time"
 
-	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// computeAndSetStateRoot computes the state root of an outgoing block
+// and sets it in the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) computeAndSetStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	s.logger.Info(
+		"computing state root for block 🌲",
+		"slot", blk.GetSlot(),
+	)
+
+	var stateRoot primitives.Root
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	if err != nil {
+		s.logger.Error(
+			"failed to compute state root while building block ❗️ ",
+			"slot", blk.GetSlot(),
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info("state root computed for block 💻 ",
+		"slot", blk.GetSlot(),
+		"state_root", stateRoot,
+	)
+	blk.SetStateRoot(stateRoot)
+	return nil
+}
+
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -50,11 +78,11 @@ func (s *Service[
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
-			Context:             ctx,
-			OptimisticEngine:    true,
-			SkipPayloadIfExists: true,
-			SkipValidateResult:  true,
-			SkipValidateRandao:  true,
+			Context:                 ctx,
+			OptimisticEngine:        true,
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+			SkipValidateRandao:      true,
 		},
 		st, blk,
 	); err != nil {
@@ -62,39 +90,4 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot()
-}
-
-// verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-]) verifyStateRoot(
-	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	startTime := time.Now()
-	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
-		// We run with a non-optimistic engine here to ensure
-		// that the proposer does not try to push through a bad block.
-		&transition.Context{
-			Context:             ctx,
-			OptimisticEngine:    false,
-			SkipPayloadIfExists: false,
-			SkipValidateResult:  false,
-			SkipValidateRandao:  false,
-		},
-		st, blk,
-	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	return nil
 }

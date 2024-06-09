@@ -1,64 +1,74 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package core
 
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
-type BeaconState[ValidatorT any] interface {
-	Copy() BeaconState[ValidatorT]
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalT any,
+] interface {
+	Copy() BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT, WithdrawalT,
+	]
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
-	ReadOnlyBeaconState[ValidatorT]
-	WriteOnlyBeaconState[ValidatorT]
+	ReadOnlyBeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ValidatorT, WithdrawalT,
+	]
+	WriteOnlyBeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[ValidatorT any] interface {
-	ReadOnlyEth1Data
+type ReadOnlyBeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
+] interface {
+	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
-	ReadOnlyWithdrawals
+	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
 	GetGenesisValidatorsRoot() (primitives.Root, error)
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() ([]ValidatorT, error)
 	GetTotalSlashing() (math.Gwei, error)
@@ -66,20 +76,42 @@ type ReadOnlyBeaconState[ValidatorT any] interface {
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
+}
+
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() primitives.Root
+	GetStateRoot() primitives.Root
+	SetStateRoot(primitives.Root)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[ValidatorT any] interface {
-	WriteOnlyEth1Data
+type WriteOnlyBeaconState[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
+] interface {
+	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
 	SetGenesisValidatorsRoot(root primitives.Root) error
-	SetFork(*types.Fork) error
+	SetFork(ForkT) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, primitives.Root) error
-	SetLatestBlockHeader(*types.BeaconBlockHeader) error
+	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -135,24 +167,24 @@ type ReadOnlyValidators[ValidatorT any] interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data interface {
-	SetEth1Data(*types.Eth1Data) error
+type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
+	SetEth1Data(Eth1DataT) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
-		engineprimitives.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data interface {
-	GetEth1Data() (*types.Eth1Data, error)
+type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
+	GetEth1Data() (Eth1DataT, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
-		engineprimitives.ExecutionPayloadHeader, error,
+		ExecutionPayloadHeaderT, error,
 	)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+type ReadOnlyWithdrawals[WithdrawalT any] interface {
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

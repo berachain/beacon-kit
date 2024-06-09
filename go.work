@@ -1,17 +1,19 @@
-go 1.22.3
+go 1.22.4
 
 use (
 	./beacond
 	./build/tools
 	./mod/beacon
+	./mod/cli
 	./mod/consensus-types
 	./mod/da
 	./mod/engine-primitives
 	./mod/errors
 	./mod/execution
+	./mod/interfaces
 	./mod/log
 	./mod/node-api
-	./mod/node-builder
+	./mod/node-core
 	./mod/p2p
 	./mod/payload
 	./mod/primitives

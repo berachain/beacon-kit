@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package runtime
 
@@ -30,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // AppOptions is an interface that provides the ability to
@@ -42,7 +37,7 @@ type AppOptions interface {
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
@@ -53,42 +48,39 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// StorageBackend is an interface that provides the
-// beacon state to the runtime.
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[types.BeaconBlockBody, BlobSidecarsT],
-	BeaconBlockT,
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 ] interface {
-	AvailabilityStore(
-		ctx context.Context,
-	) AvailabilityStoreT
-	StateFromContext(ctx context.Context) BeaconStateT
-	DepositStore(ctx context.Context) DepositStoreT
+	// AvailabilityStore returns the availability store for the given context.
+	AvailabilityStore(context.Context) AvailabilityStoreT
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
+	// DepositStore returns the deposit store for the given context.
+	DepositStore(context.Context) DepositStoreT
 }
 
 // BlobSidecars is an interface that represents the sidecars.
 type BlobSidecars interface {
-	ssz.Marshaler
-	ssz.Unmarshaler
+	ssz.Marshallable
+	IsNil() bool
 	Len() int
 }
 
 // DepositStore is an interface that provides the
 // expected deposits to the runtime.
 type DepositStore interface {
-	ExpectedDeposits(
+	GetDepositsByIndex(
+		startIndex uint64,
 		numView uint64,
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
-	DequeueDeposits(
-		numDequeue uint64,
-	) ([]*types.Deposit, error)
-	PruneToIndex(
-		index uint64,
-	) error
+	Prune(index uint64, numPrune uint64) error
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

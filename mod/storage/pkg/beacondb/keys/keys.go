@@ -1,52 +1,74 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package keys
 
-// Collection prefixes.
 const (
-	WithdrawalQueuePrefix                  = "withdrawal_queue"
-	RandaoMixPrefix                        = "randao_mix"
-	SlashingsPrefix                        = "slashings"
-	TotalSlashingPrefix                    = "total_slashing"
-	ValidatorIndexPrefix                   = "val_idx"
-	BlockRootsPrefix                       = "block_roots"
-	StateRootsPrefix                       = "state_roots"
-	ValidatorByIndexPrefix                 = "val_idx_to_pk"
-	ValidatorPubkeyToIndexPrefix           = "val_pk_to_idx"
-	ValidatorConsAddrToIndexPrefix         = "val_cons_addr_to_idx"
-	ValidatorEffectiveBalanceToIndexPrefix = "val_eff_bal_to_idx"
-	LatestBeaconBlockHeaderPrefix          = "latest_beacon_block_header"
-	SlotPrefix                             = "slot"
-	BalancesPrefix                         = "balances"
-	Eth1BlockHashPrefix                    = "eth1_block_hash"
-	Eth1DataPrefix                         = "eth1_data"
-	Eth1DepositIndexPrefix                 = "eth1_deposit_idx"
-	LatestExecutionPayloadHeaderPrefix     = "latest_execution_payload_header"
-	GenesisValidatorsRootPrefix            = "genesis_validators_root"
-	NextWithdrawalIndexPrefix              = "next_withdrawal_index"
-	NextWithdrawalValidatorIndexPrefix     = "next_withdrawal_val_idx"
-	ForkPrefix                             = "fork"
+	WithdrawalQueuePrefix byte = iota
+	RandaoMixPrefix
+	SlashingsPrefix
+	TotalSlashingPrefix
+	ValidatorIndexPrefix
+	BlockRootsPrefix
+	StateRootsPrefix
+	ValidatorByIndexPrefix
+	ValidatorPubkeyToIndexPrefix
+	ValidatorConsAddrToIndexPrefix
+	ValidatorEffectiveBalanceToIndexPrefix
+	LatestBeaconBlockHeaderPrefix
+	SlotPrefix
+	BalancesPrefix
+	Eth1BlockHashPrefix
+	Eth1DataPrefix
+	Eth1DepositIndexPrefix
+	LatestExecutionPayloadHeaderPrefix
+	LatestExecutionPayloadVersionPrefix
+	GenesisValidatorsRootPrefix
+	NextWithdrawalIndexPrefix
+	NextWithdrawalValidatorIndexPrefix
+	ForkPrefix
+)
+
+//nolint:lll
+const (
+	WithdrawalQueuePrefixHumanReadable                  = "WithdrawalQueuePrefix"
+	RandaoMixPrefixHumanReadable                        = "RandaoMixPrefix"
+	SlashingsPrefixHumanReadable                        = "SlashingsPrefix"
+	TotalSlashingPrefixHumanReadable                    = "TotalSlashingPrefix"
+	ValidatorIndexPrefixHumanReadable                   = "ValidatorIndexPrefix"
+	BlockRootsPrefixHumanReadable                       = "BlockRootsPrefix"
+	StateRootsPrefixHumanReadable                       = "StateRootsPrefix"
+	ValidatorByIndexPrefixHumanReadable                 = "ValidatorByIndexPrefix"
+	ValidatorPubkeyToIndexPrefixHumanReadable           = "ValidatorPubkeyToIndexPrefix"
+	ValidatorConsAddrToIndexPrefixHumanReadable         = "ValidatorConsAddrToIndexPrefix"
+	ValidatorEffectiveBalanceToIndexPrefixHumanReadable = "ValidatorEffectiveBalanceToIndexPrefix"
+	LatestBeaconBlockHeaderPrefixHumanReadable          = "LatestBeaconBlockHeaderPrefix"
+	SlotPrefixHumanReadable                             = "SlotPrefix"
+	BalancesPrefixHumanReadable                         = "BalancesPrefix"
+	Eth1BlockHashPrefixHumanReadable                    = "Eth1BlockHashPrefix"
+	Eth1DataPrefixHumanReadable                         = "Eth1DataPrefix"
+	Eth1DepositIndexPrefixHumanReadable                 = "Eth1DepositIndexPrefix"
+	LatestExecutionPayloadHeaderPrefixHumanReadable     = "LatestExecutionPayloadHeaderPrefix"
+	LatestExecutionPayloadVersionPrefixHumanReadable    = "LatestExecutionPayloadVersionPrefix"
+	GenesisValidatorsRootPrefixHumanReadable            = "GenesisValidatorsRootPrefix"
+	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
+	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
+	ForkPrefixHumanReadable                             = "ForkPrefix"
 )

@@ -34,7 +34,6 @@ METRICS_PORT_ID = defaults.METRICS_PORT_ID
 
 METRICS_PATH = defaults.METRICS_PATH
 
-IMAGE = "ghcr.io/paradigmxyz/reth:latest"
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "/root/.reth/{}".format(CONFIG_FILENAME)
 FILES = {
@@ -83,8 +82,32 @@ CMD = [
     # "--config", CONFIG_LOCATION,
     "--nat",
     "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
+    "--builder.deadline",
+    "2",
+    "--builder.max-tasks",
+    "20",
+    "--txpool.pending-max-count",
+    "100000",
+    "--txpool.pending-max-size",
+    "100",
+    "--txpool.basefee-max-count",
+    "100000",
+    "--txpool.basefee-max-size",
+    "100",
+    "--txpool.queued-max-count",
+    "100000",
+    "--txpool.queued-max-size",
+    "100",
+    "--txpool.max-account-slots",
+    "1000",
+    "--txpool.max-cached-entries",
+    "1000",
+    "--rpc-cache.max-receipts",
+    "10000",
 ]
 BOOTNODE_CMD = "--bootnodes"
+MAX_PEERS_OUTBOUND_CMD = "--max-outbound-peers"
+MAX_PEERS_INBOUND_CMD = "--max-inbound-peers"
 
 # Modify command flag --verbosity to change the verbosity level
 VERBOSITY_LEVELS = {
@@ -97,3 +120,12 @@ VERBOSITY_LEVELS = {
 
 USED_PORTS = defaults.USED_PORTS
 USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
+
+def set_max_peers(config, max_peers):
+    cmdList = config["cmd"][:]
+    cmdList.append(MAX_PEERS_OUTBOUND_CMD)
+    cmdList.append(max_peers)
+    cmdList.append(MAX_PEERS_INBOUND_CMD)
+    cmdList.append(max_peers)
+    config["cmd"] = cmdList
+    return config

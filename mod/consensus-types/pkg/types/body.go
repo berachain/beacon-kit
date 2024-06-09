@@ -26,7 +26,6 @@
 package types
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -49,6 +48,28 @@ const (
 	// in the merkle tree built from the block body.
 	KZGMerkleIndexDeneb = 26
 )
+
+type BeaconBlockBody struct {
+	RawBeaconBlockBody
+}
+
+// RawBeaconBlockBody is an interface for the different beacon block body.
+func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDeneb{
+			BeaconBlockBodyBase: BeaconBlockBodyBase{},
+			ExecutionPayload: &ExecutableDataDeneb{
+				//nolint:mnd // todo fix.
+				LogsBloom: make([]byte, 256),
+				//nolint:mnd // todo fix.
+				ExtraData: make([]byte, 32),
+			},
+		}}
+	default:
+		panic("unsupported fork version")
+	}
+}
 
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the block
 // body.
@@ -134,16 +155,17 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 func (
 	b *BeaconBlockBodyDeneb,
-) GetExecutionPayload() engineprimitives.ExecutionPayload {
-	return b.ExecutionPayload
+) GetExecutionPayload() *ExecutionPayload {
+	return &ExecutionPayload{InnerExecutionPayload: b.ExecutionPayload}
 }
 
 // SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetExecutionData(
-	executionData engineprimitives.ExecutionPayload,
+	executionData *ExecutionPayload,
 ) error {
 	var ok bool
-	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
+	b.ExecutionPayload, ok = executionData.
+		InnerExecutionPayload.(*ExecutableDataDeneb)
 	if !ok {
 		return errors.New("invalid execution data type")
 	}
@@ -180,7 +202,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
-	// graffiti
 	layer[2] = b.GetGraffiti()
 
 	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
@@ -188,7 +209,6 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		return nil, err
 	}
 
-	// Execution Payload
 	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
 	if err != nil {
 		return nil, err
@@ -201,15 +221,4 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 // Length returns the number of fields in the BeaconBlockBodyDeneb struct.
 func (b *BeaconBlockBodyDeneb) Length() uint64 {
 	return BodyLengthDeneb
-}
-
-func (b *BeaconBlockBodyDeneb) AttachExecution(
-	executionData engineprimitives.ExecutionPayload,
-) error {
-	var ok bool
-	b.ExecutionPayload, ok = executionData.(*ExecutableDataDeneb)
-	if !ok {
-		return errors.New("invalid execution data type")
-	}
-	return nil
 }

@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package deposit
 
@@ -29,124 +24,156 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service represenst the deposit service that processes deposit events.
 type Service[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT any,
+	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
+	// ethclient is the Ethereum 1.0 client.
+	ethclient EthClient
 	// dc is the contract interface for interacting with the deposit contract.
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	feed BlockFeed[
+		DepositT,
+		BeaconBlockBodyT,
+		BeaconBlockT,
+		BlockEventT,
+		ExecutionPayloadT,
+		SubscriptionT,
+	]
+	// metrics is the metrics for the deposit service.
+	metrics *depositMetrics
+	// newBlock is the channel for new blocks.
+	newBlock chan BeaconBlockT
+	// failedBlocks
+	failedBlocks map[math.U64]struct{}
 }
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BlockEventT BlockEvent[
+		DepositT, BeaconBlockBodyT,
+		BeaconBlockT, ExecutionPayloadT,
+	],
 	DepositStoreT Store[DepositT],
+	ExecutionPayloadT interface{ GetNumber() math.U64 },
 	SubscriptionT interface {
 		Unsubscribe()
 	},
-	DepositT any,
+	WithdrawalCredentialsT any,
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
+	ethclient EthClient,
+	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
+	feed BlockFeed[
+		DepositT, BeaconBlockBodyT, BeaconBlockT, BlockEventT,
+		ExecutionPayloadT, SubscriptionT,
+	],
 ) *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
+		ExecutionPayloadT, SubscriptionT,
+		WithdrawalCredentialsT,
 	]{
 		feed:               feed,
 		logger:             logger,
-		ds:                 ds,
-		dc:                 dc,
+		ethclient:          ethclient,
 		eth1FollowDistance: eth1FollowDistance,
+		metrics:            newDepositMetrics(telemetrySink),
+		dc:                 dc,
+		ds:                 ds,
+		newBlock:           make(chan BeaconBlockT),
+		failedBlocks:       make(map[math.U64]struct{}),
 	}
 }
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Start(
 	ctx context.Context,
 ) error {
+	go s.blockFeedListener(ctx)
+	go s.depositFetcher(ctx)
+	go s.depositCatchupFetcher(ctx)
+	return nil
+}
+
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
+]) blockFeedListener(ctx context.Context) {
 	ch := make(chan BlockEventT)
 	sub := s.feed.Subscribe(ch)
-	go func() {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event := <-ch:
-				if err := s.handleDepositEvent(event); err != nil {
-					s.logger.Error("failed to handle deposit event", "err", err)
-				}
+	defer sub.Unsubscribe()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-ch:
+			if event.Is(events.BeaconBlockFinalized) {
+				s.newBlock <- event.Data()
 			}
 		}
-	}()
-
-	return nil
+	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Name() string {
 	return "deposit-handler"
 }
 
 // Status returns the current status of the service.
 func (s *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) Status() error {
 	return nil
 }
 
 // WaitForHealthy waits for the service to become healthy.
 func (s *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
+	ExecutionPayloadT, SubscriptionT,
+	WithdrawalCredentialsT, DepositT,
 ]) WaitForHealthy(
 	_ context.Context,
 ) {
-}
-
-// handleDepositEvent processes a deposit event.
-func (s *Service[
-	BeaconBlockT, BlockEventT, SubscriptionT, DepositT,
-]) handleDepositEvent(
-	e BlockEventT,
-) error {
-	// slot is the block slot number adjusted by the follow distance.
-	slot := e.Block().GetSlot() - s.eth1FollowDistance
-	s.logger.Info("processing deposit logs 💵", "slot", slot)
-	// deposits are retrieved from the deposit contract.
-	deposits, err := s.dc.ReadDeposits(e.Context(), slot.Unwrap())
-	if err != nil {
-		return err
-	}
-
-	// Enqueue the deposits into the deposit store.
-	if err = s.ds.EnqueueDeposits(deposits); err != nil {
-		return err
-	}
-	return nil
 }

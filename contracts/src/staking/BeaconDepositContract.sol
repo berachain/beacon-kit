@@ -1,31 +1,8 @@
 // SPDX-License-Identifier: MIT
-//
-// Copyright (c) 2024 Berachain Foundation
-//
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
-
-pragma solidity 0.8.25;
+pragma solidity 0.8.26;
 
 import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
+import { Ownable } from "@solady/src/auth/Ownable.sol";
 
 /**
  * @title BeaconDepositContract
@@ -34,7 +11,7 @@ import { IBeaconDepositContract } from "./IBeaconDepositContract.sol";
  * @dev Its events are used by the beacon chain to manage the staking process.
  * @dev Its stake asset needs to be of 18 decimals to match the native asset.
  */
-contract BeaconDepositContract is IBeaconDepositContract {
+contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CONSTANTS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -56,13 +33,26 @@ contract BeaconDepositContract is IBeaconDepositContract {
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /// @dev A flag to check if the contract has been initialized.
+    bool private initialized = false;
+
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
 
+    /// @dev depositAuth is a mapping of number of deposits an authorized address can make.
+    mapping(address => uint64) private depositAuth;
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @dev Initializes the owner of the contract.
+    function initializeOwner() external {
+        require(!initialized, "Already initialized");
+        _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        initialized = true;
+    }
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
@@ -74,6 +64,10 @@ contract BeaconDepositContract is IBeaconDepositContract {
         external
         payable
     {
+        if (depositAuth[msg.sender] == 0) {
+            revert UnauthorizedDeposit();
+        }
+
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -92,12 +86,25 @@ contract BeaconDepositContract is IBeaconDepositContract {
             revert InsufficientDeposit();
         }
 
+        --depositAuth[msg.sender];
+
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
             emit Deposit(
                 pubkey, credentials, amountInGwei, signature, depositCount++
             );
         }
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function allowDeposit(
+        address depositor,
+        uint64 number
+    )
+        external
+        onlyOwner
+    {
+        depositAuth[depositor] = number;
     }
 
     /// @dev Validates the deposit amount and sends the native asset to the zero address.

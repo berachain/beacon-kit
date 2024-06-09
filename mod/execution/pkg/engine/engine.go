@@ -1,27 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package engine
 
@@ -40,12 +35,13 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadDenebT]
+	ec *client.EngineClient[ExecutionPayloadT]
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
@@ -54,14 +50,15 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadDenebT engineprimitives.ExecutionPayload,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ](
-	ec *client.EngineClient[ExecutionPayloadDenebT],
+	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],
 	ts TelemetrySink,
-) *Engine[ExecutionPayloadT, ExecutionPayloadDenebT] {
-	return &Engine[ExecutionPayloadT, ExecutionPayloadDenebT]{
+) *Engine[ExecutionPayloadT] {
+	return &Engine[ExecutionPayloadT]{
 		ec:      ec,
 		logger:  logger,
 		metrics: newEngineMetrics(ts, logger),
@@ -69,9 +66,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) Start(
+func (ee *Engine[ExecutionPayloadT]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -84,19 +79,15 @@ func (ee *Engine[
 }
 
 // Status returns error if the service is not considered healthy.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) Status() error {
+func (ee *Engine[ExecutionPayloadT]) Status() error {
 	return ee.ec.Status()
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) GetPayload(
+func (ee *Engine[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest,
-) (engineprimitives.BuiltExecutionPayloadEnv, error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -104,17 +95,15 @@ func (ee *Engine[
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) NotifyForkchoiceUpdate(
+func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
+	hasPayloadAttributes := req.PayloadAttributes != nil &&
+		!req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State,
-		req.PayloadAttributes != nil &&
-			!req.PayloadAttributes.IsNil(),
+		req.State, hasPayloadAttributes,
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -133,7 +122,7 @@ func (ee *Engine[
 		engineerrors.ErrAcceptedPayloadStatus,
 		engineerrors.ErrSyncingPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State)
+		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State, err)
 		return payloadID, nil, nil
 
 	// If we get invalid payload status, we will need to find a valid
@@ -146,14 +135,7 @@ func (ee *Engine[
 		engineerrors.ErrInvalidPayloadStatus,
 		engineerrors.ErrInvalidBlockHashPayloadStatus,
 	):
-		ee.metrics.markForkchoiceUpdateInvalid(req.State)
-		req.State.HeadBlockHash = req.State.SafeBlockHash
-		payloadID, latestValidHash, err = ee.NotifyForkchoiceUpdate(ctx, req)
-		if err != nil {
-			// We have to return the error here since this function
-			// is recursive.
-			return nil, nil, err
-		}
+		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
 	// JSON-RPC errors are predefined and should be handled as such.
@@ -167,20 +149,32 @@ func (ee *Engine[
 		return nil, nil, err
 	}
 
+	// If we reached here, and we have a nil payload ID, we should log a
+	// warning.
+	if payloadID == nil && hasPayloadAttributes {
+		ee.logger.Warn(
+			"received nil payload ID on VALID engine response",
+			"head_eth1_hash", req.State.HeadBlockHash,
+			"safe_eth1_hash", req.State.SafeBlockHash,
+			"finalized_eth1_hash", req.State.FinalizedBlockHash,
+		)
+		return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
+	}
+
 	return payloadID, latestValidHash, nil
 }
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[
-	ExecutionPayloadT, ExecutionPayloadDenebT,
-]) VerifyAndNotifyNewPayload(
+func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+	req *engineprimitives.NewPayloadRequest[
+		ExecutionPayloadT, *engineprimitives.Withdrawal],
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(
-		req.ExecutionPayload,
+		req.ExecutionPayload.GetBlockHash(),
+		req.ExecutionPayload.GetParentHash(),
 		req.Optimistic,
 	)
 
@@ -190,25 +184,6 @@ func (ee *Engine[
 	// new payload?
 	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
 		return err
-	}
-
-	// If the block already exists on our execution client
-	// we can skip sending the payload to speed things up a bit.
-	if req.SkipIfExists {
-		header, err := ee.ec.HeaderByHash(
-			ctx,
-			req.ExecutionPayload.GetBlockHash(),
-		)
-
-		// If we find the header and there is no error, we can
-		// skip any payload verification, since this block must've
-		// been validated at some point in the past.
-		if header != nil && err == nil {
-			ee.logger.Info("skipping new payload, block already available",
-				"block_hash", req.ExecutionPayload.GetBlockHash(),
-			)
-			return nil
-		}
 	}
 
 	// Otherwise we will send the payload to the execution client.

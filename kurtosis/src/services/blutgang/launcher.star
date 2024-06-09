@@ -14,10 +14,10 @@ BLUTGANG_CONFIG_MOUNT_DIRPATH_ON_SERVICE = "/config"
 IMAGE_NAME = "makemake1337/blutgang:latest"
 
 # The min/max CPU/memory that blutgang can use
-MIN_CPU = 100
-MAX_CPU = 1000
-MIN_MEMORY = 128
-MAX_MEMORY = 2048
+MIN_CPU = 1000
+MAX_CPU = 8000
+MIN_MEMORY = 1024
+MAX_MEMORY = 8096
 
 USED_PORTS = {
     HTTP_PORT_ID: shared_utils.new_port_spec(
@@ -41,13 +41,13 @@ def launch_blutgang(
     all_el_client_info = []
 
     # proceed with adding to all_el_client_info only if full_node_el_clients matches with clients_from_user
-    for full_node_el_client in full_node_el_clients:
-        if full_node_el_client["name"] not in clients_from_user:
+    for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
+        if full_node_el_client_name not in clients_from_user:
             continue
-        rpc_port = full_node_el_client["service"].ports["eth-json-rpc"].number
-        ws_port = full_node_el_client["service"].ports["eth-json-rpc-ws"].number
-        name = full_node_el_client["name"]
-        ip_address = full_node_el_client["service"].ip_address
+        rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
+        ws_port = full_node_el_client_service.ports["eth-json-rpc-ws"].number
+        name = full_node_el_client_name
+        ip_address = full_node_el_client_service.ip_address
 
         all_el_client_info.append(
             new_el_client_info(

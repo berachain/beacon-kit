@@ -1,41 +1,40 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package deposit
 
 import (
 	"context"
+	"errors"
+	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	encoding "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
-const (
-	KeyDepositPrefix = "deposit"
-)
+// Deposit is a struct that holds the deposit information.
+var _ pruner.Prunable = (*KVStore[Deposit])(nil)
+
+const KeyDepositPrefix = "deposit"
 
 type KVStoreProvider struct {
 	store.KVStoreWithBatch
@@ -46,64 +45,83 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 	return p.KVStoreWithBatch
 }
 
-// KVStore is a wrapper around an sdk.Context.
+// KVStore is a simple KV store based implementation that assumes
+// the deposit indexes are tracked outside of the kv store.
 type KVStore[DepositT Deposit] struct {
-	depositQueue *Queue[DepositT]
+	store sdkcollections.Map[uint64, DepositT]
+	mu    sync.RWMutex
 }
 
 // NewStore creates a new deposit store.
 func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore[DepositT]{
-		depositQueue: NewQueue(
+		store: sdkcollections.NewMap(
 			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{uint8(0)}),
 			KeyDepositPrefix,
+			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[DepositT]{},
 		),
 	}
 }
 
-// ExpectedDeposits returns the first numPeek deposits in the queue.
-func (kv *KVStore[DepositT]) ExpectedDeposits(
+// GetDepositsByIndex returns the first N deposits starting from the given
+// index. If N is greater than the number of deposits, it returns up to the
+// last deposit.
+func (kv *KVStore[DepositT]) GetDepositsByIndex(
+	startIndex uint64,
 	numView uint64,
 ) ([]DepositT, error) {
-	return kv.depositQueue.PeekMulti(context.TODO(), numView)
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+	deposits := []DepositT{}
+	for i := range numView {
+		deposit, err := kv.store.Get(context.TODO(), startIndex+i)
+		if errors.Is(err, sdkcollections.ErrNotFound) {
+			return deposits, nil
+		}
+		if err != nil {
+			return deposits, err
+		}
+		deposits = append(deposits, deposit)
+	}
+	return deposits, nil
 }
 
 // EnqueueDeposit pushes the deposit to the queue.
 func (kv *KVStore[DepositT]) EnqueueDeposit(deposit DepositT) error {
-	return kv.depositQueue.Push(context.TODO(), deposit)
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	return kv.setDeposit(deposit)
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
 func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
-	return kv.depositQueue.PushMulti(context.TODO(), deposits)
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	for _, deposit := range deposits {
+		if err := kv.setDeposit(deposit); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// DequeueDeposits returns the first numDequeue deposits in the queue.
-func (kv *KVStore[DepositT]) DequeueDeposits(
-	numDequeue uint64,
-) ([]DepositT, error) {
-	return kv.depositQueue.PopMulti(context.TODO(), numDequeue)
+// setDeposit sets the deposit in the store.
+func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
+	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
 }
 
-// PruneToIndex removes all deposits up to the given index.
-func (kv *KVStore[DepositT]) PruneToIndex(
-	index uint64,
-) error {
-	length, err := kv.depositQueue.Len(context.TODO())
-	if err != nil {
-		return err
-	} else if length == 0 {
-		return nil
+// Prune removes the [start, end) deposits from the store.
+func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	for i := range end {
+		// This only errors if the key passed in cannot be encoded.
+		if err := kv.store.Remove(context.TODO(), start+i); err != nil {
+			return err
+		}
 	}
-
-	head, err := kv.depositQueue.Peek(context.TODO())
-	if err != nil {
-		return err
-	}
-
-	numPop := min(index-head.GetIndex()+1, length)
-	_, err = kv.depositQueue.PopMulti(context.TODO(), numPop)
-	return err
+	return nil
 }

@@ -1,41 +1,34 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is govered by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package state
 
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -48,11 +41,13 @@ type StateDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	ForkT any,
 	BeaconBlockHeaderT any,
 	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ValidatorT Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
@@ -61,6 +56,7 @@ type StateDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	]
 	cs primitives.ChainSpec
@@ -74,11 +70,13 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	ForkT any,
 	BeaconBlockHeaderT any,
 	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ValidatorT Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
@@ -87,6 +85,7 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	cs primitives.ChainSpec,
@@ -97,6 +96,7 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 		WithdrawalCredentialsT,
 	]{
@@ -111,12 +111,10 @@ func NewBeaconStateFromDB[
 // Copy returns a copy of the beacon state.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) Copy() BeaconStateT {
-	return NewBeaconStateFromDB[
-		BeaconStateT, KVStoreT, ForkT,
-		BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
-	](
+	return NewBeaconStateFromDB[BeaconStateT](
 		s.KVStore.Copy(),
 		s.cs,
 	)
@@ -125,7 +123,8 @@ func (s *StateDB[
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -140,7 +139,8 @@ func (s *StateDB[
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -155,7 +155,8 @@ func (s *StateDB[
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
@@ -189,7 +190,8 @@ func (s *StateDB[
 //nolint:lll
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         ValidatorT
@@ -281,7 +283,8 @@ func (s *StateDB[
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -372,40 +375,34 @@ func (s *StateDB[
 		return [32]byte{}, err
 	}
 
-	activeFork := s.cs.ActiveForkVersionForSlot(slot)
-	switch activeFork {
-	case version.Deneb:
-		executionPayloadHeader, ok :=
-			latestExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb)
-		if !ok {
-			return [32]byte{}, errors.New(
-				"latest execution payload is not of type ExecutableDataDeneb")
-		}
-
-		// TODO: Use New() on BeaconState to prevent reflection usage.
-		return (&deneb.BeaconState{
-			Slot:                  slot,
-			GenesisValidatorsRoot: genesisValidatorsRoot,
-			Fork: reflect.ValueOf(fork).
-				Interface().(*types.Fork),
-			LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
-				Interface().(*types.BeaconBlockHeader),
-			BlockRoots:                   blockRoots,
-			StateRoots:                   stateRoots,
-			LatestExecutionPayloadHeader: executionPayloadHeader,
-			Eth1Data: reflect.ValueOf(eth1Data).
-				Interface().(*types.Eth1Data),
-			Eth1DepositIndex: eth1DepositIndex,
-			Validators: reflect.ValueOf(validators).
-				Interface().([]*types.Validator),
-			Balances:                     balances,
-			RandaoMixes:                  randaoMixes,
-			NextWithdrawalIndex:          nextWithdrawalIndex,
-			NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-			Slashings:                    slashings,
-			TotalSlashing:                totalSlashings,
-		}).HashTreeRoot()
-	default:
-		return [32]byte{}, errors.New("unknown fork version")
+	// TODO: Properly move BeaconState into full generics.
+	st, err := new(state.BeaconState[
+		BeaconBlockHeaderT,
+		ExecutionPayloadHeaderT,
+		Eth1DataT,
+		ForkT,
+		ValidatorT,
+	]).New(
+		s.cs.ActiveForkVersionForSlot(slot),
+		genesisValidatorsRoot,
+		slot,
+		fork,
+		latestBlockHeader,
+		blockRoots,
+		stateRoots,
+		eth1Data,
+		eth1DepositIndex,
+		latestExecutionPayloadHeader,
+		validators,
+		balances,
+		randaoMixes,
+		nextWithdrawalIndex,
+		nextWithdrawalValidatorIndex,
+		slashings,
+		totalSlashings,
+	)
+	if err != nil {
+		return [32]byte{}, err
 	}
+	return st.HashTreeRoot()
 }
