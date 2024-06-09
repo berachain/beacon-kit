@@ -24,12 +24,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/interfaces"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // DefaultComponentsWithStandardTypes returns the default set of components
 // that are provided by beacon-kit with standard types.
 func DefaultComponentsWithStandardTypes() []any {
 	return DefaultComponents[
+		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		*types.Deposit,
 		*types.ExecutionPayload,
@@ -41,9 +46,13 @@ func DefaultComponentsWithStandardTypes() []any {
 // DefaultComponents returns the default set of components
 // that are provided by beacon-kit.
 func DefaultComponents[
+	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT engineprimitives.ExecutionPayload[WithdrawalT],
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		common.ExecutionAddress, common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, WithdrawalT,
+	],
 	WithdrawalT any,
 	WithdrawalCredentialsT ~[32]byte,
 ]() []any {

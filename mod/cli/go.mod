@@ -13,6 +13,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
 	github.com/berachain/beacon-kit/mod/errors => ../errors
 	github.com/berachain/beacon-kit/mod/execution => ../execution
+	github.com/berachain/beacon-kit/mod/interfaces => ../interfaces
 	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/p2p => ../p2p
@@ -74,6 +75,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240530132603-f8935ea1205c // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240530132603-f8935ea1205c // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect

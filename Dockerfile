@@ -41,6 +41,7 @@ COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-t
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
+COPY ./mod/interfaces/go.mod ./mod/interfaces/go.sum ./mod/interfaces/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/

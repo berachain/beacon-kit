@@ -53,7 +53,7 @@ type BeaconBlockBody struct {
 	RawBeaconBlockBody
 }
 
-// RawBeaconBlockBody is an interface for the different beacon block body
+// RawBeaconBlockBody is an interface for the different beacon block body.
 func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	switch forkVersion {
 	case version.Deneb:
