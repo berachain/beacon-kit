@@ -20,11 +20,15 @@
 
 package components
 
+import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+
 // DefaultComponents returns the default set of components
 // that are provided by beacon-kit.
-func DefaultComponents() []any {
+func DefaultComponents[
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+]() []any {
 	return []any{
-		ProvideAvailibilityStore,
+		ProvideAvailibilityStore[BeaconBlockBodyT],
 		ProvideBlsSigner,
 		ProvideTrustedSetup,
 		ProvideDepositStore,
