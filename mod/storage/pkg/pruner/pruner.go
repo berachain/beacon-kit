@@ -33,7 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-// DBPruner is a struct that holds the prunable interface and a notifier channel.
+// DBPruner is a struct that holds the prunable interface and a notifier
+// channel.
 type DBPruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
@@ -52,7 +53,6 @@ func NewPruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 	SubscriptionT Subscription,
-
 ](
 	logger log.Logger[any],
 	prunable Prunable,

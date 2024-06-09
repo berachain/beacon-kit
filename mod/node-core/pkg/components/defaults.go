@@ -45,7 +45,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		],
 		ProvideLocalBuilder,
 		ProvideStateProcessor,
-		// pruner shite
 		ProvideBlockFeed,
 		ProvideDepositPruner,
 		ProvideAvailabilityPruner,
