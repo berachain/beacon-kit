@@ -166,19 +166,19 @@ func assignEventsRoutes(e *echo.Echo, h Handlers) {
 }
 
 func aasignNodeRoutes(e *echo.Echo, h Handlers) {
-	e.GET("/eth/v1/commands/identity",
+	e.GET("/eth/v1/node/identity",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/peers",
+	e.GET("/eth/v1/node/peers",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/peers/:peer_id",
+	e.GET("/eth/v1/node/peers/:peer_id",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/peers/peer_count",
+	e.GET("/eth/v1/node/peers/peer_count",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/version",
+	e.GET("/eth/v1/node/version",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/syncing",
+	e.GET("/eth/v1/node/syncing",
 		h.NotImplemented)
-	e.GET("/eth/v1/commands/health",
+	e.GET("/eth/v1/node/health",
 		h.NotImplemented)
 }
 

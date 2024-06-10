@@ -23,6 +23,7 @@ package core
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -37,20 +38,26 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT,
+		BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, WithdrawalT,
 	],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	Eth1DataT interface {
+		New(primitives.Root, math.U64, common.ExecutionHash) Eth1DataT
+		GetDepositCount() math.U64
+	},
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
+
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
 		New(primitives.Version, primitives.Version, math.Epoch) ForkT
@@ -77,18 +84,23 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT,
 		DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, WithdrawalT,
 	],
 	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	Eth1DataT interface {
+		New(primitives.Root, math.U64, common.ExecutionHash) Eth1DataT
+		GetDepositCount() math.U64
+	},
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
@@ -109,13 +121,13 @@ func NewStateProcessor[
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, ContextT,
-		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		ForkT, ForkDataT, ValidatorT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
@@ -129,7 +141,7 @@ func NewStateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) Transition(
 	ctx ContextT,
@@ -160,7 +172,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.U64,
@@ -208,7 +220,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSlot(
 	st BeaconStateT,
@@ -268,7 +280,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) ProcessBlock(
 	ctx ContextT,
@@ -294,6 +306,8 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	// TODO:
+	//
 	// phase0.ProcessProposerSlashings
 	// phase0.ProcessAttesterSlashings
 
@@ -304,10 +318,10 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// phase0.ProcessEth1Vote ? forkchoice?
-
-	// TODO: LOOK HERE
+	// TODO:
 	//
+	// phase0.ProcessEth1Vote
+
 	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, blk); err != nil {
 		return err
@@ -319,9 +333,8 @@ func (sp *StateProcessor[
 		return nil
 	}
 
-	// Ensure the state root matches the block.
-	//
-	// TODO: We need to validate this in ProcessProposal as well.
+	// Ensure the calculated state root matches the state root on
+	// the block.
 	if stateRoot, err := st.HashTreeRoot(); err != nil {
 		return err
 	} else if blk.GetStateRoot() != stateRoot {
@@ -338,7 +351,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processEpoch(
 	st BeaconStateT,
@@ -358,7 +371,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processBlockHeader(
 	st BeaconStateT,
@@ -447,7 +460,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) getAttestationDeltas(
 	st BeaconStateT,
@@ -468,7 +481,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,

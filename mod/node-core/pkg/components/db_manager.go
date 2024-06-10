@@ -21,38 +21,39 @@
 package components
 
 import (
-	"os"
-
+	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	dastore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	"github.com/ethereum/go-ethereum/event"
 )
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
-	appOpts servertypes.AppOptions,
-	chainSpec primitives.ChainSpec,
-	logger log.Logger,
-) (*dastore.Store[types.BeaconBlockBody], error) {
-	return dastore.New[types.BeaconBlockBody](
-		filedb.NewRangeDB(
-			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						appOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(logger),
-			),
-		),
-		logger.With("service", "beacon-kit.da.store"),
-		chainSpec,
-	), nil
+// DBManagerInput is the input for the dep inject framework.
+type DBManagerInput struct {
+	depinject.In
+	Logger             log.Logger
+	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
+	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
+}
+
+// ProvideDBManager provides a DBManager for the depinject framework.
+func ProvideDBManager(
+	in DBManagerInput,
+) (*manager.DBManager[*types.BeaconBlock,
+	*feed.Event[*types.BeaconBlock],
+	event.Subscription,
+], error) {
+	return manager.NewDBManager[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		event.Subscription,
+	](
+		in.Logger.With("service", "db-manager"),
+		in.DepositPruner,
+		in.AvailabilityPruner,
+	)
 }

@@ -24,23 +24,32 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	dablobs "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -61,14 +70,48 @@ type DepInjectInput struct {
 	Environment appmodule.Environment
 
 	// BeaconKit components
-	AvailabilityStore *dastore.Store[types.BeaconBlockBody]
-	BeaconConfig      *config.Config
-	BlobVerifier      kzg.BlobProofVerifier
-	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-	EngineClient      *engineclient.EngineClient[*types.ExecutionPayload]
-	Signer            crypto.BLSSigner
-	TelemetrySink     *metrics.TelemetrySink
+	AvailabilityStore     *dastore.Store[*types.BeaconBlockBody]
+	BeaconConfig          *config.Config
+	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
+		*types.Deposit, types.WithdrawalCredentials,
+	]
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlobProcessor *dablobs.Processor[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlockBody,
+	]
+	ChainSpec primitives.ChainSpec
+	DBManager *manager.DBManager[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		event.Subscription,
+	]
+	DepositStore   *depositdb.KVStore[*types.Deposit]
+	DepositService *deposit.Service[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*feed.Event[*types.BeaconBlock],
+		*types.Deposit,
+		*types.ExecutionPayload,
+		event.Subscription,
+		types.WithdrawalCredentials,
+	]
+	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
+	LocalBuilder    *payloadbuilder.PayloadBuilder[
+		components.BeaconState,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+	]
+	Signer         crypto.BLSSigner
+	StateProcessor blockchain.StateProcessor[
+		*types.BeaconBlock,
+		components.BeaconState,
+		*datypes.BlobSidecars,
+		*transition.Context,
+		*types.Deposit,
+	]
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // DepInjectOutput is the output for the dep inject framework.
@@ -82,10 +125,12 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	storageBackend := storage.NewBackend[
-		*dastore.Store[types.BeaconBlockBody],
-		types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
 		core.BeaconState[
-			*types.BeaconBlockHeader, *types.ExecutionPayloadHeader, *types.Fork,
+			*types.BeaconBlockHeader, *types.Eth1Data,
+			*types.ExecutionPayloadHeader, *types.Fork,
 			*types.Validator, *engineprimitives.Withdrawal,
 		],
 	](
@@ -108,11 +153,17 @@ func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
 
 	runtime, err := components.ProvideRuntime(
 		in.BeaconConfig,
-		in.BlobVerifier,
+		in.BlobProcessor,
+		in.BlockFeed,
 		in.ChainSpec,
+		in.DBManager,
+		in.DepositService,
 		in.Signer,
 		in.EngineClient,
+		in.ExecutionEngine,
+		in.StateProcessor,
 		storageBackend,
+		in.LocalBuilder,
 		in.TelemetrySink,
 		in.Environment.Logger.With("module", "beacon-kit"),
 	)

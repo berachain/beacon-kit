@@ -1,6 +1,8 @@
 bitbucket.org/creachadair/shell v0.0.6/go.mod h1:8Qqi/cYk7vPnsOePHroKXDJYmb5x7ENhtiFtfZq8K+M=
 buf.build/gen/go/bufbuild/protovalidate/connectrpc/go v1.16.1-20240401165935-b983156c5e99.1 h1:gUnVBNl4FiFERMVymu2K+XMvlGzNLsTTzYKIegsXUY8=
 buf.build/gen/go/bufbuild/protovalidate/connectrpc/go v1.16.1-20240401165935-b983156c5e99.1/go.mod h1:t9C13HzvpBzXAQHVPPDwlPyRT0BQffj6AFsjLutItKs=
+buf.build/gen/go/bufbuild/protovalidate/connectrpc/go v1.16.2-20240401165935-b983156c5e99.1 h1:2b+Sy+D5ev19N5QU+xH5ucPDJpHB6TNmQ9DZUNhCVaY=
+buf.build/gen/go/bufbuild/protovalidate/connectrpc/go v1.16.2-20240401165935-b983156c5e99.1/go.mod h1:MchZtAkwyKSCO2h1S28YzHjufpTEoe0OY8tuSlGH/Fs=
 buf.build/gen/go/tendermint/tendermint/protocolbuffers/go v1.32.0-20231117195010-33ed361a9051.1 h1:VooqQ3rklp3PwMTAE890M76w/8Z01OPa7RdgU9posFE=
 buf.build/gen/go/tendermint/tendermint/protocolbuffers/go v1.32.0-20231117195010-33ed361a9051.1/go.mod h1:9KmeMJUsSG3IiIwK63Lh1ipZJrwd7KHrWZseJeHukcs=
 cloud.google.com/go v0.0.0-20170206221025-ce650573d812/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -745,6 +747,7 @@ github.com/go-latex/latex v0.0.0-20210823091927-c0d11ff05a81/go.mod h1:SX0U8uGpx
 github.com/go-latex/latex v0.0.0-20231108140139-5c1ce85aa4ea h1:DfZQkvEbdmOe+JK2TMtBM+0I9GSdzE2y/L1/AmD8xKc=
 github.com/go-latex/latex v0.0.0-20231108140139-5c1ce85aa4ea/go.mod h1:Y7Vld91/HRbTBm7JwoI7HejdDB0u+e9AUBO9MB7yuZk=
 github.com/go-logfmt/logfmt v0.5.1/go.mod h1:WYhtIu8zTZfxdn5+rREduYbwxfcBr/Vr6KEVveWlfTs=
+github.com/go-logr/logr v1.4.1/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab h1:xveKWz2iaueeTaUgdetzel+U7exyigDYBryyVfV/rZk=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
 github.com/go-ole/go-ole v1.2.5/go.mod h1:pprOEPIfldk/42T2oK7lQ4v4JSDwmV0As9GaiUsvbm0=

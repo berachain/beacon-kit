@@ -1,7 +1,7 @@
 # Full reference https://github.com/foundry-rs/foundry/tree/master/crates/config
 [profile.default]
 auto_detect_solc = false
-solc = "0.8.25"
+solc = "0.8.26"
 evm_version = "cancun"
 fuzz = { runs = 256, seed = "42" }
 gas_reports = ["*"]

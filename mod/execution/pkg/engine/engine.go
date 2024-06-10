@@ -36,7 +36,8 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
@@ -50,7 +51,8 @@ type Engine[
 // New creates a new Engine.
 func New[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ](
 	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],

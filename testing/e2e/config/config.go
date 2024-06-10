@@ -55,13 +55,13 @@ type EthJSONRPCEndpoint struct {
 
 // NodeSet holds nodes that have a distinct role in the network.
 type NodeSet struct {
-	// Type is the type of commands set.
+	// Type is the type of node set.
 	Type string `json:"type"`
 	// Nodes is a list of nodes in the set.
 	Nodes []Node `json:"nodes"`
 }
 
-// Node holds the configuration for a single commands in the test,
+// Node holds the configuration for a single node in the test,
 // including client images and types.
 type Node struct {
 	// ElType denotes the type of execution layer client (e.g., reth).
@@ -72,7 +72,7 @@ type Node struct {
 	KZGImpl string `json:"kzg_impl"`
 }
 
-// NodeSettings holds the configuration for a single commands in the test,
+// NodeSettings holds the configuration for a single node in the test,
 // including client images and types.
 type NodeSettings struct {
 	// ConsensusSettings holds the configuration for the consensus layer
@@ -86,7 +86,7 @@ type NodeSettings struct {
 // ExecutionSettings holds the configuration for the execution layer
 // clients.
 type ExecutionSettings struct {
-	// Specs holds the commands specs for all nodes in the execution layer.
+	// Specs holds the node specs for all nodes in the execution layer.
 	Specs NodeSpecs `json:"specs"`
 	// Images specifies the images available for the execution layer.
 	Images map[string]string `json:"images"`
@@ -95,7 +95,7 @@ type ExecutionSettings struct {
 // ConsensusSettings holds the configuration for the consensus layer
 // clients.
 type ConsensusSettings struct {
-	// Specs holds the commands specs for all nodes in the consensus layer.
+	// Specs holds the node specs for all nodes in the consensus layer.
 	Specs NodeSpecs `json:"specs"`
 	// Images specifies the images available for the consensus layer.
 	Images map[string]string `json:"images"`
@@ -131,7 +131,7 @@ type AppConfig struct {
 	EnableOptimisticPayloadBuilds bool `json:"enable_optimistic_payload_builds"`
 }
 
-// NodeSpecs holds the commands specs for all nodes in a single layer.
+// NodeSpecs holds the node specs for all nodes in a single layer.
 type NodeSpecs struct {
 	// MinCPU specifies the minimum number of CPUs to use for all nodes in the
 	// layer.
@@ -182,17 +182,17 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 0,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "geth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
+				ElType:   "geth",
+				Replicas: 2, //nolint:mnd // bet.
+				KZGImpl:  "crate-crypto/go-kzg-4844",
+			},
+			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // 2 replicas
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -202,7 +202,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -272,9 +272,9 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:latest",
-			"erigon":     "thorax/erigon:v2.60.0",
+			"erigon":     "thorax/erigon:v2.60.1",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
-			"geth":       "ethereum/client-go:latest",
+			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
 			"reth":       "ghcr.io/paradigmxyz/reth:latest",
 		},
@@ -296,7 +296,7 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:      "3s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "1s",
+			TimeoutCommit:       "3s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
@@ -313,9 +313,9 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 			Type: "blutgang",
 			Clients: []string{
 				// "el-full-nethermind-0",
-				"el-full-reth-1",
+				// "el-full-reth-0",
 				"el-full-geth-2",
-				"el-full-erigon-3",
+				// "el-full-erigon-3",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",

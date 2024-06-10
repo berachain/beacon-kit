@@ -21,7 +21,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -29,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
@@ -37,7 +37,7 @@ import (
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
@@ -45,7 +45,12 @@ func (sp *StateProcessor[
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion primitives.Version,
 ) ([]*transition.ValidatorUpdate, error) {
-	var fork ForkT
+	var (
+		blkHeader BeaconBlockHeaderT
+		blkBody   BeaconBlockBodyT
+		fork      ForkT
+		eth1Data  Eth1DataT
+	)
 	fork = fork.New(
 		genesisVersion,
 		genesisVersion,
@@ -64,29 +69,23 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err := st.SetEth1Data(&types.Eth1Data{
-		DepositRoot:  bytes.B32(common.ZeroHash),
-		DepositCount: 0,
-		BlockHash:    executionPayloadHeader.GetBlockHash(),
-	}); err != nil {
+	if err := st.SetEth1Data(eth1Data.New(
+		bytes.B32(common.ZeroHash),
+		0,
+		executionPayloadHeader.GetBlockHash(),
+	)); err != nil {
 		return nil, err
 	}
 
-	bodyRoot, err := (&types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{},
-		ExecutionPayload: &types.ExecutableDataDeneb{
-			//nolint:mnd // todo fix.
-			LogsBloom: make([]byte, 256),
-			//nolint:mnd // todo fix.
-			ExtraData: make([]byte, 32),
-		},
-	}).HashTreeRoot()
+	// TODO: we need to handle primitives.Version vs
+	// uint32 better.
+	bodyRoot, err := blkBody.Empty(
+		version.ToUint32(genesisVersion)).HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	var bbh BeaconBlockHeaderT
-	if err = st.SetLatestBlockHeader(bbh.New(
+	if err = st.SetLatestBlockHeader(blkHeader.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
 		return nil, err

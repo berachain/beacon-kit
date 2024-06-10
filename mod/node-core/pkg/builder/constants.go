@@ -18,25 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events_test
+package builder
 
-import (
-	"context"
-	"testing"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/mocks"
+const (
+	// DefaultAppName is the default name of the application.
+	DefaultAppName = "BeaconKit"
+	// DefaultDescription is the default description of the application.
+	DefaultDescription = "A basic beacon node, usable most standard networks."
 )
-
-func TestNewBlock(t *testing.T) {
-	ctx := context.Background()
-	mockBeaconBlock := &mocks.RawBeaconBlock[*mocks.BeaconBlockBody]{}
-
-	event := events.NewBlock(ctx, mockBeaconBlock)
-	if event.Context() != ctx {
-		t.Errorf("expected context %v, got %v", ctx, event.Context())
-	}
-	if event.Block() != mockBeaconBlock {
-		t.Errorf("expected block %v, got %v", mockBeaconBlock, event.Block())
-	}
-}

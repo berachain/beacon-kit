@@ -21,44 +21,38 @@
 package components
 
 import (
-	"math/big"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+type LocalBuilderInput struct {
 	depinject.In
-	// ChainSpec is the chain spec.
-	ChainSpec primitives.ChainSpec
-	// Config is the BeaconKit configuration.
-	Config *config.Config
-	// Logger is the logger.
-	Logger log.Logger
-	// TelemetrySink is the telemetry sink.
-	TelemetrySink *metrics.TelemetrySink
-	// JWTSecret is the jwt secret. It is optional, since
-	// it is not required when connecting to the execution client
-	// over IPC.
-	JWTSecret *jwt.Secret `optional:"true"`
+	Cfg             *config.Config
+	ChainSpec       primitives.ChainSpec
+	Logger          log.Logger
+	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 }
 
-// ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
-	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutionPayload] {
-	return engineclient.New[*types.ExecutionPayload](
-		&in.Config.Engine,
-		in.Logger.With("service", "engine.client"),
-		in.JWTSecret,
-		in.TelemetrySink,
-		new(big.Int).SetUint64(in.ChainSpec.DepositEth1ChainID()),
+func ProvideLocalBuilder(
+	in LocalBuilderInput,
+) *payloadbuilder.PayloadBuilder[
+	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+] {
+	return payloadbuilder.New[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	](
+		&in.Cfg.PayloadBuilder,
+		in.ChainSpec,
+		in.Logger.With("service", "payload-builder"),
+		in.ExecutionEngine,
+		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
 	)
 }

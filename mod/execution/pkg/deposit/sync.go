@@ -56,6 +56,7 @@ func (s *Service[
 	WithdrawalCredentialsT, DepositT,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -102,7 +103,5 @@ func (s *Service[
 		return
 	}
 
-	if s.failedBlocks[blockNum] != struct{}{} {
-		delete(s.failedBlocks, blockNum)
-	}
+	delete(s.failedBlocks, blockNum)
 }

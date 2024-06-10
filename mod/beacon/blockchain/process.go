@@ -24,9 +24,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -52,7 +53,7 @@ func (s *Service[
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
 		&types.ExecutionPayloadHeader{
-			ExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
 		},
 		genesisData.ForkVersion,
 	)
@@ -72,7 +73,6 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 	sidecars BlobSidecarsT,
-	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
@@ -90,10 +90,10 @@ func (s *Service[
 		var err error
 		// We set `OptimisticEngine` to true since this is called during
 		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the commands will simply AppHash,
+		// ends up not being valid later, the node will simply AppHash,
 		// which is completely fine. This means we were syncing from a
 		// bad peer, and we would likely AppHash anyways.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk, syncedToHead)
+		valUpdates, err = s.processBeaconBlock(gCtx, st, blk)
 		return err
 	})
 
@@ -117,16 +117,18 @@ func (s *Service[
 	}
 
 	// emit new block event
-	s.blockFeed.Send(events.NewBlock(ctx, (blk)))
+	s.blockFeed.Send(
+		// TODO: decouple from feed package.
+		feed.NewEvent(ctx, events.BeaconBlockFinalized, (blk)),
+	)
 
 	// If required, we want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	if !s.skipPostBlockFCU {
-		go s.sendPostBlockFCU(ctx, st, blk)
-	}
+
+	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates, nil
 }
@@ -144,10 +146,9 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateTransitionDuration(startTime, syncedToHead)
+	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
@@ -165,7 +166,7 @@ func (s *Service[
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: syncedToHead,
+			SkipPayloadVerification: false,
 		},
 		st,
 		blk,

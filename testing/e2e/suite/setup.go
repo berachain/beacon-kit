@@ -227,6 +227,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
+	s.logger.Info("chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
@@ -299,9 +300,9 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			// Wait an extra block to ensure all clients are in sync.
-			//nolint:contextcheck // its okay.
+			//nolint:mnd,contextcheck // its okay.
 			if err = s.WaitForFinalizedBlockNumber(
-				receipt.BlockNumber.Uint64() + 1,
+				receipt.BlockNumber.Uint64() + 2,
 			); err != nil {
 				return nil, err
 			}
@@ -331,6 +332,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
 		var err error
@@ -366,7 +368,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	return nil
 }
 
-// WaitForNBlockNumber waits for a specified amount of blocks into the future
+// WaitForNBlockNumbers waits for a specified amount of blocks into the future
 // from now.
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	n uint64,

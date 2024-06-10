@@ -25,43 +25,8 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
-
-// sendFCU sends a forkchoice update to the execution client.
-// It sets the head and finalizes the latest.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
-]) sendFCU(
-	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-) error {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	_, _, err = s.ee.NotifyForkchoiceUpdate(
-		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			nil,
-			s.cs.ActiveForkVersionForSlot(slot),
-		),
-	)
-	return err
-}
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
@@ -77,29 +42,31 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) {
-	if s.lb.Enabled() /* TODO: check for syncing once comet pr merged*/ {
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcess",
+			"error", err,
+		)
+		return
+	}
+
+	// This is technically not an optimistic payload
+	// TODO: This needs a refactor, big hood energy.
+	//nolint:nestif // todo fix.5
+	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
 		stCopy := st.Copy()
-		if _, err := s.sp.ProcessSlots(
+		if _, err = s.sp.ProcessSlots(
 			stCopy, blk.GetSlot()+1,
 		); err != nil {
 			return
 		}
 
-		prevBlockRoot, err := blk.HashTreeRoot()
-		if err != nil {
-			s.logger.
-				Error(
-					"failed to get block root in postBlockProcess",
-					"error",
-					err,
-				)
-			return
-		}
-
-		lph, err := st.GetLatestExecutionPayloadHeader()
+		var prevBlockRoot primitives.Root
+		prevBlockRoot, err = blk.HashTreeRoot()
 		if err != nil {
 			s.logger.Error(
-				"failed to get latest execution payload in postBlockProcess",
+				"failed to get block root in postBlockProcess",
 				"error", err,
 			)
 			return
@@ -132,17 +99,26 @@ func (s *Service[
 				"failed to send forkchoice update with attributes",
 				"error", err,
 			)
-	}
-
-	// Otherwise we send a forkchoice update to the execution client.
-	if err := s.sendFCU(
-		ctx, st, blk.GetSlot(),
-	); err != nil {
-		s.logger.
-			Error(
-				"failed to send forkchoice update in postBlockProcess",
-				"error",
-				err,
+	} else {
+		// If we are not building blocks, or we failed to build a block
+		// we can just send the forkchoice update without attributes.
+		_, _, err = s.ee.NotifyForkchoiceUpdate(
+			ctx,
+			engineprimitives.BuildForkchoiceUpdateRequest(
+				&engineprimitives.ForkchoiceStateV1{
+					HeadBlockHash:      lph.GetBlockHash(),
+					SafeBlockHash:      lph.GetParentHash(),
+					FinalizedBlockHash: lph.GetParentHash(),
+				},
+				nil,
+				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+			),
+		)
+		if err != nil {
+			s.logger.Error(
+				"failed to send forkchoice update without attributes",
+				"error", err,
 			)
+		}
 	}
 }

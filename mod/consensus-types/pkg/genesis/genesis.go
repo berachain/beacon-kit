@@ -38,7 +38,7 @@ import (
 // need to start the beacon chain.
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
+	ExecutonPayloadHeaderT any,
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
@@ -62,6 +62,7 @@ func DefaultGenesisDeneb() *Genesis[
 		panic(err)
 	}
 
+	// TODO: Uncouple from deneb.
 	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,

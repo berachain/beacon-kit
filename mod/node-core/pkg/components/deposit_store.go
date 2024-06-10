@@ -22,15 +22,23 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/interfaces"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
+// DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
@@ -38,9 +46,15 @@ type DepositStoreInput struct {
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore(
+func ProvideDepositStore[
+	DepositT interface {
+		interfaces.SSZMarshallable
+		GetIndex() uint64
+		HashTreeRoot() ([32]byte, error)
+	},
+](
 	in DepositStoreInput,
-) (*deposit.KVStore[*types.Deposit], error) {
+) (*depositstore.KVStore[DepositT], error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -48,7 +62,41 @@ func ProvideDepositStore(
 		return nil, err
 	}
 
-	return deposit.NewStore[*types.Deposit](&deposit.KVStoreProvider{
+	return depositstore.NewStore[DepositT](&depositstore.KVStoreProvider{
 		KVStoreWithBatch: kvp,
 	}), nil
+}
+
+// DepositPrunerInput is the input for the deposit pruner.
+type DepositPrunerInput struct {
+	depinject.In
+	Logger       log.Logger
+	ChainSpec    primitives.ChainSpec
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	DepositStore *depositstore.KVStore[*types.Deposit]
+}
+
+// ProvideDepositPruner provides a deposit pruner for the depinject framework.
+func ProvideDepositPruner(
+	in DepositPrunerInput,
+) pruner.Pruner[*depositstore.KVStore[*types.Deposit]] {
+	return pruner.NewPruner[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		*depositstore.KVStore[*types.Deposit],
+		event.Subscription,
+	](
+		in.Logger.With("service", manager.DepositPrunerName),
+		in.DepositStore,
+		manager.DepositPrunerName,
+		in.BlockFeed,
+		deposit.BuildPruneRangeFn[
+			*types.BeaconBlockBody,
+			*types.BeaconBlock,
+			*feed.Event[*types.BeaconBlock],
+			*types.Deposit,
+			*types.ExecutionPayload,
+			types.WithdrawalCredentials,
+		](in.ChainSpec),
+	)
 }

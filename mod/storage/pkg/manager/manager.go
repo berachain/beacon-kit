@@ -38,7 +38,7 @@ type DBManager[
 	BlockEventT BlockEvent[BeaconBlockT],
 	SubscriptionT Subscription,
 ] struct {
-	pruners []*pruner.Pruner[BeaconBlockT, BlockEventT, SubscriptionT]
+	pruners []pruner.Pruner[pruner.Prunable]
 	logger  log.Logger[any]
 }
 
@@ -48,7 +48,7 @@ func NewDBManager[
 	SubscriptionT Subscription,
 ](
 	logger log.Logger[any],
-	pruners ...*pruner.Pruner[BeaconBlockT, BlockEventT, SubscriptionT],
+	pruners ...pruner.Pruner[pruner.Prunable],
 ) (*DBManager[BeaconBlockT, BlockEventT, SubscriptionT], error) {
 	return &DBManager[
 		BeaconBlockT, BlockEventT, SubscriptionT,

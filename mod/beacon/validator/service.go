@@ -22,7 +22,6 @@ package validator
 
 import (
 	"context"
-	"sync"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -62,7 +61,7 @@ type Service[
 	logger log.Logger[any]
 	// chainSpec is the chain spec.
 	chainSpec primitives.ChainSpec
-	// signer is used to retrieve the public key of this commands.
+	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[
@@ -88,8 +87,6 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// forceStartupSyncOnce is used to force a sync of the startup head.
-	forceStartupSyncOnce *sync.Once
 }
 
 // NewService creates a new validator service.
@@ -147,7 +144,6 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		forceStartupSyncOnce:  new(sync.Once),
 	}
 }
 
@@ -188,14 +184,4 @@ func (s *Service[
 ]) WaitForHealthy(
 	context.Context,
 ) {
-}
-
-// shouldBuildOptimisticPayloads returns true if optimistic
-// payload builds are enabled.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) shouldBuildOptimisticPayloads() bool {
-	return s.cfg.EnableOptimisticPayloadBuilds &&
-		s.localPayloadBuilder.Enabled()
 }

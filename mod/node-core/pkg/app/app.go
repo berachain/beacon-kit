@@ -24,8 +24,6 @@ import (
 	"context"
 	"io"
 
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	dbm "github.com/cosmos/cosmos-db"
@@ -40,50 +38,22 @@ var (
 )
 
 // BeaconApp extends an ABCI application, but with most of its parameters
-// exported.
-// They are exported for convenience in creating helper functions, as object
-// capabilities aren't needed for testing.
+// exported. They are exported for convenience in creating helper
+// functions, as object capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
-	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	appOpts servertypes.AppOptions,
-	dCfg depinject.Config,
-	// chainSpec primitives.ChainSpec,
+
+	appBuilder *runtime.AppBuilder,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
 	app := &BeaconApp{}
-	appBuilder := &runtime.AppBuilder{}
-	if err := depinject.Inject(
-		depinject.Configs(
-			dCfg,
-			depinject.Provide(
-				bkcomponents.ProvideChainSpec,
-				bkcomponents.ProvideAvailibilityStore,
-				bkcomponents.ProvideBlsSigner,
-				bkcomponents.ProvideTrustedSetup,
-				bkcomponents.ProvideDepositStore,
-				bkcomponents.ProvideConfig,
-				bkcomponents.ProvideEngineClient,
-				bkcomponents.ProvideJWTSecret,
-				bkcomponents.ProvideBlobProofVerifier,
-				bkcomponents.ProvideTelemetrySink,
-			),
-			depinject.Supply(
-				appOpts,
-				logger,
-			),
-		),
-		&appBuilder,
-	); err != nil {
-		panic(err)
-	}
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)

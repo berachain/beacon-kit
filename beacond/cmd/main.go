@@ -25,32 +25,53 @@ import (
 	"os"
 
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-// run runs the beacon commands.
+// run runs the beacon node.
 func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
 	}
 
-	// Build the commands using the commands-core.
-	nb := nodebuilder.New[types.NodeI](
-		nodebuilder.WithName[types.NodeI]("beacond"),
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	chainSpec := os.Getenv("CHAIN_SPEC")
+	loadedSpec := spec.TestnetChainSpec()
+	if chainSpec == "devnet" {
+		loadedSpec = spec.DevnetChainSpec()
+	}
+
+	// Build the node using the node-core.
+	nb := nodebuilder.New(
+		// Set the Name to the Default.
+		nodebuilder.WithName[types.NodeI](
+			nodebuilder.DefaultAppName),
+		// Set the Description to the Default.
 		nodebuilder.WithDescription[types.NodeI](
-			"beacond is a beacon commands for any beacon-kit chain",
+			nodebuilder.DefaultDescription),
+		// Set the DepInject Configuration to the Default.
+		nodebuilder.WithDepInjectConfig[types.NodeI](
+			nodebuilder.DefaultDepInjectConfig()),
+		// Set the ChainSpec to the Default.
+		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
+		// Set the Runtime Components to the Default.
+		nodebuilder.WithComponents[types.NodeI](
+			components.DefaultComponentsWithStandardTypes(),
 		),
-		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
-		// TODO: Don't hardcode the default chain spec.
-		// nodebuilder.WithChainSpec[types.NodeI](spec.TestnetChainSpec()),
 	)
 
+	// Assemble the node with all our components.
 	node, err := nb.Build()
 	if err != nil {
 		return err
 	}
+
+	// TODO: create a "runner" type harness that takes the node as a parameter.
 	return node.Run()
 }
 

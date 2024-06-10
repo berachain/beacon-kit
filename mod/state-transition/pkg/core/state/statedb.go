@@ -41,11 +41,13 @@ type StateDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	ForkT any,
 	BeaconBlockHeaderT any,
 	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ValidatorT Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
@@ -54,6 +56,7 @@ type StateDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	]
 	cs primitives.ChainSpec
@@ -67,11 +70,13 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	ForkT any,
 	BeaconBlockHeaderT any,
 	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ValidatorT Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
@@ -80,6 +85,7 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
 	cs primitives.ChainSpec,
@@ -90,6 +96,7 @@ func NewBeaconStateFromDB[
 		ForkT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
+		ExecutionPayloadHeaderT,
 		ValidatorT,
 		WithdrawalCredentialsT,
 	]{
@@ -104,7 +111,8 @@ func NewBeaconStateFromDB[
 // Copy returns a copy of the beacon state.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) Copy() BeaconStateT {
 	return NewBeaconStateFromDB[BeaconStateT](
 		s.KVStore.Copy(),
@@ -115,7 +123,8 @@ func (s *StateDB[
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -130,7 +139,8 @@ func (s *StateDB[
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -145,7 +155,8 @@ func (s *StateDB[
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
@@ -179,7 +190,8 @@ func (s *StateDB[
 //nolint:lll
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
 	var (
 		validator         ValidatorT
@@ -271,7 +283,8 @@ func (s *StateDB[
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
 	BeaconStateT, KVStoreT, ForkT,
-	BeaconBlockHeaderT, Eth1DataT, ValidatorT, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) HashTreeRoot() ([32]byte, error) {
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -365,7 +378,7 @@ func (s *StateDB[
 	// TODO: Properly move BeaconState into full generics.
 	st, err := new(state.BeaconState[
 		BeaconBlockHeaderT,
-		engineprimitives.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 		Eth1DataT,
 		ForkT,
 		ValidatorT,

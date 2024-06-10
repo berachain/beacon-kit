@@ -32,7 +32,8 @@ type ConfigInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ProvideConfig is a function that provides the JWT secret to the application.
+// ProvideConfig is a function that provides the BeaconConfig to the
+// application.
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
 	return config.ReadConfigFromAppOpts(in.AppOpts)
 }
