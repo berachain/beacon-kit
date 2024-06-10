@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"fmt"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -36,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -90,7 +88,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
-		chainSpec   primitives.ChainSpec
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -137,12 +134,10 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
-		&chainSpec,
+		&nb.chainSpec,
 	); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("A;LSDKJF;ALKSDJ🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩🥩", chainSpec)
 
 	cmd := &cobra.Command{
 		Use:   nb.name,
@@ -190,8 +185,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		cmd,
 		mm,
 		nb.AppCreator,
-		// nb.chainSpec,
-		spec.TestnetChainSpec(),
+		nb.chainSpec,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {

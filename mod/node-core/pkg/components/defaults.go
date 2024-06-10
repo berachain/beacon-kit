@@ -32,6 +32,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTrustedSetup,
 		ProvideDepositStore[*types.Deposit],
 		ProvideConfig,
+		ProvideChainSpec,
 		ProvideEngineClient[*types.ExecutionPayload],
 		ProvideJWTSecret,
 		ProvideBlobProofVerifier,

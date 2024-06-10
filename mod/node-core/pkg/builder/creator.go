@@ -57,10 +57,10 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 			depinject.Supply(
 				appOpts,
 				logger,
-				nb.chainSpec,
 			),
 		),
 		&appBuilder,
+		&nb.chainSpec,
 	); err != nil {
 		panic(err)
 	}
