@@ -3,14 +3,14 @@ module github.com/berachain/beacon-kit/mod/node-api
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174429-cbc12d5adc13
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174140-6c6ffa31d278 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174256-5d1223718dd6 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect

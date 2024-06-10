@@ -11,14 +11,14 @@ replace (
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240530132603-f8935ea1205c
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610174429-cbc12d5adc13
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-sdk v0.51.0
@@ -75,6 +75,7 @@ require (
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/getsentry/sentry-go v0.28.0 // indirect
+	github.com/go-faster/xor v1.0.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
