@@ -20,7 +20,7 @@
     </a><a href="https://twitter.com/berachain" target="_blank">
         <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/berachain"></img>
     </a>
-<div>
+</div>
 
 
 ## What is BeaconKit
