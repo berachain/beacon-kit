@@ -12,19 +12,18 @@
   <h2>A modular framework for building EVM consensus clients ⛵️✨</h2>
 </p>
 
-
 <p align="center">
     <a href="https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml">
-        <img alt="CI status" src="https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg">
+        <img alt="CI status" src="https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg"></img>
     </a>
     <a href="https://codecov.io/gh/berachain/beacon-kit">
-        <img alt="CodeCov" src="https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV">
+        <img alt="CodeCov" src="https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV"></img>
     </a>
     <a href="https://t.me/beacon_kit">
-        <img alt="Telegram Chat" src="https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit">
+        <img alt="Telegram Chat" src="https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit"></img>
     </a>
     <a href="https://twitter.com/berachain" target="_blank">
-        <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/berachain">
+        <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/berachain"></img>
     </a>
 <p>
 
