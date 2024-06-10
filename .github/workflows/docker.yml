@@ -82,7 +82,7 @@ jobs:
 
   build-and-push-gcp:
     runs-on:
-      labels: ubuntu-latest-large
+      labels: ubuntu-latest
     permissions:
       id-token: write
       contents: read
