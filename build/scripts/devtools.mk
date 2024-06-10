@@ -26,7 +26,15 @@ sync:
 tidy: ## run go mod tidy in all modules
 	@echo "Running go mod tidy in all modules"
 	@go env -w GOPRIVATE=github.com/berachain
-	@find . -name 'go.mod' ! -path './go.mod' -execdir go mod tidy \;
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
+	count=0; \
+	total=$$(echo "$$dirs" | wc -l); \
+	for dir in $$dirs; do \
+		printf "[%d/%d modules complete] Running in %s\n" $$count $$total $$dir && \
+		(cd $$dir && go mod tidy) || exit 1; \
+		count=$$((count + 1)); \
+	done
+	@printf "go mod tidy complete for all modules\n"
 
 yap: ## the yap cave
 	@go run ./mod/node-core/pkg/utils/yap/yap.go
