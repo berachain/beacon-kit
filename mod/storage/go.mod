@@ -2,20 +2,13 @@ module github.com/berachain/beacon-kit/mod/storage
 
 go 1.22.4
 
-replace (
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
-
 require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610173527-45baa498bb63
 	github.com/cometbft/cometbft v0.38.6
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc

@@ -2,13 +2,6 @@ module github.com/berachain/beacon-kit/mod/execution
 
 go 1.22.4
 
-replace (
-	// TODO: this should be decoupled.
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240506203005-b920effebbe8

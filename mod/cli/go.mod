@@ -5,23 +5,6 @@ go 1.22.4
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
-
-	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/da => ../da
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/execution => ../execution
-	github.com/berachain/beacon-kit/mod/interfaces => ../interfaces
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/node-core => ../node-core
-	github.com/berachain/beacon-kit/mod/p2p => ../p2p
-	github.com/berachain/beacon-kit/mod/payload => ../payload
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
-	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -29,11 +12,6 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/tools/confix v0.1.1
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240530132603-f8935ea1205c
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
@@ -74,21 +52,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88 // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240530132603-f8935ea1205c // indirect
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240530132603-f8935ea1205c // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240530132603-f8935ea1205c // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88 // indirect
-	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
-	github.com/bits-and-blooms/bitset v1.13.0 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
-	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cockroachdb/errors v1.11.3 // indirect
-	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v1.1.0 // indirect
+chdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect

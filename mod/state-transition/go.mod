@@ -12,13 +12,6 @@ require (
 	golang.org/x/sync v0.7.0
 )
 
-replace (
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect

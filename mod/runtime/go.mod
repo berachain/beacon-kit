@@ -6,16 +6,6 @@ replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6
-
-	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/p2p => ../p2p
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -85,7 +75,6 @@ require (
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/getsentry/sentry-go v0.28.0 // indirect
-	github.com/go-faster/xor v1.0.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect

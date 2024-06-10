@@ -5,23 +5,6 @@ go 1.22.4
 replace (
 	// The following are required to build with the lastest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
-
-	// Required because private repo, TODO: fix.
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-	github.com/berachain/beacon-kit/mod/cli => ../cli
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/da => ../da
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/execution => ../execution
-	github.com/berachain/beacon-kit/mod/interfaces => ../interfaces
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/p2p => ../p2p
-	github.com/berachain/beacon-kit/mod/payload => ../payload
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
-	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -33,20 +16,20 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.3
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240530132603-f8935ea1205c
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610173527-45baa498bb63
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-db v1.0.2

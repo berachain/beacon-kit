@@ -2,17 +2,9 @@ module github.com/berachain/beacon-kit/mod/payload
 
 go 1.22.4
 
-replace (
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240429161625-c105cec3420c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/log v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
 	github.com/stretchr/testify v1.9.0
 )

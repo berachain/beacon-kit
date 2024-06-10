@@ -2,13 +2,7 @@ module github.com/berachain/beacon-kit/mod/da
 
 go 1.22.4
 
-replace (
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/log => ../log
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
+
 
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240508035017-2fb637ea5f0a
