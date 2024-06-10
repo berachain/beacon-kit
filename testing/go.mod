@@ -2,12 +2,11 @@ module github.com/berachain/beacon-kit/testing
 
 go 1.22.4
 
-
-
 require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174140-6c6ffa31d278
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174140-6c6ffa31d278
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174256-5d1223718dd6
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/kurtosis-tech/kurtosis/api/golang v0.89.16
@@ -22,8 +21,8 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240506203005-b920effebbe8 // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8 // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174256-5d1223718dd6 // indirect
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174256-5d1223718dd6 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

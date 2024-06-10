@@ -3,11 +3,11 @@ module github.com/berachain/beacon-kit/mod/beacon
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174140-6c6ffa31d278
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174140-6c6ffa31d278
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174140-6c6ffa31d278
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174140-6c6ffa31d278
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174140-6c6ffa31d278
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174256-5d1223718dd6
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174256-5d1223718dd6
 	golang.org/x/sync v0.7.0
 )
 
