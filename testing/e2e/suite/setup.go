@@ -332,6 +332,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
 		var err error
@@ -367,7 +368,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	return nil
 }
 
-// WaitForNBlockNumber waits for a specified amount of blocks into the future
+// WaitForNBlockNumbers waits for a specified amount of blocks into the future
 // from now.
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	n uint64,
