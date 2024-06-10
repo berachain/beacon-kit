@@ -26,7 +26,7 @@ const (
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Builder Config.
-	builderRoot              = beaconKitRoot + "builder."
+	builderRoot              = beaconKitRoot + "payload-builder."
 	SuggestedFeeRecipient    = builderRoot + "suggested-fee-recipient"
 	Graffiti                 = builderRoot + "graffiti"
 	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
