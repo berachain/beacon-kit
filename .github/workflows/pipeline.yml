@@ -59,7 +59,7 @@ jobs:
           - "test-forge-cover"
           - "test-forge-fuzz"
         os: 
-          - ubuntu-latest-large
+          - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
     runs-on:
       labels: ${{ matrix.os }}
