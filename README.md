@@ -6,7 +6,7 @@
 
 ## A modular framework for building EVM consensus clients ⛵️✨
 
-![banner]("https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png")
+![banner](https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png)
 
 ## 🚧 WARNING: UNDER CONSTRUCTION 🚧
 
