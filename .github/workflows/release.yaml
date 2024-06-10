@@ -117,7 +117,7 @@ jobs:
         # https://github.com/openethereum/openethereum/blob/6c2d392d867b058ff867c4373e40850ca3f96969/.github/workflows/build.yml
         run: |
           body=$(cat <<- "ENDBODY"
-          ![image](https://github.com/berachain/beacon-kit/blob/main/.github/assets/banner.png?raw=true)
+          ![image](https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png)
           ## Testing Checklist (DELETE ME)
 
           - [ ] Run on testnet for 1-3 days.
