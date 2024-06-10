@@ -66,13 +66,15 @@ type BlobProcessorIn struct {
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlockBody,
+func ProvideBlobProcessor[
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+](in BlobProcessorIn) *dablob.Processor[
+	*dastore.Store[BeaconBlockBodyT],
+	BeaconBlockBodyT,
 ] {
 	return dablob.NewProcessor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
+		*dastore.Store[BeaconBlockBodyT],
+		BeaconBlockBodyT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,

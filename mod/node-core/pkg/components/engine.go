@@ -28,9 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
@@ -52,10 +55,17 @@ type EngineClientInputs struct {
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
+func ProvideEngineClient[
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		ExecutionPayloadT, common.ExecutionAddress,
+		common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, []byte, WithdrawalT,
+	],
+	WithdrawalT any,
+](
 	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutionPayload] {
-	return engineclient.New[*types.ExecutionPayload](
+) *engineclient.EngineClient[ExecutionPayloadT] {
+	return engineclient.New[ExecutionPayloadT](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -75,7 +85,14 @@ type ExecutionEngineInput struct {
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine(
+func ProvideExecutionEngine[
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		ExecutionPayloadT, common.ExecutionAddress,
+		common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, []byte, WithdrawalT,
+	],
+	WithdrawalT any,
+](
 	in ExecutionEngineInput,
 ) *execution.Engine[*types.ExecutionPayload] {
 	return execution.New[*types.ExecutionPayload](

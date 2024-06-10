@@ -48,9 +48,9 @@ func ProvideBeaconDepositContract[
 		DepositT, math.U64, WithdrawalCredentialsT,
 	],
 	ExecutionPayloadT interfaces.ExecutionPayload[
-		common.ExecutionAddress, common.ExecutionHash,
-		primitives.Bytes32, math.U64, math.Wei,
-		[]byte, WithdrawalT,
+		ExecutionPayloadT, common.ExecutionAddress,
+		common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, []byte, WithdrawalT,
 	],
 	WithdrawalT any,
 	WithdrawalCredentialsT ~[32]byte,
