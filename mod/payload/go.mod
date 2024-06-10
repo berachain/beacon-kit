@@ -3,10 +3,10 @@ module github.com/berachain/beacon-kit/mod/payload
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174429-cbc12d5adc13
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174429-cbc12d5adc13
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
 	github.com/stretchr/testify v1.9.0
 )
 

@@ -3,11 +3,11 @@ module github.com/berachain/beacon-kit/mod/da
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.2
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1

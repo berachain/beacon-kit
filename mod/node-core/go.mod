@@ -16,20 +16,20 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.3
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610210054-bfdc14c4013c
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-db v1.0.2
@@ -70,10 +70,11 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610174723-cde8044a8675 // indirect
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
+	github.com/bufbuild/protocompile v0.13.1-0.20240510201809-752249dfc37f // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
@@ -101,6 +102,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
+	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
@@ -150,6 +152,7 @@ require (
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
@@ -174,6 +177,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240503122002-4b96552b8156 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

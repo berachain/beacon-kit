@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/mod/primitives
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/golang-jwt/jwt/v5 v5.2.1

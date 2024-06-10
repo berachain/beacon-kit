@@ -1,5 +1,5 @@
-github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675 h1:f7a5/DGgTtmRN9HNHKY2krXsuKNeqFC+9hqbWjAOkzc=
-github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675/go.mod h1:bFkZmv0d7P9uoqJOw7ruG29M3oVwXslttLRuNwxzTOQ=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c h1:rPoD2zVkIzuMC4R/XMuwx6eanJL8ccu37sLro+eIj3Y=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:xgngH5/PYbyW+YDEmRhbBy3V333GXsNWF4DAkjYCmfs=
 github.com/cockroachdb/errors v1.11.3 h1:5bA+k2Y6r+oz/6Z/RFlNeVCesGARKuC6YymtcDrbC/I=
 github.com/cockroachdb/errors v1.11.3/go.mod h1:m4UIW4CDjx+R5cybPsNrRbreomiFqt8o1h1wUVazSd8=
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZeQy818SGhaone5OnYfxFR/+AzdY3sf5aE=

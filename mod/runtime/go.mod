@@ -11,14 +11,14 @@ replace (
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-sdk v0.51.0

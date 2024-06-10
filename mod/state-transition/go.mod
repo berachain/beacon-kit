@@ -3,10 +3,10 @@ module github.com/berachain/beacon-kit/mod/state-transition
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174723-cde8044a8675
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610174723-cde8044a8675
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	golang.org/x/sync v0.7.0
