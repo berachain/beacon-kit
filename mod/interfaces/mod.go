@@ -137,6 +137,7 @@ type ExecutionPayloadWithWithdrawals[
 
 // ExecutionPayload represents the execution data of a block.
 type ExecutionPayload[
+	ExecutionPayloadT any,
 	ExecutionAddressT any,
 	ExecutionHashT any,
 	Bytes32T any,
@@ -152,6 +153,7 @@ type ExecutionPayload[
 		U64T,
 		U256T,
 	]
+	Empty(uint32) ExecutionPayloadT
 	GetTransactions() []TransactionsT
 	GetWithdrawals() []WithdrawalT
 }
