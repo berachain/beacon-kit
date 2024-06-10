@@ -50,9 +50,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240530132603-f8935ea1205c // indirect
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240515154823-9321cabc0e88 // indirect
-chdb/pebble v1.1.0 // indirect
+	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
