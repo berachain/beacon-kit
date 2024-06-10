@@ -82,7 +82,7 @@ jobs:
 
   build-and-push-gcp:
     runs-on:
-      labels: ubuntu-24.04-beacon-kit
+      labels: ubuntu-latest-large
     permissions:
       id-token: write
       contents: read

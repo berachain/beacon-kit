@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -109,8 +109,10 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := DefaultConfig()
 	startCmd.Flags().String(
-		flags.JWTSecretPath, defaultCfg.Engine.JWTSecretPath,
-		"path to the execution client secret")
+		flags.JWTSecretPath,
+		defaultCfg.Engine.JWTSecretPath,
+		"path to the execution client secret",
+	)
 	startCmd.Flags().String(
 		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
 	startCmd.Flags().Uint64(
@@ -120,21 +122,28 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(
 		flags.RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,
-		"rpc startup check interval")
-	startCmd.Flags().Duration(flags.RPCJWTRefreshInterval,
+		"rpc startup check interval",
+	)
+	startCmd.Flags().Duration(
+		flags.RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
-		"rpc jwt refresh interval")
-	startCmd.Flags().String(flags.SuggestedFeeRecipient,
+		"rpc jwt refresh interval",
+	)
+	startCmd.Flags().String(
+		flags.SuggestedFeeRecipient,
 		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
 		"suggested fee recipient",
 	)
-	startCmd.Flags().String(flags.KZGTrustedSetupPath,
+	startCmd.Flags().String(
+		flags.KZGTrustedSetupPath,
 		defaultCfg.KZG.TrustedSetupPath,
 		"kzg trusted setup path",
 	)
-	startCmd.Flags().String(flags.KZGImplementation,
+	startCmd.Flags().String(
+		flags.KZGImplementation,
 		defaultCfg.KZG.Implementation,
-		"kzg implementation")
+		"kzg implementation",
+	)
 }
 
 // AddToSFlag adds the terms of service flag to the given command.

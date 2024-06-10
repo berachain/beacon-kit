@@ -2,16 +2,9 @@ module github.com/berachain/beacon-kit/mod/node-api
 
 go 1.22.4
 
-replace (
-	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/errors => ../errors
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
-
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610173527-45baa498bb63
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0
@@ -21,8 +14,8 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-00010101000000-000000000000 // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610173527-45baa498bb63 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174429-cbc12d5adc13 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -84,12 +77,12 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

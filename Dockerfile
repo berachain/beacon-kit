@@ -34,6 +34,7 @@ FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 
 WORKDIR /workdir
 
+RUN apk add git
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
@@ -101,7 +102,6 @@ COPY --from=mod-cache ./workdir/go.work ./go.work
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
-
 
 # Build args
 ARG NAME
