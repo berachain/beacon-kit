@@ -8,13 +8,14 @@
     </picture>
   </a>
 </div>
-<h2 align="center">
+<h2 >
   A modular framework for building EVM consensus clients ⛵️✨
 </h2>
 
 _The project is still heavily under construction, see the [disclaimer below](#status)._
 
-<div align="center">
+
+<div>
 
 [![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
 [![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
