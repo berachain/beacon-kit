@@ -1,6 +1,4 @@
-
-
-<br>
+</br>
 
 <h2 align="center">
   <a href="https://wagmi.sh">
@@ -9,6 +7,7 @@
       <img alt="wagmi logo" src="https://res.cloudinary.com/duv0g402y/image/upload/v1713381289/monobera_color_alt2_ppo8o6.svg" width="auto" height="auto">
     </picture>
   </a>
+  </br>
   A modular framework for building EVM consensus clients ⛵️✨
 </h2>
 
