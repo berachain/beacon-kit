@@ -3,8 +3,8 @@ module github.com/berachain/beacon-kit/mod/node-api
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610173527-45baa498bb63
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610215715-5f91f661ac83
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610215715-5f91f661ac83
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0
@@ -14,8 +14,8 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610173527-45baa498bb63 // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174429-cbc12d5adc13 // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610215715-5f91f661ac83 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610215715-5f91f661ac83 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
-	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/gorilla/websocket v1.5.2 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.53.0 // indirect
+	github.com/prometheus/common v0.54.0 // indirect
 	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10 // indirect
-	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
