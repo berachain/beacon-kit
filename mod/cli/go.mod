@@ -14,7 +14,7 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610173527-45baa498bb63
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610173527-45baa498bb63
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240530132603-f8935ea1205c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610173527-45baa498bb63
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240610173527-45baa498bb63
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610173527-45baa498bb63
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240604114729-9f22ffbe4817
@@ -209,12 +209,12 @@ require (
 	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
