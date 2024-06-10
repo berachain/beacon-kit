@@ -36,6 +36,24 @@ tidy: ## run go mod tidy in all modules
 	done
 	@printf "go mod tidy complete for all modules\n"
 
+update-dep: ## update a dependency in all of the go.mod files which import it
+	@read -p "Enter go module path of the dependency (with an optional version specified by @): " dependency; \
+	IFS='@' read -ra dependency_mod <<< "$$dependency"; \
+	dependency_mod=$${dependency_mod[0]}; \
+	for modfile in $$(find . -name go.mod); do \
+		if grep -q $$dependency_mod $$modfile; then \
+			echo "Updating $$modfile"; \
+			DIR=$$(dirname $$modfile); \
+			if [[ "$$dependency_mod" != *"$$(basename $$DIR)"* ]]; then \
+				(cd $$DIR; go get -u $$dependency); \
+			else \
+				echo "Skipping $$DIR"; \
+			fi; \
+		else \
+			echo "Skipping $$modfile"; \
+		fi; \
+	done
+
 yap: ## the yap cave
 	@go run ./mod/node-core/pkg/utils/yap/yap.go
 
