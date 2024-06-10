@@ -2,15 +2,23 @@
 
 <br>
 
-<div align="center">
+<h2 align="center">
   <a href="https://wagmi.sh">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png">
       <img alt="wagmi logo" src="https://res.cloudinary.com/duv0g402y/image/upload/v1713381289/monobera_color_alt2_ppo8o6.svg" width="auto" height="auto">
     </picture>
   </a>
-  <h2>A modular framework for building EVM consensus clients ⛵️✨</h2>
-<a href="https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml"><img alt="CI status" src="https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg"/></a><a href="https://codecov.io/gh/berachain/beacon-kit"><img alt="CodeCov" src="https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV"/></a><a href="https://t.me/beacon_kit"><img alt="Telegram Chat" src="https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit"/></a><a href="https://twitter.com/berachain" target="_blank"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/berachain"></img></a>
+  A modular framework for building EVM consensus clients ⛵️✨
+</h2>
+
+<div align="center">
+
+[![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
+[![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
+[![Telegram Chat](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit)](https://t.me/beacon_kit)
+[![Twitter Follow](https://img.shields.io/twitter/follow/berachain)](https://twitter.com/berachain)
+
 </div>
 
 
