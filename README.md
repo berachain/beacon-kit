@@ -1,13 +1,14 @@
 </br>
 
-<h2 align="center">
+<div align="center">
   <a href="https://wagmi.sh">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png">
       <img alt="wagmi logo" src="https://res.cloudinary.com/duv0g402y/image/upload/v1713381289/monobera_color_alt2_ppo8o6.svg" width="auto" height="auto">
     </picture>
   </a>
-  </br>
+</div>
+<h2 align="center">
   A modular framework for building EVM consensus clients ⛵️✨
 </h2>
 
