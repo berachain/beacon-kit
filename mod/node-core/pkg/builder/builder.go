@@ -21,7 +21,7 @@
 package builder
 
 import (
-	"os"
+	"io"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
@@ -34,6 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
@@ -42,11 +43,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
+	flags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -93,6 +97,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
+		logger      log.Logger
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -105,7 +110,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 			// the beacon module so that we don't need to define these empty
 			// placeholders to get the depinject framework to not freak out.
 			depinject.Supply(
-				log.NewLogger(os.Stdout),
+
 				viper.GetViper(),
 				nb.chainSpec,
 				&depositdb.KVStore[*consensustypes.Deposit]{},
@@ -155,6 +160,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
+		&logger,
 	); err != nil {
 		return nil, err
 	}
@@ -192,7 +198,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(
+			return nb.InterceptConfigsPreRunHandler(
 				cmd,
 				DefaultAppConfigTemplate(),
 				DefaultAppConfig(),
@@ -213,4 +219,58 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	}
 
 	return cmd, nil
+}
+
+// InterceptConfigsPreRunHandler is identical to InterceptConfigsAndCreateContext
+// except it also sets the server context on the command and the server logger.
+func (nb *NodeBuilder[NodeT]) InterceptConfigsPreRunHandler(cmd *cobra.Command, customAppConfigTemplate string, customAppConfig interface{}, cmtConfig *cmtcfg.Config) error {
+	serverCtx, err := server.InterceptConfigsAndCreateContext(cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
+	if err != nil {
+		return err
+	}
+
+	// overwrite default server logger
+	logger, err := CreateSDKLogger(serverCtx, cmd.OutOrStdout())
+	if err != nil {
+		return err
+	}
+	serverCtx.Logger = logger.With(log.ModuleKey, "server")
+
+	// set server context
+	return server.SetCmdServerContext(cmd, serverCtx)
+}
+
+// CreateSDKLogger creates a the default SDK logger.
+// It reads the log level and format from the server context.
+func CreateSDKLogger(ctx *server.Context, out io.Writer) (log.Logger, error) {
+	var opts []log.Option
+	if ctx.Viper.GetString(flags.FlagLogFormat) == flags.OutputFormatJSON {
+		opts = append(opts, log.OutputJSONOption())
+	}
+	opts = append(opts,
+		log.ColorOption(!ctx.Viper.GetBool(flags.FlagLogNoColor)),
+		// We use CometBFT flag (cmtcli.TraceFlag) for trace logging.
+		log.TraceOption(ctx.Viper.GetBool(server.FlagTrace)))
+
+	// check and set filter level or keys for the logger if any
+	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
+	if logLvlStr == "" {
+		return log.NewLogger(out, opts...), nil
+	}
+
+	logLvl, err := zerolog.ParseLevel(logLvlStr)
+	switch {
+	case err != nil:
+		// If the log level is not a valid zerolog level, then we try to parse it as a key filter.
+		filterFunc, err := log.ParseLogLevel(logLvlStr)
+		if err != nil {
+			return nil, err
+		}
+
+		opts = append(opts, log.FilterOption(filterFunc))
+	default:
+		opts = append(opts, log.LevelOption(logLvl))
+	}
+
+	return phuslu.NewLogger[any, log.Logger](logLvlStr), nil
 }

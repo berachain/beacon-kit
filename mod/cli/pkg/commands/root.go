@@ -21,6 +21,10 @@
 package commands
 
 import (
+	"context"
+	"os"
+
+	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
@@ -29,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	beaconconfig "github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -37,7 +42,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
@@ -53,6 +60,10 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
 		AddFlags: beaconconfig.AddBeaconKitFlags,
+		PostSetup: func(app T, svrCtx *server.Context, clientCtx sdkclient.Context, ctx context.Context, g *errgroup.Group) error {
+			svrCtx.Logger = log.NewCustomLogger(zerolog.New(os.Stdout).With().Timestamp().Logger()).With("module", "HENLO OOGA")
+			return nil
+		},
 	}
 
 	// Add all the commands to the root command.
