@@ -69,6 +69,7 @@ func (pb *PayloadBuilder[
 	var payloadID *engineprimitives.PayloadID
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx,
+		//nolint:lll // annoying.
 		&engineprimitives.ForkchoiceUpdateRequest[*engineprimitives.PayloadAttributes[WithdrawalT]]{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,

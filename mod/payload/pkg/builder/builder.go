@@ -22,7 +22,6 @@ package builder
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineprimitves "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -54,12 +53,14 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT]]
+	ee ExecutionEngine[
+		ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT],
+	]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		engineprimitives.PayloadID, [32]byte, math.Slot,
 	]
 }
 
@@ -82,9 +83,11 @@ func New[
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT]],
+	ee ExecutionEngine[
+		ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT],
+	],
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		engineprimitives.PayloadID, [32]byte, math.Slot,
 	],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
