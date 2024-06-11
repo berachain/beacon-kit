@@ -37,8 +37,8 @@ type LocalBuilderInput struct {
 	depinject.In
 	Cfg             *config.Config
 	ChainSpec       primitives.ChainSpec
-	Logger          log.Logger
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	Logger          log.Logger
 }
 
 func ProvideLocalBuilder(

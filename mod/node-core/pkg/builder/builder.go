@@ -29,14 +29,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -46,7 +41,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -87,7 +81,7 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 
 // buildRootCmd builds the root command for the application.
 //
-//nolint:funlen // fix later
+
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
@@ -108,17 +102,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				nb.chainSpec,
-				&depositdb.KVStore[*consensustypes.Deposit]{},
-				&engineclient.EngineClient[*consensustypes.ExecutionPayload]{},
-				&gokzg4844.JSONTrustedSetup{},
-				&noop.Verifier{},
-				&dastore.Store[*consensustypes.BeaconBlockBody]{},
-				&signer.BLSSigner{},
-				&metrics.TelemetrySink{},
-				&deposit.WrappedBeaconDepositContract[
-					*consensustypes.Deposit,
-					consensustypes.WithdrawalCredentials,
-				]{},
 				&runtime.BeaconKitRuntime[
 					*dastore.Store[*consensustypes.BeaconBlockBody],
 					*consensustypes.BeaconBlock,
@@ -141,15 +124,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
-				components.ProvideLocalBuilder,
-				components.ProvideStateProcessor,
-				components.ProvideExecutionEngine[*consensustypes.ExecutionPayload],
-				components.ProvideBlockFeed[*consensustypes.BeaconBlock],
-				components.ProvideDepositPruner,
-				components.ProvideAvailabilityPruner,
-				components.ProvideBlobProcessor[*consensustypes.BeaconBlockBody],
-				components.ProvideDBManager,
-				components.ProvideDepositService,
 			),
 		),
 		&autoCliOpts,
