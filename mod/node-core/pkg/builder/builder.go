@@ -81,7 +81,7 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 
 // buildRootCmd builds the root command for the application.
 //
-//nolint:funlen // fix later
+
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
