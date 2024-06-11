@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -26,10 +26,12 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -38,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -83,6 +86,8 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 }
 
 // buildRootCmd builds the root command for the application.
+//
+//nolint:funlen // fix later
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
@@ -113,6 +118,22 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				&deposit.WrappedBeaconDepositContract[
 					*consensustypes.Deposit,
 					consensustypes.WithdrawalCredentials,
+				]{},
+				&runtime.BeaconKitRuntime[
+					*dastore.Store[*consensustypes.BeaconBlockBody],
+					*consensustypes.BeaconBlock,
+					*consensustypes.BeaconBlockBody,
+					components.BeaconState,
+					*datypes.BlobSidecars,
+					*depositdb.KVStore[*consensustypes.Deposit],
+					blockchain.StorageBackend[
+						*dastore.Store[*consensustypes.BeaconBlockBody],
+						*consensustypes.BeaconBlockBody,
+						components.BeaconState,
+						*datypes.BlobSidecars,
+						*consensustypes.Deposit,
+						*depositdb.KVStore[*consensustypes.Deposit],
+					],
 				]{},
 			),
 			depinject.Provide(
