@@ -42,6 +42,7 @@ type Engine[
 		Version() uint32
 		Empty(uint32) PayloadAttributesT
 		IsEmpty() bool
+		IsNil() bool
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 ] struct {
@@ -65,6 +66,7 @@ func New[
 		Version() uint32
 		Empty(uint32) PayloadAttributesT
 		IsEmpty() bool
+		IsNil() bool
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 ](

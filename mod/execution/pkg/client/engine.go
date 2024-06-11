@@ -97,6 +97,9 @@ func (s *EngineClient[
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
 	defer cancel()
 
+	if attrs.IsNil() {
+		return nil, nil, engineerrors.ErrNilPayloadAttributes
+	}
 	// If the suggested fee recipient is not set, log a warning.
 	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(

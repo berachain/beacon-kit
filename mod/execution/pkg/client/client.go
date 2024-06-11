@@ -47,6 +47,7 @@ type EngineClient[
 	},
 	PayloadAttributesT interface {
 		Version() uint32
+		IsNil() bool
 		Empty(uint32) PayloadAttributesT
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
@@ -83,6 +84,7 @@ func New[
 	},
 	PayloadAttributesT interface {
 		Version() uint32
+		IsNil() bool
 		Empty(uint32) PayloadAttributesT
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},

@@ -33,6 +33,8 @@ type PayloadAttributer[PayloadAttributesT any] interface {
 	Empty(uint32) PayloadAttributesT
 	// IsEmpty returns true if the PayloadAttributer is empty.
 	IsEmpty() bool
+	// IsNil returns true if the PayloadAttributer is nil.
+	IsNil() bool
 	// Version returns the version of the PayloadAttributer.
 	Version() uint32
 	// Validate checks if the PayloadAttributer is valid and returns an error if
