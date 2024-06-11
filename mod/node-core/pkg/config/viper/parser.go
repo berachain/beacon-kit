@@ -21,7 +21,6 @@
 package viper
 
 import (
-	"encoding/json"
 	"net/url"
 	"reflect"
 
@@ -72,20 +71,6 @@ func StringToDomainTypeFunc() mapstructure.DecodeHookFunc {
 			}
 
 			return bytes.ToBytes4(bz), nil
-		},
-	)
-}
-
-// StringToJSONMarshallable returns a DecodeHookFunc that converts
-// string to any json marshallable type by parsing the string.
-func StringToJSONMarshallable[T any]() mapstructure.DecodeHookFunc {
-	return StringTo(
-		func(s string) (T, error) {
-			var v T
-			if err := json.Unmarshal([]byte(s), &v); err != nil {
-				return v, err
-			}
-			return v, nil
 		},
 	)
 }

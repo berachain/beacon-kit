@@ -33,6 +33,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBlockFeed[*types.BeaconBlock],
 		ProvideBlobProcessor[*types.BeaconBlockBody],
 		ProvideBlobProofVerifier,
+		ProvideChainSpec,
 		ProvideConfig,
 		ProvideDBManager,
 		ProvideDepositPruner,

@@ -60,7 +60,6 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 			),
 		),
 		&appBuilder,
-		&nb.chainSpec,
 	); err != nil {
 		panic(err)
 	}

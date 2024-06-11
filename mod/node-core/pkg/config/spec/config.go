@@ -21,15 +21,28 @@
 package spec
 
 import (
+	"os"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	viperlib "github.com/berachain/beacon-kit/mod/node-core/pkg/config/viper"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
-	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
+
+// TODO: This is hood as fuck needs to be improved
+// but for now we ball to get CI unblocked.
+func FromEnv() primitives.ChainSpec {
+	specType := os.Getenv("CHAIN_SPEC")
+	chainSpec := TestnetChainSpec()
+	if specType == "devnet" {
+		chainSpec = DevnetChainSpec()
+	}
+
+	return chainSpec
+}
 
 // MustReadFromAppOpts reads the configuration options from the given
 // application options.
@@ -61,7 +74,6 @@ func ReadFromAppOpts(
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDomainTypeFunc(),
-			viperlib.StringToJSONMarshallable[*cmttypes.ConsensusParams](),
 		)),
 	); err != nil {
 		return nil, errors.Newf(

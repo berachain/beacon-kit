@@ -33,10 +33,6 @@ type ChainSpecIn struct {
 }
 
 // ProvideChainSpec provides the chain spec.
-func ProvideChainSpec(in ChainSpecIn) (primitives.ChainSpec, error) {
-	cs, err := spec.ReadFromAppOpts(in.AppOpts)
-	if err != nil {
-		panic("REEE")
-	}
-	return cs, nil
+func ProvideChainSpec(_ ChainSpecIn) (primitives.ChainSpec, error) {
+	return spec.FromEnv(), nil
 }
