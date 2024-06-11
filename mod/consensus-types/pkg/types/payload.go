@@ -158,7 +158,6 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 
 	e.header.Store(header)
 	return header, nil
-
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.
