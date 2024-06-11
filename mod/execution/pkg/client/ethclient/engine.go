@@ -34,7 +34,8 @@ import (
 /*                              ForkchoiceUpdated                             */
 /* -------------------------------------------------------------------------- */
 
-// ForkchoiceUpdated is a helper function to call the appropriate version of the.
+// ForkchoiceUpdated is a helper function to call the appropriate version of
+// the.
 func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
