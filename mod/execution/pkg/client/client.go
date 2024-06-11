@@ -26,7 +26,6 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -64,12 +63,6 @@ type EngineClient[
 	// engineCache is an all-in-one cache for data
 	// that are retrieved by the EngineClient.
 	engineCache *cache.EngineCache
-	// statusErrCond is a condition variable for the status error.
-	statusErrCond *sync.Cond
-	// statusErrMu is a mutex for the status error.
-	statusErrMu *sync.RWMutex
-	// statusErr is the status error of the engine client.
-	statusErr error
 }
 
 // New creates a new engine client EngineClient.
@@ -87,18 +80,15 @@ func New[ExecutionPayloadT interface {
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadT] {
-	statusErrMu := new(sync.RWMutex)
 	return &EngineClient[ExecutionPayloadT]{
-		cfg:           cfg,
-		logger:        logger,
-		jwtSecret:     jwtSecret,
-		Eth1Client:    new(ethclient.Eth1Client[ExecutionPayloadT]),
-		capabilities:  make(map[string]struct{}),
-		statusErrMu:   statusErrMu,
-		statusErrCond: sync.NewCond(statusErrMu),
-		engineCache:   cache.NewEngineCacheWithDefaultConfig(),
-		eth1ChainID:   eth1ChainID,
-		metrics:       newClientMetrics(telemetrySink, logger),
+		cfg:          cfg,
+		logger:       logger,
+		jwtSecret:    jwtSecret,
+		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT]),
+		capabilities: make(map[string]struct{}),
+		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
+		eth1ChainID:  eth1ChainID,
+		metrics:      newClientMetrics(telemetrySink, logger),
 	}
 }
 
@@ -125,28 +115,11 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
 func (s *EngineClient[ExecutionPayloadT]) Status() error {
-	s.statusErrMu.RLock()
-	defer s.statusErrMu.RUnlock()
-	return s.status(context.Background())
-}
-
-// WaitForHealthy waits for the engine client to be healthy.
-func (s *EngineClient[ExecutionPayloadT]) WaitForHealthy(
-	ctx context.Context,
-) {
-	s.statusErrMu.Lock()
-	defer s.statusErrMu.Unlock()
-
-	for s.status(ctx) != nil {
-		go s.refreshUntilHealthy(ctx)
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			// Then we wait until we are blessed tf up.
-			s.statusErrCond.Wait()
-		}
+	// If the client is not started, we return an error.
+	if s.Eth1Client.Client == nil {
+		return ErrNotStarted
 	}
+	return nil
 }
 
 // VerifyChainID Checks the chain ID of the execution client to ensure
@@ -186,9 +159,6 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 			"dial_url", s.cfg.RPCDialURL,
 		)
 		if err = s.setupExecutionClientConnection(ctx); err != nil {
-			s.statusErrMu.Lock()
-			s.statusErr = err
-			s.statusErrMu.Unlock()
 			time.Sleep(s.cfg.RPCStartupCheckInterval)
 			s.logger.Error("failed to setup execution client", "err", err)
 			continue
@@ -308,19 +278,15 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 			ticker.Stop()
 			return
 		case <-ticker.C:
-			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error(
 					"failed to refresh engine auth token",
 					"err",
 					err,
 				)
-				s.statusErr = ErrFailedToRefreshJWT
 			} else {
-				s.statusErr = nil
 				s.logger.Info("successfully refreshed engine auth token")
 			}
-			s.statusErrMu.Unlock()
 		}
 	}
 }
@@ -347,49 +313,4 @@ func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) 
 // Name returns the name of the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Name() string {
 	return "engine-client"
-}
-
-// ================================ Info ================================
-
-// status returns the status of the engine client.
-func (s *EngineClient[ExecutionPayloadT]) status(
-	ctx context.Context,
-) error {
-	// If the client is not started, we return an error.
-	if s.Eth1Client.Client == nil {
-		return ErrNotStarted
-	}
-
-	if s.statusErr == nil {
-		// If we have an error, we will attempt
-		// to verify the chain ID again.
-		//#nosec:G703 wtf is even this problem here.
-		s.statusErr = s.VerifyChainID(ctx)
-	}
-
-	if s.statusErr == nil {
-		s.statusErrCond.Broadcast()
-	}
-
-	return s.statusErr
-}
-
-// refreshUntilHealthy refreshes the engine client until it is healthy.
-// TODO: remove after hack testing done.
-func (s *EngineClient[ExecutionPayloadT]) refreshUntilHealthy(
-	ctx context.Context,
-) {
-	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if err := s.status(ctx); err == nil {
-				return
-			}
-		}
-	}
 }
