@@ -159,6 +159,51 @@ func (_c *PayloadAttributer_IsEmpty_Call[PayloadAttributesT]) RunAndReturn(run f
 	return _c
 }
 
+// IsNil provides a mock function with given fields:
+func (_m *PayloadAttributer[PayloadAttributesT]) IsNil() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsNil")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// PayloadAttributer_IsNil_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsNil'
+type PayloadAttributer_IsNil_Call[PayloadAttributesT interface{}] struct {
+	*mock.Call
+}
+
+// IsNil is a helper method to define mock.On call
+func (_e *PayloadAttributer_Expecter[PayloadAttributesT]) IsNil() *PayloadAttributer_IsNil_Call[PayloadAttributesT] {
+	return &PayloadAttributer_IsNil_Call[PayloadAttributesT]{Call: _e.mock.On("IsNil")}
+}
+
+func (_c *PayloadAttributer_IsNil_Call[PayloadAttributesT]) Run(run func()) *PayloadAttributer_IsNil_Call[PayloadAttributesT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *PayloadAttributer_IsNil_Call[PayloadAttributesT]) Return(_a0 bool) *PayloadAttributer_IsNil_Call[PayloadAttributesT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *PayloadAttributer_IsNil_Call[PayloadAttributesT]) RunAndReturn(run func() bool) *PayloadAttributer_IsNil_Call[PayloadAttributesT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Validate provides a mock function with given fields:
 func (_m *PayloadAttributer[PayloadAttributesT]) Validate() error {
 	ret := _m.Called()
