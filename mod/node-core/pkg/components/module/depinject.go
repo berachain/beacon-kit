@@ -24,18 +24,8 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -43,80 +33,28 @@ import (
 //nolint:gochecknoinits // required by sdk.
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
-		// TODO: make storage backend its own module and remove the
-		// coupling between construction of runtime and module
 		appconfig.Provide(
-			ProvideStorageBackend,
+			components.ProvideStorageBackend,
 			ProvideModule,
 		),
 	)
 }
 
-// DepInjectInput is the input for the dep inject framework.
-type DepInjectInput struct {
+// ModuleInput is the input for the dep inject framework.
+type ModuleInput struct {
 	depinject.In
-	BeaconConfig *config.Config
-	Runtime      *components.BeaconKitRuntime
+	Runtime *components.BeaconKitRuntime
 }
 
-// DepInjectOutput is the output for the dep inject framework.
-type DepInjectOutput struct {
+// ModuleOutput is the output for the dep inject framework.
+type ModuleOutput struct {
 	depinject.Out
 	Module appmodule.AppModule
 }
 
 // ProvideModule is a function that provides the module to the application.
-func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
-	return DepInjectOutput{
+func ProvideModule(in ModuleInput) (ModuleOutput, error) {
+	return ModuleOutput{
 		Module: NewAppModule(in.Runtime),
 	}, nil
-}
-
-// StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
-	depinject.In
-	ChainSpec         primitives.ChainSpec
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	Environment       appmodule.Environment
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-}
-
-// ProvideStorageBackend is the depinject provider that returns a beacon storage
-// backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
-) *storage.Backend[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, *engineprimitives.Withdrawal,
-	],
-	*depositdb.KVStore[*types.Deposit],
-] {
-	payloadCodec := &encoding.
-		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-	return storage.NewBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Eth1Data,
-			*types.ExecutionPayloadHeader, *types.Fork,
-			*types.Validator, *engineprimitives.Withdrawal,
-		],
-	](
-		in.ChainSpec,
-		in.AvailabilityStore,
-		beacondb.New[
-			*types.Fork,
-			*types.BeaconBlockHeader,
-			*types.ExecutionPayloadHeader,
-			*types.Eth1Data,
-			*types.Validator,
-		](in.Environment.KVStoreService, payloadCodec),
-		in.DepositStore,
-	)
 }
