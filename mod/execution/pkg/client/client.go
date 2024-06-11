@@ -310,7 +310,11 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 		case <-ticker.C:
 			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error("failed to refresh engine auth token", "err", err)
+				s.logger.Error(
+					"failed to refresh engine auth token",
+					"err",
+					err,
+				)
 				s.statusErr = ErrFailedToRefreshJWT
 			} else {
 				s.statusErr = nil
