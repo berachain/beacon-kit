@@ -67,11 +67,6 @@ type DepInjectOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in DepInjectInput) (DepInjectOutput, error) {
-	// TODO: this is hood as fuck.
-	if in.BeaconConfig.KZG.Implementation == "" {
-		in.BeaconConfig.KZG.Implementation = "crate-crypto/go-kzg-4844"
-	}
-
 	return DepInjectOutput{
 		Module: NewAppModule(in.Runtime),
 	}, nil
