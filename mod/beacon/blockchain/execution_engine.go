@@ -74,6 +74,7 @@ func (s *Service[
 				"error", err,
 			)
 		}
+		return
 	}
 
 	stCopy := st.Copy()
