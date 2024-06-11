@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	ssz "github.com/ferranbt/fastssz"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -43,6 +44,12 @@ func TestEth1Data_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+}
+
+func TestEth1Data_UnmarshalError(t *testing.T) {
+	var unmarshalled types.Eth1Data
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.ErrorIs(t, err, ssz.ErrSize)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
