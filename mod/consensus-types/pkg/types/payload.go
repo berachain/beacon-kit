@@ -39,9 +39,13 @@ import (
 type ExecutionPayload struct {
 	InnerExecutionPayload
 
-	// caches
+	// header is a cache of the ExecutionPayloadHeader to
+	// avoid recomputing it every time.
 	header atomic.Pointer[ExecutionPayloadHeader]
-	root   atomic.Pointer[primitives.Root]
+
+	// root is the hash tree root of the ExecutionPayload.
+	// It is a cache to avoid recomputing it every time.
+	root atomic.Pointer[primitives.Root]
 }
 
 // InnerExecutionPayload represents the inner execution payload.
