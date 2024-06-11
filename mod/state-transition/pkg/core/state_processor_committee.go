@@ -39,11 +39,14 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return iter.MapErr(vals, func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-		v := (*val)
-		return &transition.ValidatorUpdate{
-			Pubkey:           v.GetPubkey(),
-			EffectiveBalance: v.GetEffectiveBalance(),
-		}, nil
-	})
+	return iter.MapErr(
+		vals,
+		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
+			v := (*val)
+			return &transition.ValidatorUpdate{
+				Pubkey:           v.GetPubkey(),
+				EffectiveBalance: v.GetEffectiveBalance(),
+			}, nil
+		},
+	)
 }
