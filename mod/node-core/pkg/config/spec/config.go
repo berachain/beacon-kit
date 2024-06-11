@@ -50,8 +50,7 @@ func ReadFromAppOpts(
 ) (primitives.ChainSpec, error) {
 	v, ok := opts.(*viper.Viper)
 	if !ok {
-		return nil,
-			errors.Newf("invalid application options type: %T", opts)
+		return nil, errors.Wrapf(ErrInvalidOptionsType, "%v", opts)
 	}
 
 	type cfgUnmarshaller struct {
@@ -62,7 +61,7 @@ func ReadFromAppOpts(
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 			viperlib.StringToExecutionAddressFunc(),
 			viperlib.StringToDomainTypeFunc(),
-			viperlib.StringToCometConsensusParamsFunc[*cmttypes.ConsensusParams](),
+			viperlib.StringToJSONMarshallable[*cmttypes.ConsensusParams](),
 		)),
 	); err != nil {
 		return nil, errors.Newf(

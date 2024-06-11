@@ -43,6 +43,8 @@ effective-balance-increment = "{{ .ChainSpec.EffectiveBalanceIncrement }}"
 slots-per-epoch = "{{ .ChainSpec.SlotsPerEpoch }}"
 # SlotsPerHistoricalRoot is the number of slots per historical root.
 slots-per-historical-root = "{{ .ChainSpec.SlotsPerHistoricalRoot }}"
+# MinEpochsToInactivityPenalty is the minimum number of epochs before a validator is penalized for inactivity.
+min-epochs-to-inactivity-penalty = "{{ .ChainSpec.MinEpochsToInactivityPenalty }}"
 
 # Signature domains.
 #
@@ -67,6 +69,8 @@ domain-type-application-mask = "{{ .ChainSpec.DomainTypeApplicationMask }}"
 #
 # DepositContractAddress is the address of the deposit contract.
 deposit-contract-address = "{{ .ChainSpec.DepositContractAddress }}"
+# MaxDepositsPerBlock specifies the maximum number of deposit operations allowed per block.
+max-deposits-per-block = "{{ .ChainSpec.MaxDepositsPerBlock }}"
 # DepositEth1ChainID is the chain ID of the execution client.
 deposit-eth1-chain-id = "{{ .ChainSpec.DepositEth1ChainID }}"
 # Eth1FollowDistance is the distance between the eth1 chain and the beacon chain with respect to reading deposits.
@@ -90,13 +94,10 @@ historical-roots-limit = "{{ .ChainSpec.HistoricalRootsLimit }}"
 # ValidatorRegistryLimit is the maximum number of validators in the registry.
 validator-registry-limit = "{{ .ChainSpec.ValidatorRegistryLimit }}"
 
-# Max operations per block constants.
-#
-# MaxDepositsPerBlock specifies the maximum number of deposit operations allowed per block.
-max-deposits-per-block = "{{ .ChainSpec.MaxDepositsPerBlock }}"
-
 # Rewards and penalties constants.
 #
+# InactivityPenaltyQuotient is the penalty quotient for inactivity.
+inactivity-penalty-quotient = "{{ .ChainSpec.InactivityPenaltyQuotient }}"
 # ProportionalSlashingMultiplier is the slashing multiplier relative to the base penalty.
 proportional-slashing-multiplier = "{{ .ChainSpec.ProportionalSlashingMultiplier }}"
 

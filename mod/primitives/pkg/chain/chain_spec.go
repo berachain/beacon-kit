@@ -29,7 +29,9 @@ type Spec[
 	CometBFTConfigT any,
 ] interface {
 	// SpecData returns the all chain-specific data values.
-	SpecData() SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT]
+	SpecData() SpecData[
+		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+	]
 
 	// Gwei value constants.
 	//
@@ -168,7 +170,9 @@ type chainSpec[
 	CometBFTConfigT any,
 ] struct {
 	// Data contains the actual chain-specific parameter values.
-	Data SpecData[DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT]
+	Data SpecData[
+		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+	]
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.

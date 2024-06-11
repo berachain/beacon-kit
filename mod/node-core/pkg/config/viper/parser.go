@@ -76,16 +76,16 @@ func StringToDomainTypeFunc() mapstructure.DecodeHookFunc {
 	)
 }
 
-// StringToCometConsensusParamsFunc returns a DecodeHookFunc that converts
-// string to a `*cmttypes.ConsensusParams` by parsing the string.
-func StringToCometConsensusParamsFunc[T any]() mapstructure.DecodeHookFunc {
+// StringToJSONMarshallable returns a DecodeHookFunc that converts
+// string to any json marshallable type by parsing the string.
+func StringToJSONMarshallable[T any]() mapstructure.DecodeHookFunc {
 	return StringTo(
 		func(s string) (T, error) {
-			var params T
-			if err := json.Unmarshal([]byte(s), &params); err != nil {
-				return params, err
+			var v T
+			if err := json.Unmarshal([]byte(s), &v); err != nil {
+				return v, err
 			}
-			return params, nil
+			return v, nil
 		},
 	)
 }

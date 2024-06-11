@@ -49,7 +49,6 @@ func NewBeaconKitApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-
 	appBuilder *runtime.AppBuilder,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
