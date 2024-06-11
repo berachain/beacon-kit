@@ -29,7 +29,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// StringToSliceHookFunc returns a DecodeHookFunc that converts
+// StringToExecutionAddressFunc returns a DecodeHookFunc that converts
 // string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
@@ -53,7 +53,7 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 	)
 }
 
-// StringToDialURLFunc returns a DecodeHookFunc that converts
+// StringToConnectionURLFunc returns a DecodeHookFunc that converts
 // string to *beaconurl.ConnectionURL by parsing the string.
 func StringToConnectionURLFunc() mapstructure.DecodeHookFunc {
 	return StringTo(beaconurl.NewFromRaw)

@@ -54,7 +54,7 @@ func NewPayloadIDCache[
 	}
 }
 
-// Get retrieves the payload ID associated with a given slot and eth1 hash.
+// Has retrieves the payload ID associated with a given slot and eth1 hash.
 // Has checks if a payload ID exists for a given slot and eth1 hash.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
 	slot SlotT,
@@ -66,7 +66,7 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
 	return ok
 }
 
-// was successful.
+// Get was successful.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Get(
 	slot SlotT,
 	stateRoot RootT,

@@ -38,7 +38,7 @@ func (v Verifier) GetImplementation() string {
 	return "noop"
 }
 
-// VerifyProof is a no-op.
+// VerifyBlobProof is a no-op.
 func (v Verifier) VerifyBlobProof(
 	*eip4844.Blob,
 	eip4844.KZGProof,

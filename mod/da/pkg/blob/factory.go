@@ -63,7 +63,7 @@ func NewSidecarFactory[
 	}
 }
 
-// BuildSidecar builds a sidecar.
+// BuildSidecars builds a sidecar.
 func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,

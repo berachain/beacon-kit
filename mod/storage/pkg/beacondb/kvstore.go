@@ -98,7 +98,7 @@ type KVStore[
 	totalSlashing sdkcollections.Item[uint64]
 }
 
-// Store creates a new instance of Store.
+// New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
 func New[

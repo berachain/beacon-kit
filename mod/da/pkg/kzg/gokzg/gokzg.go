@@ -49,7 +49,7 @@ func (v Verifier) GetImplementation() string {
 	return Implementation
 }
 
-// VerifyProof verifies the KZG proof that the polynomial represented by the
+// VerifyBlobProof verifies the KZG proof that the polynomial represented by the
 // blob evaluated at the given point is the claimed value.
 func (v Verifier) VerifyBlobProof(
 	blob *eip4844.Blob,

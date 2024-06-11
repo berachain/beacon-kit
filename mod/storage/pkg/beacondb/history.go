@@ -34,7 +34,7 @@ func (kv *KVStore[
 	return kv.blockRoots.Set(kv.ctx, index, root[:])
 }
 
-// GetBlockRoot retrieves the block root from the BeaconStore.
+// GetBlockRootAtIndex retrieves the block root from the BeaconStore.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetBlockRootAtIndex(

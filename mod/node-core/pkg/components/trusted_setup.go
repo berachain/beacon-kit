@@ -37,7 +37,7 @@ type TrustedSetupInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ProvideBlsSigner is a function that provides the module to the application.
+// ProvideTrustedSetup provides the module to the application.
 func ProvideTrustedSetup(
 	in TrustedSetupInput,
 ) (*gokzg4844.JSONTrustedSetup, error) {

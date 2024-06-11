@@ -102,7 +102,7 @@ func New[ExecutionPayloadT interface {
 	}
 }
 
-// StartWithHTTP starts the engine client.
+// Start the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Start(
 	ctx context.Context,
 ) error {
@@ -149,7 +149,7 @@ func (s *EngineClient[ExecutionPayloadT]) WaitForHealthy(
 	}
 }
 
-// Checks the chain ID of the execution client to ensure
+// VerifyChainID Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
 func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
 	ctx context.Context,
