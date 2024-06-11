@@ -94,24 +94,24 @@ func NewPayloadAttributes[
 }
 
 // IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes[Withdrawal]) IsNil() bool {
+func (p *PayloadAttributes[WithdrawalT]) IsNil() bool {
 	return p == nil
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (
-	p *PayloadAttributes[Withdrawal],
+	p *PayloadAttributes[WithdrawalT],
 ) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes[Withdrawal]) Version() uint32 {
+func (p *PayloadAttributes[WithdrawalT]) Version() uint32 {
 	return p.version
 }
 
 // Validate validates the PayloadAttributes.
-func (p *PayloadAttributes[Withdrawal]) Validate() error {
+func (p *PayloadAttributes[WithdrawalT]) Validate() error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
