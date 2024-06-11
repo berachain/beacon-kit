@@ -21,8 +21,6 @@
 package components
 
 import (
-	"fmt"
-
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
