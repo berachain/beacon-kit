@@ -76,6 +76,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	],
 ]
 
+// RuntimeInput is the input for the runtime provider.
 type RuntimeInput struct {
 	depinject.In
 	Cfg           *config.Config
@@ -124,8 +125,7 @@ type RuntimeInput struct {
 	Logger        log.Logger
 }
 
-// NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
-// services.
+// ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
