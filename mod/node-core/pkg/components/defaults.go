@@ -52,5 +52,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideDBManager,
 		ProvideDepositService,
 		ProvideRuntime,
+		ProvideValidatorService,
 	}
 }
