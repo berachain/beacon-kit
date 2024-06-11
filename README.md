@@ -1,10 +1,10 @@
 </br>
 
 <div align="center">
-  <a href="https://wagmi.sh">
+  <a href="https://github.com/berachain/beacon-kit">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png">
-      <img alt="wagmi logo" src="https://res.cloudinary.com/duv0g402y/image/upload/v1713381289/monobera_color_alt2_ppo8o6.svg" width="auto" height="auto">
+      <img alt="beacon-kit-banner" src="https://res.cloudinary.com/duv0g402y/image/upload/v1718034312/BeaconKitBanner.png" width="auto" height="auto">
     </picture>
   </a>
 </div>
