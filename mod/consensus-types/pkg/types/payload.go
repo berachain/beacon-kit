@@ -41,7 +41,7 @@ type ExecutionPayload struct {
 
 	// caches
 	header atomic.Pointer[ExecutionPayloadHeader]
-	root   atomic.Pointer[[32]byte]
+	root   atomic.Pointer[primitives.Root]
 }
 
 // InnerExecutionPayload represents the inner execution payload.
@@ -88,7 +88,7 @@ func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 	if err != nil {
 		return [32]byte{}, err
 	}
-	e.root.Store(&root)
+	e.root.Store((*primitives.Root)(&root))
 	return root, nil
 }
 
