@@ -73,7 +73,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	],
 ]
 
-// NewDefaultBeaconKitRuntime creates a new BeaconKitRuntime with the default
+// ProvideRuntime creates a new BeaconKitRuntime with the default
 // services.
 //
 //nolint:funlen // bullish.

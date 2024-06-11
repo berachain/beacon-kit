@@ -25,7 +25,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// SideCars is a slice of blob side cars to be included in the block.
+// BlobSidecars is a slice of blob side cars to be included in the block.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecars.go -objs BlobSidecars -include ../../../consensus-types/pkg/types,../../../primitives/pkg/bytes,./sidecar.go,../../../primitives/pkg/math,../../../primitives/mod.go,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecars.ssz.go
 type BlobSidecars struct {

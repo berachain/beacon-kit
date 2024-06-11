@@ -83,7 +83,7 @@ type SSZInterfaceCodec[T interface {
 	latestVersion uint32
 }
 
-// SetForkVersion sets the fork version for the codec.
+// SetActiveForkVersion sets the fork version for the codec.
 func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
 	cdc.latestVersion = version
 }

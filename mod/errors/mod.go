@@ -48,7 +48,7 @@ type DetailedError struct {
 	fatal bool
 }
 
-// Error returns the error message.
+// WrapNonFatal returns the error message.
 func WrapNonFatal(err error) error {
 	return &DetailedError{
 		error: err,

@@ -203,7 +203,7 @@ func (r *BeaconKitRuntime[
 	return r.services.StartAll(ctx)
 }
 
-// ABCIHandler returns the ABCI handler.
+// ABCIFinalizeBlockMiddleware returns the ABCI handler.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,

@@ -107,7 +107,7 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 	return m
 }
 
-// Statuses returns a map of Service type -> error. The map will be populated
+// WaitForHealthy returns a map of Service type -> error. The map will be populated
 // with the results of each service.Status() method call.
 func (s *Registry) WaitForHealthy(ctx context.Context, services ...string) {
 	wg := conc.NewWaitGroup()

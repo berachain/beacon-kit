@@ -27,6 +27,7 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 )
 
+// InitGenesis
 // TODO: InitGenesis should be calling into the StateProcessor.
 func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,

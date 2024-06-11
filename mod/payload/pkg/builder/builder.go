@@ -61,7 +61,7 @@ type PayloadBuilder[
 	]
 }
 
-// NewService creates a new service.
+// New creates a new service.
 func New[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT interface {

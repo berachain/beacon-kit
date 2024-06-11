@@ -32,7 +32,7 @@ const Implementation = "ethereum/c-kzg-4844"
 // Verifier is a verifier that utilizies the CKZG library.
 type Verifier struct{}
 
-// Implementation returns the implementation of the verifier.
+// GetImplementation returns the implementation of the verifier.
 func (v Verifier) GetImplementation() string {
 	return Implementation
 }

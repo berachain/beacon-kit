@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
+// NoopBlockGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlockGossipHandler[BeaconBlockT interface {
 	ssz.Marshallable

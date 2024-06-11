@@ -98,7 +98,7 @@ func (p *PayloadAttributes[Withdrawal]) IsNil() bool {
 	return p == nil
 }
 
-// GetSuggestionsFeeRecipient returns the suggested fee recipient.
+// GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (
 	p *PayloadAttributes[Withdrawal],
 ) GetSuggestedFeeRecipient() common.ExecutionAddress {
