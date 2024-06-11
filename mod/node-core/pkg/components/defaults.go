@@ -50,6 +50,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideRuntime,
+		ProvideServiceRegistry,
 		ProvideStateProcessor,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,

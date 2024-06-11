@@ -23,8 +23,10 @@ package components
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -33,6 +35,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
+
+// StorageBackend is the type alias for the storage backend interface.
+type StorageBackend = blockchain.StorageBackend[
+	*dastore.Store[*types.BeaconBlockBody],
+	*types.BeaconBlockBody,
+	BeaconState,
+	*datypes.BlobSidecars,
+	*types.Deposit,
+	*depositdb.KVStore[*types.Deposit],
+]
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput struct {
@@ -47,17 +59,7 @@ type StorageBackendInput struct {
 // backend.
 func ProvideStorageBackend(
 	in StorageBackendInput,
-) *storage.Backend[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, *engineprimitives.Withdrawal,
-	],
-	*depositdb.KVStore[*types.Deposit],
-] {
+) StorageBackend {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	return storage.NewBackend[

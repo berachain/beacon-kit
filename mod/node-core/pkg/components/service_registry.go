@@ -21,36 +21,42 @@
 package components
 
 import (
-	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/ethereum/go-ethereum/event"
 )
 
-// ChainServiceInput is the input for the chain service provider.
-type ChainServiceInput struct {
+// ServiceRegistryInput is the input for the service registry provider.
+type ServiceRegistryInput struct {
 	depinject.In
-	BlobProcessor *dablob.Processor[
+	ChainService *blockchain.Service[
 		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
 		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
 	]
-	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	ChainSpec      primitives.ChainSpec
-	Cfg            *config.Config
+	DBManagerService *manager.DBManager[
+		*types.BeaconBlock,
+		*feed.Event[*types.BeaconBlock],
+		event.Subscription,
+	]
 	DepositService *deposit.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -60,48 +66,34 @@ type ChainServiceInput struct {
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
-	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
-	LocalBuilder    *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	]
-	Logger         log.Logger
-	Signer         crypto.BLSSigner
-	StateProcessor StateProcessor
-	StorageBackend StorageBackend
-	TelemetrySink  *metrics.TelemetrySink
-}
-
-// ProvideChainService is a depinject provider for the blockchain service.
-func ProvideChainService(
-	in ChainServiceInput,
-) *blockchain.Service[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*types.Deposit,
-	*depositdb.KVStore[*types.Deposit],
-] {
-	return blockchain.NewService[
-		*dastore.Store[*types.BeaconBlockBody],
+	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload]
+	Logger           log.Logger
+	TelemetrySink    *metrics.TelemetrySink
+	ValidatorService *validator.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
-	](
-		in.StorageBackend,
-		in.Logger.With("service", "blockchain"),
-		in.ChainSpec,
-		in.ExecutionEngine,
-		in.LocalBuilder,
-		in.BlobProcessor,
-		in.StateProcessor,
-		in.TelemetrySink,
-		in.BlockFeed,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
+		*types.ForkData,
+	]
+}
+
+// ProvideServiceRegistry is the depinject provider for the service registry.
+func ProvideServiceRegistry(
+	in ServiceRegistryInput,
+) *service.Registry {
+	return service.NewRegistry(
+		service.WithLogger(in.Logger.With("service", "service-registry")),
+		service.WithService(in.ValidatorService),
+		service.WithService(in.ChainService),
+		service.WithService(in.DepositService),
+		service.WithService(in.EngineClient),
+		service.WithService(version.NewReportingService(
+			in.Logger,
+			in.TelemetrySink,
+			sdkversion.Version,
+		)),
+		service.WithService(in.DBManagerService),
 	)
 }

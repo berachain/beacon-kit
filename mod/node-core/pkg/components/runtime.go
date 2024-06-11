@@ -24,31 +24,19 @@ import (
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	"github.com/ethereum/go-ethereum/event"
 )
 
+// BeaconState is a type alias for the BeaconState.
 type BeaconState = core.BeaconState[
 	*types.BeaconBlockHeader, *types.Eth1Data,
 	*types.ExecutionPayloadHeader, *types.Fork,
@@ -76,89 +64,18 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 // RuntimeInput is the input for the runtime provider.
 type RuntimeInput struct {
 	depinject.In
-	BlobProcessor *dablob.Processor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-	]
-	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	Cfg          *config.Config
-	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
-	ChainSpec        primitives.ChainSpec
-	DBManagerService *manager.DBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription,
-	]
-	DepositService *deposit.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*feed.Event[*types.BeaconBlock],
-		*types.Deposit,
-		*types.ExecutionPayload,
-		event.Subscription,
-		types.WithdrawalCredentials,
-	]
-	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
-
-	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	]
-	Logger         log.Logger
-	StateProcessor blockchain.StateProcessor[
-		*types.BeaconBlock,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*transition.Context,
-		*types.Deposit,
-	]
-	StorageBackend blockchain.StorageBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
-	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService *validator.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-		*types.ForkData,
-	]
+	ChainSpec       primitives.ChainSpec
+	Logger          log.Logger
+	ServiceRegistry *service.Registry
+	StorageBackend  StorageBackend
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
-	// Build the service registry.
-	svcRegistry := service.NewRegistry(
-		service.WithLogger(in.Logger.With("service", "service-registry")),
-		service.WithService(in.ValidatorService),
-		service.WithService(in.ChainService),
-		service.WithService(in.DepositService),
-		service.WithService(in.EngineClient),
-		service.WithService(version.NewReportingService(
-			in.Logger,
-			in.TelemetrySink,
-			sdkversion.Version,
-		)),
-		service.WithService(in.DBManagerService),
-	)
-
-	// Pass all the services and options into the BeaconKitRuntime.
+	// Build the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
@@ -177,7 +94,7 @@ func ProvideRuntime(
 	](
 		in.ChainSpec,
 		in.Logger,
-		svcRegistry,
+		in.ServiceRegistry,
 		in.StorageBackend,
 		in.TelemetrySink,
 	)
