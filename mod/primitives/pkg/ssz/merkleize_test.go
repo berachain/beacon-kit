@@ -21,11 +21,11 @@
 package ssz_test
 
 import (
-	"crypto/sha256"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	sha256 "github.com/minio/sha256-simd"
 	"github.com/stretchr/testify/require"
 )
 
