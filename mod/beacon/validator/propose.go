@@ -75,7 +75,7 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlock(
+	blk, err = s.getEmptyBeaconBlockForSlot(
 		st, requestedSlot,
 	)
 	if err != nil {
@@ -174,7 +174,7 @@ func (s *Service[
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) getEmptyBeaconBlock(
+]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT

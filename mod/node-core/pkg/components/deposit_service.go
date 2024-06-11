@@ -37,16 +37,15 @@ import (
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn struct {
 	depinject.In
-
-	Logger                log.Logger
-	ChainSpec             primitives.ChainSpec
-	EngineClient          *engineclient.EngineClient[*types.ExecutionPayload]
-	TelemetrySink         *metrics.TelemetrySink
-	DepositStore          *depositdb.KVStore[*types.Deposit]
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	ChainSpec     primitives.ChainSpec
+	DepositStore  *depositdb.KVStore[*types.Deposit]
+	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
+	Logger        log.Logger
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject

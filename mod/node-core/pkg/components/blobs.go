@@ -58,9 +58,9 @@ func ProvideBlobProofVerifier(
 type BlobProcessorIn struct {
 	depinject.In
 
-	Logger            log.Logger
 	BlobProofVerifier kzg.BlobProofVerifier
 	ChainSpec         primitives.ChainSpec
+	Logger            log.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
 

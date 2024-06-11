@@ -35,9 +35,9 @@ import (
 // DBManagerInput is the input for the dep inject framework.
 type DBManagerInput struct {
 	depinject.In
-	Logger             log.Logger
-	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
 	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
+	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
+	Logger             log.Logger
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
