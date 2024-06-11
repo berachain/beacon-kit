@@ -143,7 +143,9 @@ func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
 	return nil
 }
 
-// ============================== HELPERS ==============================
+/* -------------------------------------------------------------------------- */
+/*                                   Helpers                                  */
+/* -------------------------------------------------------------------------- */
 
 func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 	ctx context.Context,
@@ -213,7 +215,9 @@ func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
 	return nil
 }
 
-// ================================ Dialing ================================
+/* -------------------------------------------------------------------------- */
+/*                                   Dialing                                  */
+/* -------------------------------------------------------------------------- */
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
 func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
