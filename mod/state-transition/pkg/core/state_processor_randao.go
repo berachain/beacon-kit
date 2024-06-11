@@ -21,7 +21,7 @@
 package core
 
 import (
-	"crypto/sha256"
+	sha256 "github.com/minio/sha256-simd"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"

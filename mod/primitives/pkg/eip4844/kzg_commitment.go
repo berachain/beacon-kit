@@ -21,8 +21,9 @@
 package eip4844
 
 import (
-	"crypto/sha256"
 	"reflect"
+
+	sha256 "github.com/minio/sha256-simd"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
