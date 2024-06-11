@@ -36,6 +36,7 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
+// StorageBackend is the type alias for the storage backend interface.
 type StorageBackend = blockchain.StorageBackend[
 	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlockBody,

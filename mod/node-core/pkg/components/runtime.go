@@ -75,7 +75,7 @@ type RuntimeInput struct {
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
-	// Pass all the services and options into the BeaconKitRuntime.
+	// Build the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,

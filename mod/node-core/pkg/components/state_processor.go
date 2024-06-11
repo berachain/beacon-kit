@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
+// StateProcessor is the type alias for the state processor inteface.
 type StateProcessor = blockchain.StateProcessor[
 	*types.BeaconBlock,
 	BeaconState,
