@@ -38,11 +38,9 @@ import (
 // all fork versions.
 type ExecutionPayload struct {
 	InnerExecutionPayload
-
 	// header is a cache of the ExecutionPayloadHeader to
 	// avoid recomputing it every time.
 	header atomic.Pointer[ExecutionPayloadHeader]
-
 	// root is the hash tree root of the ExecutionPayload.
 	// It is a cache to avoid recomputing it every time.
 	root atomic.Pointer[primitives.Root]
