@@ -167,13 +167,3 @@ func (s *Service[
 ]) Status() error {
 	return nil
 }
-
-// WaitForHealthy waits for the service to become healthy.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
-]) WaitForHealthy(
-	_ context.Context,
-) {
-}

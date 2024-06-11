@@ -25,7 +25,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/sourcegraph/conc"
 )
 
 // Basic is the minimal interface for a service.
@@ -36,8 +35,6 @@ type Basic interface {
 	Name() string
 	// Status returns error if the service is not considered healthy.
 	Status() error
-	// WaitForHealthy blocks until the service is healthy.
-	WaitForHealthy(ctx context.Context)
 }
 
 // Registry provides a useful pattern for managing services.
@@ -105,16 +102,6 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 		m[typeName] = svc.Status()
 	}
 	return m
-}
-
-// WaitForHealthy blocks until all specified services are considered healthy.
-// It waits for each service's WaitForHealthy method to complete.
-func (s *Registry) WaitForHealthy(ctx context.Context, services ...string) {
-	wg := conc.NewWaitGroup()
-	for _, typeName := range services {
-		wg.Go(func() { s.services[typeName].WaitForHealthy(ctx) })
-	}
-	wg.Wait()
 }
 
 // RegisterService appends a service constructor function to the service

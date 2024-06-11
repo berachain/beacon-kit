@@ -122,12 +122,6 @@ func (s *EngineClient[ExecutionPayloadT]) Status() error {
 	return nil
 }
 
-// WaitForHealthy waits for the engine client to be healthy.
-func (s *EngineClient[ExecutionPayloadT]) WaitForHealthy(
-	ctx context.Context,
-) {
-}
-
 // VerifyChainID Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
 func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
