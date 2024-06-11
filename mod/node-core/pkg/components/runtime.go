@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
@@ -77,12 +76,12 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 // RuntimeInput is the input for the runtime provider.
 type RuntimeInput struct {
 	depinject.In
-	Cfg           *config.Config
 	BlobProcessor *dablob.Processor[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	]
 	BlockFeed        *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	Cfg              *config.Config
 	ChainSpec        primitives.ChainSpec
 	DBManagerService *manager.DBManager[
 		*types.BeaconBlock,
@@ -98,10 +97,14 @@ type RuntimeInput struct {
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
-	Signer          crypto.BLSSigner
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
-	StateProcessor  blockchain.StateProcessor[
+
+	LocalBuilder *payloadbuilder.PayloadBuilder[
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	]
+	Logger         log.Logger
+	StateProcessor blockchain.StateProcessor[
 		*types.BeaconBlock,
 		BeaconState,
 		*datypes.BlobSidecars,
@@ -116,48 +119,21 @@ type RuntimeInput struct {
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	]
-	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	]
-	TelemetrySink *metrics.TelemetrySink
-	Logger        log.Logger
-}
-
-// ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
-func ProvideRuntime(
-	in RuntimeInput,
-) (*BeaconKitRuntime, error) {
-	// Build the builder service.
-	validatorService := validator.NewService[
+	TelemetrySink    *metrics.TelemetrySink
+	ValidatorService *validator.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
-	](
-		&in.Cfg.Validator,
-		in.Logger.With("service", "validator"),
-		in.ChainSpec,
-		in.StorageBackend,
-		in.BlobProcessor,
-		in.StateProcessor,
-		in.Signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
-		](
-			in.ChainSpec,
-			types.KZGPositionDeneb,
-			in.TelemetrySink,
-		),
-		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
-			in.LocalBuilder,
-		},
-		in.TelemetrySink,
-	)
+	]
+}
 
+// ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
+func ProvideRuntime(
+	in RuntimeInput,
+) (*BeaconKitRuntime, error) {
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[*types.BeaconBlockBody],
@@ -182,7 +158,7 @@ func ProvideRuntime(
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(in.Logger.With("service", "service-registry")),
-		service.WithService(validatorService),
+		service.WithService(in.ValidatorService),
 		service.WithService(chainService),
 		service.WithService(in.DepositService),
 		service.WithService(in.EngineClient),
