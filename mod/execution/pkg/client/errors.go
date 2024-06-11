@@ -47,6 +47,9 @@ const (
 var (
 	// ErrNotStarted indicates that the execution client is not started.
 	ErrNotStarted = errors.New("engine client is not started")
+
+	// ErrFailedToRefreshJWT indicates that the JWT could not be refreshed.
+	ErrFailedToRefreshJWT = errors.New("failed to refresh auth token")
 )
 
 // Handles errors received from the RPC server according to the specification.

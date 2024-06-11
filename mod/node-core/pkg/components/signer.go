@@ -37,7 +37,7 @@ type BlsSignerInput struct {
 	PrivKey LegacyKey `optional:"true"`
 }
 
-// type alias to LegacyKey used for LegacySinger construction.
+// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 type LegacyKey = signer.LegacyKey
 
 // ProvideBlsSigner is a function that provides the module to the application.

@@ -69,8 +69,7 @@ type KVStore[
 	// latestExecutionPayload stores the latest execution payload version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
-	// payload, it
-	// allows us to update the codec with the latest version.
+	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
 					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
@@ -99,7 +98,7 @@ type KVStore[
 	totalSlashing sdkcollections.Item[uint64]
 }
 
-// Store creates a new instance of Store.
+// New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
 func New[

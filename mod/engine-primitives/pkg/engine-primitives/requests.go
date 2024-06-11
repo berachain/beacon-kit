@@ -120,7 +120,7 @@ func BuildNewPayloadRequest[
 	}
 }
 
-// HasHValidVersionAndBlockHashes checks if the version and block hashes are
+// HasValidVersionedAndBlockHashes checks if the version and block hashes are
 // valid.
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
@@ -229,7 +229,6 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	return nil
 }
 
-// ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
 	State *ForkchoiceStateV1

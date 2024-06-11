@@ -261,7 +261,7 @@ type Withdrawal[WithdrawalT any] interface {
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
-	// GetPubkey returns the public key of the validator.
+	// GetIndex returns the public key of the validator.
 	GetIndex() math.U64
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex

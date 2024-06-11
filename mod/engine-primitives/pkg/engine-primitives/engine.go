@@ -59,7 +59,7 @@ type ForkchoiceResponseV1 struct {
 	PayloadID *PayloadID `json:"payloadId"`
 }
 
-// ForkchoicStateV1 as per the EngineAPI Specification:
+// ForkchoiceStateV1 as per the EngineAPI Specification:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#forkchoicestatev1
 //
 //nolint:lll // link.

@@ -71,7 +71,7 @@ func (kv *KVStore[
 	return kv.slashings.Set(kv.ctx, index, uint64(amount))
 }
 
-// TotalSlashing retrieves the total slashing amount from the store.
+// GetTotalSlashing retrieves the total slashing amount from the store.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) GetTotalSlashing() (math.Gwei, error) {

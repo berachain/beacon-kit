@@ -62,7 +62,7 @@ type StateDB[
 	cs primitives.ChainSpec
 }
 
-// NewBeaconState creates a new beacon state from an underlying state db.
+// NewBeaconStateFromDB creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB[
 	BeaconStateT any,
 	KVStoreT KVStore[
@@ -278,7 +278,7 @@ func (s *StateDB[
 	return withdrawals, nil
 }
 
-// Store is the interface for the beacon store.
+// HashTreeRoot is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[

@@ -40,7 +40,7 @@ type EngineCache struct {
 	]
 }
 
-// NewEngineCacheWithConfig creates a new EngineCache with the given config.
+// NewEngineCache creates a new EngineCache with the given config.
 func NewEngineCache(
 	config Config,
 ) *EngineCache {
@@ -62,7 +62,7 @@ func NewEngineCache(
 	}
 }
 
-// NewEngineCache creates a new EngineCache.
+// NewEngineCacheWithDefaultConfig creates a new EngineCache.
 func NewEngineCacheWithDefaultConfig() *EngineCache {
 	return NewEngineCache(DefaultConfig())
 }

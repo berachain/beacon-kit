@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
+// JWTSecretInput is the input for the dep inject framework.
 type JWTSecretInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions

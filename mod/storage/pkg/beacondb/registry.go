@@ -66,7 +66,7 @@ func (kv *KVStore[
 	return kv.validators.Remove(kv.ctx, uint64(idx))
 }
 
-// ValidatorPubKeyByIndex returns the validator address by index.
+// ValidatorIndexByPubkey returns the validator address by index.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) ValidatorIndexByPubkey(
@@ -82,7 +82,7 @@ func (kv *KVStore[
 	return math.ValidatorIndex(idx), nil
 }
 
-// ValidatorByIndex returns the validator address by index.
+// ValidatorIndexByCometBFTAddress returns the validator address by index.
 func (kv *KVStore[
 	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
 ]) ValidatorIndexByCometBFTAddress(

@@ -44,7 +44,7 @@ type Deposit[
 	GetIndex() uint64
 }
 
-// Marshallable is an interface that combines the ssz.Marshaler and
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
 // ssz.Unmarshaler interfaces.
 type SSZMarshallable interface {
 	// MarshalSSZTo marshals the object into the provided byte slice and returns

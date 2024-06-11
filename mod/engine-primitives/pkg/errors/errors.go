@@ -79,7 +79,7 @@ var (
 	ErrNilForkchoiceResponse = errors.New(
 		"nil forkchoice response",
 	)
-	/// ErrNilBlobsBundle is returned when nil blobs bundle is received.
+	// ErrNilBlobsBundle is returned when nil blobs bundle is received.
 	ErrNilBlobsBundle = errors.New(
 		"nil blobs bundle received from execution client")
 

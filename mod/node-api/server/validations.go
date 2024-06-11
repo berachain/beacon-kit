@@ -78,7 +78,9 @@ func ValidateUint64(fl validator.FieldLevel) bool {
 	return false
 }
 
-// hex encoded public key (any bytes48 with 0x prefix) or validator index.
+// ValidateValidatorID checks if the provided field is a valid
+// validator identifier. It validates against a hex-encoded public key
+// or a numeric validator index.
 func ValidateValidatorID(fl validator.FieldLevel) bool {
 	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]{1,96}$`)
 	if err != nil {
