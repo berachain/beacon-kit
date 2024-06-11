@@ -33,6 +33,12 @@ func BeaconKitSupportedCapabilities() []string {
 
 // Constants for JSON-RPC method names.
 const (
+	// NewPayloadMethodV4 for creating a new payload in Electra.
+	NewPayloadMethodV4 = "engine_newPayloadV4"
+	// ForkchoiceUpdatedMethodV4 for updating fork choice in Electra.
+	ForkchoiceUpdatedMethodV4 = "engine_forkchoiceUpdatedV4"
+	// GetPayloadMethodV4 for retrieving a payload in Electra.
+	GetPayloadMethodV4 = "engine_getPayloadV4"
 	// NewPayloadMethodV3 for creating a new payload in Deneb.
 	NewPayloadMethodV3 = "engine_newPayloadV3"
 	// ForkchoiceUpdatedMethodV3 for updating fork choice in Deneb.
