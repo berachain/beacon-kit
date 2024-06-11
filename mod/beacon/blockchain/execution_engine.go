@@ -104,6 +104,7 @@ func (s *Service[
 		// we can just send the forkchoice update without attributes.
 		_, _, err = s.ee.NotifyForkchoiceUpdate(
 			ctx,
+			//nolint:lll // todo - fix.
 			engineprimitives.BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
 				&engineprimitives.ForkchoiceStateV1{
 					HeadBlockHash:      lph.GetBlockHash(),

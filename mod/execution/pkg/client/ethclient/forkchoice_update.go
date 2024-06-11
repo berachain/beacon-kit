@@ -27,7 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// ForkchoiceUpdated is a helper function to call the appropriate version of the.
+// ForkchoiceUpdated is a helper function to call the appropriate version of
+// the.
 func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
