@@ -53,9 +53,7 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[
-		ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT],
-	]
+	ee ExecutionEngine[ExecutionPayloadT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -83,9 +81,7 @@ func New[
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[
-		ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT],
-	],
+	ee ExecutionEngine[ExecutionPayloadT],
 	pc *cache.PayloadIDCache[
 		engineprimitives.PayloadID, [32]byte, math.Slot,
 	],

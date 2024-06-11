@@ -105,12 +105,13 @@ func (s *Service[
 		_, _, err = s.ee.NotifyForkchoiceUpdate(
 			ctx,
 			//nolint:lll // todo - fix.
-			engineprimitives.BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
+			engineprimitives.BuildForkchoiceUpdateRequest(
 				&engineprimitives.ForkchoiceStateV1{
 					HeadBlockHash:      lph.GetBlockHash(),
 					SafeBlockHash:      lph.GetParentHash(),
 					FinalizedBlockHash: lph.GetParentHash(),
 				},
+				nil,
 				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 			),
 		)

@@ -32,7 +32,6 @@ import (
 type Withdrawal struct{}
 
 func TestPayloadAttributes(t *testing.T) {
-	forkVersion := uint32(1)
 	timestamp := uint64(123456789)
 	prevRandao := primitives.Bytes32{1, 2, 3}
 	suggestedFeeRecipient := common.ExecutionAddress{}
@@ -40,7 +39,6 @@ func TestPayloadAttributes(t *testing.T) {
 	parentBeaconBlockRoot := primitives.Root{}
 
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes[Withdrawal](
-		forkVersion,
 		timestamp,
 		prevRandao,
 		suggestedFeeRecipient,
@@ -57,7 +55,6 @@ func TestPayloadAttributes(t *testing.T) {
 		suggestedFeeRecipient,
 		payloadAttributes.GetSuggestedFeeRecipient(),
 	)
-	require.Equal(t, forkVersion, payloadAttributes.Version())
 
 	require.NoError(t, payloadAttributes.Validate())
 }

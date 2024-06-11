@@ -39,10 +39,6 @@ type Eth1Client[
 		Version() uint32
 		Empty(uint32) ExecutionPayloadT
 	},
-	PayloadAttributesT interface {
-		Version() uint32
-		Empty(uint32) PayloadAttributesT
-	},
 ] struct {
 	*ethclient.Client
 }
@@ -56,18 +52,10 @@ func NewEth1Client[
 		Version() uint32
 		Empty(uint32) ExecutionPayloadT
 	},
-	PayloadAttributesT interface {
-		Version() uint32
-		Empty(uint32) PayloadAttributesT
-	},
 ](client *ethclient.Client) (
-	*Eth1Client[
-		ExecutionPayloadT, PayloadAttributesT,
-	], error,
+	*Eth1Client[ExecutionPayloadT], error,
 ) {
-	c := &Eth1Client[
-		ExecutionPayloadT, PayloadAttributesT,
-	]{
+	c := &Eth1Client[ExecutionPayloadT]{
 		Client: client,
 	}
 	return c, nil
@@ -81,27 +69,17 @@ func NewFromRPCClient[
 		Version() uint32
 		Empty(uint32) ExecutionPayloadT
 	},
-	PayloadAttributesT interface {
-		Version() uint32
-		Empty(uint32) PayloadAttributesT
-	},
 ](rpcClient *rpc.Client) (
-	*Eth1Client[
-		ExecutionPayloadT, PayloadAttributesT,
-	], error,
+	*Eth1Client[ExecutionPayloadT], error,
 ) {
-	return NewEth1Client[
-		ExecutionPayloadT, PayloadAttributesT,
-	](
+	return NewEth1Client[ExecutionPayloadT](
 		ethclient.NewClient(rpcClient),
 	)
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
-func (s *Eth1Client[
-	ExecutionPayloadT, PayloadAttributesT,
-]) ExecutionBlockByHash(
+func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
 	ctx context.Context,
 	hash common.ExecutionHash,
 	withTxs bool,
@@ -114,9 +92,7 @@ func (s *Eth1Client[
 
 // ExecutionBlockByNumber fetches an execution engine block by number
 // by calling eth_getBlockByNumber via JSON-RPC.
-func (s *Eth1Client[
-	ExecutionPayloadT, PayloadAttributesT,
-]) ExecutionBlockByNumber(
+func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 	ctx context.Context,
 	num rpc.BlockNumber,
 	withTxs bool,
@@ -128,9 +104,7 @@ func (s *Eth1Client[
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Eth1Client[
-	ExecutionPayloadT, PayloadAttributesT,
-]) GetClientVersionV1(
+func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)
@@ -144,9 +118,7 @@ func (s *Eth1Client[
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *Eth1Client[
-	ExecutionPayloadT, PayloadAttributesT,
-]) ExchangeCapabilities(
+func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {

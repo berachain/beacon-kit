@@ -45,12 +45,8 @@ func DefaultComponentsWithStandardTypes() []any {
 			*engineprimitives.Withdrawal,
 			types.WithdrawalCredentials,
 		],
-		ProvideEngineClient[
-			*types.ExecutionPayload,
-			*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]],
-		ProvideExecutionEngine[
-			*types.ExecutionPayload,
-			*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]],
+		ProvideEngineClient[*types.ExecutionPayload],
+		ProvideExecutionEngine[*types.ExecutionPayload],
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideRuntime,

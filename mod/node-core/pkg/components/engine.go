@@ -54,19 +54,11 @@ func ProvideEngineClient[
 		common.ExecutionHash, primitives.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
-	PayloadAttributesT interface {
-		Version() uint32
-		IsNil() bool
-		Empty(uint32) PayloadAttributesT
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
 	WithdrawalT any,
 ](
 	in EngineClientInputs,
-) *engineclient.EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-] {
-	return engineclient.New[ExecutionPayloadT, PayloadAttributesT](
+) *engineclient.EngineClient[ExecutionPayloadT] {
+	return engineclient.New[ExecutionPayloadT](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -83,11 +75,10 @@ type ExecutionEngineInput[
 		common.ExecutionHash, primitives.Bytes32,
 		math.U64, math.Wei, []byte, *engineprimitives.Withdrawal,
 	],
-	PayloadAttributerT engineprimitives.PayloadAttributer[PayloadAttributerT],
 	WithdrawalT any,
 ] struct {
 	depinject.In
-	EngineClient  *engineclient.EngineClient[ExecutionPayloadT, PayloadAttributerT]
+	EngineClient  *engineclient.EngineClient[ExecutionPayloadT]
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -100,13 +91,12 @@ func ProvideExecutionEngine[
 		common.ExecutionHash, primitives.Bytes32,
 		math.U64, math.Wei, []byte, *engineprimitives.Withdrawal,
 	],
-	PayloadAttributerT engineprimitives.PayloadAttributer[PayloadAttributerT],
 ](
 	in ExecutionEngineInput[
-		ExecutionPayloadT, PayloadAttributerT, *engineprimitives.Withdrawal,
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
 	],
-) *execution.Engine[ExecutionPayloadT, PayloadAttributerT] {
-	return execution.New[ExecutionPayloadT, PayloadAttributerT](
+) *execution.Engine[ExecutionPayloadT] {
+	return execution.New[ExecutionPayloadT](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

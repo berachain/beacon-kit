@@ -229,44 +229,26 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	return nil
 }
 
-type ForkchoiceUpdateRequest[
-	PayloadAttributesT any,
-] struct {
+type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
 	State *ForkchoiceStateV1
 	// PayloadAttributes is the payload attributer.
-	PayloadAttributes PayloadAttributesT
+	PayloadAttributes PayloadAttributer
+	// ForkVersion is the fork version that we are
+	// currently on.
+	ForkVersion uint32
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
-func BuildForkchoiceUpdateRequest[
-	PayloadAttributesT interface {
-		Empty(uint32) PayloadAttributesT
-	},
-](
+func BuildForkchoiceUpdateRequest(
 	state *ForkchoiceStateV1,
-	payloadAttributes PayloadAttributesT,
-) *ForkchoiceUpdateRequest[PayloadAttributesT] {
-	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
+	payloadAttributes PayloadAttributer,
+	forkVersion uint32,
+) *ForkchoiceUpdateRequest {
+	return &ForkchoiceUpdateRequest{
 		State:             state,
 		PayloadAttributes: payloadAttributes,
-	}
-}
-
-// BuildForkchoiceUpdateRequestNoAttributes builds a forkchoice update request
-// without payload attributes.
-func BuildForkchoiceUpdateRequestNoAttributes[
-	PayloadAttributesT interface {
-		Empty(uint32) PayloadAttributesT
-	},
-](
-	state *ForkchoiceStateV1,
-	forkVersion uint32,
-) *ForkchoiceUpdateRequest[PayloadAttributesT] {
-	var t PayloadAttributesT
-	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
-		State:             state,
-		PayloadAttributes: t.Empty(forkVersion),
+		ForkVersion:       forkVersion,
 	}
 }
 

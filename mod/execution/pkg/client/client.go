@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
@@ -45,16 +44,10 @@ type EngineClient[
 		json.Marshaler
 		json.Unmarshaler
 	},
-	PayloadAttributesT interface {
-		Version() uint32
-		IsNil() bool
-		Empty(uint32) PayloadAttributesT
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
-	*ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT]
+	*ethclient.Eth1Client[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -82,25 +75,19 @@ func New[
 		json.Marshaler
 		json.Unmarshaler
 	},
-	PayloadAttributesT interface {
-		Version() uint32
-		IsNil() bool
-		Empty(uint32) PayloadAttributesT
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[ExecutionPayloadT, PayloadAttributesT] {
-	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
+) *EngineClient[ExecutionPayloadT] {
+	return &EngineClient[ExecutionPayloadT]{
 		cfg:       cfg,
 		logger:    logger,
 		jwtSecret: jwtSecret,
 		Eth1Client: new(
-			ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT],
+			ethclient.Eth1Client[ExecutionPayloadT],
 		),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
@@ -110,9 +97,7 @@ func New[
 }
 
 // Start the engine client.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) Start(
+func (s *EngineClient[ExecutionPayloadT]) Start(
 	ctx context.Context,
 ) error {
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
@@ -133,9 +118,7 @@ func (s *EngineClient[
 
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) Status() error {
+func (s *EngineClient[ExecutionPayloadT]) Status() error {
 	// If the client is not started, we return an error.
 	if s.Eth1Client.Client == nil {
 		return ErrNotStarted
@@ -145,9 +128,7 @@ func (s *EngineClient[
 
 // VerifyChainID Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) VerifyChainID(
+func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
 	ctx context.Context,
 ) error {
 	chainID, err := s.Client.ChainID(ctx)
@@ -168,9 +149,7 @@ func (s *EngineClient[
 
 // ============================== HELPERS ==============================
 
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) initializeConnection(
+func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 	ctx context.Context,
 ) error {
 	// Initialize the connection to the execution client.
@@ -218,9 +197,7 @@ func (s *EngineClient[
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) setupExecutionClientConnection(
+func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
 	ctx context.Context,
 ) error {
 	// Dial the execution client.
@@ -243,9 +220,7 @@ func (s *EngineClient[
 // ================================ Dialing ================================
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) dialExecutionRPCClient(
+func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
 	ctx context.Context,
 ) error {
 	var (
@@ -287,9 +262,7 @@ func (s *EngineClient[
 	}
 
 	// Refresh the execution client with the new client.
-	s.Eth1Client, err = ethclient.NewFromRPCClient[
-		ExecutionPayloadT, PayloadAttributesT,
-	](
+	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadT](
 		client,
 	)
 	return err
@@ -298,9 +271,7 @@ func (s *EngineClient[
 // ================================ JWT ================================
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) jwtRefreshLoop(
+func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
 	s.logger.Info("starting JWT refresh loop 🔄")
@@ -326,11 +297,7 @@ func (s *EngineClient[
 
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
-//
-
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) buildJWTHeader() (http.Header, error) {
+func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.
@@ -346,8 +313,6 @@ func (s *EngineClient[
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) Name() string {
+func (s *EngineClient[ExecutionPayloadT]) Name() string {
 	return "engine-client"
 }

@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -41,13 +40,10 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	ChainSpec    primitives.ChainSpec
-	DepositStore *depositdb.KVStore[*types.Deposit]
-	EngineClient *engineclient.EngineClient[
-		*types.ExecutionPayload,
-		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal],
-	]
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	ChainSpec     primitives.ChainSpec
+	DepositStore  *depositdb.KVStore[*types.Deposit]
+	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }

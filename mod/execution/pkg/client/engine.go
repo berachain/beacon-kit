@@ -22,6 +22,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -34,9 +35,7 @@ import (
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) NewPayload(
+func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
@@ -81,12 +80,11 @@ func (s *EngineClient[
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) ForkchoiceUpdated(
+func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs PayloadAttributesT,
+	attrs engineprimitives.PayloadAttributer,
+	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -97,7 +95,7 @@ func (s *EngineClient[
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
 	defer cancel()
 
-	if attrs.IsNil() {
+	if attrs == nil || attrs.IsNil() {
 		return nil, nil, engineerrors.ErrNilPayloadAttributes
 	}
 	// If the suggested fee recipient is not set, log a warning.
@@ -109,7 +107,7 @@ func (s *EngineClient[
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs)
+	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs, forkVersion)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -129,9 +127,7 @@ func (s *EngineClient[
 
 // GetPayload retrieves the execution data and blobs bundle using the
 // engine_getPayloadVX method via JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) GetPayload(
+func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -147,13 +143,17 @@ func (s *EngineClient[
 	defer s.metrics.measureGetPayloadDuration(startTime)
 	defer cancel()
 
-	result, err := s.GetPayload(dctx, payloadID, forkVersion)
+	fmt.Println("GETPAYLOAD")
+
+	result, err := s.Eth1Client.GetPayload(dctx, payloadID, forkVersion)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementGetPayloadTimeout()
 		}
 		return result, s.handleRPCError(err)
 	}
+
+	fmt.Println("POST GETPAYLOAD")
 
 	if result == nil {
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
@@ -168,9 +168,7 @@ func (s *EngineClient[
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-]) ExchangeCapabilities(
+func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(

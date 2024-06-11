@@ -24,19 +24,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer[PayloadAttributesT any] interface {
-	// Empty creates an empty PayloadAttributer.
-	Empty(uint32) PayloadAttributesT
-	// IsEmpty returns true if the PayloadAttributer is empty.
-	IsEmpty() bool
+type PayloadAttributer interface {
 	// IsNil returns true if the PayloadAttributer is nil.
 	IsNil() bool
-	// Version returns the version of the PayloadAttributer.
-	Version() uint32
 	// Validate checks if the PayloadAttributer is valid and returns an error if
 	// it is not.
 	Validate() error
@@ -49,8 +42,6 @@ type PayloadAttributer[PayloadAttributesT any] interface {
 type PayloadAttributes[
 	WithdrawalT any,
 ] struct {
-	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -72,10 +63,8 @@ type PayloadAttributes[
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes[
-	PayloadAttributesT,
 	WithdrawalT any,
 ](
-	forkVersion uint32,
 	timestamp uint64,
 	prevRandao primitives.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
@@ -83,7 +72,6 @@ func NewPayloadAttributes[
 	parentBeaconBlockRoot primitives.Root,
 ) (*PayloadAttributes[WithdrawalT], error) {
 	p := &PayloadAttributes[WithdrawalT]{
-		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
@@ -98,20 +86,6 @@ func NewPayloadAttributes[
 	return p, nil
 }
 
-// Empty creates an empty PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) Empty(
-	version uint32,
-) *PayloadAttributes[WithdrawalT] {
-	return &PayloadAttributes[WithdrawalT]{
-		version: version,
-	}
-}
-
-// IsEmpty returns true if the PayloadAttributes is empty.
-func (p *PayloadAttributes[WithdrawalT]) IsEmpty() bool {
-	return p == nil || p.version == 0
-}
-
 // IsNil returns true if the PayloadAttributes is nil.
 func (p *PayloadAttributes[WithdrawalT]) IsNil() bool {
 	return p == nil
@@ -124,11 +98,6 @@ func (
 	return p.SuggestedFeeRecipient
 }
 
-// Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) Version() uint32 {
-	return p.version
-}
-
 // Validate validates the PayloadAttributes.
 func (p *PayloadAttributes[WithdrawalT]) Validate() error {
 	if p.Timestamp == 0 {
@@ -138,16 +107,6 @@ func (p *PayloadAttributes[WithdrawalT]) Validate() error {
 	if p.PrevRandao == [32]byte{} {
 		return ErrEmptyPrevRandao
 	}
-
-	if p.Withdrawals == nil && p.version >= version.Capella {
-		return ErrNilWithdrawals
-	}
-
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
 
 	return nil
 }

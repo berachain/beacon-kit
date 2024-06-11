@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -38,19 +39,10 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, *engineprimitives.Withdrawal,
 	],
-	PayloadAttributesT interface {
-		Version() uint32
-		Empty(uint32) PayloadAttributesT
-		IsEmpty() bool
-		IsNil() bool
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[
-		ExecutionPayloadT, PayloadAttributesT,
-	]
+	ec *client.EngineClient[ExecutionPayloadT]
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
@@ -62,21 +54,12 @@ func New[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, *engineprimitives.Withdrawal,
 	],
-	PayloadAttributesT interface {
-		Version() uint32
-		Empty(uint32) PayloadAttributesT
-		IsEmpty() bool
-		IsNil() bool
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
 ](
-	ec *client.EngineClient[
-		ExecutionPayloadT, PayloadAttributesT,
-	],
+	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],
 	ts TelemetrySink,
-) *Engine[ExecutionPayloadT, PayloadAttributesT] {
-	return &Engine[ExecutionPayloadT, PayloadAttributesT]{
+) *Engine[ExecutionPayloadT] {
+	return &Engine[ExecutionPayloadT]{
 		ec:      ec,
 		logger:  logger,
 		metrics: newEngineMetrics(ts, logger),
@@ -84,9 +67,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-]) Start(
+func (ee *Engine[ExecutionPayloadT]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -99,16 +80,12 @@ func (ee *Engine[
 }
 
 // Status returns error if the service is not considered healthy.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-]) Status() error {
+func (ee *Engine[ExecutionPayloadT]) Status() error {
 	return ee.ec.Status()
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-]) GetPayload(
+func (ee *Engine[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -119,15 +96,14 @@ func (ee *Engine[
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-]) NotifyForkchoiceUpdate(
+func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	req *engineprimitives.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
+	hasAttributes := req.PayloadAttributes != nil && !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State, !req.PayloadAttributes.IsEmpty(),
+		req.State, !hasAttributes,
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -135,6 +111,7 @@ func (ee *Engine[
 		ctx,
 		req.State,
 		req.PayloadAttributes,
+		req.ForkVersion,
 	)
 
 	switch {
@@ -169,12 +146,14 @@ func (ee *Engine[
 	// All other errors are handled as undefined errors.
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
+
+		fmt.Println("ForkchoiceUpdate error: ", err, req.PayloadAttributes)
 		return nil, nil, err
 	}
 
 	// If we reached here, and we have a nil payload ID, we should log a
 	// warning.
-	if payloadID == nil && !req.PayloadAttributes.IsEmpty() {
+	if payloadID == nil && hasAttributes {
 		ee.logger.Warn(
 			"received nil payload ID on VALID engine response",
 			"head_eth1_hash", req.State.HeadBlockHash,
@@ -189,9 +168,7 @@ func (ee *Engine[
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-]) VerifyAndNotifyNewPayload(
+func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
 		ExecutionPayloadT, *engineprimitives.Withdrawal],

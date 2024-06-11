@@ -1,23 +1,3 @@
-// SPDX-License-Identifier: BUSL-1.1
-//
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is governed by the Business Source License included
-// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
-//
-// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
-// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
-// VERSIONS OF THE LICENSED WORK.
-//
-// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
-// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
-//
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
-// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
-// TITLE.
-
 package ethclient
 
 import (
@@ -27,14 +7,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// ForkchoiceUpdated is a helper function to call the appropriate version of
-// the.
-func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ForkchoiceUpdated(
+// ForkchoiceUpdated is a helper function to call the appropriate version of the
+func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs PayloadAttributesT,
+	attrs engineprimitives.PayloadAttributer,
+	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	switch attrs.Version() {
+	switch forkVersion {
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:
@@ -43,17 +23,17 @@ func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ForkchoiceUpdated(
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ForkchoiceUpdatedV3(
+func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs PayloadAttributesT,
+	attrs engineprimitives.PayloadAttributer,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
 	return s.forkchoiceUpdated(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }
 
 // forkchoiceUpdateCall is a helper function to call to any version
 // of the forkchoiceUpdates method.
-func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) forkchoiceUpdated(
+func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdated(
 	ctx context.Context,
 	method string,
 	state *engineprimitives.ForkchoiceStateV1,
