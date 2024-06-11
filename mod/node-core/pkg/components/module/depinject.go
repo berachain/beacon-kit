@@ -45,9 +45,11 @@ func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		// TODO: make storage backend its own module and remove the
 		// coupling between construction of runtime and module
-		appconfig.Provide(ProvideStorageBackend),
-		appconfig.Provide(components.ProvideRuntime),
-		appconfig.Provide(ProvideModule),
+		appconfig.Provide(
+			ProvideStorageBackend,
+			components.ProvideRuntime,
+			ProvideModule,
+		),
 	)
 }
 
