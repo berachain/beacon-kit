@@ -46,11 +46,11 @@ func TestEth1Data_Serialization(t *testing.T) {
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
+	eth1Data := (&types.Eth1Data{}).New(
+		common.Root{},
+		10,
+		common.ExecutionHash{},
+	)
 
 	size := eth1Data.SizeSSZ()
 	require.Equal(t, 72, size)
@@ -78,4 +78,16 @@ func TestEth1Data_GetTree(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestEth1Data_GetDepositCount(t *testing.T) {
+	eth1Data := &types.Eth1Data{
+		DepositRoot:  common.Root{},
+		DepositCount: 10,
+		BlockHash:    common.ExecutionHash{},
+	}
+
+	count := eth1Data.GetDepositCount()
+
+	require.Equal(t, uint64(10), count.Unwrap())
 }
