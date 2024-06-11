@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
@@ -105,7 +104,6 @@ type RuntimeInput struct {
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
-	Signer         crypto.BLSSigner
 	StateProcessor blockchain.StateProcessor[
 		*types.BeaconBlock,
 		BeaconState,

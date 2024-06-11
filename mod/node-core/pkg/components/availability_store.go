@@ -75,10 +75,10 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput struct {
 	depinject.In
-	Logger            log.Logger
-	ChainSpec         primitives.ChainSpec
-	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	ChainSpec         primitives.ChainSpec
+	Logger            log.Logger
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
