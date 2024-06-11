@@ -22,6 +22,7 @@ package types
 
 import (
 	"context"
+	"sync/atomic"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -37,6 +38,12 @@ import (
 // all fork versions.
 type ExecutionPayload struct {
 	InnerExecutionPayload
+	// header is a cache of the ExecutionPayloadHeader to
+	// avoid recomputing it every time.
+	header atomic.Pointer[ExecutionPayloadHeader]
+	// root is the hash tree root of the ExecutionPayload.
+	// It is a cache to avoid recomputing it every time.
+	root atomic.Pointer[primitives.Root]
 }
 
 // InnerExecutionPayload represents the inner execution payload.
@@ -58,8 +65,41 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	return e
 }
 
+// HashTreeRoot returns the hash tree root of the ExecutionPayload.
+func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
+	// Use root if found.
+	if root := e.root.Load(); root != nil {
+		return *root, nil
+	}
+
+	// Check for a header so that we don't have to re-merkleize the
+	// transactions and withdrawals
+	if header := e.header.Load(); header != nil {
+		return header.HashTreeRoot()
+	}
+
+	// Otherwise fall back to the full builder.
+	header, err := e.ToHeader()
+	if err != nil {
+		return [32]byte{}, err
+	}
+	e.header.Store(header)
+
+	// Cache the root.
+	root, err := header.HashTreeRoot()
+	if err != nil {
+		return [32]byte{}, err
+	}
+	e.root.Store((*primitives.Root)(&root))
+	return root, nil
+}
+
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
+	if header := e.header.Load(); header != nil {
+		return header, nil
+	}
+
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
@@ -88,9 +128,10 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 		return nil, err
 	}
 
+	var header *ExecutionPayloadHeader
 	switch e.Version() {
 	case version.Deneb:
-		return &ExecutionPayloadHeader{
+		header = &ExecutionPayloadHeader{
 			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),
 				FeeRecipient:     e.GetFeeRecipient(),
@@ -110,10 +151,13 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 				BlobGasUsed:      e.GetBlobGasUsed(),
 				ExcessBlobGas:    e.GetExcessBlobGas(),
 			},
-		}, nil
+		}
 	default:
 		return nil, errors.New("unknown fork version")
 	}
+
+	e.header.Store(header)
+	return header, nil
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.
