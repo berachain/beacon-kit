@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/interfaces"
@@ -54,11 +55,18 @@ func ProvideEngineClient[
 		common.ExecutionHash, primitives.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
+	PayloadAttributesT interface {
+		Version() uint32
+		Empty(uint32) PayloadAttributesT
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 	WithdrawalT any,
 ](
 	in EngineClientInputs,
-) *engineclient.EngineClient[ExecutionPayloadT] {
-	return engineclient.New[ExecutionPayloadT](
+) *engineclient.EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+] {
+	return engineclient.New[ExecutionPayloadT, PayloadAttributesT](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -71,7 +79,7 @@ func ProvideEngineClient[
 // framework.
 type ExecutionEngineInput struct {
 	depinject.In
-	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
+	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -87,8 +95,8 @@ func ProvideExecutionEngine[
 	WithdrawalT any,
 ](
 	in ExecutionEngineInput,
-) *execution.Engine[*types.ExecutionPayload] {
-	return execution.New[*types.ExecutionPayload](
+) *execution.Engine[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]] {
+	return execution.New[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

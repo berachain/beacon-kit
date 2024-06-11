@@ -112,7 +112,9 @@ type DepositStore[DepositT any] interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[PayloadAttributesT interface {
+	Empty(uint32) PayloadAttributesT
+}] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
@@ -122,14 +124,15 @@ type ExecutionEngine interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
 		req *engineprimitives.NewPayloadRequest[
-			*types.ExecutionPayload, *engineprimitives.Withdrawal],
+			*types.ExecutionPayload, *engineprimitives.Withdrawal,
+		],
 	) error
 }
 

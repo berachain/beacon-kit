@@ -28,9 +28,11 @@ import (
 )
 
 // PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	// IsNil returns true if the PayloadAttributer is nil.
-	IsNil() bool
+type PayloadAttributer[PayloadAttributesT any] interface {
+	// Empty creates an empty PayloadAttributer.
+	Empty(uint32) PayloadAttributesT
+	// IsEmpty returns true if the PayloadAttributer is empty.
+	IsEmpty() bool
 	// Version returns the version of the PayloadAttributer.
 	Version() uint32
 	// Validate checks if the PayloadAttributer is valid and returns an error if
@@ -68,6 +70,7 @@ type PayloadAttributes[
 
 // NewPayloadAttributes creates a new PayloadAttributes.
 func NewPayloadAttributes[
+	PayloadAttributesT,
 	WithdrawalT any,
 ](
 	forkVersion uint32,
@@ -93,25 +96,37 @@ func NewPayloadAttributes[
 	return p, nil
 }
 
+// Empty creates an empty PayloadAttributes.
+func (p *PayloadAttributes[WithdrawalT]) Empty(version uint32) *PayloadAttributes[WithdrawalT] {
+	return &PayloadAttributes[WithdrawalT]{
+		version: version,
+	}
+}
+
+// IsEmpty returns true if the PayloadAttributes is empty.
+func (p *PayloadAttributes[WithdrawalT]) IsEmpty() bool {
+	return p == nil || p.version == 0
+}
+
 // IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes[Withdrawal]) IsNil() bool {
+func (p *PayloadAttributes[WithdrawalT]) IsNil() bool {
 	return p == nil
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (
-	p *PayloadAttributes[Withdrawal],
+	p *PayloadAttributes[WithdrawalT],
 ) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes[Withdrawal]) Version() uint32 {
+func (p *PayloadAttributes[WithdrawalT]) Version() uint32 {
 	return p.version
 }
 
 // Validate validates the PayloadAttributes.
-func (p *PayloadAttributes[Withdrawal]) Validate() error {
+func (p *PayloadAttributes[WithdrawalT]) Validate() error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}

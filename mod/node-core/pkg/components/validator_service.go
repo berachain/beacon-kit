@@ -28,6 +28,7 @@ import (
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -46,7 +47,7 @@ type ValidatorServiceInput struct {
 	Cfg          *config.Config
 	ChainSpec    primitives.ChainSpec
 	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
 	]
 	Logger         log.Logger
 	StateProcessor StateProcessor

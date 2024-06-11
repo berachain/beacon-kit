@@ -25,6 +25,7 @@ import (
 	"sync"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
@@ -58,7 +59,7 @@ type Service[
 	// cs holds the chain specifications.
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
-	ee ExecutionEngine
+	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
@@ -104,7 +105,7 @@ func NewService[
 	],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
-	ee ExecutionEngine,
+	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]],
 	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT,

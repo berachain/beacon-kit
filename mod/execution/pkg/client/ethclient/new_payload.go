@@ -10,7 +10,7 @@ import (
 )
 
 // NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
+func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
@@ -27,7 +27,7 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
 }
 
 // newPayload is used to call the underlying JSON-RPC method for newPayload.
-func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
+func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) NewPayloadV3(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,

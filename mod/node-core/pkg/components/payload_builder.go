@@ -37,17 +37,17 @@ type LocalBuilderInput struct {
 	depinject.In
 	Cfg             *config.Config
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	ExecutionEngine *execution.Engine[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
 	Logger          log.Logger
 }
 
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *payloadbuilder.PayloadBuilder[
-	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
 ] {
 	return payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

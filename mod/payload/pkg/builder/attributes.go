@@ -29,13 +29,13 @@ import (
 // slot. The attribute is required to initiate a payload build process in the
 // context of an `engine_forkchoiceUpdated` call.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 ]) getPayloadAttribute(
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
-) (engineprimitives.PayloadAttributer, error) {
+) (*engineprimitives.PayloadAttributes[WithdrawalT], error) {
 	var (
 		prevRandao [32]byte
 	)
@@ -61,7 +61,7 @@ func (pb *PayloadBuilder[
 		return nil, err
 	}
 
-	return engineprimitives.NewPayloadAttributes(
+	return engineprimitives.NewPayloadAttributes[*engineprimitives.PayloadAttributes[WithdrawalT], WithdrawalT](
 		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,

@@ -34,7 +34,9 @@ import (
 )
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) NewPayload(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
@@ -79,11 +81,12 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 }
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs engineprimitives.PayloadAttributer,
-	forkVersion uint32,
+	attrs PayloadAttributesT,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -95,8 +98,7 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	defer cancel()
 
 	// If the suggested fee recipient is not set, log a warning.
-	if attrs != nil && !attrs.IsNil() &&
-		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(
 			"suggested fee recipient is not configured 🔆",
 			"fee-recipent", common.DisplayBytes(
@@ -104,7 +106,7 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs, forkVersion)
+	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -123,7 +125,9 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 }
 
 // GetPayload retrieves the execution data and blobs bundle using the engine_getPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) GetPayload(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -156,7 +160,9 @@ func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(

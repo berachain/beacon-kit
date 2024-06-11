@@ -35,11 +35,12 @@ import (
 type BeaconState[ExecutionPayloadHeaderT interface {
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
-}] interface {
+}, WithdrawalT any,
+] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -53,7 +54,7 @@ type BeaconState[ExecutionPayloadHeaderT interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[ExecutionPayloadT any] interface {
+type ExecutionEngine[ExecutionPayloadT, PayloadAttributesT any] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
@@ -63,6 +64,6 @@ type ExecutionEngine[ExecutionPayloadT any] interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }

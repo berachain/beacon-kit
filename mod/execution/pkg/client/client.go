@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
@@ -44,10 +45,15 @@ type EngineClient[
 		json.Marshaler
 		json.Unmarshaler
 	},
+	PayloadAttributesT interface {
+		Version() uint32
+		Empty(uint32) PayloadAttributesT
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
-	*ethclient.Eth1Client[ExecutionPayloadT]
+	*ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -68,23 +74,30 @@ type EngineClient[
 // New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
-func New[ExecutionPayloadT interface {
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-	json.Marshaler
-	json.Unmarshaler
-}](
+func New[
+	ExecutionPayloadT interface {
+		Empty(uint32) ExecutionPayloadT
+		Version() uint32
+		json.Marshaler
+		json.Unmarshaler
+	},
+	PayloadAttributesT interface {
+		Version() uint32
+		Empty(uint32) PayloadAttributesT
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
+](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[ExecutionPayloadT] {
-	return &EngineClient[ExecutionPayloadT]{
+) *EngineClient[ExecutionPayloadT, PayloadAttributesT] {
+	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:          cfg,
 		logger:       logger,
 		jwtSecret:    jwtSecret,
-		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT]),
+		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT]),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,
@@ -93,7 +106,9 @@ func New[ExecutionPayloadT interface {
 }
 
 // Start the engine client.
-func (s *EngineClient[ExecutionPayloadT]) Start(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Start(
 	ctx context.Context,
 ) error {
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
@@ -114,7 +129,9 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 
 // Status verifies the chain ID via JSON-RPC. By proxy
 // we will also verify the connection to the execution client.
-func (s *EngineClient[ExecutionPayloadT]) Status() error {
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Status() error {
 	// If the client is not started, we return an error.
 	if s.Eth1Client.Client == nil {
 		return ErrNotStarted
@@ -124,7 +141,9 @@ func (s *EngineClient[ExecutionPayloadT]) Status() error {
 
 // VerifyChainID Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
-func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) VerifyChainID(
 	ctx context.Context,
 ) error {
 	chainID, err := s.Client.ChainID(ctx)
@@ -145,7 +164,9 @@ func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
 
 // ============================== HELPERS ==============================
 
-func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) initializeConnection(
 	ctx context.Context,
 ) error {
 	// Initialize the connection to the execution client.
@@ -193,7 +214,9 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 
 // setupExecutionClientConnections dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) setupExecutionClientConnection(
 	ctx context.Context,
 ) error {
 	// Dial the execution client.
@@ -216,7 +239,9 @@ func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
 // ================================ Dialing ================================
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) dialExecutionRPCClient(
 	ctx context.Context,
 ) error {
 	var (
@@ -258,7 +283,9 @@ func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
 	}
 
 	// Refresh the execution client with the new client.
-	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadT](
+	s.Eth1Client, err = ethclient.NewFromRPCClient[
+		ExecutionPayloadT, PayloadAttributesT,
+	](
 		client,
 	)
 	return err
@@ -267,7 +294,9 @@ func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
 // ================================ JWT ================================
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
 	s.logger.Info("starting JWT refresh loop 🔄")
@@ -295,7 +324,9 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 // attached for authorization.
 //
 //nolint:lll
-func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) {
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.
@@ -311,6 +342,8 @@ func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) 
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[ExecutionPayloadT]) Name() string {
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Name() string {
 	return "engine-client"
 }

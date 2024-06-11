@@ -38,10 +38,18 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, *engineprimitives.Withdrawal,
 	],
+	PayloadAttributesT interface {
+		Version() uint32
+		Empty(uint32) PayloadAttributesT
+		IsEmpty() bool
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT]
+	ec *client.EngineClient[
+		ExecutionPayloadT, PayloadAttributesT,
+	]
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
@@ -53,12 +61,20 @@ func New[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, *engineprimitives.Withdrawal,
 	],
+	PayloadAttributesT interface {
+		Version() uint32
+		Empty(uint32) PayloadAttributesT
+		IsEmpty() bool
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 ](
-	ec *client.EngineClient[ExecutionPayloadT],
+	ec *client.EngineClient[
+		ExecutionPayloadT, PayloadAttributesT,
+	],
 	logger log.Logger[any],
 	ts TelemetrySink,
-) *Engine[ExecutionPayloadT] {
-	return &Engine[ExecutionPayloadT]{
+) *Engine[ExecutionPayloadT, PayloadAttributesT] {
+	return &Engine[ExecutionPayloadT, PayloadAttributesT]{
 		ec:      ec,
 		logger:  logger,
 		metrics: newEngineMetrics(ts, logger),
@@ -66,7 +82,9 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[ExecutionPayloadT]) Start(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -79,12 +97,16 @@ func (ee *Engine[ExecutionPayloadT]) Start(
 }
 
 // Status returns error if the service is not considered healthy.
-func (ee *Engine[ExecutionPayloadT]) Status() error {
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Status() error {
 	return ee.ec.Status()
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[ExecutionPayloadT]) GetPayload(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -95,15 +117,15 @@ func (ee *Engine[ExecutionPayloadT]) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest,
+	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
-	hasPayloadAttributes := req.PayloadAttributes != nil &&
-		!req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State, hasPayloadAttributes,
+		req.State, !req.PayloadAttributes.IsEmpty(),
 	)
 
 	// Notify the execution engine of the forkchoice update.
@@ -111,7 +133,6 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 		ctx,
 		req.State,
 		req.PayloadAttributes,
-		req.ForkVersion,
 	)
 
 	switch {
@@ -151,7 +172,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 
 	// If we reached here, and we have a nil payload ID, we should log a
 	// warning.
-	if payloadID == nil && hasPayloadAttributes {
+	if payloadID == nil && !req.PayloadAttributes.IsEmpty() {
 		ee.logger.Warn(
 			"received nil payload ID on VALID engine response",
 			"head_eth1_hash", req.State.HeadBlockHash,
@@ -166,7 +187,9 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
 		ExecutionPayloadT, *engineprimitives.Withdrawal],

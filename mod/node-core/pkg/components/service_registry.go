@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -66,7 +67,7 @@ type ServiceRegistryInput struct {
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
-	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload]
+	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
 	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
