@@ -129,7 +129,6 @@ type RuntimeInput struct {
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
-	fmt.Println("PROVIDINGRUNTIME")
 	// Build the builder service.
 	validatorService := validator.NewService[
 		*types.BeaconBlock,
