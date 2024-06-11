@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -152,7 +152,7 @@ func (s *EngineClient[ExecutionPayloadT]) callUpdatedForkchoiceRPC(
 	case version.Deneb:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	case version.Electra:
-		return nil, errors.New("TODO: implement Electra forkchoice")
+		return nil, errors.New("TODO: implement Electra hardfork")
 	default:
 		return nil, engineerrors.ErrInvalidPayloadAttributes
 	}

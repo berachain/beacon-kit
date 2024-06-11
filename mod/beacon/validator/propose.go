@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -35,13 +35,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// RequestBestBlock builds a new beacon block.
+// RequestBlockForProposal builds a new beacon block.
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) RequestBestBlock(
+]) RequestBlockForProposal(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
@@ -51,7 +51,7 @@ func (s *Service[
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
-	defer s.metrics.measureRequestBestBlockTime(startTime)
+	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 	s.logger.Info("requesting beacon block assembly 🙈", "slot", requestedSlot)
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -75,7 +75,7 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlock(
+	blk, err = s.getEmptyBeaconBlockForSlot(
 		st, requestedSlot,
 	)
 	if err != nil {
@@ -152,30 +152,8 @@ func (s *Service[
 		return sidecarErr
 	})
 
-	// Compute and set the state root for the block.
 	g.Go(func() error {
-		s.logger.Info(
-			"computing state root for block 🌲",
-			"slot", blk.GetSlot(),
-		)
-
-		var stateRoot primitives.Root
-		stateRoot, err = s.computeStateRoot(ctx, st, blk)
-		if err != nil {
-			s.logger.Error(
-				"failed to compute state root while building block ❗️ ",
-				"slot", requestedSlot,
-				"error", err,
-			)
-			return err
-		}
-
-		s.logger.Info("state root computed for block 💻 ",
-			"slot", requestedSlot,
-			"state_root", stateRoot,
-		)
-		blk.SetStateRoot(stateRoot)
-		return nil
+		return s.computeAndSetStateRoot(ctx, st, blk)
 	})
 
 	if err = g.Wait(); err != nil {
@@ -196,7 +174,7 @@ func (s *Service[
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) getEmptyBeaconBlock(
+]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -36,7 +36,14 @@ import (
 // ExecutionPayload represents an execution payload across
 // all fork versions.
 type ExecutionPayload struct {
-	engineprimitives.ExecutionPayload[*engineprimitives.Withdrawal]
+	InnerExecutionPayload
+}
+
+// InnerExecutionPayload represents the inner execution payload.
+type InnerExecutionPayload interface {
+	executionPayloadBody
+	GetTransactions() [][]byte
+	GetWithdrawals() []*engineprimitives.Withdrawal
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -44,7 +51,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	e = new(ExecutionPayload)
 	switch forkVersion {
 	case version.Deneb:
-		e.ExecutionPayload = &ExecutableDataDeneb{}
+		e.InnerExecutionPayload = &ExecutableDataDeneb{}
 	default:
 		panic("unknown fork version")
 	}
@@ -84,7 +91,7 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch e.Version() {
 	case version.Deneb:
 		return &ExecutionPayloadHeader{
-			ExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
+			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),
 				FeeRecipient:     e.GetFeeRecipient(),
 				StateRoot:        e.GetStateRoot(),

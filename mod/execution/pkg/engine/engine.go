@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -36,7 +36,8 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
@@ -50,7 +51,8 @@ type Engine[
 // New creates a new Engine.
 func New[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, *engineprimitives.Withdrawal,
+	],
 ](
 	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],

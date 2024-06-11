@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -52,7 +52,6 @@ type BlockchainService[
 		context.Context,
 		BeaconBlockT,
 		BlobSidecarsT,
-		bool,
 	) ([]*transition.ValidatorUpdate, error)
 
 	// ReceiveBlockAndBlobs receives a beacon block and
@@ -70,10 +69,10 @@ type ValidatorService[
 	BeaconStateT any,
 	BlobSidecarsT ssz.Marshallable,
 ] interface {
-	// RequestBestBlock requests the best beacon block for a given slot.
+	// RequestBlockForProposal requests the best beacon block for a given slot.
 	// It returns the beacon block, associated blobs sidecars, and an error if
 	// any.
-	RequestBestBlock(
+	RequestBlockForProposal(
 		context.Context, // The context for the request.
 		math.Slot, // The slot for which the best block is requested.
 	) (BeaconBlockT, BlobSidecarsT, error)

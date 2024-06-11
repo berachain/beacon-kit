@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -102,7 +102,7 @@ func New[ExecutionPayloadT interface {
 	}
 }
 
-// StartWithHTTP starts the engine client.
+// Start the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Start(
 	ctx context.Context,
 ) error {
@@ -149,7 +149,7 @@ func (s *EngineClient[ExecutionPayloadT]) WaitForHealthy(
 	}
 }
 
-// Checks the chain ID of the execution client to ensure
+// VerifyChainID Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
 func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
 	ctx context.Context,
@@ -310,14 +310,15 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 		case <-ticker.C:
 			s.statusErrMu.Lock()
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error("failed to refresh JWT token", "err", err)
-				//#nosec:G703 wtf is even this problem here.
-				s.statusErr = errors.Newf(
-					"%w: failed to refresh JWT token",
+				s.logger.Error(
+					"failed to refresh engine auth token",
+					"err",
 					err,
 				)
+				s.statusErr = ErrFailedToRefreshJWT
 			} else {
 				s.statusErr = nil
+				s.logger.Info("successfully refreshed engine auth token")
 			}
 			s.statusErrMu.Unlock()
 		}

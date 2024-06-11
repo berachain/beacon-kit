@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -53,10 +53,12 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BeaconBlock[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
@@ -76,6 +78,7 @@ type BeaconBlock[
 // BeaconBlockBody represents a generic interface for the body of a beacon
 // block.
 type BeaconBlockBody[
+	BeaconBlockBodyT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
@@ -83,6 +86,8 @@ type BeaconBlockBody[
 	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
+	// Empty returns an empty beacon block body.
+	Empty(uint32) BeaconBlockBodyT
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
@@ -256,7 +261,7 @@ type Withdrawal[WithdrawalT any] interface {
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
-	// GetPubkey returns the public key of the validator.
+	// GetIndex returns the public key of the validator.
 	GetIndex() math.U64
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -54,7 +54,7 @@ func NewPayloadIDCache[
 	}
 }
 
-// Get retrieves the payload ID associated with a given slot and eth1 hash.
+// Has retrieves the payload ID associated with a given slot and eth1 hash.
 // Has checks if a payload ID exists for a given slot and eth1 hash.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
 	slot SlotT,
@@ -66,7 +66,7 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
 	return ok
 }
 
-// was successful.
+// Get was successful.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Get(
 	slot SlotT,
 	stateRoot RootT,

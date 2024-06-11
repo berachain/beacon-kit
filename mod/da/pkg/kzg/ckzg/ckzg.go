@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -32,7 +32,7 @@ const Implementation = "ethereum/c-kzg-4844"
 // Verifier is a verifier that utilizies the CKZG library.
 type Verifier struct{}
 
-// Implementation returns the implementation of the verifier.
+// GetImplementation returns the implementation of the verifier.
 func (v Verifier) GetImplementation() string {
 	return Implementation
 }

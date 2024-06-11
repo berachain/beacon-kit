@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -107,8 +107,8 @@ func (s *Registry) Statuses(services ...string) map[string]error {
 	return m
 }
 
-// Statuses returns a map of Service type -> error. The map will be populated
-// with the results of each service.Status() method call.
+// WaitForHealthy blocks until all specified services are considered healthy.
+// It waits for each service's WaitForHealthy method to complete.
 func (s *Registry) WaitForHealthy(ctx context.Context, services ...string) {
 	wg := conc.NewWaitGroup()
 	for _, typeName := range services {

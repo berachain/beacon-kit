@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package nodebuilder
+package builder
 
 import (
 	"os"
@@ -26,22 +26,21 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -53,6 +52,9 @@ type NodeBuilder[NodeT types.NodeI] struct {
 	description  string
 	depInjectCfg depinject.Config
 	chainSpec    primitives.ChainSpec
+
+	// components is a list of components to provide.
+	components []any
 }
 
 // New returns a new NodeBuilder.
@@ -78,6 +80,8 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 }
 
 // buildRootCmd builds the root command for the application.
+//
+
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
@@ -87,24 +91,39 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
+			// TODO: the reason these all need to be supplied here is because
+			// we build the runtime in ProvideModule, which is forced to be
+			// called every time we do Inject.
+			//
+			// TODO: we have to decouple the instatiation of the runtime from
+			// the beacon module so that we don't need to define these empty
+			// placeholders to get the depinject framework to not freak out.
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				nb.chainSpec,
-				&depositdb.KVStore[*consensustypes.Deposit]{},
-				&engineclient.EngineClient[*consensustypes.ExecutionPayload]{},
-				&gokzg4844.JSONTrustedSetup{},
-				&noop.Verifier{},
-				&dastore.Store[consensustypes.BeaconBlockBody]{},
-				&signer.BLSSigner{},
+				&runtime.BeaconKitRuntime[
+					*dastore.Store[*consensustypes.BeaconBlockBody],
+					*consensustypes.BeaconBlock,
+					*consensustypes.BeaconBlockBody,
+					components.BeaconState,
+					*datypes.BlobSidecars,
+					*depositdb.KVStore[*consensustypes.Deposit],
+					blockchain.StorageBackend[
+						*dastore.Store[*consensustypes.BeaconBlockBody],
+						*consensustypes.BeaconBlockBody,
+						components.BeaconState,
+						*datypes.BlobSidecars,
+						*consensustypes.Deposit,
+						*depositdb.KVStore[*consensustypes.Deposit],
+					],
+				]{},
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
-				components.ProvideTelemetrySink,
-				components.ProvideExecutionEngine,
 			),
 		),
 		&autoCliOpts,

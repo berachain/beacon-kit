@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -27,6 +27,40 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// computeAndSetStateRoot computes the state root of an outgoing block
+// and sets it in the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) computeAndSetStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	s.logger.Info(
+		"computing state root for block 🌲",
+		"slot", blk.GetSlot(),
+	)
+
+	var stateRoot primitives.Root
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	if err != nil {
+		s.logger.Error(
+			"failed to compute state root while building block ❗️ ",
+			"slot", blk.GetSlot(),
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info("state root computed for block 💻 ",
+		"slot", blk.GetSlot(),
+		"state_root", stateRoot,
+	)
+	blk.SetStateRoot(stateRoot)
+	return nil
+}
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[

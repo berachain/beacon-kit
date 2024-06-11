@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -112,7 +112,10 @@ func TestBeaconBlockDeneb(t *testing.T) {
 	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
 	// Test the GetBody method
-	require.Equal(t, block.Body, block.GetBody())
+	require.Equal(
+		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
+		block.GetBody(),
+	)
 
 	// Test the GetHeader method
 	header := block.GetHeader()

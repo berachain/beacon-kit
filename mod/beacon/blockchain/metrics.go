@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,7 +21,6 @@
 package blockchain
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -45,13 +44,11 @@ func newChainMetrics(
 // measureStateTransitionDuration measures the time to process
 // the state transition for a block.
 func (cm *chainMetrics) measureStateTransitionDuration(
-	start time.Time, skipPayloadVerification bool,
+	start time.Time,
 ) {
 	cm.sink.MeasureSince(
 		"beacon_kit.beacon.blockchain.state_transition_duration",
 		start,
-		"skip_payload_verification",
-		strconv.FormatBool(skipPayloadVerification),
 	)
 }
 

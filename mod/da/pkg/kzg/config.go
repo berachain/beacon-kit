@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -19,13 +19,6 @@
 // TITLE.
 
 package kzg
-
-import (
-	"encoding/json"
-
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/afero"
-)
 
 const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
@@ -48,20 +41,4 @@ func DefaultConfig() Config {
 		TrustedSetupPath: defaultTrustedSetupPath,
 		Implementation:   defaultImplementation,
 	}
-}
-
-// ReadTrustedSetup reads the trusted setup from the file system.
-func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
-	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
-	if err != nil {
-		return nil, err
-	}
-	params := new(gokzg4844.JSONTrustedSetup)
-	if err = json.Unmarshal(config, params); err != nil {
-		return nil, err
-	}
-	if err = gokzg4844.CheckTrustedSetupIsWellFormed(params); err != nil {
-		return nil, err
-	}
-	return params, nil
 }

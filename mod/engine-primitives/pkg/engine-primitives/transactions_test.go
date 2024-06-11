@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -18,36 +18,26 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package engineprimitives_test
 
 import (
-	"context"
+	"testing"
+
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/stretchr/testify/require"
 )
 
-// Block represents a generic block in the beacon chain.
-type Block[BeaconBlockT any] struct {
-	// ctx is the context associated with the block.
-	ctx context.Context
-	// block is the actual beacon block.
-	block BeaconBlockT
-}
-
-// NewBlock creates a new Block with the given context and beacon block.
-func NewBlock[
-	BeaconBlockT any,
-](ctx context.Context, block BeaconBlockT) Block[BeaconBlockT] {
-	return Block[BeaconBlockT]{
-		ctx:   ctx,
-		block: block,
+func TestTransactions(t *testing.T) {
+	txs := engineprimitives.Transactions{
+		[]byte("transaction1"),
+		[]byte("transaction2"),
+		[]byte("transaction3"),
 	}
-}
 
-// Context returns the context associated with the block.
-func (e Block[BeaconBlockT]) Context() context.Context {
-	return e.ctx
-}
+	root, err := txs.HashTreeRoot()
+	require.NoError(t, err)
+	require.NotNil(t, root)
 
-// Block returns the beacon block.
-func (e Block[BeaconBlockT]) Block() BeaconBlockT {
-	return e.block
+	require.NotEqual(t, primitives.Root{}, root)
 }

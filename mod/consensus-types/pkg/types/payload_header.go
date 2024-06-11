@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,7 +21,6 @@
 package types
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -32,7 +31,16 @@ import (
 // ExecutionPayload represents an execution payload across
 // all fork versions.
 type ExecutionPayloadHeader struct {
-	engineprimitives.ExecutionPayloadHeader
+	InnerExecutionPayloadHeader
+}
+
+// ExecutionPayloadBody is the interface for the execution data of a block.
+// It contains all the fields that are part of both an execution payload header
+// and a full execution payload.
+type InnerExecutionPayloadHeader interface {
+	executionPayloadBody
+	GetTransactionsRoot() primitives.Root
+	GetWithdrawalsRoot() primitives.Root
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -42,7 +50,7 @@ func (e *ExecutionPayloadHeader) Empty(
 	e = new(ExecutionPayloadHeader)
 	switch forkVersion {
 	case version.Deneb:
-		e.ExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
+		e.InnerExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
 	default:
 		panic(
 			"unknown fork version, cannot create empty ExecutionPayloadHeader",
@@ -66,7 +74,7 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
 	// TODO: Generalize somehow.
 	e = e.Empty(version.Deneb)
-	return e.ExecutionPayloadHeader.UnmarshalJSON(bz)
+	return e.InnerExecutionPayloadHeader.UnmarshalJSON(bz)
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.

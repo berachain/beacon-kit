@@ -40,7 +40,7 @@ env:
 jobs:
   build-and-push:
     runs-on:
-      labels: ubuntu-latest-large
+      labels: ubuntu-24.04-beacon-kit
     permissions:
       contents: read
       packages: write
@@ -82,7 +82,7 @@ jobs:
 
   build-and-push-gcp:
     runs-on:
-      labels: ubuntu-latest-large
+      labels: ubuntu-24.04-beacon-kit
     permissions:
       id-token: write
       contents: read
@@ -92,11 +92,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 'Authenticate to Google Cloud'
-        id: gcloud-auth
-        uses: 'google-github-actions/auth@v1'
+        id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
           service_account: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
       - name: Setup Docker to use Google Cloud OIDC
         run: |

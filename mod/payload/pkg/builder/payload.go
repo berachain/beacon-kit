@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// RequestPayload builds a payload for the given slot and
+// RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
@@ -102,7 +102,7 @@ func (pb *PayloadBuilder[
 	return payloadID, nil
 }
 
-// RequestPayload request a payload for the given slot and
+// RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
@@ -160,7 +160,7 @@ func (pb *PayloadBuilder[
 	)
 }
 
-// RetrieveOrBuildPayload attempts to pull a previously built payload
+// RetrievePayload attempts to pull a previously built payload
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
@@ -229,7 +229,7 @@ func (pb *PayloadBuilder[
 	return envelope, err
 }
 
-// RequestPayload builds a payload for the given slot and
+// SendForceHeadFCU builds a payload for the given slot and
 // returns the payload ID.
 //
 // TODO: This should be moved onto a "sync service"

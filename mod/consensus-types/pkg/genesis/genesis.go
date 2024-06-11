@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -38,7 +38,7 @@ import (
 // need to start the beacon chain.
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT engineprimitives.ExecutionPayloadHeader,
+	ExecutonPayloadHeaderT any,
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
@@ -62,6 +62,7 @@ func DefaultGenesisDeneb() *Genesis[
 		panic(err)
 	}
 
+	// TODO: Uncouple from deneb.
 	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,

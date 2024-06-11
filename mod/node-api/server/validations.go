@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -78,7 +78,9 @@ func ValidateUint64(fl validator.FieldLevel) bool {
 	return false
 }
 
-// hex encoded public key (any bytes48 with 0x prefix) or validator index.
+// ValidateValidatorID checks if the provided field is a valid
+// validator identifier. It validates against a hex-encoded public key
+// or a numeric validator index.
 func ValidateValidatorID(fl validator.FieldLevel) bool {
 	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]{1,96}$`)
 	if err != nil {

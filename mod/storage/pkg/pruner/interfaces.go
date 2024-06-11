@@ -25,7 +25,15 @@
 
 package pruner
 
+import "context"
+
 type Prunable interface {
 	// Prune prunes the store from [start, end).
 	Prune(start, end uint64) error
+}
+
+// Pruner is an interface for pruning the store.
+type Pruner[PrunableT Prunable] interface {
+	Name() string
+	Start(ctx context.Context)
 }

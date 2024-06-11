@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -38,8 +38,25 @@ import (
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		Empty(uint32) ExecutionPayloadT
+		IsNil() bool
 		Version() uint32
-		ExecutionPayload[WithdrawalT]
+		GetPrevRandao() primitives.Bytes32
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetNumber() math.U64
+		GetGasLimit() math.U64
+		GetGasUsed() math.U64
+		GetTimestamp() math.U64
+		GetExtraData() []byte
+		GetBaseFeePerGas() math.Wei
+		GetFeeRecipient() common.ExecutionAddress
+		GetStateRoot() primitives.Bytes32
+		GetReceiptsRoot() primitives.Bytes32
+		GetLogsBloom() []byte
+		GetBlobGasUsed() math.U64
+		GetExcessBlobGas() math.U64
+		GetWithdrawals() []WithdrawalT
+		GetTransactions() [][]byte
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -63,8 +80,25 @@ type NewPayloadRequest[
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		Empty(uint32) ExecutionPayloadT
+		IsNil() bool
 		Version() uint32
-		ExecutionPayload[WithdrawalT]
+		GetPrevRandao() primitives.Bytes32
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
+		GetNumber() math.U64
+		GetGasLimit() math.U64
+		GetGasUsed() math.U64
+		GetTimestamp() math.U64
+		GetExtraData() []byte
+		GetBaseFeePerGas() math.Wei
+		GetFeeRecipient() common.ExecutionAddress
+		GetStateRoot() primitives.Bytes32
+		GetReceiptsRoot() primitives.Bytes32
+		GetLogsBloom() []byte
+		GetBlobGasUsed() math.U64
+		GetExcessBlobGas() math.U64
+		GetWithdrawals() []WithdrawalT
+		GetTransactions() [][]byte
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -86,7 +120,7 @@ func BuildNewPayloadRequest[
 	}
 }
 
-// HasHValidVersionAndBlockHashes checks if the version and block hashes are
+// HasValidVersionedAndBlockHashes checks if the version and block hashes are
 // valid.
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
@@ -195,7 +229,6 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	return nil
 }
 
-// ForkchoiceUpdateRequest.
 type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
 	State *ForkchoiceStateV1

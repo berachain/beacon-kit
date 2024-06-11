@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -18,25 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events_test
+package builder
 
-import (
-	"context"
-	"testing"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/mocks"
+const (
+	// DefaultAppName is the default name of the application.
+	DefaultAppName = "BeaconKit"
+	// DefaultDescription is the default description of the application.
+	DefaultDescription = "A basic beacon node, usable most standard networks."
 )
-
-func TestNewBlock(t *testing.T) {
-	ctx := context.Background()
-	mockBeaconBlock := &mocks.RawBeaconBlock[*mocks.BeaconBlockBody]{}
-
-	event := events.NewBlock(ctx, mockBeaconBlock)
-	if event.Context() != ctx {
-		t.Errorf("expected context %v, got %v", ctx, event.Context())
-	}
-	if event.Block() != mockBeaconBlock {
-		t.Errorf("expected block %v, got %v", mockBeaconBlock, event.Block())
-	}
-}

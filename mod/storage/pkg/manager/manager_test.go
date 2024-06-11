@@ -59,11 +59,13 @@ func TestDBManager_Start(t *testing.T) {
 	p1 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
+		*interfaceMocks.Prunable,
 		manager.Subscription,
 	](logger, mockPrunable, "pruner1", &feed, pruneParamsFn)
 	p2 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
+		*interfaceMocks.Prunable,
 		manager.Subscription,
 	](logger, mockPrunable, "pruner2", &feed, pruneParamsFn)
 

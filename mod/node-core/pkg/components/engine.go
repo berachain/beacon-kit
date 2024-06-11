@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -28,34 +28,37 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
 // EngineClientInputs is the input for the EngineClient.
 type EngineClientInputs struct {
 	depinject.In
-	// ChainSpec is the chain spec.
-	ChainSpec primitives.ChainSpec
-	// Config is the BeaconKit configuration.
-	Config *config.Config
-	// Logger is the logger.
-	Logger log.Logger
-	// TelemetrySink is the telemetry sink.
+	ChainSpec     primitives.ChainSpec
+	Config        *config.Config
+	JWTSecret     *jwt.Secret `optional:"true"`
+	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
-	// JWTSecret is the jwt secret. It is optional, since
-	// it is not required when connecting to the execution client
-	// over IPC.
-	JWTSecret *jwt.Secret `optional:"true"`
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
+func ProvideEngineClient[
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		ExecutionPayloadT, common.ExecutionAddress,
+		common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, []byte, WithdrawalT,
+	],
+	WithdrawalT any,
+](
 	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutionPayload] {
-	return engineclient.New[*types.ExecutionPayload](
+) *engineclient.EngineClient[ExecutionPayloadT] {
+	return engineclient.New[ExecutionPayloadT](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -75,7 +78,14 @@ type ExecutionEngineInput struct {
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine(
+func ProvideExecutionEngine[
+	ExecutionPayloadT interfaces.ExecutionPayload[
+		ExecutionPayloadT, common.ExecutionAddress,
+		common.ExecutionHash, primitives.Bytes32,
+		math.U64, math.Wei, []byte, WithdrawalT,
+	],
+	WithdrawalT any,
+](
 	in ExecutionEngineInput,
 ) *execution.Engine[*types.ExecutionPayload] {
 	return execution.New[*types.ExecutionPayload](

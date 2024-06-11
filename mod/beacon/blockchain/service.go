@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,10 +24,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/events"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -37,10 +37,10 @@ type Service[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositT Deposit,
+	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 ] struct {
 	// sb represents the backend storage for beacon states and associated
@@ -74,7 +74,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[events.Block[BeaconBlockT]]
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -88,11 +88,11 @@ func NewService[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.BeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[DepositT],
-	DepositT Deposit,
+	DepositT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -116,7 +116,7 @@ func NewService[
 		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[events.Block[BeaconBlockT]],
+	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,

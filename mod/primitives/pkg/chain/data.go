@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -49,6 +49,9 @@ type SpecData[
 	SlotsPerEpoch uint64 `mapstructure:"slots-per-epoch"`
 	// SlotsPerHistoricalRoot is the number of slots per historical root.
 	SlotsPerHistoricalRoot uint64 `mapstructure:"slots-per-historical-root"`
+	// MinEpochsToInactivityPenalty is the minimum number of epochs before a
+	// validator is penalized for inactivity.
+	MinEpochsToInactivityPenalty uint64 `mapstructure:"min-epochs-to-inactivity-penalty"`
 
 	// Signature domains.
 	//
@@ -75,6 +78,9 @@ type SpecData[
 	//
 	// DepositContractAddress is the address of the deposit contract.
 	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
+	// MaxDepositsPerBlock specifies the maximum number of deposit operations
+	// allowed per block.
+	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
 	// DepositEth1ChainID is the chain ID of the execution client.
 	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
 	// Eth1FollowDistance is the distance between the eth1 chain and the beacon
@@ -101,14 +107,10 @@ type SpecData[
 	// registry.
 	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
 
-	// Max operations per block constants.
-	//
-	// MaxDepositsPerBlock specifies the maximum number of deposit operations
-	// allowed per block.
-	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
-
 	// Rewards and penalties constants.
 	//
+	// InactivityPenaltyQuotient is the inactivity penalty quotient.
+	InactivityPenaltyQuotient uint64 `mapstructure:"inactivity-penalty-quotient"`
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`

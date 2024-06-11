@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -65,8 +65,9 @@ func BaseSpec() chain.SpecData[
 		EjectionBalance:           uint64(16e9),
 		EffectiveBalanceIncrement: uint64(1e9),
 		// Time parameters constants.
-		SlotsPerEpoch:          32,
-		SlotsPerHistoricalRoot: 8,
+		SlotsPerEpoch:                32,
+		MinEpochsToInactivityPenalty: 4,
+		SlotsPerHistoricalRoot:       8,
 		// Signature domains.
 		DomainTypeProposer: common.DomainType{
 			0x00, 0x00, 0x00, 0x00,

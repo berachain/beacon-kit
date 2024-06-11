@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,6 +25,7 @@ import (
 	"os"
 
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -47,19 +48,30 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		nodebuilder.WithName[types.NodeI]("beacond"),
+		// Set the Name to the Default.
+		nodebuilder.WithName[types.NodeI](
+			nodebuilder.DefaultAppName),
+		// Set the Description to the Default.
 		nodebuilder.WithDescription[types.NodeI](
-			"beacond is a beacon node for any beacon-kit chain",
-		),
-		nodebuilder.WithDepInjectConfig[types.NodeI](Config()),
-		// TODO: Don't hardcode the default chain spec.
+			nodebuilder.DefaultDescription),
+		// Set the DepInject Configuration to the Default.
+		nodebuilder.WithDepInjectConfig[types.NodeI](
+			nodebuilder.DefaultDepInjectConfig()),
+		// Set the ChainSpec to the Default.
 		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
+		// Set the Runtime Components to the Default.
+		nodebuilder.WithComponents[types.NodeI](
+			components.DefaultComponentsWithStandardTypes(),
+		),
 	)
 
+	// Assemble the node with all our components.
 	node, err := nb.Build()
 	if err != nil {
 		return err
 	}
+
+	// TODO: create a "runner" type harness that takes the node as a parameter.
 	return node.Run()
 }
 

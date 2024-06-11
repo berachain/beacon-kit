@@ -34,6 +34,7 @@ FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 
 WORKDIR /workdir
 
+RUN apk add git
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
@@ -41,6 +42,7 @@ COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-t
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
+COPY ./mod/interfaces/go.mod ./mod/interfaces/
 COPY ./mod/log/go.mod ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
@@ -58,6 +60,7 @@ RUN go work use ./mod/cli
 RUN go work use ./mod/consensus-types
 RUN go work use ./mod/da
 RUN go work use ./mod/execution
+RUN go work use ./mod/interfaces
 RUN go work use ./mod/log
 RUN go work use ./mod/node-api
 RUN go work use ./mod/node-core
@@ -99,7 +102,6 @@ COPY --from=mod-cache ./workdir/go.work ./go.work
 # Copy the rest of the source code
 COPY ./mod ./mod
 COPY ./beacond ./beacond
-
 
 # Build args
 ARG NAME
