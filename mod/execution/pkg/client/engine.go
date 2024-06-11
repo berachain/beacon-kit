@@ -124,7 +124,8 @@ func (s *EngineClient[
 	return result.PayloadID, latestValidHash, nil
 }
 
-// GetPayload retrieves the execution data and blobs bundle using the engine_getPayloadVX method via JSON-RPC.
+// GetPayload retrieves the execution data and blobs bundle using the
+// engine_getPayloadVX method via JSON-RPC.
 func (s *EngineClient[
 	ExecutionPayloadT, PayloadAttributesT,
 ]) GetPayload(
@@ -134,7 +135,11 @@ func (s *EngineClient[
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	var (
 		startTime    = time.Now()
-		dctx, cancel = context.WithTimeoutCause(ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout)
+		dctx, cancel = context.WithTimeoutCause(
+			ctx,
+			s.cfg.RPCTimeout,
+			engineerrors.ErrEngineAPITimeout,
+		)
 	)
 	defer s.metrics.measureGetPayloadDuration(startTime)
 	defer cancel()

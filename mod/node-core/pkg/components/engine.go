@@ -77,9 +77,11 @@ func ProvideEngineClient[
 
 // ExecutionEngineInput is the input for the execution engine for the depinject
 // framework.
-type ExecutionEngineInput struct {
+type ExecutionEngineInput[
+	PayloadAttributerT engineprimitives.PayloadAttributer[PayloadAttributerT],
+] struct {
 	depinject.In
-	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
+	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload, PayloadAttributerT]
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -92,11 +94,12 @@ func ProvideExecutionEngine[
 		common.ExecutionHash, primitives.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
+	PayloadAttributerT engineprimitives.PayloadAttributer[PayloadAttributerT],
 	WithdrawalT any,
 ](
-	in ExecutionEngineInput,
-) *execution.Engine[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]] {
-	return execution.New[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
+	in ExecutionEngineInput[PayloadAttributerT],
+) *execution.Engine[*types.ExecutionPayload, PayloadAttributerT] {
+	return execution.New[*types.ExecutionPayload, PayloadAttributerT](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

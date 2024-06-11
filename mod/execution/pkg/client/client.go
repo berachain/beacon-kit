@@ -94,10 +94,12 @@ func New[
 	eth1ChainID *big.Int,
 ) *EngineClient[ExecutionPayloadT, PayloadAttributesT] {
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
-		cfg:          cfg,
-		logger:       logger,
-		jwtSecret:    jwtSecret,
-		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT]),
+		cfg:       cfg,
+		logger:    logger,
+		jwtSecret: jwtSecret,
+		Eth1Client: new(
+			ethclient.Eth1Client[ExecutionPayloadT, PayloadAttributesT],
+		),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,

@@ -68,7 +68,8 @@ func (pb *PayloadBuilder[
 	// Submit the forkchoice update to the execution client.
 	var payloadID *engineprimitives.PayloadID
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest[*engineprimitives.PayloadAttributes[WithdrawalT]]{
+		ctx,
+		&engineprimitives.ForkchoiceUpdateRequest[*engineprimitives.PayloadAttributes[WithdrawalT]]{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
 				SafeBlockHash:      finalEth1BlockHash,
@@ -255,7 +256,8 @@ func (pb *PayloadBuilder[
 
 	// Submit the forkchoice update to the execution client.
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, engineprimitives.BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[WithdrawalT]](
+		ctx,
+		engineprimitives.BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[WithdrawalT]](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),

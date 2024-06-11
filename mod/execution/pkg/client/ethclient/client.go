@@ -80,13 +80,17 @@ func NewFromRPCClient[
 		Empty(uint32) PayloadAttributesT
 	},
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT, PayloadAttributesT], error) {
-	return NewEth1Client[ExecutionPayloadT, PayloadAttributesT](ethclient.NewClient(rpcClient))
+	return NewEth1Client[ExecutionPayloadT, PayloadAttributesT](
+		ethclient.NewClient(rpcClient),
+	)
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ExecutionBlockByHash(
-	ctx context.Context, hash common.ExecutionHash, withTxs bool,
+	ctx context.Context,
+	hash common.ExecutionHash,
+	withTxs bool,
 ) (*engineprimitives.Block, error) {
 	result := &engineprimitives.Block{}
 	err := s.Client.Client().CallContext(
@@ -97,7 +101,9 @@ func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ExecutionBlockByHash
 // ExecutionBlockByNumber fetches an execution engine block by number
 // by calling eth_getBlockByNumber via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadT, PayloadAttributesT]) ExecutionBlockByNumber(
-	ctx context.Context, num rpc.BlockNumber, withTxs bool,
+	ctx context.Context,
+	num rpc.BlockNumber,
+	withTxs bool,
 ) (*engineprimitives.Block, error) {
 	result := &engineprimitives.Block{}
 	err := s.Client.Client().CallContext(

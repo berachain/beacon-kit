@@ -97,7 +97,9 @@ func NewPayloadAttributes[
 }
 
 // Empty creates an empty PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) Empty(version uint32) *PayloadAttributes[WithdrawalT] {
+func (p *PayloadAttributes[WithdrawalT]) Empty(
+	version uint32,
+) *PayloadAttributes[WithdrawalT] {
 	return &PayloadAttributes[WithdrawalT]{
 		version: version,
 	}
