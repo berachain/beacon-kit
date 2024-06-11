@@ -211,11 +211,7 @@ func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {
-		s.statusErrMu.Lock()
-		defer s.statusErrMu.Unlock()
-		//#nosec:G703 wtf is even this problem here.
-		s.statusErr = s.handleRPCError(err)
-		return nil, s.statusErr
+		return nil, err
 	}
 
 	// Capture and log the capabilities that the execution client has.
@@ -234,6 +230,5 @@ func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 		}
 	}
 
-	s.statusErr = nil
 	return result, nil
 }
