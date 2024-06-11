@@ -51,5 +51,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideAvailabilityPruner,
 		ProvideDBManager,
 		ProvideDepositService,
+		ProvideRuntime,
 	}
 }
