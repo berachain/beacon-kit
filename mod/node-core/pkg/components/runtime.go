@@ -80,8 +80,17 @@ type RuntimeInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	]
-	BlockFeed        *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	Cfg              *config.Config
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	Cfg          *config.Config
+	ChainService *blockchain.Service[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
+	]
 	ChainSpec        primitives.ChainSpec
 	DBManagerService *manager.DBManager[
 		*types.BeaconBlock,
@@ -134,32 +143,11 @@ type RuntimeInput struct {
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
-	// Build the blockchain service.
-	chainService := blockchain.NewService[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-	](
-		in.StorageBackend,
-		in.Logger.With("service", "blockchain"),
-		in.ChainSpec,
-		in.ExecutionEngine,
-		in.LocalBuilder,
-		in.BlobProcessor,
-		in.StateProcessor,
-		in.TelemetrySink,
-		in.BlockFeed,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
-	)
 	// Build the service registry.
 	svcRegistry := service.NewRegistry(
 		service.WithLogger(in.Logger.With("service", "service-registry")),
 		service.WithService(in.ValidatorService),
-		service.WithService(chainService),
+		service.WithService(in.ChainService),
 		service.WithService(in.DepositService),
 		service.WithService(in.EngineClient),
 		service.WithService(version.NewReportingService(

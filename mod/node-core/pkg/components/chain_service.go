@@ -63,10 +63,10 @@ type ChainServiceInput struct {
 	]
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
-	Logger          log.Logger
 	LocalBuilder    *payloadbuilder.PayloadBuilder[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
+	Logger         log.Logger
 	Signer         crypto.BLSSigner
 	StateProcessor blockchain.StateProcessor[
 		*types.BeaconBlock,
