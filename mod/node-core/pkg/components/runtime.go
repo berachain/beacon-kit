@@ -134,7 +134,6 @@ type RuntimeInput struct {
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
-
 	// Build the blockchain service.
 	chainService := blockchain.NewService[
 		*dastore.Store[*types.BeaconBlockBody],
