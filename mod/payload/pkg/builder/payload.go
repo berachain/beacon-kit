@@ -257,7 +257,9 @@ func (pb *PayloadBuilder[
 	// Submit the forkchoice update to the execution client.
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[WithdrawalT]](
+		engineprimitives.
+			//nolint:lll // formatter.
+			BuildForkchoiceUpdateRequestNoAttributes[*engineprimitives.PayloadAttributes[WithdrawalT]](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),

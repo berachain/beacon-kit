@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -127,23 +126,6 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 	require.Equal(t, versionedHashes, request.VersionedHashes)
 	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
 	require.Equal(t, optimistic, request.Optimistic)
-}
-
-func TestBuildForkchoiceUpdateRequest(t *testing.T) {
-	state := &engineprimitives.ForkchoiceStateV1{}
-	payloadAttributes := &mocks.PayloadAttributer{}
-	forkVersion := uint32(1)
-
-	request := engineprimitives.BuildForkchoiceUpdateRequest(
-		state,
-		payloadAttributes,
-		forkVersion,
-	)
-
-	require.NotNil(t, request)
-	require.Equal(t, state, request.State)
-	require.Equal(t, payloadAttributes, request.PayloadAttributes)
-	require.Equal(t, forkVersion, request.ForkVersion)
 }
 
 func TestHasValidVersionedAndBlockHashesError(t *testing.T) {

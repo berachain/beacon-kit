@@ -47,7 +47,8 @@ type ValidatorServiceInput struct {
 	Cfg          *config.Config
 	ChainSpec    primitives.ChainSpec
 	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
+		BeaconState, *types.ExecutionPayload,
+		*types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
 	]
 	Logger         log.Logger
 	StateProcessor StateProcessor

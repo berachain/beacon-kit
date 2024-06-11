@@ -101,7 +101,9 @@ func ProvideExecutionEngine[
 	],
 	PayloadAttributerT engineprimitives.PayloadAttributer[PayloadAttributerT],
 ](
-	in ExecutionEngineInput[ExecutionPayloadT, PayloadAttributerT, *engineprimitives.Withdrawal],
+	in ExecutionEngineInput[
+		ExecutionPayloadT, PayloadAttributerT, *engineprimitives.Withdrawal,
+	],
 ) *execution.Engine[ExecutionPayloadT, PayloadAttributerT] {
 	return execution.New[ExecutionPayloadT, PayloadAttributerT](
 		in.EngineClient,

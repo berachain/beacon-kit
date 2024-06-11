@@ -67,7 +67,10 @@ type ServiceRegistryInput struct {
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
-	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
+	EngineClient *engineclient.EngineClient[
+		*types.ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal],
+	]
 	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[

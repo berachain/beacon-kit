@@ -61,10 +61,15 @@ type ChainServiceInput struct {
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
-	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
-	LocalBuilder    *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
+	EngineClient *engineclient.EngineClient[
+		*types.ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
+	ExecutionEngine *execution.Engine[
+		*types.ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
+	LocalBuilder *payloadbuilder.PayloadBuilder[
+		BeaconState, *types.ExecutionPayload,
+		*types.ExecutionPayloadHeader, *engineprimitives.Withdrawal,
 	]
 	Logger         log.Logger
 	Signer         crypto.BLSSigner

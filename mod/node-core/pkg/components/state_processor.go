@@ -47,8 +47,11 @@ type StateProcessor = blockchain.StateProcessor[
 type StateProcessorInput struct {
 	depinject.In
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload, *engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
-	Signer          crypto.BLSSigner
+	ExecutionEngine *execution.Engine[
+		*types.ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal],
+	]
+	Signer crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
