@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/ethereum/go-ethereum/event"
 )
@@ -68,22 +67,9 @@ type ChainServiceInput struct {
 	]
 	Logger         log.Logger
 	Signer         crypto.BLSSigner
-	StateProcessor blockchain.StateProcessor[
-		*types.BeaconBlock,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*transition.Context,
-		*types.Deposit,
-	]
-	StorageBackend blockchain.StorageBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
-	TelemetrySink *metrics.TelemetrySink
+	StateProcessor StateProcessor
+	StorageBackend StorageBackend
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.

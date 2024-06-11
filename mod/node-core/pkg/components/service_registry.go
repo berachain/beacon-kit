@@ -43,7 +43,6 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	Logger       log.Logger
 	ChainService *blockchain.Service[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
@@ -68,6 +67,7 @@ type ServiceRegistryInput struct {
 		types.WithdrawalCredentials,
 	]
 	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload]
+	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
 		*types.BeaconBlock,
