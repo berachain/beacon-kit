@@ -128,10 +128,4 @@ var (
 	ErrEngineAPITimeout = errors.New(
 		"engine API call timed out",
 	)
-
-	// ErrNilPayloadAttributes is returned when nil payload attributes are
-	// received.
-	ErrNilPayloadAttributes = errors.New(
-		"attempted to send nil payload attributes to execution client",
-	)
 )

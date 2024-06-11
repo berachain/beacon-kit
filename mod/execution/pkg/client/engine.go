@@ -95,9 +95,6 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
 	defer cancel()
 
-	if attrs == nil || attrs.IsNil() {
-		return nil, nil, engineerrors.ErrNilPayloadAttributes
-	}
 	// If the suggested fee recipient is not set, log a warning.
 	if attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(
@@ -107,7 +104,12 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs, forkVersion)
+	result, err := s.Eth1Client.ForkchoiceUpdated(
+		dctx,
+		state,
+		attrs,
+		forkVersion,
+	)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
