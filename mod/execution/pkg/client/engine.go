@@ -40,11 +40,14 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *primitives.Root,
 ) (*common.ExecutionHash, error) {
-	startTime := time.Now()
-	defer s.metrics.measureNewPayloadDuration(startTime)
-	dctx, cancel := context.WithTimeoutCause(
-		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	var (
+		startTime    = time.Now()
+		dctx, cancel = context.WithTimeoutCause(
+			ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+		)
 	)
+
+	defer s.metrics.measureNewPayloadDuration(startTime)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
@@ -103,7 +106,12 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(dctx, state, attrs, forkVersion)
+	result, err := s.Eth1Client.ForkchoiceUpdated(
+		dctx,
+		state,
+		attrs,
+		forkVersion,
+	)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -128,11 +136,16 @@ func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	startTime := time.Now()
-	defer s.metrics.measureGetPayloadDuration(startTime)
-	dctx, cancel := context.WithTimeoutCause(
-		ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
+	var (
+		startTime    = time.Now()
+		dctx, cancel = context.WithTimeoutCause(
+			ctx,
+			s.cfg.RPCTimeout,
+			engineerrors.ErrEngineAPITimeout,
+		)
 	)
+
+	defer s.metrics.measureGetPayloadDuration(startTime)
 	defer cancel()
 
 	// Call and check for errors.
