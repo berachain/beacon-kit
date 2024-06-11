@@ -47,7 +47,6 @@ func init() {
 		// coupling between construction of runtime and module
 		appconfig.Provide(
 			ProvideStorageBackend,
-			components.ProvideRuntime,
 			ProvideModule,
 		),
 	)

@@ -21,6 +21,8 @@
 package components
 
 import (
+	"fmt"
+
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -127,6 +129,7 @@ type RuntimeInput struct {
 func ProvideRuntime(
 	in RuntimeInput,
 ) (*BeaconKitRuntime, error) {
+	fmt.Println("PROVIDINGRUNTIME")
 	// Build the builder service.
 	validatorService := validator.NewService[
 		*types.BeaconBlock,
