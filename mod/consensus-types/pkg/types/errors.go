@@ -35,4 +35,7 @@ var (
 	// ErrForkVersionNotSupported is an error for when the fork
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
+
+	// ErrNilPayloadHeader is an error for when the payload header is nil.
+	ErrNilPayloadHeader = errors.New("nil payload header")
 )

@@ -82,6 +82,8 @@ func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 	header, err := e.ToHeader()
 	if err != nil {
 		return [32]byte{}, err
+	} else if header == nil {
+		return [32]byte{}, ErrNilPayloadHeader
 	}
 	e.header.Store(header)
 
