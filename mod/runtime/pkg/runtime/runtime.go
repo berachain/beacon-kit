@@ -115,7 +115,7 @@ func NewBeaconKitRuntime[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
+		blockchain.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,

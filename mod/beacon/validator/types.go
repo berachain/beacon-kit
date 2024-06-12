@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -219,7 +220,7 @@ type StateProcessor[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		blockchain.ExecutionPayloadHeader,
 	],
 	ContextT any,
 ] interface {
@@ -241,7 +242,7 @@ type StorageBackend[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		blockchain.ExecutionPayloadHeader,
 	],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],

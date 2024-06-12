@@ -51,13 +51,16 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 // ReadOnlyBeaconState defines the interface for accessing various components of
 // the
 // beacon state.
-type ReadOnlyBeaconState[T any] interface {
+type ReadOnlyBeaconState[
+	T any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+] interface {
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 		error,
 	)
 	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
@@ -133,6 +136,37 @@ type ExecutionEngine interface {
 	) error
 }
 
+// ExecutionPayloadHeader is the interface for the ExecutionPayloadHeader type.
+type ExecutionPayloadHeader interface {
+	Version() uint32
+	IsNil() bool
+	IsBlinded() bool
+	GetParentHash() common.ExecutionHash
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetPrevRandao() primitives.Bytes32
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetBlockHash() common.ExecutionHash
+	GetTransactionsRoot() primitives.Root
+	GetWithdrawalsRoot() primitives.Root
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
+	HashTreeRoot() ([32]byte, error)
+	MarshalJSON() ([]byte, error)
+	MarshalSSZ() ([]byte, error)
+	MarshalSSZTo([]byte) ([]byte, error)
+	SizeSSZ() int
+	UnmarshalJSON([]byte) error
+	UnmarshalSSZ([]byte) error
+}
+
 // EventFeed is a generic interface for sending events.
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
@@ -188,7 +222,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
 		[]DepositT,
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeader,
 		primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlots processes the state transition for a range of slots.

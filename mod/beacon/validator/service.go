@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -40,7 +41,7 @@ type Service[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		blockchain.ExecutionPayloadHeader,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
@@ -97,7 +98,7 @@ func NewService[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		blockchain.ExecutionPayloadHeader,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],

@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -72,7 +71,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeader,
 ) {
 	stCopy := st.Copy()
 	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
@@ -122,7 +121,7 @@ func (s *Service[
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeader,
 ) {
 	_, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,

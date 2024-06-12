@@ -38,10 +38,14 @@ type Service[
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
+	BeaconStateT ReadOnlyBeaconState[
+		BeaconStateT,
+		ExecutionPayloadHeaderT,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
