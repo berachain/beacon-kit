@@ -188,14 +188,16 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) {
+) error {
 	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
 		s.logger.Error(
 			"failed to build optimistic payload",
 			"for_slot", blk.GetSlot()+1,
 			"error", err,
 		)
+		return err
 	}
+	return nil
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.

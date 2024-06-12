@@ -22,10 +22,8 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
@@ -52,7 +50,6 @@ func (s *Service[
 	}
 
 	// This is technically not an optimistic payload
-	// TODO: This needs a refactor, big hood energy.
 	if s.shouldBuildOptimisticPayloads() || !s.lb.Enabled() {
 		// If we are not building blocks, or we failed to build a block
 		// we can just send the forkchoice update without attributes.
@@ -77,39 +74,8 @@ func (s *Service[
 		return
 	}
 
-	stCopy := st.Copy()
-	if _, err = s.sp.ProcessSlots(
-		stCopy, blk.GetSlot()+1,
-	); err != nil {
-		return
-	}
-
-	var prevBlockRoot primitives.Root
-	prevBlockRoot, err = blk.HashTreeRoot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get block root in postBlockProcess",
-			"error", err,
-		)
-		return
-	}
-
-	// Ask the builder to send a forkchoice update with attributes.
-	// This will trigger a new payload to be built.
-	if _, err = s.lb.RequestPayloadAsync(
-		ctx,
-		stCopy,
-		blk.GetSlot()+1,
-		//#nosec:G701 // won't realistically overflow.
-		// TODO: clock time properly.
-		(max(
-			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
-			uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-		)),
-		prevBlockRoot,
-		lph.GetBlockHash(),
-		lph.GetParentHash(),
-	); err == nil {
+	// !s.shouldBuildOptimisticPayloads() && s.lb.Enabled()
+	if err := s.handleOptimisticPayloadBuild(ctx, st, blk); err == nil {
 		return
 	}
 
