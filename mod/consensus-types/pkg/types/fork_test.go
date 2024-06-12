@@ -31,11 +31,11 @@ import (
 )
 
 func TestFork_Serialization(t *testing.T) {
-	original := &types.Fork{
-		PreviousVersion: common.Version{1, 2, 3, 4},
-		CurrentVersion:  common.Version{5, 6, 7, 8},
-		Epoch:           math.Epoch(1000),
-	}
+	original := (&types.Fork{}).New(
+		common.Version{1, 2, 3, 4},
+		common.Version{5, 6, 7, 8},
+		math.Epoch(1000),
+	)
 
 	data, err := original.MarshalSSZ()
 	require.NotNil(t, data)
