@@ -24,10 +24,18 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// ForkchoiceUpdated is a helper function to call the appropriate version of the
+/* -------------------------------------------------------------------------- */
+/*                              ForkchoiceUpdated                             */
+/* -------------------------------------------------------------------------- */
+
+// ForkchoiceUpdated is a helper function to call the appropriate version of
+// the.
 func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -71,5 +79,84 @@ func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdated(
 		return nil, ErrNilResponse
 	}
 
+	return result, nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 GetPayload                                 */
+/* -------------------------------------------------------------------------- */
+
+// GetPayload is a helper function to call the appropriate version of the
+// engine_getPayload method.
+func (s *Eth1Client[ExecutionPayloadT]) GetPayload(
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
+	forkVersion uint32,
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	switch forkVersion {
+	case version.Deneb:
+		return s.GetPayloadV3(ctx, payloadID)
+	default:
+		return nil, ErrInvalidVersion
+	}
+}
+
+// GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
+func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
+	ctx context.Context, payloadID engineprimitives.PayloadID,
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	var t ExecutionPayloadT
+	result := &engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadT,
+		*engineprimitives.BlobsBundleV1[
+			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+		],
+	]{
+		ExecutionPayload: t.Empty(version.Deneb),
+	}
+
+	if err := s.Client.Client().CallContext(
+		ctx, result, GetPayloadMethodV3, payloadID,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 NewPayload                                 */
+/* -------------------------------------------------------------------------- */
+
+// NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
+func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
+	ctx context.Context,
+	payload ExecutionPayloadT,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *primitives.Root,
+) (*engineprimitives.PayloadStatusV1, error) {
+	switch payload.Version() {
+	case version.Deneb:
+		return s.NewPayloadV3(
+			ctx, payload, versionedHashes, parentBlockRoot,
+		)
+	default:
+		return nil, ErrInvalidVersion
+	}
+}
+
+// newPayload is used to call the underlying JSON-RPC method for newPayload.
+func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
+	ctx context.Context,
+	payload ExecutionPayloadT,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *primitives.Root,
+) (*engineprimitives.PayloadStatusV1, error) {
+	result := &engineprimitives.PayloadStatusV1{}
+	if err := s.Client.Client().CallContext(
+		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
+		(*common.ExecutionHash)(parentBlockRoot),
+	); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
