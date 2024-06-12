@@ -218,7 +218,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", slot,
+		"next_slot", slot.Base10(),
 	)
 
 	// We know that this block was properly formed so we can
