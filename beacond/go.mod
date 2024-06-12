@@ -48,16 +48,16 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041 // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240612175710-7d5f3e4f7041 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240612175710-7d5f3e4f7041 // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610210054-bfdc14c4013c // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/getsentry/sentry-go v0.28.0 // indirect
+	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-faster/xor v1.0.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect

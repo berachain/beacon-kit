@@ -4,9 +4,9 @@ go 1.22.4
 
 require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610215715-5f91f661ac83
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610215715-5f91f661ac83
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610215715-5f91f661ac83
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/kurtosis-tech/kurtosis/api/golang v0.90.0
@@ -21,7 +21,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/getsentry/sentry-go v0.28.0 // indirect
+	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
