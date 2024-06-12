@@ -34,10 +34,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // this is a test.
 var globalVerifier *ckzg.Verifier
 
-//nolint:gochecknoglobals // this is a test.
 var baseDir = "../../../../../testing/files/"
 
 func TestMain(m *testing.M) {

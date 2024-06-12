@@ -361,3 +361,4 @@ issues:
         - gosec
         - noctx
         - wrapcheck
+        - gochecknoglobals
