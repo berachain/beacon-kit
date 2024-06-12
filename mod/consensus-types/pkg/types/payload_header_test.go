@@ -29,7 +29,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
+)
+
+//nolint:gochecknoglobals // allow test constants
+var (
+	extraDataField = "ExecutionPayloadHeaderDeneb.ExtraData"
+	logsBloomField = "ExecutionPayloadHeaderDeneb.LogsBloom"
 )
 
 func generateExecutionPayloadHeaderDeneb() *types.ExecutionPayloadHeaderDeneb {
@@ -122,12 +129,116 @@ func TestExecutionPayloadHeaderDeneb_Serialization(t *testing.T) {
 }
 
 func TestExecutionPayloadHeaderDeneb_MarshalSSZTo(t *testing.T) {
-	header := generateExecutionPayloadHeaderDeneb()
+	testcases := []struct {
+		name     string
+		malleate func() *types.ExecutionPayloadHeaderDeneb
+		expErr   error
+	}{
+		{
+			name:     "valid",
+			malleate: generateExecutionPayloadHeaderDeneb,
+			expErr:   nil,
+		},
+		{
+			name: "invalid extra data",
+			malleate: func() *types.ExecutionPayloadHeaderDeneb {
+				header := generateExecutionPayloadHeaderDeneb()
+				header.ExtraData = make([]byte, 100)
+				return header
+			},
+			expErr: ssz.ErrBytesLengthFn(extraDataField, 100, 32),
+		},
+		{
+			name: "invalid log bloom",
+			malleate: func() *types.ExecutionPayloadHeaderDeneb {
+				header := generateExecutionPayloadHeaderDeneb()
+				header.LogsBloom = make([]byte, 1)
+				return header
+			},
+			expErr: ssz.ErrBytesLengthFn(logsBloomField, 1, 256),
+		},
+	}
 
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			header := tc.malleate()
+			buf := make([]byte, 64)
+			_, err := header.MarshalSSZTo(buf)
+			if tc.expErr != nil {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestExecutionPayloadHeaderDeneb_UnmarshalSSZ_EmptyBuf(t *testing.T) {
+	header := generateExecutionPayloadHeaderDeneb()
 	buf := make([]byte, 0)
-	data, err := header.MarshalSSZTo(buf)
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	err := header.UnmarshalSSZ(buf)
+	require.ErrorIs(t, err, ssz.ErrSize)
+}
+
+func TestExecutionPayloadHeaderDeneb_UnmarshalSSZ(t *testing.T) {
+	testcases := []struct {
+		name     string
+		malleate func() []byte
+		expErr   error
+	}{
+		{
+			name: "offset exceeds length",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeaderDeneb()
+				buf, err := header.MarshalSSZ()
+				require.NoError(t, err)
+
+				buf[436] = 10
+				buf[437] = 10
+				buf[438] = 10
+				buf[439] = 10
+				return buf
+			},
+			expErr: ssz.ErrOffset,
+		},
+		{
+			name: "invalid extra data: offset too small",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeaderDeneb()
+				buf, err := header.MarshalSSZ()
+				require.NoError(t, err)
+
+				buf[436] = 1
+				buf[437] = 0
+				buf[438] = 0
+				buf[439] = 0
+				return buf
+			},
+			expErr: ssz.ErrInvalidVariableOffset,
+		},
+		{
+			name: "invalid extra data: extra data too large",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeaderDeneb()
+				buf, err := header.MarshalSSZ()
+
+				// add dummy extra data to exceed the 32 limit
+				dummyExtra := make([]byte, 100)
+				buf = append(buf, dummyExtra...)
+				require.NoError(t, err)
+				return buf
+			},
+			expErr: ssz.ErrBytesLength,
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			var header types.ExecutionPayloadHeaderDeneb
+			buf := tc.malleate()
+			err := header.UnmarshalSSZ(buf)
+			require.Equal(t, tc.expErr, err)
+		})
+	}
 }
 
 func TestExecutionPayloadHeaderDeneb_SizeSSZ(t *testing.T) {
@@ -255,6 +366,48 @@ func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
 			err = payload.UnmarshalJSON(malformedJSON)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
+}
+
+func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Empty(t *testing.T) {
+	var payload types.ExecutionPayloadHeaderDeneb
+	err := payload.UnmarshalJSON([]byte{})
+	require.Error(t, err)
+}
+
+func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
+	testcases := []struct {
+		name     string
+		malleate func() *types.ExecutionPayloadHeaderDeneb
+		expErr   error
+	}{
+		{
+			name: "invalid LogsBloom length",
+			malleate: func() *types.ExecutionPayloadHeaderDeneb {
+				var header = generateExecutionPayloadHeaderDeneb()
+				header.LogsBloom = make([]byte, 10)
+				return header
+			},
+			expErr: ssz.ErrBytesLengthFn(logsBloomField, 10, 256),
+		},
+		{
+			name: "invalid ExtraData length",
+			malleate: func() *types.ExecutionPayloadHeaderDeneb {
+				var header = generateExecutionPayloadHeaderDeneb()
+				header.ExtraData = make([]byte, 50)
+				return header
+			},
+			expErr: ssz.ErrIncorrectListSize,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			hh := ssz.DefaultHasherPool.Get()
+			header := tc.malleate()
+			err := header.HashTreeRootWith(hh)
+			require.Equal(t, tc.expErr, err)
 		})
 	}
 }

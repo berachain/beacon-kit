@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,12 +46,18 @@ func TestEth1Data_Serialization(t *testing.T) {
 	require.Equal(t, original, &unmarshalled)
 }
 
+func TestEth1Data_UnmarshalError(t *testing.T) {
+	var unmarshalled types.Eth1Data
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.ErrorIs(t, err, ssz.ErrSize)
+}
+
 func TestEth1Data_SizeSSZ(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
+	eth1Data := (&types.Eth1Data{}).New(
+		common.Root{},
+		10,
+		common.ExecutionHash{},
+	)
 
 	size := eth1Data.SizeSSZ()
 	require.Equal(t, 72, size)
@@ -78,4 +85,16 @@ func TestEth1Data_GetTree(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestEth1Data_GetDepositCount(t *testing.T) {
+	eth1Data := &types.Eth1Data{
+		DepositRoot:  common.Root{},
+		DepositCount: 10,
+		BlockHash:    common.ExecutionHash{},
+	}
+
+	count := eth1Data.GetDepositCount()
+
+	require.Equal(t, uint64(10), count.Unwrap())
 }

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,6 +45,12 @@ func TestForkData_Serialization(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, original, &unmarshalled)
+}
+
+func TestForkData_Unmarshal(t *testing.T) {
+	var unmarshalled types.ForkData
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.ErrorIs(t, err, ssz.ErrSize)
 }
 
 func TestForkData_SizeSSZ(t *testing.T) {
