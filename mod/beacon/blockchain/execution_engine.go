@@ -157,6 +157,7 @@ func (s *Service[
 	DepositT,
 	DepositStoreT,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
+	//#nosec:G701 // not an issue in practice.
 	return max(
 		uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
