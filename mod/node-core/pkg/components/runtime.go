@@ -28,7 +28,6 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
@@ -72,7 +71,6 @@ type RuntimeInput struct {
 	Logger              log.Logger
 	ServiceRegistry     *service.Registry
 	StorageBackend      StorageBackend
-	TelemetrySink       *metrics.TelemetrySink
 	ValidatorMiddleware *middleware.ValidatorMiddleware[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
@@ -109,7 +107,6 @@ func ProvideRuntime(
 		in.Logger,
 		in.ServiceRegistry,
 		in.StorageBackend,
-		in.TelemetrySink,
 		in.ValidatorMiddleware,
 	)
 }

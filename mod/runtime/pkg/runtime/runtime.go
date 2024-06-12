@@ -135,7 +135,6 @@ func NewBeaconKitRuntime[
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
-	telemetrySink middleware.TelemetrySink,
 	validatorMiddleware *middleware.ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT, StorageBackendT,
