@@ -54,7 +54,7 @@ func (s *Service[
 	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
 		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
-		s.sendFCUWithoutAttributes(ctx, blk, lph)
+		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 	}
 }
 
@@ -119,7 +119,7 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
-]) sendFCUWithoutAttributes(
+]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
 	lph *types.ExecutionPayloadHeader,
