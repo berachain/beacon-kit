@@ -28,8 +28,8 @@ import (
 type Event[DataT any] struct {
 	// ctx is the context associated with the event.
 	ctx context.Context
-	// name is the name of the event.
-	name string
+	// eventType is the name of the event.
+	eventType uint8
 	// event is the actual beacon event.
 	data DataT
 }
@@ -37,17 +37,17 @@ type Event[DataT any] struct {
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
-](ctx context.Context, name string, data DataT) *Event[DataT] {
+](ctx context.Context, eventType uint8, data DataT) *Event[DataT] {
 	return &Event[DataT]{
-		ctx:  ctx,
-		name: name,
-		data: data,
+		ctx:       ctx,
+		eventType: eventType,
+		data:      data,
 	}
 }
 
 // Name returns the name of the event.
-func (e Event[DataT]) Name() string {
-	return e.name
+func (e Event[DataT]) Type() uint8 {
+	return e.eventType
 }
 
 // Context returns the context associated with the event.
@@ -60,7 +60,7 @@ func (e Event[DataT]) Data() DataT {
 	return e.data
 }
 
-// Is returns true if the event has the given name.
-func (e Event[DataT]) Is(name string) bool {
-	return e.name == name
+// Is returns true if the event has the given type.
+func (e Event[DataT]) Is(eventType uint8) bool {
+	return e.eventType == eventType
 }
