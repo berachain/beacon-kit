@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // this is a test.
 var baseDir = "../../../../../testing/files/"
 
 func TestVerifyBlobProof(t *testing.T) {

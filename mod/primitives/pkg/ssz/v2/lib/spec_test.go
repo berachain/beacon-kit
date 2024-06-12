@@ -39,10 +39,8 @@ import (
 // Test fixture from fastssz.
 const TestFileName = "fixtures/beacon_state_bellatrix.ssz"
 
-//nolint:gochecknoglobals // test debug print toggle
 var debug = false
 
-//nolint:gochecknoglobals // test debug default err msg
 var defaultErrMsg = "local output & fastssz output doesnt match"
 
 type TestLogger interface {

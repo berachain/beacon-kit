@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // allow test constants
 var (
 	extraDataField = "ExecutionPayloadHeaderDeneb.ExtraData"
 	logsBloomField = "ExecutionPayloadHeaderDeneb.LogsBloom"
