@@ -26,5 +26,6 @@ const (
 	BeaconBlockRejected
 	BeaconBlockFinalized
 	CLSyncUpdate
+	CLSyncStatus
 	ELSyncUpdate
 )

@@ -95,13 +95,12 @@ func (s *SyncService[SubscriptionT]) Start(
 
 // mainLoop listens to sync events and updates the status of the CL.
 func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
-	ch := make(chan *feed.Event[bool])
+	//nolint:mnd // todo fix?
+	ch := make(chan *feed.Event[bool], 16)
 	sub := s.syncFeed.Subscribe(ch)
 	defer sub.Unsubscribe()
 	for {
 		select {
-		case <-ctx.Done():
-			return
 		case event := <-ch:
 			if event.Is(events.CLSyncUpdate) {
 				s.handleCLSyncUpdateEvent(event)
@@ -111,6 +110,8 @@ func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
 					"event", event,
 				)
 			}
+		case <-ctx.Done():
+			return
 		}
 	}
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -138,6 +139,8 @@ type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
 	Send(event EventT) int
+	// Subscribe returns a channel that will receive events.
+	Subscribe(chan<- EventT) event.Subscription
 }
 
 // LocalBuilder is the interface for the builder service.

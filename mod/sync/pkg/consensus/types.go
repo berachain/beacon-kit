@@ -29,7 +29,7 @@ type EventFeed[
 	},
 ] interface {
 	// Subscribe subscribes to the event feed and returns a subscription.
-	Subscribe(chan<- CLSyncUpdateEventT) SubscriptionT
+	Subscribe(chan CLSyncUpdateEventT) SubscriptionT
 }
 
 // SyncUpdateEvent represents an interface for block events.
