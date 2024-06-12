@@ -139,7 +139,7 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 			return ctx.Err()
 		case <-ticker.C:
 			s.logger.Info(
-				"waiting for execution client to start 🍺🕔",
+				"waiting for execution client to start... 🍺🕔",
 				"dial_url", s.cfg.RPCDialURL,
 			)
 			if err := s.initializeConnection(ctx); err != nil {
