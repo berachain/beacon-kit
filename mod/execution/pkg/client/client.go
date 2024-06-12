@@ -130,6 +130,12 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 		"dial_url", s.cfg.RPCDialURL.String(),
 	)
 
+	// If the connection connection succeeds, we can skip the
+	// connection initialization loop.
+	if err := s.initializeConnection(ctx); err == nil {
+		return nil
+	}
+
 	// Attempt to initialize the connection to the execution client.
 	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
 	defer ticker.Stop()

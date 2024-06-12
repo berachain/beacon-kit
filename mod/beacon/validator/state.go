@@ -38,9 +38,10 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	slot := blk.GetSlot()
 	s.logger.Info(
 		"computing state root for block 🌲",
-		"slot", blk.GetSlot(),
+		"slot", slot.Base10(),
 	)
 
 	var stateRoot primitives.Root
@@ -48,14 +49,14 @@ func (s *Service[
 	if err != nil {
 		s.logger.Error(
 			"failed to compute state root while building block ❗️ ",
-			"slot", blk.GetSlot(),
+			"slot", slot.Base10(),
 			"error", err,
 		)
 		return err
 	}
 
 	s.logger.Info("state root computed for block 💻 ",
-		"slot", blk.GetSlot(),
+		"slot", slot.Base10(),
 		"state_root", stateRoot,
 	)
 	blk.SetStateRoot(stateRoot)

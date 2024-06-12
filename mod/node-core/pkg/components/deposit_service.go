@@ -70,7 +70,6 @@ func ProvideDepositService(in DepositServiceIn) *deposit.Service[
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
-		in.EngineClient,
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,

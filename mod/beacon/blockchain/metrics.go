@@ -69,7 +69,7 @@ func (cm *chainMetrics) markRebuildPayloadForRejectedBlockSuccess(
 	cm.sink.IncrementCounter(
 		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_success",
 		"slot",
-		string(slot.String()),
+		slot.Base10(),
 	)
 }
 
@@ -83,7 +83,7 @@ func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
 	cm.sink.IncrementCounter(
 		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_failure",
 		"slot",
-		string(slot.String()),
+		slot.Base10(),
 		"error",
 		err.Error(),
 	)
@@ -96,7 +96,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
 	cm.sink.IncrementCounter(
 		"beacon_kit.blockchain.optimistic_payload_build_success",
 		"slot",
-		string(slot.String()),
+		slot.Base10(),
 	)
 }
 
@@ -110,7 +110,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
 	cm.sink.IncrementCounter(
 		"beacon_kit.blockchain.optimistic_payload_build_failure",
 		"slot",
-		string(slot.String()),
+		slot.Base10(),
 		"error",
 		err.Error(),
 	)

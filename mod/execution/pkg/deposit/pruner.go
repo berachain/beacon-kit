@@ -22,7 +22,6 @@ package deposit
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func BuildPruneRangeFn[
@@ -32,9 +31,7 @@ func BuildPruneRangeFn[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT interface {
-		GetNumber() math.U64
-	},
+	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
 
 ](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
