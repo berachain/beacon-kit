@@ -35,16 +35,27 @@ import (
 // the status of the CL.
 const defaultsyncStatusUpdateThreshold = 5
 
+// SyncService is a service that listens to sync events and updates the
+// status of the CL.
 type SyncService[
 	SubscriptionT interface {
 		Unsubscribe()
 	},
 ] struct {
-	syncFeed                  *event.FeedOf[*feed.Event[bool]]
-	syncCount                 atomic.Uint64
+	// syncFeed is the event feed that the sync service listens to.
+	// It notifies the sync service when the CL sync status is updated.
+	syncFeed *event.FeedOf[*feed.Event[bool]]
+	// syncCount is the number of consecutive sync events that claim
+	// the CL is synced to head.
+	syncCount atomic.Uint64
+	// syncStatusUpdateThreshold is the threshold for updating the status
+	// of the CL. The sync service requires this many consecutive sync
+	// successful events to claim the CL is synced to head.
 	syncStatusUpdateThreshold uint64
-	syncStatus                sync.CLStatus
-	logger                    log.Logger[any]
+	// syncStatus is the current status of the CL.
+	syncStatus sync.CLStatus
+	// logger is the logger used by the sync service.
+	logger log.Logger[any]
 }
 
 // New creates a new sync service.
@@ -90,7 +101,10 @@ func (s *SyncService[SubscriptionT]) Start(
 				if event.Is(events.CLSyncUpdate) {
 					s.handleCLSyncUpdateEvent(event)
 				} else {
-					s.logger.Warn("unexpected event", "event", event)
+					s.logger.Warn(
+						"received unexpected event",
+						"event", event,
+					)
 				}
 			}
 		}
