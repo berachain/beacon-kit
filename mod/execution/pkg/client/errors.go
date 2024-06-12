@@ -50,6 +50,10 @@ var (
 
 	// ErrFailedToRefreshJWT indicates that the JWT could not be refreshed.
 	ErrFailedToRefreshJWT = errors.New("failed to refresh auth token")
+
+	// ErrMismatchedEth1ChainID is returned when the chainID does not
+	// match the expected chain ID.
+	ErrMismatchedEth1ChainID = errors.New("mismatched chain ID")
 )
 
 // Handles errors received from the RPC server according to the specification.
