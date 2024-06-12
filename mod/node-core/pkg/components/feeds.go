@@ -32,7 +32,8 @@ func ProvideBlockFeed[
 	return &event.FeedOf[*feed.Event[EventT]]{}
 }
 
-// ProvideCLSyncFeed provides a consensus layer sync feed for the depinject framework.
+// ProvideCLSyncFeed provides a consensus layer sync feed for the depinject
+// framework.
 func ProvideCLSyncFeed[
 	CLSyncUpdateEventT any,
 ]() *event.FeedOf[*feed.Event[CLSyncUpdateEventT]] {

@@ -59,7 +59,7 @@ func (s *Service[SubscriptionT]) Status() error {
 
 // Start spawns any goroutines required by the service.
 func (s *Service[SubscriptionT]) Start(
-	ctx context.Context,
+	_ context.Context,
 ) error {
 	return nil
 }
