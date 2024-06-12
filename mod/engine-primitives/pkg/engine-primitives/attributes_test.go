@@ -26,6 +26,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,4 +61,45 @@ func TestPayloadAttributes(t *testing.T) {
 	require.Equal(t, forkVersion, payloadAttributes.Version())
 
 	require.NoError(t, payloadAttributes.Validate())
+}
+
+func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
+	forkVersion := uint32(1)
+	prevRandao := primitives.Bytes32{1, 2, 3}
+	suggestedFeeRecipient := common.ExecutionAddress{}
+	withdrawals := []Withdrawal{}
+	parentBeaconBlockRoot := primitives.Root{}
+
+	// Test case where Timestamp is 0
+	_, err := engineprimitives.NewPayloadAttributes[Withdrawal](
+		forkVersion,
+		0,
+		prevRandao,
+		suggestedFeeRecipient,
+		withdrawals,
+		parentBeaconBlockRoot,
+	)
+	require.ErrorIs(t, err, engineprimitives.ErrInvalidTimestamp)
+
+	// Test case where PrevRandao is an empty array
+	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
+		forkVersion,
+		123456789,
+		primitives.Bytes32{},
+		suggestedFeeRecipient,
+		withdrawals,
+		parentBeaconBlockRoot,
+	)
+	require.ErrorIs(t, err, engineprimitives.ErrEmptyPrevRandao)
+
+	// Test case where Withdrawals is nil and version is equal to Capella
+	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
+		version.Capella,
+		123456789,
+		prevRandao,
+		suggestedFeeRecipient,
+		nil,
+		parentBeaconBlockRoot,
+	)
+	require.ErrorIs(t, err, engineprimitives.ErrNilWithdrawals)
 }
