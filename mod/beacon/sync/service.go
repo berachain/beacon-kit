@@ -20,11 +20,6 @@ type Service[
 	clSyncStatusUpdateThreshold uint64
 	clSyncStatus                uint8
 
-	// EL
-	//
-	//
-	//
-
 	logger log.Logger[any]
 }
 
@@ -68,6 +63,8 @@ func (s *Service[SubscriptionT]) Start(
 			case event := <-ch:
 				if event.Is(events.CLSyncUpdate) {
 					s.handleClSyncUpdateEvent(event)
+				} else {
+					s.logger.Warn("unexpected event", "event", event)
 				}
 			}
 		}
@@ -94,19 +91,4 @@ func (s *Service[SubscriptionT]) handleClSyncUpdateEvent(event *feed.Event[bool]
 	if s.clSyncCount.Load() >= s.clSyncStatusUpdateThreshold {
 		s.clSyncStatus = 1
 	}
-}
-
-// EventFeed is a generic interface for sending events.
-type EventFeed[
-	CLSyncUpdateEventT CLSyncUpdateEvent,
-	SubscriptionT interface {
-		Unsubscribe()
-	},
-] interface {
-	Subscribe(chan<- (CLSyncUpdateEventT)) SubscriptionT
-}
-
-// CLSyncUpdateEvent is an interface for block events.
-type CLSyncUpdateEvent interface {
-	Data() bool
 }
