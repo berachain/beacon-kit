@@ -237,49 +237,49 @@ func (c chainSpec[
 	return c.Data.MinEpochsToInactivityPenalty
 }
 
-// DomainProposer returns the domain for beacon proposer signatures.
+// DomainTypeProposer returns the domain for beacon proposer signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeProposer() DomainTypeT {
 	return c.Data.DomainTypeProposer
 }
 
-// DomainAttester returns the domain for beacon attester signatures.
+// DomainTypeAttester returns the domain for beacon attester signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeAttester() DomainTypeT {
 	return c.Data.DomainTypeAttester
 }
 
-// DomainRandao returns the domain for RANDAO reveal signatures.
+// DomainTypeRandao returns the domain for RANDAO reveal signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeRandao() DomainTypeT {
 	return c.Data.DomainTypeRandao
 }
 
-// DomainDeposit returns the domain for deposit contract signatures.
+// DomainTypeDeposit returns the domain for deposit contract signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeDeposit() DomainTypeT {
 	return c.Data.DomainTypeDeposit
 }
 
-// DomainVoluntaryExit returns the domain for voluntary exit signatures.
+// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeVoluntaryExit() DomainTypeT {
 	return c.Data.DomainTypeVoluntaryExit
 }
 
-// DomainSelectionProof returns the domain for selection proof signatures.
+// DomainTypeSelectionProof returns the domain for selection proof signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) DomainTypeSelectionProof() DomainTypeT {
 	return c.Data.DomainTypeSelectionProof
 }
 
-// DomainAggregateAndProof returns the domain for aggregate and proof
+// DomainTypeAggregateAndProof returns the domain for aggregate and proof
 // signatures.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,

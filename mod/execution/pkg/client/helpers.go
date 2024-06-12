@@ -21,6 +21,7 @@
 package client
 
 import (
+	"context"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -30,6 +31,21 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
+
+// createContextWithTimeout creates a context with a timeout and returns it
+// along with the cancel function.
+func (s *EngineClient[ExecutionPayloadT]) createContextWithTimeout(
+	ctx context.Context,
+) (context.Context, context.CancelFunc) {
+	startTime := time.Now()
+	dctx, cancel := context.WithTimeoutCause(
+		ctx,
+		s.cfg.RPCTimeout,
+		engineerrors.ErrEngineAPITimeout,
+	)
+	s.metrics.measureNewPayloadDuration(startTime)
+	return dctx, cancel
+}
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
