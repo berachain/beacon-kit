@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -127,9 +128,38 @@ func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
 	require.Equal(t, deposits, body.GetDeposits())
 }
 
+func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
+	var byteArray [256]byte
+	byteSlice := byteArray[:]
+	body := types.BeaconBlockBodyDeneb{
+		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+		},
+		ExecutionPayload: &types.ExecutableDataDeneb{
+			LogsBloom: byteSlice,
+		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+	data, err := body.MarshalSSZ()
+
+	require.NoError(t, err)
+	require.NotNil(t, data)
+}
 func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBodyDeneb()
 	roots, err := body.GetTopLevelRoots()
 	require.NoError(t, err)
 	require.NotNil(t, roots)
+}
+
+func TestBeaconBlockBody_Empty(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	body := blockBody.Empty(version.Deneb)
+	require.NotNil(t, body)
+
+	_, ok := body.RawBeaconBlockBody.(*types.BeaconBlockBodyDeneb)
+	require.True(t, ok)
 }
