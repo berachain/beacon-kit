@@ -56,13 +56,13 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
 	storageBackend components.StorageBackend,
-	ABCIFinalizedBlockMiddleware runtime.FinalizeBlockMiddleware,
-	ABCIValidatorMiddleware runtime.ValidatorMiddleware,
+	abciFinalizedBlockMiddleware runtime.FinalizeBlockMiddleware,
+	abciValidatorMiddleware runtime.ValidatorMiddleware,
 ) AppModule {
 	return AppModule{
 		StorageBackend:              storageBackend,
-		ABCIFinalizeBlockMiddleware: ABCIFinalizedBlockMiddleware,
-		ABCIValidatorMiddleware:     ABCIValidatorMiddleware,
+		ABCIFinalizeBlockMiddleware: abciFinalizedBlockMiddleware,
+		ABCIValidatorMiddleware:     abciValidatorMiddleware,
 	}
 }
 
