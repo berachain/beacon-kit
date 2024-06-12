@@ -47,6 +47,12 @@ const (
 	// KZGMerkleIndexDeneb is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	KZGMerkleIndexDeneb = 26
+
+	// Size of LogsBloom in bytes.
+	LogsBloomSize = 256
+
+	// Size of ExtraData in bytes.
+	ExtraDataSize = 32
 )
 
 type BeaconBlockBody struct {
@@ -60,10 +66,8 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDeneb{
 			BeaconBlockBodyBase: BeaconBlockBodyBase{},
 			ExecutionPayload: &ExecutableDataDeneb{
-				//nolint:mnd // todo fix.
-				LogsBloom: make([]byte, 256),
-				//nolint:mnd // todo fix.
-				ExtraData: make([]byte, 32),
+				LogsBloom: make([]byte, LogsBloomSize),
+				ExtraData: make([]byte, ExtraDataSize),
 			},
 		}}
 	default:

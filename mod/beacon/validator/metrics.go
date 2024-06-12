@@ -69,7 +69,7 @@ func (cm *validatorMetrics) failedToRetrievePayload(
 	cm.sink.IncrementCounter(
 		"beacon_kit.validator.failed_to_retrieve_payload",
 		"slot",
-		string(slot.String()),
+		slot.Base10(),
 		"error",
 		err.Error(),
 	)
