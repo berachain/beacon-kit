@@ -95,7 +95,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	// populated in time before we build the commands.
 	homeDir := os.Getenv("HOMEDIR")
 	viper.SetConfigFile(filepath.Join(homeDir, "config", "app.toml"))
-	//nolint:errcheck // doesn't matter if it fails
+	//#nosec:G703 // doesn't matter if it fails
 	_ = viper.ReadInConfig()
 
 	if err := depinject.Inject(
