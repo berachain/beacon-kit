@@ -193,7 +193,7 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 	return nil
 }
 
-// setupExecutionClientConnections dials the execution client and
+// setupExecutionClientConnection dials the execution client and
 // ensures the chain ID is correct.
 func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
 	ctx context.Context,
