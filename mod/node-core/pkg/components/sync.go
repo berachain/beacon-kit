@@ -18,4 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package el
+package components
+
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	consensus "github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
+	"github.com/ethereum/go-ethereum/event"
+)
+
+// CLSyncServiceInput is the input for the CLSyncService provider.
+type CLSyncServiceInput[SubscriptionT interface {
+	// Unsubscribe terminates the subscription.
+	Unsubscribe()
+}] struct {
+	depinject.In
+	Logger   log.Logger[any]
+	SyncFeed *event.FeedOf[*feed.Event[bool]]
+}
+
+// ProvideCLSyncService is a depinject provider that returns a CLSyncService.
+func ProvideCLSyncService[
+	SubscriptionT interface {
+		Unsubscribe()
+	}](
+	in CLSyncServiceInput[SubscriptionT],
+) (*consensus.SyncService[SubscriptionT], error) {
+	// Build the CLSyncService.
+	return consensus.NewSyncService[SubscriptionT](
+		in.SyncFeed,
+		in.Logger,
+	), nil
+}

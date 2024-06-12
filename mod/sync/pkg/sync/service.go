@@ -18,32 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cl
+package sync
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
 )
 
-// defaultsyncStatusUpdateThreshold is the default threshold for updating
-// the status of the CL.
-const defaultsyncStatusUpdateThreshold = 10
-
-type SyncService[
+type Service[
 	SubscriptionT interface {
 		Unsubscribe()
 	},
 ] struct {
-	syncFeed                  EventFeed[*feed.Event[bool], SubscriptionT]
-	syncCount                 atomic.Uint64
-	syncStatusUpdateThreshold uint64
-	syncStatus                sync.CLStatus
-	logger                    log.Logger[any]
+	logger log.Logger[any]
 }
 
 // New creates a new sync service.
@@ -52,47 +40,26 @@ func New[
 		Unsubscribe()
 	},
 ](
-	syncFeed EventFeed[*feed.Event[bool], SubscriptionT],
 	logger log.Logger[any],
-) *SyncService[SubscriptionT] {
-	return &SyncService[SubscriptionT]{
-		syncFeed:                  syncFeed,
-		syncCount:                 atomic.Uint64{},
-		syncStatusUpdateThreshold: defaultsyncStatusUpdateThreshold,
-		logger:                    logger,
+) *Service[SubscriptionT] {
+	return &Service[SubscriptionT]{
+		logger: logger,
 	}
 }
 
 // Name returns the name of the service.
-func (s *SyncService[SubscriptionT]) Name() string {
-	return "cl-sync"
+func (s *Service[SubscriptionT]) Name() string {
+	return "sync"
 }
 
 // Status returns the status of the service.
-func (s *SyncService[SubscriptionT]) Status() error {
+func (s *Service[SubscriptionT]) Status() error {
 	return nil
 }
 
 // Start spawns any goroutines required by the service.
-func (s *SyncService[SubscriptionT]) Start(
+func (s *Service[SubscriptionT]) Start(
 	ctx context.Context,
 ) error {
-	ch := make(chan *feed.Event[bool])
-	sub := s.syncFeed.Subscribe(ch)
-	defer sub.Unsubscribe()
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event := <-ch:
-				if event.Is(events.CLSyncUpdate) {
-					s.handleCLSyncUpdateEvent(event)
-				} else {
-					s.logger.Warn("unexpected event", "event", event)
-				}
-			}
-		}
-	}()
 	return nil
 }

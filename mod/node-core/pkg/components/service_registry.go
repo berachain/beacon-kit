@@ -36,7 +36,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -52,6 +54,7 @@ type ServiceRegistryInput struct {
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	]
+	CLSyncService    *consensus.SyncService[ethereum.Subscription]
 	DBManagerService *manager.DBManager[
 		*types.BeaconBlock,
 		*feed.Event[*types.BeaconBlock],
@@ -95,5 +98,6 @@ func ProvideServiceRegistry(
 			sdkversion.Version,
 		)),
 		service.WithService(in.DBManagerService),
+		service.WithService(in.CLSyncService),
 	)
 }

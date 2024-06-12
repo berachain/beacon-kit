@@ -18,22 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cl
+package consensus
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[
-	CLSyncUpdateEventT SyncUpdateEvent,
-	SubscriptionT interface {
-		// Unsubscribe terminates the subscription.
-		Unsubscribe()
-	},
-] interface {
-	// Subscribe subscribes to the event feed and returns a subscription.
-	Subscribe(chan<- CLSyncUpdateEventT) SubscriptionT
-}
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
+)
 
-// SyncUpdateEvent represents an interface for block events.
-type SyncUpdateEvent interface {
-	// Data returns a boolean indicating the event data.
-	Data() bool
+// handleCLSyncUpdateEvent processes a CL sync update event.
+func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
+	event *feed.Event[bool],
+) {
+	switch {
+	// 1. If we are not synced to head, and we have
+	// a synced event, increment the sync count.
+	case s.syncStatus == sync.CLStatusNotSynced && event.Data():
+		s.syncCount.Add(1)
+
+		// If the sync count is greater than or equal to the
+		// threshold, mark the CL as `SYNCED`.
+		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
+			s.syncStatus = sync.CLStatusSynced
+		}
+
+	// 2. If we see an event that tells us we are not synced to head
+	// immediately reset the counter and mark the CL as `NOT_SYNCED`.
+	case !event.Data():
+		s.syncCount.Store(0)
+		s.syncStatus = sync.CLStatusNotSynced
+	}
 }

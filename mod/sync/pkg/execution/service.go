@@ -18,16 +18,4 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
-
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/ethereum/go-ethereum/event"
-)
-
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *event.FeedOf[*feed.Event[EventT]] {
-	return &event.FeedOf[*feed.Event[EventT]]{}
-}
+package execution

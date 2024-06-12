@@ -80,8 +80,6 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 }
 
 // buildRootCmd builds the root command for the application.
-//
-
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
