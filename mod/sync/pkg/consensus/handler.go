@@ -42,7 +42,9 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
 			s.logger.Info("marking consensus client as synced 🎉")
 			s.syncStatus = sync.CLStatusSynced
-			s.syncFeed.Send(feed.NewEvent(context.Background(), events.CLSyncStatus, true))
+			s.syncFeed.Send(
+				feed.NewEvent(context.Background(), events.CLSyncStatus, true),
+			)
 		}
 
 	// 2. If we see an event that tells us we are not synced to head
@@ -50,6 +52,8 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	case !event.Data():
 		s.syncCount.Store(0)
 		s.syncStatus = sync.CLStatusNotSynced
-		s.syncFeed.Send(feed.NewEvent(context.Background(), events.CLSyncStatus, false))
+		s.syncFeed.Send(
+			feed.NewEvent(context.Background(), events.CLSyncStatus, false),
+		)
 	}
 }
