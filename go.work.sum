@@ -1201,6 +1201,8 @@ github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
 github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
+github.com/kurtosis-tech/kurtosis/api/golang v0.90.0 h1:820JbWwQJump4IVZQRojdgyIkAbSHdncxSulS6eABtU=
+github.com/kurtosis-tech/kurtosis/api/golang v0.90.0/go.mod h1:9T22P7Vv3j5g6sbm78DxHQ4s9C4Cj3s9JjFQ7DFyYpM=
 github.com/kurtosis-tech/kurtosis/cloud/api/golang v0.0.0-20230803130419-099ee7a4e3dc h1:/6Ffp1LIbBf8nL9EyCSmNps5PGwWu65ogHk8LBGaP5E=
 github.com/kurtosis-tech/kurtosis/cloud/api/golang v0.0.0-20230803130419-099ee7a4e3dc/go.mod h1:+dhneovUimcuMPeYhMRXbit5kII/SIqvtfj6jTShOLo=
 github.com/labstack/echo/v4 v4.1.11/go.mod h1:i541M3Fj6f76NZtHSj7TXnyM8n2gaodfvfxNnFqi74g=

@@ -31,6 +31,44 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
+/*                                 NewPayload                                 */
+/* -------------------------------------------------------------------------- */
+
+// NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
+func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
+	ctx context.Context,
+	payload ExecutionPayloadT,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *primitives.Root,
+) (*engineprimitives.PayloadStatusV1, error) {
+	switch payload.Version() {
+	case version.Deneb:
+		return s.NewPayloadV3(
+			ctx, payload, versionedHashes, parentBlockRoot,
+		)
+	default:
+		return nil, ErrInvalidVersion
+	}
+}
+
+// newPayload is used to call the underlying JSON-RPC method for newPayload.
+func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
+	ctx context.Context,
+	payload ExecutionPayloadT,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *primitives.Root,
+) (*engineprimitives.PayloadStatusV1, error) {
+	result := &engineprimitives.PayloadStatusV1{}
+	if err := s.Client.Client().CallContext(
+		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
+		(*common.ExecutionHash)(parentBlockRoot),
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+/* -------------------------------------------------------------------------- */
 /*                              ForkchoiceUpdated                             */
 /* -------------------------------------------------------------------------- */
 
@@ -124,37 +162,31 @@ func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                 NewPayload                                 */
+/*                                    Other                                   */
 /* -------------------------------------------------------------------------- */
 
-// NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
+// ExchangeCapabilities calls the engine_exchangeCapabilities method via
+// JSON-RPC.
+func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
-	payload ExecutionPayloadT,
-	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatusV1, error) {
-	switch payload.Version() {
-	case version.Deneb:
-		return s.NewPayloadV3(
-			ctx, payload, versionedHashes, parentBlockRoot,
-		)
-	default:
-		return nil, ErrInvalidVersion
+	capabilities []string,
+) ([]string, error) {
+	result := make([]string, 0)
+	if err := s.Client.Client().CallContext(
+		ctx, &result, ExchangeCapabilities, &capabilities,
+	); err != nil {
+		return nil, err
 	}
+	return result, nil
 }
 
-// newPayload is used to call the underlying JSON-RPC method for newPayload.
-func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
+// GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
+func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
-	payload ExecutionPayloadT,
-	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatusV1, error) {
-	result := &engineprimitives.PayloadStatusV1{}
+) ([]engineprimitives.ClientVersionV1, error) {
+	result := make([]engineprimitives.ClientVersionV1, 0)
 	if err := s.Client.Client().CallContext(
-		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
-		(*common.ExecutionHash)(parentBlockRoot),
+		ctx, &result, GetClientVersionV1, nil,
 	); err != nil {
 		return nil, err
 	}
