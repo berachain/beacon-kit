@@ -104,11 +104,6 @@ func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
 		case event := <-ch:
 			if event.Is(events.CLSyncUpdate) {
 				s.handleCLSyncUpdateEvent(event)
-			} else {
-				s.logger.Warn(
-					"received unexpected event",
-					"event", event,
-				)
 			}
 		case <-ctx.Done():
 			return
