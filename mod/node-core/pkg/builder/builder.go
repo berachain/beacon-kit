@@ -22,6 +22,7 @@ package builder
 
 import (
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
@@ -81,13 +82,22 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 
 // buildRootCmd builds the root command for the application.
 //
-
+//nolint:funlen // this is a root command, it's going to be long.
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
 	)
+
+	// TODO: this is all one big hack to get access to appOpts before
+	// cosmos normally supplies it, we need this so that chainSpec is
+	// populated in time before we build the commands.
+	homeDir := os.Getenv("HOMEDIR")
+	viper.SetConfigFile(filepath.Join(homeDir, "config", "app.toml"))
+	//nolint:errcheck // doesn't matter if it fails
+	_ = viper.ReadInConfig()
+
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,

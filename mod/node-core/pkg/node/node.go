@@ -53,6 +53,11 @@ func (n *Node) Run() error {
 	)
 }
 
+// RootCmd returns the root command for the application.
+func (n *Node) RootCmd() *cobra.Command {
+	return n.rootCmd
+}
+
 // SetAppName sets the name of the application.
 func (n *Node) SetAppName(name string) {
 	n.name = name

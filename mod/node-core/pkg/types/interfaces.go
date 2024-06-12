@@ -30,10 +30,18 @@ import (
 type NodeI interface {
 	servertypes.Application
 
+	// Run runs the node's server application.
 	Run() error
 
+	// RootCmd returns the root command for the application.
+	RootCmd() *cobra.Command
+
+	// SetAppName sets the name of the application.
 	SetAppName(name string)
+	// SetAppDescription sets the description of the application.
 	SetAppDescription(description string)
+	// SetRootCmd sets the root command for the application.
 	SetRootCmd(cmd *cobra.Command)
+	// SetApplication sets the application.
 	SetApplication(app servertypes.Application)
 }

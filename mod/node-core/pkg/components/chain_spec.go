@@ -27,12 +27,13 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-type ChainSpecIn struct {
+// ChainSpecInput is the input for the chain spec provider.
+type ChainSpecInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
 }
 
 // ProvideChainSpec provides the chain spec.
-func ProvideChainSpec(_ ChainSpecIn) (primitives.ChainSpec, error) {
-	return spec.FromEnv(), nil
+func ProvideChainSpec(in ChainSpecInput) (primitives.ChainSpec, error) {
+	return spec.ReadFromAppOpts(in.AppOpts)
 }

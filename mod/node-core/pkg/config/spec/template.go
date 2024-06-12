@@ -125,6 +125,6 @@ kzg-commitment-inclusion-proof-depth = "{{ .ChainSpec.KZGCommitmentInclusionProo
 
 # Comet Values
 #
-# CometValues is the consensus parameters for the Comet fork.
-comet-bft-config = "{{ .ChainSpec.CometValues }}"
+# CometBFTValues is the configuration for the CometBFT consensus engine.
+comet-bft-config = "{{ .ChainSpec.CometBFTValues }}"
 `

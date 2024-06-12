@@ -142,6 +142,6 @@ type SpecData[
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
-	// CometValues
-	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
+	// CometBFTValues is the configuration for the CometBFT consensus engine.
+	CometBFTValues CometBFTConfigT `mapstructure:"comet-bft-config"`
 }

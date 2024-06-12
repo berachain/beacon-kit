@@ -453,5 +453,5 @@ func (c chainSpec[
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
-	return c.Data.CometValues
+	return c.Data.CometBFTValues
 }

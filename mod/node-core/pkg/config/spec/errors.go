@@ -25,3 +25,9 @@ import "errors"
 var (
 	ErrInvalidOptionsType = errors.New("invalid application options type")
 )
+
+const (
+	ErrFailedToDecodeSpec      = "failed to decode chain-spec"
+	ErrFailedToEncodeSpec      = "failed to encode chain-spec"
+	ErrFailedToUnmarshalConfig = "failed to unmarshal chain-spec config"
+)

@@ -48,8 +48,6 @@ func run() error {
 		// Set the DepInject Configuration to the Default.
 		nodebuilder.WithDepInjectConfig[types.NodeI](
 			nodebuilder.DefaultDepInjectConfig()),
-		// // Set the ChainSpec to the Default.
-		// nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[types.NodeI](
 			components.DefaultComponentsWithStandardTypes(),

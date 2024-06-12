@@ -61,7 +61,7 @@ func DefaultAppConfig() any {
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
 		BeaconKit: config.DefaultConfig(),
-		ChainSpec: spec.FromEnv().SpecData(),
+		ChainSpec: spec.FromEnvToAppOpts().SpecData(),
 	}
 
 	return customAppConfig
