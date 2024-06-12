@@ -21,79 +21,87 @@
 package components
 
 import (
+	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
+	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/ethereum/go-ethereum/event"
 )
 
-// ValidatorServiceInput is the input for the validator service provider.
-type ValidatorServiceInput struct {
+// ChainServiceInput is the input for the chain service provider.
+type ChainServiceInput struct {
 	depinject.In
 	BlobProcessor *dablob.Processor[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	]
-	Cfg          *config.Config
-	ChainSpec    primitives.ChainSpec
-	LocalBuilder *payloadbuilder.PayloadBuilder[
+	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	ChainSpec      primitives.ChainSpec
+	Cfg            *config.Config
+	DepositService *deposit.Service[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*feed.Event[*types.BeaconBlock],
+		*types.Deposit,
+		*types.ExecutionPayload,
+		event.Subscription,
+		types.WithdrawalCredentials,
+	]
+	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
+	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	LocalBuilder    *payloadbuilder.PayloadBuilder[
 		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
+	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor
 	StorageBackend StorageBackend
-	Signer         crypto.BLSSigner
 	TelemetrySink  *metrics.TelemetrySink
 }
 
-// ProvideValidatorService is a depinject provider for the validator service.
-func ProvideValidatorService(
-	in ValidatorServiceInput,
-) *validator.Service[
+// ProvideChainService is a depinject provider for the blockchain service.
+func ProvideChainService(
+	in ChainServiceInput,
+) *blockchain.Service[
+	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
 	BeaconState,
 	*datypes.BlobSidecars,
+	*types.Deposit,
 	*depositdb.KVStore[*types.Deposit],
-	*types.ForkData,
 ] {
-	// Build the builder service.
-	return validator.NewService[
+	return blockchain.NewService[
+		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
-		*types.ForkData,
 	](
-		&in.Cfg.Validator,
-		in.Logger.With("service", "validator"),
-		in.ChainSpec,
 		in.StorageBackend,
+		in.Logger.With("service", "blockchain"),
+		in.ChainSpec,
+		in.ExecutionEngine,
+		in.LocalBuilder,
 		in.BlobProcessor,
 		in.StateProcessor,
-		in.Signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
-		](
-			in.ChainSpec,
-			types.KZGPositionDeneb,
-			in.TelemetrySink,
-		),
-		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
-			in.LocalBuilder,
-		},
 		in.TelemetrySink,
+		in.BlockFeed,
+		// If optimistic is enabled, we want to skip post finalization FCUs.
+		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 }

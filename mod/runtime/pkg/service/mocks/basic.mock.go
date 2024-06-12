@@ -157,39 +157,6 @@ func (_c *Basic_Status_Call) RunAndReturn(run func() error) *Basic_Status_Call {
 	return _c
 }
 
-// WaitForHealthy provides a mock function with given fields: ctx
-func (_m *Basic) WaitForHealthy(ctx context.Context) {
-	_m.Called(ctx)
-}
-
-// Basic_WaitForHealthy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WaitForHealthy'
-type Basic_WaitForHealthy_Call struct {
-	*mock.Call
-}
-
-// WaitForHealthy is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Basic_Expecter) WaitForHealthy(ctx interface{}) *Basic_WaitForHealthy_Call {
-	return &Basic_WaitForHealthy_Call{Call: _e.mock.On("WaitForHealthy", ctx)}
-}
-
-func (_c *Basic_WaitForHealthy_Call) Run(run func(ctx context.Context)) *Basic_WaitForHealthy_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Basic_WaitForHealthy_Call) Return() *Basic_WaitForHealthy_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *Basic_WaitForHealthy_Call) RunAndReturn(run func(context.Context)) *Basic_WaitForHealthy_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewBasic creates a new instance of Basic. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBasic(t interface {

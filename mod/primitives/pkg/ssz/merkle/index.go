@@ -21,11 +21,11 @@
 package merkle
 
 import (
-	"crypto/sha256"
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	sha256 "github.com/minio/sha256-simd"
 )
 
 type (

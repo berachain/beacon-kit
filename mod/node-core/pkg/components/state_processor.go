@@ -33,6 +33,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
+// StateProcessor is the type alias for the state processor inteface.
+type StateProcessor = blockchain.StateProcessor[
+	*types.BeaconBlock,
+	BeaconState,
+	*datypes.BlobSidecars,
+	*transition.Context,
+	*types.Deposit,
+]
+
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput struct {
@@ -46,13 +55,7 @@ type StateProcessorInput struct {
 // framework.
 func ProvideStateProcessor(
 	in StateProcessorInput,
-) blockchain.StateProcessor[
-	*types.BeaconBlock,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*transition.Context,
-	*types.Deposit,
-] {
+) StateProcessor {
 	return core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,

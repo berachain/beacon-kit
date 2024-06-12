@@ -21,6 +21,8 @@
 package signer
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
@@ -54,6 +56,11 @@ func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 	sig, err := f.PrivValidator.SignBytes(msg)
 	if err != nil {
 		return crypto.BLSSignature{}, err
+	} else if len(sig) != constants.BLSSignatureLength {
+		return crypto.BLSSignature{}, errors.Wrapf(
+			ErrInvalidSignature, "expected signature length %d, got %d",
+			constants.BLSSignatureLength, len(sig),
+		)
 	}
 	return crypto.BLSSignature(sig), nil
 }
@@ -62,7 +69,8 @@ func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 func (f BLSSigner) VerifySignature(
 	blsPk crypto.BLSPubkey,
 	msg []byte,
-	signature crypto.BLSSignature) error {
+	signature crypto.BLSSignature,
+) error {
 	pk, err := blst.PublicKeyFromBytes(blsPk[:])
 	if err != nil {
 		return err

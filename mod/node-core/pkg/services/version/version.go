@@ -86,6 +86,3 @@ func (v *ReportingService) Start(ctx context.Context) error {
 func (*ReportingService) Status() error {
 	return nil
 }
-
-// WaitForHealthy waits for all registered services to be healthy.
-func (*ReportingService) WaitForHealthy(context.Context) {}

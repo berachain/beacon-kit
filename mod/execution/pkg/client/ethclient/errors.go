@@ -22,5 +22,15 @@ package ethclient
 
 import "github.com/berachain/beacon-kit/mod/errors"
 
-// ErrNilResponse is an error that is returned when the response is nil.
-var ErrNilResponse = errors.New("nil response")
+var (
+	// ErrNilResponse is an error that is returned when the response is nil.
+	ErrNilResponse = errors.New("nil response")
+
+	// ErrNotImplemented is an error that is returned when a method is not
+	// implemented.
+	ErrNotImplemented = errors.New("not implemented")
+
+	// ErrInvalidVersion is an error that is returned when the version is
+	// invalid.
+	ErrInvalidVersion = errors.New("invalid version")
+)
