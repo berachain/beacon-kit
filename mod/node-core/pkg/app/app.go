@@ -21,7 +21,6 @@
 package app
 
 import (
-	"context"
 	"io"
 
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -80,20 +79,17 @@ func (app *BeaconApp) setupBeaconModule() {
 
 	// Set the beacon module's handlers.
 	app.SetPrepareProposal(
-		beaconModule.ABCIValidatorMiddleware().
-			PrepareProposalHandler,
+		beaconModule.ABCIValidatorMiddleware.PrepareProposalHandler,
 	)
 	app.SetProcessProposal(
-		beaconModule.
-			ABCIValidatorMiddleware().
-			ProcessProposalHandler,
+		beaconModule.ABCIValidatorMiddleware.ProcessProposalHandler,
 	)
-	app.SetPreBlocker(beaconModule.ABCIFinalizeBlockMiddleware().PreBlock)
+	app.SetPreBlocker(beaconModule.ABCIFinalizeBlockMiddleware.PreBlock)
 
-	// TODO: this needs to be made un-hood.
-	if err := beaconModule.StartServices(
-		context.Background(),
-	); err != nil {
-		panic(err)
-	}
+	// TODO: THIS NEEDS TO GET CALLED SOMEWHERE ELSE.
+	// if err := beaconModule.StartServices(
+	// 	context.Background(),
+	// ); err != nil {
+	// 	panic(err)
+	// }
 }

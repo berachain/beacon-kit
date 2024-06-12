@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -47,15 +48,21 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	*components.BeaconKitRuntime
+	StorageBackend              components.StorageBackend
+	ABCIFinalizeBlockMiddleware runtime.FinalizeBlockMiddleware
+	ABCIValidatorMiddleware     runtime.ValidatorMiddleware
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	runtime *components.BeaconKitRuntime,
+	storageBackend components.StorageBackend,
+	ABCIFinalizedBlockMiddleware runtime.FinalizeBlockMiddleware,
+	ABCIValidatorMiddleware runtime.ValidatorMiddleware,
 ) AppModule {
 	return AppModule{
-		BeaconKitRuntime: runtime,
+		StorageBackend:              storageBackend,
+		ABCIFinalizeBlockMiddleware: ABCIFinalizedBlockMiddleware,
+		ABCIValidatorMiddleware:     ABCIValidatorMiddleware,
 	}
 }
 
@@ -107,4 +114,20 @@ func (am AppModule) ExportGenesis(
 			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 		]{},
 	)
+}
+
+// InitGenesis
+// TODO: InitGenesis should be calling into the StateProcessor.
+func (am AppModule) InitGenesis(
+	ctx context.Context,
+	bz json.RawMessage,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIFinalizeBlockMiddleware.InitGenesis(ctx, bz)
+}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (am AppModule) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIFinalizeBlockMiddleware.EndBlock(ctx)
 }
