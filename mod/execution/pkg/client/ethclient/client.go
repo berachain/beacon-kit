@@ -92,31 +92,3 @@ func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
 }
-
-// GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
-	ctx context.Context,
-) ([]engineprimitives.ClientVersionV1, error) {
-	result := make([]engineprimitives.ClientVersionV1, 0)
-	if err := s.Client.Client().CallContext(
-		ctx, &result, GetClientVersionV1, nil,
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via
-// JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
-	ctx context.Context,
-	capabilities []string,
-) ([]string, error) {
-	result := make([]string, 0)
-	if err := s.Client.Client().CallContext(
-		ctx, &result, ExchangeCapabilities, &capabilities,
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
