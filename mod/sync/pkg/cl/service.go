@@ -46,16 +46,17 @@ type SyncService[
 }
 
 // New creates a new sync service.
-func New[SubscriptionT interface {
-	Unsubscribe()
-}](
+func New[
+	SubscriptionT interface {
+		Unsubscribe()
+	},
+](
 	syncFeed EventFeed[*feed.Event[bool], SubscriptionT],
 	logger log.Logger[any],
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
-		syncFeed:  syncFeed,
-		syncCount: atomic.Uint64{},
-		//nolint:mnd // todo configurable.
+		syncFeed:                  syncFeed,
+		syncCount:                 atomic.Uint64{},
 		syncStatusUpdateThreshold: defaultsyncStatusUpdateThreshold,
 		logger:                    logger,
 	}
@@ -63,9 +64,10 @@ func New[SubscriptionT interface {
 
 // Name returns the name of the service.
 func (s *SyncService[SubscriptionT]) Name() string {
-	return "sync"
+	return "cl-sync"
 }
 
+// Status returns the status of the service.
 func (s *SyncService[SubscriptionT]) Status() error {
 	return nil
 }
