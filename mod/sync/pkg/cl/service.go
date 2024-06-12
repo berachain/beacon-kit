@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
 )
 
 // defaultsyncStatusUpdateThreshold is the default threshold for updating
@@ -41,7 +42,7 @@ type SyncService[
 	syncFeed                  EventFeed[*feed.Event[bool], SubscriptionT]
 	syncCount                 atomic.Uint64
 	syncStatusUpdateThreshold uint64
-	syncStatus                uint8
+	syncStatus                sync.CLStatus
 	logger                    log.Logger[any]
 }
 
@@ -72,13 +73,13 @@ func (s *SyncService[SubscriptionT]) Status() error {
 	return nil
 }
 
+// Start spawns any goroutines required by the service.
 func (s *SyncService[SubscriptionT]) Start(
 	ctx context.Context,
 ) error {
 	ch := make(chan *feed.Event[bool])
 	sub := s.syncFeed.Subscribe(ch)
 	defer sub.Unsubscribe()
-
 	go func() {
 		for {
 			select {
@@ -94,28 +95,4 @@ func (s *SyncService[SubscriptionT]) Start(
 		}
 	}()
 	return nil
-}
-
-// handleCLSyncUpdateEvent processes a CL sync update event.
-func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
-	event *feed.Event[bool],
-) {
-	switch {
-	// 1. If we are not synced to head, and we have
-	// a synced event, increment the sync count.
-	case s.syncStatus == 0 && event.Data():
-		s.syncCount.Add(1)
-
-		// If the sync count is greater than or equal to the
-		// threshold, mark the CL as `SYNCED`.
-		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
-			s.syncStatus = 1
-		}
-
-	// 2. If we see an event that tells us we are not synced to head
-	// immediately reset the counter and mark the CL as `NOT_SYNCED`.
-	case !event.Data():
-		s.syncCount.Store(0)
-		s.syncStatus = 0
-	}
 }

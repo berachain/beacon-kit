@@ -20,15 +20,9 @@
 
 package cl
 
-// CLSyncUpdateEvent represents an interface for block events.
-type CLSyncUpdateEvent interface {
-	// Data returns a boolean indicating the event data.
-	Data() bool
-}
-
 // EventFeed is a generic interface for sending events.
 type EventFeed[
-	CLSyncUpdateEventT CLSyncUpdateEvent,
+	CLSyncUpdateEventT SyncUpdateEvent,
 	SubscriptionT interface {
 		// Unsubscribe terminates the subscription.
 		Unsubscribe()
@@ -36,4 +30,10 @@ type EventFeed[
 ] interface {
 	// Subscribe subscribes to the event feed and returns a subscription.
 	Subscribe(chan<- CLSyncUpdateEventT) SubscriptionT
+}
+
+// SyncUpdateEvent represents an interface for block events.
+type SyncUpdateEvent interface {
+	// Data returns a boolean indicating the event data.
+	Data() bool
 }
