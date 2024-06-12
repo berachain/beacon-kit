@@ -52,12 +52,14 @@ func (s *Service[
 	}
 
 	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
-		s.processNonOptimisticPayload(ctx, st, blk, lph)
+		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
-		s.sendForkchoiceUpdateWithoutAttributes(ctx, blk, lph)
+		s.sendFCUWithoutAttributes(ctx, blk, lph)
 	}
 }
 
+// sendForkchoiceUpdateWithAttributes sends a forkchoice update to the execution
+// client with attributes.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
@@ -66,7 +68,7 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
-]) processNonOptimisticPayload(
+]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -106,6 +108,8 @@ func (s *Service[
 	}
 }
 
+// sendForkchoiceUpdateWithoutAttributes sends a forkchoice update to the
+// execution client without attributes.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
@@ -114,7 +118,7 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
-]) sendForkchoiceUpdateWithoutAttributes(
+]) sendFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
 	lph *types.ExecutionPayloadHeader,
@@ -139,6 +143,9 @@ func (s *Service[
 	}
 }
 
+// calculateNextTimestamp calculates the next timestamp for an execution payload.
+//
+// TODO: This is hood and needs to be improved.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
