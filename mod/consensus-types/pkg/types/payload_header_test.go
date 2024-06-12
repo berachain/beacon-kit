@@ -22,7 +22,6 @@ package types_test
 
 import (
 	"encoding/json"
-	ssz "github.com/ferranbt/fastssz"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -30,7 +29,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
+)
+
+//nolint:gochecknoglobals // allow test constants
+var (
+	extraDataField = "ExecutionPayloadHeaderDeneb.ExtraData"
+	logsBloomField = "ExecutionPayloadHeaderDeneb.LogsBloom"
 )
 
 func generateExecutionPayloadHeaderDeneb() *types.ExecutionPayloadHeaderDeneb {
@@ -129,11 +135,9 @@ func TestExecutionPayloadHeaderDeneb_MarshalSSZTo(t *testing.T) {
 		expErr   error
 	}{
 		{
-			name: "valid",
-			malleate: func() *types.ExecutionPayloadHeaderDeneb {
-				return generateExecutionPayloadHeaderDeneb()
-			},
-			expErr: nil,
+			name:     "valid",
+			malleate: generateExecutionPayloadHeaderDeneb,
+			expErr:   nil,
 		},
 		{
 			name: "invalid extra data",
@@ -142,7 +146,7 @@ func TestExecutionPayloadHeaderDeneb_MarshalSSZTo(t *testing.T) {
 				header.ExtraData = make([]byte, 100)
 				return header
 			},
-			expErr: ssz.ErrBytesLengthFn("ExecutionPayloadHeaderDeneb.ExtraData", 100, 32),
+			expErr: ssz.ErrBytesLengthFn(extraDataField, 100, 32),
 		},
 		{
 			name: "invalid log bloom",
@@ -151,7 +155,7 @@ func TestExecutionPayloadHeaderDeneb_MarshalSSZTo(t *testing.T) {
 				header.LogsBloom = make([]byte, 1)
 				return header
 			},
-			expErr: ssz.ErrBytesLengthFn("ExecutionPayloadHeaderDeneb.LogsBloom", 1, 256),
+			expErr: ssz.ErrBytesLengthFn(logsBloomField, 1, 256),
 		},
 	}
 
@@ -159,7 +163,7 @@ func TestExecutionPayloadHeaderDeneb_MarshalSSZTo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			header := tc.malleate()
 			buf := make([]byte, 64)
-			buf, err := header.MarshalSSZTo(buf)
+			_, err := header.MarshalSSZTo(buf)
 			if tc.expErr != nil {
 				require.Error(t, err)
 			} else {
@@ -385,7 +389,7 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 				header.LogsBloom = make([]byte, 10)
 				return header
 			},
-			expErr: ssz.ErrBytesLengthFn("ExecutionPayloadHeaderDeneb.LogsBloom", 10, 256),
+			expErr: ssz.ErrBytesLengthFn(logsBloomField, 10, 256),
 		},
 		{
 			name: "invalid ExtraData length",
@@ -406,5 +410,4 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 			require.Equal(t, tc.expErr, err)
 		})
 	}
-
 }
