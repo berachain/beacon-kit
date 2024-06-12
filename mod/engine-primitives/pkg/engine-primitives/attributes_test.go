@@ -92,7 +92,7 @@ func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
 	)
 	require.ErrorIs(t, err, engineprimitives.ErrEmptyPrevRandao)
 
-	// Test case where Withdrawals is nil and version is greater than or equal to version.Capella
+	// Test case where Withdrawals is nil and version is equal to Capella
 	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
 		version.Capella,
 		123456789,
@@ -102,5 +102,4 @@ func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
 		parentBeaconBlockRoot,
 	)
 	require.ErrorIs(t, err, engineprimitives.ErrNilWithdrawals)
-
 }
