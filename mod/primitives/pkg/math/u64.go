@@ -25,6 +25,7 @@ import (
 	"math/big"
 	"math/bits"
 	"reflect"
+	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
@@ -136,9 +137,9 @@ func (u *U64) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// String returns the hex encoding of b.
-func (u U64) String() hex.String {
-	return hex.FromUint64(u.Unwrap())
+// String returns the string representation of the U64.
+func (u U64) Base10() string {
+	return strconv.FormatUint(uint64(u), 10)
 }
 
 // ----------------------- U64 Mathematical Methods -----------------------

@@ -24,8 +24,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
@@ -51,74 +51,115 @@ func (s *Service[
 		return
 	}
 
-	// This is technically not an optimistic payload
-	// TODO: This needs a refactor, big hood energy.
-	//nolint:nestif // todo fix.5
 	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
-		stCopy := st.Copy()
-		if _, err = s.sp.ProcessSlots(
-			stCopy, blk.GetSlot()+1,
-		); err != nil {
-			return
-		}
-
-		var prevBlockRoot primitives.Root
-		prevBlockRoot, err = blk.HashTreeRoot()
-		if err != nil {
-			s.logger.Error(
-				"failed to get block root in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-
-		// Ask the builder to send a forkchoice update with attributes.
-		// This will trigger a new payload to be built.
-		if _, err = s.lb.RequestPayloadAsync(
-			ctx,
-			stCopy,
-			blk.GetSlot()+1,
-			//#nosec:G701 // won't realistically overflow.
-			// TODO: clock time properly.
-			(max(
-				uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
-				uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			)),
-			prevBlockRoot,
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		); err == nil {
-			return
-		}
-
-		// If we error we log and continue, we try again without building a
-		// block
-		// just incase this can help get our execution client back on track.
-		s.logger.
-			Error(
-				"failed to send forkchoice update with attributes",
-				"error", err,
-			)
+		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
-		// If we are not building blocks, or we failed to build a block
-		// we can just send the forkchoice update without attributes.
-		_, _, err = s.ee.NotifyForkchoiceUpdate(
-			ctx,
-			engineprimitives.BuildForkchoiceUpdateRequest(
-				&engineprimitives.ForkchoiceStateV1{
-					HeadBlockHash:      lph.GetBlockHash(),
-					SafeBlockHash:      lph.GetParentHash(),
-					FinalizedBlockHash: lph.GetParentHash(),
-				},
-				nil,
-				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
-			),
-		)
-		if err != nil {
-			s.logger.Error(
-				"failed to send forkchoice update without attributes",
-				"error", err,
-			)
-		}
+		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 	}
+}
+
+// sendForkchoiceUpdateWithAttributes sends a forkchoice update to the execution
+// client with attributes.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositT,
+	DepositStoreT,
+]) sendNextFCUWithAttributes(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	lph *types.ExecutionPayloadHeader,
+) {
+	stCopy := st.Copy()
+	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
+		s.logger.Error(
+			"failed to process slots in non-optimistic payload",
+			"error", err,
+		)
+		return
+	}
+
+	prevBlockRoot, err := blk.HashTreeRoot()
+	if err != nil {
+		s.logger.Error(
+			"failed to get block root in non-optimistic payload",
+			"error", err,
+		)
+		return
+	}
+
+	if _, err = s.lb.RequestPayloadAsync(
+		ctx,
+		stCopy,
+		blk.GetSlot()+1,
+		s.calculateNextTimestamp(blk),
+		prevBlockRoot,
+		lph.GetBlockHash(),
+		lph.GetParentHash(),
+	); err != nil {
+		s.logger.Error(
+			"failed to send forkchoice update with attributes in non-optimistic payload",
+			"error",
+			err,
+		)
+	}
+}
+
+// sendForkchoiceUpdateWithoutAttributes sends a forkchoice update to the
+// execution client without attributes.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositT,
+	DepositStoreT,
+]) sendNextFCUWithoutAttributes(
+	ctx context.Context,
+	blk BeaconBlockT,
+	lph *types.ExecutionPayloadHeader,
+) {
+	_, _, err := s.ee.NotifyForkchoiceUpdate(
+		ctx,
+		engineprimitives.BuildForkchoiceUpdateRequest(
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			nil,
+			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+		),
+	)
+	if err != nil {
+		s.logger.Error(
+			"failed to send forkchoice update without attributes",
+			"error", err,
+		)
+	}
+}
+
+// calculateNextTimestamp calculates the next timestamp for an execution
+// payload.
+//
+// TODO: This is hood and needs to be improved.
+func (s *Service[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+	DepositT,
+	DepositStoreT,
+]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
+	//#nosec:G701 // not an issue in practice.
+	return max(
+		uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
+		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+	)
 }

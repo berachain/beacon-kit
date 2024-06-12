@@ -49,7 +49,7 @@ func (fm *factoryMetrics) measureBuildSidecarsDuration(
 		"beacon_kit.da.blob.factory.build_sidecar_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars.String()),
+		numSidecars.Base10(),
 	)
 }
 
