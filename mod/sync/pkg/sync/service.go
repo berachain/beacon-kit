@@ -24,13 +24,16 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 )
 
+// Service is a sync service.
 type Service[
 	SubscriptionT interface {
 		Unsubscribe()
 	},
 ] struct {
+	clSync *consensus.SyncService[SubscriptionT]
 	logger log.Logger[any]
 }
 
@@ -40,9 +43,11 @@ func New[
 		Unsubscribe()
 	},
 ](
+	clSync *consensus.SyncService[SubscriptionT],
 	logger log.Logger[any],
 ) *Service[SubscriptionT] {
 	return &Service[SubscriptionT]{
+		clSync: clSync,
 		logger: logger,
 	}
 }

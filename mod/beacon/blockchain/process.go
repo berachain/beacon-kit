@@ -73,12 +73,16 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 	sidecars BlobSidecarsT,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
 		st         = s.sb.StateFromContext(ctx)
 		valUpdates []*transition.ValidatorUpdate
 	)
+
+	// Notify the sync service about what is going on.
+	s.clSyncFeed.Send(feed.NewEvent(ctx, events.CLSyncUpdate, syncedToHead))
 
 	// If the block is nil, exit early.
 	if blk.IsNil() {

@@ -75,6 +75,8 @@ type Service[
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
+	// clSyncFeed is the event feed for chain syncs.
+	clSyncFeed EventFeed[*feed.Event[bool]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -117,6 +119,7 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
+	clSyncFeed EventFeed[*feed.Event[bool]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
@@ -135,6 +138,7 @@ func NewService[
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
 		blockFeed:               blockFeed,
+		clSyncFeed:              clSyncFeed,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}

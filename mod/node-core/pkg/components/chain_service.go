@@ -51,6 +51,7 @@ type ChainServiceInput struct {
 	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec      primitives.ChainSpec
 	Cfg            *config.Config
+	CLSyncFeed     *event.FeedOf[*feed.Event[bool]]
 	DepositService *deposit.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -101,6 +102,7 @@ func ProvideChainService(
 		in.StateProcessor,
 		in.TelemetrySink,
 		in.BlockFeed,
+		in.CLSyncFeed,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

@@ -33,7 +33,7 @@ import (
 
 // defaultsyncStatusUpdateThreshold is the default threshold for updating
 // the status of the CL.
-const defaultsyncStatusUpdateThreshold = 10
+const defaultsyncStatusUpdateThreshold = 5
 
 type SyncService[
 	SubscriptionT interface {
@@ -78,10 +78,10 @@ func (s *SyncService[SubscriptionT]) Status() error {
 func (s *SyncService[SubscriptionT]) Start(
 	ctx context.Context,
 ) error {
-	ch := make(chan *feed.Event[bool])
-	sub := s.syncFeed.Subscribe(ch)
-	defer sub.Unsubscribe()
 	go func() {
+		ch := make(chan *feed.Event[bool])
+		sub := s.syncFeed.Subscribe(ch)
+		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-ctx.Done():

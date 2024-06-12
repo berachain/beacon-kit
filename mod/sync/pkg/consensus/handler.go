@@ -34,10 +34,10 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	// a synced event, increment the sync count.
 	case s.syncStatus == sync.CLStatusNotSynced && event.Data():
 		s.syncCount.Add(1)
-
 		// If the sync count is greater than or equal to the
 		// threshold, mark the CL as `SYNCED`.
 		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
+			s.logger.Info("marking consensus client as synced 🎉")
 			s.syncStatus = sync.CLStatusSynced
 		}
 

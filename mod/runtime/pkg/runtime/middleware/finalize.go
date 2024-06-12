@@ -137,9 +137,7 @@ func (h *FinalizeBlockMiddleware[
 	// the sync committee.
 	h.valUpdates, err = h.chainService.ProcessBlockAndBlobs(
 		ctx, blk, blobs,
-		// TODO: Speak with @melekes about this, doesn't seem to
-		// work reliably.
-		/*req.SyncingToHeight == req.Height*/
+		req.SyncingToHeight == req.Height,
 	)
 	return err
 }

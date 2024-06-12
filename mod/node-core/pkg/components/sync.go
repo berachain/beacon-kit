@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	consensus "github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 	"github.com/ethereum/go-ethereum/event"
@@ -34,7 +34,7 @@ type CLSyncServiceInput[SubscriptionT interface {
 	Unsubscribe()
 }] struct {
 	depinject.In
-	Logger   log.Logger[any]
+	Logger   log.Logger
 	SyncFeed *event.FeedOf[*feed.Event[bool]]
 }
 
@@ -48,6 +48,6 @@ func ProvideCLSyncService[
 	// Build the CLSyncService.
 	return consensus.NewSyncService[SubscriptionT](
 		in.SyncFeed,
-		in.Logger,
+		in.Logger.With("service", "cl-sync"),
 	), nil
 }
