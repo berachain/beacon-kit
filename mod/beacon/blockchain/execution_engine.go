@@ -103,7 +103,8 @@ func (s *Service[
 	); err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update with attributes in non-optimistic payload",
-			"error", err,
+			"error",
+			err,
 		)
 	}
 }
@@ -143,7 +144,8 @@ func (s *Service[
 	}
 }
 
-// calculateNextTimestamp calculates the next timestamp for an execution payload.
+// calculateNextTimestamp calculates the next timestamp for an execution
+// payload.
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
