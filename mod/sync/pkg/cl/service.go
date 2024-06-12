@@ -86,7 +86,7 @@ func (s *SyncService[SubscriptionT]) Start(
 				return
 			case event := <-ch:
 				if event.Is(events.CLSyncUpdate) {
-					s.handlesyncUpdateEvent(event)
+					s.handleCLSyncUpdateEvent(event)
 				} else {
 					s.logger.Warn("unexpected event", "event", event)
 				}
@@ -96,8 +96,8 @@ func (s *SyncService[SubscriptionT]) Start(
 	return nil
 }
 
-// handlesyncUpdateEvent processes a CL sync update event.
-func (s *SyncService[SubscriptionT]) handlesyncUpdateEvent(
+// handleCLSyncUpdateEvent processes a CL sync update event.
+func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	event *feed.Event[bool],
 ) {
 	switch {
