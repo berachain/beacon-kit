@@ -53,10 +53,7 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 
 	// Call the appropriate RPC method based on the payload version.
 	result, err := s.Eth1Client.NewPayload(
-		cctx,
-		payload,
-		versionedHashes,
-		parentBeaconBlockRoot,
+		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
