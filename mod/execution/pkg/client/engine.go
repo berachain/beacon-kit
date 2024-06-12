@@ -33,6 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                                 NewPayload                                 */
+/* -------------------------------------------------------------------------- */
+
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
@@ -75,6 +79,10 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 
 	return processPayloadStatusResult(result)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                              ForkchoiceUpdated                             */
+/* -------------------------------------------------------------------------- */
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
@@ -119,6 +127,10 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	}
 	return result.PayloadID, latestValidHash, nil
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                 GetPayload                                 */
+/* -------------------------------------------------------------------------- */
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
