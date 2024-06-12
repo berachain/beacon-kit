@@ -9,7 +9,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610215715-5f91f661ac83
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099
 	github.com/ethereum/go-ethereum v1.14.5
-	github.com/kurtosis-tech/kurtosis/api/golang v0.89.16
+	github.com/kurtosis-tech/kurtosis/api/golang v0.90.0
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.9.0
 )
