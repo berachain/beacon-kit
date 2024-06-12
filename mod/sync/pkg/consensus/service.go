@@ -89,25 +89,28 @@ func (s *SyncService[SubscriptionT]) Status() error {
 func (s *SyncService[SubscriptionT]) Start(
 	ctx context.Context,
 ) error {
-	go func() {
-		ch := make(chan *feed.Event[bool])
-		sub := s.syncFeed.Subscribe(ch)
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event := <-ch:
-				if event.Is(events.CLSyncUpdate) {
-					s.handleCLSyncUpdateEvent(event)
-				} else {
-					s.logger.Warn(
-						"received unexpected event",
-						"event", event,
-					)
-				}
+	go s.mainLoop(ctx)
+	return nil
+}
+
+// mainLoop listens to sync events and updates the status of the CL.
+func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
+	ch := make(chan *feed.Event[bool])
+	sub := s.syncFeed.Subscribe(ch)
+	defer sub.Unsubscribe()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-ch:
+			if event.Is(events.CLSyncUpdate) {
+				s.handleCLSyncUpdateEvent(event)
+			} else {
+				s.logger.Warn(
+					"received unexpected event",
+					"event", event,
+				)
 			}
 		}
-	}()
-	return nil
+	}
 }
