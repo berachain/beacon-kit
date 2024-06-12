@@ -49,8 +49,8 @@ func (s *Service[
 		blockErr, blobsErr error
 		wg                 sync.WaitGroup
 	)
-	//nolint:mnd // 2 go-routines.
-	wg.Add(2)
+	const numRoutines = 2
+	wg.Add(numRoutines)
 
 	go func() {
 		defer wg.Done()
