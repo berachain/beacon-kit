@@ -62,6 +62,8 @@ else
 overwrite="Y"
 fi
 
+export CHAIN_SPEC="devnet"
+
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
@@ -75,7 +77,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
-export CHAIN_SPEC="devnet"
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
