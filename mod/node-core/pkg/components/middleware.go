@@ -30,18 +30,32 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // ValidatorMiddlewareInput is the input for the validator middleware provider.
 type ValidatorMiddlewareInput struct {
 	depinject.In
-	// could instead just take in the services
-	ChainSpec       primitives.ChainSpec
-	ServiceRegistry *service.Registry
-	StorageBackend  StorageBackend
-	TelemetrySink   *metrics.TelemetrySink
+	ChainService *blockchain.Service[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
+	]
+	ChainSpec        primitives.ChainSpec
+	StorageBackend   StorageBackend
+	TelemetrySink    *metrics.TelemetrySink
+	ValidatorService *validator.Service[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*depositdb.KVStore[*types.Deposit],
+		*types.ForkData,
+	]
 }
 
 // ProvideValidatorMiddleware is a depinject provider for the validator
@@ -56,37 +70,11 @@ func ProvideValidatorMiddleware(
 	*datypes.BlobSidecars,
 	StorageBackend,
 ] {
-	var (
-		chainService *blockchain.Service[
-			*dastore.Store[*types.BeaconBlockBody],
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
-			BeaconState,
-			*datypes.BlobSidecars,
-			*types.Deposit,
-			*depositdb.KVStore[*types.Deposit],
-		]
-		validatorService *validator.Service[
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
-			BeaconState,
-			*datypes.BlobSidecars,
-			*depositdb.KVStore[*types.Deposit],
-			*types.ForkData,
-		]
-	)
-	if err := in.ServiceRegistry.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	if err := in.ServiceRegistry.FetchService(&validatorService); err != nil {
-		panic(err)
-	}
 	return middleware.
 		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody]](
 		in.ChainSpec,
-		validatorService,
-		chainService,
+		in.ValidatorService,
+		in.ChainService,
 		in.TelemetrySink,
 		in.StorageBackend,
 	)
@@ -95,9 +83,17 @@ func ProvideValidatorMiddleware(
 // FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
-	ChainSpec       primitives.ChainSpec
-	ServiceRegistry *service.Registry
-	TelemetrySink   *metrics.TelemetrySink
+	ChainService *blockchain.Service[
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		*types.Deposit,
+		*depositdb.KVStore[*types.Deposit],
+	]
+	ChainSpec     primitives.ChainSpec
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideFinalizeBlockMiddleware is a depinject provider for the finalize block
@@ -107,23 +103,11 @@ func ProvideFinalizeBlockMiddleware(
 ) *middleware.FinalizeBlockMiddleware[
 	*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
 ] {
-	var chainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
-	if err := in.ServiceRegistry.FetchService(&chainService); err != nil {
-		panic(err)
-	}
 	return middleware.NewFinalizeBlockMiddleware[
 		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
 	](
 		in.ChainSpec,
-		chainService,
+		in.ChainService,
 		in.TelemetrySink,
 	)
 }
