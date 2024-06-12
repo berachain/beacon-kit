@@ -37,6 +37,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideChainService,
 		ProvideCLSyncFeed[bool],
 		ProvideCLSyncService[ethereum.Subscription],
+		ProvideChainSpec,
 		ProvideConfig,
 		ProvideDBManager,
 		ProvideDepositPruner,
