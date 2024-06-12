@@ -33,6 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                                 NewPayload                                 */
+/* -------------------------------------------------------------------------- */
+
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
@@ -42,26 +46,20 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
-		dctx, cancel = context.WithTimeoutCause(
-			ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
-		)
+		cctx, cancel = s.createContextWithTimeout(ctx)
 	)
-
 	defer s.metrics.measureNewPayloadDuration(startTime)
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
 	result, err := s.Eth1Client.NewPayload(
-		dctx,
-		payload,
-		versionedHashes,
-		parentBeaconBlockRoot,
+		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementNewPayloadTimeout()
 		}
-		return nil, err
+		return nil, s.handleRPCError(err)
 	} else if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
 	}
@@ -79,6 +77,10 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	return processPayloadStatusResult(result)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              ForkchoiceUpdated                             */
+/* -------------------------------------------------------------------------- */
+
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
@@ -88,11 +90,8 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
-		dctx, cancel = context.WithTimeoutCause(
-			ctx, s.cfg.RPCTimeout, engineerrors.ErrEngineAPITimeout,
-		)
+		cctx, cancel = s.createContextWithTimeout(ctx)
 	)
-
 	defer s.metrics.measureForkchoiceUpdateDuration(startTime)
 	defer cancel()
 
@@ -107,10 +106,7 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	}
 
 	result, err := s.Eth1Client.ForkchoiceUpdated(
-		dctx,
-		state,
-		attrs,
-		forkVersion,
+		cctx, state, attrs, forkVersion,
 	)
 
 	if err != nil {
@@ -129,6 +125,10 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	return result.PayloadID, latestValidHash, nil
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 GetPayload                                 */
+/* -------------------------------------------------------------------------- */
+
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient[ExecutionPayloadT]) GetPayload(
@@ -138,18 +138,13 @@ func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	var (
 		startTime    = time.Now()
-		dctx, cancel = context.WithTimeoutCause(
-			ctx,
-			s.cfg.RPCTimeout,
-			engineerrors.ErrEngineAPITimeout,
-		)
+		cctx, cancel = s.createContextWithTimeout(ctx)
 	)
-
 	defer s.metrics.measureGetPayloadDuration(startTime)
 	defer cancel()
 
 	// Call and check for errors.
-	result, err := s.Eth1Client.GetPayload(dctx, payloadID, forkVersion)
+	result, err := s.Eth1Client.GetPayload(cctx, payloadID, forkVersion)
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {

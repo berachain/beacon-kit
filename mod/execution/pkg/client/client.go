@@ -92,6 +92,21 @@ func New[ExecutionPayloadT interface {
 	}
 }
 
+// Name returns the name of the engine client.
+func (s *EngineClient[ExecutionPayloadT]) Name() string {
+	return "engine-client"
+}
+
+// Status verifies the chain ID via JSON-RPC. By proxy
+// we will also verify the connection to the execution client.
+func (s *EngineClient[ExecutionPayloadT]) Status() error {
+	// If the client is not started, we return an error.
+	if s.Eth1Client.Client == nil {
+		return ErrNotStarted
+	}
+	return nil
+}
+
 // Start the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Start(
 	ctx context.Context,
@@ -109,68 +124,74 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 			go s.jwtRefreshLoop(ctx)
 		}()
 	}
-	return s.initializeConnection(ctx)
-}
 
-// Status verifies the chain ID via JSON-RPC. By proxy
-// we will also verify the connection to the execution client.
-func (s *EngineClient[ExecutionPayloadT]) Status() error {
-	// If the client is not started, we return an error.
-	if s.Eth1Client.Client == nil {
-		return ErrNotStarted
+	s.logger.Info(
+		"initializing connection to the execution client...",
+		"dial_url", s.cfg.RPCDialURL.String(),
+	)
+
+	// Attempt to initialize the connection to the execution client.
+	ticker := time.NewTicker(s.cfg.RPCStartupCheckInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			s.logger.Info(
+				"waiting for execution client to start... 🍺🕔",
+				"dial_url", s.cfg.RPCDialURL,
+			)
+			if err := s.initializeConnection(ctx); err != nil {
+				continue
+			}
+			return nil
+		}
 	}
-	return nil
-}
-
-// VerifyChainID Checks the chain ID of the execution client to ensure
-// it matches local parameters of what Prysm expects.
-func (s *EngineClient[ExecutionPayloadT]) VerifyChainID(
-	ctx context.Context,
-) error {
-	chainID, err := s.Client.ChainID(ctx)
-	if err != nil {
-		return err
-	}
-
-	if chainID.Uint64() != s.eth1ChainID.Uint64() {
-		return errors.Newf(
-			"wanted chain ID %d, got %d",
-			s.eth1ChainID,
-			chainID.Uint64(),
-		)
-	}
-
-	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
 
+// setupConnection dials the execution client and
+// ensures the chain ID is correct.
 func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 	ctx context.Context,
 ) error {
-	// Initialize the connection to the execution client.
 	var (
 		err     error
 		chainID *big.Int
 	)
-	for {
-		s.logger.Info(
-			"waiting for execution client to start 🍺🕔",
-			"dial_url", s.cfg.RPCDialURL,
-		)
-		if err = s.setupExecutionClientConnection(ctx); err != nil {
-			time.Sleep(s.cfg.RPCStartupCheckInterval)
-			s.logger.Error("failed to setup execution client", "err", err)
-			continue
+
+	defer func() {
+		if err != nil {
+			s.Client.Close()
 		}
-		break
+	}()
+
+	// Dial the execution client.
+	if err = s.dialExecutionRPCClient(ctx); err != nil {
+		return err
 	}
-	// Get the chain ID from the execution client.
-	chainID, err = s.ChainID(ctx)
+
+	// After the initial dial, check to make sure the chain ID is correct.
+	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
-		s.logger.Error("failed to get chain ID", "err", err)
+		if strings.Contains(err.Error(), "401 Unauthorized") {
+			// We always log this error as it is a critical error.
+			s.logger.Error(UnauthenticatedConnectionErrorStr)
+		}
+		return err
+	}
+
+	if chainID.Uint64() != s.eth1ChainID.Uint64() {
+		err = errors.Wrapf(
+			ErrMismatchedEth1ChainID,
+			"wanted chain ID %d, got %d",
+			s.eth1ChainID,
+			chainID.Uint64(),
+		)
 		return err
 	}
 
@@ -188,28 +209,6 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 	// Exchange capabilities with the execution client.
 	if _, err = s.ExchangeCapabilities(ctx); err != nil {
 		s.logger.Error("failed to exchange capabilities", "err", err)
-		return err
-	}
-	return nil
-}
-
-// setupExecutionClientConnection dials the execution client and
-// ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadT]) setupExecutionClientConnection(
-	ctx context.Context,
-) error {
-	// Dial the execution client.
-	if err := s.dialExecutionRPCClient(ctx); err != nil {
-		return err
-	}
-
-	// Ensure the execution client is connected to the correct chain.
-	if err := s.VerifyChainID(ctx); err != nil {
-		s.Client.Close()
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			// We always log this error as it is a critical error.
-			s.logger.Error(UnauthenticatedConnectionErrorStr)
-		}
 		return err
 	}
 	return nil
@@ -266,55 +265,4 @@ func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
 		client,
 	)
 	return err
-}
-
-// ================================ JWT ================================
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
-	ctx context.Context,
-) {
-	s.logger.Info("starting JWT refresh loop 🔄")
-	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
-	for {
-		select {
-		case <-ctx.Done():
-			ticker.Stop()
-			return
-		case <-ticker.C:
-			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error(
-					"failed to refresh engine auth token",
-					"err",
-					err,
-				)
-			} else {
-				s.logger.Info("successfully refreshed engine auth token")
-			}
-		}
-	}
-}
-
-// buildJWTHeader builds an http.Header that has the JWT token
-// attached for authorization.
-//
-//nolint:lll
-func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) {
-	header := make(http.Header)
-
-	// Build the JWT token.
-	token, err := buildSignedJWT(s.jwtSecret)
-	if err != nil {
-		s.logger.Error("failed to build JWT token", "err", err)
-		return header, err
-	}
-
-	// Add the JWT token to the headers.
-	header.Set("Authorization", "Bearer "+token)
-	return header, nil
-}
-
-// Name returns the name of the engine client.
-func (s *EngineClient[ExecutionPayloadT]) Name() string {
-	return "engine-client"
 }
