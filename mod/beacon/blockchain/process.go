@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
@@ -45,17 +44,17 @@ func (s *Service[
 	DepositStoreT,
 ]) ProcessGenesisData(
 	ctx context.Context,
-	genesisData *genesis.Genesis[
+	genesisData Genesis[
 		DepositT, *types.ExecutionPayloadHeaderDeneb,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
-		genesisData.Deposits,
+		genesisData.GetDeposits(),
 		&types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+			InnerExecutionPayloadHeader: genesisData.GetExecutionPayloadHeader(),
 		},
-		genesisData.ForkVersion,
+		genesisData.GetForkVersion(),
 	)
 }
 

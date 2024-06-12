@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -42,7 +42,7 @@ type BlockchainService[
 	// state.
 	ProcessGenesisData(
 		context.Context,
-		*genesis.Genesis[
+		blockchain.Genesis[
 			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 		],
 	) ([]*transition.ValidatorUpdate, error)

@@ -140,6 +140,18 @@ type EventFeed[EventT any] interface {
 	Send(event EventT) int
 }
 
+// Genesis is the interface to retrieve the information needed to start the
+// beacon chain.
+type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+	// GetForkVersion returns the fork version of the genesis slot.
+	GetForkVersion() primitives.Version
+	// GetDeposits returns the deposits in the genesis.
+	GetDeposits() []DepositT
+	// GetExecutionPayloadHeader returns the header of the execution payload
+	// in the genesis.
+	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+}
+
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
 	// Enabled returns true if the local builder is enabled.
