@@ -12,8 +12,8 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/tools/confix v0.1.1
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610173527-45baa498bb63
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610173527-45baa498bb63
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240610173527-45baa498bb63
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240612175710-7d5f3e4f7041
