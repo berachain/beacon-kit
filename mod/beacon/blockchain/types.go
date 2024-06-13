@@ -180,7 +180,7 @@ type EventFeed[EventT any] interface {
 
 // Genesis is the interface to retrieve the information needed to start the
 // beacon chain.
-type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+type Genesis[DepositT any, ExecutionPayloadHeaderT ExecutionPayloadHeader] interface {
 	// GetForkVersion returns the fork version of the genesis slot.
 	GetForkVersion() primitives.Version
 	// GetDeposits returns the deposits in the genesis.
