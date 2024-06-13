@@ -39,7 +39,7 @@ def get_config(plan, services, args = {}):
     # string and pass it as an environment variable
     formatted_services = []
     for service in services:
-        # DO NOT ADJUST INDENDATION UNLESS default.conf.template CHANGES
+        # DO NOT ADJUST INDENTATION UNLESS default.conf.template CHANGES
         # Add port to the server block
         service = "    server {0}:{1};".format(service, RPC_PORT_NUM)
         formatted_services.append(service)
