@@ -1,5 +1,5 @@
 el_cl_genesis_data_generator = import_module(
-    "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
+    "github.com/ethpandaops/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
 
 execution = import_module("./src/nodes/execution/execution.star")
