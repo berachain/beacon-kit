@@ -29,13 +29,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 )
 
-// These functions return pointers to empty components.
+// These functions return the addresses to empty node components.
 // Typically used when supplying empty values to depinject, or as receiving
 // addresses for constructed depinject values.
 
-// EmptyBeaconState returns a pointer to an empty BeaconState.
+// emptyBeaconState returns an address pointing to an empty BeaconState.
 func emptyStorageBackend() *storage.Backend[
 	*dastore.Store[*consensustypes.BeaconBlockBody],
 	*consensustypes.BeaconBlock,
@@ -52,7 +53,7 @@ func emptyStorageBackend() *storage.Backend[
 	]{}
 }
 
-// EmptyBeaconState return a pointer to an empty BeaconState.
+// emptyBeaconState return an address pointing to an empty BeaconState.
 func emptyValidatorMiddleware() runtime.ValidatorMiddleware {
 	return &middleware.ValidatorMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
@@ -64,7 +65,7 @@ func emptyValidatorMiddleware() runtime.ValidatorMiddleware {
 	]{}
 }
 
-// EmptyFinalizeBlockMiddleware returns a pointer to an empty
+// emptyFinalizeBlockMiddleware returns an address pointing to an empty
 // FinalizeBlockMiddleware.
 func emptyFinalizeBlockMiddlware() runtime.FinalizeBlockMiddleware {
 	return &middleware.FinalizeBlockMiddleware[
@@ -74,7 +75,7 @@ func emptyFinalizeBlockMiddlware() runtime.FinalizeBlockMiddleware {
 	]{}
 }
 
-// EmptyRuntime returns a pointer to an empty BeaconKitRuntime.
+// emptyRuntime returns an address pointing to an empty BeaconKitRuntime.
 func emptyRuntime() *components.BeaconKitRuntime {
 	return &runtime.BeaconKitRuntime[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
@@ -85,4 +86,9 @@ func emptyRuntime() *components.BeaconKitRuntime {
 		*depositdb.KVStore[*consensustypes.Deposit],
 		runtime.Backend,
 	]{}
+}
+
+// emptyAppBuilder returns an address pointing to an empty AppBuilder.
+func emptyAppBuilder() *sdkruntime.AppBuilder {
+	return &sdkruntime.AppBuilder{}
 }
