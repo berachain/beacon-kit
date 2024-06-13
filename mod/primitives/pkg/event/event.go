@@ -18,16 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package events
 
-import (
-	"github.com/berachain/beacon-kit/mod/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+const (
+	MissedSlot = iota
+	BeaconBlockAccepted
+	BeaconBlockRejected
+	BeaconBlockFinalized
+	CLSyncUpdate
+	CLSyncStatus
+	ELSyncUpdate
 )
-
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *async.FeedOf[*feed.Event[EventT]] {
-	return &async.FeedOf[*feed.Event[EventT]]{}
-}

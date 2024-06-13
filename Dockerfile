@@ -35,7 +35,9 @@ FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 WORKDIR /workdir
 
 RUN apk add git
+
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
+COPY ./mod/async/go.mod ./mod/async/go.sum ./mod/async/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
@@ -54,6 +56,7 @@ COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-tra
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 RUN go work init
+RUN go work use ./async
 RUN go work use ./beacond
 RUN go work use ./mod/beacon
 RUN go work use ./mod/cli
