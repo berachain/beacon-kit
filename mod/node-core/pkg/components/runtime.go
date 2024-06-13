@@ -29,7 +29,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -55,21 +54,10 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 // RuntimeInput is the input for the runtime provider.
 type RuntimeInput struct {
 	depinject.In
-	ChainSpec               primitives.ChainSpec
-	FinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
-	]
-	Logger              log.Logger
-	ServiceRegistry     *service.Registry
-	StorageBackend      Backend
-	ValidatorMiddleware *middleware.ValidatorMiddleware[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		Backend,
-	]
+	ChainSpec       primitives.ChainSpec
+	Logger          log.Logger
+	ServiceRegistry *service.Registry
+	StorageBackend  Backend
 }
 
 // ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
@@ -94,10 +82,8 @@ func ProvideRuntime(
 		],
 	](
 		in.ChainSpec,
-		in.FinalizeBlockMiddleware,
 		in.Logger,
 		in.ServiceRegistry,
 		in.StorageBackend,
-		in.ValidatorMiddleware,
 	)
 }

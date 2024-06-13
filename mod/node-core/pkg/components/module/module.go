@@ -46,20 +46,18 @@ var (
 )
 
 // AppModule implements an application module for the evm module.
+// It is a wrapper around the FinalizeBlockMiddleware and ValidatorMiddleware.
 type AppModule struct {
-	StorageBackend              components.Backend
 	ABCIFinalizeBlockMiddleware components.FinalizeBlockMiddleware
 	ABCIValidatorMiddleware     components.ValidatorMiddleware
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	storageBackend components.Backend,
 	abciFinalizedBlockMiddleware components.FinalizeBlockMiddleware,
 	abciValidatorMiddleware components.ValidatorMiddleware,
 ) AppModule {
 	return AppModule{
-		StorageBackend:              storageBackend,
 		ABCIFinalizeBlockMiddleware: abciFinalizedBlockMiddleware,
 		ABCIValidatorMiddleware:     abciValidatorMiddleware,
 	}

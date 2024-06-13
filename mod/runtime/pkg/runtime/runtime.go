@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
@@ -74,17 +73,6 @@ type BeaconKitRuntime[
 	storageBackend StorageBackendT
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
-	// abciFinalizeBlockMiddleware handles ABCI interactions for the
-	// BeaconKitRuntime.
-	abciFinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		BeaconBlockT, BeaconStateT, BlobSidecarsT,
-	]
-	// abciValidatorMiddleware is responsible for forward ABCI requests to the
-	// validator service.
-	abciValidatorMiddleware *middleware.ValidatorMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
-	]
 }
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
@@ -120,16 +108,9 @@ func NewBeaconKitRuntime[
 	],
 ](
 	chainSpec primitives.ChainSpec,
-	finalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		BeaconBlockT, BeaconStateT, BlobSidecarsT,
-	],
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
-	validatorMiddleware *middleware.ValidatorMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
-	],
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
@@ -138,12 +119,10 @@ func NewBeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		abciFinalizeBlockMiddleware: finalizeBlockMiddleware,
-		abciValidatorMiddleware:     validatorMiddleware,
-		chainSpec:                   chainSpec,
-		logger:                      logger,
-		services:                    services,
-		storageBackend:              storageBackend,
+		chainSpec:      chainSpec,
+		logger:         logger,
+		services:       services,
+		storageBackend: storageBackend,
 	}, nil
 }
 
@@ -155,25 +134,4 @@ func (r *BeaconKitRuntime[
 	ctx context.Context,
 ) error {
 	return r.services.StartAll(ctx)
-}
-
-// ABCIFinalizeBlockMiddleware returns the ABCI handler.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
-]) ABCIFinalizeBlockMiddleware() *middleware.FinalizeBlockMiddleware[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
-] {
-	return r.abciFinalizeBlockMiddleware
-}
-
-// ABCIValidatorMiddleware returns the ABCI validator middleware.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
-]) ABCIValidatorMiddleware() *middleware.ValidatorMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, StorageBackendT,
-] {
-	return r.abciValidatorMiddleware
 }

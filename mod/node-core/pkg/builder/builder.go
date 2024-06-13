@@ -96,8 +96,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				// supply empty middlewares
 				emptyFinalizeBlockMiddlware(),
 				emptyValidatorMiddleware(),
-				// supply empty storage backened
-				emptyStorageBackend(),
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,
