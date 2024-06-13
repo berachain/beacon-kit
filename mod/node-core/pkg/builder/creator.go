@@ -49,7 +49,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 
 	var chainSpec primitives.ChainSpec
 	appBuilder := emptyAppBuilder()
-	bkRuntime := emptyRuntime()
+	serviceRegistry := emptyServiceRegistry()
 	validatorMiddleware := emptyValidatorMiddleware()
 	finalizeBlockMiddleware := emptyFinalizeBlockMiddlware()
 	if err := depinject.Inject(
@@ -67,7 +67,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		&chainSpec,
 		&validatorMiddleware,
 		&finalizeBlockMiddleware,
-		&bkRuntime,
+		&serviceRegistry,
 	); err != nil {
 		panic(err)
 	}
@@ -85,8 +85,8 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		),
 	)
 
-	// start runtime services
-	if err := bkRuntime.StartServices(context.Background()); err != nil {
+	// start all services
+	if err := serviceRegistry.StartAll(context.Background()); err != nil {
 		logger.Error("failed to start runtime services", "err", err)
 		panic(err)
 	}

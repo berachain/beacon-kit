@@ -26,7 +26,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 )
 
@@ -60,12 +60,12 @@ func emptyFinalizeBlockMiddlware() components.FinalizeBlockMiddleware {
 	]{}
 }
 
-// emptyRuntime returns an address pointing to an empty BeaconKitRuntime.
-func emptyRuntime() *components.BeaconKitRuntime {
-	return &runtime.BeaconKitRuntime{}
-}
-
 // emptyAppBuilder returns an address pointing to an empty AppBuilder.
 func emptyAppBuilder() *sdkruntime.AppBuilder {
 	return &sdkruntime.AppBuilder{}
+}
+
+// emptyServiceRegistry returns an address pointing to an empty service.Registry.
+func emptyServiceRegistry() *service.Registry {
+	return &service.Registry{}
 }

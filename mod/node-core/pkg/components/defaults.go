@@ -52,7 +52,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideFinalizeBlockMiddleware,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
-		ProvideRuntime,
 		ProvideServiceRegistry,
 		ProvideStateProcessor,
 		ProvideStorageBackend,
