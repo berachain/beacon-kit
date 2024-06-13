@@ -20,7 +20,11 @@
 
 package version
 
-import "github.com/berachain/beacon-kit/mod/log"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/log"
+)
 
 // versionMetrics holds metrics related to the version reporting.
 type versionMetrics struct {
@@ -43,11 +47,19 @@ func newVersionMetrics(
 
 // reportVersion increments the versionReported counter.
 func (vm *versionMetrics) reportVersion(version string) {
-	vm.logger.Info(
-		"this node is running beacon-kit software",
-		"version",
+	vm.logger.Info(fmt.Sprintf(`
+
+
+	+==========================================================================+
+	+ ⭐️ Star BeaconKit on GitHub @ https://github.com/berachain/beacon-kit    +
+	+ 🧩 Your node is running version: %-40s+
+	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
+	+==========================================================================+
+
+
+`,
 		version,
-	)
+	))
 	vm.sink.IncrementCounter(
 		"beacon_kit.runtime.version.reported", "version", version,
 	)
