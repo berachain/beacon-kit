@@ -53,7 +53,6 @@ func ProvideStorageBackend(
 ) Backend {
 	return storage.NewBackend[
 		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		core.BeaconState[
 			*types.BeaconBlockHeader, *types.Eth1Data,
