@@ -51,7 +51,8 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 		s.syncStatus = sync.CLStatusNotSynced
 	}
 
-	// Fire off an event to notify subscribers about the sync status.
+	// Fire off an event to notify subscribers about the sync status of
+	// the consensus layer.
 	s.syncFeed.Send(
 		feed.NewEvent(event.Context(),
 			events.CLSyncStatus,

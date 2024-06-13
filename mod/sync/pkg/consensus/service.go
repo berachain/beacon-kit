@@ -70,7 +70,7 @@ func NewSyncService[
 	logger log.Logger[any],
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
-		//nolint:mnd // todo fix?
+		
 		syncCh:                    make(chan *feed.Event[bool], 1),
 		syncFeed:                  syncFeed,
 		syncCount:                 atomic.Uint64{},
