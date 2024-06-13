@@ -18,11 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package components
 
-const (
-	MissedSlot = iota
-	BeaconBlockAccepted
-	BeaconBlockRejected
-	BeaconBlockFinalized
+import (
+	"os"
+
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
+
+// ProvideChainSpec provides the chain spec based on the environment variable.
+func ProvideChainSpec() primitives.ChainSpec {
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	specType := os.Getenv("CHAIN_SPEC")
+	chainSpec := spec.TestnetChainSpec()
+	if specType == "devnet" {
+		chainSpec = spec.DevnetChainSpec()
+	}
+
+	return chainSpec
+}

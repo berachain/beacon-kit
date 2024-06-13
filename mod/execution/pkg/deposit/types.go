@@ -22,16 +22,15 @@ package deposit
 
 import (
 	"context"
-	"math/big"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type BeaconBlockBody[
 	DepositT any,
-	ExecutionPayloadT interface{ GetNumber() math.U64 },
+	ExecutionPayloadT ExecutionPayload,
 ] interface {
 	GetDeposits() []DepositT
 	GetExecutionPayload() ExecutionPayloadT
@@ -41,7 +40,7 @@ type BeaconBlockBody[
 type BeaconBlock[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	ExecutionPayloadT interface{ GetNumber() math.U64 },
+	ExecutionPayloadT ExecutionPayload,
 ] interface {
 	GetSlot() math.U64
 	GetBody() BeaconBlockBodyT
@@ -52,11 +51,9 @@ type BlockEvent[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	ExecutionPayloadT interface{ GetNumber() math.U64 },
+	ExecutionPayloadT ExecutionPayload,
 ] interface {
-	Name() string
-	Is(string) bool
-	Context() context.Context
+	Is(feed.EventID) bool
 	Data() BeaconBlockT
 }
 
@@ -68,11 +65,17 @@ type BlockFeed[
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
-	ExecutionPayloadT interface{ GetNumber() math.U64 },
+	ExecutionPayloadT ExecutionPayload,
 	SubscriptionT interface {
 		Unsubscribe()
-	}] interface {
+	},
+] interface {
 	Subscribe(chan<- (BlockEventT)) SubscriptionT
+}
+
+// ExecutionPayload is an interface for execution payloads.
+type ExecutionPayload interface {
+	GetNumber() math.U64
 }
 
 // Contract is the ABI for the deposit contract.
@@ -98,31 +101,12 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 	GetIndex() uint64
 }
 
-// EthClient is an interface for interacting with the Ethereum 1.0 client.
-type EthClient interface {
-	BlockByNumber(
-		ctx context.Context,
-		number *big.Int,
-	) (*engineprimitives.Block, error)
-}
-
 // Store defines the interface for managing deposit operations.
 type Store[DepositT any] interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
 	EnqueueDeposits(deposits []DepositT) error
-}
-
-type StorageBackend[
-	AvailabilityStoreT any,
-	BeaconStateT any,
-	BlobSidecarsT any,
-	DepositStoreT Store[DepositT],
-	DepositT any,
-] interface {
-	// DepositStore returns the deposit store for the given context.
-	DepositStore(context.Context) DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
