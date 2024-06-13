@@ -32,6 +32,11 @@ on:
     branches:
       - main
       - fix-version
+env:
+  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
+  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+  GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
+  GHCR_REGISTRY: ghcr.io
 
 jobs:
   build-and-push:
@@ -40,31 +45,25 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
       - name: Authenticate to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ 'ghcr.io' }}
+          registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
-
       - name: Authenticate to Google Cloud
         id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
-          service_account: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
-      
+          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-
       - name: Setup Docker to use Google Cloud OIDC
         run: |
-          gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet
-
+          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
       - name: Build and push Docker image
         run: make build-docker push-docker-gcp push-docker-github
