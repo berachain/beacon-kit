@@ -70,7 +70,7 @@ func ProvideDepositStore[
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec    primitives.ChainSpec
 	DepositStore *depositstore.KVStore[*types.Deposit]
 	Logger       log.Logger

@@ -28,14 +28,12 @@ import (
 // ProvideBlockFeed provides a block feed for the depinject framework.
 func ProvideBlockFeed[
 	EventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[EventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[EventT]]{}
+]() *event.FeedOf[*feed.Event[EventT]] {
+	return &event.FeedOf[*feed.Event[EventT]]{}
 }
 
 // ProvideCLSyncFeed provides a consensus layer sync feed for the depinject
 // framework.
-func ProvideCLSyncFeed[
-	CLSyncUpdateEventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[CLSyncUpdateEventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[CLSyncUpdateEventT]]{}
+func ProvideCLSyncFeed() *event.FeedOf[*feed.Event[bool]] {
+	return &event.FeedOf[*feed.Event[bool]]{}
 }

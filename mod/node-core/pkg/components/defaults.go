@@ -21,9 +21,9 @@
 package components
 
 import (
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 func DefaultComponentsWithStandardTypes() []any {
@@ -35,7 +35,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBlobProcessor[*types.BeaconBlockBody],
 		ProvideBlobProofVerifier,
 		ProvideChainService,
-		ProvideCLSyncFeed[bool],
+		ProvideCLSyncFeed,
 		ProvideCLSyncService[event.Subscription],
 		ProvideChainSpec,
 		ProvideConfig,

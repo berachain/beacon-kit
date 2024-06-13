@@ -28,10 +28,7 @@ type Subscription = event.Subscription
 // FeedOf is a feed of events.
 // It is a wrapper around the event.FeedOf type.
 type FeedOf[
-	E ~uint8,
-	T interface {
-		Type() E
-	},
+	T any,
 ] struct {
 	event.FeedOf[T]
 }

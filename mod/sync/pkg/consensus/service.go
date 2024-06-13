@@ -24,11 +24,11 @@ import (
 	"context"
 	"sync/atomic"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // defaultsyncStatusUpdateThreshold is the default threshold for updating
@@ -71,7 +71,7 @@ func NewSyncService[
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
 		//nolint:mnd // todo fix?
-		syncCh:                    make(chan *feed.Event[bool], 16),
+		syncCh:                    make(chan *feed.Event[bool], 1),
 		syncFeed:                  syncFeed,
 		syncCount:                 atomic.Uint64{},
 		syncStatusUpdateThreshold: defaultsyncStatusUpdateThreshold,

@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -32,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing

@@ -76,7 +76,7 @@ func ProvideAvailibilityStore[
 type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	BlockFeed         *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }

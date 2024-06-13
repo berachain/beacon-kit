@@ -48,10 +48,10 @@ type ChainServiceInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	]
-	BlockFeed      *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec      primitives.ChainSpec
 	Cfg            *config.Config
-	CLSyncFeed     *event.FeedOf[feed.EventID, *feed.Event[bool]]
+	CLSyncFeed     *event.FeedOf[*feed.Event[bool]]
 	DepositService *deposit.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,

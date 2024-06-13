@@ -23,16 +23,17 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	consensus "github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // CLSyncServiceInput is the input for the CLSyncService provider.
-type CLSyncServiceInput[SubscriptionT interface {
-	// Unsubscribe terminates the subscription.
-	Unsubscribe()
-}] struct {
+type CLSyncServiceInput[
+	SubscriptionT interface {
+		Unsubscribe()
+	},
+] struct {
 	depinject.In
 	Logger   log.Logger
 	SyncFeed *event.FeedOf[*feed.Event[bool]]
@@ -42,7 +43,8 @@ type CLSyncServiceInput[SubscriptionT interface {
 func ProvideCLSyncService[
 	SubscriptionT interface {
 		Unsubscribe()
-	}](
+	},
+](
 	in CLSyncServiceInput[SubscriptionT],
 ) (*consensus.SyncService[SubscriptionT], error) {
 	// Build the CLSyncService.

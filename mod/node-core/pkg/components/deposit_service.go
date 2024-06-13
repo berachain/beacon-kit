@@ -40,7 +40,7 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec     primitives.ChainSpec
 	DepositStore  *depositdb.KVStore[*types.Deposit]
 	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
