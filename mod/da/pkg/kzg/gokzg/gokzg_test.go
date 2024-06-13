@@ -126,6 +126,14 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetImplementation(t *testing.T) {
+	verifier, err := setupVerifier()
+	require.NoError(t, err)
+
+	impl := verifier.GetImplementation()
+	require.Equal(t, gokzg.Implementation, impl)
+}
+
 // setupVerifier reads the trusted setup file and creates a new GoKZGVerifier.
 func setupVerifier() (*gokzg.Verifier, error) {
 	fs := afero.NewOsFs()
