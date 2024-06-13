@@ -92,33 +92,19 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		depinject.Configs(
 			nb.depInjectCfg,
 			// TODO: the reason these all need to be supplied here is because
-			// we build the runtime in ProvideModule, which is forced to be
+			// we build the backend in ProvideModule, which is forced to be
 			// called every time we do Inject.
 			//
-			// TODO: we have to decouple the instatiation of the runtime from
-			// the beacon module so that we don't need to define these empty
-			// placeholders to get the depinject framework to not freak out.
+			// TODO: remove dep between backend and appmodule.Environment. That
+			// way we don't have to do this hack. Maybe we can just have our
+			// BKModule hold a reference to env.KVStoreService
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				// &runtime.BeaconKitRuntime[
-				// 	*dastore.Store[*consensustypes.BeaconBlockBody],
-				// 	*consensustypes.BeaconBlock,
-				// 	*consensustypes.BeaconBlockBody,
-				// 	components.BeaconState,
-				// 	*datypes.BlobSidecars,
-				// 	*depositdb.KVStore[*consensustypes.Deposit],
-				// 	blockchain.StorageBackend[
-				// 		*dastore.Store[*consensustypes.BeaconBlockBody],
-				// 		*consensustypes.BeaconBlockBody,
-				// 		components.BeaconState,
-				// 		*datypes.BlobSidecars,
-				// 		*consensustypes.Deposit,
-				// 		*depositdb.KVStore[*consensustypes.Deposit],
-				// 	],
-				// ]{},
+				// supply empty stores
 				&dastore.Store[*consensustypes.BeaconBlockBody]{},
 				&deposit.KVStore[*consensustypes.Deposit]{},
+				// supply empty middlewares
 				&middleware.FinalizeBlockMiddleware[
 					*consensustypes.BeaconBlock,
 					runtime.BeaconState,
@@ -132,6 +118,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 					*datypes.BlobSidecars,
 					runtime.Backend,
 				]{},
+				// supply empty storage backened
 				&storage.Backend[
 					*dastore.Store[*consensustypes.BeaconBlockBody],
 					*consensustypes.BeaconBlock,
