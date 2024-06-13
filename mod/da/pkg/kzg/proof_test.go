@@ -44,6 +44,7 @@ func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 
 	verifier, err := kzg.NewBlobProofVerifier(gokzg.Implementation, ts)
 	require.NoError(t, err)
+	require.NotNil(t, verifier)
 	require.Equal(t, gokzg.Implementation, verifier.GetImplementation())
 }
 
@@ -53,6 +54,7 @@ func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
 
 	verifier, err := kzg.NewBlobProofVerifier(ckzg.Implementation, ts)
 	require.NoError(t, err)
+	require.NotNil(t, verifier)
 	require.Equal(t, ckzg.Implementation, verifier.GetImplementation())
 }
 
