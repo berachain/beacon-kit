@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -41,14 +40,6 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
-	blockchain.StorageBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	],
 ]
 
 // RuntimeInput is the input for the runtime provider.
@@ -57,7 +48,6 @@ type RuntimeInput struct {
 	ChainSpec       primitives.ChainSpec
 	Logger          log.Logger
 	ServiceRegistry *service.Registry
-	StorageBackend  Backend
 }
 
 // ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
@@ -72,18 +62,9 @@ func ProvideRuntime(
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
-		blockchain.StorageBackend[
-			*dastore.Store[*types.BeaconBlockBody],
-			*types.BeaconBlockBody,
-			BeaconState,
-			*datypes.BlobSidecars,
-			*types.Deposit,
-			*depositdb.KVStore[*types.Deposit],
-		],
 	](
 		in.ChainSpec,
 		in.Logger,
 		in.ServiceRegistry,
-		in.StorageBackend,
 	)
 }

@@ -23,7 +23,6 @@ package runtime
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -59,18 +58,11 @@ type BeaconKitRuntime[
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositStoreT,
-	],
 ] struct {
 	// logger is used for logging within the BeaconKitRuntime.
 	logger log.Logger[any]
 	// services is a registry of services used by the BeaconKitRuntime.
 	services *service.Registry
-	// storageBackend is the backend storage interface used by the
-	// BeaconKitRuntime.
-	storageBackend StorageBackendT
 	// chainSpec defines the chain specifications for the BeaconKitRuntime.
 	chainSpec primitives.ChainSpec
 }
@@ -98,38 +90,29 @@ func NewBeaconKitRuntime[
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	StorageBackendT blockchain.StorageBackend[
-		AvailabilityStoreT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BlobSidecarsT,
-		*types.Deposit,
-		DepositStoreT,
-	],
 ](
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
-	storageBackend StorageBackendT,
+	// storageBackend StorageBackendT,
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositStoreT,
 ], error) {
 	return &BeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT, StorageBackendT,
+		BlobSidecarsT, DepositStoreT,
 	]{
-		chainSpec:      chainSpec,
-		logger:         logger,
-		services:       services,
-		storageBackend: storageBackend,
+		chainSpec: chainSpec,
+		logger:    logger,
+		services:  services,
 	}, nil
 }
 
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositStoreT,
 ]) StartServices(
 	ctx context.Context,
 ) error {

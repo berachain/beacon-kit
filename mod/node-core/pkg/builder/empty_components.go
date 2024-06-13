@@ -70,7 +70,6 @@ func emptyRuntime() *components.BeaconKitRuntime {
 		components.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*consensustypes.Deposit],
-		components.Backend,
 	]{}
 }
 
