@@ -18,16 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package kzg_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/stretchr/testify/require"
 )
 
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[EventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[EventT]]{}
+func TestDefaultConfig(t *testing.T) {
+	cfg := kzg.DefaultConfig()
+	require.Equal(
+		t,
+		"./testing/files/kzg-trusted-setup.json",
+		cfg.TrustedSetupPath,
+	)
+	require.Equal(
+		t,
+		"crate-crypto/go-kzg-4844",
+		cfg.Implementation,
+	)
 }

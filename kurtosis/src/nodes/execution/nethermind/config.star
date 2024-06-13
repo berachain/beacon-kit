@@ -1,4 +1,4 @@
-shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 global_constants = import_module("../../../constants.star")
 defaults = import_module("./../config.star")
 port_spec_lib = import_module("../../../lib/port_spec.star")
