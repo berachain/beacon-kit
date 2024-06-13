@@ -25,9 +25,8 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 )
@@ -36,21 +35,8 @@ import (
 // Typically used when supplying empty values to depinject, or as receiving
 // addresses for constructed depinject values.
 
-// emptyBeaconState returns an address pointing to an empty BeaconState.
-func emptyStorageBackend() *storage.Backend[
-	*dastore.Store[*consensustypes.BeaconBlockBody],
-	*consensustypes.BeaconBlock,
-	*consensustypes.BeaconBlockBody,
-	components.BeaconState,
-	*depositdb.KVStore[*consensustypes.Deposit],
-] {
-	return &storage.Backend[
-		*dastore.Store[*consensustypes.BeaconBlockBody],
-		*consensustypes.BeaconBlock,
-		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
-		*depositdb.KVStore[*consensustypes.Deposit],
-	]{}
+func emptyABCIMiddleware() *components.ABCIMiddleware {
+	return &components.ABCIMiddleware{}
 }
 
 // emptyBeaconState return an address pointing to an empty BeaconState.

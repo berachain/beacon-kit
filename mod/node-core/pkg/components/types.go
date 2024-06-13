@@ -26,7 +26,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -59,4 +59,9 @@ type (
 		*datypes.BlobSidecars,
 		Backend,
 	]
+
+	ABCIMiddleware struct {
+		FinalizeBlock FinalizeBlockMiddleware
+		Validator     ValidatorMiddleware
+	}
 )

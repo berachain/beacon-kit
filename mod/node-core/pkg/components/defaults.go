@@ -27,6 +27,7 @@ import (
 
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
+		ProvideABCIMiddleware,
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore[*types.BeaconBlockBody],
 		ProvideBlsSigner,

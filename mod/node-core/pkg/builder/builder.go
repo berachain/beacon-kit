@@ -83,19 +83,11 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
-			// TODO: the reason these all need to be supplied here is because
-			// we build the backend in ProvideModule, which is forced to be
-			// called every time we do Inject.
-			//
-			// TODO: remove dep between backend and appmodule.Environment. That
-			// way we don't have to do this hack. Maybe we can just have our
-			// BKModule hold a reference to env.KVStoreService
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				// supply empty middlewares
-				emptyFinalizeBlockMiddlware(),
-				emptyValidatorMiddleware(),
+				// supply empty middleware for module
+				emptyABCIMiddleware(),
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,
