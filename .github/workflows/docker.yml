@@ -33,72 +33,36 @@ on:
       - main
       - fix-version
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  GIT_TOKEN: ${{ secrets.DEV_PAT }}
-
 jobs:
   build-and-push:
     runs-on:
       labels: ubuntu-24.04-beacon-kit
     permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          file: Dockerfile
-          # TODO: Re-introduce linux/arm64 later.
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            TAG=${{ github.ref_name }}
-
-  build-and-push-gcp:
-    runs-on:
-      labels: ubuntu-24.04-beacon-kit
-    permissions:
       id-token: write
       contents: read
-
+    strategy:
+      matrix:
+        registry:
+          - github
+          - gcp
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: 'Authenticate to Google Cloud'
+      - name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ 'ghcr.io' }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Authenticate to Google Cloud
         id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
           service_account: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
-
+      
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
 
@@ -107,4 +71,4 @@ jobs:
           gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet
 
       - name: Build and push Docker image
-        run: make build-docker push-docker-gcp
+        run: make build-docker push-docker-gcp push-docker-github
