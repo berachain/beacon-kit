@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -48,7 +49,7 @@ type ChainServiceInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
 	]
-	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed      *async.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec      primitives.ChainSpec
 	Cfg            *config.Config
 	DepositService *deposit.Service[
