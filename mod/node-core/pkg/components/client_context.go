@@ -44,7 +44,6 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
 }
 
-//
 //nolint:lll // link.
 const TermsOfServiceURL = "https://github.com/berachain/beacon-kit/blob/main/TERMS_OF_SERVICE.md"
 
@@ -58,7 +57,6 @@ func ProvideClientContext(
 	consensusAddressCodec address.ConsensusAddressCodec,
 ) (client.Context, error) {
 	var err error
-
 	clientCtx := client.Context{}.
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
