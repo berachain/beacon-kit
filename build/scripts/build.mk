@@ -111,3 +111,13 @@ build-docker: ## build a docker image containing `beacond`
 	-f ${DOCKERFILE} \
 	-t $(IMAGE_NAME):$(VERSION) \
 	.
+
+push-docker: ## push the docker image to the registry
+	@echo "Push the release docker image to the registry..."
+	docker push $(IMAGE_NAME):$(VERSION)
+
+
+push-docker-gcp: ## push the docker image to the GCP registry
+	@echo "Push the release docker image to the GCP registry..."
+	docker tag $(IMAGE_NAME):$(VERSION) northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:$(VERSION)
+	docker push northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:$(VERSION)

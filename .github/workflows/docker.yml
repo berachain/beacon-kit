@@ -106,12 +106,4 @@ jobs:
           gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev --quiet
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          file: Dockerfile
-          # TODO: Re-introduce linux/arm64 later.
-          platforms: linux/amd64
-          push: true
-          tags: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:${{ github.ref_name }}
-          build-args: |
-            TAG=${{ github.ref_name }}
+        run: make build-docker push-docker-gcp

@@ -52,7 +52,7 @@ func (pb *PayloadBuilder[
 		pb.logger.Warn(
 			"aborting payload build; payload already exists in cache",
 			"for_slot",
-			slot,
+			slot.Base10(),
 			"parent_block_root",
 			parentBlockRoot,
 		)
@@ -90,7 +90,7 @@ func (pb *PayloadBuilder[
 			"head_eth1_hash",
 			headEth1BlockHash,
 			"for_slot",
-			slot,
+			slot.Base10(),
 			"parent_block_root",
 			parentBlockRoot,
 			"payload_id",
@@ -139,7 +139,7 @@ func (pb *PayloadBuilder[
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"waiting for local payload to be delivered to execution client",
-		"for_slot", slot, "timeout", pb.cfg.PayloadTimeout.String(),
+		"for_slot", slot.Base10(), "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
 	case <-time.After(pb.cfg.PayloadTimeout):
@@ -197,7 +197,7 @@ func (pb *PayloadBuilder[
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
 	args := []any{
-		"for_slot", slot,
+		"for_slot", slot.Base10(),
 		"override_builder", overrideBuilder,
 	}
 
@@ -251,7 +251,7 @@ func (pb *PayloadBuilder[
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
-		"for_slot", slot,
+		"for_slot", slot.Base10(),
 	)
 
 	// Submit the forkchoice update to the execution client.
