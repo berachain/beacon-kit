@@ -55,9 +55,10 @@ COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
 COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
+
 RUN go work init
-RUN go work use ./async
 RUN go work use ./beacond
+RUN go work use ./mod/async
 RUN go work use ./mod/beacon
 RUN go work use ./mod/cli
 RUN go work use ./mod/consensus-types
