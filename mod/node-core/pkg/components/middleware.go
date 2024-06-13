@@ -29,6 +29,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -62,14 +63,7 @@ type ValidatorMiddlewareInput struct {
 // middleware.
 func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
-) *middleware.ValidatorMiddleware[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	BeaconState,
-	*datypes.BlobSidecars,
-	StorageBackend,
-] {
+) runtime.ValidatorMiddleware {
 	return middleware.
 		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody]](
 		in.ChainSpec,
@@ -100,9 +94,7 @@ type FinalizeBlockMiddlewareInput struct {
 // middleware.
 func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
-) *middleware.FinalizeBlockMiddleware[
-	*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
-] {
+) runtime.FinalizeBlockMiddleware {
 	return middleware.NewFinalizeBlockMiddleware[
 		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
 	](

@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -117,16 +118,16 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				// ]{},
 				&middleware.FinalizeBlockMiddleware[
 					*consensustypes.BeaconBlock,
-					components.BeaconState,
+					runtime.BeaconState,
 					*datypes.BlobSidecars,
 				]{},
 				&middleware.ValidatorMiddleware[
 					*dastore.Store[*consensustypes.BeaconBlockBody],
 					*consensustypes.BeaconBlock,
 					*consensustypes.BeaconBlockBody,
-					components.BeaconState,
+					runtime.BeaconState,
 					*datypes.BlobSidecars,
-					*depositdb.KVStore[*consensustypes.Deposit],
+					runtime.Backend,
 				]{},
 				&storage.Backend[
 					*dastore.Store[*consensustypes.BeaconBlockBody],
