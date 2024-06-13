@@ -35,7 +35,7 @@ import (
 func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(
-			components.ProvideStorageBackend,
+			components.ProvideKVStore,
 			ProvideModule,
 		),
 	)
