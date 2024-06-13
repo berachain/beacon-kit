@@ -187,7 +187,7 @@ jobs:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
-        if: ${{ env.PUSH_DOCKER_IMAGE }}
+        if: ${{ env.PUSH_DOCKER_IMAGE == true }}
       - name: Authenticate to Google Cloud
         id: 'auth'
         uses: 'google-github-actions/auth@v2'
