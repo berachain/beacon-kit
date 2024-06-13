@@ -34,40 +34,4 @@ type FeedOf[
 	},
 ] struct {
 	event.FeedOf[T]
-	ids map[E]struct{}
-}
-
-// NewFeedOf creates a new feed of events with the given event IDs.
-func NewFeedOf[
-	E ~uint8, T interface {
-		Type() E
-	},
-](ids ...E) *FeedOf[E, T] {
-	_ids := make(map[E]struct{})
-	for _, id := range ids {
-		_ids[id] = struct{}{}
-	}
-	return &FeedOf[E, T]{
-		FeedOf: event.FeedOf[T]{},
-		ids:    _ids,
-	}
-}
-
-// TODO: Upgrade later to avoid the caller having to allocate the channel, good
-// dev ux. // Subscribe subscribes to the feed and returns a channel and a
-// subscription.=
-// func (f *FeedOf[E, T]) Subscribe() (chan<- T, event.Subscription) {
-// 	ch := make(chan T, 1)
-// 	sub := f.FeedOf.Subscribe(make(chan T, 1))
-// 	return ch, sub
-// }
-
-// Send sends an event to the feed.
-func (f *FeedOf[E, T]) Send(event T) int {
-	// Add a safety check to ensure that the event is registered with
-	// the feed.
-	if _, ok := f.ids[event.Type()]; !ok {
-		return 0
-	}
-	return f.FeedOf.Send(event)
 }
