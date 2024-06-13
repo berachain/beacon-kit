@@ -27,8 +27,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Options that extend our default baseapp options to be called by cosmos
-// when buildinig the app.
+// This file contains Options that extend our default baseapp options to be
+// called by cosmos when building the app.
 
 // we can decouple from cosmos-sdk/types by having these options accept
 // the middleware type instead, and just extract the handers. not really an

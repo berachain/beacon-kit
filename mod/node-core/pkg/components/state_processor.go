@@ -30,14 +30,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // StateProcessor is the type alias for the state processor inteface.
 type StateProcessor = blockchain.StateProcessor[
 	*types.BeaconBlock,
-	runtime.BeaconState,
+	BeaconState,
 	*datypes.BlobSidecars,
 	*transition.Context,
 	*types.Deposit,
@@ -61,7 +60,7 @@ func ProvideStateProcessor(
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		*types.BeaconBlockHeader,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*transition.Context,
 		*types.Deposit,

@@ -41,36 +41,36 @@ func emptyStorageBackend() *storage.Backend[
 	*dastore.Store[*consensustypes.BeaconBlockBody],
 	*consensustypes.BeaconBlock,
 	*consensustypes.BeaconBlockBody,
-	runtime.BeaconState,
+	components.BeaconState,
 	*depositdb.KVStore[*consensustypes.Deposit],
 ] {
 	return &storage.Backend[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		runtime.BeaconState,
+		components.BeaconState,
 		*depositdb.KVStore[*consensustypes.Deposit],
 	]{}
 }
 
 // emptyBeaconState return an address pointing to an empty BeaconState.
-func emptyValidatorMiddleware() runtime.ValidatorMiddleware {
+func emptyValidatorMiddleware() components.ValidatorMiddleware {
 	return &middleware.ValidatorMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		runtime.BeaconState,
+		components.BeaconState,
 		*datypes.BlobSidecars,
-		runtime.Backend,
+		components.Backend,
 	]{}
 }
 
 // emptyFinalizeBlockMiddleware returns an address pointing to an empty
 // FinalizeBlockMiddleware.
-func emptyFinalizeBlockMiddlware() runtime.FinalizeBlockMiddleware {
+func emptyFinalizeBlockMiddlware() components.FinalizeBlockMiddleware {
 	return &middleware.FinalizeBlockMiddleware[
 		*consensustypes.BeaconBlock,
-		runtime.BeaconState,
+		components.BeaconState,
 		*datypes.BlobSidecars,
 	]{}
 }
@@ -81,10 +81,10 @@ func emptyRuntime() *components.BeaconKitRuntime {
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		runtime.BeaconState,
+		components.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*consensustypes.Deposit],
-		runtime.Backend,
+		components.Backend,
 	]{}
 }
 

@@ -28,7 +28,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
@@ -51,7 +50,7 @@ type StorageBackendInput struct {
 // backend.
 func ProvideStorageBackend(
 	in StorageBackendInput,
-) runtime.Backend {
+) Backend {
 	return storage.NewBackend[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,

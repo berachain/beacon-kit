@@ -33,7 +33,8 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// AppCreator is a function that creates an application.
+// AppCreator is a function that creates an application and starts the bkRuntime
+// services.
 // It is necessary to adhere to the types.AppCreator[T] interface.
 func (nb *NodeBuilder[NodeT]) AppCreator(
 	logger log.Logger,

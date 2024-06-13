@@ -33,7 +33,6 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
@@ -47,11 +46,11 @@ type ValidatorServiceInput struct {
 	Cfg          *config.Config
 	ChainSpec    primitives.ChainSpec
 	LocalBuilder *payloadbuilder.PayloadBuilder[
-		runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
 	StateProcessor StateProcessor
-	StorageBackend runtime.Backend
+	StorageBackend Backend
 	Signer         crypto.BLSSigner
 	TelemetrySink  *metrics.TelemetrySink
 }
@@ -62,7 +61,7 @@ func ProvideValidatorService(
 ) *validator.Service[
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
-	runtime.BeaconState,
+	BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
 	*types.ForkData,
@@ -71,7 +70,7 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
@@ -92,7 +91,7 @@ func ProvideValidatorService(
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[runtime.BeaconState, *types.ExecutionPayload]{
+		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
@@ -64,12 +63,12 @@ type ChainServiceInput struct {
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 	LocalBuilder    *payloadbuilder.PayloadBuilder[
-		runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor
-	StorageBackend runtime.Backend
+	StorageBackend Backend
 	TelemetrySink  *metrics.TelemetrySink
 }
 
@@ -80,7 +79,7 @@ func ProvideChainService(
 	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
-	runtime.BeaconState,
+	BeaconState,
 	*datypes.BlobSidecars,
 	*types.Deposit,
 	*depositdb.KVStore[*types.Deposit],
@@ -89,7 +88,7 @@ func ProvideChainService(
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 	](

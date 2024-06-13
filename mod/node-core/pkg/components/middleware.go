@@ -29,7 +29,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -41,18 +40,18 @@ type ValidatorMiddlewareInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
 	]
 	ChainSpec        primitives.ChainSpec
-	StorageBackend   runtime.Backend
+	StorageBackend   Backend
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
@@ -63,7 +62,7 @@ type ValidatorMiddlewareInput struct {
 // middleware.
 func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
-) runtime.ValidatorMiddleware {
+) ValidatorMiddleware {
 	return middleware.
 		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody]](
 		in.ChainSpec,
@@ -81,7 +80,7 @@ type FinalizeBlockMiddlewareInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
@@ -94,9 +93,9 @@ type FinalizeBlockMiddlewareInput struct {
 // middleware.
 func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
-) runtime.FinalizeBlockMiddleware {
+) FinalizeBlockMiddleware {
 	return middleware.NewFinalizeBlockMiddleware[
-		*types.BeaconBlock, runtime.BeaconState, *datypes.BlobSidecars,
+		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
 	](
 		in.ChainSpec,
 		in.ChainService,

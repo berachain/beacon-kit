@@ -26,7 +26,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -44,9 +43,9 @@ func init() {
 // ModuleInput is the input for the dep inject framework.
 type ModuleInput struct {
 	depinject.In
-	StorageBackend              runtime.Backend
-	ABCIFinalizeBlockMiddleware runtime.FinalizeBlockMiddleware
-	ABCIValidatorMiddleware     runtime.ValidatorMiddleware
+	StorageBackend              components.Backend
+	ABCIFinalizeBlockMiddleware components.FinalizeBlockMiddleware
+	ABCIValidatorMiddleware     components.ValidatorMiddleware
 }
 
 // ModuleOutput is the output for the dep inject framework.

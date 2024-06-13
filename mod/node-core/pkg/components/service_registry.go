@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -48,7 +47,7 @@ type ServiceRegistryInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
@@ -73,7 +72,7 @@ type ServiceRegistryInput struct {
 	ValidatorService *validator.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		runtime.BeaconState,
+		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
