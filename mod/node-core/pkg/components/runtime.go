@@ -27,34 +27,25 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
-
-// BeaconState is a type alias for the BeaconState.
-type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader, *types.Eth1Data,
-	*types.ExecutionPayloadHeader, *types.Fork,
-	*types.Validator, *engineprimitives.Withdrawal,
-]
 
 // BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
-	BeaconState,
+	runtime.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
 	blockchain.StorageBackend[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
@@ -66,7 +57,7 @@ type RuntimeInput struct {
 	depinject.In
 	ChainSpec               primitives.ChainSpec
 	FinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+		*types.BeaconBlock, runtime.BeaconState, *datypes.BlobSidecars,
 	]
 	Logger              log.Logger
 	ServiceRegistry     *service.Registry
@@ -75,7 +66,7 @@ type RuntimeInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		runtime.Backend,
 	]
@@ -90,13 +81,13 @@ func ProvideRuntime(
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		blockchain.StorageBackend[
 			*dastore.Store[*types.BeaconBlockBody],
 			*types.BeaconBlockBody,
-			BeaconState,
+			runtime.BeaconState,
 			*datypes.BlobSidecars,
 			*types.Deposit,
 			*depositdb.KVStore[*types.Deposit],

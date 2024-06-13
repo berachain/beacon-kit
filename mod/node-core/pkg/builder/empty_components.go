@@ -41,14 +41,14 @@ func emptyStorageBackend() *storage.Backend[
 	*dastore.Store[*consensustypes.BeaconBlockBody],
 	*consensustypes.BeaconBlock,
 	*consensustypes.BeaconBlockBody,
-	components.BeaconState,
+	runtime.BeaconState,
 	*depositdb.KVStore[*consensustypes.Deposit],
 ] {
 	return &storage.Backend[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
+		runtime.BeaconState,
 		*depositdb.KVStore[*consensustypes.Deposit],
 	]{}
 }
@@ -81,7 +81,7 @@ func emptyRuntime() *components.BeaconKitRuntime {
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*consensustypes.Deposit],
 		runtime.Backend,

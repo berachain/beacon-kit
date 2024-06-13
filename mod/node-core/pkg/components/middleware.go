@@ -41,7 +41,7 @@ type ValidatorMiddlewareInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
@@ -52,7 +52,7 @@ type ValidatorMiddlewareInput struct {
 	ValidatorService *validator.Service[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
@@ -81,7 +81,7 @@ type FinalizeBlockMiddlewareInput struct {
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
@@ -96,7 +96,7 @@ func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
 ) runtime.FinalizeBlockMiddleware {
 	return middleware.NewFinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+		*types.BeaconBlock, runtime.BeaconState, *datypes.BlobSidecars,
 	](
 		in.ChainSpec,
 		in.ChainService,

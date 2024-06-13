@@ -47,7 +47,7 @@ type ValidatorServiceInput struct {
 	Cfg          *config.Config
 	ChainSpec    primitives.ChainSpec
 	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
 	StateProcessor StateProcessor
@@ -62,7 +62,7 @@ func ProvideValidatorService(
 ) *validator.Service[
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
-	BeaconState,
+	runtime.BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
 	*types.ForkData,
@@ -71,7 +71,7 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 		*types.ForkData,
@@ -92,7 +92,7 @@ func ProvideValidatorService(
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
+		[]validator.PayloadBuilder[runtime.BeaconState, *types.ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

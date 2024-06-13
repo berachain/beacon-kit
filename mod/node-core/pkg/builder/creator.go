@@ -86,6 +86,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 
 	// start runtime services
 	if err := bkRuntime.StartServices(context.Background()); err != nil {
+		logger.Error("failed to start runtime services", "err", err)
 		panic(err)
 	}
 	return nb.node

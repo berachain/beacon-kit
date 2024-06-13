@@ -35,16 +35,6 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
-// StorageBackend is the type alias for the storage backend interface.
-// type StorageBackend = blockchain.StorageBackend[
-// 	*dastore.Store[*types.BeaconBlockBody],
-// 	*types.BeaconBlockBody,
-// 	BeaconState,
-// 	*datypes.BlobSidecars,
-// 	*types.Deposit,
-// 	*depositdb.KVStore[*types.Deposit],
-// ]
-
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput struct {
 	depinject.In

@@ -64,7 +64,7 @@ type ChainServiceInput struct {
 	EngineClient    *engineclient.EngineClient[*types.ExecutionPayload]
 	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
 	LocalBuilder    *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	]
 	Logger         log.Logger
 	Signer         crypto.BLSSigner
@@ -80,7 +80,7 @@ func ProvideChainService(
 	*dastore.Store[*types.BeaconBlockBody],
 	*types.BeaconBlock,
 	*types.BeaconBlockBody,
-	BeaconState,
+	runtime.BeaconState,
 	*datypes.BlobSidecars,
 	*types.Deposit,
 	*depositdb.KVStore[*types.Deposit],
@@ -89,7 +89,7 @@ func ProvideChainService(
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		BeaconState,
+		runtime.BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
 	](

@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 )
 
 type LocalBuilderInput struct {
@@ -44,10 +45,10 @@ type LocalBuilderInput struct {
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *payloadbuilder.PayloadBuilder[
-	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 ] {
 	return payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		runtime.BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
