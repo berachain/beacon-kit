@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -130,70 +129,30 @@ func NewBeaconKitRuntime[
 	],
 ](
 	chainSpec primitives.ChainSpec,
+	finalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	],
 	logger log.Logger[any],
 	services *service.Registry,
 	storageBackend StorageBackendT,
-	telemetrySink middleware.TelemetrySink,
+	validatorMiddleware *middleware.ValidatorMiddleware[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, StorageBackendT,
+	],
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, StorageBackendT,
 ], error) {
-	var (
-		chainService *blockchain.Service[
-			AvailabilityStoreT,
-			BeaconBlockT,
-			BeaconBlockBodyT,
-			*types.BeaconBlockHeader,
-			BeaconState,
-			BlobSidecarsT,
-			*types.Deposit,
-			DepositStoreT,
-			*types.ExecutionPayload,
-			*types.ExecutionPayloadHeader,
-		]
-		validatorService *validator.Service[
-			BeaconBlockT,
-			BeaconBlockBodyT,
-			BeaconState,
-			BlobSidecarsT,
-			DepositStoreT,
-			*types.ExecutionPayloadHeader,
-			*types.ForkData,
-		]
-	)
-
-	if err := services.FetchService(&chainService); err != nil {
-		panic(err)
-	}
-
-	if err := services.FetchService(&validatorService); err != nil {
-		panic(err)
-	}
-
 	return &BeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositStoreT, StorageBackendT,
 	]{
-		abciFinalizeBlockMiddleware: middleware.
-			NewFinalizeBlockMiddleware[
-			BeaconBlockT, BeaconStateT, BlobSidecarsT,
-		](
-			chainSpec,
-			chainService,
-			telemetrySink,
-		),
-		abciValidatorMiddleware: middleware.
-			NewValidatorMiddleware[AvailabilityStoreT](
-			chainSpec,
-			validatorService,
-			chainService,
-			telemetrySink,
-			storageBackend,
-		),
-		chainSpec:      chainSpec,
-		logger:         logger,
-		services:       services,
-		storageBackend: storageBackend,
+		abciFinalizeBlockMiddleware: finalizeBlockMiddleware,
+		abciValidatorMiddleware:     validatorMiddleware,
+		chainSpec:                   chainSpec,
+		logger:                      logger,
+		services:                    services,
+		storageBackend:              storageBackend,
 	}, nil
 }
 

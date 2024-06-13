@@ -34,6 +34,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBlobProcessor[*types.BeaconBlockBody[*types.ExecutionPayload]],
 		ProvideBlobProofVerifier,
 		ProvideChainService,
+		ProvideChainSpec,
 		ProvideConfig,
 		ProvideDBManager,
 		ProvideDepositPruner,
@@ -47,6 +48,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		],
 		ProvideEngineClient[*types.ExecutionPayload],
 		ProvideExecutionEngine[*types.ExecutionPayload],
+		ProvideFinalizeBlockMiddleware,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideRuntime,
@@ -54,6 +56,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideStateProcessor,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
+		ProvideValidatorMiddleware,
 		ProvideValidatorService,
 	}
 }
