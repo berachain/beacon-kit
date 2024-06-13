@@ -28,7 +28,6 @@ import (
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -48,14 +47,14 @@ var (
 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
-	StorageBackend              components.StorageBackend
+	StorageBackend              runtime.Backend
 	ABCIFinalizeBlockMiddleware runtime.FinalizeBlockMiddleware
 	ABCIValidatorMiddleware     runtime.ValidatorMiddleware
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	storageBackend components.StorageBackend,
+	storageBackend runtime.Backend,
 	abciFinalizedBlockMiddleware runtime.FinalizeBlockMiddleware,
 	abciValidatorMiddleware runtime.ValidatorMiddleware,
 ) AppModule {

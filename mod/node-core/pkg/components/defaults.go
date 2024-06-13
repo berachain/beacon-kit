@@ -58,6 +58,5 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTrustedSetup,
 		ProvideValidatorMiddleware,
 		ProvideValidatorService,
-		ProvideStorageBackend,
 	}
 }

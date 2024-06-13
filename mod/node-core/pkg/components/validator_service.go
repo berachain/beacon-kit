@@ -33,6 +33,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
@@ -50,7 +51,7 @@ type ValidatorServiceInput struct {
 	]
 	Logger         log.Logger
 	StateProcessor StateProcessor
-	StorageBackend StorageBackend
+	StorageBackend runtime.Backend
 	Signer         crypto.BLSSigner
 	TelemetrySink  *metrics.TelemetrySink
 }

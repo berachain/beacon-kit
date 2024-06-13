@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/ethereum/go-ethereum/event"
 )
@@ -68,7 +69,7 @@ type ChainServiceInput struct {
 	Logger         log.Logger
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor
-	StorageBackend StorageBackend
+	StorageBackend runtime.Backend
 	TelemetrySink  *metrics.TelemetrySink
 }
 

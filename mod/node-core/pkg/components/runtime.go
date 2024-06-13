@@ -70,14 +70,14 @@ type RuntimeInput struct {
 	]
 	Logger              log.Logger
 	ServiceRegistry     *service.Registry
-	StorageBackend      StorageBackend
+	StorageBackend      runtime.Backend
 	ValidatorMiddleware *middleware.ValidatorMiddleware[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		BeaconState,
 		*datypes.BlobSidecars,
-		StorageBackend,
+		runtime.Backend,
 	]
 }
 

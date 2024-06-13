@@ -47,7 +47,7 @@ type ValidatorMiddlewareInput struct {
 		*depositdb.KVStore[*types.Deposit],
 	]
 	ChainSpec        primitives.ChainSpec
-	StorageBackend   StorageBackend
+	StorageBackend   runtime.Backend
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
 		*types.BeaconBlock,
