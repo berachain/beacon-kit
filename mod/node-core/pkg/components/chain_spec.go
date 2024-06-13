@@ -21,13 +21,21 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"os"
+
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
+	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[EventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[EventT]]{}
+// ProvideChainSpec provides the chain spec based on the environment variable.
+func ProvideChainSpec() primitives.ChainSpec {
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	specType := os.Getenv("CHAIN_SPEC")
+	chainSpec := spec.TestnetChainSpec()
+	if specType == "devnet" {
+		chainSpec = spec.DevnetChainSpec()
+	}
+
+	return chainSpec
 }

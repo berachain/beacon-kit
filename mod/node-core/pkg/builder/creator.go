@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -47,6 +48,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		panic("goleveldb is not supported")
 	}
 
+	var chainSpec primitives.ChainSpec
 	appBuilder := &runtime.AppBuilder{}
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -57,10 +59,10 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 			depinject.Supply(
 				appOpts,
 				logger,
-				nb.chainSpec,
 			),
 		),
 		&appBuilder,
+		&chainSpec,
 	); err != nil {
 		panic(err)
 	}
@@ -72,7 +74,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 				server.DefaultBaseappOptions(appOpts),
 				func(bApp *baseapp.BaseApp) {
 					bApp.SetParamStore(
-						comet.NewConsensusParamsStore(nb.chainSpec))
+						comet.NewConsensusParamsStore(chainSpec))
 				})...,
 		))
 	return nb.node
