@@ -40,11 +40,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    strategy:
-      matrix:
-        registry:
-          - github
-          - gcp
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
