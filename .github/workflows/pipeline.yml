@@ -32,7 +32,6 @@ on:
   pull_request:
   merge_group:
 
-
 concurrency:
   group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
@@ -41,7 +40,20 @@ concurrency:
   # Case 2: The reference branch is not main => we want to cancel in progress
   cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
 
+env:
+  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
+  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+  GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
+  GHCR_REGISTRY: ghcr.io
+  PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/tags/v*.*.*'}}
+  VERSION: ${{ github.ref_name }}
+
 jobs:
+
+# -------------------------------------------------------------------------- #
+#                                Main Pipeline                               #
+# -------------------------------------------------------------------------- #
+
   ci:
     strategy:
       matrix:
@@ -91,11 +103,14 @@ jobs:
         if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
 
 
+# -------------------------------------------------------------------------- #
+#                                 E2E Testing                                #
+# -------------------------------------------------------------------------- #
+
   ci-e2e:
     strategy:
       matrix:
         args:
-          - "build-docker"
           - "test-e2e"
         os: 
           - ubuntu-24.04-e2e
@@ -129,3 +144,46 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
+
+# -------------------------------------------------------------------------- #
+#                       Docker Container Build and Push                      #
+# -------------------------------------------------------------------------- #
+
+  build-and-push-container:
+    runs-on:
+      labels: ubuntu-24.04-beacon-kit
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Build Docker image
+        run: |
+          make build-docker
+      - name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+        if: ${{ env.PUSH_DOCKER_IMAGE }}
+      - name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+        if: ${{ env.PUSH_DOCKER_IMAGE }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        if: ${{ env.PUSH_DOCKER_IMAGE }}
+      - name: Setup Docker to use Google Cloud OIDC
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
+        if: ${{ env.PUSH_DOCKER_IMAGE }}
+      - name: Push Docker image
+        run: |
+            make push-docker-gcp push-docker-github
+        if: ${{ env.PUSH_DOCKER_IMAGE }}
