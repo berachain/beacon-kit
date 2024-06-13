@@ -192,7 +192,7 @@ func (s *Service[
 	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
 		s.logger.Error(
 			"failed to build optimistic payload",
-			"for_slot", blk.GetSlot()+1,
+			"for_slot", (blk.GetSlot() + 1).Base10(),
 			"error", err,
 		)
 	}

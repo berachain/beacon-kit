@@ -1,7 +1,9 @@
 #!/usr/bin/make -f
+ifeq ($(VERSION),)
+  VERSION := $(shell git describe --tags --always --match "v*")
+endif
 
-export VERSION := $(shell echo $(shell git describe --tags --always --match "v*")'')
-export COMMIT := $(shell git log -1 --format='%H')
+COMMIT = $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
@@ -111,3 +113,14 @@ build-docker: ## build a docker image containing `beacond`
 	-f ${DOCKERFILE} \
 	-t $(IMAGE_NAME):$(VERSION) \
 	.
+
+push-docker-github: ## push the docker image to the ghcr registry
+	@echo "Push the release docker image to the ghcr registry..."
+	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
+	docker push ghcr.io/berachain/beacon-kit:$(VERSION)
+
+
+push-docker-gcp: ## push the docker image to the GCP registry
+	@echo "Push the release docker image to the GCP registry..."
+	docker tag $(IMAGE_NAME):$(VERSION) northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:$(VERSION)
+	docker push northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:$(VERSION)
