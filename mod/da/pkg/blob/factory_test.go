@@ -34,7 +34,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 	return 16
 }
 
-// TODO: Renable once we can easily decouple from core/types.
+// TODO: Re-enable once we can easily decouple from core/types.
 // func TestBuildKZGInclusionProof(t *testing.T) {
 // 	chainspec := &MockSpec{}
 // 	factory := da.NewSidecarFactory[da.BeaconBlockBody](
