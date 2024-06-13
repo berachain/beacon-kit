@@ -27,18 +27,10 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -101,31 +93,11 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				// supply empty stores
-				&dastore.Store[*consensustypes.BeaconBlockBody]{},
-				&deposit.KVStore[*consensustypes.Deposit]{},
 				// supply empty middlewares
-				&middleware.FinalizeBlockMiddleware[
-					*consensustypes.BeaconBlock,
-					runtime.BeaconState,
-					*datypes.BlobSidecars,
-				]{},
-				&middleware.ValidatorMiddleware[
-					*dastore.Store[*consensustypes.BeaconBlockBody],
-					*consensustypes.BeaconBlock,
-					*consensustypes.BeaconBlockBody,
-					runtime.BeaconState,
-					*datypes.BlobSidecars,
-					runtime.Backend,
-				]{},
+				emptyFinalizeBlockMiddlware,
+				emptyValidatorMiddleware,
 				// supply empty storage backened
-				&storage.Backend[
-					*dastore.Store[*consensustypes.BeaconBlockBody],
-					*consensustypes.BeaconBlock,
-					*consensustypes.BeaconBlockBody,
-					components.BeaconState,
-					*depositdb.KVStore[*consensustypes.Deposit],
-				]{},
+				emptyStorageBackend,
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,
