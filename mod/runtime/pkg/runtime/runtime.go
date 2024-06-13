@@ -23,42 +23,13 @@ package runtime
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-// BeaconKitRuntime is a struct that holds the
-// service registry.
-type BeaconKitRuntime[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		*engineprimitives.Withdrawal,
-	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
-] struct {
+// BeaconKitRuntime is a struct that holds the service registry.
+type BeaconKitRuntime struct {
 	// logger is used for logging within the BeaconKitRuntime.
 	logger log.Logger[any]
 	// services is a registry of services used by the BeaconKitRuntime.
@@ -69,40 +40,13 @@ type BeaconKitRuntime[
 
 // NewBeaconKitRuntime creates a new BeaconKitRuntime
 // and applies the provided options.
-func NewBeaconKitRuntime[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, *engineprimitives.Withdrawal,
-	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore,
-](
+func NewBeaconKitRuntime(
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	services *service.Registry,
 	// storageBackend StorageBackendT,
-) (*BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
-], error) {
-	return &BeaconKitRuntime[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT,
-	]{
+) (*BeaconKitRuntime, error) {
+	return &BeaconKitRuntime{
 		chainSpec: chainSpec,
 		logger:    logger,
 		services:  services,
@@ -110,10 +54,7 @@ func NewBeaconKitRuntime[
 }
 
 // StartServices starts the services.
-func (r *BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT,
-]) StartServices(
+func (r *BeaconKitRuntime) StartServices(
 	ctx context.Context,
 ) error {
 	return r.services.StartAll(ctx)

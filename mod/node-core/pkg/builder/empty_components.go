@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 )
 
@@ -63,14 +62,7 @@ func emptyFinalizeBlockMiddlware() components.FinalizeBlockMiddleware {
 
 // emptyRuntime returns an address pointing to an empty BeaconKitRuntime.
 func emptyRuntime() *components.BeaconKitRuntime {
-	return &runtime.BeaconKitRuntime[
-		*dastore.Store[*consensustypes.BeaconBlockBody],
-		*consensustypes.BeaconBlock,
-		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*consensustypes.Deposit],
-	]{}
+	return &runtime.BeaconKitRuntime{}
 }
 
 // emptyAppBuilder returns an address pointing to an empty AppBuilder.
