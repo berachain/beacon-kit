@@ -413,6 +413,7 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
+	t.Helper()
 	testCases := []struct {
 		name           string
 		data           []byte
@@ -462,10 +463,12 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.name == "Different fork version" {
 				require.Panics(t, func() {
-					_, _ = new(types.ExecutionPayloadHeader).NewFromSSZ(tc.data, tc.forkVersion)
+					_, _ = new(types.ExecutionPayloadHeader).
+						NewFromSSZ(tc.data, tc.forkVersion)
 				}, "Expected panic for different fork version")
 			} else {
-				header, err := new(types.ExecutionPayloadHeader).NewFromSSZ(tc.data, tc.forkVersion)
+				header, err := new(types.ExecutionPayloadHeader).
+					NewFromSSZ(tc.data, tc.forkVersion)
 				if tc.expErr != nil {
 					require.ErrorIs(t, err, tc.expErr)
 				} else {
@@ -478,11 +481,11 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 }
 
 func TestUnmarshalJSON(t *testing.T) {
+	t.Helper()
 	testCases := []struct {
 		name          string
 		data          []byte
 		expectedError error
-		malleate      func(t *testing.T, header *types.ExecutionPayloadHeader)
 	}{
 		{
 			name: "Valid JSON",
@@ -492,9 +495,6 @@ func TestUnmarshalJSON(t *testing.T) {
 				require.NoError(t, err)
 				return data
 			}(),
-			malleate: func(t *testing.T, header *types.ExecutionPayloadHeader) {
-				require.NotNil(t, header)
-			},
 		},
 		{
 			name:          "Invalid JSON",
@@ -512,7 +512,6 @@ func TestUnmarshalJSON(t *testing.T) {
 				require.Contains(t, err.Error(), tc.expectedError.Error())
 			} else {
 				require.NoError(t, err)
-				tc.malleate(t, header)
 			}
 		})
 	}

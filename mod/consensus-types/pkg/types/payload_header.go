@@ -34,7 +34,8 @@ type ExecutionPayloadHeader struct {
 	InnerExecutionPayloadHeader
 }
 
-// InnerExecutionPayloadHeader is the interface for the execution data of a block.
+// InnerExecutionPayloadHeader is the interface for the execution
+// data of a block.
 // It contains all the fields that are part of both an execution payload header
 // and a full execution payload.
 type InnerExecutionPayloadHeader interface {
