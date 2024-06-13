@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -76,7 +77,7 @@ func ProvideAvailibilityStore[
 type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed         *async.FeedOf[*feed.Event[*types.BeaconBlock]]
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }
