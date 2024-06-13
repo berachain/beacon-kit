@@ -22,6 +22,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -407,6 +408,111 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 			header := tc.malleate()
 			err := header.HashTreeRootWith(hh)
 			require.Equal(t, tc.expErr, err)
+		})
+	}
+}
+
+func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
+	t.Helper()
+	testCases := []struct {
+		name           string
+		data           []byte
+		forkVersion    uint32
+		expErr         error
+		expectedHeader *types.ExecutionPayloadHeader
+	}{
+		{
+			name: "Valid SSZ data",
+			data: func() []byte {
+				data, _ := generateExecutionPayloadHeaderDeneb().MarshalSSZ()
+				return data
+			}(),
+			forkVersion: version.Deneb,
+			expErr:      nil,
+			expectedHeader: func() *types.ExecutionPayloadHeader {
+				return &types.ExecutionPayloadHeader{
+					InnerExecutionPayloadHeader: generateExecutionPayloadHeaderDeneb(),
+				}
+			}(),
+		},
+		{
+			name:           "Invalid SSZ data",
+			data:           []byte{0x01, 0x02},
+			forkVersion:    version.Deneb,
+			expErr:         ssz.ErrSize,
+			expectedHeader: nil,
+		},
+		{
+			name:           "Empty SSZ data",
+			data:           []byte{},
+			forkVersion:    version.Deneb,
+			expErr:         ssz.ErrSize,
+			expectedHeader: nil,
+		},
+		{
+			name: "Different fork version",
+			data: func() []byte {
+				data, _ := generateExecutionPayloadHeaderDeneb().MarshalSSZ()
+				return data
+			}(),
+			forkVersion: uint32(0), // Assuming 0 is a different version
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.name == "Different fork version" {
+				require.Panics(t, func() {
+					_, _ = new(types.ExecutionPayloadHeader).
+						NewFromSSZ(tc.data, tc.forkVersion)
+				}, "Expected panic for different fork version")
+			} else {
+				header, err := new(types.ExecutionPayloadHeader).
+					NewFromSSZ(tc.data, tc.forkVersion)
+				if tc.expErr != nil {
+					require.ErrorIs(t, err, tc.expErr)
+				} else {
+					require.NoError(t, err)
+					require.Equal(t, tc.expectedHeader, header)
+				}
+			}
+		})
+	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	t.Helper()
+	testCases := []struct {
+		name          string
+		data          []byte
+		expectedError error
+	}{
+		{
+			name: "Valid JSON",
+			data: func() []byte {
+				header := generateExecutionPayloadHeaderDeneb()
+				data, err := json.Marshal(header)
+				require.NoError(t, err)
+				return data
+			}(),
+		},
+		{
+			name:          "Invalid JSON",
+			data:          []byte{},
+			expectedError: errors.New("unexpected end of JSON input"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			header := new(types.ExecutionPayloadHeader)
+			err := header.UnmarshalJSON(tc.data)
+			if tc.expectedError != nil {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.expectedError.Error())
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
