@@ -25,7 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
@@ -77,7 +76,7 @@ func ProvideAvailibilityStore[
 type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	BlockFeed         *async.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed         *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }
