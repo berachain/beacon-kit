@@ -27,7 +27,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -41,10 +41,24 @@ type KVStore = beacondb.KVStore[
 	*types.Eth1Data, *types.Validator,
 ]
 
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		context.Context, math.Slot, BeaconBlockBodyT,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(math.Slot, BlobSidecarsT) error
+}
+
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
 type Backend[
-	AvailabilityStoreT runtime.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
 	BeaconBlock types.RawBeaconBlock[BeaconBlockBodyT],
@@ -61,7 +75,7 @@ type Backend[
 }
 
 func NewBackend[
-	AvailabilityStoreT runtime.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
 	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
