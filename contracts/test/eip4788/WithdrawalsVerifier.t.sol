@@ -47,6 +47,7 @@ contract WithdrawalsVerifierTest is Test {
             ts
         );
     }
+
     function test_SubmitWithdrawalWrongIndex() public {
         uint64 ts = 31_337;
 
@@ -64,6 +65,7 @@ contract WithdrawalsVerifierTest is Test {
             ts
         );
     }
+
     function test_SubmitWithdrawalInvalidProof() public {
         uint64 ts = 31_337;
         vm.mockCall(

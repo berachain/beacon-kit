@@ -47,6 +47,7 @@ contract ValidatorVerifierTest is Test {
             ts
         );
     }
+
     function test_ProveValidatorWrongIndex() public {
         uint64 ts = 31_337;
 
@@ -65,6 +66,7 @@ contract ValidatorVerifierTest is Test {
             ts
         );
     }
+
     function test_ProveValidatorInvalidProof() public {
         uint64 ts = 31_337;
 
@@ -79,7 +81,7 @@ contract ValidatorVerifierTest is Test {
         verifier.proveValidator(
             proofJson.validatorProof,
             proofJson.validator,
-            proofJson.validatorIndex-1,
+            proofJson.validatorIndex - 1,
             ts
         );
     }
