@@ -37,13 +37,14 @@ import (
 // state and processing blocks.
 type BlockchainService[
 	BeaconBlockT any, BlobSidecarsT ssz.Marshallable,
+	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
 	ProcessGenesisData(
 		context.Context,
 		blockchain.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+			*types.Deposit, ExecutionPayloadHeaderT,
 		],
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated

@@ -106,6 +106,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 					components.BeaconState,
 					*datypes.BlobSidecars,
 					*depositdb.KVStore[*types.Deposit],
+					*types.ExecutionPayloadHeader,
 					blockchain.StorageBackend[
 						*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
 						*types.BeaconBlockBody[*types.ExecutionPayload],

@@ -60,6 +60,7 @@ type ValidatorMiddleware[
 		) (math.ValidatorIndex, error)
 	},
 	BlobSidecarsT ssz.Marshallable,
+	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
 	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -71,7 +72,9 @@ type ValidatorMiddleware[
 		BlobSidecarsT,
 	]
 
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, ExecutionPayloadHeaderT,
+	]
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -120,6 +123,7 @@ func NewValidatorMiddleware[
 	},
 	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT StorageBackend[BeaconStateT],
+	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -127,16 +131,18 @@ func NewValidatorMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	],
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, ExecutionPayloadHeaderT,
+	],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, StorageBackendT,
+	BeaconStateT, BlobSidecarsT, ExecutionPayloadHeaderT, StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT, ExecutionPayloadHeaderT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
@@ -160,6 +166,7 @@ func (h *ValidatorMiddleware[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	ExecutionPayloadHeaderT,
 	DepositStoreT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
@@ -217,6 +224,7 @@ func (h *ValidatorMiddleware[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
+	ExecutionPayloadHeaderT,
 	DepositStoreT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,

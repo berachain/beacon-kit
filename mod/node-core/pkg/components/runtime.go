@@ -51,6 +51,7 @@ type BeaconKitRuntime = runtime.BeaconKitRuntime[
 	BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
+	*types.ExecutionPayloadHeader,
 	blockchain.StorageBackend[
 		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
 		*types.BeaconBlockBody[*types.ExecutionPayload],
@@ -66,17 +67,19 @@ type RuntimeInput struct {
 	depinject.In
 	ChainSpec               primitives.ChainSpec
 	FinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+		*types.BeaconBlock[*types.ExecutionPayload],
+		BeaconState, *datypes.BlobSidecars, *types.ExecutionPayloadHeader,
 	]
 	Logger              log.Logger
 	ServiceRegistry     *service.Registry
 	StorageBackend      StorageBackend
 	ValidatorMiddleware *middleware.ValidatorMiddleware[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		BeaconState,
 		*datypes.BlobSidecars,
+		*types.ExecutionPayloadHeader,
 		StorageBackend,
 	]
 }
@@ -93,6 +96,7 @@ func ProvideRuntime(
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayloadHeader,
 		blockchain.StorageBackend[
 			*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
 			*types.BeaconBlockBody[*types.ExecutionPayload],

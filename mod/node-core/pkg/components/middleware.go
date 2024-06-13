@@ -37,23 +37,27 @@ import (
 type ValidatorMiddlewareInput struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 	]
 	ChainSpec        primitives.ChainSpec
 	StorageBackend   StorageBackend
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayloadHeader,
 		*types.ForkData,
 	]
 }
@@ -63,15 +67,16 @@ type ValidatorMiddlewareInput struct {
 func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
 ) *middleware.ValidatorMiddleware[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
+	*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+	*types.BeaconBlock[*types.ExecutionPayload],
+	*types.BeaconBlockBody[*types.ExecutionPayload],
 	BeaconState,
 	*datypes.BlobSidecars,
+	*types.ExecutionPayloadHeader,
 	StorageBackend,
 ] {
 	return middleware.
-		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody]](
+		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]]](
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
@@ -84,13 +89,16 @@ func ProvideValidatorMiddleware(
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 	]
 	ChainSpec     primitives.ChainSpec
 	TelemetrySink *metrics.TelemetrySink
@@ -101,10 +109,12 @@ type FinalizeBlockMiddlewareInput struct {
 func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
 ) *middleware.FinalizeBlockMiddleware[
-	*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+	*types.BeaconBlock[*types.ExecutionPayload], BeaconState,
+	*datypes.BlobSidecars, *types.ExecutionPayloadHeader,
 ] {
 	return middleware.NewFinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+		*types.BeaconBlock[*types.ExecutionPayload], BeaconState,
+		*datypes.BlobSidecars, *types.ExecutionPayloadHeader,
 	](
 		in.ChainSpec,
 		in.ChainService,
