@@ -33,24 +33,24 @@ import (
 )
 
 // BeaconBlockBody is the interface for a beacon block body.
-type RawBeaconBlockBody interface {
-	WriteOnlyBeaconBlockBody
-	ReadOnlyBeaconBlockBody
+type RawBeaconBlockBody[ExecutionPayloadT any] interface {
+	WriteOnlyBeaconBlockBody[ExecutionPayloadT]
+	ReadOnlyBeaconBlockBody[ExecutionPayloadT]
 	Length() uint64
 }
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
-type WriteOnlyBeaconBlockBody interface {
+type WriteOnlyBeaconBlockBody[ExecutionPayloadT any] interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
-	SetExecutionData(*ExecutionPayload) error
+	SetExecutionData(ExecutionPayloadT) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
-type ReadOnlyBeaconBlockBody interface {
+type ReadOnlyBeaconBlockBody[ExecutionPayloadT any] interface {
 	ssz.Marshallable
 	IsNil() bool
 
@@ -59,13 +59,16 @@ type ReadOnlyBeaconBlockBody interface {
 	GetEth1Data() *Eth1Data
 	GetGraffiti() bytes.B32
 	GetRandaoReveal() crypto.BLSSignature
-	GetExecutionPayload() *ExecutionPayload
+	GetExecutionPayload() ExecutionPayloadT
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
 // BeaconBlock is the interface for a beacon block.
-type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
+type RawBeaconBlock[
+	BeaconBlockBodyT RawBeaconBlockBody[ExecutionPayloadT],
+	ExecutionPayloadT any,
+] interface {
 	ssz.Marshallable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root

@@ -38,8 +38,8 @@ import (
 
 // StorageBackend is the type alias for the storage backend interface.
 type StorageBackend = blockchain.StorageBackend[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlockBody,
+	*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+	*types.BeaconBlockBody[*types.ExecutionPayload],
 	BeaconState,
 	*datypes.BlobSidecars,
 	*types.Deposit,
@@ -49,7 +49,7 @@ type StorageBackend = blockchain.StorageBackend[
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput struct {
 	depinject.In
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	AvailabilityStore *dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]]
 	ChainSpec         primitives.ChainSpec
 	DepositStore      *depositdb.KVStore[*types.Deposit]
 	Environment       appmodule.Environment
@@ -63,14 +63,16 @@ func ProvideStorageBackend(
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	return storage.NewBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		core.BeaconState[
 			*types.BeaconBlockHeader, *types.Eth1Data,
 			*types.ExecutionPayloadHeader, *types.Fork,
 			*types.Validator, *engineprimitives.Withdrawal,
 		],
+		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

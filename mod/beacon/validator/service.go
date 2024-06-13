@@ -23,7 +23,6 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -41,10 +40,11 @@ type Service[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		blockchain.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT interface {
 		New(
 			primitives.Version,
@@ -69,7 +69,12 @@ type Service[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
 	]
 	// bsb is the beacon state backend.
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
+	bsb StorageBackend[
+		BeaconStateT,
+		*types.Deposit,
+		DepositStoreT,
+		ExecutionPayloadHeaderT,
+	]
 	// blobProcessor is used to process blobs.
 	blobProcessor BlobProcessor[BlobSidecarsT]
 	// stateProcessor is responsible for processing the state.
@@ -77,6 +82,7 @@ type Service[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
+		ExecutionPayloadHeaderT,
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -96,12 +102,11 @@ func NewService[
 	BeaconBlockBodyT BeaconBlockBody[
 		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
 	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		blockchain.ExecutionPayloadHeader,
+		*types.BeaconBlockHeader, BeaconStateT, ExecutionPayloadHeaderT,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[*types.Deposit],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT interface {
 		New(
 			primitives.Version,
@@ -116,9 +121,13 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
+	bsb StorageBackend[
+		BeaconStateT, *types.Deposit, DepositStoreT, ExecutionPayloadHeaderT,
+	],
 	blobProcessor BlobProcessor[BlobSidecarsT],
-	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
+	stateProcessor StateProcessor[
+		BeaconBlockT, BeaconStateT, *transition.Context, ExecutionPayloadHeaderT,
+	],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
@@ -128,11 +137,13 @@ func NewService[
 	ts TelemetrySink,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT,
+	ForkDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT, ForkDataT,
+		BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT,
+		ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -151,7 +162,7 @@ func NewService[
 // Name returns the name of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) Name() string {
 	return "validator"
 }
@@ -159,7 +170,7 @@ func (s *Service[
 // Start starts the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) Start(
 	context.Context,
 ) error {
@@ -173,7 +184,7 @@ func (s *Service[
 // Status returns the status of the service.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) Status() error {
 	return nil
 }

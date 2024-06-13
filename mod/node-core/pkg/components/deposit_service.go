@@ -40,7 +40,7 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed     *event.FeedOf[*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]]]
 	ChainSpec     primitives.ChainSpec
 	DepositStore  *depositdb.KVStore[*types.Deposit]
 	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
@@ -51,9 +51,9 @@ type DepositServiceIn struct {
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService(in DepositServiceIn) *deposit.Service[
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	*feed.Event[*types.BeaconBlock],
+	*types.BeaconBlock[*types.ExecutionPayload],
+	*types.BeaconBlockBody[*types.ExecutionPayload],
+	*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 	*types.Deposit,
 	*types.ExecutionPayload,
 	event.Subscription,
@@ -61,9 +61,9 @@ func ProvideDepositService(in DepositServiceIn) *deposit.Service[
 ] {
 	// Build the deposit service.
 	return deposit.NewService[
-		*types.BeaconBlockBody,
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		*depositdb.KVStore[*types.Deposit],
 		*types.ExecutionPayload,
 		event.Subscription,

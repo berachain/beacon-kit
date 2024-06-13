@@ -24,7 +24,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
@@ -36,15 +35,18 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
 		BeaconStateT,
+		BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
@@ -74,6 +76,7 @@ type Service[
 		BlobSidecarsT,
 		*transition.Context,
 		DepositT,
+		ExecutionPayloadHeaderT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -91,12 +94,19 @@ func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconStateT ReadOnlyBeaconState[
+		BeaconStateT,
+		BeaconBlockHeaderT,
+		ExecutionPayloadHeaderT,
+	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore[DepositT],
 	DepositT any,
+	ExecutionPayloadT ExecutionPayload,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -116,19 +126,21 @@ func NewService[
 		BlobSidecarsT,
 	],
 	sp StateProcessor[
-		BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, *transition.Context, DepositT,
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		*transition.Context, DepositT, ExecutionPayloadHeaderT,
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
 	optimisticPayloadBuilds bool,
 ) *Service[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -149,10 +161,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -161,10 +176,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) Start(
 	context.Context,
 ) error {
@@ -175,10 +193,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) Status() error {
 	return nil
 }

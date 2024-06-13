@@ -156,7 +156,7 @@ func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
 }
 
 func TestBeaconBlockBody_Empty(t *testing.T) {
-	blockBody := types.BeaconBlockBody{}
+	blockBody := types.BeaconBlockBody[*types.ExecutionPayload]{}
 	body := blockBody.Empty(version.Deneb)
 	require.NotNil(t, body)
 

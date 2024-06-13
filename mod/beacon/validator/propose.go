@@ -41,7 +41,7 @@ import (
 //nolint:funlen // todo:fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) RequestBlockForProposal(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -177,7 +177,7 @@ func (s *Service[
 // GetEmptyBlock creates a new empty block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -216,7 +216,7 @@ func (s *Service[
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -246,7 +246,7 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BlobSidecarsT, DepositStoreT, ExecutionPayloadHeaderT, ForkDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {

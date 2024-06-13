@@ -28,12 +28,12 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -45,7 +45,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type NodeBuilder[NodeT types.NodeI] struct {
+type NodeBuilder[NodeT nodetypes.NodeI] struct {
 	node NodeT
 
 	name         string
@@ -58,7 +58,7 @@ type NodeBuilder[NodeT types.NodeI] struct {
 }
 
 // New returns a new NodeBuilder.
-func New[NodeT types.NodeI](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
+func New[NodeT nodetypes.NodeI](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
 	nb := &NodeBuilder[NodeT]{
 		node: node.New[NodeT](),
 	}
@@ -103,19 +103,19 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				viper.GetViper(),
 				nb.chainSpec,
 				&runtime.BeaconKitRuntime[
-					*dastore.Store[*consensustypes.BeaconBlockBody],
-					*consensustypes.BeaconBlock,
-					*consensustypes.BeaconBlockBody,
+					*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+					*types.BeaconBlock[*types.ExecutionPayload],
+					*types.BeaconBlockBody[*types.ExecutionPayload],
 					components.BeaconState,
 					*datypes.BlobSidecars,
-					*depositdb.KVStore[*consensustypes.Deposit],
+					*depositdb.KVStore[*types.Deposit],
 					blockchain.StorageBackend[
-						*dastore.Store[*consensustypes.BeaconBlockBody],
-						*consensustypes.BeaconBlockBody,
+						*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+						*types.BeaconBlockBody[*types.ExecutionPayload],
 						components.BeaconState,
 						*datypes.BlobSidecars,
-						*consensustypes.Deposit,
-						*depositdb.KVStore[*consensustypes.Deposit],
+						*types.Deposit,
+						*depositdb.KVStore[*types.Deposit],
 					],
 				]{},
 			),

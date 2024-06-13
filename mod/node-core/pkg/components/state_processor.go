@@ -35,11 +35,12 @@ import (
 
 // StateProcessor is the type alias for the state processor inteface.
 type StateProcessor = blockchain.StateProcessor[
-	*types.BeaconBlock,
+	*types.BeaconBlock[*types.ExecutionPayload],
 	BeaconState,
 	*datypes.BlobSidecars,
 	*transition.Context,
 	*types.Deposit,
+	*types.ExecutionPayloadHeader,
 ]
 
 // StateProcessorInput is the input for the state processor for the depinject
@@ -57,8 +58,8 @@ func ProvideStateProcessor(
 	in StateProcessorInput,
 ) StateProcessor {
 	return core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,

@@ -44,23 +44,26 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 	]
 	DBManagerService *manager.DBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		event.Subscription,
 	]
 	DepositService *deposit.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		*types.Deposit,
 		*types.ExecutionPayload,
 		event.Subscription,
@@ -70,11 +73,12 @@ type ServiceRegistryInput struct {
 	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayloadHeader,
 		*types.ForkData,
 	]
 }

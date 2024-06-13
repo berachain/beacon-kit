@@ -28,10 +28,10 @@ import (
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
 		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore[*types.BeaconBlockBody],
+		ProvideAvailibilityStore[*types.BeaconBlockBody[*types.ExecutionPayload]],
 		ProvideBlsSigner,
-		ProvideBlockFeed[*types.BeaconBlock],
-		ProvideBlobProcessor[*types.BeaconBlockBody],
+		ProvideBlockFeed[*types.BeaconBlock[*types.ExecutionPayload]],
+		ProvideBlobProcessor[*types.BeaconBlockBody[*types.ExecutionPayload]],
 		ProvideBlobProofVerifier,
 		ProvideChainService,
 		ProvideConfig,

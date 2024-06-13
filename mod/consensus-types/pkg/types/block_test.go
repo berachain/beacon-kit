@@ -71,7 +71,7 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 // Test the case where the fork version is not supported.
 func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
 	require.Panics(t, func() {
-		(&types.BeaconBlock{}).Empty(100)
+		(&types.BeaconBlock[*types.ExecutionPayload]{}).Empty(100)
 	})
 }
 
@@ -84,7 +84,7 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszBlock)
 
-	wrappedBlock := &types.BeaconBlock{}
+	wrappedBlock := &types.BeaconBlock[*types.ExecutionPayload]{}
 	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
 	require.NoError(t, err)
 	require.NotNil(t, wrappedBlock)
@@ -95,7 +95,7 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 }
 
 func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	wrappedBlock := &types.BeaconBlock{}
+	wrappedBlock := &types.BeaconBlock[*types.ExecutionPayload]{}
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
@@ -113,7 +113,7 @@ func TestBeaconBlockDeneb(t *testing.T) {
 
 	// Test the GetBody method
 	require.Equal(
-		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
+		t, &types.BeaconBlockBody[*types.ExecutionPayload]{RawBeaconBlockBody: block.Body},
 		block.GetBody(),
 	)
 
@@ -151,7 +151,7 @@ func TestBeaconBlockDeneb_HashTreeRoot(t *testing.T) {
 }
 
 func TestBeaconBlockEmpty(t *testing.T) {
-	block := &types.BeaconBlock{}
+	block := &types.BeaconBlock[*types.ExecutionPayload]{}
 	emptyBlock := block.Empty(version.Deneb)
 	require.NotNil(t, emptyBlock)
 	require.IsType(t, &types.BeaconBlockDeneb{}, emptyBlock.RawBeaconBlock)
@@ -162,7 +162,7 @@ func TestNewWithVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
 
-	block, err := (&types.BeaconBlock{}).NewWithVersion(
+	block, err := (&types.BeaconBlock[*types.ExecutionPayload]{}).NewWithVersion(
 		slot, proposerIndex, parentBlockRoot, version.Deneb,
 	)
 	require.NoError(t, err)
@@ -181,7 +181,7 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
 
-	_, err := (&types.BeaconBlock{}).NewWithVersion(
+	_, err := (&types.BeaconBlock[*types.ExecutionPayload]{}).NewWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,

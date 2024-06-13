@@ -43,13 +43,13 @@ type DBManagerInput struct {
 // ProvideDBManager provides a DBManager for the depinject framework.
 func ProvideDBManager(
 	in DBManagerInput,
-) (*manager.DBManager[*types.BeaconBlock,
-	*feed.Event[*types.BeaconBlock],
+) (*manager.DBManager[*types.BeaconBlock[*types.ExecutionPayload],
+	*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 	event.Subscription,
 ], error) {
 	return manager.NewDBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		event.Subscription,
 	](
 		in.Logger.With("service", "db-manager"),

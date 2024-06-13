@@ -33,10 +33,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -67,10 +70,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -96,10 +102,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -132,7 +141,7 @@ func (s *Service[
 		return err
 	}
 
-	latestHeader.StateRoot = prevStateRoot
+	latestHeader.SetStateRoot(prevStateRoot)
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
@@ -179,10 +188,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -202,10 +214,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

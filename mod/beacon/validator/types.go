@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -173,6 +172,12 @@ type DepositStore[DepositT any] interface {
 	) ([]DepositT, error)
 }
 
+type ExecutionPayloadHeader interface {
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetTimestamp() math.U64
+}
+
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
@@ -220,9 +225,10 @@ type StateProcessor[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		blockchain.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	],
 	ContextT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
@@ -242,10 +248,11 @@ type StorageBackend[
 	BeaconStateT BeaconState[
 		*types.BeaconBlockHeader,
 		BeaconStateT,
-		blockchain.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore(context.Context) DepositStoreT

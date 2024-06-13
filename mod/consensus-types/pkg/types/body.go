@@ -55,21 +55,24 @@ const (
 	ExtraDataSize = 32
 )
 
-type BeaconBlockBody struct {
-	RawBeaconBlockBody
+type BeaconBlockBody[ExecutionPayloadT any] struct {
+	RawBeaconBlockBody[ExecutionPayloadT]
 }
 
 // RawBeaconBlockBody is an interface for the different beacon block body.
-func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
+func (b *BeaconBlockBody[ExecutionPayloadT]) Empty(
+	forkVersion uint32,
+) *BeaconBlockBody[*ExecutionPayload] {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDeneb{
-			BeaconBlockBodyBase: BeaconBlockBodyBase{},
-			ExecutionPayload: &ExecutableDataDeneb{
-				LogsBloom: make([]byte, LogsBloomSize),
-				ExtraData: make([]byte, ExtraDataSize),
-			},
-		}}
+		return &BeaconBlockBody[*ExecutionPayload]{
+			RawBeaconBlockBody: &BeaconBlockBodyDeneb{
+				BeaconBlockBodyBase: BeaconBlockBodyBase{},
+				ExecutionPayload: &ExecutableDataDeneb{
+					LogsBloom: make([]byte, LogsBloomSize),
+					ExtraData: make([]byte, ExtraDataSize),
+				},
+			}}
 	default:
 		panic("unsupported fork version")
 	}

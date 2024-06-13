@@ -45,16 +45,16 @@ import (
 type ChainServiceInput struct {
 	depinject.In
 	BlobProcessor *dablob.Processor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 	]
-	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed      *event.FeedOf[*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]]]
 	ChainSpec      primitives.ChainSpec
 	Cfg            *config.Config
 	DepositService *deposit.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		*types.Deposit,
 		*types.ExecutionPayload,
 		event.Subscription,
@@ -76,21 +76,28 @@ type ChainServiceInput struct {
 func ProvideChainService(
 	in ChainServiceInput,
 ) *blockchain.Service[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
+	*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+	*types.BeaconBlock[*types.ExecutionPayload],
+	*types.BeaconBlockBody[*types.ExecutionPayload],
+	*types.BeaconBlockHeader,
 	BeaconState,
 	*datypes.BlobSidecars,
 	*types.Deposit,
 	*depositdb.KVStore[*types.Deposit],
+	*types.ExecutionPayload,
+	*types.ExecutionPayloadHeader,
 ] {
 	return blockchain.NewService[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
+		*types.BeaconBlockHeader,
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		*types.Deposit,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

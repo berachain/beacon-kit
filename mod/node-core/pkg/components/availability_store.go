@@ -49,7 +49,8 @@ type AvailabilityStoreInput struct {
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody[ExecutionPayloadT],
+	ExecutionPayloadT any,
 ](
 	in AvailabilityStoreInput,
 ) (*dastore.Store[BeaconBlockBodyT], error) {
@@ -75,8 +76,8 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput struct {
 	depinject.In
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
+	AvailabilityStore *dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]]
+	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]]]
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }
@@ -89,8 +90,8 @@ func ProvideAvailabilityPruner(
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		*filedb.RangeDB,
 		event.Subscription,
 	](
@@ -99,8 +100,8 @@ func ProvideAvailabilityPruner(
 		manager.AvailabilityPrunerName,
 		in.BlockFeed,
 		dastore.BuildPruneRangeFn[
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
+			*types.BeaconBlock[*types.ExecutionPayload],
+			*feed.Event[*types.BeaconBlock[*types.ExecutionPayload]],
 		](in.ChainSpec),
 	)
 }

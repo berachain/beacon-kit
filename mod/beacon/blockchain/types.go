@@ -49,10 +49,10 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of
-// the
-// beacon state.
+// the beacon state.
 type ReadOnlyBeaconState[
 	T any,
+	BeaconBlockHeaderT BeaconBlockHeader,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	// GetSlot retrieves the current slot of the beacon state.
@@ -67,7 +67,7 @@ type ReadOnlyBeaconState[
 	GetEth1DepositIndex() (uint64, error)
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
-		*types.BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		error,
 	)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -79,10 +79,33 @@ type ReadOnlyBeaconState[
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
+type BeaconBlock[
+	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	ExecutionPayloadT any,
+] interface {
+	GetStateRoot() common.Root
+	IsNil() bool
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetBody() BeaconBlockBodyT
+	HashTreeRoot() ([32]byte, error)
+}
+
+type BeaconBlockBody[ExecutionPayloadT any] interface {
+	HashTreeRoot() ([32]byte, error)
+	GetExecutionPayload() ExecutionPayloadT
+}
+
+type BeaconBlockHeader interface {
+	HashTreeRoot() ([32]byte, error)
+	SetStateRoot(common.Root)
+}
+
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT any,
 	BlobSidecarsT any,
 ] interface {
 	// ProcessBlobs processes the blobs and ensures they match the local state.
@@ -136,35 +159,16 @@ type ExecutionEngine interface {
 	) error
 }
 
+// ExecutionPayload is the interface for the execution payload.
+type ExecutionPayload interface {
+	ExecutionPayloadHeader
+}
+
 // ExecutionPayloadHeader is the interface for the ExecutionPayloadHeader type.
 type ExecutionPayloadHeader interface {
-	Version() uint32
-	IsNil() bool
-	IsBlinded() bool
-	GetParentHash() common.ExecutionHash
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
-	GetLogsBloom() []byte
-	GetPrevRandao() primitives.Bytes32
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
 	GetBlockHash() common.ExecutionHash
-	GetTransactionsRoot() primitives.Root
-	GetWithdrawalsRoot() primitives.Root
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	HashTreeRoot() ([32]byte, error)
-	MarshalJSON() ([]byte, error)
-	MarshalSSZ() ([]byte, error)
-	MarshalSSZTo([]byte) ([]byte, error)
-	SizeSSZ() int
-	UnmarshalJSON([]byte) error
-	UnmarshalSSZ([]byte) error
+	GetParentHash() common.ExecutionHash
+	GetTimestamp() math.U64
 }
 
 // EventFeed is a generic interface for sending events.
@@ -215,6 +219,7 @@ type StateProcessor[
 	BlobSidecarsT,
 	ContextT,
 	DepositT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -222,7 +227,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
 		[]DepositT,
-		ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 		primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlots processes the state transition for a range of slots.

@@ -49,7 +49,7 @@ type BeaconState = core.BeaconState[
 type BeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		types.RawBeaconBlock[BeaconBlockBodyT, *types.ExecutionPayload]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -59,7 +59,7 @@ type BeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody[*types.ExecutionPayload],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -102,7 +102,7 @@ type BeaconKitRuntime[
 func NewBeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		types.RawBeaconBlock[BeaconBlockBodyT, *types.ExecutionPayload]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -112,10 +112,10 @@ func NewBeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody[*types.ExecutionPayload],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
-		blockchain.ExecutionPayloadHeader, *types.Fork,
+		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
@@ -143,10 +143,13 @@ func NewBeaconKitRuntime[
 			AvailabilityStoreT,
 			BeaconBlockT,
 			BeaconBlockBodyT,
+			*types.BeaconBlockHeader,
 			BeaconState,
 			BlobSidecarsT,
 			*types.Deposit,
 			DepositStoreT,
+			*types.ExecutionPayload,
+			*types.ExecutionPayloadHeader,
 		]
 		validatorService *validator.Service[
 			BeaconBlockT,
@@ -154,6 +157,7 @@ func NewBeaconKitRuntime[
 			BeaconState,
 			BlobSidecarsT,
 			DepositStoreT,
+			*types.ExecutionPayloadHeader,
 			*types.ForkData,
 		]
 	)

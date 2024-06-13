@@ -40,8 +40,8 @@ import (
 type ValidatorServiceInput struct {
 	depinject.In
 	BlobProcessor *dablob.Processor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody[*types.ExecutionPayload]],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 	]
 	Cfg          *config.Config
 	ChainSpec    primitives.ChainSpec
@@ -59,20 +59,22 @@ type ValidatorServiceInput struct {
 func ProvideValidatorService(
 	in ValidatorServiceInput,
 ) *validator.Service[
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
+	*types.BeaconBlock[*types.ExecutionPayload],
+	*types.BeaconBlockBody[*types.ExecutionPayload],
 	BeaconState,
 	*datypes.BlobSidecars,
 	*depositdb.KVStore[*types.Deposit],
+	*types.ExecutionPayloadHeader,
 	*types.ForkData,
 ] {
 	// Build the builder service.
 	return validator.NewService[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*types.BeaconBlock[*types.ExecutionPayload],
+		*types.BeaconBlockBody[*types.ExecutionPayload],
 		BeaconState,
 		*datypes.BlobSidecars,
 		*depositdb.KVStore[*types.Deposit],
+		*types.ExecutionPayloadHeader,
 		*types.ForkData,
 	](
 		&in.Cfg.Validator,
@@ -83,8 +85,8 @@ func ProvideValidatorService(
 		in.StateProcessor,
 		in.Signer,
 		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
+			*types.BeaconBlock[*types.ExecutionPayload],
+			*types.BeaconBlockBody[*types.ExecutionPayload],
 		](
 			in.ChainSpec,
 			types.KZGPositionDeneb,

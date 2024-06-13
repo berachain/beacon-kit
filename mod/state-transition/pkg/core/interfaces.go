@@ -37,8 +37,8 @@ type BeaconState[
 	ValidatorT, WithdrawalT any,
 ] interface {
 	Copy() BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, WithdrawalT,
 	]
 	Save()
 	Context() context.Context

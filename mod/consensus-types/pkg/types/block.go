@@ -28,15 +28,18 @@ import (
 )
 
 // BeaconBlock is the interface for a beacon block.
-type BeaconBlock struct {
-	RawBeaconBlock[*BeaconBlockBody]
+type BeaconBlock[ExecutionPayloadT any] struct {
+	RawBeaconBlock[
+		*BeaconBlockBody[ExecutionPayloadT],
+		ExecutionPayloadT,
+	]
 }
 
 // Empty creates an empty beacon block.
-func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+func (w *BeaconBlock[ExecutionPayloadT]) Empty(forkVersion uint32) *BeaconBlock[*ExecutionPayload] {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconBlock{
+		return &BeaconBlock[*ExecutionPayload]{
 			RawBeaconBlock: (*BeaconBlockDeneb)(nil),
 		}
 	default:
@@ -45,15 +48,18 @@ func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 }
 
 // NewWithVersion assembles a new beacon block from the given.
-func (w *BeaconBlock) NewWithVersion(
+func (w *BeaconBlock[ExecutionPayloadT]) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion uint32,
-) (*BeaconBlock, error) {
+) (*BeaconBlock[*ExecutionPayload], error) {
 	var (
-		block RawBeaconBlock[*BeaconBlockBody]
-		base  = BeaconBlockHeaderBase{
+		block RawBeaconBlock[
+			*BeaconBlockBody[*ExecutionPayload],
+			*ExecutionPayload,
+		]
+		base = BeaconBlockHeaderBase{
 			Slot:            slot.Unwrap(),
 			ProposerIndex:   proposerIndex.Unwrap(),
 			ParentBlockRoot: parentBlockRoot,
@@ -68,20 +74,20 @@ func (w *BeaconBlock) NewWithVersion(
 			Body:                  &BeaconBlockBodyDeneb{},
 		}
 	default:
-		return &BeaconBlock{}, ErrForkVersionNotSupported
+		return &BeaconBlock[*ExecutionPayload]{}, ErrForkVersionNotSupported
 	}
 
-	return &BeaconBlock{
+	return &BeaconBlock[*ExecutionPayload]{
 		RawBeaconBlock: block,
 	}, nil
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (w *BeaconBlock) NewFromSSZ(
+func (w *BeaconBlock[ExecutionPayloadT]) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
-) (*BeaconBlock, error) {
-	var block = new(BeaconBlock)
+) (*BeaconBlock[*ExecutionPayload], error) {
+	var block = new(BeaconBlock[*ExecutionPayload])
 	switch forkVersion {
 	case version.Deneb:
 		block.RawBeaconBlock = &BeaconBlockDeneb{}
@@ -96,7 +102,7 @@ func (w *BeaconBlock) NewFromSSZ(
 }
 
 // IsNil checks if the beacon block is nil.
-func (w *BeaconBlock) IsNil() bool {
+func (w *BeaconBlock[ExecutionPayloadT]) IsNil() bool {
 	return w == nil ||
 		w.RawBeaconBlock == nil ||
 		w.RawBeaconBlock.IsNil()
@@ -130,8 +136,8 @@ func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
 }
 
 // GetBody retrieves the body of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetBody() *BeaconBlockBody {
-	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
+func (b *BeaconBlockDeneb) GetBody() *BeaconBlockBody[*ExecutionPayload] {
+	return &BeaconBlockBody[*ExecutionPayload]{RawBeaconBlockBody: b.Body}
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.

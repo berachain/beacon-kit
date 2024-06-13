@@ -47,12 +47,16 @@ type Backend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlock types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockT types.RawBeaconBlock[
+		BeaconBlockBodyT,
+		*types.ExecutionPayload,
+	],
+	BeaconBlockBodyT types.RawBeaconBlockBody[*types.ExecutionPayload],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
 		*types.Fork, *types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
+	ExecutionPayloadT any,
 ] struct {
 	cs primitives.ChainSpec
 	as AvailabilityStoreT
@@ -64,24 +68,28 @@ func NewBackend[
 	AvailabilityStoreT runtime.AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockT types.RawBeaconBlock[
+		BeaconBlockBodyT,
+		*types.ExecutionPayload,
+	],
+	BeaconBlockBodyT types.RawBeaconBlockBody[*types.ExecutionPayload],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
 		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
+	ExecutionPayloadT any,
 ](
 	cs primitives.ChainSpec,
 	as AvailabilityStoreT,
 	bs *KVStore,
 	ds DepositStoreT,
 ) *Backend[AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	BeaconBlockBodyT, BeaconStateT, DepositStoreT, ExecutionPayloadT,
 ] {
 	return &Backend[
-		AvailabilityStoreT, BeaconBlockT,
-		BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, DepositStoreT, ExecutionPayloadT,
 	]{
 		cs: cs,
 		as: as,
@@ -92,8 +100,8 @@ func NewBackend[
 
 // AvailabilityStore returns the availability store struct initialized with a.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, DepositStoreT, ExecutionPayloadT,
 ]) AvailabilityStore(
 	_ context.Context,
 ) AvailabilityStoreT {
@@ -103,8 +111,8 @@ func (k Backend[
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, DepositStoreT, ExecutionPayloadT,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
@@ -115,16 +123,16 @@ func (k Backend[
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, DepositStoreT, ExecutionPayloadT,
 ]) BeaconStore() *KVStore {
 	return k.bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, DepositStoreT, ExecutionPayloadT,
 ]) DepositStore(
 	_ context.Context,
 ) DepositStoreT {
