@@ -21,8 +21,6 @@
 package consensus
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
@@ -43,9 +41,6 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
 			s.logger.Info("marking consensus client as synced 🎉")
 			s.syncStatus = sync.CLStatusSynced
-			s.syncFeed.Send(
-				feed.NewEvent(context.Background(), events.CLSyncStatus, true),
-			)
 		}
 
 	// 2. If we see an event that tells us we are not synced to head
@@ -54,8 +49,13 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	case !event.Data():
 		s.syncCount.Store(0)
 		s.syncStatus = sync.CLStatusNotSynced
-		s.syncFeed.Send(
-			feed.NewEvent(context.Background(), events.CLSyncStatus, false),
-		)
 	}
+
+	// Fire off an event to notify subscribers about the sync status.
+	s.syncFeed.Send(
+		feed.NewEvent(event.Context(),
+			events.CLSyncStatus,
+			s.syncStatus == sync.CLStatusSynced,
+		),
+	)
 }
