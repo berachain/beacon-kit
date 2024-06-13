@@ -31,7 +31,7 @@ on:
       - 'v*.*.*'
     branches:
       - main
-      - fix-version
+
 env:
   GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
   GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
