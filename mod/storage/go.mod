@@ -13,9 +13,9 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240613051209-20509fda9150
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240613051209-20509fda9150
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -60,7 +60,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ethereum/go-ethereum v1.14.5 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
-	github.com/getsentry/sentry-go v0.28.0 // indirect
+	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect

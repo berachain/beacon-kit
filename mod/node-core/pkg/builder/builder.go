@@ -51,7 +51,6 @@ type NodeBuilder[NodeT types.NodeI] struct {
 	name         string
 	description  string
 	depInjectCfg depinject.Config
-	chainSpec    primitives.ChainSpec
 
 	// components is a list of components to provide.
 	components []any
@@ -80,13 +79,12 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 }
 
 // buildRootCmd builds the root command for the application.
-//
-
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
+		chainSpec   primitives.ChainSpec
 	)
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -101,7 +99,6 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				nb.chainSpec,
 				&runtime.BeaconKitRuntime[
 					*dastore.Store[*consensustypes.BeaconBlockBody],
 					*consensustypes.BeaconBlock,
@@ -124,11 +121,13 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				components.ProvideClientContext,
 				components.ProvideKeyring,
 				components.ProvideConfig,
+				components.ProvideChainSpec,
 			),
 		),
 		&autoCliOpts,
 		&mm,
 		&clientCtx,
+		&chainSpec,
 	); err != nil {
 		return nil, err
 	}
@@ -179,7 +178,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		cmd,
 		mm,
 		nb.AppCreator,
-		nb.chainSpec,
+		chainSpec,
 	)
 
 	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {

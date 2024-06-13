@@ -18,11 +18,4 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
-
-const (
-	MissedSlot = iota
-	BeaconBlockAccepted
-	BeaconBlockRejected
-	BeaconBlockFinalized
-)
+package feed

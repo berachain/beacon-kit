@@ -18,11 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package event
 
-const (
-	MissedSlot = iota
-	BeaconBlockAccepted
-	BeaconBlockRejected
-	BeaconBlockFinalized
-)
+import "github.com/ethereum/go-ethereum/event"
+
+// Subscription is a subscription to a feed.
+type Subscription = event.Subscription
+
+// FeedOf is a feed of events.
+// It is a wrapper around the event.FeedOf type.
+type FeedOf[
+	E ~uint8,
+	T interface {
+		Type() E
+	},
+] struct {
+	event.FeedOf[T]
+}

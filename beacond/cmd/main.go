@@ -26,7 +26,6 @@ import (
 
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
@@ -36,14 +35,6 @@ func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
-	}
-
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
-	chainSpec := os.Getenv("CHAIN_SPEC")
-	loadedSpec := spec.TestnetChainSpec()
-	if chainSpec == "devnet" {
-		loadedSpec = spec.DevnetChainSpec()
 	}
 
 	// Build the node using the node-core.
@@ -57,8 +48,6 @@ func run() error {
 		// Set the DepInject Configuration to the Default.
 		nodebuilder.WithDepInjectConfig[types.NodeI](
 			nodebuilder.DefaultDepInjectConfig()),
-		// Set the ChainSpec to the Default.
-		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[types.NodeI](
 			components.DefaultComponentsWithStandardTypes(),

@@ -26,6 +26,7 @@
 package pruner
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -36,7 +37,7 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(string) bool
+	Is(feed.EventID) bool
 	Data() BeaconBlockT
 }
 

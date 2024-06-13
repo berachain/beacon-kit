@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -36,14 +37,19 @@ func (s *Service[
 	ExecutionPayloadT, SubscriptionT,
 	WithdrawalCredentialsT, DepositT,
 ]) depositFetcher(ctx context.Context) {
+	ch := make(chan BlockEventT)
+	sub := s.feed.Subscribe(ch)
+	defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case blk := <-s.newBlock:
-			querierBlockNum := blk.
-				GetBody().GetExecutionPayload().GetNumber() - s.eth1FollowDistance
-			s.fetchAndStoreDeposits(ctx, querierBlockNum)
+		case event := <-ch:
+			if event.Is(events.BeaconBlockFinalized) {
+				blockNum := event.Data().
+					GetBody().GetExecutionPayload().GetNumber()
+				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
+			}
 		}
 	}
 }
@@ -78,6 +84,7 @@ func (s *Service[
 		}
 	}
 }
+
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
 	ExecutionPayloadT, SubscriptionT,

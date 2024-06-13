@@ -51,7 +51,7 @@ func (vm *verifierMetrics) measureVerifyBlobsDuration(
 		"beacon_kit.da.blob.verifier.verify_blobs_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars.String()),
+		numSidecars.Base10(),
 		"kzg_implementation",
 		kzgImplementation,
 	)
@@ -67,7 +67,7 @@ func (vm *verifierMetrics) measureVerifyInclusionProofsDuration(
 		"beacon_kit.da.blob.verifier.verify_inclusion_proofs_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars.String()),
+		numSidecars.Base10(),
 	)
 }
 
@@ -82,7 +82,7 @@ func (vm *verifierMetrics) measureVerifyKZGProofsDuration(
 		"beacon_kit.da.blob.verifier.verify_kzg_proofs_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars.String()),
+		numSidecars.Base10(),
 		"kzg_implementation",
 		kzgImplementation,
 	)
