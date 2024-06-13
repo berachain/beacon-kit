@@ -65,7 +65,8 @@ func emptyAppBuilder() *sdkruntime.AppBuilder {
 	return &sdkruntime.AppBuilder{}
 }
 
-// emptyServiceRegistry returns an address pointing to an empty service.Registry
+// emptyServiceRegistry returns an address pointing to an empty
+// service.Registry.
 func emptyServiceRegistry() *service.Registry {
 	return &service.Registry{}
 }
