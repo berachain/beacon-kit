@@ -47,4 +47,39 @@ contract WithdrawalsVerifierTest is Test {
             ts
         );
     }
+
+    function test_SubmitWithdrawalWrongIndex() public {
+        uint64 ts = 31_337;
+
+        vm.mockCall(
+            verifier.BEACON_ROOTS(),
+            abi.encode(ts),
+            abi.encode(proofJson.blockRoot)
+        );
+        vm.expectRevert(bytes4(keccak256("IndexOutOfRange()")));
+        // forgefmt: disable-next-item
+        verifier.submitWithdrawal(
+            proofJson.withdrawalProof,
+            proofJson.withdrawal,
+            (1 << 4) + 1, // MAX_WITHDRAWALS + 1
+            ts
+        );
+    }
+
+    function test_SubmitWithdrawalInvalidProof() public {
+        uint64 ts = 31_337;
+        vm.mockCall(
+            verifier.BEACON_ROOTS(),
+            abi.encode(ts),
+            abi.encode(proofJson.blockRoot)
+        );
+        vm.expectRevert(bytes4(keccak256("InvalidProof()")));
+        // forgefmt: disable-next-item
+        verifier.submitWithdrawal(
+            proofJson.withdrawalProof,
+            proofJson.withdrawal,
+            proofJson.withdrawalIndex-1,
+            ts
+        );
+    }
 }
