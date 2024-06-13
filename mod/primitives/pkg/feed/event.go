@@ -20,16 +20,17 @@
 
 package feed
 
-import (
-	"context"
-)
+import "context"
+
+// EventID represents the type of an event.
+type EventID uint8
 
 // Event represents a generic event in the beacon chain.
 type Event[DataT any] struct {
 	// ctx is the context associated with the event.
 	ctx context.Context
 	// eventType is the name of the event.
-	eventType uint8
+	eventType EventID
 	// event is the actual beacon event.
 	data DataT
 }
@@ -37,7 +38,7 @@ type Event[DataT any] struct {
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
-](ctx context.Context, eventType uint8, data DataT) *Event[DataT] {
+](ctx context.Context, eventType EventID, data DataT) *Event[DataT] {
 	return &Event[DataT]{
 		ctx:       ctx,
 		eventType: eventType,
@@ -46,7 +47,7 @@ func NewEvent[
 }
 
 // Name returns the name of the event.
-func (e Event[DataT]) Type() uint8 {
+func (e Event[DataT]) Type() EventID {
 	return e.eventType
 }
 
@@ -61,6 +62,6 @@ func (e Event[DataT]) Data() DataT {
 }
 
 // Is returns true if the event has the given type.
-func (e Event[DataT]) Is(eventType uint8) bool {
+func (e Event[DataT]) Is(eventType EventID) bool {
 	return e.eventType == eventType
 }
