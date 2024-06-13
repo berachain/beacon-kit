@@ -337,8 +337,10 @@ func TestMarshalBitList(t *testing.T) {
 			expOutput: []byte{0b01010101, 0b00000010},
 		},
 		{
-			name:      "fifteen elements input",
-			input:     []bool{true, false, true, false, true, false, true, false, true, true, true, true, true, true, true},
+			name: "fifteen elements input",
+			input: []bool{true, false, true, false, true, false, true, false,
+				true, true, true, true, true, true, true,
+			},
 			expOutput: []byte{0b01010101, 0b11111111},
 		},
 	}
@@ -347,7 +349,6 @@ func TestMarshalBitList(t *testing.T) {
 			output := ssz.MarshalBitList(tc.input)
 			if !reflect.DeepEqual(output, tc.expOutput) {
 				t.Errorf("Expected output %08b, got %08b", tc.expOutput, output)
-
 			}
 		})
 	}
