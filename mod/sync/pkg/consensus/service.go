@@ -31,9 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/sync"
 )
 
-// defaultsyncStatusUpdateThreshold is the default threshold for updating
+// defaultSyncStatusUpdateThreshold is the default threshold for updating
 // the status of the CL.
-const defaultsyncStatusUpdateThreshold = 5
+const defaultSyncStatusUpdateThreshold = 5
 
 // SyncService is a service that listens to sync events and updates the
 // status of the CL.
@@ -70,11 +70,11 @@ func NewSyncService[
 	logger log.Logger[any],
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
-		
+
 		syncCh:                    make(chan *feed.Event[bool], 1),
 		syncFeed:                  syncFeed,
 		syncCount:                 atomic.Uint64{},
-		syncStatusUpdateThreshold: defaultsyncStatusUpdateThreshold,
+		syncStatusUpdateThreshold: defaultSyncStatusUpdateThreshold,
 		logger:                    logger,
 	}
 }
