@@ -159,3 +159,7 @@ func TestVerifyBlobKZGInvalidProof(t *testing.T) {
 		})
 	}
 }
+
+func TestGetImplementation(t *testing.T) {
+	require.Equal(t, "ethereum/c-kzg-4844", globalVerifier.GetImplementation())
+}

@@ -54,6 +54,9 @@ func DefaultAppConfig() any {
 	cfg.AppDBBackend = "pebbledb"
 	cfg.Pruning = "everything"
 
+	// IAVL FastNode should ALWAYS be disabled on IAVL v1.x.
+	cfg.IAVLDisableFastNode = true
+
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
 		Config:    *cfg,
