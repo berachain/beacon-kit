@@ -33,8 +33,9 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	event *feed.Event[bool],
 ) {
 	switch {
-	// 1. If we are not synced to head, and we have
-	// a synced event, increment the sync count.
+	// 1. If our internal status is saying we are NOT synced, and we
+	// receive an event implying we are synced, increment the sync
+	// counter.
 	case s.syncStatus == sync.CLStatusNotSynced && event.Data():
 		s.syncCount.Add(1)
 		// If the sync count is greater than or equal to the
@@ -48,7 +49,8 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 		}
 
 	// 2. If we see an event that tells us we are not synced to head
-	// immediately reset the counter and mark the CL as `NOT_SYNCED`.
+	// immediately reset the counter and mark the CL as `NOT_SYNCED`,
+	// irrespective of the current status.
 	case !event.Data():
 		s.syncCount.Store(0)
 		s.syncStatus = sync.CLStatusNotSynced
