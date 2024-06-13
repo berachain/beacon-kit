@@ -31,6 +31,7 @@ on:
       - 'v*.*.*'
     branches:
       - main
+      - fix-version
 
 env:
   REGISTRY: ghcr.io
