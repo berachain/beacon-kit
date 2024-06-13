@@ -82,8 +82,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240613051209-20509fda9150 h1:E35wllf22o4wsOhk7SMkxULyJWo7e/ssFwWIn0PcZww=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240613051209-20509fda9150/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240613053350-44a7fdc4cd1d h1:tNi/FX/uSR1xUDmCWRA9+LwVKxxoEPAatFG9WWTWei4=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240613053350-44a7fdc4cd1d/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c h1:l25WGeTONQXb2XOXe2PCZkr9wmXWpf2uXPor7UJ4y7M=
 github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:USl3xLxI71siWkcLcp4tY4bHYSoqe3n4b0kAAH3ruKA=
 github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610210054-bfdc14c4013c h1:HKJTzgOj7pXCpXCaEbMg4XYktOUsAuYUy4UDdMgtY6c=
