@@ -90,7 +90,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.DepositService),
 		service.WithService(in.EngineClient),
 		service.WithService(version.NewReportingService(
-			in.Logger,
+			in.Logger.With("service", "reporting"),
 			in.TelemetrySink,
 			sdkversion.Version,
 		)),
