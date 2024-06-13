@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // DepositServiceIn is the input for the deposit service.
@@ -41,7 +40,7 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*types.Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     *async.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed     *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
 	ChainSpec     primitives.ChainSpec
 	DepositStore  *depositdb.KVStore[*types.Deposit]
 	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]

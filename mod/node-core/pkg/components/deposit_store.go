@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/async"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
@@ -71,7 +70,7 @@ func ProvideDepositStore[
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    *async.FeedOf[*feed.Event[*types.BeaconBlock]]
+	BlockFeed    *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
 	ChainSpec    primitives.ChainSpec
 	DepositStore *depositstore.KVStore[*types.Deposit]
 	Logger       log.Logger
