@@ -27,9 +27,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Options that extend our default baseapp options to be called by cosmos
+// when buildinig the app.
+
 // we can decouple from cosmos-sdk/types by having these options accept
 // the middleware type instead, and just extract the handers. not really an
-// issue rn tho
+// issue rn tho.
+
+// WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
 	chainSpec primitives.ChainSpec) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
@@ -37,6 +42,7 @@ func WithCometParamStore(
 	}
 }
 
+// WithPrepareProposal sets the prepare proposal handler to the baseapp.
 func WithPrepareProposal(
 	handler sdk.PrepareProposalHandler) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
@@ -44,6 +50,7 @@ func WithPrepareProposal(
 	}
 }
 
+// WithProcessProposal sets the process proposal handler to the baseapp.
 func WithProcessProposal(
 	handler sdk.ProcessProposalHandler) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
@@ -51,6 +58,7 @@ func WithProcessProposal(
 	}
 }
 
+// WithPreBlocker sets the pre-blocker to the baseapp.
 func WithPreBlocker(
 	preBlocker sdk.PreBlocker) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
