@@ -1,4 +1,4 @@
-shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 constants = import_module("../../constants.star")
 execution = import_module("../../nodes/execution/execution.star")
 SERVICE_NAME = "tx-fuzz"
