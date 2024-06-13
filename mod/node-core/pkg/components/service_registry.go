@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -38,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.

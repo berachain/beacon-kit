@@ -14,9 +14,9 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240612175710-7d5f3e4f7041
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240613051209-20509fda9150
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240610173527-45baa498bb63
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240612175710-7d5f3e4f7041
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240613051209-20509fda9150
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5

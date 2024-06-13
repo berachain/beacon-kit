@@ -45,7 +45,7 @@ env:
   GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
   GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
   GHCR_REGISTRY: ghcr.io
-  PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/tags/v*.*.*'}}
+  PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' || github.ref == 'refs/tags/v*.*.*'}}
   VERSION: ${{ github.ref_name }}
 
 jobs:

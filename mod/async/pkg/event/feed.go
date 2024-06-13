@@ -18,24 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package event
 
-import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-)
+import "github.com/ethereum/go-ethereum/event"
 
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[EventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[EventT]]{}
-}
+// Subscription is a subscription to a feed.
+type Subscription = event.Subscription
 
-// ProvideCLSyncFeed provides a consensus layer sync feed for the depinject
-// framework.
-func ProvideCLSyncFeed[
-	CLSyncUpdateEventT any,
-]() *event.FeedOf[*feed.Event[CLSyncUpdateEventT]] {
-	return &event.FeedOf[*feed.Event[CLSyncUpdateEventT]]{}
+// FeedOf is a feed of events.
+// It is a wrapper around the event.FeedOf type.
+type FeedOf[
+	E ~uint8,
+	T interface {
+		Type() E
+	},
+] struct {
+	event.FeedOf[T]
 }
