@@ -42,6 +42,8 @@ type SyncService[
 		Unsubscribe()
 	},
 ] struct {
+	// syncCh is the channel that the sync service listens to.
+	syncCh chan *feed.Event[bool]
 	// syncFeed is the event feed that the sync service listens to.
 	// It notifies the sync service when the CL sync status is updated.
 	syncFeed *event.FeedOf[*feed.Event[bool]]
@@ -68,6 +70,8 @@ func NewSyncService[
 	logger log.Logger[any],
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
+		//nolint:mnd // todo fix?
+		syncCh:                    make(chan *feed.Event[bool], 16),
 		syncFeed:                  syncFeed,
 		syncCount:                 atomic.Uint64{},
 		syncStatusUpdateThreshold: defaultsyncStatusUpdateThreshold,
@@ -95,13 +99,11 @@ func (s *SyncService[SubscriptionT]) Start(
 
 // mainLoop listens to sync events and updates the status of the CL.
 func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
-	//nolint:mnd // todo fix?
-	ch := make(chan *feed.Event[bool], 16)
-	sub := s.syncFeed.Subscribe(ch)
+	sub := s.syncFeed.Subscribe(s.syncCh)
 	defer sub.Unsubscribe()
 	for {
 		select {
-		case event := <-ch:
+		case event := <-s.syncCh:
 			if event.Is(events.CLSyncUpdate) {
 				s.handleCLSyncUpdateEvent(event)
 			}
