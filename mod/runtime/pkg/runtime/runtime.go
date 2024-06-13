@@ -37,7 +37,7 @@ import (
 type BeaconState = core.BeaconState[
 	*types.BeaconBlockHeader,
 	*types.Eth1Data,
-	*types.ExecutionPayloadHeader,
+	ExecutionPayloadHeader,
 	*types.Fork,
 	*types.Validator,
 	*engineprimitives.Withdrawal,
@@ -62,14 +62,14 @@ type BeaconKitRuntime[
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
 		*engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT, DepositStoreT,
@@ -115,12 +115,12 @@ func NewBeaconKitRuntime[
 	BeaconBlockBodyT types.RawBeaconBlockBody[*types.ExecutionPayload],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
+		ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	StorageBackendT blockchain.StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,

@@ -27,17 +27,33 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
+	ValidatorIndexByPubkey(
+		pubkey crypto.BLSPubkey,
+	) (math.ValidatorIndex, error)
+
+	GetBlockRootAtIndex(
+		index uint64,
+	) (primitives.Root, error)
+
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
+}
+
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
 type BlockchainService[
 	BeaconBlockT any, BlobSidecarsT ssz.Marshallable,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
@@ -64,6 +80,13 @@ type BlockchainService[
 	) error
 }
 
+// ExecutionPayloadHeader is the interface for the ExecutionPayloadHeader type.
+type ExecutionPayloadHeader interface {
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetTimestamp() math.U64
+}
+
 // ValidatorService is responsible for building beacon blocks.
 type ValidatorService[
 	BeaconBlockT any,
@@ -88,19 +111,4 @@ type TelemetrySink interface {
 // StorageBackend is an interface for accessing the storage backend.
 type StorageBackend[BeaconStateT any] interface {
 	StateFromContext(ctx context.Context) BeaconStateT
-}
-
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	ValidatorIndexByPubkey(
-		pubkey crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-
-	GetBlockRootAtIndex(
-		index uint64,
-	) (primitives.Root, error)
-
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
 }

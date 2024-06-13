@@ -60,7 +60,7 @@ type ValidatorMiddleware[
 		) (math.ValidatorIndex, error)
 	},
 	BlobSidecarsT ssz.Marshallable,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -123,7 +123,7 @@ func NewValidatorMiddleware[
 	},
 	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT StorageBackend[BeaconStateT],
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[

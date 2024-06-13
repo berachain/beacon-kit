@@ -39,7 +39,7 @@ import (
 // BeaconState is a type alias for the BeaconState.
 type BeaconState = core.BeaconState[
 	*types.BeaconBlockHeader, *types.Eth1Data,
-	*types.ExecutionPayloadHeader, *types.Fork,
+	*types.ExecutionPayloadHeaderDeneb, *types.Fork,
 	*types.Validator, *engineprimitives.Withdrawal,
 ]
 

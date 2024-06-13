@@ -40,7 +40,7 @@ type StateProcessor = blockchain.StateProcessor[
 	*datypes.BlobSidecars,
 	*transition.Context,
 	*types.Deposit,
-	*types.ExecutionPayloadHeader,
+	*types.ExecutionPayloadHeaderDeneb,
 ]
 
 // StateProcessorInput is the input for the state processor for the depinject
@@ -67,7 +67,7 @@ func ProvideStateProcessor(
 		*types.Deposit,
 		*types.Eth1Data,
 		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
+		*types.ExecutionPayloadHeaderDeneb,
 		*types.Fork,
 		*types.ForkData,
 		*types.Validator,

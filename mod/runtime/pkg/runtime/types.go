@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
@@ -81,6 +82,13 @@ type DepositStore interface {
 	) ([]*types.Deposit, error)
 	EnqueueDeposits(deposits []*types.Deposit) error
 	Prune(index uint64, numPrune uint64) error
+}
+
+// ExecutionPayloadHeader is the interface for the ExecutionPayloadHeader type.
+type ExecutionPayloadHeader interface {
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetTimestamp() math.U64
 }
 
 // Service is a struct that can be registered into a ServiceRegistry for

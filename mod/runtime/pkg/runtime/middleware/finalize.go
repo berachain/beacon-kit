@@ -49,7 +49,7 @@ type FinalizeBlockMiddleware[
 	},
 	BeaconStateT any,
 	BlobSidecarsT ssz.Marshallable,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
@@ -70,7 +70,7 @@ func NewFinalizeBlockMiddleware[
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 	},
 	BeaconStateT any, BlobSidecarsT ssz.Marshallable,
-	ExecutionPayloadHeaderT *types.ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ](
 	chainSpec primitives.ChainSpec,
 	chainService BlockchainService[
