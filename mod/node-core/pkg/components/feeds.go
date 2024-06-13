@@ -36,6 +36,6 @@ func ProvideBlockFeed[
 // framework.
 func ProvideCLSyncFeed[
 	CLSyncUpdateEventT any,
-]() *event.FeedOf[*feed.Event[CLSyncUpdateEventT]] {
-	return &event.FeedOf[*feed.Event[CLSyncUpdateEventT]]{}
+]() *event.FeedOf[feed.EventID, *feed.Event[CLSyncUpdateEventT]] {
+	return &event.FeedOf[feed.EventID, *feed.Event[CLSyncUpdateEventT]]{}
 }
