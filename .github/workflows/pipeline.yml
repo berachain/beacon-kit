@@ -46,7 +46,7 @@ env:
   GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
   GHCR_REGISTRY: ghcr.io
   PUSH_DOCKER_IMAGE: ${{ (github.base_ref == 'main' && github.head_ref == 'main' && github.event_name == 'push') || github.ref == 'refs/tags/v*.*.*'}}
-  VERSION: ${{ github.ref == 'refs/heads/main' && 'main' || github.sha }}
+  VERSION: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/tags/v*.*.*' ) && github.ref_name || github.sha }}
 
 jobs:
 
