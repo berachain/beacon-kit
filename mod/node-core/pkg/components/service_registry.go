@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -37,7 +38,6 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
@@ -90,7 +90,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.DepositService),
 		service.WithService(in.EngineClient),
 		service.WithService(version.NewReportingService(
-			in.Logger,
+			in.Logger.With("service", "reporting"),
 			in.TelemetrySink,
 			sdkversion.Version,
 		)),
