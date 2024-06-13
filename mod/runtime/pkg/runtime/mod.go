@@ -52,7 +52,11 @@ type (
 	]
 
 	ValidatorMiddleware = *middleware.ValidatorMiddleware[
-		*dastore.Store[*types.BeaconBlockBody], *types.BeaconBlock, *types.BeaconBlockBody,
-		BeaconState, *datypes.BlobSidecars, Backend,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		BeaconState,
+		*datypes.BlobSidecars,
+		Backend,
 	]
 )

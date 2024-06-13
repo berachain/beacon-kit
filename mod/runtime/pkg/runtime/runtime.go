@@ -34,15 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader,
-	*types.Eth1Data,
-	*types.ExecutionPayloadHeader,
-	*types.Fork,
-	*types.Validator,
-	*engineprimitives.Withdrawal,
-]
-
 // BeaconKitRuntime is a struct that holds the
 // service registry.
 type BeaconKitRuntime[
