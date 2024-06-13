@@ -94,10 +94,10 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				// supply empty middlewares
-				emptyFinalizeBlockMiddlware,
-				emptyValidatorMiddleware,
+				emptyFinalizeBlockMiddlware(),
+				emptyValidatorMiddleware(),
 				// supply empty storage backened
-				emptyStorageBackend,
+				emptyStorageBackend(),
 			),
 			depinject.Provide(
 				components.ProvideNoopTxConfig,

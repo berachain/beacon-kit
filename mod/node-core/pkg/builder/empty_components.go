@@ -31,18 +31,30 @@ import (
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
-// dummy components for the builder. these are needed to support the
-// direct dependencies needed to supply the Module.
-//
-//nolint:gochecknoglobals // we eventually shouldn't need to supply empty vars
-var (
-	// MIDDLEWARES.
-	emptyFinalizeBlockMiddlware = &middleware.FinalizeBlockMiddleware[
+// These functions return pointers to empty components.
+// Typically used when supplying empty values to depinject, or as receiving
+// addresses for constructed depinject values.
+
+// EmptyBeaconState returns a pointer to an empty BeaconState.
+func emptyStorageBackend() *storage.Backend[
+	*dastore.Store[*consensustypes.BeaconBlockBody],
+	*consensustypes.BeaconBlock,
+	*consensustypes.BeaconBlockBody,
+	components.BeaconState,
+	*depositdb.KVStore[*consensustypes.Deposit],
+] {
+	return &storage.Backend[
+		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
-		runtime.BeaconState,
-		*datypes.BlobSidecars,
+		*consensustypes.BeaconBlockBody,
+		components.BeaconState,
+		*depositdb.KVStore[*consensustypes.Deposit],
 	]{}
-	emptyValidatorMiddleware = &middleware.ValidatorMiddleware[
+}
+
+// EmptyBeaconState return a pointer to an empty BeaconState.
+func emptyValidatorMiddleware() runtime.ValidatorMiddleware {
+	return &middleware.ValidatorMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
@@ -50,12 +62,27 @@ var (
 		*datypes.BlobSidecars,
 		runtime.Backend,
 	]{}
-	// STORAGE BACKEND.
-	emptyStorageBackend = &storage.Backend[
+}
+
+// EmptyFinalizeBlockMiddleware returns a pointer to an empty
+// FinalizeBlockMiddleware.
+func emptyFinalizeBlockMiddlware() runtime.FinalizeBlockMiddleware {
+	return &middleware.FinalizeBlockMiddleware[
+		*consensustypes.BeaconBlock,
+		runtime.BeaconState,
+		*datypes.BlobSidecars,
+	]{}
+}
+
+// EmptyRuntime returns a pointer to an empty BeaconKitRuntime.
+func emptyRuntime() *components.BeaconKitRuntime {
+	return &runtime.BeaconKitRuntime[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
 		components.BeaconState,
+		*datypes.BlobSidecars,
 		*depositdb.KVStore[*consensustypes.Deposit],
+		runtime.Backend,
 	]{}
-)
+}
