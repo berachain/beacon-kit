@@ -24,7 +24,7 @@ import (
 	"encoding/json"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/config/flags"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"

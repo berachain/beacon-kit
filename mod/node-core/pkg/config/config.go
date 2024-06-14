@@ -22,7 +22,7 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/config/flags"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/config/viper"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"

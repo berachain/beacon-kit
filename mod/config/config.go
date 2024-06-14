@@ -22,7 +22,6 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/config/flags"
 	viperlib "github.com/berachain/beacon-kit/mod/config/viper"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -30,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -103,51 +101,4 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	}
 
 	return &cfg.BeaconKit, nil
-}
-
-// AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
-func AddBeaconKitFlags(startCmd *cobra.Command) {
-	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(
-		flags.JWTSecretPath,
-		defaultCfg.Engine.JWTSecretPath,
-		"path to the execution client secret",
-	)
-	startCmd.Flags().String(
-		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
-	startCmd.Flags().Uint64(
-		flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(
-		flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Duration(
-		flags.RPCStartupCheckInterval,
-		defaultCfg.Engine.RPCStartupCheckInterval,
-		"rpc startup check interval",
-	)
-	startCmd.Flags().Duration(
-		flags.RPCJWTRefreshInterval,
-		defaultCfg.Engine.RPCJWTRefreshInterval,
-		"rpc jwt refresh interval",
-	)
-	startCmd.Flags().String(
-		flags.SuggestedFeeRecipient,
-		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
-		"suggested fee recipient",
-	)
-	startCmd.Flags().String(
-		flags.KZGTrustedSetupPath,
-		defaultCfg.KZG.TrustedSetupPath,
-		"kzg trusted setup path",
-	)
-	startCmd.Flags().String(
-		flags.KZGImplementation,
-		defaultCfg.KZG.Implementation,
-		"kzg implementation",
-	)
-}
-
-// AddToSFlag adds the terms of service flag to the given command.
-func AddToSFlag(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().Bool(
-		flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }
