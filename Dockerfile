@@ -155,9 +155,6 @@ RUN addgroup -g ${FINAL_GID} -S ${FINAL_USERNAME} && \
 
 FROM ${RUNNER_IMAGE}
 
-# Build args
-ARG APP_NAME
-
 # Create tree structure for distroless environment
 WORKDIR /etc
 WORKDIR /usr/bin
@@ -168,7 +165,7 @@ COPY --from=adduser /etc/passwd /etc/passwd
 COPY --from=adduser /etc/group /etc/group
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/beacond
+COPY --from=builder /workdir/build/bin/beacond /usr/bin/beacond
 
 # Set the user to the one created in the adduser stage
 USER ${FINAL_USERNAME}
