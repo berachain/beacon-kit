@@ -27,6 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// defaultChannelCap defines the default capacity of the channel's buffer
+const defaultChannelCap = 100
+
 // Service represents the deposit service that processes deposit events.
 type Service[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
@@ -105,7 +108,7 @@ func NewService[
 		metrics:            newMetrics(telemetrySink),
 		dc:                 dc,
 		ds:                 ds,
-		failedBlocks:       make(chan math.U64, 100),
+		failedBlocks:       make(chan math.U64, defaultChannelCap),
 	}
 }
 
