@@ -28,6 +28,9 @@ name: pipeline
 on:
   push:
     branches:
+      - "*" 
+    tags:
+      - "v*"
   pull_request:
   merge_group:
 
