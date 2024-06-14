@@ -76,15 +76,11 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
             revert InvalidCredentialsLength();
         }
 
-        if (signature.length != SIGNATURE_LENGTH) {
-            revert InvalidSignatureLength();
-        }
+        require(signature.length != SIGNATURE_LENGTH, InvalidSignatureLength());
 
         uint64 amountInGwei = _deposit(amount);
 
-        if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
-            revert InsufficientDeposit();
-        }
+        require(amountInGwei >= MIN_DEPOSIT_AMOUNT_IN_GWEI, InsufficientDeposit());
 
         --depositAuth[msg.sender];
 
