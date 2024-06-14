@@ -26,6 +26,7 @@ ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
 ARG FINAL_USERNAME="bera"
+ARG FINAL_GROUPNAME="bera"
 ARG FINAL_UID=10000
 ARG FINAL_GID=10000
 
@@ -143,11 +144,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 FROM golang:${GO_VERSION}-alpine3.19 as adduser
 
 ARG FINAL_USERNAME
+ARG FINAL_GROUPNAME
 ARG FINAL_UID
 ARG FINAL_GID
 
-RUN addgroup -g ${FINAL_GID} -S ${FINAL_USERNAME} && \
-    adduser -u ${FINAL_UID} -S -G ${FINAL_USERNAME} ${FINAL_USERNAME}
+# Create a user and group to run the application
+RUN addgroup -g ${FINAL_GID} ${FINAL_GROUPNAME} && \
+    adduser -D -u ${FINAL_UID} -G ${FINAL_GROUPNAME} ${FINAL_USERNAME}
 
 #######################################################
 ###        Stage 4 - Prepare the Final Image        ###
