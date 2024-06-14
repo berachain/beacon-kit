@@ -46,16 +46,17 @@ var (
 )
 
 // AppModule implements an application module for the evm module.
+// It is a wrapper around the FinalizeBlockMiddleware and ValidatorMiddleware.
 type AppModule struct {
-	*components.BeaconKitRuntime
+	ABCIMiddleware *components.ABCIMiddleware
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	runtime *components.BeaconKitRuntime,
+	abciMiddleware *components.ABCIMiddleware,
 ) AppModule {
 	return AppModule{
-		BeaconKitRuntime: runtime,
+		ABCIMiddleware: abciMiddleware,
 	}
 }
 
@@ -107,4 +108,20 @@ func (am AppModule) ExportGenesis(
 			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
 		]{},
 	)
+}
+
+// InitGenesis
+// TODO: InitGenesis should be calling into the StateProcessor.
+func (am AppModule) InitGenesis(
+	ctx context.Context,
+	bz json.RawMessage,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIMiddleware.FinalizeBlock.InitGenesis(ctx, bz)
+}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (am AppModule) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIMiddleware.FinalizeBlock.EndBlock(ctx)
 }

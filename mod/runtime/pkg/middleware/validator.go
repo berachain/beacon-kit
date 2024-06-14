@@ -52,13 +52,7 @@ type ValidatorMiddleware[
 		Empty(uint32) BeaconBlockT
 	},
 	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT interface {
-		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
-		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(
-			cometBFTAddress []byte,
-		) (math.ValidatorIndex, error)
-	},
+	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT any,
 ] struct {

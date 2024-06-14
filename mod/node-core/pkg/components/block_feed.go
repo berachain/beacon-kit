@@ -20,14 +20,7 @@
 
 package components
 
-import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-)
-
 // ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed[
-	EventT any,
-]() *event.FeedOf[feed.EventID, *feed.Event[EventT]] {
-	return &event.FeedOf[feed.EventID, *feed.Event[EventT]]{}
+func ProvideBlockFeed() *BlockFeed {
+	return &BlockFeed{}
 }

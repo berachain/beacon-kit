@@ -21,11 +21,9 @@
 package app
 
 import (
-	"context"
 	"io"
 
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -57,7 +55,6 @@ func NewBeaconKitApp(
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 	app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
-	app.setupBeaconModule()
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {
@@ -65,35 +62,4 @@ func NewBeaconKitApp(
 	}
 
 	return app
-}
-
-// TODO: Unhack this.
-func (app *BeaconApp) setupBeaconModule() {
-	// Get the beacon module.
-	//
-	// TODO: Cleanup.
-	beaconModule, ok := app.ModuleManager.
-		Modules[beacon.ModuleName].(beacon.AppModule)
-	if !ok {
-		panic("beacon module not found")
-	}
-
-	// Set the beacon module's handlers.
-	app.SetPrepareProposal(
-		beaconModule.ABCIValidatorMiddleware().
-			PrepareProposalHandler,
-	)
-	app.SetProcessProposal(
-		beaconModule.
-			ABCIValidatorMiddleware().
-			ProcessProposalHandler,
-	)
-	app.SetPreBlocker(beaconModule.ABCIFinalizeBlockMiddleware().PreBlock)
-
-	// TODO: this needs to be made un-hood.
-	if err := beaconModule.StartServices(
-		context.Background(),
-	); err != nil {
-		panic(err)
-	}
 }
