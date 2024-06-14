@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// defaultChannelCap defines the default capacity of the channel's buffer
+// defaultChannelCap defines the default capacity of the channel's buffer.
 const defaultChannelCap = 100
 
 // Service represents the deposit service that processes deposit events.
