@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
@@ -46,28 +45,31 @@ type AvailabilityStoreInput struct {
 	Logger    log.Logger
 }
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
+// GetAVSProvider is a function that returns a function to
+// provide the availability store.
+func GetAVSProvider[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
-](
-	in AvailabilityStoreInput,
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
-		filedb.NewRangeDB(
-			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
+](homeFlag string) func(in AvailabilityStoreInput) (
+	*dastore.Store[BeaconBlockBodyT], error,
+) {
+	return func(in AvailabilityStoreInput) (*dastore.Store[BeaconBlockBodyT], error) {
+		return dastore.New[BeaconBlockBodyT](
+			filedb.NewRangeDB(
+				filedb.NewDB(
+					filedb.WithRootDirectory(
+						cast.ToString(
+							in.AppOpts.Get(homeFlag),
+						)+"/data/blobs",
+					),
+					filedb.WithFileExtension("ssz"),
+					filedb.WithDirectoryPermissions(os.ModePerm),
+					filedb.WithLogger(in.Logger),
 				),
-				filedb.WithFileExtension("ssz"),
-				filedb.WithDirectoryPermissions(os.ModePerm),
-				filedb.WithLogger(in.Logger),
 			),
-		),
-		in.Logger.With("service", "beacon-kit.da.store"),
-		in.ChainSpec,
-	), nil
+			in.Logger.With("service", "beacon-kit.da.store"),
+			in.ChainSpec,
+		), nil
+	}
 }
 
 // AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner

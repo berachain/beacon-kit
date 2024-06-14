@@ -32,7 +32,6 @@ import (
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
@@ -43,29 +42,29 @@ type DepositStoreInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ProvideDepositStore is a function that provides the module to the
-// application.
-func ProvideDepositStore[
+// GetDepositStoreProvider is a function that returns a function to
+// provide the deposit store.
+func GetDepositStoreProvider[
 	DepositT interface {
 		interfaces.SSZMarshallable
 		GetIndex() uint64
 		HashTreeRoot() ([32]byte, error)
 	},
-](
-	in DepositStoreInput,
-) (*depositstore.KVStore[DepositT], error) {
-	name := "deposits"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
-	if err != nil {
-		return nil, err
-	}
+](homeFlag string) func(in DepositStoreInput) (*depositstore.KVStore[DepositT], error) {
+	return func(in DepositStoreInput) (*depositstore.KVStore[DepositT], error) {
+		name := "deposits"
+		dir := cast.ToString(in.AppOpts.Get(homeFlag)) + "/data"
+		kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+		if err != nil {
+			return nil, err
+		}
 
-	return depositstore.NewStore[DepositT](
-		&depositstore.KVStoreProvider{
-			KVStoreWithBatch: kvp,
-		},
-	), nil
+		return depositstore.NewStore[DepositT](
+			&depositstore.KVStoreProvider{
+				KVStoreWithBatch: kvp,
+			},
+		), nil
+	}
 }
 
 // DepositPrunerInput is the input for the deposit pruner.

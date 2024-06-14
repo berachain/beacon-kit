@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
@@ -37,13 +36,13 @@ type TrustedSetupInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// ProvideTrustedSetup provides the module to the application.
-func ProvideTrustedSetup(
-	in TrustedSetupInput,
-) (*gokzg4844.JSONTrustedSetup, error) {
-	return ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
-	)
+// GetTrustedSetupProvider is a function that returns a function to provide the module to the application.
+func GetTrustedSetupProvider(setupFlag string) func(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
+	return func(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
+		return ReadTrustedSetup(
+			cast.ToString(in.AppOpts.Get(setupFlag)),
+		)
+	}
 }
 
 // ReadTrustedSetup reads the trusted setup from the file system.
