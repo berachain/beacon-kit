@@ -23,9 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
@@ -37,17 +35,15 @@ type LocalBuilderInput struct {
 	depinject.In
 	Cfg             *config.Config
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	ExecutionEngine *ExecutionEngine
 	Logger          log.Logger
 }
 
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
-) *payloadbuilder.PayloadBuilder[
-	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-] {
+) *LocalBuilder {
 	return payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

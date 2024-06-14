@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/interfaces"
@@ -71,7 +70,7 @@ func ProvideEngineClient[
 // framework.
 type ExecutionEngineInput struct {
 	depinject.In
-	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
+	EngineClient  *EngineClient
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -87,8 +86,8 @@ func ProvideExecutionEngine[
 	WithdrawalT any,
 ](
 	in ExecutionEngineInput,
-) *execution.Engine[*types.ExecutionPayload] {
-	return execution.New[*types.ExecutionPayload](
+) *ExecutionEngine {
+	return execution.New[*ExecutionPayload](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

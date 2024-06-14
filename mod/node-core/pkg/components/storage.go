@@ -24,41 +24,32 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput struct {
 	depinject.In
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	AvailabilityStore *AvailabilityStore
 	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-	KVStore           *beacondb.KVStore[
-		*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
-		*types.Eth1Data, *types.Validator,
-	]
+	DepositStore      *DepositStore
+	KVStore           *KVStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
 func ProvideStorageBackend(
 	in StorageBackendInput,
-) Backend {
+) StorageBackend {
 	return storage.NewBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Eth1Data,
-			*types.ExecutionPayloadHeader, *types.Fork,
-			*types.Validator, *engineprimitives.Withdrawal,
-		],
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		BeaconState,
+		*DepositStore,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
@@ -76,16 +67,13 @@ type KVStoreInput struct {
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
 func ProvideKVStore(
 	in KVStoreInput,
-) *beacondb.KVStore[
-	*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
-	*types.Eth1Data, *types.Validator,
-] {
+) *KVStore {
 	payloadCodec := &encoding.
-		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
+		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
 		*types.Fork,
-		*types.BeaconBlockHeader,
-		*types.ExecutionPayloadHeader,
+		*BeaconBlockHeader,
+		*ExecutionPayloadHeader,
 		*types.Eth1Data,
 		*types.Validator,
 	](in.Environment.KVStoreService, payloadCodec)

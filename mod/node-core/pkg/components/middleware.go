@@ -22,49 +22,28 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // ValidatorMiddlewareInput is the input for the validator middleware provider.
 type ValidatorMiddlewareInput struct {
 	depinject.In
-	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
+	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
-	StorageBackend   Backend
+	StorageBackend   StorageBackend
 	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService *validator.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-		*types.ForkData,
-	]
+	ValidatorService *ValidatorService
 }
 
 // ProvideValidatorMiddleware is a depinject provider for the validator
 // middleware.
 func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
-) ValidatorMiddleware {
+) *ValidatorMiddleware {
 	return middleware.
-		NewValidatorMiddleware[*dastore.Store[*types.BeaconBlockBody]](
+		NewValidatorMiddleware[*AvailabilityStore](
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
@@ -76,15 +55,7 @@ func ProvideValidatorMiddleware(
 // FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
-	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
+	ChainService  *ChainService
 	ChainSpec     primitives.ChainSpec
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -93,9 +64,9 @@ type FinalizeBlockMiddlewareInput struct {
 // middleware.
 func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
-) FinalizeBlockMiddleware {
+) *FinalizeBlockMiddleware {
 	return middleware.NewFinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
+		*BeaconBlock, BeaconState, *BlobSidecars,
 	](
 		in.ChainSpec,
 		in.ChainService,
@@ -106,8 +77,8 @@ func ProvideFinalizeBlockMiddleware(
 // ABCIMiddlewareInput is the input for the ABCI middleware provider.
 type ABCIMiddlewareInput struct {
 	depinject.In
-	FinalizeBlock FinalizeBlockMiddleware
-	Validator     ValidatorMiddleware
+	FinalizeBlock *FinalizeBlockMiddleware
+	Validator     *ValidatorMiddleware
 }
 
 // ProvideABCIMiddleware is a depinject provider for the ABCI middleware.
