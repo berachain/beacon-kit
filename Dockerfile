@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=alpine:3.19
+ARG RUNNER_IMAGE=scratch
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -142,9 +142,11 @@ FROM ${RUNNER_IMAGE}
 # Build args
 ARG APP_NAME
 
-# Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
-RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash sed curl
+# Create tree structure for distroless environment
+WORKDIR /usr/bin
+WORKDIR /tmp
 
-# ENTRYPOINT [ "./beacond" ]
+# Copy over built executable into a fresh container.
+COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/beacond
+
+ENTRYPOINT [ "/usr/bin/beacond" ]
