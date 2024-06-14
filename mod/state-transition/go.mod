@@ -5,8 +5,8 @@ go 1.22.4
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614141956-1031712e1325
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614141956-1031712e1325
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/minio/sha256-simd v1.0.1
