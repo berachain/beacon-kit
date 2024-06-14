@@ -48,7 +48,10 @@ type BeaconState = core.BeaconState[
 type BeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		types.RawBeaconBlock[
+			BeaconBlockBodyT,
+			DepositT,
+		]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -58,7 +61,7 @@ type BeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody[DepositT],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -68,6 +71,7 @@ type BeaconKitRuntime[
 		*engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
+	DepositT any,
 	DepositStoreT DepositStore,
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconBlockBodyT,
@@ -92,7 +96,7 @@ type BeaconKitRuntime[
 	// validator service.
 	abciValidatorMiddleware *middleware.ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT, DepositT, StorageBackendT,
 	]
 }
 
@@ -101,7 +105,7 @@ type BeaconKitRuntime[
 func NewBeaconKitRuntime[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		types.RawBeaconBlock[BeaconBlockBodyT, DepositT]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -111,13 +115,14 @@ func NewBeaconKitRuntime[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT types.RawBeaconBlockBody[DepositT],
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
 		*types.ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *engineprimitives.Withdrawal,
 	],
 	BlobSidecarsT BlobSidecars,
+	DepositT any,
 	DepositStoreT DepositStore,
 	StorageBackendT blockchain.StorageBackend[
 		AvailabilityStoreT,
@@ -137,15 +142,15 @@ func NewBeaconKitRuntime[
 	storageBackend StorageBackendT,
 	validatorMiddleware *middleware.ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT, DepositT, StorageBackendT,
 	],
 ) (*BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositT, DepositStoreT, StorageBackendT,
 ], error) {
 	return &BeaconKitRuntime[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT, StorageBackendT,
+		BlobSidecarsT, DepositT, DepositStoreT, StorageBackendT,
 	]{
 		abciFinalizeBlockMiddleware: finalizeBlockMiddleware,
 		abciValidatorMiddleware:     validatorMiddleware,
@@ -159,7 +164,7 @@ func NewBeaconKitRuntime[
 // StartServices starts the services.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositT, DepositStoreT, StorageBackendT,
 ]) StartServices(
 	ctx context.Context,
 ) error {
@@ -169,7 +174,7 @@ func (r *BeaconKitRuntime[
 // ABCIFinalizeBlockMiddleware returns the ABCI handler.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositT, DepositStoreT, StorageBackendT,
 ]) ABCIFinalizeBlockMiddleware() *middleware.FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ] {
@@ -179,10 +184,10 @@ func (r *BeaconKitRuntime[
 // ABCIValidatorMiddleware returns the ABCI validator middleware.
 func (r *BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, StorageBackendT,
+	BlobSidecarsT, DepositT, DepositStoreT, StorageBackendT,
 ]) ABCIValidatorMiddleware() *middleware.ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, StorageBackendT,
+	BeaconStateT, BlobSidecarsT, DepositT, StorageBackendT,
 ] {
 	return r.abciValidatorMiddleware
 }

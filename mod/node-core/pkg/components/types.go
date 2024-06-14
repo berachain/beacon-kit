@@ -50,7 +50,7 @@ type (
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
+	BeaconBlockBody   = types.BeaconBlockBody[*Deposit]
 	BeaconBlockHeader = types.BeaconBlockHeader
 
 	// BeaconState is a type alias for the BeaconState.
@@ -67,6 +67,7 @@ type (
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
 		StorageBackend,
 	]
@@ -91,10 +92,13 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -152,10 +156,12 @@ type (
 	// StateProcessor is the type alias for the state processor inteface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
+		*ExecutionPayloadHeader,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -175,6 +181,7 @@ type (
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		StorageBackend,
 	]
 

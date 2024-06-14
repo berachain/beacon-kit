@@ -31,7 +31,7 @@ import (
 // TODO: InitGenesis should be calling into the StateProcessor.
 func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	BeaconStateT, BlobSidecarsT, DepositT,
 	DepositStoreT, StorageBackendT,
 ]) InitGenesis(
 	ctx context.Context,
@@ -43,7 +43,7 @@ func (r BeaconKitRuntime[
 // EndBlock returns the validator set updates from the beacon state.
 func (r BeaconKitRuntime[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
+	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
 	StorageBackendT,
 ]) EndBlock(
 	ctx context.Context,

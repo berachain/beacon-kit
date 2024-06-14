@@ -27,11 +27,52 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
+	ValidatorIndexByPubkey(
+		pubkey crypto.BLSPubkey,
+	) (math.ValidatorIndex, error)
+
+	GetBlockRootAtIndex(
+		index uint64,
+	) (primitives.Root, error)
+
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
+}
+
+type BeaconBlockBody[
+	T any,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	DepositT any,
+] interface {
+	ssz.Marshallable
+	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
+	IsNil() bool
+	Version() uint32
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetBody() T
+	GetHeader() BeaconBlockHeaderT
+	// GetDeposits returns the deposits of the beacon block body.
+	GetDeposits() []DepositT
+	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon
+	// block body.
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+}
+
+type BeaconBlockHeader interface{}
 
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
@@ -87,19 +128,4 @@ type TelemetrySink interface {
 // StorageBackend is an interface for accessing the storage backend.
 type StorageBackend[BeaconStateT any] interface {
 	StateFromContext(ctx context.Context) BeaconStateT
-}
-
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	ValidatorIndexByPubkey(
-		pubkey crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-
-	GetBlockRootAtIndex(
-		index uint64,
-	) (primitives.Root, error)
-
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
 }
