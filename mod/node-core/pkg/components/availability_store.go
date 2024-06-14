@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -75,8 +74,8 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput struct {
 	depinject.In
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
-	BlockFeed         *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	AvailabilityStore *AvailabilityStore
+	BlockFeed         *BlockFeed
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }
@@ -89,8 +88,8 @@ func ProvideAvailabilityPruner(
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*BeaconBlock,
+		*BlockEvent,
 		*filedb.RangeDB,
 		event.Subscription,
 	](
@@ -99,8 +98,8 @@ func ProvideAvailabilityPruner(
 		manager.AvailabilityPrunerName,
 		in.BlockFeed,
 		dastore.BuildPruneRangeFn[
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
+			*BeaconBlock,
+			*BlockEvent,
 		](in.ChainSpec),
 	)
 }

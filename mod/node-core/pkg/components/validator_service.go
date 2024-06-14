@@ -26,28 +26,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BlobProcessor *dablob.Processor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-	]
-	Cfg          *config.Config
-	ChainSpec    primitives.ChainSpec
-	LocalBuilder *payloadbuilder.PayloadBuilder[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
-	]
+	BlobProcessor  *BlobProcessor
+	Cfg            *config.Config
+	ChainSpec      primitives.ChainSpec
+	LocalBuilder   *LocalBuilder
 	Logger         log.Logger
 	StateProcessor StateProcessor
 	StorageBackend StorageBackend
@@ -58,21 +49,14 @@ type ValidatorServiceInput struct {
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService(
 	in ValidatorServiceInput,
-) *validator.Service[
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*depositdb.KVStore[*types.Deposit],
-	*types.ForkData,
-] {
+) *ValidatorService {
 	// Build the builder service.
 	return validator.NewService[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
+		*BlobSidecars,
+		*DepositStore,
 		*types.ForkData,
 	](
 		&in.Cfg.Validator,
@@ -82,16 +66,13 @@ func ProvideValidatorService(
 		in.BlobProcessor,
 		in.StateProcessor,
 		in.Signer,
-		dablob.NewSidecarFactory[
-			*types.BeaconBlock,
-			*types.BeaconBlockBody,
-		](
+		dablob.NewSidecarFactory[*BeaconBlock, *BeaconBlockBody](
 			in.ChainSpec,
 			types.KZGPositionDeneb,
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *types.ExecutionPayload]{
+		[]validator.PayloadBuilder[BeaconState, *ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

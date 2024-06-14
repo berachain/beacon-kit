@@ -154,7 +154,7 @@ func (v Validator) IsSlashed() bool {
 	return v.Slashed
 }
 
-// IsFullyWithdrawable as defined in the Ethereum 2.0 specfication:
+// IsFullyWithdrawable as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
 //
 //nolint:lll
@@ -166,7 +166,7 @@ func (v Validator) IsFullyWithdrawable(
 		balance > 0
 }
 
-// IsPartiallyWithdrawable as defined in the Ethereum 2.0 specfication:
+// IsPartiallyWithdrawable as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
 //
 //nolint:lll
@@ -178,7 +178,7 @@ func (v Validator) IsPartiallyWithdrawable(
 		v.HasMaxEffectiveBalance(maxEffectiveBalance) && hasExcessBalance
 }
 
-// IsWithdrawable as defined in the Ethereum 2.0 specfication:
+// IsWithdrawable as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
 //
 //nolint:lll

@@ -1,5 +1,5 @@
 port_spec_lib = import_module("../../lib/port_spec.star")
-shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 
 # ETH Execution constants
 
