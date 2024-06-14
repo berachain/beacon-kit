@@ -157,6 +157,21 @@ func TestBeaconBlockEmpty(t *testing.T) {
 	require.IsType(t, &types.BeaconBlockDeneb{}, emptyBlock.RawBeaconBlock)
 }
 
+func TestBeaconBlock_IsNil(t *testing.T) {
+	var block *types.BeaconBlock
+	require.True(t, block.IsNil())
+
+	// Test when RawBeaconBlock is nil
+	block = &types.BeaconBlock{}
+	require.True(t, block.IsNil())
+
+	// Test when BeaconBlock and RawBeaconBlock are not nil
+	block = &types.BeaconBlock{
+		RawBeaconBlock: &types.BeaconBlockDeneb{},
+	}
+	require.False(t, block.IsNil())
+}
+
 func TestNewWithVersion(t *testing.T) {
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
