@@ -16,6 +16,7 @@ replace (
 require (
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240614135647-9814c0c41144
+	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
 )
 
@@ -83,7 +84,6 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/cosmos-sdk v0.51.0 // indirect
 	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect

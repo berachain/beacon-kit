@@ -27,9 +27,18 @@ import (
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 )
 
+// DefaultClientComponents returns the default components for
+// the client.
+func DefaultClientComponents() []any {
+	return []any{
+		ProvideClientContext,
+		ProvideKeyring,
+	}
+}
+
 // TODO: Decouple cli flags package from here, and / or
 // remove this function.
-func DefaultComponentsWithStandardTypes() []any {
+func DefaultNodeComponents() []any {
 	return []any{
 		components.ProvideABCIMiddleware,
 		components.ProvideAvailabilityPruner,

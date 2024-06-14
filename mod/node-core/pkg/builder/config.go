@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -70,7 +71,7 @@ func DefaultAppConfig() any {
 // application.
 func DefaultAppConfigTemplate() string {
 	return serverconfig.DefaultConfigTemplate +
-		"\n" + config.Template
+		"\n" + template.TomlTemplate
 }
 
 // DefaultCometConfig returns the default configuration for the CometBFT

@@ -36,8 +36,11 @@ type TrustedSetupInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// GetTrustedSetupProvider is a function that returns a function to provide the module to the application.
-func GetTrustedSetupProvider(setupFlag string) func(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
+// GetTrustedSetupProvider is a function that returns a function to provide the
+// module to the application.
+func GetTrustedSetupProvider(
+	setupFlag string,
+) func(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
 	return func(in TrustedSetupInput) (*gokzg4844.JSONTrustedSetup, error) {
 		return ReadTrustedSetup(
 			cast.ToString(in.AppOpts.Get(setupFlag)),

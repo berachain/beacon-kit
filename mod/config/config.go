@@ -22,7 +22,8 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	viperlib "github.com/berachain/beacon-kit/mod/config/viper"
+	"github.com/berachain/beacon-kit/mod/config/pkg/template"
+	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -61,7 +62,7 @@ func (c Config) GetEngine() engineclient.Config {
 
 // Template returns the configuration template.
 func (c Config) Template() string {
-	return Template
+	return template.TomlTemplate
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given

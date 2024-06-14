@@ -52,7 +52,9 @@ func GetAVSProvider[
 ](homeFlag string) func(in AvailabilityStoreInput) (
 	*dastore.Store[BeaconBlockBodyT], error,
 ) {
-	return func(in AvailabilityStoreInput) (*dastore.Store[BeaconBlockBodyT], error) {
+	return func(in AvailabilityStoreInput) (
+		*dastore.Store[BeaconBlockBodyT], error,
+	) {
 		return dastore.New[BeaconBlockBodyT](
 			filedb.NewRangeDB(
 				filedb.NewDB(

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -50,7 +51,15 @@ func run() error {
 			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[types.NodeI](
-			components.DefaultComponentsWithStandardTypes(),
+			components.DefaultNodeComponents(),
+		),
+		// Set the Client Components to the Default.
+		nodebuilder.WithClientComponents[types.NodeI](
+			components.DefaultClientComponents(),
+		),
+		// TODO: this is hood.
+		nodebuilder.WithTODORemoveRunHandler[types.NodeI](
+			server.InterceptConfigsPreRunHandler,
 		),
 	)
 

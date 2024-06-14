@@ -50,7 +50,9 @@ func GetDepositStoreProvider[
 		GetIndex() uint64
 		HashTreeRoot() ([32]byte, error)
 	},
-](homeFlag string) func(in DepositStoreInput) (*depositstore.KVStore[DepositT], error) {
+](homeFlag string) func(in DepositStoreInput) (
+	*depositstore.KVStore[DepositT], error,
+) {
 	return func(in DepositStoreInput) (*depositstore.KVStore[DepositT], error) {
 		name := "deposits"
 		dir := cast.ToString(in.AppOpts.Get(homeFlag)) + "/data"

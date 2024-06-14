@@ -36,8 +36,11 @@ type BlsSignerInput struct {
 	PrivKey LegacyKey `optional:"true"`
 }
 
-// GetBlsSignerProvider is a function that returns a function to provide the module to the application.
-func GetBlsSignerProvider(homeFlag string) func(in BlsSignerInput) (crypto.BLSSigner, error) {
+// GetBlsSignerProvider is a function that returns a function to provide the
+// module to the application.
+func GetBlsSignerProvider(
+	homeFlag string,
+) func(in BlsSignerInput) (crypto.BLSSigner, error) {
 	return func(in BlsSignerInput) (crypto.BLSSigner, error) {
 		if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 			// if no private key is provided, use privval signer

@@ -23,7 +23,7 @@ package components
 import (
 	"os"
 
-	"github.com/berachain/beacon-kit/mod/config/spec"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
