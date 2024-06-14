@@ -58,7 +58,7 @@ func run() error {
 		nodebuilder.WithClientComponents[types.NodeI](
 			components.DefaultClientComponents(),
 		),
-		// TODO: this is hood.
+		// TODO: this is hood and needs to be refactored.
 		nodebuilder.WithTODORemoveRunHandler[types.NodeI](
 			server.InterceptConfigsPreRunHandler,
 		),

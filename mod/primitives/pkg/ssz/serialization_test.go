@@ -301,18 +301,57 @@ func TestMarshalBitVector(t *testing.T) {
 }
 
 func TestMarshalBitList(t *testing.T) {
-	// Create a slice of booleans to pass as input
-	input := []bool{true, false, true, false, true, false, true}
-
-	output := ssz.MarshalBitList(input)
-	// Create a byte slice from a list of binary literals. 0b11010101 is the
-	// binary representation of the input slice
-	expectedOutput := []byte{0b11010101}
-	if !reflect.DeepEqual(output, expectedOutput) {
-		t.Errorf("Expected output %08b, got %08b", expectedOutput, output)
+	var testcases = []struct {
+		name      string
+		input     []bool
+		expOutput []byte
+	}{
+		{
+			name:      "empty input",
+			input:     []bool{},
+			expOutput: []byte{0b00000001},
+		},
+		{
+			name:      "single true input",
+			input:     []bool{true},
+			expOutput: []byte{0b00000011},
+		},
+		{
+			name:      "four elements input",
+			input:     []bool{true, true, false, false},
+			expOutput: []byte{0b00010011},
+		},
+		{
+			name:      "seven elements input",
+			input:     []bool{true, false, true, false, true, false, true},
+			expOutput: []byte{0b11010101},
+		},
+		{
+			name:      "eight elements input",
+			input:     []bool{true, false, true, false, true, false, true, false},
+			expOutput: []byte{0b01010101, 0b00000001},
+		},
+		{
+			name:      "nine elements input",
+			input:     []bool{true, false, true, false, true, false, true, false, false},
+			expOutput: []byte{0b01010101, 0b00000010},
+		},
+		{
+			name: "fifteen elements input",
+			input: []bool{true, false, true, false, true, false, true, false,
+				true, true, true, true, true, true, true,
+			},
+			expOutput: []byte{0b01010101, 0b11111111},
+		},
 	}
-
-	// TODO: test multiple bytes
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			output := ssz.MarshalBitList(tc.input)
+			if !reflect.DeepEqual(output, tc.expOutput) {
+				t.Errorf("Expected output %08b, got %08b", tc.expOutput, output)
+			}
+		})
+	}
 }
 
 func TestMostSignificantBitIndex(t *testing.T) {
@@ -398,68 +437,49 @@ func BenchmarkMostSignificantBitIndex(b *testing.B) {
 }
 
 func TestUnmarshalBitList(t *testing.T) {
-	// Test case 1: Empty input
-	var bv []byte
-	var expected []bool
-	actual := ssz.UnmarshalBitList(bv)
-	if !reflect.DeepEqual(len(actual), len(expected)) {
-		t.Errorf(
-			"TestUnmarshalBitList failed for empty input: expected %v but got %v",
-			expected,
-			actual,
-		)
+	tests := []struct {
+		name      string
+		input     []byte
+		expOutput []bool
+	}{
+		{
+			name:      "Empty input",
+			input:     []byte{},
+			expOutput: []bool{},
+		},
+		{
+			name:      "Input with sentinel bit set",
+			input:     []byte{0b00000011},
+			expOutput: []bool{true},
+		},
+		{
+			name:      "Input with multiple bits set",
+			input:     []byte{0b11001100},
+			expOutput: []bool{false, false, true, true, false, false, true},
+		},
+		{
+			name: "Input with multiple bits set - check both marshal and unmarshal",
+			// noliint: lll
+			input: ssz.MarshalBitList([]bool{true, false, true, false,
+				true, false, true,
+			}),
+			expOutput: []bool{true, false, true, false, true, false, true},
+		},
+		{
+			name:  "Input with 2 bytes set - check input and output",
+			input: []byte{0b01010101, 0b11111111},
+			expOutput: []bool{true, false, true, false, true, false,
+				true, false, true, true, true, true, true, true, true,
+			},
+		},
 	}
 
-	// Test case 2: Input with sentinel bit set
-	bv = []byte{0b00000011}
-	expected = []bool{true}
-	actual = ssz.UnmarshalBitList(bv)
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf(
-			"TestUnmarshalBitList failed for input with"+
-				" sentinel bit set: expected %v but got %v",
-			expected,
-			actual,
-		)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			output := ssz.UnmarshalBitList(tc.input)
+			if !reflect.DeepEqual(output, tc.expOutput) {
+				t.Errorf("Expected output %v, got %v", tc.expOutput, output)
+			}
+		})
 	}
-
-	// Test case 3: Input with multiple bits set
-	bv = []byte{0b11001100}
-	actual = ssz.UnmarshalBitList(bv)
-	expected = []bool{false, false, true, true, false, false, true}
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf(
-			"TestUnmarshalBitList failed for input with"+
-				" multiple bits set: expected %v but got %v",
-			expected,
-			actual,
-		)
-	}
-	// Test case 3a: Check Unmarshal returns same results as original input to
-	// marshal
-	expectedBV := ssz.MarshalBitList(actual)
-	if !reflect.DeepEqual(expectedBV, bv) {
-		t.Errorf(
-			"TestUnmarshalBitList failed for input with"+
-				" multiple bits set: expected %08b but got %08b",
-			expectedBV,
-			bv,
-		)
-	}
-
-	// Test case 4: Input with multiple bits set
-	input := []bool{true, false, true, false, true, false, true}
-	output := ssz.MarshalBitList(input)
-	unmarshalledOutput := ssz.UnmarshalBitList(output)
-	if !reflect.DeepEqual(input, unmarshalledOutput) {
-		t.Errorf(
-			"Expected output %08t, got %08t from %08b",
-			unmarshalledOutput,
-			input,
-			output,
-		)
-	}
-
-	// TODO: test multiple bytes
 }
