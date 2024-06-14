@@ -96,9 +96,3 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"kzg implementation",
 	)
 }
-
-// AddToSFlag adds the terms of service flag to the given command.
-func AddToSFlag(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().Bool(
-		BeaconKitAcceptTos, false, "accept the terms of service")
-}

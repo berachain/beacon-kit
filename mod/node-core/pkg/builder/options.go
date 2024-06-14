@@ -61,14 +61,18 @@ func WithComponents[NodeT types.NodeI](components []any) Opt[NodeT] {
 	}
 }
 
-// WithClientComponents is a function that sets the client components for the NodeBuilder.
-func WithClientComponents[NodeT types.NodeI](clientComponents []any) Opt[NodeT] {
+// WithClientComponents is a function that sets the client components for the
+// NodeBuilder.
+func WithClientComponents[NodeT types.NodeI](
+	clientComponents []any,
+) Opt[NodeT] {
 	return func(nb *NodeBuilder[NodeT]) {
 		nb.clientComponents = clientComponents
 	}
 }
 
-// WithTODORemoveRunHandler is a function that sets the run handler for the NodeBuilder.
+// WithTODORemoveRunHandler is a function that sets the run handler for the
+// NodeBuilder.
 func WithTODORemoveRunHandler[NodeT types.NodeI](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,

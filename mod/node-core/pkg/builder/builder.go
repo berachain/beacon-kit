@@ -107,7 +107,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 					components.ProvideNoopTxConfig,
 					components.ProvideConfig,
 					components.ProvideChainSpec,
-				),
+				)...,
 			),
 		),
 		&autoCliOpts,
