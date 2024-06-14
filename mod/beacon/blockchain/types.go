@@ -240,6 +240,11 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 }
 
+type ExecutionPayloadHeaderDeneb[ExecutionPayloadHeaderT ExecutionPayloadHeader] interface {
+	ExecutionPayloadHeader
+	ToPayloadHeader() ExecutionPayloadHeaderT
+}
+
 // EventFeed is a generic interface for sending events.
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of

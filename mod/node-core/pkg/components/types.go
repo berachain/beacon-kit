@@ -96,6 +96,7 @@ type (
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		*ExecutionPayloadHeaderDeneb,
 		*Withdrawal,
 	]
 
@@ -130,8 +131,9 @@ type (
 	ExecutionEngine = execution.Engine[*ExecutionPayload]
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
+	ExecutionPayload            = types.ExecutionPayload
+	ExecutionPayloadHeader      = types.ExecutionPayloadHeader
+	ExecutionPayloadHeaderDeneb = types.ExecutionPayloadHeaderDeneb
 
 	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
 		*BeaconBlock, BeaconState, *BlobSidecars,

@@ -25,7 +25,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -40,7 +39,7 @@ type ChainServiceInput struct {
 	Cfg             *config.Config
 	DepositService  *DepositService
 	EngineClient    *EngineClient
-	ExecutionEngine *execution.Engine[*ExecutionPayload, *Withdrawal]
+	ExecutionEngine *ExecutionEngine
 	LocalBuilder    *LocalBuilder
 	Logger          log.Logger
 	Signer          crypto.BLSSigner
@@ -60,9 +59,11 @@ func ProvideChainService(
 		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		*ExecutionPayloadHeaderDeneb,
 		*Withdrawal,
 	](
 		in.StorageBackend,

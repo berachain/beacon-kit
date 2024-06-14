@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -39,18 +38,18 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
-		DepositT, *types.ExecutionPayloadHeaderDeneb,
+		DepositT, ExecutionPayloadHeaderDenebT,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
 		ExecutionPayloadHeader(
-			genesisData.ExecutionPayloadHeader,
+			genesisData.ExecutionPayloadHeader.ToPayloadHeader(),
 		).(ExecutionPayloadHeaderT),
 		genesisData.ForkVersion,
 	)
@@ -62,7 +61,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -128,7 +127,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -166,7 +165,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,

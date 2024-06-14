@@ -215,3 +215,11 @@ func (d *ExecutionPayloadHeaderDeneb) GetBlobGasUsed() math.U64 {
 func (d *ExecutionPayloadHeaderDeneb) GetExcessBlobGas() math.U64 {
 	return d.ExcessBlobGas
 }
+
+// ToPayloadHeader returns the ExecutionPayloadHeaderDeneb as an
+// ExecutionPayloadHeader.
+func (
+	d *ExecutionPayloadHeaderDeneb,
+) ToPayloadHeader() *ExecutionPayloadHeader {
+	return &ExecutionPayloadHeader{InnerExecutionPayloadHeader: d}
+}

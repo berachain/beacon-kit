@@ -50,6 +50,7 @@ type Service[
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderDenebT ExecutionPayloadHeaderDeneb[ExecutionPayloadHeaderT],
 	WithdrawalT Withdrawal,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
@@ -115,6 +116,7 @@ func NewService[
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderDenebT ExecutionPayloadHeaderDeneb[ExecutionPayloadHeaderT],
 	WithdrawalT Withdrawal,
 ](
 	sb StorageBackend[
@@ -148,13 +150,13 @@ func NewService[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 		DepositT, DepositStoreT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, WithdrawalT,
+		ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -175,7 +177,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -184,7 +186,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) Start(
 	context.Context,
 ) error {
@@ -195,7 +197,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
 ]) Status() error {
 	return nil
 }
