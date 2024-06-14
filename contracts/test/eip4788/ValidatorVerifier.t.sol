@@ -48,6 +48,44 @@ contract ValidatorVerifierTest is Test {
         );
     }
 
+    function test_ProveValidatorWrongIndex() public {
+        uint64 ts = 31_337;
+
+        verifier = new ValidatorVerifier(DENEB_ZERO_VALIDATOR_GINDEX);
+
+        vm.mockCall(
+            verifier.BEACON_ROOTS(),
+            abi.encode(ts),
+            abi.encode(proofJson.blockRoot)
+        );
+        vm.expectRevert(bytes4(keccak256("IndexOutOfRange()")));
+        verifier.proveValidator(
+            proofJson.validatorProof,
+            proofJson.validator,
+            (1 << 40) + 1, // VALIDATOR_REGISTRY_LIMIT + 1
+            ts
+        );
+    }
+
+    function test_ProveValidatorInvalidProof() public {
+        uint64 ts = 31_337;
+
+        verifier = new ValidatorVerifier(DENEB_ZERO_VALIDATOR_GINDEX);
+
+        vm.mockCall(
+            verifier.BEACON_ROOTS(),
+            abi.encode(ts),
+            abi.encode(proofJson.blockRoot)
+        );
+        vm.expectRevert(bytes4(keccak256("InvalidProof()")));
+        verifier.proveValidator(
+            proofJson.validatorProof,
+            proofJson.validator,
+            proofJson.validatorIndex - 1,
+            ts
+        );
+    }
+
     function test_ProveValidator_OnFork() public {
         string memory forkUrl = vm.envOr("FORK_URL", string(""));
         vm.skip(_isEmptyString(forkUrl));

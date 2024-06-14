@@ -261,7 +261,7 @@ func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 	// was marked as valid by an honest majority of validators, and we
 	// don't want to halt the chain because of an error here.
 	//
-	// The pratical reason we want to handle this edge case
+	// The practical reason we want to handle this edge case
 	// is to protect against an awkward shutdown condition in which an
 	// execution client dies between the end of abci.ProcessProposal
 	// and the beginning of abci.FinalizeBlock. Without handling this case

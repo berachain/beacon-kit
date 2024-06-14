@@ -60,7 +60,7 @@ func (s *Service[
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
 	// the next finalized block in the chain. A byproduct of this design
-	// is that we get the nice property of lazily propogating the finalized
+	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
 

@@ -23,36 +23,20 @@ package components
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
-
-// StorageBackend is the type alias for the storage backend interface.
-type StorageBackend = blockchain.StorageBackend[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlockBody,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*types.Deposit,
-	*depositdb.KVStore[*types.Deposit],
-]
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput struct {
 	depinject.In
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	AvailabilityStore *AvailabilityStore
 	ChainSpec         primitives.ChainSpec
-	DepositStore      *depositdb.KVStore[*types.Deposit]
-	Environment       appmodule.Environment
+	DepositStore      *DepositStore
+	KVStore           *KVStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -60,27 +44,37 @@ type StorageBackendInput struct {
 func ProvideStorageBackend(
 	in StorageBackendInput,
 ) StorageBackend {
-	payloadCodec := &encoding.
-		SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 	return storage.NewBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		core.BeaconState[
-			*types.BeaconBlockHeader, *types.Eth1Data,
-			*types.ExecutionPayloadHeader, *types.Fork,
-			*types.Validator, *engineprimitives.Withdrawal,
-		],
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		BeaconState,
+		*DepositStore,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		beacondb.New[
-			*types.Fork,
-			*types.BeaconBlockHeader,
-			*types.ExecutionPayloadHeader,
-			*types.Eth1Data,
-			*types.Validator,
-		](in.Environment.KVStoreService, payloadCodec),
+		in.KVStore,
 		in.DepositStore,
 	)
+}
+
+// KVStoreInput is the input for the ProvideKVStore function.
+type KVStoreInput struct {
+	depinject.In
+	Environment appmodule.Environment
+}
+
+// ProvideKVStore is the depinject provider that returns a beacon KV store.
+func ProvideKVStore(
+	in KVStoreInput,
+) *KVStore {
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+	return beacondb.New[
+		*types.Fork,
+		*BeaconBlockHeader,
+		*ExecutionPayloadHeader,
+		*types.Eth1Data,
+		*types.Validator,
+	](in.Environment.KVStoreService, payloadCodec)
 }

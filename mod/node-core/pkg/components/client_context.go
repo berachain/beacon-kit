@@ -58,7 +58,6 @@ func ProvideClientContext(
 	consensusAddressCodec address.ConsensusAddressCodec,
 ) (client.Context, error) {
 	var err error
-
 	clientCtx := client.Context{}.
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
