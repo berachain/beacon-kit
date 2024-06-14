@@ -146,7 +146,18 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	require.Equal(t, forkVersion, request.ForkVersion)
 }
 
-func TestHasValidVersionedAndBlockHashesError(t *testing.T) {
+func TestBuildGetPayloadRequest(t *testing.T) {
+	payloadID := engineprimitives.PayloadID{}
+	forkVersion := uint32(1)
+
+	request := engineprimitives.BuildGetPayloadRequest(payloadID, forkVersion)
+
+	require.NotNil(t, request)
+	require.Equal(t, payloadID, request.PayloadID)
+	require.Equal(t, forkVersion, request.ForkVersion)
+}
+
+func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
 	versionedHashes := []common.ExecutionHash{}
 	parentBeaconBlockRoot := primitives.Root{}
@@ -163,13 +174,19 @@ func TestHasValidVersionedAndBlockHashesError(t *testing.T) {
 	require.ErrorIs(t, err, engineprimitives.ErrPayloadBlockHashMismatch)
 }
 
-func TestBuildGetPayloadRequest(t *testing.T) {
-	payloadID := engineprimitives.PayloadID{}
-	forkVersion := uint32(1)
+func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
+	executionPayload := MockExecutionPayload{}
+	versionedHashes := []common.ExecutionHash{common.ExecutionHash{}}
+	parentBeaconBlockRoot := primitives.Root{}
+	optimistic := false
 
-	request := engineprimitives.BuildGetPayloadRequest(payloadID, forkVersion)
+	request := engineprimitives.BuildNewPayloadRequest(
+		executionPayload,
+		versionedHashes,
+		&parentBeaconBlockRoot,
+		optimistic,
+	)
 
-	require.NotNil(t, request)
-	require.Equal(t, payloadID, request.PayloadID)
-	require.Equal(t, forkVersion, request.ForkVersion)
+	err := request.HasValidVersionedAndBlockHashes()
+	require.ErrorIs(t, err, engineprimitives.ErrMismatchedNumVersionedHashes)
 }
