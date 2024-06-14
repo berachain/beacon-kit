@@ -49,7 +49,3 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	}
 	return signer.NewLegacySigner(in.PrivKey)
 }
-
-func GetLegacyKey(privKey string) (LegacyKey, error) {
-	return signer.LegacyKeyFromString(privKey)
-}

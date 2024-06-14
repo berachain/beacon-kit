@@ -49,6 +49,9 @@ func ProvideLocalBuilder(
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
-		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
+		cache.NewPayloadIDCache[
+			engineprimitives.PayloadID,
+			[32]byte, math.Slot,
+		](),
 	)
 }
