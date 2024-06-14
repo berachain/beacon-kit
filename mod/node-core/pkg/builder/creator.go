@@ -47,11 +47,14 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		panic("goleveldb is not supported")
 	}
 
+	// variables to hold the components needed to set up BeaconApp
 	var chainSpec primitives.ChainSpec
 	appBuilder := emptyAppBuilder()
-	serviceRegistry := emptyServiceRegistry()
 	validatorMiddleware := emptyValidatorMiddleware()
 	finalizeBlockMiddleware := emptyFinalizeBlockMiddlware()
+	serviceRegistry := emptyServiceRegistry()
+
+	// build all node components using depinject
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
@@ -72,6 +75,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		panic(err)
 	}
 
+	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.SetApplication(
 		app.NewBeaconKitApp(
 			db, traceStore, true, appBuilder,

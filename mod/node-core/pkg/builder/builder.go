@@ -74,19 +74,22 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 
 // buildRootCmd builds the root command for the application.
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
+	// dependencies for the root command
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
 		chainSpec   primitives.ChainSpec
 	)
+	// build dependencies for the root command
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				// supply empty middleware for module
+				// empty middleware must be supplied here because it is a direct
+				// dependency of the Module
 				emptyABCIMiddleware(),
 			),
 			depinject.Provide(

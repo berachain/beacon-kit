@@ -30,10 +30,6 @@ import (
 // This file contains Options that extend our default baseapp options to be
 // called by cosmos when building the app.
 
-// we can decouple from cosmos-sdk/types by having these options accept
-// the middleware type instead, and just extract the handers. not really an
-// issue rn tho.
-
 // WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
 	chainSpec primitives.ChainSpec) func(bApp *baseapp.BaseApp) {
