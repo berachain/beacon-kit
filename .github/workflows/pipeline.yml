@@ -28,7 +28,7 @@ name: pipeline
 on:
   push:
     branches:
-     - main 
+      - main 
   pull_request:
   merge_group:
 
