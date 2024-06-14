@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -44,17 +45,13 @@ type BlobProofVerifierInput struct {
 
 // ProvideBlobProofVerifier is a function that provides the module to the
 // application.
-func GetBlobProofVerifierProvider(kzgFlag string) func(
+func ProvideBlobProofVerifier(
 	in BlobProofVerifierInput,
 ) (kzg.BlobProofVerifier, error) {
-	return func(
-		in BlobProofVerifierInput,
-	) (kzg.BlobProofVerifier, error) {
-		return kzg.NewBlobProofVerifier(
-			cast.ToString(in.AppOpts.Get(kzgFlag)),
-			in.JSONTrustedSetup,
-		)
-	}
+	return kzg.NewBlobProofVerifier(
+		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
+		in.JSONTrustedSetup,
+	)
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.

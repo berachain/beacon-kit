@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
@@ -36,20 +37,15 @@ type BlsSignerInput struct {
 	PrivKey LegacyKey `optional:"true"`
 }
 
-// GetBlsSignerProvider is a function that returns a function to provide the
-// module to the application.
-func GetBlsSignerProvider(
-	homeFlag string,
-) func(in BlsSignerInput) (crypto.BLSSigner, error) {
-	return func(in BlsSignerInput) (crypto.BLSSigner, error) {
-		if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
-			// if no private key is provided, use privval signer
-			homeDir := cast.ToString(in.AppOpts.Get(homeFlag))
-			return signer.NewBLSSigner(
-				homeDir+"/config/priv_validator_key.json",
-				homeDir+"/data/priv_validator_state.json",
-			), nil
-		}
-		return signer.NewLegacySigner(in.PrivKey)
+// ProvideBlsSigner is a function that provides the module to the application.
+func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
+	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
+		// if no private key is provided, use privval signer
+		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
+		return signer.NewBLSSigner(
+			homeDir+"/config/priv_validator_key.json",
+			homeDir+"/data/priv_validator_state.json",
+		), nil
 	}
+	return signer.NewLegacySigner(in.PrivKey)
 }

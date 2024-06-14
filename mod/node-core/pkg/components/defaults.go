@@ -20,11 +20,41 @@
 
 package components
 
-// DefaultClientComponents returns the default components for
-// the client.
-func DefaultClientComponents() []any {
+import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+)
+
+func DefaultComponentsWithStandardTypes() []any {
 	return []any{
-		ProvideClientContext,
-		ProvideKeyring,
+		ProvideABCIMiddleware,
+		ProvideAvailabilityPruner,
+		ProvideAvailibilityStore[*BeaconBlockBody],
+		ProvideBlsSigner,
+		ProvideBlockFeed,
+		ProvideBlobProcessor[*BeaconBlockBody],
+		ProvideBlobProofVerifier,
+		ProvideChainService,
+		ProvideChainSpec,
+		ProvideConfig,
+		ProvideDBManager,
+		ProvideDepositPruner,
+		ProvideDepositService,
+		ProvideDepositStore[*Deposit],
+		ProvideBeaconDepositContract[
+			*Deposit, *ExecutionPayload,
+			*Withdrawal, types.WithdrawalCredentials,
+		],
+		ProvideEngineClient[*ExecutionPayload],
+		ProvideExecutionEngine[*ExecutionPayload],
+		ProvideFinalizeBlockMiddleware,
+		ProvideJWTSecret,
+		ProvideLocalBuilder,
+		ProvideServiceRegistry,
+		ProvideStateProcessor,
+		ProvideStorageBackend,
+		ProvideTelemetrySink,
+		ProvideTrustedSetup,
+		ProvideValidatorMiddleware,
+		ProvideValidatorService,
 	}
 }

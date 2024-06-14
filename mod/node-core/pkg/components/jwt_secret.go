@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/afero"
@@ -36,14 +37,9 @@ type JWTSecretInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// GetJWTSecretProvider is a function that returns a function to
-// provide the JWT secret.
-func GetJWTSecretProvider(
-	flag string,
-) func(in JWTSecretInput) (*jwt.Secret, error) {
-	return func(in JWTSecretInput) (*jwt.Secret, error) {
-		return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flag)))
-	}
+// ProvideJWTSecret is a function that provides the module to the application.
+func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
+	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
 }
 
 // LoadJWTFromFile reads the JWT secret from a file and returns it.

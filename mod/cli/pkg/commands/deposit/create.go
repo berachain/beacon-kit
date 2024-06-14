@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -182,7 +181,7 @@ func getBLSSigner(
 		depinject.Configs(
 			depinject.Supply(supplies...),
 			depinject.Provide(
-				components.GetBlsSignerProvider(flags.FlagHome),
+				components.ProvideBlsSigner,
 			),
 		),
 		&blsSigner,
