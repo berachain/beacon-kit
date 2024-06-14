@@ -34,7 +34,7 @@ import (
 type StateProcessorInput struct {
 	depinject.In
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine ExecutionEngine
+	ExecutionEngine *ExecutionEngine
 	Signer          crypto.BLSSigner
 }
 
@@ -44,20 +44,20 @@ func ProvideStateProcessor(
 	in StateProcessorInput,
 ) StateProcessor {
 	return core.NewStateProcessor[
-		BeaconBlock,
-		BeaconBlockBody,
-		BeaconBlockHeader,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
-		BlobSidecars,
+		*BlobSidecars,
 		*transition.Context,
-		Deposit,
+		*Deposit,
 		*types.Eth1Data,
-		ExecutionPayload,
-		ExecutionPayloadHeader,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.Fork,
 		*types.ForkData,
 		*types.Validator,
-		Withdrawal,
+		*Withdrawal,
 		types.WithdrawalCredentials,
 	](
 		in.ChainSpec,

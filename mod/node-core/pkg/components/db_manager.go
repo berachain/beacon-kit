@@ -33,17 +33,17 @@ import (
 type DBManagerInput struct {
 	depinject.In
 	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
-	DepositPruner      pruner.Pruner[DepositStore]
+	DepositPruner      pruner.Pruner[*DepositStore]
 	Logger             log.Logger
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
 func ProvideDBManager(
 	in DBManagerInput,
-) (DBManager, error) {
+) (*DBManager, error) {
 	return manager.NewDBManager[
-		BeaconBlock,
-		BlockEvent,
+		*BeaconBlock,
+		*BlockEvent,
 		event.Subscription,
 	](
 		in.Logger.With("service", "db-manager"),

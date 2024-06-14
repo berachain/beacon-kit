@@ -35,26 +35,26 @@ import (
 type DepositServiceIn struct {
 	depinject.In
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
-		Deposit, types.WithdrawalCredentials,
+		*Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     BlockFeed
+	BlockFeed     *BlockFeed
 	ChainSpec     primitives.ChainSpec
-	DepositStore  DepositStore
-	EngineClient  EngineClient
+	DepositStore  *DepositStore
+	EngineClient  *EngineClient
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
-func ProvideDepositService(in DepositServiceIn) DepositService {
+func ProvideDepositService(in DepositServiceIn) *DepositService {
 	// Build the deposit service.
 	return deposit.NewService[
-		BeaconBlockBody,
-		BeaconBlock,
-		BlockEvent,
-		DepositStore,
-		ExecutionPayload,
+		*BeaconBlockBody,
+		*BeaconBlock,
+		*BlockEvent,
+		*DepositStore,
+		*ExecutionPayload,
 		event.Subscription,
 	](
 		in.Logger.With("service", "deposit"),

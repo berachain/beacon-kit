@@ -35,15 +35,15 @@ type LocalBuilderInput struct {
 	depinject.In
 	Cfg             *config.Config
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine ExecutionEngine
+	ExecutionEngine *ExecutionEngine
 	Logger          log.Logger
 }
 
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
-) LocalBuilder {
+) *LocalBuilder {
 	return payloadbuilder.New[
-		BeaconState, ExecutionPayload, ExecutionPayloadHeader,
+		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

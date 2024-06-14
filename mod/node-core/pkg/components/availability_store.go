@@ -74,8 +74,8 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput struct {
 	depinject.In
-	AvailabilityStore AvailabilityStore
-	BlockFeed         BlockFeed
+	AvailabilityStore *AvailabilityStore
+	BlockFeed         *BlockFeed
 	ChainSpec         primitives.ChainSpec
 	Logger            log.Logger
 }
@@ -88,8 +88,8 @@ func ProvideAvailabilityPruner(
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
-		BeaconBlock,
-		BlockEvent,
+		*BeaconBlock,
+		*BlockEvent,
 		*filedb.RangeDB,
 		event.Subscription,
 	](
@@ -98,8 +98,8 @@ func ProvideAvailabilityPruner(
 		manager.AvailabilityPrunerName,
 		in.BlockFeed,
 		dastore.BuildPruneRangeFn[
-			BeaconBlock,
-			BlockEvent,
+			*BeaconBlock,
+			*BlockEvent,
 		](in.ChainSpec),
 	)
 }

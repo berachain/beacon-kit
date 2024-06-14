@@ -71,20 +71,20 @@ func ProvideDepositStore[
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    BlockFeed
+	BlockFeed    *BlockFeed
 	ChainSpec    primitives.ChainSpec
-	DepositStore DepositStore
+	DepositStore *DepositStore
 	Logger       log.Logger
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner(
 	in DepositPrunerInput,
-) pruner.Pruner[DepositStore] {
+) pruner.Pruner[*DepositStore] {
 	return pruner.NewPruner[
-		BeaconBlock,
-		BlockEvent,
-		DepositStore,
+		*BeaconBlock,
+		*BlockEvent,
+		*DepositStore,
 		event.Subscription,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
@@ -92,11 +92,11 @@ func ProvideDepositPruner(
 		manager.DepositPrunerName,
 		in.BlockFeed,
 		deposit.BuildPruneRangeFn[
-			BeaconBlockBody,
-			BeaconBlock,
-			BlockEvent,
-			Deposit,
-			ExecutionPayload,
+			*BeaconBlockBody,
+			*BeaconBlock,
+			*BlockEvent,
+			*Deposit,
+			*ExecutionPayload,
 			types.WithdrawalCredentials,
 		](in.ChainSpec),
 	)

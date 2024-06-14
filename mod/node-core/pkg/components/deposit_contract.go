@@ -35,7 +35,7 @@ import (
 type BeaconDepositContractInput struct {
 	depinject.In
 	ChainSpec    primitives.ChainSpec
-	EngineClient EngineClient
+	EngineClient *EngineClient
 }
 
 // ProvideBeaconDepositContract provides a beacon deposit contract through the

@@ -70,7 +70,7 @@ func ProvideEngineClient[
 // framework.
 type ExecutionEngineInput struct {
 	depinject.In
-	EngineClient  EngineClient
+	EngineClient  *EngineClient
 	Logger        log.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -86,8 +86,8 @@ func ProvideExecutionEngine[
 	WithdrawalT any,
 ](
 	in ExecutionEngineInput,
-) ExecutionEngine {
-	return execution.New[ExecutionPayload](
+) *ExecutionEngine {
+	return execution.New[*ExecutionPayload](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,
