@@ -170,7 +170,7 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-		legacyInput, err = components.GetLegacyKey(validatorPrivKey)
+		legacyInput, err = signer.LegacyKeyFromString(validatorPrivKey)
 		if err != nil {
 			return nil, err
 		}
