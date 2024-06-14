@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	beaconconfig "github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	beaconconfig "github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"

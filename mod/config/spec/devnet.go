@@ -18,36 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package spec
 
 import (
-	"strings"
-
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/config/flags"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/afero"
-	"github.com/spf13/cast"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// JWTSecretInput is the input for the dep inject framework.
-type JWTSecretInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
-
-// ProvideJWTSecret is a function that provides the module to the application.
-func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
-	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
-}
-
-// LoadJWTFromFile reads the JWT secret from a file and returns it.
-func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
-	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
-	if err != nil {
-		// Return an error if the file cannot be read.
-		return nil, err
-	}
-	return jwt.NewFromHex(strings.TrimSpace(string(data)))
+// DevnetChainSpec is the ChainSpec for the localnet.
+func DevnetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = 80087
+	return chain.NewChainSpec(testnetSpec)
 }
