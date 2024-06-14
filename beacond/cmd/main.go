@@ -70,7 +70,7 @@ func run() error {
 	}
 
 	// TODO: create a "runner" type harness that takes the node as a parameter.
-	return node.Run()
+	return node.Run(components.DefaultNodeHome)
 }
 
 // main is the entry point.

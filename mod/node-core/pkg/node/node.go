@@ -21,9 +21,6 @@
 package node
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -49,9 +46,9 @@ func New[NodeT types.NodeI]() NodeT {
 }
 
 // Run runs the node's server application.
-func (n *Node) Run() error {
+func (n *Node) Run(defaultNodeHome string) error {
 	return svrcmd.Execute(
-		n.rootCmd, "", DefaultNodeHome,
+		n.rootCmd, "", defaultNodeHome,
 	)
 }
 
@@ -74,18 +71,4 @@ func (n *Node) SetApplication(a servertypes.Application) {
 // SetRootCmd sets the root command for the application.
 func (n *Node) SetRootCmd(cmd *cobra.Command) {
 	n.rootCmd = cmd
-}
-
-/// TODO GIGA HOOD, NEEDS TO BE FIXED
-
-//nolint:gochecknoglobals // todo:fix from sdk.
-var DefaultNodeHome string
-
-//nolint:gochecknoinits // annoying from sdk.
-func init() {
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	DefaultNodeHome = filepath.Join(userHomeDir, ".beacond")
 }
