@@ -28,10 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
+
+// AppOptions is from the SDK, we should look to remove its usage.
+type AppOptions interface {
+	Get(string) interface{}
+}
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
@@ -67,7 +71,7 @@ func (c Config) Template() string {
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
 // application options.
-func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
+func MustReadConfigFromAppOpts(opts AppOptions) *Config {
 	cfg, err := ReadConfigFromAppOpts(opts)
 	if err != nil {
 		panic(err)
@@ -77,7 +81,7 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
-func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
+func ReadConfigFromAppOpts(opts AppOptions) (*Config, error) {
 	v, ok := opts.(*viper.Viper)
 	if !ok {
 		return nil, errors.Newf("invalid application options type: %T", opts)
