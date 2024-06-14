@@ -18,46 +18,44 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package middleware
 
 import (
-	"cosmossdk.io/core/log"
-	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// RuntimeInput is the input for the runtime provider.
-type RuntimeInput struct {
-	depinject.In
-	ChainSpec               primitives.ChainSpec
-	FinalizeBlockMiddleware *FinalizeBlockMiddleware
-	Logger                  log.Logger
-	ServiceRegistry         *service.Registry
-	StorageBackend          StorageBackend
-	ValidatorMiddleware     *ValidatorMiddleware
-}
+// ABCIMiddleware is a middleware between ABCI and Beacon logic.
+type ABCIMiddleware[
+	AvailabilityStoreT any,
+	BeaconBlockT interface {
+		types.RawBeaconBlock[BeaconBlockBodyT]
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
+	},
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconStateT BeaconState,
+	BlobSidecarsT ssz.Marshallable,
+	StorageBackendT any,
+] struct {
+	FinalizeBlock *FinalizeBlockMiddleware[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	]
 
-// ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
-func ProvideRuntime(
-	in RuntimeInput,
-) (*BeaconKitRuntime, error) {
-	// Build the BeaconKitRuntime.
-	return runtime.NewBeaconKitRuntime[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		BeaconState,
-		*BlobSidecars,
-		*DepositStore,
-		StorageBackend,
-	](
-		in.ChainSpec,
-		in.FinalizeBlockMiddleware,
-		in.Logger,
-		in.ServiceRegistry,
-		in.StorageBackend,
-		in.ValidatorMiddleware,
-	)
+	Validator *ValidatorMiddleware[
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconStateT,
+		BlobSidecarsT,
+		StorageBackendT,
+	]
 }

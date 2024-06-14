@@ -6,6 +6,7 @@ use (
 	./mod/async
 	./mod/beacon
 	./mod/cli
+	./mod/config
 	./mod/consensus-types
 	./mod/da
 	./mod/engine-primitives

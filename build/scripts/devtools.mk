@@ -55,7 +55,7 @@ update-dep: ## update a dependency in all of the go.mod files which import it
 	done
 
 yap: ## the yap cave
-	@go run ./mod/node-core/pkg/utils/yap/yap.go
+	@go run ./mod/cli/pkg/utils/yap/yap.go
 
 tidy-sync-check:
 	@$(MAKE) repo-rinse tidy sync 

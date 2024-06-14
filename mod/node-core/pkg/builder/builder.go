@@ -26,20 +26,14 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -54,6 +48,15 @@ type NodeBuilder[NodeT types.NodeI] struct {
 
 	// components is a list of components to provide.
 	components []any
+
+	// TODO: eventually remove, the node should just be given a root
+	// command and not care about its construction.
+	clientComponents []any
+	runHandler       func(cmd *cobra.Command,
+		customAppConfigTemplate string,
+		customAppConfig interface{},
+		cmtConfig *cmtcfg.Config,
+	) error
 }
 
 // New returns a new NodeBuilder.
@@ -80,48 +83,31 @@ func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
 
 // buildRootCmd builds the root command for the application.
 func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
+	// dependencies for the root command
 	var (
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
 		chainSpec   primitives.ChainSpec
 	)
+	// build dependencies for the root command
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
-			// TODO: the reason these all need to be supplied here is because
-			// we build the runtime in ProvideModule, which is forced to be
-			// called every time we do Inject.
-			//
-			// TODO: we have to decouple the instatiation of the runtime from
-			// the beacon module so that we don't need to define these empty
-			// placeholders to get the depinject framework to not freak out.
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
-				&runtime.BeaconKitRuntime[
-					*dastore.Store[*consensustypes.BeaconBlockBody],
-					*consensustypes.BeaconBlock,
-					*consensustypes.BeaconBlockBody,
-					components.BeaconState,
-					*datypes.BlobSidecars,
-					*depositdb.KVStore[*consensustypes.Deposit],
-					blockchain.StorageBackend[
-						*dastore.Store[*consensustypes.BeaconBlockBody],
-						*consensustypes.BeaconBlockBody,
-						components.BeaconState,
-						*datypes.BlobSidecars,
-						*consensustypes.Deposit,
-						*depositdb.KVStore[*consensustypes.Deposit],
-					],
-				]{},
+				// empty middleware must be supplied here because it is a direct
+				// dependency of the Module
+				emptyABCIMiddleware(),
 			),
 			depinject.Provide(
-				components.ProvideNoopTxConfig,
-				components.ProvideClientContext,
-				components.ProvideKeyring,
-				components.ProvideConfig,
-				components.ProvideChainSpec,
+				append(
+					nb.clientComponents,
+					components.ProvideNoopTxConfig,
+					components.ProvideConfig,
+					components.ProvideChainSpec,
+				)...,
 			),
 		),
 		&autoCliOpts,
@@ -149,7 +135,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				return err
 			}
 
-			customClientTemplate, customClientConfig := components.InitClientConfig()
+			customClientTemplate, customClientConfig := InitClientConfig()
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
@@ -165,7 +151,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(
+			return nb.runHandler(
 				cmd,
 				DefaultAppConfigTemplate(),
 				DefaultAppConfig(),
@@ -186,4 +172,13 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	}
 
 	return cmd, nil
+}
+
+// InitClientConfig sets up the default client configuration, allowing for
+// overrides.
+// TODO this needs to be moved
+func InitClientConfig() (string, interface{}) {
+	clientCfg := config.DefaultConfig()
+	clientCfg.KeyringBackend = "test"
+	return config.DefaultClientConfigTemplate, clientCfg
 }

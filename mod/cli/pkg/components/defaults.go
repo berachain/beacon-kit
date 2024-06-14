@@ -18,35 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package runtime
+package components
 
-import (
-	"context"
-	"encoding/json"
-
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-)
-
-// InitGenesis
-// TODO: InitGenesis should be calling into the StateProcessor.
-func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
-	DepositStoreT, StorageBackendT,
-]) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciFinalizeBlockMiddleware.InitGenesis(ctx, bz)
-}
-
-// EndBlock returns the validator set updates from the beacon state.
-func (r BeaconKitRuntime[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, DepositStoreT,
-	StorageBackendT,
-]) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return r.abciFinalizeBlockMiddleware.EndBlock(ctx)
+// DefaultClientComponents returns the default components for
+// the client.
+func DefaultClientComponents() []any {
+	return []any{
+		ProvideClientContext,
+		ProvideKeyring,
+	}
 }

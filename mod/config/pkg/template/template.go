@@ -18,10 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package config
+package template
 
 //nolint:lll // template.
-const Template = `
+const TomlTemplate = `
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################

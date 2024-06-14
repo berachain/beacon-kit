@@ -43,7 +43,7 @@ func init() {
 // ModuleInput is the input for the dep inject framework.
 type ModuleInput struct {
 	depinject.In
-	Runtime *components.BeaconKitRuntime
+	ABCIMiddleware *components.ABCIMiddleware
 }
 
 // ModuleOutput is the output for the dep inject framework.
@@ -55,6 +55,8 @@ type ModuleOutput struct {
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule(in ModuleInput) (ModuleOutput, error) {
 	return ModuleOutput{
-		Module: NewAppModule(in.Runtime),
+		Module: NewAppModule(
+			in.ABCIMiddleware,
+		),
 	}, nil
 }

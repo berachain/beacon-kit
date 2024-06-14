@@ -33,6 +33,21 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
+	ValidatorIndexByPubkey(
+		pubkey crypto.BLSPubkey,
+	) (math.ValidatorIndex, error)
+
+	GetBlockRootAtIndex(
+		index uint64,
+	) (primitives.Root, error)
+
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
+}
+
 // BlockchainService defines the interface for interacting with the blockchain
 // state and processing blocks.
 type BlockchainService[
@@ -87,19 +102,4 @@ type TelemetrySink interface {
 // StorageBackend is an interface for accessing the storage backend.
 type StorageBackend[BeaconStateT any] interface {
 	StateFromContext(ctx context.Context) BeaconStateT
-}
-
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	ValidatorIndexByPubkey(
-		pubkey crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-
-	GetBlockRootAtIndex(
-		index uint64,
-	) (primitives.Root, error)
-
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
 }

@@ -22,7 +22,6 @@ package node
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -47,9 +46,9 @@ func New[NodeT types.NodeI]() NodeT {
 }
 
 // Run runs the node's server application.
-func (n *Node) Run() error {
+func (n *Node) Run(defaultNodeHome string) error {
 	return svrcmd.Execute(
-		n.rootCmd, "", components.DefaultNodeHome,
+		n.rootCmd, "", defaultNodeHome,
 	)
 }
 
