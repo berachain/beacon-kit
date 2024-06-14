@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -62,28 +61,30 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](&depositstore.KVStoreProvider{
-		KVStoreWithBatch: kvp,
-	}), nil
+	return depositstore.NewStore[DepositT](
+		&depositstore.KVStoreProvider{
+			KVStoreWithBatch: kvp,
+		},
+	), nil
 }
 
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    *event.FeedOf[feed.EventID, *feed.Event[*types.BeaconBlock]]
+	BlockFeed    *BlockFeed
 	ChainSpec    primitives.ChainSpec
-	DepositStore *depositstore.KVStore[*types.Deposit]
+	DepositStore *DepositStore
 	Logger       log.Logger
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner(
 	in DepositPrunerInput,
-) pruner.Pruner[*depositstore.KVStore[*types.Deposit]] {
+) pruner.Pruner[*DepositStore] {
 	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*depositstore.KVStore[*types.Deposit],
+		*BeaconBlock,
+		*BlockEvent,
+		*DepositStore,
 		event.Subscription,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
@@ -91,11 +92,11 @@ func ProvideDepositPruner(
 		manager.DepositPrunerName,
 		in.BlockFeed,
 		deposit.BuildPruneRangeFn[
-			*types.BeaconBlockBody,
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-			*types.Deposit,
-			*types.ExecutionPayload,
+			*BeaconBlockBody,
+			*BeaconBlock,
+			*BlockEvent,
+			*Deposit,
+			*ExecutionPayload,
 			types.WithdrawalCredentials,
 		](in.ChainSpec),
 	)
