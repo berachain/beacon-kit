@@ -44,6 +44,16 @@ import (
 )
 
 type (
+	// ABCIMiddleware is a type alias for the ABCIMiddleware.
+	ABCIMiddleware = middleware.ABCIMiddleware[
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		BeaconState,
+		*BlobSidecars,
+		StorageBackend,
+	]
+
 	// AvailabilityStore is a type alias for the availability store.
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
@@ -178,9 +188,4 @@ type (
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal
-
-	ABCIMiddleware struct {
-		FinalizeBlock *FinalizeBlockMiddleware
-		Validator     *ValidatorMiddleware
-	}
 )
