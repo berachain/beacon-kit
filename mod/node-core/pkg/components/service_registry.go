@@ -23,60 +23,22 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ChainService *blockchain.Service[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	]
-	DBManagerService *manager.DBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription,
-	]
-	DepositService *deposit.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*feed.Event[*types.BeaconBlock],
-		*types.Deposit,
-		*types.ExecutionPayload,
-		event.Subscription,
-		types.WithdrawalCredentials,
-	]
-	EngineClient     *engineclient.EngineClient[*types.ExecutionPayload]
+	ChainService     *ChainService
+	DBManager        *DBManager
+	DepositService   *DepositService
+	EngineClient     *EngineClient
 	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService *validator.Service[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-		*types.ForkData,
-	]
+	ValidatorService *ValidatorService
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -94,6 +56,6 @@ func ProvideServiceRegistry(
 			in.TelemetrySink,
 			sdkversion.Version,
 		)),
-		service.WithService(in.DBManagerService),
+		service.WithService(in.DBManager),
 	)
 }

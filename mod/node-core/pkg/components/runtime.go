@@ -23,62 +23,20 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
-
-// BeaconState is a type alias for the BeaconState.
-type BeaconState = core.BeaconState[
-	*types.BeaconBlockHeader, *types.Eth1Data,
-	*types.ExecutionPayloadHeader, *types.Fork,
-	*types.Validator, *engineprimitives.Withdrawal,
-]
-
-// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
-type BeaconKitRuntime = runtime.BeaconKitRuntime[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*depositdb.KVStore[*types.Deposit],
-	blockchain.StorageBackend[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*types.Deposit,
-		*depositdb.KVStore[*types.Deposit],
-	],
-]
 
 // RuntimeInput is the input for the runtime provider.
 type RuntimeInput struct {
 	depinject.In
 	ChainSpec               primitives.ChainSpec
-	FinalizeBlockMiddleware *middleware.FinalizeBlockMiddleware[
-		*types.BeaconBlock, BeaconState, *datypes.BlobSidecars,
-	]
-	Logger              log.Logger
-	ServiceRegistry     *service.Registry
-	StorageBackend      StorageBackend
-	ValidatorMiddleware *middleware.ValidatorMiddleware[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		BeaconState,
-		*datypes.BlobSidecars,
-		StorageBackend,
-	]
+	FinalizeBlockMiddleware *FinalizeBlockMiddleware
+	Logger                  log.Logger
+	ServiceRegistry         *service.Registry
+	StorageBackend          StorageBackend
+	ValidatorMiddleware     *ValidatorMiddleware
 }
 
 // ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
@@ -87,20 +45,13 @@ func ProvideRuntime(
 ) (*BeaconKitRuntime, error) {
 	// Build the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		*datypes.BlobSidecars,
-		*depositdb.KVStore[*types.Deposit],
-		blockchain.StorageBackend[
-			*dastore.Store[*types.BeaconBlockBody],
-			*types.BeaconBlockBody,
-			BeaconState,
-			*datypes.BlobSidecars,
-			*types.Deposit,
-			*depositdb.KVStore[*types.Deposit],
-		],
+		*BlobSidecars,
+		*DepositStore,
+		StorageBackend,
 	](
 		in.ChainSpec,
 		in.FinalizeBlockMiddleware,

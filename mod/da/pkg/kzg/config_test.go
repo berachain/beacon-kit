@@ -18,43 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package kzg_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/stretchr/testify/require"
 )
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore[*BeaconBlockBody],
-		ProvideBlsSigner,
-		ProvideBlockFeed,
-		ProvideBlobProcessor[*BeaconBlockBody],
-		ProvideBlobProofVerifier,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore[*Deposit],
-		ProvideBeaconDepositContract[
-			*Deposit, *ExecutionPayload,
-			*Withdrawal, types.WithdrawalCredentials,
-		],
-		ProvideEngineClient[*ExecutionPayload],
-		ProvideExecutionEngine[*ExecutionPayload],
-		ProvideFinalizeBlockMiddleware,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideRuntime,
-		ProvideServiceRegistry,
-		ProvideStateProcessor,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorMiddleware,
-		ProvideValidatorService,
-	}
+func TestDefaultConfig(t *testing.T) {
+	cfg := kzg.DefaultConfig()
+	require.Equal(
+		t,
+		"./testing/files/kzg-trusted-setup.json",
+		cfg.TrustedSetupPath,
+	)
+	require.Equal(
+		t,
+		"crate-crypto/go-kzg-4844",
+		cfg.Implementation,
+	)
 }
