@@ -36,13 +36,10 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
@@ -52,9 +49,9 @@ func (s *Service[
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		&types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
-		},
+		ExecutionPayloadHeader(
+			genesisData.ExecutionPayloadHeader,
+		).(ExecutionPayloadHeaderT),
 		genesisData.ForkVersion,
 	)
 }
@@ -62,13 +59,10 @@ func (s *Service[
 // ProcessBlockAndBlobs receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -131,13 +125,10 @@ func (s *Service[
 
 // ProcessBeaconBlock processes the beacon block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -172,13 +163,10 @@ func (s *Service[
 
 // ProcessBlobSidecars processes the blob sidecars.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,

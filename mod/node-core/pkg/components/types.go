@@ -89,10 +89,14 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Withdrawal,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -154,6 +158,7 @@ type (
 		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
+		*ExecutionPayloadHeader,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.

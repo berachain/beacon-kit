@@ -24,19 +24,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -61,18 +57,15 @@ func (s *Service[
 // sendForkchoiceUpdateWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
 	stCopy := st.Copy()
 	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
@@ -112,17 +105,14 @@ func (s *Service[
 // sendForkchoiceUpdateWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
 	_, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
@@ -149,13 +139,10 @@ func (s *Service[
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

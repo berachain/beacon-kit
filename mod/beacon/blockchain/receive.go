@@ -33,13 +33,10 @@ import (
 // ReceiveBlockAndBlobs receives a block and blobs from the
 // network and processes them.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) ReceiveBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -69,13 +66,10 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -142,13 +136,10 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -183,13 +174,10 @@ func (s *Service[
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -237,13 +225,10 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, WithdrawalT,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }
