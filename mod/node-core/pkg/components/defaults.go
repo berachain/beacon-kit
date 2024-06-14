@@ -26,6 +26,7 @@ import (
 
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
+		ProvideABCIMiddleware,
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore[*BeaconBlockBody],
 		ProvideBlsSigner,
@@ -48,7 +49,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideFinalizeBlockMiddleware,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
-		ProvideRuntime,
 		ProvideServiceRegistry,
 		ProvideStateProcessor,
 		ProvideStorageBackend,

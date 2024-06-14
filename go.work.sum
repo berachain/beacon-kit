@@ -492,6 +492,7 @@ github.com/berachain/beacon-kit/mod/log v0.0.0-20240506203005-b920effebbe8/go.mo
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240508035017-2fb637ea5f0a/go.mod h1:U5YBXSbq2odNSTLvtwKlA/2hO25C7Uk7gubbaBVDIn0=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240429161625-c105cec3420c/go.mod h1:rqZvVlIpK+KXXfYD01+QILvxz4P7YTau5DGDBsEK3SU=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240508035017-2fb637ea5f0a/go.mod h1:kILMkLbRjvAm/7gBhkmUjhHvto6aZkGCkz2O7MTrNK0=
+github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240613210046-f9ac140054ec/go.mod h1:TogbDgwwaWxIWbFN0WWhJDDU4nFAAiAgpDjxyjgTQpM=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240515154823-9321cabc0e88/go.mod h1:iMRMGsX8lviXo/kFc01BkQq5qdnxdT2zpHuQQW/ZbAs=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.10.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
@@ -1201,8 +1202,6 @@ github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
 github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
-github.com/kurtosis-tech/kurtosis/api/golang v0.90.0 h1:820JbWwQJump4IVZQRojdgyIkAbSHdncxSulS6eABtU=
-github.com/kurtosis-tech/kurtosis/api/golang v0.90.0/go.mod h1:9T22P7Vv3j5g6sbm78DxHQ4s9C4Cj3s9JjFQ7DFyYpM=
 github.com/kurtosis-tech/kurtosis/cloud/api/golang v0.0.0-20230803130419-099ee7a4e3dc h1:/6Ffp1LIbBf8nL9EyCSmNps5PGwWu65ogHk8LBGaP5E=
 github.com/kurtosis-tech/kurtosis/cloud/api/golang v0.0.0-20230803130419-099ee7a4e3dc/go.mod h1:+dhneovUimcuMPeYhMRXbit5kII/SIqvtfj6jTShOLo=
 github.com/labstack/echo/v4 v4.1.11/go.mod h1:i541M3Fj6f76NZtHSj7TXnyM8n2gaodfvfxNnFqi74g=
