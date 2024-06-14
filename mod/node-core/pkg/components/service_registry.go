@@ -32,13 +32,13 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ChainService     ChainService
-	DBManager        DBManager
-	DepositService   DepositService
-	EngineClient     EngineClient
+	ChainService     *ChainService
+	DBManager        *DBManager
+	DepositService   *DepositService
+	EngineClient     *EngineClient
 	Logger           log.Logger
 	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService ValidatorService
+	ValidatorService *ValidatorService
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.

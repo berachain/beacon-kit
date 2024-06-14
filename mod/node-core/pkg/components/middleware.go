@@ -30,20 +30,20 @@ import (
 // ValidatorMiddlewareInput is the input for the validator middleware provider.
 type ValidatorMiddlewareInput struct {
 	depinject.In
-	ChainService     ChainService
+	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
 	StorageBackend   StorageBackend
 	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService ValidatorService
+	ValidatorService *ValidatorService
 }
 
 // ProvideValidatorMiddleware is a depinject provider for the validator
 // middleware.
 func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
-) ValidatorMiddleware {
+) *ValidatorMiddleware {
 	return middleware.
-		NewValidatorMiddleware[AvailabilityStore](
+		NewValidatorMiddleware[*AvailabilityStore](
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
@@ -55,7 +55,7 @@ func ProvideValidatorMiddleware(
 // FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
-	ChainService  ChainService
+	ChainService  *ChainService
 	ChainSpec     primitives.ChainSpec
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -64,9 +64,9 @@ type FinalizeBlockMiddlewareInput struct {
 // middleware.
 func ProvideFinalizeBlockMiddleware(
 	in FinalizeBlockMiddlewareInput,
-) FinalizeBlockMiddleware {
+) *FinalizeBlockMiddleware {
 	return middleware.NewFinalizeBlockMiddleware[
-		BeaconBlock, BeaconState, BlobSidecars,
+		*BeaconBlock, BeaconState, *BlobSidecars,
 	](
 		in.ChainSpec,
 		in.ChainService,

@@ -32,11 +32,11 @@ import (
 type RuntimeInput struct {
 	depinject.In
 	ChainSpec               primitives.ChainSpec
-	FinalizeBlockMiddleware FinalizeBlockMiddleware
+	FinalizeBlockMiddleware *FinalizeBlockMiddleware
 	Logger                  log.Logger
 	ServiceRegistry         *service.Registry
 	StorageBackend          StorageBackend
-	ValidatorMiddleware     ValidatorMiddleware
+	ValidatorMiddleware     *ValidatorMiddleware
 }
 
 // ProvideRuntime is a depinject provider that returns a BeaconKitRuntime.
@@ -45,12 +45,12 @@ func ProvideRuntime(
 ) (*BeaconKitRuntime, error) {
 	// Build the BeaconKitRuntime.
 	return runtime.NewBeaconKitRuntime[
-		AvailabilityStore,
-		BeaconBlock,
-		BeaconBlockBody,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		DepositStore,
+		*BlobSidecars,
+		*DepositStore,
 		StorageBackend,
 	](
 		in.ChainSpec,

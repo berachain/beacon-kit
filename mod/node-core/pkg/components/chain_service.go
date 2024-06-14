@@ -33,14 +33,14 @@ import (
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
 	depinject.In
-	BlobProcessor   BlobProcessor
-	BlockFeed       BlockFeed
+	BlobProcessor   *BlobProcessor
+	BlockFeed       *BlockFeed
 	ChainSpec       primitives.ChainSpec
 	Cfg             *config.Config
-	DepositService  DepositService
-	EngineClient    EngineClient
-	ExecutionEngine ExecutionEngine
-	LocalBuilder    LocalBuilder
+	DepositService  *DepositService
+	EngineClient    *EngineClient
+	ExecutionEngine *ExecutionEngine
+	LocalBuilder    *LocalBuilder
 	Logger          log.Logger
 	Signer          crypto.BLSSigner
 	StateProcessor  StateProcessor
@@ -51,14 +51,14 @@ type ChainServiceInput struct {
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService(
 	in ChainServiceInput,
-) ChainService {
+) *ChainService {
 	return blockchain.NewService[
-		AvailabilityStore,
-		BeaconBlock,
-		BeaconBlockBody,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		DepositStore,
+		*BlobSidecars,
+		*DepositStore,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

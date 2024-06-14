@@ -46,98 +46,98 @@ import (
 
 type (
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = *dastore.Store[BeaconBlockBody]
+	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
-	BeaconBlock       = *types.BeaconBlock
-	BeaconBlockBody   = *types.BeaconBlockBody
-	BeaconBlockHeader = *types.BeaconBlockHeader
+	BeaconBlock       = types.BeaconBlock
+	BeaconBlockBody   = types.BeaconBlockBody
+	BeaconBlockHeader = types.BeaconBlockHeader
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = core.BeaconState[
-		BeaconBlockHeader, *types.Eth1Data,
-		ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, Withdrawal,
+		*BeaconBlockHeader, *types.Eth1Data,
+		*ExecutionPayloadHeader, *types.Fork,
+		*types.Validator, *Withdrawal,
 	]
 
 	// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
 	BeaconKitRuntime = runtime.BeaconKitRuntime[
-		AvailabilityStore,
-		BeaconBlock,
-		BeaconBlockBody,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		DepositStore,
+		*BlobSidecars,
+		*DepositStore,
 		StorageBackend,
 	]
 
 	// BlobSidecars is a type alias for the blob sidecars.
-	BlobSidecars = *datypes.BlobSidecars
+	BlobSidecars = datypes.BlobSidecars
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = *dablob.Processor[
-		AvailabilityStore,
-		BeaconBlockBody,
+	BlobProcessor = dablob.Processor[
+		*AvailabilityStore,
+		*BeaconBlockBody,
 	]
 
 	// BlockEvent is a type alias for the block event.
-	BlockEvent = *feed.Event[BeaconBlock]
+	BlockEvent = feed.Event[*BeaconBlock]
 
 	// BlockFeed is a type alias for the block feed.
-	BlockFeed = *event.FeedOf[feed.EventID, BlockEvent]
+	BlockFeed = event.FeedOf[feed.EventID, *BlockEvent]
 
 	// ChainService is a type alias for the chain service.
-	ChainService = *blockchain.Service[
-		AvailabilityStore,
-		BeaconBlock,
-		BeaconBlockBody,
+	ChainService = blockchain.Service[
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		Deposit,
-		DepositStore,
+		*BlobSidecars,
+		*Deposit,
+		*DepositStore,
 	]
 
 	// DBManager is a type alias for the database manager.
-	DBManager = *manager.DBManager[
-		BeaconBlock,
-		BlockEvent,
+	DBManager = manager.DBManager[
+		*BeaconBlock,
+		*BlockEvent,
 		event.Subscription,
 	]
 
 	// Deposit is a type alias for the deposit.
-	Deposit = *types.Deposit
+	Deposit = types.Deposit
 
 	// DepositService is a type alias for the deposit service.
-	DepositService = *deposit.Service[
-		BeaconBlock,
-		BeaconBlockBody,
-		BlockEvent,
-		Deposit,
-		ExecutionPayload,
+	DepositService = deposit.Service[
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BlockEvent,
+		*Deposit,
+		*ExecutionPayload,
 		event.Subscription,
 		types.WithdrawalCredentials,
 	]
 
 	// DepositStore is a type alias for the deposit store.
-	DepositStore = *depositdb.KVStore[Deposit]
+	DepositStore = depositdb.KVStore[*Deposit]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = *engineclient.EngineClient[ExecutionPayload]
+	EngineClient = engineclient.EngineClient[*ExecutionPayload]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = *execution.Engine[ExecutionPayload]
+	ExecutionEngine = execution.Engine[*ExecutionPayload]
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = *types.ExecutionPayload
-	ExecutionPayloadHeader = *types.ExecutionPayloadHeader
+	ExecutionPayload       = types.ExecutionPayload
+	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
-	FinalizeBlockMiddleware = *middleware.FinalizeBlockMiddleware[
-		BeaconBlock, BeaconState, BlobSidecars,
+	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
+		*BeaconBlock, BeaconState, *BlobSidecars,
 	]
 
 	// KVStore is a type alias for the KV store.
-	KVStore = *beacondb.KVStore[
-		*types.Fork, BeaconBlockHeader, ExecutionPayloadHeader,
+	KVStore = beacondb.KVStore[
+		*types.Fork, *BeaconBlockHeader, *ExecutionPayloadHeader,
 		*types.Eth1Data, *types.Validator,
 	]
 
@@ -145,49 +145,49 @@ type (
 	LegacyKey = signer.LegacyKey
 
 	// LocalBuilder is a type alias for the local builder.
-	LocalBuilder = *payloadbuilder.PayloadBuilder[
-		BeaconState, ExecutionPayload, ExecutionPayloadHeader,
+	LocalBuilder = payloadbuilder.PayloadBuilder[
+		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor inteface.
 	StateProcessor = blockchain.StateProcessor[
-		BeaconBlock,
+		*BeaconBlock,
 		BeaconState,
-		BlobSidecars,
+		*BlobSidecars,
 		*transition.Context,
-		Deposit,
+		*Deposit,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = blockchain.StorageBackend[
-		AvailabilityStore,
-		BeaconBlockBody,
+		*AvailabilityStore,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		Deposit,
-		DepositStore,
+		*BlobSidecars,
+		*Deposit,
+		*DepositStore,
 	]
 
 	// ValidatorMiddleware is a type alias for the validator middleware.
-	ValidatorMiddleware = *middleware.ValidatorMiddleware[
-		AvailabilityStore,
-		BeaconBlock,
-		BeaconBlockBody,
+	ValidatorMiddleware = middleware.ValidatorMiddleware[
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
+		*BlobSidecars,
 		StorageBackend,
 	]
 
 	// ValidatorService is a type alias for the validator service.
-	ValidatorService = *validator.Service[
-		BeaconBlock,
-		BeaconBlockBody,
+	ValidatorService = validator.Service[
+		*BeaconBlock,
+		*BeaconBlockBody,
 		BeaconState,
-		BlobSidecars,
-		DepositStore,
+		*BlobSidecars,
+		*DepositStore,
 		*types.ForkData,
 	]
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
-	Withdrawal = *engineprimitives.Withdrawal
+	Withdrawal = engineprimitives.Withdrawal
 )
