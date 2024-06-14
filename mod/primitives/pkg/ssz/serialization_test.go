@@ -419,19 +419,19 @@ func TestUnmarshalBitList(t *testing.T) {
 			expOutput: []bool{false, false, true, true, false, false, true},
 		},
 		{
-			name:      "Input with multiple bits set - check marshal and unmarshal",
-			input:     []byte{0b11001100},
-			expOutput: []bool{false, false, true, true, false, false, true},
-		},
-		{
-			name:      "Input with multiple bits set - check input and output",
-			input:     ssz.MarshalBitList([]bool{true, false, true, false, true, false, true}),
+			name: "Input with multiple bits set - check both marshal and unmarshal",
+			// noliint: lll
+			input: ssz.MarshalBitList([]bool{true, false, true, false,
+				true, false, true,
+			}),
 			expOutput: []bool{true, false, true, false, true, false, true},
 		},
 		{
-			name:      "Input with 2 bytes set - check input and output",
-			input:     []byte{0b01010101, 0b11111111},
-			expOutput: []bool{true, false, true, false, true, false, true, false, true, true, true, true, true, true, true},
+			name:  "Input with 2 bytes set - check input and output",
+			input: []byte{0b01010101, 0b11111111},
+			expOutput: []bool{true, false, true, false, true, false,
+				true, false, true, true, true, true, true, true, true,
+			},
 		},
 	}
 
