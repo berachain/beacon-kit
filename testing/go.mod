@@ -7,7 +7,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614141956-1031712e1325
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610215715-5f91f661ac83
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614141956-1031712e1325
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/kurtosis-tech/kurtosis/api/golang v0.90.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
