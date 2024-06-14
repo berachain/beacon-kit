@@ -271,7 +271,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"besu":       "hyperledger/besu:latest",
+			"besu":       "hyperledger/besu:24.5.4",
 			"erigon":     "thorax/erigon:v2.60.1",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
