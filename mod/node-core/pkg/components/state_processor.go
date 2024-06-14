@@ -22,32 +22,19 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-// StateProcessor is the type alias for the state processor inteface.
-type StateProcessor = blockchain.StateProcessor[
-	*types.BeaconBlock,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*transition.Context,
-	*types.Deposit,
-]
-
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput struct {
 	depinject.In
 	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	ExecutionEngine *ExecutionEngine
 	Signer          crypto.BLSSigner
 }
 
@@ -57,20 +44,20 @@ func ProvideStateProcessor(
 	in StateProcessorInput,
 ) StateProcessor {
 	return core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
-		*datypes.BlobSidecars,
+		*BlobSidecars,
 		*transition.Context,
-		*types.Deposit,
+		*Deposit,
 		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.Fork,
 		*types.ForkData,
 		*types.Validator,
-		*engineprimitives.Withdrawal,
+		*Withdrawal,
 		types.WithdrawalCredentials,
 	](
 		in.ChainSpec,

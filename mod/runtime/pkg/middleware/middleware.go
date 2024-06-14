@@ -18,50 +18,44 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package middleware
 
 import (
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// DepositServiceIn is the input for the deposit service.
-type DepositServiceIn struct {
-	depinject.In
-	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
-		*Deposit, types.WithdrawalCredentials,
+// ABCIMiddleware is a middleware between ABCI and Beacon logic.
+type ABCIMiddleware[
+	AvailabilityStoreT any,
+	BeaconBlockT interface {
+		types.RawBeaconBlock[BeaconBlockBodyT]
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
+	},
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconStateT BeaconState,
+	BlobSidecarsT ssz.Marshallable,
+	StorageBackendT any,
+] struct {
+	FinalizeBlock *FinalizeBlockMiddleware[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
 	]
-	BlockFeed     *BlockFeed
-	ChainSpec     primitives.ChainSpec
-	DepositStore  *DepositStore
-	EngineClient  *EngineClient
-	Logger        log.Logger
-	TelemetrySink *metrics.TelemetrySink
-}
 
-// ProvideDepositService provides the deposit service to the depinject
-// framework.
-func ProvideDepositService(in DepositServiceIn) *DepositService {
-	// Build the deposit service.
-	return deposit.NewService[
-		*BeaconBlockBody,
-		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
-		*ExecutionPayload,
-		event.Subscription,
-	](
-		in.Logger.With("service", "deposit"),
-		math.U64(in.ChainSpec.Eth1FollowDistance()),
-		in.TelemetrySink,
-		in.DepositStore,
-		in.BeaconDepositContract,
-		in.BlockFeed,
-	)
+	Validator *ValidatorMiddleware[
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconStateT,
+		BlobSidecarsT,
+		StorageBackendT,
+	]
 }

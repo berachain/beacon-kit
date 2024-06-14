@@ -70,7 +70,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond init $MONIKER \
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
-		--beacon-kit.accept-tos \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 

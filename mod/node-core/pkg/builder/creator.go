@@ -21,21 +21,20 @@
 package builder
 
 import (
+	"context"
 	"io"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// AppCreator is a function that creates an application.
+// AppCreator is a function that creates an application and starts the bkRuntime
+// services.
 // It is necessary to adhere to the types.AppCreator[T] interface.
 func (nb *NodeBuilder[NodeT]) AppCreator(
 	logger log.Logger,
@@ -48,8 +47,14 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		panic("goleveldb is not supported")
 	}
 
+	// variables to hold the components needed to set up BeaconApp
 	var chainSpec primitives.ChainSpec
-	appBuilder := &runtime.AppBuilder{}
+	appBuilder := emptyAppBuilder()
+	validatorMiddleware := emptyValidatorMiddleware()
+	finalizeBlockMiddleware := emptyFinalizeBlockMiddlware()
+	serviceRegistry := emptyServiceRegistry()
+
+	// build all node components using depinject
 	if err := depinject.Inject(
 		depinject.Configs(
 			nb.depInjectCfg,
@@ -63,19 +68,31 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		),
 		&appBuilder,
 		&chainSpec,
+		&validatorMiddleware,
+		&finalizeBlockMiddleware,
+		&serviceRegistry,
 	); err != nil {
 		panic(err)
 	}
 
+	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.SetApplication(
 		app.NewBeaconKitApp(
 			db, traceStore, true, appBuilder,
 			append(
 				server.DefaultBaseappOptions(appOpts),
-				func(bApp *baseapp.BaseApp) {
-					bApp.SetParamStore(
-						comet.NewConsensusParamsStore(chainSpec))
-				})...,
-		))
+				WithCometParamStore(chainSpec),
+				WithPrepareProposal(validatorMiddleware.PrepareProposalHandler),
+				WithProcessProposal(validatorMiddleware.ProcessProposalHandler),
+				WithPreBlocker(finalizeBlockMiddleware.PreBlock),
+			)...,
+		),
+	)
+
+	// start all services
+	if err := serviceRegistry.StartAll(context.Background()); err != nil {
+		logger.Error("failed to start runtime services", "err", err)
+		panic(err)
+	}
 	return nb.node
 }
