@@ -103,7 +103,7 @@ DOCKERFILE = ./Dockerfile
 
 build-docker: ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
-	docker build \
+	docker buildx build \
 	--platform linux/$(ARCH) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
 	--build-arg GIT_VERSION=$(VERSION) \
