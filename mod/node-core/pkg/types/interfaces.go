@@ -30,7 +30,7 @@ import (
 type NodeI interface {
 	servertypes.Application
 
-	Run() error
+	Run(defaultNodeHome string) error
 
 	SetAppName(name string)
 	SetAppDescription(description string)
