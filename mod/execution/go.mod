@@ -4,9 +4,9 @@ go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614135647-9814c0c41144
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614141956-1031712e1325
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614135647-9814c0c41144
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614141956-1031712e1325
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
