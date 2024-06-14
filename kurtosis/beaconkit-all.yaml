@@ -92,7 +92,7 @@ node_settings:
       min_memory: 0
       max_memory: 2048
     images:
-      besu: hyperledger/besu:latest
+      besu: hyperledger/besu:24.5.4
       erigon: thorax/erigon:v2.60.1
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
