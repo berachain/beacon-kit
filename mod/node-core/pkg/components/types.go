@@ -36,7 +36,6 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -58,17 +57,6 @@ type (
 		*BeaconBlockHeader, *types.Eth1Data,
 		*ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *Withdrawal,
-	]
-
-	// BeaconKitRuntime is a type alias for the BeaconKitRuntime.
-	BeaconKitRuntime = runtime.BeaconKitRuntime[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		BeaconState,
-		*BlobSidecars,
-		*DepositStore,
-		StorageBackend,
 	]
 
 	// BlobSidecars is a type alias for the blob sidecars.

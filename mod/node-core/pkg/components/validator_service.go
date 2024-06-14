@@ -41,7 +41,7 @@ type ValidatorServiceInput struct {
 	LocalBuilder   *LocalBuilder
 	Logger         log.Logger
 	StateProcessor StateProcessor
-	StorageBackend Backend
+	StorageBackend StorageBackend
 	Signer         crypto.BLSSigner
 	TelemetrySink  *metrics.TelemetrySink
 }

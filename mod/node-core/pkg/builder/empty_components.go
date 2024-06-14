@@ -39,20 +39,20 @@ func emptyABCIMiddleware() *components.ABCIMiddleware {
 }
 
 // emptyBeaconState return an address pointing to an empty BeaconState.
-func emptyValidatorMiddleware() components.ValidatorMiddleware {
+func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 	return &middleware.ValidatorMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
 		components.BeaconState,
 		*datypes.BlobSidecars,
-		components.Backend,
+		components.StorageBackend,
 	]{}
 }
 
 // emptyFinalizeBlockMiddleware returns an address pointing to an empty
 // FinalizeBlockMiddleware.
-func emptyFinalizeBlockMiddlware() components.FinalizeBlockMiddleware {
+func emptyFinalizeBlockMiddlware() *components.FinalizeBlockMiddleware {
 	return &middleware.FinalizeBlockMiddleware[
 		*consensustypes.BeaconBlock,
 		components.BeaconState,
