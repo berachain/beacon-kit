@@ -14,3 +14,4 @@ d9903c2f9902243c88f2758fe2e81e305e737fb3@bera-testnet-seeds.nodeinfra.com:26656
 cf44af098820f50a1e96d51b7af6861bc961e706@berav2-seeds.staketab.org:5001
 6b5040a0e1b29a2cca224b64829d8f3d8796a3e3@berachain-testnet-v2-2.seed.l0vd.com:21656
 4f93da5553f0dfaafb620532901e082255ec3ad3@berachain-testnet-v2-1.seed.l0vd.com:61656
+a62eefaa284eaede7460315d2f1d1f92988e01f1@135.125.188.10:26656
