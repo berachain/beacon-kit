@@ -47,9 +47,6 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	newApp servertypes.AppCreator[T],
 	chainSpec primitives.ChainSpec,
 ) {
-	// Add the ToS Flag to the root command.
-	flags.AddToSFlag(rootCmd)
-
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
 		AddFlags: flags.AddBeaconKitFlags,
