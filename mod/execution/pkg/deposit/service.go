@@ -60,9 +60,9 @@ type Service[
 	]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
-	// failedBlocks is a map of blocks that failed to be processed to be
+	// failedBlocks is a channel of blocks that failed to be processed to be
 	// retried.
-	failedBlocks map[math.U64]struct{}
+	failedBlocks chan math.U64
 }
 
 // NewService creates a new instance of the Service struct.
@@ -105,7 +105,7 @@ func NewService[
 		metrics:            newMetrics(telemetrySink),
 		dc:                 dc,
 		ds:                 ds,
-		failedBlocks:       make(map[math.Slot]struct{}),
+		failedBlocks:       make(chan math.U64, 100),
 	}
 }
 

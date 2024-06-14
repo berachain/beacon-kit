@@ -22,14 +22,10 @@ package deposit
 
 import (
 	"context"
-	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
-
-// defaultRetryInterval processes a deposit event.
-const defaultRetryInterval = 20 * time.Second
 
 // depositFetcher processes a deposit event.
 func (s *Service[
@@ -61,26 +57,17 @@ func (s *Service[
 	ExecutionPayloadT, SubscriptionT,
 	WithdrawalCredentialsT, DepositT,
 ]) depositCatchupFetcher(ctx context.Context) {
-	ticker := time.NewTicker(defaultRetryInterval)
-	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
-			if len(s.failedBlocks) == 0 {
-				continue
-			}
+		case blockNum := <-s.failedBlocks:
 			s.logger.Warn(
 				"failed to get deposits from block(s), retrying...",
-				"num_blocks",
-				s.failedBlocks,
+				"block_num",
+				blockNum,
 			)
-
-			// Fetch deposits for blocks that failed to be processed.
-			for blockNum := range s.failedBlocks {
-				s.fetchAndStoreDeposits(ctx, blockNum)
-			}
+			s.fetchAndStoreDeposits(ctx, blockNum)
 		}
 	}
 }
@@ -93,7 +80,7 @@ func (s *Service[
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.metrics.markFailedToGetBlockLogs(blockNum)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocks <- blockNum
 		return
 	}
 
@@ -106,9 +93,7 @@ func (s *Service[
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocks <- blockNum
 		return
 	}
-
-	delete(s.failedBlocks, blockNum)
 }
