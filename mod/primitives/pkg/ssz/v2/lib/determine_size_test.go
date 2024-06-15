@@ -1,8 +1,10 @@
-package ssz
+package ssz_test
 
 import (
 	"reflect"
 	"testing"
+
+	sszv2 "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/v2/lib"
 )
 
 func TestGetArrayDimensionality(t *testing.T) {
@@ -35,7 +37,7 @@ func TestGetArrayDimensionality(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			val := reflect.ValueOf(tt.input)
-			result := GetArrayDimensionality(val)
+			result := sszv2.GetArrayDimensionality(val)
 			if result != tt.expected {
 				t.Errorf("Expected dimensionality %d, but got %d", tt.expected, result)
 			}
