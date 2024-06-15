@@ -22,6 +22,7 @@ func TestGetArrayDimensionality(t *testing.T) {
 		{"3D non-empty slice", [][][]int32{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, 3},
 		{"Byte array", [3]byte{1, 2, 3}, 1},
 		{"Byte slice", []byte{1, 2, 3}, 1},
+		{"2D empty bytes", [][]byte{}, 2},
 	}
 
 	for _, tt := range tests {
