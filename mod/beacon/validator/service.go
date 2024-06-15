@@ -79,7 +79,7 @@ type Service[
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
-	// Building blocks is done by submitting forkchoice updates through.
+	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// remotePayloadBuilders represents a list of remote block builders, these
