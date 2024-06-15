@@ -33,12 +33,32 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/server"
+	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 )
+
+// Root is a wrapper around cobra.Command.
+type Root struct {
+	cmd *cobra.Command
+}
+
+// NewRoot returns a pointer to a new Root.
+func NewRoot(rootcmd *cobra.Command) *Root {
+	return &Root{
+		cmd: rootcmd,
+	}
+}
+
+// Run executes the root command
+func (root Root) Run(defaultNodeHome string) error {
+	return svrcmd.Execute(
+		root.cmd, "", defaultNodeHome,
+	)
+}
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T servertypes.Application](

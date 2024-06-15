@@ -1,23 +1,3 @@
-// SPDX-License-Identifier: BUSL-1.1
-//
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is governed by the Business Source License included
-// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
-//
-// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
-// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
-// VERSIONS OF THE LICENSED WORK.
-//
-// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
-// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
-//
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
-// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
-// TITLE.
-
 package builder
 
 import (
@@ -27,59 +7,46 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-type NodeBuilder[NodeT types.NodeI] struct {
-	node         NodeT
+// CLIBuilder is a builder that incrementally constructs a CLI command.
+type CLIBuilder[T servertypes.Application] struct {
 	depInjectCfg depinject.Config
-
-	// components is a list of components to provide.
-	components []any
-
-	// TODO: eventually remove, the node should just be given a root
-	// command and not care about its construction.
-	clientComponents []any
-	runHandler       func(cmd *cobra.Command,
+	name         string
+	description  string
+	components   []any
+	runHandler   func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
 		cmtConfig *cmtcfg.Config,
 	) error
+	AppCreator   servertypes.AppCreator[T]
+	RootCmdSetup func(cmd *cobra.Command,
+		mm *module.Manager,
+		appCreator servertypes.AppCreator[T],
+		chainSpec primitives.ChainSpec,
+	)
 }
 
-// New returns a new NodeBuilder.
-func New[NodeT types.NodeI](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
-	nb := &NodeBuilder[NodeT]{
-		node: node.New[NodeT](),
-	}
+// New returns a new CLIBuilder with the given options.
+func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
+	cb := &CLIBuilder[T]{}
 	for _, opt := range opts {
-		opt(nb)
+		opt(cb)
 	}
-	return nb
+	return cb
 }
 
-// Build builds the application.
-func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
-	rootCmd, err := nb.buildRootCmd()
-	if err != nil {
-		return nb.node, err
-	}
-
-	nb.node.SetRootCmd(rootCmd)
-	return nb.node, nil
-}
-
-// buildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
+// Build builds the CLI commands
+func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	// dependencies for the root command
 	var (
 		autoCliOpts autocli.AppOptions
@@ -90,21 +57,16 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	// build dependencies for the root command
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.depInjectCfg,
+			cb.depInjectCfg,
 			depinject.Supply(
 				log.NewLogger(os.Stdout),
 				viper.GetViper(),
 				// empty middleware must be supplied here because it is a direct
 				// dependency of the Module
-				emptyABCIMiddleware(),
+				// emptyABCIMiddleware(),
 			),
 			depinject.Provide(
-				append(
-					nb.clientComponents,
-					components.ProvideNoopTxConfig,
-					components.ProvideConfig,
-					components.ProvideChainSpec,
-				)...,
+				cb.components...,
 			),
 		),
 		&autoCliOpts,
@@ -116,8 +78,8 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	}
 
 	cmd := &cobra.Command{
-		// Use:   nb.name,
-		// Short: nb.description,
+		Use:   cb.name,
+		Short: cb.description,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -148,7 +110,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 				return err
 			}
 
-			return nb.runHandler(
+			return cb.runHandler(
 				cmd,
 				DefaultAppConfigTemplate(),
 				DefaultAppConfig(),
@@ -160,7 +122,7 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 	cmdlib.DefaultRootCommandSetup(
 		cmd,
 		mm,
-		nb.AppCreator,
+		cb.AppCreator,
 		chainSpec,
 	)
 
@@ -168,12 +130,11 @@ func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
 		return nil, err
 	}
 
-	return cmd, nil
+	return cmdlib.NewRoot(cmd), nil
 }
 
 // InitClientConfig sets up the default client configuration, allowing for
 // overrides.
-// TODO this needs to be moved
 func InitClientConfig() (string, interface{}) {
 	clientCfg := config.DefaultConfig()
 	clientCfg.KeyringBackend = "test"

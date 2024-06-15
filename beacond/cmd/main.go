@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"os"
 
+	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -41,12 +42,12 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		// Set the Name to the Default.
-		nodebuilder.WithName[types.NodeI](
-			nodebuilder.DefaultAppName),
-		// Set the Description to the Default.
-		nodebuilder.WithDescription[types.NodeI](
-			nodebuilder.DefaultDescription),
+		// // Set the Name to the Default.
+		// nodebuilder.WithName[types.NodeI](
+		// 	nodebuilder.DefaultAppName),
+		// // Set the Description to the Default.
+		// nodebuilder.WithDescription[types.NodeI](
+		// 	nodebuilder.DefaultDescription),
 		// Set the DepInject Configuration to the Default.
 		nodebuilder.WithDepInjectConfig[types.NodeI](
 			nodebuilder.DefaultDepInjectConfig()),
@@ -58,14 +59,38 @@ func run() error {
 		nodebuilder.WithClientComponents[types.NodeI](
 			components.DefaultClientComponents(),
 		),
-		// TODO: this is hood.
-		nodebuilder.WithTODORemoveRunHandler[types.NodeI](
+		// // TODO: this is hood.
+		// nodebuilder.WithTODORemoveRunHandler[types.NodeI](
+		// 	server.InterceptConfigsPreRunHandler,
+		// ),
+	)
+
+	cb := clibuilder.New[types.NodeI](
+		// Set the Name to the Default.
+		clibuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),
+		// Set the Description to the Default.
+		clibuilder.WithDescription(nodebuilder.DefaultDescription),
+		// Set the DepInject Configuration to the Default.
+		clibuilder.WithDepInjectConfig(
+			nodebuilder.DefaultDepInjectConfig(),
+		),
+		// Set the Runtime Components to the Default.
+		clibuilder.WithComponents(
+			components.DefaultClientComponents(),
+		),
+		// Set the Run Handler to the Default.
+		clibuilder.WithRunHandler(
 			server.InterceptConfigsPreRunHandler,
 		),
 	)
 
 	// Assemble the node with all our components.
 	node, err := nb.Build()
+	if err != nil {
+		return err
+	}
+
+	cmd, err := cb.Build()
 	if err != nil {
 		return err
 	}

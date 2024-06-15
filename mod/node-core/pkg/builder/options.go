@@ -30,22 +30,6 @@ import (
 // Opt is a type that defines a function that modifies NodeBuilder.
 type Opt[NodeT types.NodeI] func(*NodeBuilder[NodeT])
 
-// WithName is a function that sets the name for the NodeBuilder.
-func WithName[NodeT types.NodeI](name string) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
-		nb.node.SetAppName(name)
-		nb.name = name
-	}
-}
-
-// WithDescription is a function that sets the description for the NodeBuilder.
-func WithDescription[NodeT types.NodeI](description string) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
-		nb.node.SetAppDescription(description)
-		nb.description = description
-	}
-}
-
 // WithDepInjectConfig is a function that sets the dependency injection
 // configuration for the NodeBuilder.
 func WithDepInjectConfig[NodeT types.NodeI](cfg depinject.Config) Opt[NodeT] {
