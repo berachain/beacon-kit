@@ -20,51 +20,5 @@
 
 package sync
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
-)
-
-// Service is a sync service.
-type Service[
-	SubscriptionT interface {
-		Unsubscribe()
-	},
-] struct {
-	clSync *consensus.SyncService[SubscriptionT]
-	logger log.Logger[any]
-}
-
-// New creates a new sync service.
-func New[
-	SubscriptionT interface {
-		Unsubscribe()
-	},
-](
-	clSync *consensus.SyncService[SubscriptionT],
-	logger log.Logger[any],
-) *Service[SubscriptionT] {
-	return &Service[SubscriptionT]{
-		clSync: clSync,
-		logger: logger,
-	}
-}
-
-// Name returns the name of the service.
-func (s *Service[SubscriptionT]) Name() string {
-	return "sync"
-}
-
-// Status returns the status of the service.
-func (s *Service[SubscriptionT]) Status() error {
-	return nil
-}
-
-// Start spawns any goroutines required by the service.
-func (s *Service[SubscriptionT]) Start(
-	_ context.Context,
-) error {
-	return nil
-}
+// syncService listens to updates from the cl and el feeds and emits a block
+// sync event when the cl is synced.

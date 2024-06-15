@@ -55,7 +55,7 @@ type SyncService[
 	// successful events to claim the CL is synced to head.
 	syncStatusUpdateThreshold uint64
 	// syncStatus is the current status of the CL.
-	syncStatus sync.CLStatus
+	syncStatus sync.ClientStatus
 	// logger is the logger used by the sync service.
 	logger log.Logger[any]
 }
@@ -70,7 +70,6 @@ func NewSyncService[
 	logger log.Logger[any],
 ) *SyncService[SubscriptionT] {
 	return &SyncService[SubscriptionT]{
-
 		syncCh:                    make(chan *feed.Event[bool], 1),
 		syncFeed:                  syncFeed,
 		syncCount:                 atomic.Uint64{},
@@ -105,6 +104,7 @@ func (s *SyncService[SubscriptionT]) mainLoop(ctx context.Context) {
 		select {
 		case event := <-s.syncCh:
 			if event.Is(events.CLSyncUpdate) {
+				// Update the status of the CL.
 				s.handleCLSyncUpdateEvent(event)
 			}
 		case <-ctx.Done():

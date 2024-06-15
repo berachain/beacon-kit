@@ -23,11 +23,13 @@ package components
 import (
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -36,6 +38,7 @@ type ChainServiceInput struct {
 	BlobProcessor   *BlobProcessor
 	BlockFeed       *BlockFeed
 	ChainSpec       primitives.ChainSpec
+	CLSyncFeed      *event.FeedOf[*feed.Event[bool]]
 	Cfg             *config.Config
 	DepositService  *DepositService
 	EngineClient    *EngineClient

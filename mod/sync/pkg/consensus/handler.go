@@ -34,29 +34,36 @@ func (s *SyncService[SubscriptionT]) handleCLSyncUpdateEvent(
 	// 1. If our internal status is saying we are NOT synced, and we
 	// receive an event implying we are synced, increment the sync
 	// counter.
-	case s.syncStatus == sync.CLStatusNotSynced && event.Data():
+	case (s.syncStatus == sync.StatusNotSynced ||
+		s.syncStatus == sync.StatusDisconnected) && event.Data():
 		s.syncCount.Add(1)
 		// If the sync count is greater than or equal to the
 		// threshold, mark the CL as `SYNCED`.
 		if s.syncCount.Load() >= s.syncStatusUpdateThreshold {
 			s.logger.Info("marking consensus client as synced 🎉")
-			s.syncStatus = sync.CLStatusSynced
+			s.syncStatus = sync.StatusNotSynced
+
+			// Fire off an event to notify that the consensus client is
+			// deemed to be in sync.
+			s.syncFeed.Send(
+				feed.NewEvent(event.Context(),
+					events.CLSyncStatus, true,
+				),
+			)
 		}
 
 	// 2. If we see an event that tells us we are not synced to head
 	// immediately reset the counter and mark the CL as `NOT_SYNCED`,
 	// irrespective of the current status.
-	case !event.Data():
+	case s.syncStatus == sync.StatusSynced && !event.Data():
 		s.syncCount.Store(0)
-		s.syncStatus = sync.CLStatusNotSynced
-	}
+		s.syncStatus = sync.StatusNotSynced
+		s.logger.Info("marking consensus client as not synced 😢")
 
-	// Fire off an event to notify subscribers about the sync status of
-	// the consensus layer.
-	s.syncFeed.Send(
-		feed.NewEvent(event.Context(),
-			events.CLSyncStatus,
-			s.syncStatus == sync.CLStatusSynced,
-		),
-	)
+		// Fire off an event to notify that the consensus client has become
+		// out of sync.
+		s.syncFeed.Send(
+			feed.NewEvent(event.Context(), events.CLSyncStatus, false),
+		)
+	}
 }

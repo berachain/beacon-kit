@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package consensus
+package types
 
 // EventFeed is a generic interface for sending events.
 type EventFeed[

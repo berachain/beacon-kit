@@ -28,6 +28,11 @@ import (
 	consensus "github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 )
 
+// ProvideCLSyncFeed is a depinject provider that returns a CLSyncFeed.
+func ProvideCLSyncFeed() *event.FeedOf[*feed.Event[bool]] {
+	return &event.FeedOf[*feed.Event[bool]]{}
+}
+
 // CLSyncServiceInput is the input for the CLSyncService provider.
 type CLSyncServiceInput[
 	SubscriptionT interface {

@@ -23,9 +23,11 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -33,7 +35,8 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 	ChainService     *ChainService
-	DBManager        *DBManager
+	CLSyncService    *consensus.SyncService[event.Subscription]
+	DBManagerService *DBManager
 	DepositService   *DepositService
 	EngineClient     *EngineClient
 	Logger           log.Logger
