@@ -242,7 +242,6 @@ type ExecutionPayloadHeader interface {
 
 type ExecutionPayloadHeaderDeneb[ExecutionPayloadHeaderT ExecutionPayloadHeader] interface {
 	ExecutionPayloadHeader
-	ToPayloadHeader() ExecutionPayloadHeaderT
 }
 
 // EventFeed is a generic interface for sending events.
