@@ -78,10 +78,10 @@ github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5/go.mod h1:rreW3jRRBVZNjrqDRTBik3oSYrxyQ/gKmni/OaHnfxc=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 h1:rpEZNxSXhMh2d0Tlb1m6ioxxXeoPOkWir0algjJ7QKY=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5/go.mod h1:46Tar1n1HvzqWTNHC2so+PKq5Cjpl1xEV6HZC6ubAsU=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614154006-a5defa6198f5 h1:gxEV0QDovl99rRJJyo8bkijl/0X6LhrJd0OBRHRWVEA=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614154006-a5defa6198f5/go.mod h1:/d5vv/SG9JVULqIAih80a5PPcPRZB+sirg5I6/9bk5s=
-github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614154006-a5defa6198f5 h1:WnukLWxIzvg7fB6x/Ggs2MJJiGYsUYBOZeKmns89diY=
-github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614154006-a5defa6198f5/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58 h1:Sz3lwJpQMJAKNWY0iLg5F9LAC/+ljTGi5de9InMydsw=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58/go.mod h1:L/7qJhfAQlvmNlzTg/WkPak/25Z9DzVg9LndD5ZzqRc=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51 h1:chPsCJcdX6gUmKAcF6JUjvgZ0SSIXxXhty7XuogvrvM=
+github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240614154006-a5defa6198f5 h1:hBaUFHzDBbaqC2nsLnTd8LOuAR84a6dxwXZ1CtxTjOA=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240614154006-a5defa6198f5/go.mod h1:AD76iBJ2O2cISPfFEi0vNqZU1Bs0rHTidrSKhK+os/o=
 github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c h1:/4ch1BvnPODBW0NSekJetlOsN1ezi10eoT5z/QqYGL4=
@@ -92,8 +92,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c h1:1Z
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5 h1:E+quvcqF4F4JX3SS6ywx3CVY8CZMaRA6l7Op0bpIGd8=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5/go.mod h1:3c3SFn7x1QHHkQRg8LmAk8xBqoxRQ7StQZfeasT59cA=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614154006-a5defa6198f5 h1:cLCMzM4y/Y0jFcO56vsQKjU+b5lymzyLhvaINZ0eQ6Q=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614154006-a5defa6198f5/go.mod h1:bpqVvrgH60X7QtEiU8uDQJBsBkCQD2rXTifuu/e/BDQ=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51 h1:YmebpUdNa1ei+pM1Ior2nA45qC6qMDDigoLhr4I+unk=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51/go.mod h1:xg8BworJAcrzTzbTgP/637Be89xAtrRzGkXKSzuRMkQ=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240614135647-9814c0c41144 h1:nXZHWF2QW9UEK19gsHKOkQMhtaXL4fjPUl649NTcct0=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240614135647-9814c0c41144/go.mod h1:0Qi7VfECZXncwHRTrbq4So7TpuXyu9PMUDq94HYwrnU=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c h1:V5K1QTUqhamqhGGm7+uuppCWW8RnJbZ16M351WnQeo4=
@@ -147,8 +147,8 @@ github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwP
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099 h1:6NmnQ1ZxXnYbPkrBSk48c6jPdlNgS/EThFdohoamVcU=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240610113006-a7ff6f377099/go.mod h1:W5efP1Pegj3PwmtrZY/XiObzJCJd31PZZTzZbq38s6g=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d h1:QyLqH+BoO51N8rBc0vrtG2I1HeQD9Hww1JbBbGDQrSM=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d/go.mod h1:W5efP1Pegj3PwmtrZY/XiObzJCJd31PZZTzZbq38s6g=
 github.com/cometbft/cometbft-db v0.12.0 h1:v77/z0VyfSU7k682IzZeZPFZrQAKiQwkqGN0QzAjMi0=
 github.com/cometbft/cometbft-db v0.12.0/go.mod h1:aX2NbCrjNVd2ZajYxt1BsiFf/Z+TQ2MN0VxdicheYuw=
 github.com/cometbft/cometbft/api v1.0.0-rc.1 h1:GtdXwDGlqwHYs16A4egjwylfYOMYyEacLBrs3Zvpt7g=
@@ -392,8 +392,8 @@ github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4 h1:X4egAf/gcS1zATw6w
 github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4/go.mod h1:5GuXa7vkL8u9FkFuWdVvfR5ix8hRB7DbOAaYULamFpc=
 github.com/holiman/bloomfilter/v2 v2.0.3 h1:73e0e/V0tCydx14a0SCYS/EWCxgwLZ18CZcZKVu0fao=
 github.com/holiman/bloomfilter/v2 v2.0.3/go.mod h1:zpoh+gs7qcpqrHr3dB55AMiJwo0iURXE7ZOP9L9hSkA=
-github.com/holiman/uint256 v1.2.4 h1:jUc4Nk8fm9jZabQuqr2JzednajVmBpC+oiTiXZJEApU=
-github.com/holiman/uint256 v1.2.4/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
+github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 h1:U7b97MpLtTUkckSdQD5m9HjdP07g+bdmeGA56EWGkA0=
+github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/go-assert v1.1.5 h1:fjemmA7sSfYHJD7CUqs9qTwwfdNAx7/j2/ZlHXzNB3c=
 github.com/huandu/go-assert v1.1.5/go.mod h1:yOLvuqZwmcHIC5rIzrBhT7D3Q9c3GFnd0JrPVhn/06U=

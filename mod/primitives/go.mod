@@ -7,7 +7,7 @@ require (
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/holiman/uint256 v1.2.4
+	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
 	github.com/minio/sha256-simd v1.0.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/stretchr/testify v1.9.0

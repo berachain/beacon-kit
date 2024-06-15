@@ -178,7 +178,7 @@ func (v Validator) IsPartiallyWithdrawable(
 		v.HasMaxEffectiveBalance(maxEffectiveBalance) && hasExcessBalance
 }
 
-// IsWithdrawable as defined in the Ethereum 2.0 specification:
+// HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
 //
 //nolint:lll
