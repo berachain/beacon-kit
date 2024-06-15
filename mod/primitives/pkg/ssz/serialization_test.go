@@ -497,11 +497,9 @@ func FuzzMarshalUnmarshalBitList(f *testing.F) {
 		// Convert bytes to a bit list (bool slice) with the random length
 		bitList := make([]bool, randomBitLength)
 		for i, b := range data {
-			for j := range 8 {
-				if i*8+j >= randomBitLength {
-					break // Stop filling the bit list once we reach the random length
-				}
+			for j := 0; j < 8 && i*8+j < randomBitLength; j++ {
 				bitList[i*8+j] = (b & (1 << j)) != 0
+
 			}
 		}
 
