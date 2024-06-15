@@ -188,11 +188,11 @@ func InterleaveOffsets(
 	offsetSum := sumIntArr(fixedLengths)
 	variableOffsets := make([][]byte, len(variableParts))
 	for i := range len(variableParts) {
+		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 		offsetSum += variableLengths[i]
 		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
 		// of 2147483647.
 		// Wont realisticially overflow.
-		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 	}
 
 	fixedPartsWithOffsets := make([][]byte, len(fixedParts))
