@@ -25,11 +25,11 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -66,7 +66,7 @@ func ProvideClientContext(
 
 	// Read the config to overwrite the default values with the values from the
 	// config file
-	customClientTemplate, customClientConfig := InitClientConfig()
+	customClientTemplate, customClientConfig := builder.InitClientConfig()
 	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(
 		clientCtx,
 		customClientTemplate,
@@ -79,12 +79,4 @@ func ProvideClientContext(
 	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx, nil
-}
-
-// InitClientConfig sets up the default client configuration, allowing for
-// overrides.
-func InitClientConfig() (string, interface{}) {
-	clientCfg := config.DefaultConfig()
-	clientCfg.KeyringBackend = keyring.BackendTest
-	return config.DefaultClientConfigTemplate, clientCfg
 }

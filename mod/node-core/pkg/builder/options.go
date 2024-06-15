@@ -23,6 +23,8 @@ package builder
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/spf13/cobra"
 )
 
 // Opt is a type that defines a function that modifies NodeBuilder.
@@ -56,5 +58,28 @@ func WithDepInjectConfig[NodeT types.NodeI](cfg depinject.Config) Opt[NodeT] {
 func WithComponents[NodeT types.NodeI](components []any) Opt[NodeT] {
 	return func(nb *NodeBuilder[NodeT]) {
 		nb.components = components
+	}
+}
+
+// WithClientComponents is a function that sets the client components for the
+// NodeBuilder.
+func WithClientComponents[NodeT types.NodeI](
+	clientComponents []any,
+) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.clientComponents = clientComponents
+	}
+}
+
+// WithTODORemoveRunHandler is a function that sets the run handler for the
+// NodeBuilder.
+func WithTODORemoveRunHandler[NodeT types.NodeI](
+	runHandler func(cmd *cobra.Command,
+		customAppConfigTemplate string,
+		customAppConfig interface{},
+		cmtConfig *cmtcfg.Config,
+	) error) Opt[NodeT] {
+	return func(nb *NodeBuilder[NodeT]) {
+		nb.runHandler = runHandler
 	}
 }

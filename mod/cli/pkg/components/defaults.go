@@ -20,27 +20,11 @@
 
 package components
 
-import (
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
-
-const (
-	ChainSpecTypeEnvVar = "CHAIN_SPEC"
-	DevnetChainSpecType = "devnet"
-)
-
-// ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideChainSpec() primitives.ChainSpec {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
-	specType := os.Getenv(ChainSpecTypeEnvVar)
-	chainSpec := spec.TestnetChainSpec()
-	if specType == DevnetChainSpecType {
-		chainSpec = spec.DevnetChainSpec()
+// DefaultClientComponents returns the default components for
+// the client.
+func DefaultClientComponents() []any {
+	return []any{
+		ProvideClientContext,
+		ProvideKeyring,
 	}
-
-	return chainSpec
 }
