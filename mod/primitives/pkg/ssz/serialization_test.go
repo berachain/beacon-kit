@@ -499,7 +499,6 @@ func FuzzMarshalUnmarshalBitList(f *testing.F) {
 		for i, b := range data {
 			for j := 0; j < 8 && i*8+j < randomBitLength; j++ {
 				bitList[i*8+j] = (b & (1 << j)) != 0
-
 			}
 		}
 
