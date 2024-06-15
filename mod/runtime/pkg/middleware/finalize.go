@@ -129,6 +129,7 @@ func (h *FinalizeBlockMiddleware[
 		))
 
 	if err != nil {
+		// We want to return nil here to prevent the
 		// middleware from triggering a panic.
 		return nil
 	}
