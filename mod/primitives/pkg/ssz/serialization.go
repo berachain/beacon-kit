@@ -30,14 +30,14 @@ const bitsPerByte = 8
 
 // ----------------------------- Unmarshal -----------------------------
 
-// UnmarshalU256 unmarshals a big endian U256 from the src input.
+// UnmarshalU256L unmarshals a big endian U256 from the src input.
 func UnmarshalU256L[U256LT ~[32]byte](src []byte) U256LT {
 	var u256 U256LT
 	copy(u256[:], src)
 	return u256
 }
 
-// MarshalU256 marshals a little endian U256 into a byte slice.
+// UnmarshalU128L marshals a little endian U256 into a byte slice.
 func UnmarshalU128L[U128LT ~[16]byte](src []byte) U128LT {
 	var u128 U128LT
 	copy(u128[:], src)

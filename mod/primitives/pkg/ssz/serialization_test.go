@@ -483,3 +483,93 @@ func TestUnmarshalBitList(t *testing.T) {
 		})
 	}
 }
+
+func FuzzMarshalUnmarshalBitList(f *testing.F) {
+	f.Fuzz(func(t *testing.T, data []byte) {
+		// Convert bytes to a bit list (bool slice)
+		bitList := make([]bool, len(data)*8)
+		for i, b := range data {
+			for j := range 8 {
+				bitList[i*8+j] = (b & (1 << j)) != 0
+			}
+		}
+
+		marshaled := ssz.MarshalBitList(bitList)
+		unmarshaled := ssz.UnmarshalBitList(marshaled)
+
+		// Check if the original and unmarshaled bit lists are the same
+		require.Equal(t, bitList, unmarshaled, "Original and "+
+			"unmarshaled bit lists do not match")
+	})
+}
+
+func TestMarshalUnmarshalBitList(t *testing.T) {
+	var tests = []struct {
+		name      string
+		input     []bool
+		expOutput []byte
+	}{
+		{
+			name:      "empty input",
+			input:     []bool{},
+			expOutput: []byte{0b00000001},
+		},
+		{
+			name:      "single true input",
+			input:     []bool{true},
+			expOutput: []byte{0b00000011},
+		},
+		{
+			name:      "four elements input",
+			input:     []bool{true, true, false, false},
+			expOutput: []byte{0b00010011},
+		},
+		{
+			name:      "seven elements input",
+			input:     []bool{true, false, true, false, true, false, true},
+			expOutput: []byte{0b11010101},
+		},
+		{
+			name:      "eight elements input",
+			input:     []bool{true, false, true, false, true, false, true, false},
+			expOutput: []byte{0b01010101, 0b00000001},
+		},
+		{
+			name:      "nine elements input",
+			input:     []bool{true, false, true, false, true, false, true, false, false},
+			expOutput: []byte{0b01010101, 0b00000010},
+		},
+		{
+			name: "fifteen elements input",
+			input: []bool{true, false, true, false, true, false, true, false, true,
+				true, true, true, true, true, true},
+			expOutput: []byte{0b01010101, 0b11111111},
+		},
+		{
+			name: "alternating pattern",
+			input: []bool{true, false, true, false, true, false, true, false,
+				true, false},
+			expOutput: []byte{0b01010101, 0b00000011},
+		},
+		{
+			name: "all true",
+			input: []bool{true, true, true, true, true, true, true, true,
+				true, true},
+			expOutput: []byte{0b11111111, 0b00000011},
+		},
+		{
+			name: "all false",
+			input: []bool{false, false, false, false, false, false, false,
+				false, false, false},
+			expOutput: []byte{0b00000001},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			marshaled := ssz.MarshalBitList(tc.input)
+			unmarshaled := ssz.UnmarshalBitList(marshaled)
+			require.Equal(t, tc.input, unmarshaled, "Failed at "+tc.name)
+		})
+	}
+}
