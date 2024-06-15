@@ -24,5 +24,5 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-// A KZG proof is a 48-byte slice.
+// KZGProof is a 48-byte slice.
 type KZGProof = bytes.B48
