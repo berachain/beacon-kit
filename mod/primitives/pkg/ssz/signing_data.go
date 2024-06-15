@@ -55,7 +55,7 @@ func ComputeSigningRoot(
 	}).HashTreeRoot()
 }
 
-// ComputeRandaoSigningRootUInt64 computes the signing root of a uint64 value.
+// ComputeSigningRootUInt64 computes the signing root of a uint64 value.
 func ComputeSigningRootUInt64(
 	value uint64,
 	domain common.Domain,
