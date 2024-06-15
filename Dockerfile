@@ -25,10 +25,6 @@ ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
-ARG FINAL_USERNAME="bera"
-ARG FINAL_GROUPNAME="bera"
-ARG FINAL_UID=10000
-ARG FINAL_GID=10000
 
 #######################################################
 ###         Stage 1 - Cache Go Modules              ###
@@ -138,39 +134,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###        Stage 3 - Create user for Final Image    ###
+###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as adduser
-
-ARG FINAL_USERNAME
-ARG FINAL_GROUPNAME
-ARG FINAL_UID
-ARG FINAL_GID
-
-# Create a user and group to run the application
-RUN addgroup -g ${FINAL_GID} ${FINAL_GROUPNAME} && \
-    adduser -D -u ${FINAL_UID} -G ${FINAL_GROUPNAME} ${FINAL_USERNAME}
-
-#######################################################
-###        Stage 4 - Prepare the Final Image        ###
-#######################################################
-
-FROM ${RUNNER_IMAGE}
-
-# Create tree structure for distroless environment
-WORKDIR /etc
-WORKDIR /usr/bin
-WORKDIR /tmp
-
-# Copy over the user from the adduser stage
-COPY --from=adduser /etc/passwd /etc/passwd
-COPY --from=adduser /etc/group /etc/group
+FROM alpine:3.14
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/beacond /usr/bin/beacond
-
-# Set the user to the one created in the adduser stage
-USER ${FINAL_USERNAME}
+COPY --from=builder /workdir/build/bin/beacond /usr/bin
+RUN mkdir -p /root/jwt /root/kzg && \
+    apk add --no-cache bash sed curl
 
 ENTRYPOINT [ "/usr/bin/beacond" ]
