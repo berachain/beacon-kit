@@ -46,8 +46,8 @@ type Root struct {
 	cmd *cobra.Command
 }
 
-// NewRoot returns a pointer to a new Root.
-func NewRoot(rootcmd *cobra.Command) *Root {
+// New returns a pointer to a new Root.
+func New(rootcmd *cobra.Command) *Root {
 	return &Root{
 		cmd: rootcmd,
 	}
@@ -62,9 +62,9 @@ func (root Root) Run(defaultNodeHome string) error {
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T servertypes.Application](
-	rootCmd *cobra.Command,
+	root *Root,
 	mm *module.Manager,
-	newApp servertypes.AppCreator[T],
+	appCreator servertypes.AppCreator[T],
 	chainSpec primitives.ChainSpec,
 ) {
 	// Setup the custom start command options.
@@ -73,9 +73,9 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	}
 
 	// Add all the commands to the root command.
-	rootCmd.AddCommand(
+	root.cmd.AddCommand(
 		// `comet`
-		cometbft.Commands(newApp),
+		cometbft.Commands(appCreator),
 		// `client`
 		client.Commands[T](),
 		// `config`
@@ -91,13 +91,13 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `keys`
 		keys.Commands(),
 		// `prune`
-		pruning.Cmd(newApp),
+		pruning.Cmd(appCreator),
 		// `rollback`
-		server.NewRollbackCmd(newApp),
+		server.NewRollbackCmd(appCreator),
 		// `snapshots`
-		snapshot.Cmd(newApp),
+		snapshot.Cmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(newApp, startCmdOptions),
+		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`
 		server.StatusCommand(),
 		// `version`

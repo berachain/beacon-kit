@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"

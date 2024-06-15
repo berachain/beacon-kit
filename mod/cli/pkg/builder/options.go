@@ -19,26 +19,37 @@ func WithName[T servertypes.Application](name string) Opt[T] {
 }
 
 // WithDescription sets the description for the CLIBuilder
-func (cb *CLIBuilder[T]) WithDescription(description string) Opt[T] {
+func WithDescription[T servertypes.Application](description string) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.description = description
 	}
 }
 
-func (cb *CLIBuilder[T]) WithDepInjectConfig(cfg depinject.Config) Opt[T] {
+// WithDepInjectConfig sets the depinject config for the CLIBuilder
+func WithDepInjectConfig[T servertypes.Application](
+	cfg depinject.Config) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.depInjectCfg = cfg
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder
-func (cb *CLIBuilder[T]) WithComponents(components []any) Opt[T] {
+func WithComponents[T servertypes.Application](components []any) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.components = components
 	}
 }
 
-func (cb *CLIBuilder[T]) WithRunHandler(
+// WithModuleDeps populates the slice of direct module dependencies to be
+// supplied to depinject
+func WithModuleDeps[T servertypes.Application](deps []any) Opt[T] {
+	return func(cb *CLIBuilder[T]) {
+		cb.moduleDeps = deps
+	}
+}
+
+// WithRunHandler sets the run handler for the CLIBuilder
+func WithRunHandler[T servertypes.Application](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
@@ -51,17 +62,17 @@ func (cb *CLIBuilder[T]) WithRunHandler(
 }
 
 // WithDefaultRootCommandSetup sets the root command setup func to the default
-func (cb *CLIBuilder[T]) WithDefaultRootCommandSetup() Opt[T] {
+func WithDefaultRootCommandSetup[T servertypes.Application]() Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.RootCmdSetup = cmdlib.DefaultRootCommandSetup
+		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup
 	}
 }
 
 // WithAppCreator sets the cosmos app creator for the CLIBuilder
-func (cb *CLIBuilder[T]) WithAppCreator(
+func WithAppCreator[T servertypes.Application](
 	appCreator servertypes.AppCreator[T],
 ) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.AppCreator = appCreator
+		cb.appCreator = appCreator
 	}
 }

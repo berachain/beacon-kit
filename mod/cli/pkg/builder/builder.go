@@ -23,13 +23,14 @@ type CLIBuilder[T servertypes.Application] struct {
 	name         string
 	description  string
 	components   []any
+	moduleDeps   []any
 	runHandler   func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
 		cmtConfig *cmtcfg.Config,
 	) error
-	AppCreator   servertypes.AppCreator[T]
-	RootCmdSetup func(cmd *cobra.Command,
+	appCreator   servertypes.AppCreator[T]
+	rootCmdSetup func(cmd *cmdlib.Root,
 		mm *module.Manager,
 		appCreator servertypes.AppCreator[T],
 		chainSpec primitives.ChainSpec,
@@ -59,14 +60,16 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		depinject.Configs(
 			cb.depInjectCfg,
 			depinject.Supply(
-				log.NewLogger(os.Stdout),
-				viper.GetViper(),
-				// empty middleware must be supplied here because it is a direct
-				// dependency of the Module
-				// emptyABCIMiddleware(),
+				append([]any{
+					log.NewLogger(os.Stdout),
+					viper.GetViper(),
+				},
+					cb.moduleDeps...)...,
 			),
 			depinject.Provide(
-				cb.components...,
+				append(
+					cb.components,
+				)...,
 			),
 		),
 		&autoCliOpts,
@@ -120,9 +123,9 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	}
 
 	cmdlib.DefaultRootCommandSetup(
-		cmd,
+		cmdlib.New(cmd),
 		mm,
-		cb.AppCreator,
+		cb.appCreator,
 		chainSpec,
 	)
 
@@ -130,7 +133,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		return nil, err
 	}
 
-	return cmdlib.NewRoot(cmd), nil
+	return cmdlib.New(cmd), nil
 }
 
 // InitClientConfig sets up the default client configuration, allowing for

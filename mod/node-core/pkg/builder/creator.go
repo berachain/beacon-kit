@@ -36,12 +36,12 @@ import (
 // AppCreator is a function that creates an application and starts the bkRuntime
 // services.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT]) AppCreator(
+func (nb *NodeBuilder[AppT]) AppCreator(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
-) NodeT {
+) AppT {
 	// Check for goleveldb cause bad project.
 	if appOpts.Get("app-db-backend") == "goleveldb" {
 		panic("goleveldb is not supported")
@@ -89,6 +89,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		),
 	)
 
+	// TODO: put this in some post node creation hook/listener
 	// start all services
 	if err := serviceRegistry.StartAll(context.Background()); err != nil {
 		logger.Error("failed to start runtime services", "err", err)
