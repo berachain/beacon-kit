@@ -489,7 +489,7 @@ func FuzzMarshalUnmarshalBitList(f *testing.F) {
 		// Convert bytes to a bit list (bool slice)
 		bitList := make([]bool, len(data)*8)
 		for i, b := range data {
-			for j := 0; j < 8; j++ {
+			for j := range 8 {
 				bitList[i*8+j] = (b & (1 << j)) != 0
 			}
 		}
@@ -498,7 +498,8 @@ func FuzzMarshalUnmarshalBitList(f *testing.F) {
 		unmarshaled := ssz.UnmarshalBitList(marshaled)
 
 		// Check if the original and unmarshaled bit lists are the same
-		require.Equal(t, bitList, unmarshaled, "Original and unmarshaled bit lists do not match")
+		require.Equal(t, bitList, unmarshaled, "Original and "+
+			"unmarshaled bit lists do not match")
 	})
 }
 
@@ -539,23 +540,27 @@ func TestMarshalUnmarshalBitList(t *testing.T) {
 			expOutput: []byte{0b01010101, 0b00000010},
 		},
 		{
-			name:      "fifteen elements input",
-			input:     []bool{true, false, true, false, true, false, true, false, true, true, true, true, true, true, true},
+			name: "fifteen elements input",
+			input: []bool{true, false, true, false, true, false, true, false, true,
+				true, true, true, true, true, true},
 			expOutput: []byte{0b01010101, 0b11111111},
 		},
 		{
-			name:      "alternating pattern",
-			input:     []bool{true, false, true, false, true, false, true, false, true, false},
+			name: "alternating pattern",
+			input: []bool{true, false, true, false, true, false, true, false,
+				true, false},
 			expOutput: []byte{0b01010101, 0b00000011},
 		},
 		{
-			name:      "all true",
-			input:     []bool{true, true, true, true, true, true, true, true, true, true},
+			name: "all true",
+			input: []bool{true, true, true, true, true, true, true, true,
+				true, true},
 			expOutput: []byte{0b11111111, 0b00000011},
 		},
 		{
-			name:      "all false",
-			input:     []bool{false, false, false, false, false, false, false, false, false, false},
+			name: "all false",
+			input: []bool{false, false, false, false, false, false, false,
+				false, false, false},
 			expOutput: []byte{0b00000001},
 		},
 	}

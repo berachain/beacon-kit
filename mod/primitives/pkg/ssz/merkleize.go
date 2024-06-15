@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
-// Merkleize hashes the packed value and returns the HTR.
+// MerkleizeBasic hashes the packed value and returns the HTR.
 func MerkleizeBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT,
 	RootT ~[32]byte, B Basic[SpecT, RootT],
@@ -37,7 +37,8 @@ func MerkleizeBasic[
 	return MerkleizeVecBasic[U64T, U256L, RootT, SpecT]([]B{value})
 }
 
-// MerkleizeVec implements the SSZ merkleization algorithm for a vector of basic
+// MerkleizeVecBasic implements the SSZ merkleization algorithm
+// for a vector of basic
 // types.
 func MerkleizeVecBasic[
 	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
