@@ -190,12 +190,12 @@ type DepositStore[DepositT any] interface {
 	) ([]DepositT, error)
 }
 
-type Eth1Data interface {
+type Eth1Data[T any] interface {
 	New(
 		depositRoot common.Root,
 		depositCount math.U64,
 		blockHash common.ExecutionHash,
-	)
+	) T
 }
 
 type ExecutionPayload[T any, WithdrawalT Withdrawal] interface {

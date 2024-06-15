@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -38,20 +37,19 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
+	GenesisT, WithdrawalT,
 ]) ProcessGenesisData(
 	ctx context.Context,
-	genesisData *genesis.Genesis[
-		DepositT, ExecutionPayloadHeaderDenebT,
-	],
+	genesisData GenesisT,
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
-		genesisData.Deposits,
+		genesisData.GetDeposits(),
 		ExecutionPayloadHeader(
-			genesisData.ExecutionPayloadHeader.ToPayloadHeader(),
+			genesisData.GetExecutionPayloadHeader().ToPayloadHeader(),
 		).(ExecutionPayloadHeaderT),
-		genesisData.ForkVersion,
+		genesisData.GetForkVersion(),
 	)
 }
 
@@ -61,7 +59,8 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
+	GenesisT, WithdrawalT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -127,7 +126,8 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
+	GenesisT, WithdrawalT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -165,7 +165,8 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT, WithdrawalT,
+	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
+	GenesisT, WithdrawalT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,

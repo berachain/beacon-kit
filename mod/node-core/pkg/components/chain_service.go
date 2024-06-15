@@ -64,6 +64,7 @@ func ProvideChainService(
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ExecutionPayloadHeaderDeneb,
+		*Genesis,
 		*Withdrawal,
 	](
 		in.StorageBackend,

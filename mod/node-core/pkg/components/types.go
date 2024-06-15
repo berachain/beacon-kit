@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -97,6 +98,7 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ExecutionPayloadHeaderDeneb,
+		*Genesis,
 		*Withdrawal,
 	]
 
@@ -138,6 +140,9 @@ type (
 	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
 		*BeaconBlock, BeaconState, *BlobSidecars,
 	]
+
+	// Genesis is a type alias for the genesis.
+	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeaderDeneb]
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
@@ -187,10 +192,16 @@ type (
 	ValidatorService = validator.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.ForkData,
+		*Withdrawal,
 	]
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.

@@ -54,10 +54,16 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.ForkData,
+		*Withdrawal,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),

@@ -48,7 +48,7 @@ type Service[
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data,
+	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT interface {
@@ -121,7 +121,7 @@ func NewService[
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data,
+	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT interface {
