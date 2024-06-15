@@ -53,7 +53,7 @@ func New(rootcmd *cobra.Command) *Root {
 	}
 }
 
-// Run executes the root command
+// Run executes the root command.
 func (root Root) Run(defaultNodeHome string) error {
 	return svrcmd.Execute(
 		root.cmd, "", defaultNodeHome,
