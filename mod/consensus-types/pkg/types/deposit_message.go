@@ -89,7 +89,7 @@ func (d *DepositMessage) New(
 	}
 }
 
-// VerifyDeposit verifies the deposit data when attempting to create a
+// VerifyCreateValidator verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (d *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,

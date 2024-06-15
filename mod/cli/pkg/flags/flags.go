@@ -20,6 +20,11 @@
 
 package flags
 
+import (
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/spf13/cobra"
+)
+
 const (
 	// Beacon Kit Root Flag.
 	beaconKitRoot      = "beacon-kit."
@@ -50,3 +55,44 @@ const (
 	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
 	KZGImplementation   = kzgRoot + "implementation"
 )
+
+// AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
+func AddBeaconKitFlags(startCmd *cobra.Command) {
+	defaultCfg := config.DefaultConfig()
+	startCmd.Flags().String(
+		JWTSecretPath,
+		defaultCfg.Engine.JWTSecretPath,
+		"path to the execution client secret",
+	)
+	startCmd.Flags().String(
+		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
+	startCmd.Flags().Uint64(
+		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+	startCmd.Flags().Duration(
+		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+	startCmd.Flags().Duration(
+		RPCStartupCheckInterval,
+		defaultCfg.Engine.RPCStartupCheckInterval,
+		"rpc startup check interval",
+	)
+	startCmd.Flags().Duration(
+		RPCJWTRefreshInterval,
+		defaultCfg.Engine.RPCJWTRefreshInterval,
+		"rpc jwt refresh interval",
+	)
+	startCmd.Flags().String(
+		SuggestedFeeRecipient,
+		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
+		"suggested fee recipient",
+	)
+	startCmd.Flags().String(
+		KZGTrustedSetupPath,
+		defaultCfg.KZG.TrustedSetupPath,
+		"kzg trusted setup path",
+	)
+	startCmd.Flags().String(
+		KZGImplementation,
+		defaultCfg.KZG.Implementation,
+		"kzg implementation",
+	)
+}

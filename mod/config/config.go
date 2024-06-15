@@ -22,17 +22,20 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/config/pkg/template"
+	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
-	viperlib "github.com/berachain/beacon-kit/mod/node-core/pkg/config/viper"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+// AppOptions is from the SDK, we should look to remove its usage.
+type AppOptions interface {
+	Get(string) interface{}
+}
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
@@ -63,12 +66,12 @@ func (c Config) GetEngine() engineclient.Config {
 
 // Template returns the configuration template.
 func (c Config) Template() string {
-	return Template
+	return template.TomlTemplate
 }
 
 // MustReadConfigFromAppOpts reads the configuration options from the given
 // application options.
-func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
+func MustReadConfigFromAppOpts(opts AppOptions) *Config {
 	cfg, err := ReadConfigFromAppOpts(opts)
 	if err != nil {
 		panic(err)
@@ -78,7 +81,7 @@ func MustReadConfigFromAppOpts(opts servertypes.AppOptions) *Config {
 
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
-func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
+func ReadConfigFromAppOpts(opts AppOptions) (*Config, error) {
 	v, ok := opts.(*viper.Viper)
 	if !ok {
 		return nil, errors.Newf("invalid application options type: %T", opts)
@@ -103,51 +106,4 @@ func ReadConfigFromAppOpts(opts servertypes.AppOptions) (*Config, error) {
 	}
 
 	return &cfg.BeaconKit, nil
-}
-
-// AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
-func AddBeaconKitFlags(startCmd *cobra.Command) {
-	defaultCfg := DefaultConfig()
-	startCmd.Flags().String(
-		flags.JWTSecretPath,
-		defaultCfg.Engine.JWTSecretPath,
-		"path to the execution client secret",
-	)
-	startCmd.Flags().String(
-		flags.RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
-	startCmd.Flags().Uint64(
-		flags.RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
-	startCmd.Flags().Duration(
-		flags.RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
-	startCmd.Flags().Duration(
-		flags.RPCStartupCheckInterval,
-		defaultCfg.Engine.RPCStartupCheckInterval,
-		"rpc startup check interval",
-	)
-	startCmd.Flags().Duration(
-		flags.RPCJWTRefreshInterval,
-		defaultCfg.Engine.RPCJWTRefreshInterval,
-		"rpc jwt refresh interval",
-	)
-	startCmd.Flags().String(
-		flags.SuggestedFeeRecipient,
-		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
-		"suggested fee recipient",
-	)
-	startCmd.Flags().String(
-		flags.KZGTrustedSetupPath,
-		defaultCfg.KZG.TrustedSetupPath,
-		"kzg trusted setup path",
-	)
-	startCmd.Flags().String(
-		flags.KZGImplementation,
-		defaultCfg.KZG.Implementation,
-		"kzg implementation",
-	)
-}
-
-// AddToSFlag adds the terms of service flag to the given command.
-func AddToSFlag(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().Bool(
-		flags.BeaconKitAcceptTos, false, "accept the terms of service")
 }

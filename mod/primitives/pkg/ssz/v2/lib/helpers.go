@@ -187,13 +187,12 @@ func InterleaveOffsets(
 	// serialized as uint32 values and stored in the variableOffsets slice.
 	offsetSum := sumIntArr(fixedLengths)
 	variableOffsets := make([][]byte, len(variableParts))
-	const uint32Mask = 0xFFFFFFFF
 
 	for i := range len(variableParts) {
-		// Convert offsetSum to uint32 by applying the uint32Mask.
-		// This ensures that only the lower 32 bits of offsetSum are used,
-		// effectively preventing integer overflow.
-		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum & uint32Mask))
+		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
+		// of 2147483647.
+		// Wont realisticially overflow.
+		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
 
 		// Increment offsetSum by the length of the current variable part.
 		offsetSum += variableLengths[i]

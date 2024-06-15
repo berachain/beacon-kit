@@ -127,8 +127,9 @@ func (h *FinalizeBlockMiddleware[
 		h.chainSpec.ActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		))
+
 	if err != nil {
-		//nolint:nilerr // We want to return nil here to prevent the
+		// We want to return nil here to prevent the
 		// middleware from triggering a panic.
 		return nil
 	}
