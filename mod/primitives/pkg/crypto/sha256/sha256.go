@@ -48,14 +48,33 @@ func Sum256(data []byte) [32]byte {
 	h.Reset()
 
 	var b [32]byte
-
-	// The hash interface never returns an error, for that reason
-	// we are not handling the error below. For reference, it is
-	// stated here https://golang.org/pkg/hash/#Hash
-
 	//#nosec:G104 bet
 	h.Write(data)
 	h.Sum(b[:0])
-
 	return b
+}
+
+// CustomSHA256Hasher provides a hash function utilizing
+// an internal hasher. It is not thread-safe as the same
+// hasher instance is reused.
+//
+// Note: This method is more efficient only if the callback
+// is invoked more than 5 times.
+func CustomSHA256Hasher() func([]byte) [32]byte {
+	hasher, ok := sha256Pool.Get().(hash.Hash)
+	if !ok {
+		hasher = sha256.New()
+	} else {
+		hasher.Reset()
+	}
+	var h [32]byte
+
+	return func(data []byte) [32]byte {
+		//#nosec:G104 // bet
+		hasher.Write(data)
+		hasher.Sum(h[:0])
+		hasher.Reset()
+
+		return h
+	}
 }

@@ -74,6 +74,10 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 ) RootT {
 	merkleRoot := leaf
 	var hashInput [64]byte
+	hashFn := sha256.Sum256
+	if depth > 5 {
+		hashFn = sha256.CustomSHA256Hasher()
+	}
 	for i := range depth {
 		//nolint:mnd // from spec.
 		ithBit := (index >> i) & 0x01
@@ -84,7 +88,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 			copy(hashInput[:32], merkleRoot[:])
 			copy(hashInput[32:], branch[i][:])
 		}
-		merkleRoot = sha256.Sum256(hashInput[:])
+		merkleRoot = hashFn(hashInput[:])
 	}
 	return merkleRoot
 }
