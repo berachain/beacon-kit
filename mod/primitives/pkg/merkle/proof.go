@@ -72,13 +72,20 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	depth uint8,
 	index uint64,
 ) RootT {
-	merkleRoot := leaf
-	var hashInput [64]byte
-	hashFn := sha256.Sum256
+
+	var (
+		hashInput  [64]byte
+		hashFn     func([]byte) [32]byte
+		merkleRoot = leaf
+	)
+
 	//nolint:mnd // 5 as defined by the library.
 	if depth > 5 {
 		hashFn = sha256.CustomSHA256Hasher()
+	} else {
+		hashFn = sha256.Sum256
 	}
+
 	for i := range depth {
 		//nolint:mnd // from spec.
 		ithBit := (index >> i) & 0x01
