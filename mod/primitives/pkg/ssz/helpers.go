@@ -134,15 +134,14 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 	size U64T,
 ) []ChunkT {
 	numChunks := U64T(len(chunks))
-	if numChunks == size {
+	switch {
+	case numChunks == size:
 		return chunks
-	}
-
-	if numChunks > size {
+	case numChunks > size:
 		return chunks[:size]
+	default:
+		return append(chunks, make([]ChunkT, size-numChunks)...)
 	}
-
-	return append(chunks, make([]ChunkT, size-numChunks)...)
 }
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
