@@ -142,7 +142,7 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 		return chunks[:size]
 	}
 
-	return append(chunks, make([]ChunkT, numChunks)...)
+	return append(chunks, make([]ChunkT, size-numChunks)...)
 }
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
