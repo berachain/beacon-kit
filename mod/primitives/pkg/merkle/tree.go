@@ -119,7 +119,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 	root := item
 
 	hashFn := sha256.Sum256
-	//nolint:gomnd // 5 as defined by the library.
+	//nolint:mnd // 5 as defined by the library.
 	if m.depth > 5 {
 		hashFn = sha256.CustomSHA256Hasher()
 	}

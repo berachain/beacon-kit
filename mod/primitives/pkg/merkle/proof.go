@@ -75,7 +75,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	merkleRoot := leaf
 	var hashInput [64]byte
 	hashFn := sha256.Sum256
-	//nolint:gomnd // 5 as defined by the library.
+	//nolint:mnd // 5 as defined by the library.
 	if depth > 5 {
 		hashFn = sha256.CustomSHA256Hasher()
 	}
