@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	sha256 "github.com/minio/sha256-simd"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 )
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
@@ -72,8 +72,19 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	depth uint8,
 	index uint64,
 ) RootT {
-	merkleRoot := leaf
-	var hashInput [64]byte
+	var (
+		hashInput  [64]byte
+		hashFn     func([]byte) [32]byte
+		merkleRoot = leaf
+	)
+
+	//nolint:mnd // 5 as defined by the library.
+	if depth > 5 {
+		hashFn = sha256.CustomSHA256Hasher()
+	} else {
+		hashFn = sha256.Sum256
+	}
+
 	for i := range depth {
 		//nolint:mnd // from spec.
 		ithBit := (index >> i) & 0x01
@@ -84,7 +95,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 			copy(hashInput[:32], merkleRoot[:])
 			copy(hashInput[32:], branch[i][:])
 		}
-		merkleRoot = sha256.Sum256(hashInput[:])
+		merkleRoot = hashFn(hashInput[:])
 	}
 	return merkleRoot
 }
