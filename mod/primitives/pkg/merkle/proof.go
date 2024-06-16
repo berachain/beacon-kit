@@ -72,7 +72,6 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	depth uint8,
 	index uint64,
 ) RootT {
-
 	var (
 		hashInput  [64]byte
 		hashFn     func([]byte) [32]byte
