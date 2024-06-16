@@ -182,38 +182,25 @@ func InterleaveOffsets(
 		)
 	}
 
-	// Compute the offsets for the variable-size parts by summing up the fixed
-	// lengthsand the variable lengths up to each index. The offsets are then
-	// serialized as uint32 values and stored in the variableOffsets slice.
+	// Pre-allocate the result slice
+	res := make([]byte, 0, totalLength)
+
+	// Compute the offsets for the variable-size parts and append fixed parts with offsets
 	offsetSum := sumIntArr(fixedLengths)
-	variableOffsets := make([][]byte, len(variableParts))
-
-	for i := range len(variableParts) {
-		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
-		// of 2147483647.
-		// Wont realisticially overflow.
-		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
-
-		// Increment offsetSum by the length of the current variable part.
-		offsetSum += variableLengths[i]
-	}
-
-	fixedPartsWithOffsets := make([][]byte, len(fixedParts))
-	for i, part := range fixedParts {
-		if part == nil {
-			fixedPartsWithOffsets[i] = variableOffsets[i]
+	for i := range fixedParts {
+		if fixedParts[i] == nil {
+			res = append(res, ssz.MarshalU32(uint32(offsetSum))...)
 		} else {
-			fixedPartsWithOffsets[i] = part
+			res = append(res, fixedParts[i]...)
+		}
+		if i < len(variableLengths) {
+			offsetSum += variableLengths[i]
 		}
 	}
 
-	// Flatten the nested arr to a 1d []byte
-	allParts := make([][]byte, 0)
-	allParts = append(allParts, fixedPartsWithOffsets...)
-	allParts = append(allParts, variableParts...)
-	res := make([]byte, 0)
-	for i := range allParts {
-		res = append(res, allParts[i]...)
+	// Append variable parts
+	for _, part := range variableParts {
+		res = append(res, part...)
 	}
 
 	return res, nil
