@@ -116,3 +116,4 @@ additional_services:
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
+  - name: "blockscout"
