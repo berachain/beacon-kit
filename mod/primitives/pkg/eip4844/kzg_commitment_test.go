@@ -98,8 +98,13 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			hashTreeRoot, err := tt.input.HashTreeRoot()
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, hashTreeRoot, "Hash tree root does not "+
-				"match expected for test: "+tt.name)
+			require.Equal(
+				t,
+				tt.expected,
+				hashTreeRoot,
+				"Hash tree root does not "+
+					"match expected for test: "+tt.name,
+			)
 		})
 	}
 }
@@ -117,8 +122,10 @@ func TestKZGCommitmentUnmarshalJSON(t *testing.T) {
 				`abcdef0123456789abcdef0123456789abcdef"`,
 			expected: func() eip4844.KZGCommitment {
 				var c eip4844.KZGCommitment
-				data, _ := hex.DecodeString("0123456789abcdef0123456789abcdef0" +
-					"123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+				data, _ := hex.DecodeString(
+					"0123456789abcdef0123456789abcdef0" +
+						"123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+				)
 				copy(c[:], data)
 				return c
 			}(),
