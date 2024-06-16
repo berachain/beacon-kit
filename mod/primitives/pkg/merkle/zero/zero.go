@@ -20,7 +20,7 @@
 
 package zero
 
-import sha256 "github.com/minio/sha256-simd"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 
 // NumZeroHashes is the number of pre-computed zero-hashes.
 const NumZeroHashes = 64

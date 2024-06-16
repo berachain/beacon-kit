@@ -24,8 +24,8 @@ import (
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	sha256 "github.com/minio/sha256-simd"
 )
 
 type (

@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	sha256 "github.com/minio/sha256-simd"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 )
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
