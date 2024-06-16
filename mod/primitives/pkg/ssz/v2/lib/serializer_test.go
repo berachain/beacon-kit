@@ -75,7 +75,6 @@ func TestGetArrayDimensionality(t *testing.T) {
 		input    any
 		expected int
 	}{
-		// TODO: add 2D and 3D empty array and slice
 		{"1D empty array", [0]int32{}, 1},
 		{"1D empty slice", []int32{}, 1},
 		{"1D non-empty array", [3]int32{1, 2, 3}, 1},
