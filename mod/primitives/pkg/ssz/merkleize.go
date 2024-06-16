@@ -189,9 +189,8 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 	limit ...uint64,
 ) (RootT, error) {
 	var (
-		effectiveLimit  U64T
-		effectiveChunks []ChunkT
-		lenChunks       = uint64(len(chunks))
+		effectiveLimit U64T
+		lenChunks      = uint64(len(chunks))
 	)
 
 	//#nosec:G701 // This is a safe operation.
@@ -211,13 +210,12 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 		effectiveLimit = U64T(limit[0])
 	}
 
-	effectiveChunks = PadTo(chunks, effectiveLimit)
-	if len(effectiveChunks) == 1 {
-		return RootT(effectiveChunks[0]), nil
+	if lenChunks == 1 {
+		return RootT(chunks[0]), nil
 	}
 
 	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
-		effectiveChunks,
+		PadTo(chunks, effectiveLimit),
 		//#nosec:G701 // This is a safe operation.
 		uint64(effectiveLimit),
 	)
