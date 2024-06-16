@@ -214,9 +214,8 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 		return RootT(chunks[0]), nil
 	}
 
-	effectiveChunks := PadTo(chunks, effectiveLimit)
 	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
-		effectiveChunks,
+		PadTo(chunks, effectiveLimit),
 		//#nosec:G701 // This is a safe operation.
 		uint64(effectiveLimit),
 	)
