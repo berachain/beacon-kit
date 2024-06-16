@@ -4,10 +4,10 @@ go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240612175710-7d5f3e4f7041
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614141956-1031712e1325
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614141956-1031712e1325
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.2
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -43,7 +43,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/holiman/uint256 v1.2.4 // indirect
+	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
