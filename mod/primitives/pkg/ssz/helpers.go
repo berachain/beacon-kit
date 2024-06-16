@@ -133,8 +133,7 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 	chunks []ChunkT,
 	size U64T,
 ) []ChunkT {
-	numChunks := U64T(len(chunks))
-	switch {
+	switch numChunks := U64T(len(chunks)); {
 	case numChunks == size:
 		return chunks
 	case numChunks > size:
