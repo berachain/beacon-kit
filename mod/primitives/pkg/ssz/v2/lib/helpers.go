@@ -185,10 +185,14 @@ func InterleaveOffsets(
 	// Pre-allocate the result slice
 	res := make([]byte, 0, totalLength)
 
-	// Compute the offsets for the variable-size parts and append fixed parts with offsets
+	// Compute the offsets for the variable-size parts
+	// and append fixed parts with offsets
 	offsetSum := sumIntArr(fixedLengths)
 	for i := range fixedParts {
 		if fixedParts[i] == nil {
+			// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
+			// of 2147483647.
+			// Wont realisticially overflow.
 			res = append(res, ssz.MarshalU32(uint32(offsetSum))...)
 		} else {
 			res = append(res, fixedParts[i]...)
