@@ -299,9 +299,6 @@ func (s *Service[
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(&types.Eth1Data{
 		DepositRoot:  primitives.Bytes32{},
