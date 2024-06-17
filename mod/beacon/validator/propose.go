@@ -28,6 +28,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,8 +37,6 @@ import (
 )
 
 // RequestBlockForProposal builds a new beacon block.
-//
-//nolint:funlen // todo:fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
@@ -77,23 +76,6 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
-	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(
-		st, requestedSlot,
-	)
-	if err != nil {
-		return blk, sidecars, err
-	}
-
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return blk, sidecars, ErrNilBlkBody
-	}
-
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
-
 	// Get the payload for the block.
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
@@ -102,46 +84,16 @@ func (s *Service[
 		return blk, sidecars, ErrNilPayload
 	}
 
-	// If we get returned a nil blobs bundle, we should return an error.
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
-		return blk, sidecars, ErrNilBlobsBundle
-	}
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return blk, sidecars, ErrNilDepositIndexStart
-	}
-
-	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+	// Create a new empty block from the current state.
+	blk, err = s.getEmptyBeaconBlockForSlot(
+		st, requestedSlot,
 	)
 	if err != nil {
 		return blk, sidecars, err
 	}
 
-	// Set the deposits on the block body.
-	body.SetDeposits(deposits)
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	// TODO: assemble real eth1data.
-	body.SetEth1Data(&types.Eth1Data{
-		DepositRoot:  primitives.Bytes32{},
-		DepositCount: 0,
-		BlockHash:    common.ZeroHash,
-	})
-
-	// Set the execution data.
-	if err = body.SetExecutionData(
-		envelope.GetExecutionPayload(),
-	); err != nil {
+	sidecars, err = s.buildBlockBody(ctx, st, blk, reveal, envelope)
+	if err != nil {
 		return blk, sidecars, err
 	}
 
@@ -297,4 +249,63 @@ func (s *Service[
 		)
 	}
 	return envelope, nil
+}
+
+// BuildBlockBody assembles the block body with necessary components.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositStoreT, ForkDataT,
+]) buildBlockBody(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	reveal bytes.B96,
+	envelope engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload],
+) (BlobSidecarsT, error) {
+	var sidecars BlobSidecarsT
+	body := blk.GetBody()
+	if body.IsNil() {
+		return sidecars, ErrNilBlkBody
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
+	// If we get returned a nil blobs bundle, we should return an error.
+	blobsBundle := envelope.GetBlobsBundle()
+	if blobsBundle == nil {
+		return sidecars, ErrNilBlobsBundle
+	}
+
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return sidecars, ErrNilDepositIndexStart
+	}
+
+	// Dequeue deposits from the state.
+	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
+		depositIndex,
+		s.chainSpec.MaxDepositsPerBlock(),
+	)
+	if err != nil {
+		return sidecars, err
+	}
+	body.SetDeposits(deposits)
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+	// TODO: assemble real eth1data.
+	body.SetEth1Data(&types.Eth1Data{
+		DepositRoot:  primitives.Bytes32{},
+		DepositCount: 0,
+		BlockHash:    common.ZeroHash,
+	})
+
+	if err = body.SetExecutionData(envelope.GetExecutionPayload()); err != nil {
+		return sidecars, err
+	}
+
+	return sidecars, nil
 }
