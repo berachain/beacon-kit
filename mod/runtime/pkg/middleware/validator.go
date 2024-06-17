@@ -54,7 +54,6 @@ type ValidatorMiddleware[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
-	StorageBackendT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
@@ -85,9 +84,6 @@ type ValidatorMiddleware[
 	]
 	// metrics is the metrics emitter.
 	metrics *validatorMiddlewareMetrics
-
-	// storageBackend is the storage backend.
-	storageBackend StorageBackend[BeaconStateT]
 }
 
 // NewValidatorMiddleware creates a new instance of the Handler struct.
@@ -113,7 +109,6 @@ func NewValidatorMiddleware[
 		) (math.ValidatorIndex, error)
 	},
 	BlobSidecarsT ssz.Marshallable,
-	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -123,14 +118,13 @@ func NewValidatorMiddleware[
 	],
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	telemetrySink TelemetrySink,
-	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, StorageBackendT,
+	BeaconStateT, BlobSidecarsT,
 ] {
 	return &ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
+		BeaconStateT, BlobSidecarsT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
@@ -141,8 +135,7 @@ func NewValidatorMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		metrics:        newValidatorMiddlewareMetrics(telemetrySink),
-		storageBackend: storageBackend,
+		metrics: newValidatorMiddlewareMetrics(telemetrySink),
 	}
 }
 
@@ -154,7 +147,6 @@ func (h *ValidatorMiddleware[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -211,7 +203,6 @@ func (h *ValidatorMiddleware[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
