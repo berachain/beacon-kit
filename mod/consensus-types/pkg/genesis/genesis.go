@@ -22,6 +22,7 @@ package genesis
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -38,7 +39,9 @@ import (
 // need to start the beacon chain.
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT any,
+	ExecutonPayloadHeaderT interface {
+		json.Unmarshaler
+	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
@@ -50,6 +53,21 @@ type Genesis[
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
 	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
+}
+
+// UnmarshalJSON for Genesis
+func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(data []byte) error {
+	type Alias Genesis[DepositT, ExecutionPayloadHeaderT]
+	aux := &struct {
+		*Alias
+		ExecutionPayloadHeader json.RawMessage `json:"execution_payload_header"`
+	}{
+		Alias: (*Alias)(g),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	return g.ExecutionPayloadHeader.UnmarshalJSON(aux.ExecutionPayloadHeader)
 }
 
 // DefaultGenesis returns a the default genesis.

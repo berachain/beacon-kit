@@ -82,6 +82,14 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal beacon genesis")
 			}
 
+			var genesis *genesis.Genesis[
+				*types.Deposit,
+				*types.ExecutionPayloadHeader,
+			]
+			if err = genesis.UnmarshalJSON(appGenesisState["beacon"]); err != nil {
+				return errors.Wrap(err, "failed to unmarshal beacon genesis")
+			}
+
 			for i, deposit := range deposits {
 				//#nosec:G701 // won't realistically overflow.
 				deposit.Index = uint64(i)
