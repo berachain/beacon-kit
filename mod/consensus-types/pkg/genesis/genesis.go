@@ -90,8 +90,12 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(data []byte) 
 	}
 	// t = t.Empty(version.Deneb)
 	// t := tt{}
-	ttt := &types.ExecutionPayloadHeaderDeneb{}
-	// ttt = ttt.Empty(version.Deneb)
+	// ttt := &types.ExecutionPayloadHeader{
+	// 	InnerExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{},
+	// }
+	var ttt ExecutionPayloadHeaderT
+	ttt = ttt.Empty(version.Deneb)
+	// // ttt = ttt.Empty(version.Deneb)
 	if err := json.Unmarshal(g22.ExecutionPayloadHeader, ttt); err != nil {
 		return err
 	}
@@ -99,7 +103,7 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(data []byte) 
 	fmt.Println("YO BET", ttt.GetGasLimit())
 	// g.ExecutionPayloadHeader = t
 	// g.ExecutionPayloadHeader = g22.ExecutionPayloadHeader
-	g.ExecutionPayloadHeader = any(&types.ExecutionPayloadHeader{InnerExecutionPayloadHeader: ttt}).(ExecutionPayloadHeaderT)
+	g.ExecutionPayloadHeader = any(ttt).(ExecutionPayloadHeaderT)
 	// fmt.Println("UnmarshalJSON", g)
 	// fmt.Println("UnmarshalJSON Deposits ", g22.Deposits)
 	// fmt.Println("UnmarshalJSON ForkVersion", g22.ForkVersion)

@@ -22,7 +22,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -77,19 +76,6 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 // // MarshalJSON marshals the ExecutionPayloadHeader into JSON bytes.
 func (e *ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.InnerExecutionPayloadHeader)
-}
-
-// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
-func (e ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
-	// TODO: Generalize somehow.
-	e = *e.Empty(version.Deneb)
-	fmt.Println(e, "YO BET")
-	fmt.Println("BZ", string(bz))
-	if err := json.Unmarshal(bz, e.InnerExecutionPayloadHeader); err != nil {
-		return err
-	}
-	fmt.Println(e.GetGasLimit(), "YO BET2")
-	return nil
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
