@@ -76,19 +76,18 @@ def launch_blockscout(
         verif_service.ports["http"].number,
     )
 
-    plan.print("all_el_client_info[0]", str(all_el_client_info[0]))
+    #  Get the first el_client_info to get the rpc_url
     el_context = all_el_client_info[0]
     el_client_rpc_url = "http://{}:{}/".format(
         el_context["IP_Addr"],
         el_context["RPC_PortNum"],
     )
-
+    el_client_name = el_context["FullName"].split("-")[2]
     config_backend = get_config_backend(
         postgres_output,
         el_client_rpc_url,
         verif_url,
-        "reth",
-        # all_el_client_info[0],
+        el_client_name,
     )
     blockscout_service = plan.add_service(SERVICE_NAME_BLOCKSCOUT, config_backend)
     plan.print(blockscout_service)

@@ -217,8 +217,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             pyroscope.run(plan)
         elif s.name == "blockscout":
             plan.print("Launching blockscout")
-            plan.print("validator_el_clients", str(validator_el_clients))
-            plan.print("full_node_el_clients", str(full_node_el_clients))
             blockscout.launch_blockscout(
                 plan,
                 full_node_el_clients,
