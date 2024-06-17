@@ -1,5 +1,4 @@
-shared_utils = import_module("../shared_utils/shared_utils.star")
-constants = import_module("../package_io/constants.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
 IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:6.6.0"
@@ -26,7 +25,7 @@ USED_PORTS = {
         HTTP_PORT_NUMBER,
         shared_utils.TCP_PROTOCOL,
         shared_utils.HTTP_APPLICATION_PROTOCOL,
-    )
+    ),
 }
 
 VERIF_USED_PORTS = {
@@ -34,96 +33,112 @@ VERIF_USED_PORTS = {
         HTTP_PORT_NUMBER_VERIF,
         shared_utils.TCP_PROTOCOL,
         shared_utils.HTTP_APPLICATION_PROTOCOL,
-    )
+    ),
 }
 
-
 def launch_blockscout(
-    plan,
-    el_contexts,
-    persistent,
-    global_node_selectors,
-):
+        plan,
+        full_node_el_clients,
+        clients_from_user,
+        persistent):
     postgres_output = postgres.run(
         plan,
-        service_name="{}-postgres".format(SERVICE_NAME_BLOCKSCOUT),
-        database="blockscout",
-        extra_configs=["max_connections=1000"],
-        persistent=persistent,
-        node_selectors=global_node_selectors,
+        service_name = "{}-postgres".format(SERVICE_NAME_BLOCKSCOUT),
+        database = "blockscout",
+        extra_configs = ["max_connections=1000"],
+        persistent = persistent,
     )
+    all_el_client_info = []
 
-    el_context = el_contexts[0]
-    el_client_rpc_url = "http://{}:{}/".format(
-        el_context.ip_addr, el_context.rpc_port_num
-    )
-    el_client_name = el_context.client_name
+    # proceed with adding to all_el_client_info only if full_node_el_clients matches with clients_from_user
+    for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
+        if full_node_el_client_name not in clients_from_user:
+            continue
+        rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
+        ws_port = full_node_el_client_service.ports["eth-json-rpc-ws"].number
+        name = full_node_el_client_name
+        ip_address = full_node_el_client_service.ip_address
 
-    config_verif = get_config_verif(global_node_selectors)
+        all_el_client_info.append(
+            new_el_client_info(
+                ip_address,
+                rpc_port,
+                ws_port,
+                name,
+            ),
+        )
+
+    config_verif = get_config_verif()
     verif_service_name = "{}-verif".format(SERVICE_NAME_BLOCKSCOUT)
     verif_service = plan.add_service(verif_service_name, config_verif)
     verif_url = "http://{}:{}/api".format(
-        verif_service.hostname, verif_service.ports["http"].number
+        verif_service.hostname,
+        verif_service.ports["http"].number,
+    )
+
+    plan.print("all_el_client_info[0]", str(all_el_client_info[0]))
+    el_context = all_el_client_info[0]
+    el_client_rpc_url = "http://{}:{}/".format(
+        el_context["IP_Addr"],
+        el_context["RPC_PortNum"],
     )
 
     config_backend = get_config_backend(
         postgres_output,
         el_client_rpc_url,
         verif_url,
-        el_client_name,
-        global_node_selectors,
+        "reth",
+        # all_el_client_info[0],
     )
     blockscout_service = plan.add_service(SERVICE_NAME_BLOCKSCOUT, config_backend)
     plan.print(blockscout_service)
 
     blockscout_url = "http://{}:{}".format(
-        blockscout_service.hostname, blockscout_service.ports["http"].number
+        blockscout_service.hostname,
+        blockscout_service.ports["http"].number,
     )
 
     return blockscout_url
 
-
-def get_config_verif(node_selectors):
+def get_config_verif():
     return ServiceConfig(
-        image=IMAGE_NAME_BLOCKSCOUT_VERIF,
-        ports=VERIF_USED_PORTS,
-        env_vars={
+        image = IMAGE_NAME_BLOCKSCOUT_VERIF,
+        ports = VERIF_USED_PORTS,
+        env_vars = {
             "SMART_CONTRACT_VERIFIER__SERVER__HTTP__ADDR": "0.0.0.0:{}".format(
-                HTTP_PORT_NUMBER_VERIF
-            )
+                HTTP_PORT_NUMBER_VERIF,
+            ),
         },
-        min_cpu=BLOCKSCOUT_VERIF_MIN_CPU,
-        max_cpu=BLOCKSCOUT_VERIF_MAX_CPU,
-        min_memory=BLOCKSCOUT_VERIF_MIN_MEMORY,
-        max_memory=BLOCKSCOUT_VERIF_MAX_MEMORY,
-        node_selectors=node_selectors,
+        min_cpu = BLOCKSCOUT_VERIF_MIN_CPU,
+        max_cpu = BLOCKSCOUT_VERIF_MAX_CPU,
+        min_memory = BLOCKSCOUT_VERIF_MIN_MEMORY,
+        max_memory = BLOCKSCOUT_VERIF_MAX_MEMORY,
     )
-
 
 def get_config_backend(
-    postgres_output, el_client_rpc_url, verif_url, el_client_name, node_selectors
-):
+        postgres_output,
+        el_client_rpc_url,
+        verif_url,
+        el_client_name):
     database_url = "{protocol}://{user}:{password}@{hostname}:{port}/{database}".format(
-        protocol="postgresql",
-        user=postgres_output.user,
-        password=postgres_output.password,
-        hostname=postgres_output.service.hostname,
-        port=postgres_output.port.number,
-        database=postgres_output.database,
+        protocol = "postgresql",
+        user = postgres_output.user,
+        password = postgres_output.password,
+        hostname = postgres_output.service.hostname,
+        port = postgres_output.port.number,
+        database = postgres_output.database,
     )
 
     return ServiceConfig(
-        image=IMAGE_NAME_BLOCKSCOUT,
-        ports=USED_PORTS,
-        cmd=[
+        image = IMAGE_NAME_BLOCKSCOUT,
+        ports = USED_PORTS,
+        cmd = [
             "/bin/sh",
             "-c",
             'bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()" && bin/blockscout start',
         ],
-        env_vars={
-            "ETHEREUM_JSONRPC_VARIANT": "erigon"
-            if el_client_name == "erigon" or el_client_name == "reth"
-            else el_client_name,
+        env_vars = {
+            "ETHEREUM_JSONRPC_VARIANT": "erigon" if el_client_name == "erigon" or el_client_name == "reth" else el_client_name,
             "ETHEREUM_JSONRPC_HTTP_URL": el_client_rpc_url,
             "ETHEREUM_JSONRPC_TRACE_URL": el_client_rpc_url,
             "DATABASE_URL": database_url,
@@ -139,9 +154,16 @@ def get_config_backend(
             "PORT": "{}".format(HTTP_PORT_NUMBER),
             "SECRET_KEY_BASE": "56NtB48ear7+wMSf0IQuWDAAazhpb31qyc7GiyspBP2vh7t5zlCsF5QDv76chXeN",
         },
-        min_cpu=BLOCKSCOUT_MIN_CPU,
-        max_cpu=BLOCKSCOUT_MAX_CPU,
-        min_memory=BLOCKSCOUT_MIN_MEMORY,
-        max_memory=BLOCKSCOUT_MAX_MEMORY,
-        node_selectors=node_selectors,
+        min_cpu = BLOCKSCOUT_MIN_CPU,
+        max_cpu = BLOCKSCOUT_MAX_CPU,
+        min_memory = BLOCKSCOUT_MIN_MEMORY,
+        max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
+
+def new_el_client_info(ip_addr, rpc_port_num, ws_port_num, full_name):
+    return {
+        "IP_Addr": ip_addr,
+        "RPC_PortNum": rpc_port_num,
+        "WS_PortNum": ws_port_num,
+        "FullName": full_name,
+    }

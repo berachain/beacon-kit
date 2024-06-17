@@ -16,6 +16,7 @@ grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
+blockscout = import_module("./src/services/blockscout/launcher.star")
 
 def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -214,5 +215,15 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             grafana.start(plan, prometheus_url)
         elif s.name == "pyroscope":
             pyroscope.run(plan)
+        elif s.name == "blockscout":
+            plan.print("Launching blockscout")
+            plan.print("validator_el_clients", str(validator_el_clients))
+            plan.print("full_node_el_clients", str(full_node_el_clients))
+            blockscout.launch_blockscout(
+                plan,
+                full_node_el_clients,
+                eth_json_rpc_endpoints[0]["clients"],
+                False,
+            )
 
     plan.print("Successfully launched development network")
