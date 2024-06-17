@@ -65,7 +65,8 @@ func run() error {
 		clibuilder.WithComponents[types.NodeI](
 			append(
 				clicomponents.DefaultClientComponents(),
-				// TODO: Remove these, and pull these out of Node on "attach"
+				// TODO: remove these, and eventually pull cfg and chainspec
+				// from built node
 				nodecomponents.ProvideNoopTxConfig,
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
@@ -82,9 +83,6 @@ func run() error {
 		clibuilder.WithAppCreator[types.NodeI](nb.AppCreator),
 	)
 
-	// TODO: ADD cb.Attach(node), which sets up AppCreator, ChainSpec, Config,
-	// etc. to the cmd
-
 	// we never have to call nb.build() because this function is passed
 	// to the cli through the clibuilder.WithAppCreator option, eventually to be
 	// called by the cosmos-sdk
@@ -93,9 +91,11 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	// TODO: create a runner that takes in a cmd and node
-	// we can start doing this once we build our own cli that doesn't use
-	// cosmos
+
+	// eventually we want to decouple from cosmos cli, and just pass in a built
+	// Node and Cmd to a runner
+
+	// for now, running the cmd will start the node
 	return cmd.Run(clicomponents.DefaultNodeHome)
 }
 

@@ -47,6 +47,7 @@ type CLIBuilder[T servertypes.Application] struct {
 	runHandler runHandler
 	// appCreator is a function that builds the Node, eventually called by the
 	// cosmos-sdk.
+	// TODO: CLI should not know about the AppCreator
 	appCreator servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]

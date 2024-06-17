@@ -37,6 +37,7 @@ type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
 )
 
 // runHandler is a function that sets up run handlers for the root command.
+// It takes in custom configs for our app and cometbft.
 type runHandler func(cmd *cobra.Command,
 	customAppConfigTemplate string,
 	customAppConfig interface{},
