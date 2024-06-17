@@ -60,3 +60,9 @@ func ProvideModule(in ModuleInput) (ModuleOutput, error) {
 		),
 	}, nil
 }
+
+func SupplyModuleDependencies() []any {
+	return []any{
+		&components.ABCIMiddleware{},
+	}
+}

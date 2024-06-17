@@ -23,9 +23,7 @@ package node
 import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
 )
 
 // Node represents the node application.
@@ -35,21 +33,11 @@ type Node struct {
 	// name and description of the application.
 	name        string
 	description string
-
-	// rootCmd is the root command for the application.
-	rootCmd *cobra.Command
 }
 
 // New returns a new Node.
 func New[NodeT types.NodeI]() NodeT {
 	return types.NodeI(&Node{}).(NodeT)
-}
-
-// Run runs the node's server application.
-func (n *Node) Run(defaultNodeHome string) error {
-	return svrcmd.Execute(
-		n.rootCmd, "", defaultNodeHome,
-	)
 }
 
 // SetAppName sets the name of the application.
@@ -66,9 +54,4 @@ func (n *Node) SetAppDescription(description string) {
 func (n *Node) SetApplication(a servertypes.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
 	n.BeaconApp = a.(*app.BeaconApp)
-}
-
-// SetRootCmd sets the root command for the application.
-func (n *Node) SetRootCmd(cmd *cobra.Command) {
-	n.rootCmd = cmd
 }

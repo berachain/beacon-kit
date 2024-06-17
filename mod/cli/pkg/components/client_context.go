@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/core/address"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -66,7 +66,7 @@ func ProvideClientContext(
 
 	// Read the config to overwrite the default values with the values from the
 	// config file
-	customClientTemplate, customClientConfig := builder.InitClientConfig()
+	customClientTemplate, customClientConfig := commands.InitClientConfig()
 	clientCtx, err = config.ReadDefaultValuesFromDefaultClientConfig(
 		clientCtx,
 		customClientTemplate,

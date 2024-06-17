@@ -483,6 +483,7 @@ github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd3
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible h1:Ppm0npCCsmuR9oQaBtRuZcmILVE74aXE+AmrJj8L2ns=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
+github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617040308-8f08818d38a4/go.mod h1:4LqfmvrvTCvXZo/6FcnvC089VaJJN5n9N2JIOiYJjnY=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10/go.mod h1:1ARLVWK4DisWnCwrYaRVphAb87JJfFBgkt98z7cq4I0=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a/go.mod h1:0UT2gj5UW4QDKpIu7cc73akTKZUeCiroT7sp+oHEz20=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610174140-6c6ffa31d278/go.mod h1:bFkZmv0d7P9uoqJOw7ruG29M3oVwXslttLRuNwxzTOQ=
