@@ -28,7 +28,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -259,7 +258,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	reveal bytes.B96,
+	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload],
 ) (BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
