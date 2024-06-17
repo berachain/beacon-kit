@@ -137,14 +137,42 @@ func TestSafeCopy(t *testing.T) {
 		original []byte
 		expected []byte
 	}{
-		{name: "Normal case", original: []byte{1, 2, 3, 4, 5}, expected: []byte{1, 2, 3, 4, 5}},
+		{
+			name:     "Normal case",
+			original: []byte{1, 2, 3, 4, 5},
+			expected: []byte{1, 2, 3, 4, 5},
+		},
 		{name: "Empty slice", original: []byte{}, expected: []byte{}},
-		{name: "Single element slice", original: []byte{9}, expected: []byte{9}},
-		{name: "Large slice", original: make([]byte, 100), expected: make([]byte, 100)},
-		{name: "Another normal case", original: []byte{6, 6, 6, 6, 6}, expected: []byte{6, 6, 6, 6, 6}},
-		{name: "Another single element slice", original: []byte{5}, expected: []byte{5}},
-		{name: "Another large slice", original: make([]byte, 200), expected: make([]byte, 200)},
-		{name: "Slice of length 32", original: make([]byte, 32), expected: make([]byte, 32)},
+		{
+			name:     "Single element slice",
+			original: []byte{9},
+			expected: []byte{9},
+		},
+		{
+			name:     "Large slice",
+			original: make([]byte, 100),
+			expected: make([]byte, 100),
+		},
+		{
+			name:     "Another normal case",
+			original: []byte{6, 6, 6, 6, 6},
+			expected: []byte{6, 6, 6, 6, 6},
+		},
+		{
+			name:     "Another single element slice",
+			original: []byte{5},
+			expected: []byte{5},
+		},
+		{
+			name:     "Another large slice",
+			original: make([]byte, 200),
+			expected: make([]byte, 200),
+		},
+		{
+			name:     "Slice of length 32",
+			original: make([]byte, 32),
+			expected: make([]byte, 32),
+		},
 	}
 
 	for _, tt := range tests {
@@ -1394,11 +1422,31 @@ func TestToBytes8(t *testing.T) {
 		input    []byte
 		expected bytes.B8
 	}{
-		{name: "Exact 8 bytes", input: []byte{1, 2, 3, 4, 5, 6, 7, 8}, expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8}},
-		{name: "Less than 8 bytes", input: []byte{1, 2, 3, 4}, expected: bytes.B8{1, 2, 3, 4, 0, 0, 0, 0}},
-		{name: "Two bytes", input: []byte{1, 2}, expected: bytes.B8{1, 2, 0, 0, 0, 0, 0, 0}},
-		{name: "Empty input", input: []byte{}, expected: bytes.B8{0, 0, 0, 0, 0, 0, 0, 0}},
-		{name: "More than 8 bytes", input: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8}},
+		{
+			name:     "Exact 8 bytes",
+			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+		},
+		{
+			name:     "Less than 8 bytes",
+			input:    []byte{1, 2, 3, 4},
+			expected: bytes.B8{1, 2, 3, 4, 0, 0, 0, 0},
+		},
+		{
+			name:     "Two bytes",
+			input:    []byte{1, 2},
+			expected: bytes.B8{1, 2, 0, 0, 0, 0, 0, 0},
+		},
+		{
+			name:     "Empty input",
+			input:    []byte{},
+			expected: bytes.B8{0, 0, 0, 0, 0, 0, 0, 0},
+		},
+		{
+			name:     "More than 8 bytes",
+			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1536,7 +1584,13 @@ func TestBytes_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.String()
-			require.Equal(t, tt.expected, string(result), "Test case: %s", tt.name)
+			require.Equal(
+				t,
+				tt.expected,
+				string(result),
+				"Test case: %s",
+				tt.name,
+			)
 		})
 	}
 }

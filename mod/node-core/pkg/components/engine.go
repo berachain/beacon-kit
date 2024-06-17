@@ -72,6 +72,7 @@ type ExecutionEngineInput struct {
 	depinject.In
 	EngineClient  *EngineClient
 	Logger        log.Logger
+	StatusFeed    *StatusFeed
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -90,6 +91,7 @@ func ProvideExecutionEngine[
 	return execution.New[*ExecutionPayload](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
+		in.StatusFeed,
 		in.TelemetrySink,
 	)
 }

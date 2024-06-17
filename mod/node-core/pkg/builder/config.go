@@ -50,6 +50,7 @@ func DefaultAppConfig() any {
 	cfg := serverconfig.DefaultConfig()
 	cfg.MinGasPrices = "0stake"
 	cfg.Telemetry.Enabled = true
+	cfg.IAVLCacheSize = 25000
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.AppDBBackend = "pebbledb"
