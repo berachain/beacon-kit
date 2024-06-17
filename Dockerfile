@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=scratch
+ARG RUNNER_IMAGE=alpine:latest
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -137,7 +137,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
-FROM alpine:3.14
+FROM ${RUNNER_IMAGE}
 
 # Copy over built executable into a fresh container.
 COPY --from=builder /workdir/build/bin/beacond /usr/bin
