@@ -44,7 +44,7 @@ func MustFromHex(input string) []byte {
 	return bz
 }
 
-// BytesFromHex returns the bytes represented by the given hex string.
+// FromHex returns the bytes represented by the given hex string.
 // An error is returned if the input is not a valid hex string.
 func FromHex(input string) ([]byte, error) {
 	s, err := hex.NewStringStrict(input)
@@ -144,7 +144,7 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 	return nil
 }
 
-// Helper function to unmarshal text for various byte types.
+// UnmarshalTextHelper function to unmarshal text for various byte types.
 func UnmarshalTextHelper(target []byte, text []byte) error {
 	bz := Bytes{}
 	if err := bz.UnmarshalText(text); err != nil {
