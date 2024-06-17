@@ -6,7 +6,6 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6
-	github.com/berachain/beacon-kit/mod/async => ../async
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -14,7 +13,7 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/async v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617161612-ab1257fcf5a1
