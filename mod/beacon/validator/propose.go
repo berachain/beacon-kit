@@ -65,7 +65,7 @@ func (s *Service[
 	st := s.bsb.StateFromContext(ctx)
 
 	// Prepare the state such that it is ready to build a block for
-	// the request slot
+	// the requested slot
 	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
 		return blk, sidecars, err
 	}
