@@ -46,7 +46,6 @@ func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 		*consensustypes.BeaconBlockBody,
 		components.BeaconState,
 		*datypes.BlobSidecars,
-		components.StorageBackend,
 	]{}
 }
 
