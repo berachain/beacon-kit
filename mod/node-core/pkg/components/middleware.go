@@ -56,9 +56,8 @@ func ProvideValidatorMiddleware(
 // FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
-	ChainService  *ChainService
-	ChainSpec     primitives.ChainSpec
-	TelemetrySink *metrics.TelemetrySink
+	ChainService *ChainService
+	ChainSpec    primitives.ChainSpec
 }
 
 // ProvideFinalizeBlockMiddleware is a depinject provider for the finalize block
@@ -71,7 +70,6 @@ func ProvideFinalizeBlockMiddleware(
 	](
 		in.ChainSpec,
 		in.ChainService,
-		in.TelemetrySink,
 	)
 }
 

@@ -27,6 +27,7 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -69,7 +70,6 @@ func NewFinalizeBlockMiddleware[
 ](
 	chainSpec primitives.ChainSpec,
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
-	telemetrySink TelemetrySink,
 ) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
@@ -128,7 +128,7 @@ func (h *FinalizeBlockMiddleware[
 			))
 
 		if err != nil {
-			h.errChannel <- err
+			h.errChannel <- errors.Join(err, ErrBadExtractBlockAndBlocks)
 			return
 		}
 
@@ -155,6 +155,9 @@ func (h FinalizeBlockMiddleware[
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case err := <-h.errChannel:
+		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
+			err = nil
+		}
 		return nil, err
 	case result := <-h.valUpdatesChannel:
 		return handleValUpdateConversion(result)

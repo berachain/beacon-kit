@@ -84,9 +84,6 @@ type ValidatorMiddleware[
 	]
 	// metrics is the metrics emitter.
 	metrics *validatorMiddlewareMetrics
-
-	blockChannel chan BeaconBlockT
-	blobChannel  chan BlobSidecarsT
 }
 
 // NewValidatorMiddleware creates a new instance of the Handler struct.
