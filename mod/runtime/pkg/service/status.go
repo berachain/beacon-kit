@@ -14,8 +14,8 @@ func NewStatusEvent(name string, healthy bool) *StatusEvent {
 	}
 }
 
-// NewStatus creates a new status service.
-func (s *StatusEvent) Type() string {
+// Name returns the name of the service.
+func (s *StatusEvent) Name() string {
 	return s.name
 }
 
