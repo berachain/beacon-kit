@@ -115,7 +115,7 @@ func (s *Service[
 	s.logger.Info("rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is unmodified state.
+	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
 	// previous block and it's root.
 	latestHeader, err := st.GetLatestBlockHeader()
@@ -160,7 +160,7 @@ func (s *Service[
 		),
 		// We set the parent root to the previous block root.
 		prevBlockRoot,
-		// We set the head of our chain to previous finalized block.
+		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
 		// TODO: This is making an assumption about the consensus rules
