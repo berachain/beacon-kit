@@ -24,7 +24,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// NodeI is an interface for the node application.
+// NodeI defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type NodeI interface {
 	servertypes.Application

@@ -71,7 +71,7 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.WithModuleDeps[types.NodeI](
+		clibuilder.SupplyModuleDeps[types.NodeI](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
@@ -93,7 +93,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	// todo: any runners?
+	// TODO: create a runner that takes in a cmd and node
+	// we can start doing this once we build our own cli that doesn't use
+	// cosmos
 	return cmd.Run(clicomponents.DefaultNodeHome)
 }
 

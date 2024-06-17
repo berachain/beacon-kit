@@ -60,11 +60,11 @@ func WithComponents[T servertypes.Application](components []any) Opt[T] {
 	}
 }
 
-// WithModuleDeps populates the slice of direct module dependencies to be
+// SupplyModuleDeps populates the slice of direct module dependencies to be
 // supplied to depinject.
-func WithModuleDeps[T servertypes.Application](deps []any) Opt[T] {
+func SupplyModuleDeps[T servertypes.Application](deps []any) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.moduleDeps = deps
+		cb.supplies = append(cb.supplies, deps...)
 	}
 }
 
