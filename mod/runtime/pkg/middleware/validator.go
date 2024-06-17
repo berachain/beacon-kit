@@ -23,7 +23,6 @@ package middleware
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -41,7 +40,7 @@ import (
 type ValidatorMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		RawBeaconBlock[BeaconBlockBodyT]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -51,7 +50,7 @@ type ValidatorMiddleware[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT RawBeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT any,
@@ -94,7 +93,7 @@ type ValidatorMiddleware[
 func NewValidatorMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		RawBeaconBlock[BeaconBlockBodyT]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -104,7 +103,7 @@ func NewValidatorMiddleware[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT RawBeaconBlockBody,
 	BeaconStateT interface {
 		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
 		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)

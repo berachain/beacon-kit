@@ -28,7 +28,6 @@ import (
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -92,7 +91,7 @@ func (h *FinalizeBlockMiddleware[
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	data := new(
-		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
+		genesis.Genesis[Deposit, ExecutionPayloadHeaderDeneb],
 	)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err

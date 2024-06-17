@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -58,7 +57,7 @@ type BlockchainService[
 	ProcessGenesisData(
 		context.Context,
 		*genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+			Deposit, ExecutionPayloadHeaderDeneb,
 		],
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated

@@ -21,7 +21,6 @@
 package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -31,7 +30,7 @@ import (
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
+		RawBeaconBlock[BeaconBlockBodyT]
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 		NewWithVersion(
 			math.Slot,
@@ -41,7 +40,7 @@ type ABCIMiddleware[
 		) (BeaconBlockT, error)
 		Empty(uint32) BeaconBlockT
 	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT RawBeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 	StorageBackendT any,
