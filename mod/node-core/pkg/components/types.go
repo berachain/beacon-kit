@@ -35,6 +35,7 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -154,6 +155,11 @@ type (
 		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
+	]
+
+	// StatusFeed is a type alias for the status feed.
+	StatusFeed = event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
