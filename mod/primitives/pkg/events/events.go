@@ -21,8 +21,8 @@
 package events
 
 const (
-	MissedSlot = iota
-	BeaconBlockAccepted
-	BeaconBlockRejected
-	BeaconBlockFinalized
+	MissedSlot           = "missed-slot"
+	BeaconBlockAccepted  = "beacon-block-accepted"
+	BeaconBlockRejected  = "beacon-block-rejected"
+	BeaconBlockFinalized = "beacon-block-finalized"
 )
