@@ -99,6 +99,11 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		clientCtx,
 	)
 
+	// enhance the root command with the autoCliOpts
+	if err := rootCmd.Enhance(autoCliOpts.EnhanceRootCommand); err != nil {
+		return nil, err
+	}
+
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
@@ -107,18 +112,14 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		chainSpec,
 	)
 
-	// enhance the root command with the autoCliOpts
-	if err := rootCmd.Enhance(autoCliOpts.EnhanceRootCommand); err != nil {
-		return nil, err
-	}
-
 	return rootCmd, nil
 }
 
 // defaultRunHandler returns a runHandler that uses the default configuration.
 func defaultRunHandler(runHandler runHandler) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
-		return runHandler(cmd,
+		return runHandler(
+			cmd,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
 			DefaultCometConfig(),

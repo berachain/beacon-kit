@@ -38,6 +38,7 @@ func New(name string,
 	runHandler runHandler,
 	clientCtx sdkclient.Context,
 ) *Root {
+	// create the underlying cobra command
 	cmd := &cobra.Command{
 		Use:   name,
 		Short: description,
@@ -47,6 +48,7 @@ func New(name string,
 			cmd.SetErr(cmd.ErrOrStderr())
 
 			var err error
+			// Update the client context with the flags from the command
 			clientCtx, err = sdkclient.ReadPersistentCommandFlags(
 				clientCtx,
 				cmd.Flags(),
@@ -56,6 +58,7 @@ func New(name string,
 			}
 
 			customClientTemplate, customClientConfig := InitClientConfig()
+			// Update the client context with the default custom config
 			clientCtx, err = config.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
