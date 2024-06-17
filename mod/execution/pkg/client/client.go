@@ -97,16 +97,6 @@ func (s *EngineClient[ExecutionPayloadT]) Name() string {
 	return "engine-client"
 }
 
-// Status verifies the chain ID via JSON-RPC. By proxy
-// we will also verify the connection to the execution client.
-func (s *EngineClient[ExecutionPayloadT]) Status() error {
-	// If the client is not started, we return an error.
-	if s.Eth1Client.Client == nil {
-		return ErrNotStarted
-	}
-	return nil
-}
-
 // Start the engine client.
 func (s *EngineClient[ExecutionPayloadT]) Start(
 	ctx context.Context,
