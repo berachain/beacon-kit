@@ -2,7 +2,10 @@ module github.com/berachain/beacon-kit/mod/beacon
 
 go 1.22.4
 
+replace github.com/berachain/beacon-kit/mod/async => ../async
+
 require (
+	github.com/berachain/beacon-kit/mod/async v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
