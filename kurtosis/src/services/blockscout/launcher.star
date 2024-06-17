@@ -39,7 +39,7 @@ VERIF_USED_PORTS = {
 def launch_blockscout(
         plan,
         full_node_el_clients,
-        clients_from_user,
+        client_from_user,
         persistent):
     postgres_output = postgres.run(
         plan,
@@ -48,25 +48,21 @@ def launch_blockscout(
         extra_configs = ["max_connections=1000"],
         persistent = persistent,
     )
-    all_el_client_info = []
+    el_client_info = {}
 
-    # proceed with adding to all_el_client_info only if full_node_el_clients matches with clients_from_user
+    # Get the full_node_el_clients that match the client_from_user
     for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
-        if full_node_el_client_name not in clients_from_user:
-            continue
-        rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
-        ws_port = full_node_el_client_service.ports["eth-json-rpc-ws"].number
-        name = full_node_el_client_name
-        ip_address = full_node_el_client_service.ip_address
+        if full_node_el_client_name in client_from_user:
+            rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
+            name = full_node_el_client_name
+            ip_address = full_node_el_client_service.ip_address
 
-        all_el_client_info.append(
-            new_el_client_info(
+            el_client_info = get_el_client_info(
                 ip_address,
                 rpc_port,
-                ws_port,
                 name,
-            ),
-        )
+            )
+            break
 
     config_verif = get_config_verif()
     verif_service_name = "{}-verif".format(SERVICE_NAME_BLOCKSCOUT)
@@ -76,18 +72,11 @@ def launch_blockscout(
         verif_service.ports["http"].number,
     )
 
-    #  Get the first el_client_info to get the rpc_url
-    el_context = all_el_client_info[0]
-    el_client_rpc_url = "http://{}:{}/".format(
-        el_context["IP_Addr"],
-        el_context["RPC_PortNum"],
-    )
-    el_client_name = el_context["FullName"].split("-")[2]
     config_backend = get_config_backend(
         postgres_output,
-        el_client_rpc_url,
+        el_client_info.get("RPC_Url"),
         verif_url,
-        el_client_name,
+        el_client_info.get("Eth_Type"),
     )
     blockscout_service = plan.add_service(SERVICE_NAME_BLOCKSCOUT, config_backend)
     plan.print(blockscout_service)
@@ -159,10 +148,13 @@ def get_config_backend(
         max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
 
-def new_el_client_info(ip_addr, rpc_port_num, ws_port_num, full_name):
+def get_el_client_info(ip_addr, rpc_port_num, full_name):
+    el_client_rpc_url = "http://{}:{}/".format(
+        ip_addr,
+        rpc_port_num,
+    )
+    el_client_type = full_name.split("-")[2]
     return {
-        "IP_Addr": ip_addr,
-        "RPC_PortNum": rpc_port_num,
-        "WS_PortNum": ws_port_num,
-        "FullName": full_name,
+        "RPC_Url": el_client_rpc_url,
+        "Eth_Type": el_client_type,
     }

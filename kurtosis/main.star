@@ -220,7 +220,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             blockscout.launch_blockscout(
                 plan,
                 full_node_el_clients,
-                eth_json_rpc_endpoints[0]["clients"],
+                s.client,
                 False,
             )
 
