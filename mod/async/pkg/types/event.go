@@ -18,12 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package feed
+package types
 
 import "context"
 
 // EventID represents the type of an event.
-type EventID uint8
+type EventID string
 
 // Event represents a generic event in the beacon chain.
 type Event[DataT any] struct {

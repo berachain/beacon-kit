@@ -4,9 +4,9 @@ go 1.22.4
 
 require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610215715-5f91f661ac83
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/kurtosis-tech/kurtosis/api/golang v0.90.0

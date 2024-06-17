@@ -26,7 +26,7 @@
 package manager
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -37,7 +37,7 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(feed.EventID) bool
+	Is(asynctypes.EventID) bool
 	Data() BeaconBlockT
 }
 
