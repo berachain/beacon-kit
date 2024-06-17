@@ -21,6 +21,7 @@
 package eip4844_test
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -29,42 +30,218 @@ import (
 )
 
 func TestKzgCommitmentToVersionedHash(t *testing.T) {
-	commitment := eip4844.KZGCommitment{}
-	copy(commitment[:], []byte("test commitment"))
-	// Assuming BlobCommitmentVersion is a byte value
+	commitment := newTestCommitment("test commitment")
 	expectedPrefix := constants.BlobCommitmentVersion
 
 	hash := commitment.ToVersionedHash()
-	if hash[0] != expectedPrefix {
-		t.Errorf(
-			"expected first byte of hash to be %v, got %v",
-			expectedPrefix,
-			hash[0],
-		)
-	}
-
-	require.Len(t, hash, 32)
+	require.Equal(t, expectedPrefix, hash[0],
+		"First byte of hash should match BlobCommitmentVersion")
+	require.Len(t, hash, 32, "Hash length should be 32 bytes")
 }
 
 func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
-	commitments := make([]eip4844.KZGCommitment, 2)
-	copy(commitments[0][:], "commitment 1")
-	copy(commitments[1][:], "commitment 2")
+	commitments := []eip4844.KZGCommitment{
+		newTestCommitment("commitment 1"),
+		newTestCommitment("commitment 2"),
+	}
 
 	hashes := eip4844.KZGCommitments[[32]byte](commitments).ToVersionedHashes()
-
-	if len(hashes) != len(commitments) {
-		t.Errorf("expected %d hashes, got %d", len(commitments), len(hashes))
-	}
+	require.Len(t, hashes, len(commitments),
+		"Number of hashes should match number of commitments")
 
 	for i, hash := range hashes {
-		if hash[0] != constants.BlobCommitmentVersion {
-			t.Errorf(
-				"expected first byte of hash %d to be %v, got %v",
-				i,
-				constants.BlobCommitmentVersion,
-				hash[0],
-			)
-		}
+		require.Equal(t, constants.BlobCommitmentVersion, hash[0],
+			"First byte of hash %d should match BlobCommitmentVersion", i)
 	}
+}
+
+func TestKZGCommitmentToHashChunks(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    eip4844.KZGCommitment
+		expected int
+	}{
+		{"Valid input",
+			newTestCommitment("example commitment data that " +
+				"exceeds root length to test chunking"),
+			2},
+		{"Short input", newTestCommitment("short"), 2},
+		{"Empty input", eip4844.KZGCommitment{}, 2},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chunks := tt.input.ToHashChunks()
+			require.Len(t, chunks, tt.expected,
+				"Incorrect number of chunks for test: "+tt.name)
+		})
+	}
+}
+
+func TestKZGCommitmentHashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    eip4844.KZGCommitment
+		expected [32]byte
+	}{
+		{"Simple input", newTestCommitment("example commitment"),
+			[32]byte{138, 20, 122, 217, 77, 116, 246, 111, 195, 118, 240,
+				67, 111, 145, 176, 117, 67, 82, 153, 245, 152, 25, 235, 239, 171,
+				54, 148, 169, 30, 169, 167, 229}},
+		{"Empty input", eip4844.KZGCommitment{},
+			[32]byte{245, 165, 253, 66, 209, 106, 32, 48, 39, 152, 239,
+				110, 211, 9, 151, 155, 67, 0, 61, 35, 32, 217, 240, 232, 234, 152,
+				49, 169, 39, 89, 251, 75}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hashTreeRoot, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(
+				t,
+				tt.expected,
+				hashTreeRoot,
+				"Hash tree root does not "+
+					"match expected for test: "+tt.name,
+			)
+		})
+	}
+}
+
+func TestKZGCommitmentUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expected    eip4844.KZGCommitment
+		shouldError bool
+	}{
+		{
+			name: "Valid hex input",
+			input: `"0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789` +
+				`abcdef0123456789abcdef0123456789abcdef"`,
+			expected: func() eip4844.KZGCommitment {
+				var c eip4844.KZGCommitment
+				data, _ := hex.DecodeString(
+					"0123456789abcdef0123456789abcdef0" +
+						"123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+				)
+				copy(c[:], data)
+				return c
+			}(),
+			shouldError: false,
+		},
+		{
+			name:        "Invalid hex input",
+			input:       `"0xG123456789abcdef"`,
+			expected:    eip4844.KZGCommitment{},
+			shouldError: true,
+		},
+		{
+			name:        "Empty input",
+			input:       `""`,
+			expected:    eip4844.KZGCommitment{},
+			shouldError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var commitment eip4844.KZGCommitment
+			err := commitment.UnmarshalJSON([]byte(tt.input))
+			if tt.shouldError {
+				require.Error(t, err, "Expected an error for test: "+tt.name)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, commitment, "Unmarshaled commitment does "+
+					"not match expected for test: "+tt.name)
+			}
+		})
+	}
+}
+
+func TestKZGCommitment_MarshalText(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    eip4844.KZGCommitment
+		expected string
+	}{
+		{
+			name:  "Empty Commitment",
+			input: eip4844.KZGCommitment{},
+			expected: "3078303030303030303030303030303030303030303030303030303030" +
+				"3030303030303030303030303030303030303030303030303030303030303030" +
+				"3030303030303030303030303030303030303030303030303030303030303030" +
+				"3030303030",
+		},
+		{
+			name: "Non-Empty Commitment",
+			input: func() eip4844.KZGCommitment {
+				var c eip4844.KZGCommitment
+				for i := range c {
+					c[i] = byte(i % 256)
+				}
+				return c
+			}(),
+			expected: "30783030303130323033303430353036303730383039306130623063306" +
+				"43065306631303131313231333134313531363137313831393161316231633164" +
+				"31653166323032313232323332343235323632373238323932613262326332643" +
+				"2653266",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := tc.input.MarshalText()
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, hex.EncodeToString(output),
+				"Test case: %s", tc.name)
+		})
+	}
+}
+
+func TestKZGCommitments_Leafify(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []eip4844.KZGCommitment
+	}{
+		{
+			name: "Single Commitment",
+			input: []eip4844.KZGCommitment{
+				newTestCommitment("single commitment"),
+			},
+		},
+		{
+			name: "Multiple Commitments",
+			input: []eip4844.KZGCommitment{
+				newTestCommitment("commitment one"),
+				newTestCommitment("commitment two"),
+			},
+		},
+		{
+			name:  "Empty Commitments",
+			input: []eip4844.KZGCommitment{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Dynamically compute expected values based on input
+			expected := make([][32]byte, len(tt.input))
+			for i, commitment := range tt.input {
+				expected[i] = commitment.ToHashChunks()[0]
+			}
+
+			commitments := eip4844.KZGCommitments[[32]byte](tt.input)
+			leaves := commitments.Leafify()
+			require.Equal(t, expected, leaves,
+				"Leaves do not match expected for test: "+tt.name)
+		})
+	}
+}
+
+func newTestCommitment(data string) eip4844.KZGCommitment {
+	var c eip4844.KZGCommitment
+	copy(c[:], data)
+	return c
 }
