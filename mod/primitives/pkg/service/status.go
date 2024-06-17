@@ -18,4 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package feed
+package service
+
+// StatusEvent represents a service status event.
+type StatusEvent struct {
+	// name represents the name of the service.
+	name string
+	// healthy indicates whether the service is in a healthy state.
+	healthy bool
+}
+
+// NewStatusEvent creates a new status service.
+func NewStatusEvent(name string, healthy bool) *StatusEvent {
+	return &StatusEvent{
+		name:    name,
+		healthy: healthy,
+	}
+}
+
+// Name returns the name of the service.
+func (s *StatusEvent) Name() string {
+	return s.name
+}
+
+// IsHealthy returns the health status of the service.
+func (s *StatusEvent) IsHealthy() bool {
+	return s.healthy
+}
