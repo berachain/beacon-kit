@@ -33,8 +33,6 @@ type Basic interface {
 	Start(ctx context.Context) error
 	// Name returns the name of the service.
 	Name() string
-	// Status returns error if the service is not considered healthy.
-	Status() error
 }
 
 // Registry provides a useful pattern for managing services.
@@ -79,29 +77,6 @@ func (s *Registry) StartAll(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-// Statuses returns a map of Service type -> error. The map will be populated
-// with the results of each service.Status() method call.
-func (s *Registry) Statuses(services ...string) map[string]error {
-	if len(services) == 0 {
-		services = s.serviceTypes
-	}
-
-	m := make(map[string]error)
-	for _, typeName := range services {
-		if typeName == "" {
-			s.logger.Error("empty service type")
-		}
-		svc := s.services[typeName]
-		if svc == nil {
-			s.logger.Error("service not found", "type", typeName)
-			continue
-		}
-		//#nosec:G703 // false positive?
-		m[typeName] = svc.Status()
-	}
-	return m
 }
 
 // RegisterService appends a service constructor function to the service

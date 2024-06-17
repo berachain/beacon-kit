@@ -65,13 +65,6 @@ func (m *DBManager[
 	return "db-manager"
 }
 
-// TODO: fr implementation
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) Status() error {
-	return nil
-}
-
 // Start starts all pruners.
 func (m *DBManager[
 	BeaconBlockT, BlockEventT, SubscriptionT,
