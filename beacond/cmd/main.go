@@ -52,6 +52,7 @@ func run() error {
 		),
 	)
 
+	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
 		clibuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),

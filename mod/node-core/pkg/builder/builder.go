@@ -26,6 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
+// TODO: #Make nodebuilder build a node. Currently this is just a builder for the
+// AppCreator function, which is eventually called by cosmos to build a node.
 // NodeBuilder is a builder for the AppCreator function.
 type NodeBuilder[NodeT types.NodeI] struct {
 	node NodeT
