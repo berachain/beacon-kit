@@ -32,7 +32,6 @@ type ValidatorMiddlewareInput struct {
 	depinject.In
 	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
-	StorageBackend   StorageBackend
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *ValidatorService
 }
@@ -43,12 +42,14 @@ func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
 ) *ValidatorMiddleware {
 	return middleware.
-		NewValidatorMiddleware[*AvailabilityStore](
+		NewValidatorMiddleware[
+		*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
+		BeaconState, *BlobSidecars,
+	](
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
 		in.TelemetrySink,
-		in.StorageBackend,
 	)
 }
 

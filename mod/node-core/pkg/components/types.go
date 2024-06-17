@@ -179,7 +179,6 @@ type (
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
-		StorageBackend,
 	]
 
 	// ValidatorService is a type alias for the validator service.

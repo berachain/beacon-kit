@@ -56,6 +56,5 @@ type ABCIMiddleware[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
-		StorageBackendT,
 	]
 }

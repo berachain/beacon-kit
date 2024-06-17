@@ -34,10 +34,6 @@ import (
 // Typically used when supplying empty values to depinject, or as receiving
 // addresses for constructed depinject values.
 
-func emptyABCIMiddleware() *components.ABCIMiddleware {
-	return &components.ABCIMiddleware{}
-}
-
 // emptyBeaconState return an address pointing to an empty BeaconState.
 func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 	return &middleware.ValidatorMiddleware[
@@ -46,7 +42,6 @@ func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 		*consensustypes.BeaconBlockBody,
 		components.BeaconState,
 		*datypes.BlobSidecars,
-		components.StorageBackend,
 	]{}
 }
 

@@ -21,42 +21,21 @@
 package builder
 
 import (
-	"os"
-
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
+// TODO: #Make nodebuilder build a node. Currently this is just a builder for
+// the AppCreator function, which is eventually called by cosmos to build a
+// node.
 type NodeBuilder[NodeT types.NodeI] struct {
 	node NodeT
-
-	name         string
-	description  string
+	// depinjectCfg holds is an extendable config container used by the
+	// depinject framework.
 	depInjectCfg depinject.Config
-
 	// components is a list of components to provide.
 	components []any
-
-	// TODO: eventually remove, the node should just be given a root
-	// command and not care about its construction.
-	clientComponents []any
-	runHandler       func(cmd *cobra.Command,
-		customAppConfigTemplate string,
-		customAppConfig interface{},
-		cmtConfig *cmtcfg.Config,
-	) error
 }
 
 // New returns a new NodeBuilder.
@@ -68,117 +47,4 @@ func New[NodeT types.NodeI](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
 		opt(nb)
 	}
 	return nb
-}
-
-// Build builds the application.
-func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
-	rootCmd, err := nb.buildRootCmd()
-	if err != nil {
-		return nb.node, err
-	}
-
-	nb.node.SetRootCmd(rootCmd)
-	return nb.node, nil
-}
-
-// buildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
-	// dependencies for the root command
-	var (
-		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
-		clientCtx   client.Context
-		chainSpec   primitives.ChainSpec
-	)
-	// build dependencies for the root command
-	if err := depinject.Inject(
-		depinject.Configs(
-			nb.depInjectCfg,
-			depinject.Supply(
-				log.NewLogger(os.Stdout),
-				viper.GetViper(),
-				// empty middleware must be supplied here because it is a direct
-				// dependency of the Module
-				emptyABCIMiddleware(),
-			),
-			depinject.Provide(
-				append(
-					nb.clientComponents,
-					components.ProvideNoopTxConfig,
-					components.ProvideConfig,
-					components.ProvideChainSpec,
-				)...,
-			),
-		),
-		&autoCliOpts,
-		&mm,
-		&clientCtx,
-		&chainSpec,
-	); err != nil {
-		return nil, err
-	}
-
-	cmd := &cobra.Command{
-		Use:   nb.name,
-		Short: nb.description,
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			// set the default command outputs
-			cmd.SetOut(cmd.OutOrStdout())
-			cmd.SetErr(cmd.ErrOrStderr())
-
-			var err error
-			clientCtx, err = client.ReadPersistentCommandFlags(
-				clientCtx,
-				cmd.Flags(),
-			)
-			if err != nil {
-				return err
-			}
-
-			customClientTemplate, customClientConfig := InitClientConfig()
-			clientCtx, err = config.CreateClientConfig(
-				clientCtx,
-				customClientTemplate,
-				customClientConfig,
-			)
-			if err != nil {
-				return err
-			}
-
-			if err = client.SetCmdClientContextHandler(
-				clientCtx, cmd,
-			); err != nil {
-				return err
-			}
-
-			return nb.runHandler(
-				cmd,
-				DefaultAppConfigTemplate(),
-				DefaultAppConfig(),
-				DefaultCometConfig(),
-			)
-		},
-	}
-
-	cmdlib.DefaultRootCommandSetup(
-		cmd,
-		mm,
-		nb.AppCreator,
-		chainSpec,
-	)
-
-	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {
-		return nil, err
-	}
-
-	return cmd, nil
-}
-
-// InitClientConfig sets up the default client configuration, allowing for
-// overrides.
-// TODO this needs to be moved
-func InitClientConfig() (string, interface{}) {
-	clientCfg := config.DefaultConfig()
-	clientCfg.KeyringBackend = "test"
-	return config.DefaultClientConfigTemplate, clientCfg
 }

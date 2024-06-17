@@ -18,27 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package commands
+package builder
 
 import (
-	"context"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
+	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
-// PostSetupFn is a function that is called after the application is created
-// and the cosmos server is started.
-type PostSetupFn[T servertypes.Application] func(
-	app T, svrCtx *server.Context, clientCtx client.Context,
-	ctx context.Context, g *errgroup.Group) error
+// rootCmdSetup is a function that sets up the root command.
+type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
+	mm *module.Manager,
+	appCreator servertypes.AppCreator[T],
+	chainSpec primitives.ChainSpec,
+)
 
 // runHandler is a function that sets up run handlers for the root command.
-type runHandler func(cmd *cobra.Command) error
-
-// enhancer is a function that applies an enhancement to the underlying
-// cobra.Command.
-type enhancer func(*cobra.Command) error
+// It takes in custom configs for our app and cometbft.
+type runHandler func(cmd *cobra.Command,
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) error
