@@ -23,6 +23,7 @@ package genesis
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -88,7 +89,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 
 			genesisInfo := &genesis.Genesis[
 				*types.Deposit,
-				*types.ExecutionPayloadHeaderDeneb,
+				*types.ExecutionPayloadHeader,
 			]{}
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
@@ -97,7 +98,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			genesisInfo.ExecutionPayloadHeader, err =
+			denebHeader, err :=
 				executableDataToExecutionPayloadHeader(payload)
 			if err != nil {
 				return errors.Wrap(
@@ -105,6 +106,10 @@ func AddExecutionPayloadCmd() *cobra.Command {
 					"failed to convert executable data to execution payload header",
 				)
 			}
+
+			fmt.Println("Deneb Header: ", denebHeader)
+
+			genesisInfo.ExecutionPayloadHeader = &types.ExecutionPayloadHeader{InnerExecutionPayloadHeader: denebHeader}
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {

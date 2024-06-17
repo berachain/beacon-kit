@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
@@ -92,11 +93,18 @@ func (h *FinalizeBlockMiddleware[
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	data := new(
-		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader],
 	)
+
+	fmt.Println(string(bz))
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Processing genesis data", data)
+	fmt.Println("Processing genesis data", data.Deposits)
+	fmt.Println("Processing genesis data", data.ExecutionPayloadHeader)
+	fmt.Println("Processing genesis data", data.ForkVersion)
 	updates, err := h.chainService.ProcessGenesisData(
 		ctx,
 		data,

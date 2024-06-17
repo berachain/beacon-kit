@@ -23,6 +23,7 @@ package genesis
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -40,7 +41,11 @@ import (
 type Genesis[
 	DepositT any,
 	ExecutonPayloadHeaderT interface {
+		json.Marshaler
 		json.Unmarshaler
+		Empty(uint32) ExecutonPayloadHeaderT
+		GetLogsBloom() []byte
+		GetGasLimit() math.U64
 	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
@@ -55,24 +60,57 @@ type Genesis[
 	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
 }
 
+// // MarshalJSON for Genesis
+// func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) MarshalJSON() ([]byte, error) {
+
+// }
+
 // UnmarshalJSON for Genesis
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(data []byte) error {
-	type Alias Genesis[DepositT, ExecutionPayloadHeaderT]
-	aux := &struct {
-		*Alias
-		ExecutionPayloadHeader json.RawMessage `json:"execution_payload_header"`
-	}{
-		Alias: (*Alias)(g),
+	type g2[Deposit any, ExecutonPayloadHeaderT interface {
+		json.Marshaler
+		json.Unmarshaler
+		Empty(uint32) ExecutonPayloadHeaderT
+		GetLogsBloom() []byte
+		GetGasLimit() math.U64
+	}] struct {
+		ForkVersion            primitives.Version `json:"fork_version"`
+		Deposits               []DepositT         `json:"deposits"`
+		ExecutionPayloadHeader json.RawMessage    `json:"execution_payload_header"`
 	}
-	if err := json.Unmarshal(data, &aux); err != nil {
+	var g22 g2[DepositT, ExecutionPayloadHeaderT]
+	if err := json.Unmarshal(data, &g22); err != nil {
 		return err
 	}
-	return g.ExecutionPayloadHeader.UnmarshalJSON(aux.ExecutionPayloadHeader)
+	g.Deposits = g22.Deposits
+	g.ForkVersion = g22.ForkVersion
+	fmt.Println(string(g22.ExecutionPayloadHeader))
+	type tt struct {
+		XXX common.ExecutionHash `json:"blockHash"`
+	}
+	// t = t.Empty(version.Deneb)
+	// t := tt{}
+	ttt := &types.ExecutionPayloadHeaderDeneb{}
+	// ttt = ttt.Empty(version.Deneb)
+	if err := json.Unmarshal(g22.ExecutionPayloadHeader, ttt); err != nil {
+		return err
+	}
+
+	fmt.Println("YO BET", ttt.GetGasLimit())
+	// g.ExecutionPayloadHeader = t
+	// g.ExecutionPayloadHeader = g22.ExecutionPayloadHeader
+	g.ExecutionPayloadHeader = any(&types.ExecutionPayloadHeader{InnerExecutionPayloadHeader: ttt}).(ExecutionPayloadHeaderT)
+	// fmt.Println("UnmarshalJSON", g)
+	// fmt.Println("UnmarshalJSON Deposits ", g22.Deposits)
+	// fmt.Println("UnmarshalJSON ForkVersion", g22.ForkVersion)
+	// fmt.Println("UnmarshalJSON ExecutionPayloadHeader", g.ExecutionPayloadHeader)
+	// fmt.Println("UnmarshalJSON ExecutionPayloadHeader", g.ExecutionPayloadHeader.GetGasLimit())
+	return nil
 }
 
 // DefaultGenesis returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
-	*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+	*types.Deposit, *types.ExecutionPayloadHeader,
 ] {
 	defaultHeader, err :=
 		DefaultGenesisExecutionPayloadHeaderDeneb()
@@ -81,12 +119,12 @@ func DefaultGenesisDeneb() *Genesis[
 	}
 
 	// TODO: Uncouple from deneb.
-	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb]{
+	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeader]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),
 		Deposits:               make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: defaultHeader,
+		ExecutionPayloadHeader: &types.ExecutionPayloadHeader{InnerExecutionPayloadHeader: defaultHeader},
 	}
 }
 
