@@ -21,10 +21,43 @@
 package middleware
 
 import (
+	"sort"
+
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/sourcegraph/conc/iter"
 )
+
+// handleValUpdateConversion converts the validator updates from the
+// transition package to the appmodulev2.ValidatorUpdate type.
+func handleValUpdateConversion(
+	valUpdates []*transition.ValidatorUpdate,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	valUpdatesMap := make(map[string]*transition.ValidatorUpdate)
+	for _, update := range valUpdates {
+		pubKey := string(update.Pubkey[:])
+		valUpdatesMap[pubKey] = update
+	}
+
+	// Convert map back to slice and sort by pubkey
+	dedupedValUpdates := make(
+		[]*transition.ValidatorUpdate,
+		0,
+		len(valUpdatesMap),
+	)
+	for _, update := range valUpdatesMap {
+		dedupedValUpdates = append(dedupedValUpdates, update)
+	}
+	sort.Slice(dedupedValUpdates, func(i, j int) bool {
+		return string(
+			dedupedValUpdates[i].Pubkey[:],
+		) < string(
+			dedupedValUpdates[j].Pubkey[:],
+		)
+	})
+	return iter.MapErr(dedupedValUpdates, convertValidatorUpdate)
+}
 
 // convertValidatorUpdate abstracts the conversion of a
 // transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.

@@ -23,8 +23,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"sort"
-	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -54,10 +52,11 @@ type FinalizeBlockMiddleware[
 	chainSpec primitives.ChainSpec
 	// chainService represents the blockchain service.
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
-	// metrics is the metrics for the middleware.
-	metrics *finalizeMiddlewareMetrics
-	// valUpdates caches the validator updates as they are produced.
-	valUpdates []*transition.ValidatorUpdate
+	// resChannel is used to communicate the validator updates to the
+	// EndBlock method.
+	valUpdatesChannel chan []*transition.ValidatorUpdate
+	// errChannel is used to communicate errors to the EndBlock method.
+	errChannel chan error
 }
 
 // NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
@@ -78,9 +77,10 @@ func NewFinalizeBlockMiddleware[
 	}
 
 	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		chainSpec:    chainSpec,
-		chainService: chainService,
-		metrics:      newFinalizeMiddlewareMetrics(telemetrySink),
+		chainSpec:         chainSpec,
+		chainService:      chainService,
+		valUpdatesChannel: make(chan []*transition.ValidatorUpdate),
+		errChannel:        make(chan error),
 	}
 }
 
@@ -117,64 +117,46 @@ func (h *FinalizeBlockMiddleware[
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
-	startTime := time.Now()
-	defer h.metrics.measureEndBlockDuration(startTime)
+	// Call the function asynchronously
+	go func() {
+		blk, blobs, err := encoding.
+			ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
+			BeaconBlockTxIndex,
+			BlobSidecarsTxIndex,
+			h.chainSpec.ActiveForkVersionForSlot(
+				math.Slot(req.Height),
+			))
 
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
+		if err != nil {
+			h.errChannel <- err
+			return
+		}
 
-	if err != nil {
-		// We want to return nil here to prevent the
-		// middleware from triggering a panic.
-		return nil
-	}
+		result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
+		if err != nil {
+			h.errChannel <- err
+		} else {
+			h.valUpdatesChannel <- result
+		}
+	}()
 
-	// Process the state transition and produce the required delta from
-	// the sync committee.
-	h.valUpdates, err = h.chainService.ProcessBlockAndBlobs(
-		ctx, blk, blobs,
-		// TODO: Speak with @melekes about this, doesn't seem to
-		// work reliably.
-		/*req.SyncingToHeight == req.Height*/
-	)
-	return err
+	return nil
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
 ]) EndBlock(
-	context.Context,
+	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	// Deduplicate h.valUpdates by pubkey, keeping the later element over any
 	// earlier ones
-	valUpdatesMap := make(map[string]*transition.ValidatorUpdate)
-	for _, update := range h.valUpdates {
-		pubKey := string(update.Pubkey[:])
-		valUpdatesMap[pubKey] = update
+	select {
+	case <-ctx.Done():
+		return nil, nil
+	case err := <-h.errChannel:
+		return nil, err
+	case result := <-h.valUpdatesChannel:
+		return handleValUpdateConversion(result)
 	}
-
-	// Convert map back to slice and sort by pubkey
-	dedupedValUpdates := make(
-		[]*transition.ValidatorUpdate,
-		0,
-		len(valUpdatesMap),
-	)
-	for _, update := range valUpdatesMap {
-		dedupedValUpdates = append(dedupedValUpdates, update)
-	}
-	sort.Slice(dedupedValUpdates, func(i, j int) bool {
-		return string(
-			dedupedValUpdates[i].Pubkey[:],
-		) < string(
-			dedupedValUpdates[j].Pubkey[:],
-		)
-	})
-	h.valUpdates = dedupedValUpdates
-	return iter.MapErr(h.valUpdates, convertValidatorUpdate)
 }
