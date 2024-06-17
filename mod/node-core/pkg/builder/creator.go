@@ -89,6 +89,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		),
 	)
 
+	// TODO: put this in some post node creation hook/listener
 	// start all services
 	if err := serviceRegistry.StartAll(context.Background()); err != nil {
 		logger.Error("failed to start runtime services", "err", err)
