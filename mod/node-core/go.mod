@@ -6,7 +6,7 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
 	github.com/berachain/beacon-kit/mod/async => ../async
-		github.com/berachain/beacon-kit/mod/primitives => ../primitives
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -25,12 +25,12 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240614135647-9814c0c41144
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610210054-bfdc14c4013c
