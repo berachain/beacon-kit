@@ -6,6 +6,8 @@ github.com/VictoriaMetrics/fastcache v1.12.2 h1:N0y9ASrJ0F6h0QaC3o6uJb3NIZ9VKLjC
 github.com/VictoriaMetrics/fastcache v1.12.2/go.mod h1:AmC+Nzz1+3G2eCPapF6UcsnkThDcMsQicp4xDukwJYI=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8 h1:u7RuhmBWN5Z5fjEL9pYkRXg/AUbEj6xi5zCF47sXp2Q=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c h1:KD3RKYFpX0Irm9Al+Jgwo5Ja2jWXs2zd1qWVWtNJWao=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:eX2lsU4fU8yD++Aaw2Hw8xojn6OECDKx4shpr07CqnI=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c h1:HiklyIM4rdXlO5evT0VCuiIofVDZxNC9x1lIIDyNcsM=
