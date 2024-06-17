@@ -122,7 +122,7 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	go func() {
-		s.blockFeed.Send(feed.NewEvent(ctx, events.BeaconBlockFinalized, blk))
+		s.blockFeed.Send(feed.NewEvent(ctx, events.BeaconBlockFinalized, (blk)))
 		s.sendPostBlockFCU(ctx, st, blk)
 	}()
 

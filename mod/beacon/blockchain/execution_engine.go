@@ -58,7 +58,7 @@ func (s *Service[
 	}
 }
 
-// sendNextFCUWithAttributes sends a forkchoice update to the execution
+// sendForkchoiceUpdateWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
 	AvailabilityStoreT,
@@ -109,7 +109,7 @@ func (s *Service[
 	}
 }
 
-// sendNextFCUWithoutAttributes sends a forkchoice update to the
+// sendForkchoiceUpdateWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
 	AvailabilityStoreT,
@@ -124,7 +124,7 @@ func (s *Service[
 	blk BeaconBlockT,
 	lph *types.ExecutionPayloadHeader,
 ) {
-	if _, _, err := s.ee.NotifyForkchoiceUpdate(
+	_, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		engineprimitives.BuildForkchoiceUpdateRequest(
 			&engineprimitives.ForkchoiceStateV1{
@@ -135,7 +135,8 @@ func (s *Service[
 			nil,
 			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update without attributes",
 			"error", err,

@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-// RawBeaconBlockBody is the interface for a beacon block body.
+// BeaconBlockBody is the interface for a beacon block body.
 type RawBeaconBlockBody interface {
 	WriteOnlyBeaconBlockBody
 	ReadOnlyBeaconBlockBody
@@ -64,7 +64,7 @@ type ReadOnlyBeaconBlockBody interface {
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
-// RawBeaconBlock is the interface for a beacon block.
+// BeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 	ssz.Marshallable
 	SetStateRoot(common.Root)

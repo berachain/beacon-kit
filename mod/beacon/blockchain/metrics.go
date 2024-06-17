@@ -89,7 +89,7 @@ func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
 	)
 }
 
-// markOptimisticPayloadBuildSuccess increments the counter for the number of
+// measureOptimisticPayloadBuildSuccess increments the counter for the number of
 // times
 // the validator successfully built an optimistic payload.
 func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
@@ -100,7 +100,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
 	)
 }
 
-// markOptimisticPayloadBuildFailure increments the counter for the number of
+// measureOptimisticPayloadBuildFailure increments the counter for the number of
 // times
 // the validator failed to build an optimistic payload.
 func (cm *chainMetrics) markOptimisticPayloadBuildFailure(

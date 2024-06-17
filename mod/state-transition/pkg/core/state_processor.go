@@ -216,7 +216,7 @@ func (sp *StateProcessor[
 	return validatorUpdates, nil
 }
 
-// processSlot is run when a slot is missed.
+// ProcessSlot is run when a slot is missed.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
