@@ -42,7 +42,10 @@ func ProvideValidatorMiddleware(
 	in ValidatorMiddlewareInput,
 ) *ValidatorMiddleware {
 	return middleware.
-		NewValidatorMiddleware[*AvailabilityStore, *BeaconBlock, *BeaconBlockBody, BeaconState, *BlobSidecars](
+		NewValidatorMiddleware[
+		*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
+		BeaconState, *BlobSidecars,
+	](
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
