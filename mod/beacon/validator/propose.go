@@ -263,6 +263,8 @@ func (s *Service[
 	envelope engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload],
 ) (BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
+
+	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
 		return sidecars, ErrNilBlkBody
@@ -293,7 +295,11 @@ func (s *Service[
 	if err != nil {
 		return sidecars, err
 	}
+
+	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
+
+	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
