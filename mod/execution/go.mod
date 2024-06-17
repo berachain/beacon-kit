@@ -7,7 +7,7 @@ replace github.com/berachain/beacon-kit/mod/async => ../async
 replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
 require (
-	github.com/berachain/beacon-kit/mod/async v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
