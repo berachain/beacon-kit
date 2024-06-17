@@ -36,8 +36,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) ReceiveBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -70,8 +69,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -141,8 +139,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -180,8 +177,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -232,8 +228,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }

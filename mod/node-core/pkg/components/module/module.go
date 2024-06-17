@@ -82,9 +82,7 @@ func (am AppModule) IsAppModule() {}
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(
-		genesis.DefaultGenesisDeneb(),
-	)
+	bz, err := genesis.DefaultGenesisDeneb().MarshalJSON()
 	if err != nil {
 		panic(err)
 	}
@@ -103,11 +101,10 @@ func (AppModule) ValidateGenesis(
 func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
-	return json.Marshal(
-		&genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
-		]{},
-	)
+	genesis := &genesis.Genesis[
+		*types.Deposit, *types.ExecutionPayloadHeader,
+	]{}
+	return genesis.MarshalJSON()
 }
 
 // InitGenesis

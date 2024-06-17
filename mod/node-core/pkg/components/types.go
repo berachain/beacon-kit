@@ -97,7 +97,6 @@ type (
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*ExecutionPayloadHeaderDeneb,
 		*Genesis,
 		*Withdrawal,
 	]
@@ -142,7 +141,7 @@ type (
 	]
 
 	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeaderDeneb]
+	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeader]
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[

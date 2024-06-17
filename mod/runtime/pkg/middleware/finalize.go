@@ -99,7 +99,13 @@ func (h *FinalizeBlockMiddleware[
 	}
 	updates, err := h.chainService.ProcessGenesisData(
 		ctx,
-		data,
+		&genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader]{
+			ForkVersion: data.GetForkVersion(),
+			Deposits:    data.GetDeposits(),
+			ExecutionPayloadHeader: &types.ExecutionPayloadHeader{
+				InnerExecutionPayloadHeader: data.GetExecutionPayloadHeader(),
+			},
+		},
 	)
 	if err != nil {
 		return nil, err

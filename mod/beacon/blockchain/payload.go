@@ -33,8 +33,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -65,8 +64,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -92,8 +90,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -172,8 +169,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -193,8 +189,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

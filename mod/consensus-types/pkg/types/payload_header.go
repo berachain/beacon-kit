@@ -71,6 +71,11 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 	return e, nil
 }
 
+// MarshalJSON marshals the ExecutionPayloadHeader into JSON bytes.
+func (e *ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
+	return e.InnerExecutionPayloadHeader.MarshalJSON()
+}
+
 // UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
 func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
 	// TODO: Generalize somehow.

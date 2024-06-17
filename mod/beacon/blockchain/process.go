@@ -37,8 +37,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -46,9 +45,7 @@ func (s *Service[
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
-		ExecutionPayloadHeader(
-			genesisData.GetExecutionPayloadHeader().ToPayloadHeader(),
-		).(ExecutionPayloadHeaderT),
+		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
 }
@@ -59,8 +56,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -126,8 +122,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -165,8 +160,7 @@ func (s *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ExecutionPayloadHeaderDenebT,
-	GenesisT, WithdrawalT,
+	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,

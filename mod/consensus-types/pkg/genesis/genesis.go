@@ -22,6 +22,7 @@ package genesis
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -38,7 +39,12 @@ import (
 // need to start the beacon chain.
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT any,
+	ExecutonPayloadHeaderT interface {
+		json.Marshaler
+		json.Unmarshaler
+
+		IsNil() bool
+	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
@@ -50,6 +56,53 @@ type Genesis[
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
 	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
+}
+
+// genesisMarshalable is a struct that is used to marshal and unmarshal
+// the Genesis.
+type genesisMarshalable[DepositT any] struct {
+	ForkVersion            primitives.Version `json:"fork_version"`
+	Deposits               []DepositT         `json:"deposits"`
+	ExecutionPayloadHeader json.RawMessage    `json:"execution_payload_header"`
+}
+
+// MarshalJSON marshals the Genesis into JSON bytes.
+func (g *Genesis[DepositT, ExecutonPayloadHeaderT]) MarshalJSON() ([]byte, error) {
+
+	var (
+		executionPayloadHeaderBz []byte
+		err                      error
+	)
+	if any(g.ExecutionPayloadHeader).(interface{}) != nil {
+		executionPayloadHeaderBz, err = g.ExecutionPayloadHeader.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	genesisMarshallable := &genesisMarshalable[DepositT]{
+		ForkVersion:            g.ForkVersion,
+		Deposits:               g.Deposits,
+		ExecutionPayloadHeader: executionPayloadHeaderBz,
+	}
+
+	return json.Marshal(genesisMarshallable)
+}
+
+// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
+func (g *Genesis[DepositT, ExecutonPayloadHeaderT]) UnmarshalJSON(
+	bz []byte,
+) error {
+	var genesis genesisMarshalable[DepositT]
+	if err := json.Unmarshal(bz, &genesis); err != nil {
+		return err
+	}
+	g.ForkVersion = genesis.ForkVersion
+	g.Deposits = genesis.Deposits
+
+	return g.ExecutionPayloadHeader.UnmarshalJSON(
+		genesis.ExecutionPayloadHeader,
+	)
 }
 
 // GetForkVersion returns the fork version.

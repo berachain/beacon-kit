@@ -63,7 +63,6 @@ func ProvideChainService(
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*ExecutionPayloadHeaderDeneb,
 		*Genesis,
 		*Withdrawal,
 	](
