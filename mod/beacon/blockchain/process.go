@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
@@ -43,19 +42,24 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadT,
+	GenesisT,
 ]) ProcessGenesisData(
 	ctx context.Context,
-	genesisData *genesis.Genesis[
-		DepositT, *types.ExecutionPayloadHeaderDeneb,
-	],
+	genesisData GenesisT,
 ) ([]*transition.ValidatorUpdate, error) {
+	header := genesisData.GetExecutionPayloadHeader()
+	payloadHeader, ok := any(header).(types.InnerExecutionPayloadHeader)
+	if !ok {
+		panic("REE")
+	}
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
-		genesisData.Deposits,
+		genesisData.GetDeposits(),
 		&types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
+			InnerExecutionPayloadHeader: payloadHeader,
 		},
-		genesisData.ForkVersion,
+		genesisData.GetForkVersion(),
 	)
 }
 
@@ -69,6 +73,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadT,
+	GenesisT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -138,6 +144,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadT,
+	GenesisT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -179,6 +187,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadT,
+	GenesisT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,

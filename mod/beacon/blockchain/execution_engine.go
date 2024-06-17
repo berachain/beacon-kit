@@ -37,6 +37,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -68,6 +70,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -119,6 +123,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -156,6 +162,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

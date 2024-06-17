@@ -21,40 +21,48 @@
 package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // ABCIMiddleware is a middleware between ABCI and Beacon logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT RawBeaconBlockBody,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
-	StorageBackendT any,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT any,
+	StorageBackendT StorageBackend[BeaconStateT],
 ] struct {
 	FinalizeBlock *FinalizeBlockMiddleware[
 		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		DepositT, ExecutionPayloadHeaderT,
 	]
 
 	Validator *ValidatorMiddleware[
 		AvailabilityStoreT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
 		BeaconStateT,
 		BlobSidecarsT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
 		StorageBackendT,
 	]
 }

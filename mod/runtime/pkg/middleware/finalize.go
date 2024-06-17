@@ -48,11 +48,15 @@ type FinalizeBlockMiddleware[
 	},
 	BeaconStateT any,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	ExecutionPayloadHeaderT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 	// chainService represents the blockchain service.
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, ExecutionPayloadHeaderT,
+	]
 	// metrics is the metrics for the middleware.
 	metrics *finalizeMiddlewareMetrics
 	// valUpdates caches the validator updates as they are produced.
@@ -65,18 +69,29 @@ func NewFinalizeBlockMiddleware[
 		ssz.Marshallable
 		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 	},
-	BeaconStateT any, BlobSidecarsT ssz.Marshallable,
+	BeaconStateT any,
+	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	ExecutionPayloadHeaderT any,
 ](
 	chainSpec primitives.ChainSpec,
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, ExecutionPayloadHeaderT,
+	],
 	telemetrySink TelemetrySink,
-) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
+) *FinalizeBlockMiddleware[
+	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	DepositT, ExecutionPayloadHeaderT,
+] {
 	// This is just for nilaway, TODO: remove later.
 	if chainService == nil {
 		panic("chain service is nil")
 	}
 
-	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
+	return &FinalizeBlockMiddleware[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		DepositT, ExecutionPayloadHeaderT,
+	]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
 		metrics:      newFinalizeMiddlewareMetrics(telemetrySink),
@@ -86,12 +101,13 @@ func NewFinalizeBlockMiddleware[
 // InitGenesis is called by the base app to initialize the state of the.
 func (h *FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	DepositT, ExecutionPayloadHeaderT,
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	data := new(
-		genesis.Genesis[Deposit, ExecutionPayloadHeaderDeneb],
+		genesis.Genesis[DepositT, ExecutionPayloadHeaderT],
 	)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
@@ -113,6 +129,7 @@ func (h *FinalizeBlockMiddleware[
 // the oracle data to the store.
 func (h *FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	DepositT, ExecutionPayloadHeaderT,
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
@@ -147,6 +164,7 @@ func (h *FinalizeBlockMiddleware[
 // EndBlock returns the validator set updates from the beacon state.
 func (h FinalizeBlockMiddleware[
 	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+	DepositT, ExecutionPayloadHeaderT,
 ]) EndBlock(
 	context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {

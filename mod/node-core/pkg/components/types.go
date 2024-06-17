@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -49,8 +50,13 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeaderDeneb,
 		StorageBackend,
 	]
 
@@ -93,6 +99,8 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
+		*ExecutionPayloadHeaderDeneb,
+		*Genesis,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -126,12 +134,17 @@ type (
 	ExecutionEngine = execution.Engine[*ExecutionPayload]
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
+	ExecutionPayload            = types.ExecutionPayload
+	ExecutionPayloadHeader      = types.ExecutionPayloadHeader
+	ExecutionPayloadHeaderDeneb = types.ExecutionPayloadHeaderDeneb
 
 	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
 		*BeaconBlock, BeaconState, *BlobSidecars,
+		*Deposit, *ExecutionPayloadHeaderDeneb,
 	]
+
+	// Genesis is a type alias for the genesis.
+	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeaderDeneb]
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
@@ -171,8 +184,13 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeaderDeneb,
 		StorageBackend,
 	]
 

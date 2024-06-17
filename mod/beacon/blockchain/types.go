@@ -140,6 +140,16 @@ type EventFeed[EventT any] interface {
 	Send(event EventT) int
 }
 
+// Genesis is the interface for the genesis data.
+type Genesis[
+	DepositT any,
+	ExecutionPayloadHeaderT types.InnerExecutionPayloadHeader,
+] interface {
+	GetForkVersion() primitives.Version
+	GetDeposits() []DepositT
+	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+}
+
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder[BeaconStateT any] interface {
 	// Enabled returns true if the local builder is enabled.

@@ -20,7 +20,11 @@
 
 package encoding
 
-import "time"
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+)
 
 // ABCIRequest represents the interface for an ABCI request.
 type ABCIRequest interface {
@@ -30,4 +34,9 @@ type ABCIRequest interface {
 	GetTime() time.Time
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
+}
+
+type BeaconBlock[T any] interface {
+	ssz.Marshallable
+	NewFromSSZ([]byte, uint32) (T, error)
 }

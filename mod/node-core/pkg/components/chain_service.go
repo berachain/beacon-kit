@@ -58,7 +58,10 @@ func ProvideChainService(
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*ExecutionPayloadHeaderDeneb,
+		*Genesis,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

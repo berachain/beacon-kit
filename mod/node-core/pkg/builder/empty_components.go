@@ -21,7 +21,7 @@
 package builder
 
 import (
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -41,11 +41,16 @@ func emptyABCIMiddleware() *components.ABCIMiddleware {
 // emptyBeaconState return an address pointing to an empty BeaconState.
 func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 	return &middleware.ValidatorMiddleware[
-		*dastore.Store[*consensustypes.BeaconBlockBody],
-		*consensustypes.BeaconBlock,
-		*consensustypes.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
 		components.BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeaderDeneb,
 		components.StorageBackend,
 	]{}
 }
@@ -54,9 +59,11 @@ func emptyValidatorMiddleware() *components.ValidatorMiddleware {
 // FinalizeBlockMiddleware.
 func emptyFinalizeBlockMiddlware() *components.FinalizeBlockMiddleware {
 	return &middleware.FinalizeBlockMiddleware[
-		*consensustypes.BeaconBlock,
+		*types.BeaconBlock,
 		components.BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
+		*types.ExecutionPayloadHeaderDeneb,
 	]{}
 }
 

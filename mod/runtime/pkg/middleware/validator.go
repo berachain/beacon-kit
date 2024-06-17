@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -39,21 +38,25 @@ import (
 // ValidatorMiddleware is a middleware between ABCI and the validator logic.
 type ValidatorMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT RawBeaconBlockBody,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
-	StorageBackendT any,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT any,
+	StorageBackendT StorageBackend[BeaconStateT],
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
@@ -64,7 +67,9 @@ type ValidatorMiddleware[
 		BlobSidecarsT,
 	]
 
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, ExecutionPayloadHeaderT,
+	]
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -92,26 +97,24 @@ type ValidatorMiddleware[
 // NewValidatorMiddleware creates a new instance of the Handler struct.
 func NewValidatorMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT RawBeaconBlockBody,
-	BeaconStateT interface {
-		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
-		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(
-			cometBFTAddress []byte,
-		) (math.ValidatorIndex, error)
-	},
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT any,
 	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec primitives.ChainSpec,
@@ -120,16 +123,22 @@ func NewValidatorMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	],
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, ExecutionPayloadHeaderT,
+	],
 	telemetrySink TelemetrySink,
 	storageBackend StorageBackendT,
 ) *ValidatorMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, StorageBackendT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	StorageBackendT,
 ] {
 	return &ValidatorMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, StorageBackendT,
+		BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, StorageBackendT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
@@ -148,12 +157,10 @@ func NewValidatorMiddleware[
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ValidatorMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, StorageBackendT,
 ]) PrepareProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -205,12 +212,10 @@ func (h *ValidatorMiddleware[
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ValidatorMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT,
+	DepositT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, StorageBackendT,
 ]) ProcessProposalHandler(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,

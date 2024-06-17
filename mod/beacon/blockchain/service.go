@@ -42,6 +42,8 @@ type Service[
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT types.InnerExecutionPayloadHeader,
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -91,8 +93,10 @@ func NewService[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore[DepositT],
 	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT types.InnerExecutionPayloadHeader,
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -120,11 +124,13 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT,
+	BlobSidecarsT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	GenesisT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositT, DepositStoreT,
+		BlobSidecarsT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+		GenesisT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -149,6 +155,8 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -159,8 +167,10 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) Start(
 	context.Context,
 ) error {
@@ -173,8 +183,10 @@ func (s *Service[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	DepositStoreT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) Status() error {
 	return nil
 }
