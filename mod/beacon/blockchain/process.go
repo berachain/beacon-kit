@@ -123,7 +123,7 @@ func (s *Service[
 	// via ticker later.
 	go func() {
 		s.blockFeed.Send(
-			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, (blk)),
+			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
 		)
 		s.sendPostBlockFCU(ctx, st, blk)
 	}()
