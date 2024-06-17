@@ -6,7 +6,7 @@ CONSENSUS_DEFAULT_SETTINGS = {
         "max_memory": 2048,
     },
     "images": {
-        "beaconkit": "beacond:kurtosis-local",
+        "beaconkit": "beacond-dev:kurtosis-local",
     },
     "labels": {},
     "node_selectors": {},

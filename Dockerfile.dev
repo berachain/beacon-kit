@@ -19,16 +19,16 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=scratch
+ARG RUNNER_IMAGE=alpine:latest
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
-ARG USERGROUP_NAME=beacond
-ARG USER_NAME=beacond
-ARG USER_UID=10000
-ARG USER_GID=10000
+
+#######################################################
+###         Stage 1 - Cache Go Modules              ###
+#######################################################
 
 FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
 
@@ -134,45 +134,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###         Stage 3 - Create user                   ###
+###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as user-creator
-
-ARG USERGROUP_NAME
-ARG USER_NAME
-ARG USER_UID
-ARG USER_GID
-
-# Create a non-root user
-RUN addgroup -g ${USER_GID} ${USERGROUP_NAME} && \
-    adduser -D -u ${USER_UID} -G ${USERGROUP_NAME} ${USER_NAME}
-
-#######################################################
-###        Stage 4 - Prepare the Final Image        ###
-#######################################################
-
-FROM ${RUNNER_IMAGE} as runner
-
-# Create base directories
-WORKDIR /tmp
-WORKDIR /etc
-WORKDIR /usr/bin
-
-# Create app's directories
-WORKDIR /root/jwt
-WORKDIR /root/kzg
-
-# Copy user from user-creator
-COPY --from=user-creator /etc/passwd /etc/passwd
-COPY --from=user-creator /etc/group /etc/group
-
+FROM ${RUNNER_IMAGE}
 
 # Copy over built executable into a fresh container.
-COPY --from=builder --chown=${USER_UID}:${USER_GID} /workdir/build/bin/beacond /usr/bin
+COPY --from=builder /workdir/build/bin/beacond /usr/bin
+RUN mkdir -p /root/jwt /root/kzg && \
+    apk add --no-cache bash sed curl
 
-# Set the user
-USER ${USER_NAME}
-
-# Set the entrypoint
 ENTRYPOINT [ "/usr/bin/beacond" ]

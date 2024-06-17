@@ -290,7 +290,7 @@ func defaultConsensusSettings() ConsensusSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"beaconkit": "beacond:kurtosis-local",
+			"beaconkit": "beacond-dev:kurtosis-local",
 		},
 		Config: ConsensusConfig{
 			TimeoutPropose:      "3s",

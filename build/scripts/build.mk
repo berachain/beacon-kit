@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 ifeq ($(VERSION),)
-  VERSION := $(shell git describe --tags --always --match "v*")
+	VERSION := $(shell git describe --tags --always --match "v*")
 endif
 
 COMMIT = $(shell git log -1 --format='%H')
@@ -16,24 +16,24 @@ PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 build_tags = netgo
 
 ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
-  build_tags += app_v1
+	build_tags += app_v1
 endif
 
 # DB backend selection
 ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))
-  build_tags += gcc
+	build_tags += gcc
 endif
 ifeq (badgerdb,$(findstring badgerdb,$(COSMOS_BUILD_OPTIONS)))
-  build_tags += badgerdb
+	build_tags += badgerdb
 endif
 # handle rocksdb
 ifeq (rocksdb,$(findstring rocksdb,$(COSMOS_BUILD_OPTIONS)))
-  CGO_ENABLED=1
-  build_tags += rocksdb grocksdb_clean_link
+	CGO_ENABLED=1
+	build_tags += rocksdb grocksdb_clean_link
 endif
 # handle boltdb
 ifeq (boltdb,$(findstring boltdb,$(COSMOS_BUILD_OPTIONS)))
-  build_tags += boltdb
+	build_tags += boltdb
 endif
 
 # always include pebble
@@ -60,7 +60,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=sim \
 		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  ldflags += -w -s
+	ldflags += -w -s
 endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
@@ -70,12 +70,12 @@ build_tags += $(BUILD_TAGS)
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath 
+	BUILD_FLAGS += -trimpath 
 endif
 
 # Check for debug option
 ifeq (debug,$(findstring debug,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -gcflags "all=-N -l"
+	BUILD_FLAGS += -gcflags "all=-N -l"
 endif
 
 # This allows us to reuse the build target steps for both go build and go install
@@ -96,13 +96,28 @@ ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),)
 	ARCH = arm64
 endif
-IMAGE_NAME ?= beacond
+IMAGE_NAME_DEV ?= beacond-dev
+IMAGE_NAME ?= beacond-release
 
 # Docker Paths
 DOCKERFILE = ./Dockerfile
+DOCKERFILE_DEV = ./Dockerfile.dev
 
-build-docker: ## build a docker image containing `beacond`
-	@echo "Build a release docker image for the Cosmos SDK chain..."
+build-docker-dev: ## build a docker image containing `beacond` for development
+	@echo "Build a docker image for the Cosmos SDK chain..."
+	docker buildx build \
+	--platform linux/$(ARCH) \
+	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
+	--build-arg GIT_VERSION=$(VERSION) \
+	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
+	--build-arg GOOS=linux \
+	--build-arg GOARCH=$(ARCH) \
+	-f ${DOCKERFILE_DEV} \
+	-t $(IMAGE_NAME_DEV):$(VERSION) \
+	.
+
+build-docker: ## build a docker image containing `beacond` for release
+	@echo "Build a docker release image for the Cosmos SDK chain..."
 	docker buildx build \
 	--platform linux/$(ARCH) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \

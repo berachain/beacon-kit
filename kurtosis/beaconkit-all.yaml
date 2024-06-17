@@ -74,7 +74,7 @@ node_settings:
       min_memory: 0
       max_memory: 2048
     images:
-      beaconkit: beacond:kurtosis-local
+      beaconkit: beacond-dev:kurtosis-local
     config:
       timeout_propose: 3s
       timeout_prevote: 1s

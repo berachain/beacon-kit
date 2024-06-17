@@ -208,7 +208,7 @@ test-unit-fuzz: ## run fuzz tests
 	go test -fuzz=FuzzHashTreeRoot ./mod/primitives/pkg/merkle -fuzztime=${MEDIUM_FUZZ_TIME}
 
 test-e2e: ## run e2e tests
-	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
+	@$(MAKE) build-docker-dev VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
 	go test -tags e2e,bls12381 ./testing/e2e/. -v
