@@ -153,7 +153,7 @@ func (h FinalizeBlockMiddleware[
 	// earlier ones
 	select {
 	case <-ctx.Done():
-		return nil, nil
+		return nil, ctx.Err()
 	case err := <-h.errChannel:
 		return nil, err
 	case result := <-h.valUpdatesChannel:
