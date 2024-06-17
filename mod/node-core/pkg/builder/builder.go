@@ -29,7 +29,8 @@ import (
 // NodeBuilder is a builder for the AppCreator function.
 type NodeBuilder[NodeT types.NodeI] struct {
 	node NodeT
-	// depinjectCfg is the depinject config lol
+	// depinjectCfg holds is an extendable config container used by the
+	// depinject framework.
 	depInjectCfg depinject.Config
 	// components is a list of components to provide.
 	components []any
