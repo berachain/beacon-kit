@@ -78,11 +78,6 @@ func (ee *Engine[ExecutionPayloadT]) Start(
 	return nil
 }
 
-// Status returns error if the service is not considered healthy.
-func (ee *Engine[ExecutionPayloadT]) Status() error {
-	return ee.ec.Status()
-}
-
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,

@@ -166,15 +166,3 @@ func (s *Service[
 ) error {
 	return nil
 }
-
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
-]) Status() error {
-	return nil
-}

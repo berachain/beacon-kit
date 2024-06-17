@@ -168,11 +168,3 @@ func (s *Service[
 	)
 	return nil
 }
-
-// Status returns the status of the service.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) Status() error {
-	return nil
-}

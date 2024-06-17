@@ -128,12 +128,3 @@ func (s *Service[
 ]) Name() string {
 	return "deposit-handler"
 }
-
-// Status returns the current status of the service.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
-]) Status() error {
-	return nil
-}
