@@ -25,6 +25,8 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/config"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
@@ -34,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // EngineClientInputs is the input for the EngineClient.
@@ -70,8 +73,12 @@ func ProvideEngineClient[
 // framework.
 type ExecutionEngineInput struct {
 	depinject.In
-	EngineClient  *EngineClient
-	Logger        log.Logger
+	EngineClient *EngineClient
+	Logger       log.Logger
+	StatusFeed   *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[*service.StatusEvent],
+	]
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -90,6 +97,7 @@ func ProvideExecutionEngine[
 	return execution.New[*ExecutionPayload](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
+		in.StatusFeed,
 		in.TelemetrySink,
 	)
 }
