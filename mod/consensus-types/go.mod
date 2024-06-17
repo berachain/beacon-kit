@@ -4,8 +4,8 @@ go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/stretchr/testify v1.9.0

@@ -3,12 +3,12 @@ module github.com/berachain/beacon-kit/mod/config
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0

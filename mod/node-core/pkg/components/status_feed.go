@@ -18,11 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package components
 
-const (
-	MissedSlot           = "missed-slot"
-	BeaconBlockAccepted  = "beacon-block-accepted"
-	BeaconBlockRejected  = "beacon-block-rejected"
-	BeaconBlockFinalized = "beacon-block-finalized"
+import (
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
+
+// ProvideStatusFeed provides a status feed.
+func ProvideStatusFeed() *event.FeedOf[
+	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
+] {
+	return &event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
+	]{}
+}
