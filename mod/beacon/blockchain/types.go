@@ -34,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// The AvailabilityStore interface is responsible for validating and storing
+// AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
 type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
@@ -49,8 +49,7 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of
-// the
-// beacon state.
+// the beacon state.
 type ReadOnlyBeaconState[T any] interface {
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
@@ -76,7 +75,7 @@ type ReadOnlyBeaconState[T any] interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
-// BlobVerifier is the interface for the blobs processor.
+// BlobProcessor is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
@@ -96,7 +95,7 @@ type BlobProcessor[
 	) error
 }
 
-// BlobsSidecars is the interface for blobs sidecars.
+// BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
 	IsNil() bool

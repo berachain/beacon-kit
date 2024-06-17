@@ -62,7 +62,7 @@ func (sp *StateProcessor[
 	return sp.processDeposits(st, deposits)
 }
 
-// ProcessDeposits processes the deposits and ensures they match the
+// processDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -117,7 +117,7 @@ func (sp *StateProcessor[
 	return sp.applyDeposit(st, dep)
 }
 
-// processDeposit processes the deposit and ensures it matches the local state.
+// applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,

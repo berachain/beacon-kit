@@ -76,12 +76,12 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) {
-	if pErr := s.rebuildPayloadForRejectedBlock(
+	if err := s.rebuildPayloadForRejectedBlock(
 		ctx, st,
-	); pErr != nil {
+	); err != nil {
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
-			"error", pErr,
+			"error", err,
 		)
 	}
 }
