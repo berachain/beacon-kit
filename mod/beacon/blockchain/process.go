@@ -73,12 +73,16 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 	sidecars BlobSidecarsT,
+	syncedToHead bool,
 ) ([]*transition.ValidatorUpdate, error) {
 	var (
 		g, gCtx    = errgroup.WithContext(ctx)
 		st         = s.sb.StateFromContext(ctx)
 		valUpdates []*transition.ValidatorUpdate
 	)
+
+	// Notify the sync service about what is going on.
+	s.clSyncFeed.Send(feed.NewEvent(ctx, events.CLSyncUpdate, syncedToHead))
 
 	// If the block is nil, exit early.
 	if blk.IsNil() {
@@ -162,7 +166,7 @@ func (s *Service[
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
+			SkipPayloadVerification: s.skipPayloadVerification,
 		},
 		st,
 		blk,

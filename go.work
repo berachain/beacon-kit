@@ -22,5 +22,6 @@ use (
 	./mod/runtime
 	./mod/state-transition
 	./mod/storage
+	./mod/sync
 	./testing
 )

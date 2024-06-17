@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -75,6 +76,10 @@ type Service[
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
 	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
+	// clSyncFeed is the event feed for chain syncs.
+	clSyncFeed EventFeed[*feed.Event[bool]]
+	// skipNewPayload calls
+	skipPayloadVerification bool
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -117,6 +122,7 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
+	clSyncFeed EventFeed[*feed.Event[bool]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
@@ -135,6 +141,7 @@ func NewService[
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
 		blockFeed:               blockFeed,
+		clSyncFeed:              clSyncFeed,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}
@@ -162,7 +169,25 @@ func (s *Service[
 	DepositStoreT,
 	DepositT,
 ]) Start(
-	context.Context,
+	ctx context.Context,
 ) error {
+	go func() {
+		//nolint:mnd // todo fix?
+		ch := make(chan *feed.Event[bool], 16)
+		sub := s.clSyncFeed.Subscribe(ch)
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case event := <-ch:
+				if event.Is(events.CLSyncStatus) {
+					// If we are synced to the head, we can
+					// skip new payload calls.
+					s.skipPayloadVerification = event.Data()
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 	return nil
 }

@@ -18,17 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package event
+package sync
 
-import "github.com/ethereum/go-ethereum/event"
+type ClientType uint8
 
-// Subscription is a subscription to a feed.
-type Subscription = event.Subscription
+const (
+	ConsensusClient ClientType = iota
+	ExecutionClient
+)
 
-// FeedOf is a feed of events.
-// It is a wrapper around the event.FeedOf type.
-type FeedOf[
-	T any,
-] struct {
-	event.FeedOf[T]
+// ClientStatusUpdate is an event that is emitted when a client's status
+// changes.
+type ClientStatusUpdate struct {
+	client ClientType
+	status ClientStatus
+}
+
+// NewClientStatusUpdate creates a new client status update event.
+func NewClientStatusUpdate(
+	client ClientType,
+	status ClientStatus,
+) *ClientStatusUpdate {
+	return &ClientStatusUpdate{
+		client: client,
+		status: status,
+	}
+}
+
+// Client returns the client type of the ClientStatusUpdate event.
+func (e *ClientStatusUpdate) Client() ClientType {
+	return e.client
+}
+
+// Status returns the status of the ClientStatusUpdate event.
+func (e *ClientStatusUpdate) Status() ClientStatus {
+	return e.status
 }

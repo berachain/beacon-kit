@@ -18,17 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package event
+package sync
 
-import "github.com/ethereum/go-ethereum/event"
-
-// Subscription is a subscription to a feed.
-type Subscription = event.Subscription
-
-// FeedOf is a feed of events.
-// It is a wrapper around the event.FeedOf type.
-type FeedOf[
-	T any,
-] struct {
-	event.FeedOf[T]
-}
+// syncService listens to updates from the cl and el feeds and emits a block
+// sync event when the cl is synced.

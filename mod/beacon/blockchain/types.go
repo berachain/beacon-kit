@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -138,6 +139,8 @@ type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
 	Send(event EventT) int
+	// Subscribe returns a channel that will receive events.
+	Subscribe(chan<- EventT) event.Subscription
 }
 
 // LocalBuilder is the interface for the builder service.

@@ -82,7 +82,7 @@ type (
 	BlockEvent = feed.Event[*BeaconBlock]
 
 	// BlockFeed is a type alias for the block feed.
-	BlockFeed = event.FeedOf[feed.EventID, *BlockEvent]
+	BlockFeed = event.FeedOf[*BlockEvent]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[

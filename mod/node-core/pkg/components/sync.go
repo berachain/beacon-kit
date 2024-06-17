@@ -21,43 +21,40 @@
 package components
 
 import (
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	consensus "github.com/berachain/beacon-kit/mod/sync/pkg/consensus"
 )
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore[*BeaconBlockBody],
-		ProvideBlsSigner,
-		ProvideBlockFeed,
-		ProvideBlobProcessor[*BeaconBlockBody],
-		ProvideBlobProofVerifier,
-		ProvideChainService,
-		ProvideCLSyncFeed,
-		ProvideCLSyncService[event.Subscription],
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore[*Deposit],
-		ProvideBeaconDepositContract[
-			*Deposit, *ExecutionPayload,
-			*Withdrawal, types.WithdrawalCredentials,
-		],
-		ProvideEngineClient[*ExecutionPayload],
-		ProvideExecutionEngine[*ExecutionPayload],
-		ProvideFinalizeBlockMiddleware,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideStateProcessor,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorMiddleware,
-		ProvideValidatorService,
-	}
+// ProvideCLSyncFeed is a depinject provider that returns a CLSyncFeed.
+func ProvideCLSyncFeed() *event.FeedOf[*feed.Event[bool]] {
+	return &event.FeedOf[*feed.Event[bool]]{}
+}
+
+// CLSyncServiceInput is the input for the CLSyncService provider.
+type CLSyncServiceInput[
+	SubscriptionT interface {
+		Unsubscribe()
+	},
+] struct {
+	depinject.In
+	Logger   log.Logger
+	SyncFeed *event.FeedOf[*feed.Event[bool]]
+}
+
+// ProvideCLSyncService is a depinject provider that returns a CLSyncService.
+func ProvideCLSyncService[
+	SubscriptionT interface {
+		Unsubscribe()
+	},
+](
+	in CLSyncServiceInput[SubscriptionT],
+) (*consensus.SyncService[SubscriptionT], error) {
+	// Build the CLSyncService.
+	return consensus.NewSyncService[SubscriptionT](
+		in.SyncFeed,
+		in.Logger.With("service", "cl-sync"),
+	), nil
 }

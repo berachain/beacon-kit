@@ -55,6 +55,7 @@ COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
 COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
+COPY ./mod/sync/go.mod ./mod/sync/go.sum ./mod/sync/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 
 RUN go work init

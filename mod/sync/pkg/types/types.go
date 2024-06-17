@@ -18,17 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package event
+package types
 
-import "github.com/ethereum/go-ethereum/event"
+// EventFeed is a generic interface for sending events.
+type EventFeed[
+	CLSyncUpdateEventT SyncUpdateEvent,
+	SubscriptionT interface {
+		// Unsubscribe terminates the subscription.
+		Unsubscribe()
+	},
+] interface {
+	// Subscribe subscribes to the event feed and returns a subscription.
+	Subscribe(chan CLSyncUpdateEventT) SubscriptionT
+}
 
-// Subscription is a subscription to a feed.
-type Subscription = event.Subscription
-
-// FeedOf is a feed of events.
-// It is a wrapper around the event.FeedOf type.
-type FeedOf[
-	T any,
-] struct {
-	event.FeedOf[T]
+// SyncUpdateEvent represents an interface for block events.
+type SyncUpdateEvent interface {
+	// Data returns a boolean indicating the event data.
+	Data() bool
 }
