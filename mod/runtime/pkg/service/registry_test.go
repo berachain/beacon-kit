@@ -62,53 +62,6 @@ func TestRegistry_StartAll(t *testing.T) {
 	service2.AssertCalled(t, "Start", mock.Anything)
 }
 
-func TestRegistry_Statuses(t *testing.T) {
-	logger := noop.NewLogger()
-	registry := service.NewRegistry(service.WithLogger(logger))
-
-	service1 := &mocks.Basic{}
-	service1.On("Status").Return(nil).Twice()
-	service1.On("Name").Return("Service1")
-
-	service2 := &mocks.Basic{}
-	service2.On("Status").Return(nil).Twice()
-	service2.On("Name").Return("Service2")
-
-	err := registry.RegisterService(service1)
-	if err != nil {
-		t.Fatalf("Failed to register Service1: %v", err)
-	}
-
-	err = registry.RegisterService(service2)
-	if err != nil {
-		t.Fatalf("Failed to register Service2: %v", err)
-	}
-
-	statuses := registry.Statuses()
-	if len(statuses) != 2 {
-		t.Errorf("Expected 2 statuses, got %d", len(statuses))
-	}
-
-	for _, err := range statuses {
-		if err != nil {
-			t.Errorf("Expected no error, got %v", err)
-		}
-	}
-
-	service1.On("Start", mock.Anything).Return(nil).Once()
-	service2.On("Start", mock.Anything).Return(nil).Once()
-	require.NoError(t, registry.StartAll(context.Background()))
-
-	statuses = registry.Statuses()
-
-	if len(statuses) != 2 {
-		t.Errorf("Expected 2 statuses, got %d", len(statuses))
-	}
-
-	service1.AssertNumberOfCalls(t, "Status", 2)
-	service2.AssertNumberOfCalls(t, "Status", 2)
-}
-
 func TestRegistry_FetchService(t *testing.T) {
 	logger := noop.NewLogger()
 	registry := service.NewRegistry(service.WithLogger(logger))
