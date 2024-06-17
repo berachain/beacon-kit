@@ -7,6 +7,10 @@ import (
 )
 
 // ProvideStatusFeed provides a status feed.
-func ProvideStatusFeed() *event.FeedOf[types.EventID, *service.StatusEvent] {
-	return &event.FeedOf[types.EventID, types.Event]{}
+func ProvideStatusFeed() *event.FeedOf[
+	types.EventID, *types.Event[*service.StatusEvent],
+] {
+	return &event.FeedOf[
+		types.EventID, *types.Event[*service.StatusEvent],
+	]{}
 }
