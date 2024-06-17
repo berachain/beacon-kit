@@ -91,8 +91,7 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
-	sidecars, err = s.buildBlockBody(ctx, st, blk, reveal, envelope)
-	if err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return blk, sidecars, err
 	}
 
@@ -260,13 +259,11 @@ func (s *Service[
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload],
-) (BlobSidecarsT, error) {
-	var sidecars BlobSidecarsT
-
+) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
 	if body.IsNil() {
-		return sidecars, ErrNilBlkBody
+		return ErrNilBlkBody
 	}
 
 	// Set the reveal on the block body.
@@ -275,7 +272,7 @@ func (s *Service[
 	// If we get returned a nil blobs bundle, we should return an error.
 	blobsBundle := envelope.GetBlobsBundle()
 	if blobsBundle == nil {
-		return sidecars, ErrNilBlobsBundle
+		return ErrNilBlobsBundle
 	}
 
 	// Set the KZG commitments on the block body.
@@ -283,7 +280,7 @@ func (s *Service[
 
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return sidecars, ErrNilDepositIndexStart
+		return ErrNilDepositIndexStart
 	}
 
 	// Dequeue deposits from the state.
@@ -292,7 +289,7 @@ func (s *Service[
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
-		return sidecars, err
+		return err
 	}
 
 	// Set the deposits on the block body.
@@ -306,8 +303,8 @@ func (s *Service[
 	})
 
 	if err = body.SetExecutionData(envelope.GetExecutionPayload()); err != nil {
-		return sidecars, err
+		return err
 	}
 
-	return sidecars, nil
+	return nil
 }
