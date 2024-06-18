@@ -37,6 +37,7 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -79,6 +80,9 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 	]
+
+	// BlobFeed is a type alias for the blob feed.
+	BlobFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
 
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]
@@ -160,6 +164,9 @@ type (
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
+
+	// SlotFeed is a type alias for the slot feed.
+	SlotFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
 
 	// StatusFeed is a type alias for the status feed.
 	StatusFeed = event.FeedOf[

@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -118,7 +117,6 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		blk           BeaconBlockT
 		err           error
 		startTime     = time.Now()
 		sidecarsBz    []byte
@@ -126,19 +124,10 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	// TODO: BeaconBlockOrSlot
-	blk, err = blk.NewWithVersion(
-		math.Slot(req.GetHeight()),
-		0, primitives.Bytes32{}, 4,
-	)
-	if err != nil {
-		return &cmtabci.PrepareProposalResponse{}, err
-	}
-
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
-	h.blkFeed.Send(asynctypes.NewEvent(
-		ctx, events.BeaconBlockRequest, blk,
+	h.slotFeed.Send(asynctypes.NewEvent(
+		ctx, events.NewSlot, math.Slot(req.Height),
 	))
 
 	g, gCtx := errgroup.WithContext(ctx)

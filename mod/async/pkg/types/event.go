@@ -43,7 +43,9 @@ type Event[DataT any] struct {
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
-](ctx context.Context, eventType EventID, data DataT, errs ...error) *Event[DataT] {
+](
+	ctx context.Context, eventType EventID, data DataT, errs ...error,
+) *Event[DataT] {
 	return &Event[DataT]{
 		ctx:       ctx,
 		eventType: eventType,

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -88,6 +89,7 @@ type Service[
 	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
 	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	slotFeed     *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
 }
 
 // NewService creates a new validator service.
@@ -127,8 +129,12 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -151,6 +157,7 @@ func NewService[
 		metrics:               newValidatorMetrics(ts),
 		blkFeed:               blkFeed,
 		sidecarsFeed:          sidecarsFeed,
+		slotFeed:              slotFeed,
 	}
 }
 
@@ -183,16 +190,16 @@ func (s *Service[
 ]) start(
 	ctx context.Context,
 ) {
-	reqBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 16)
-	sub := s.blkFeed.Subscribe(reqBlkCh)
+	newSlotCh := make(chan *asynctypes.Event[math.Slot], 16)
+	sub := s.slotFeed.Subscribe(newSlotCh)
 	defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-reqBlkCh:
-			if req.Type() == events.BeaconBlockRequest {
-				s.handleBlockRequest(req)
+		case req := <-newSlotCh:
+			if req.Type() == events.NewSlot {
+				s.handleNewSlot(req)
 			}
 		}
 	}
@@ -203,9 +210,9 @@ func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
-]) handleBlockRequest(req *asynctypes.Event[BeaconBlockT]) {
+]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
 	if blk, sidecars, err := s.RequestBlockForProposal(
-		req.Context(), req.Data().GetSlot(),
+		req.Context(), req.Data(),
 	); err != nil {
 		s.logger.Error("failed to build block", "err", err)
 	} else {

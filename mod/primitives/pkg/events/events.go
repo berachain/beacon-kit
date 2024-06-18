@@ -22,6 +22,7 @@ package events
 
 const (
 	MissedSlot           = "missed-slot"
+	NewSlot              = "new-slot"
 	BeaconBlockRequest   = "beacon-block-request"
 	BeaconBlockBuilt     = "beacon-block-built"
 	BeaconBlockAccepted  = "beacon-block-accepted"

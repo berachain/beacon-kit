@@ -22,7 +22,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -31,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -89,6 +89,8 @@ type ABCIMiddleware[
 	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
 	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	// slotFeed is a feed for slots.
+	slotFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -108,8 +110,12 @@ func NewABCIMiddleware[
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
@@ -128,14 +134,15 @@ func NewABCIMiddleware[
 			chainSpec,
 		),
 		logger:               logger,
+		metrics:              newABCIMiddlewareMetrics(telemetrySink),
 		valUpdatesCh:         make(chan transition.ValidatorUpdates),
 		errCh:                make(chan error, 1),
-		metrics:              newABCIMiddlewareMetrics(telemetrySink),
 		blkCh:                make(chan BeaconBlockT, 1),
 		sidecarsCh:           make(chan BlobSidecarsT, 1),
 		prepareProposalErrCh: make(chan error, 1),
 		blkFeed:              blkFeed,
 		sidecarsFeed:         sidecarsFeed,
+		slotFeed:             slotFeed,
 	}
 }
 
@@ -173,17 +180,14 @@ func (am *ABCIMiddleware[
 		case <-ctx.Done():
 			return
 		case blk := <-subBlkCh:
-			fmt.Println("EVENT BLK")
 			if blk.Type() == events.BeaconBlockBuilt {
 				if blk.Error() != nil {
 					am.prepareProposalErrCh <- blk.Error()
 					continue
 				}
-				fmt.Println("YO")
 				am.blkCh <- blk.Data()
 			}
 		case sidecars := <-subSidecarsCh:
-			fmt.Println("SIDECARS BACK")
 			if sidecars.Error() != nil {
 				am.prepareProposalErrCh <- sidecars.Error()
 				continue

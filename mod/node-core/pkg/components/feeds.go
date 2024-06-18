@@ -27,13 +27,18 @@ import (
 )
 
 // ProvideBlobFeed provides a blob feed for the depinject framework.
-func ProvideBlobFeed() *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]] {
-	return &event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]{}
+func ProvideBlobFeed() *BlobFeed {
+	return &BlobFeed{}
 }
 
 // ProvideBlockFeed provides a block feed for the depinject framework.
 func ProvideBlockFeed() *BlockFeed {
 	return &BlockFeed{}
+}
+
+// ProvideSlotFeed provides a slot feed for the depinject framework.
+func ProvideSlotFeed() *SlotFeed {
+	return &SlotFeed{}
 }
 
 // ProvideStatusFeed provides a status feed.
