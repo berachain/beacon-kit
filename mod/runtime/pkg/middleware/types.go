@@ -86,7 +86,6 @@ type BlockchainService[
 		BeaconBlockT,
 		BlobSidecarsT,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// ReceiveBlockAndBlobs receives a beacon block and
 	// associated blobs sidecars for processing.
 	ReceiveBlockAndBlobs(
