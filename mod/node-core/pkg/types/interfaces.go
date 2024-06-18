@@ -28,7 +28,5 @@ import (
 // It extends the Application interface from the Cosmos SDK.
 type NodeI interface {
 	servertypes.Application
-	SetAppName(name string)
-	SetAppDescription(description string)
 	SetApplication(app servertypes.Application)
 }

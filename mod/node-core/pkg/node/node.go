@@ -29,25 +29,11 @@ import (
 // Node represents the node application.
 type Node struct {
 	*app.BeaconApp
-
-	// name and description of the application.
-	name        string
-	description string
 }
 
 // New returns a new Node.
 func New[NodeT types.NodeI]() NodeT {
 	return types.NodeI(&Node{}).(NodeT)
-}
-
-// SetAppName sets the name of the application.
-func (n *Node) SetAppName(name string) {
-	n.name = name
-}
-
-// SetAppDescription sets the description of the application.
-func (n *Node) SetAppDescription(description string) {
-	n.description = description
 }
 
 // SetApplication sets the application.

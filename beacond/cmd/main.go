@@ -94,10 +94,7 @@ func run() error {
 
 	// Create the runner
 	runner := runner.New(cmd, nb.AppCreator)
-	runner.Run()
-
-	// for now, running the cmd will start the node
-	return cmd.Run(clicomponents.DefaultNodeHome)
+	return runner.Run()
 }
 
 // main is the entry point.
