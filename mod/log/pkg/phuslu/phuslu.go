@@ -55,34 +55,22 @@ func NewLogger[ImplT any](
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
-	e := l.logger.Info()
-	e = l.addContext(e)
-	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
-	e.Msg(msg)
+	l.msgWithContext(msg, l.logger.Info(), keyVals...)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
-	e := l.logger.Warn()
-	e = l.addContext(e)
-	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
-	e.Msg(msg)
+	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
-	e := l.logger.Error()
-	e = l.addContext(e)
-	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
-	e.Msg(msg)
+	l.msgWithContext(msg, l.logger.Error(), keyVals...)
 }
 
 // Debug logs a message at level Debug.
 func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
-	e := l.logger.Debug()
-	e = l.addContext(e)
-	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
-	e.Msg(msg)
+	l.msgWithContext(msg, l.logger.Debug(), keyVals...)
 }
 
 // Impl returns the underlying logger implementation.
@@ -107,6 +95,14 @@ func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 // addContext adds the context to the entry
 func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
 	return e.Fields(log.Fields(l.context))
+}
+
+// msgWithContext logs a message with keyVals and current context
+func (l *Logger[ImplT]) msgWithContext(
+	msg string, e *log.Entry, keyVals ...any) {
+	e = l.addContext(e)
+	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e.Msg(msg)
 }
 
 // keyValToFields converts a list of key-value pairs to a map.

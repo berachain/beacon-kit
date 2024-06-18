@@ -43,5 +43,5 @@ func ProvideLogger(
 	in LoggerInput,
 ) (log.Logger, error) {
 	logLvlStr := cast.ToString(in.AppOpts.Get(flags.FlagLogLevel))
-	return phuslu.NewLogger[any, log.Logger](logLvlStr, in.Out), nil
+	return phuslu.NewLogger[log.Logger](logLvlStr, in.Out), nil
 }

@@ -165,5 +165,5 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 func CreatePhusluLogger(ctx *server.Context, out io.Writer) (log.Logger,
 	error) {
 	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
-	return phuslu.NewLogger[any, log.Logger](logLvlStr, out), nil
+	return phuslu.NewLogger[log.Logger](logLvlStr, out), nil
 }
