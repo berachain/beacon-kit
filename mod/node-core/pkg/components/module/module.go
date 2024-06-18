@@ -45,8 +45,8 @@ var (
 	_ module.HasABCIEndBlock = AppModule{}
 )
 
-// AppModule implements an application module for the evm module.
-// It is a wrapper around the FinalizeBlockMiddleware and ABCIMiddleware.
+// AppModule implements an application module for the beacon module.
+// It is a wrapper around the ABCIMiddleware.
 type AppModule struct {
 	ABCIMiddleware *components.ABCIMiddleware
 }
