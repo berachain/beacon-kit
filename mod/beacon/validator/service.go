@@ -86,10 +86,19 @@ type Service[
 	metrics *validatorMetrics
 
 	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
+	blkFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[BeaconBlockT],
+	]
 	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
-	slotFeed     *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[BlobSidecarsT],
+	]
+	slotFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[math.Slot],
+	]
 }
 
 // NewService creates a new validator service.
@@ -190,7 +199,7 @@ func (s *Service[
 ]) start(
 	ctx context.Context,
 ) {
-	newSlotCh := make(chan *asynctypes.Event[math.Slot], 16)
+	newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
 	sub := s.slotFeed.Subscribe(newSlotCh)
 	defer sub.Unsubscribe()
 	for {
