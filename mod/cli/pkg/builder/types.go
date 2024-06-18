@@ -18,32 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package builder
 
 import (
-	"time"
+	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/spf13/cobra"
 )
 
-// finalizeMiddlewareMetrics is a struct that contains metrics for the chain.
-type finalizeMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
-}
+// rootCmdSetup is a function that sets up the root command.
+type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
+	mm *module.Manager,
+	appCreator servertypes.AppCreator[T],
+	chainSpec primitives.ChainSpec,
+)
 
-// newFinalizeMiddlewareMetrics creates a new finalizeMiddlewareMetrics.
-func newFinalizeMiddlewareMetrics(
-	sink TelemetrySink,
-) *finalizeMiddlewareMetrics {
-	return &finalizeMiddlewareMetrics{
-		sink: sink,
-	}
-}
-
-// measureEndBlockDuration measures the time to run end block.
-func (cm *finalizeMiddlewareMetrics) measureEndBlockDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.end_block_duration", start,
-	)
-}
+// runHandler is a function that sets up run handlers for the root command.
+// It takes in custom configs for our app and cometbft.
+type runHandler func(cmd *cobra.Command,
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) error

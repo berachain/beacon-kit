@@ -26,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,3 +35,10 @@ import (
 type PostSetupFn[T servertypes.Application] func(
 	app T, svrCtx *server.Context, clientCtx client.Context,
 	ctx context.Context, g *errgroup.Group) error
+
+// runHandler is a function that sets up run handlers for the root command.
+type runHandler func(cmd *cobra.Command) error
+
+// enhancer is a function that applies an enhancement to the underlying
+// cobra.Command.
+type enhancer func(*cobra.Command) error

@@ -62,7 +62,6 @@ type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
 	SetStateRoot(common.Root)
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
-
 	// GetBody returns the body of the beacon block.
 	GetBody() BeaconBlockBodyT
 }

@@ -112,51 +112,6 @@ func (_c *Basic_Start_Call) RunAndReturn(run func(context.Context) error) *Basic
 	return _c
 }
 
-// Status provides a mock function with given fields:
-func (_m *Basic) Status() error {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Status")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Basic_Status_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Status'
-type Basic_Status_Call struct {
-	*mock.Call
-}
-
-// Status is a helper method to define mock.On call
-func (_e *Basic_Expecter) Status() *Basic_Status_Call {
-	return &Basic_Status_Call{Call: _e.mock.On("Status")}
-}
-
-func (_c *Basic_Status_Call) Run(run func()) *Basic_Status_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Basic_Status_Call) Return(_a0 error) *Basic_Status_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Basic_Status_Call) RunAndReturn(run func() error) *Basic_Status_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewBasic creates a new instance of Basic. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBasic(t interface {

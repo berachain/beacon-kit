@@ -22,18 +22,13 @@ package types
 
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
 )
 
-// NodeI is an interface for the node application.
+// NodeI defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type NodeI interface {
 	servertypes.Application
-
-	Run(defaultNodeHome string) error
-
 	SetAppName(name string)
 	SetAppDescription(description string)
-	SetRootCmd(cmd *cobra.Command)
 	SetApplication(app servertypes.Application)
 }

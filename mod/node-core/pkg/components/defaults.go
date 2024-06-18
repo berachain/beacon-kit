@@ -46,15 +46,14 @@ func DefaultComponentsWithStandardTypes() []any {
 		],
 		ProvideEngineClient[*ExecutionPayload],
 		ProvideExecutionEngine[*ExecutionPayload],
-		ProvideFinalizeBlockMiddleware,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideServiceRegistry,
 		ProvideStateProcessor,
+		ProvideStatusFeed,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
-		ProvideValidatorMiddleware,
 		ProvideValidatorService,
 	}
 }

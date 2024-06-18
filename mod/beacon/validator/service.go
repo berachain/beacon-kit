@@ -79,7 +79,7 @@ type Service[
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
-	// Building blocks is done by submitting forkchoice updates through.
+	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
 	// remotePayloadBuilders represents a list of remote block builders, these
@@ -166,13 +166,5 @@ func (s *Service[
 		"starting validator service 🛜 ",
 		"optimistic_payload_builds", s.cfg.EnableOptimisticPayloadBuilds,
 	)
-	return nil
-}
-
-// Status returns the status of the service.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) Status() error {
 	return nil
 }

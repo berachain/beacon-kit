@@ -195,3 +195,4 @@ func (h FinalizeBlockMiddleware[
 	h.valUpdates = dedupedValUpdates
 	return iter.MapErr(h.valUpdates, convertValidatorUpdate)
 }
+

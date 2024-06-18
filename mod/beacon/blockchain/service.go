@@ -24,10 +24,10 @@ import (
 	"context"
 	"sync"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -76,7 +76,7 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[*feed.Event[BeaconBlockT]]
+	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -120,7 +120,7 @@ func NewService[
 		BlobSidecarsT, *transition.Context, DepositT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[*feed.Event[BeaconBlockT]],
+	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
@@ -174,19 +174,5 @@ func (s *Service[
 ]) Start(
 	context.Context,
 ) error {
-	return nil
-}
-
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) Status() error {
 	return nil
 }
