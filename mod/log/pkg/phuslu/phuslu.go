@@ -1,7 +1,7 @@
 package phuslu
 
 import (
-	"os"
+	"io"
 
 	"github.com/phuslu/log"
 )
@@ -10,7 +10,7 @@ type Logger[KeyValT, ImplT any] struct {
 	logger *log.Logger
 }
 
-func NewLogger[KeyValT, ImplT any](level string) *Logger[KeyValT, ImplT] {
+func NewLogger[KeyValT, ImplT any](level string, out io.Writer) *Logger[KeyValT, ImplT] {
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
 		TimeFormat: "15:04:05",
@@ -18,7 +18,7 @@ func NewLogger[KeyValT, ImplT any](level string) *Logger[KeyValT, ImplT] {
 			ColorOutput:    true,
 			QuoteString:    true,
 			EndWithMessage: true,
-			Writer:         os.Stdout,
+			Writer:         out,
 		},
 	}
 	return &Logger[KeyValT, ImplT]{
@@ -48,10 +48,5 @@ func (l *Logger[KeyValT, ImplT]) Impl() any {
 
 func (l *Logger[KeyValT, ImplT]) With(keyVals ...KeyValT) ImplT {
 	newLogger := *l
-	// r := make(map[string]interface{})
-	// for _, keyVal := range keyVals {
-	// 	r[keyVal.Key()] = keyVal.Value()
-	// }
-	// newLogger.r = r
 	return any(&newLogger).(ImplT)
 }

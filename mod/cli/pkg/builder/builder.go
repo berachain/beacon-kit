@@ -22,6 +22,7 @@ package builder
 
 import (
 	"io"
+	"os"
 
 	"cosmossdk.io/log"
 
@@ -64,7 +65,7 @@ type CLIBuilder[T servertypes.Application] struct {
 func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
 		supplies: []any{
-			// log.NewLogger(os.Stdout),
+			os.Stdout, // supply io.Writer for logger
 			viper.GetViper()},
 	}
 	for _, opt := range opts {
@@ -160,5 +161,5 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(cmd *cobra.Command, custo
 // It reads the log level and format from the server context.
 func CreatePhusluLogger(ctx *server.Context, out io.Writer) (log.Logger, error) {
 	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
-	return phuslu.NewLogger[any, log.Logger](logLvlStr), nil
+	return phuslu.NewLogger[any, log.Logger](logLvlStr, out), nil
 }
