@@ -22,7 +22,6 @@ package genesis
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -82,16 +81,6 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 			); err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon genesis")
 			}
-
-			fmt.Println("GENESIS INFO: ", genesisInfo)
-
-			// var genesis *genesis.Genesis[
-			// 	*types.Deposit,
-			// 	*types.ExecutionPayloadHeader,
-			// ]
-			// if err = genesis.UnmarshalJSON(appGenesisState["beacon"]); err != nil {
-			// 	return errors.Wrap(err, "failed to unmarshal beacon genesis")
-			// }
 
 			for i, deposit := range deposits {
 				//#nosec:G701 // won't realistically overflow.

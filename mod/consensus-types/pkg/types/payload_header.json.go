@@ -5,7 +5,7 @@ package types
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
@@ -76,8 +76,6 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 		BlobGasUsed      *math.U64       `json:"blobGasUsed"`
 		ExcessBlobGas    *math.U64       `json:"excessBlobGas"`
 	}
-
-	fmt.Println("HENLO")
 	var dec ExecutionPayloadHeaderDeneb
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
@@ -147,8 +145,5 @@ func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
 	if dec.ExcessBlobGas != nil {
 		e.ExcessBlobGas = *dec.ExcessBlobGas
 	}
-
-	fmt.Println("POINTER DIFF?")
-	fmt.Println(e)
 	return nil
 }
