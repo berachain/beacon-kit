@@ -27,7 +27,7 @@ import (
 )
 
 // Logger is a wrapper around phuslogger.
-type Logger[KeyValT, ImplT any] struct {
+type Logger[ImplT any] struct {
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
 	context log.Fields
@@ -35,8 +35,8 @@ type Logger[KeyValT, ImplT any] struct {
 
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
 // default configuration.
-func NewLogger[KeyValT, ImplT any](
-	level string, out io.Writer) *Logger[KeyValT, ImplT] {
+func NewLogger[ImplT any](
+	level string, out io.Writer) *Logger[ImplT] {
 	cfg := DefaultConfig()
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
@@ -48,13 +48,13 @@ func NewLogger[KeyValT, ImplT any](
 			Writer:         out,
 		},
 	}
-	return &Logger[KeyValT, ImplT]{
+	return &Logger[ImplT]{
 		logger: logger,
 	}
 }
 
 // Info logs a message at level Info.
-func (l *Logger[KeyValT, ImplT]) Info(msg string, keyVals ...any) {
+func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
 	e := l.logger.Info()
 	e = l.addContext(e)
 	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
@@ -62,7 +62,7 @@ func (l *Logger[KeyValT, ImplT]) Info(msg string, keyVals ...any) {
 }
 
 // Warn logs a message at level Warn.
-func (l *Logger[KeyValT, ImplT]) Warn(msg string, keyVals ...any) {
+func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
 	e := l.logger.Warn()
 	e = l.addContext(e)
 	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
@@ -70,7 +70,7 @@ func (l *Logger[KeyValT, ImplT]) Warn(msg string, keyVals ...any) {
 }
 
 // Error logs a message at level Error.
-func (l *Logger[KeyValT, ImplT]) Error(msg string, keyVals ...any) {
+func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
 	e := l.logger.Error()
 	e = l.addContext(e)
 	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
@@ -78,7 +78,7 @@ func (l *Logger[KeyValT, ImplT]) Error(msg string, keyVals ...any) {
 }
 
 // Debug logs a message at level Debug.
-func (l *Logger[KeyValT, ImplT]) Debug(msg string, keyVals ...any) {
+func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
 	e := l.logger.Debug()
 	e = l.addContext(e)
 	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
@@ -86,12 +86,12 @@ func (l *Logger[KeyValT, ImplT]) Debug(msg string, keyVals ...any) {
 }
 
 // Impl returns the underlying logger implementation.
-func (l *Logger[KeyValT, ImplT]) Impl() any {
+func (l *Logger[ImplT]) Impl() any {
 	return l.logger
 }
 
 // With returns a new wrapped logger with additional context provided by a set.
-func (l *Logger[KeyValT, ImplT]) With(keyVals ...any) ImplT {
+func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 	newLogger := *l
 	fields := keyValToFields(keyVals...)
 	// Copy existing context
@@ -105,7 +105,7 @@ func (l *Logger[KeyValT, ImplT]) With(keyVals ...any) ImplT {
 }
 
 // addContext adds the context to the entry
-func (l *Logger[KeyValT, ImplT]) addContext(e *log.Entry) *log.Entry {
+func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
 	return e.Fields(log.Fields(l.context))
 }
 
