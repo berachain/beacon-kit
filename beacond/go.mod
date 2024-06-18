@@ -12,7 +12,7 @@ replace (
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617040308-8f08818d38a4
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240614135647-9814c0c41144
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
