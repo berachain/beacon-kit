@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -33,12 +32,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositT,
 	DepositStoreT,
+	DepositT,
+	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	WithdrawalT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -66,17 +68,20 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositT,
 	DepositStoreT,
+	DepositT,
+	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	WithdrawalT,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeader,
 ) {
 	stCopy := st.Copy()
 	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
@@ -119,16 +124,19 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositT,
 	DepositStoreT,
+	DepositT,
+	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	WithdrawalT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeader,
 ) {
 	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
@@ -157,12 +165,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositT,
 	DepositStoreT,
+	DepositT,
+	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	WithdrawalT,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

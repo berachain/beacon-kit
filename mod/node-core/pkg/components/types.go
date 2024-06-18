@@ -95,12 +95,15 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
+		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*Withdrawal,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -134,9 +137,8 @@ type (
 	ExecutionEngine = execution.Engine[*ExecutionPayload]
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload            = types.ExecutionPayload
-	ExecutionPayloadHeader      = types.ExecutionPayloadHeader
-	ExecutionPayloadHeaderDeneb = types.ExecutionPayloadHeaderDeneb
+	ExecutionPayload       = types.ExecutionPayload
+	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Genesis is a type alias for the genesis.
 	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeader]
@@ -162,6 +164,7 @@ type (
 		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
+		*ExecutionPayloadHeader,
 	]
 
 	// StatusFeed is a type alias for the status feed.
@@ -183,9 +186,14 @@ type (
 	ValidatorService = validator.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.ForkData,
 	]
 

@@ -57,6 +57,25 @@ type Genesis[
 	ExecutionPayloadHeader ExecutionPayloadHeaderT `json:"execution_payload_header"`
 }
 
+// GetForkVersion returns the fork version in the genesis.
+func (g *Genesis[
+	DepositT, ExecutionPayloadHeaderT,
+]) GetForkVersion() primitives.Version {
+	return g.ForkVersion
+}
+
+// GetDeposits returns the deposits in the genesis.
+func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) GetDeposits() []DepositT {
+	return g.Deposits
+}
+
+// GetExecutionPayloadHeader returns the execution payload header.
+func (g *Genesis[
+	DepositT, ExecutionPayloadHeaderT,
+]) GetExecutionPayloadHeader() ExecutionPayloadHeaderT {
+	return g.ExecutionPayloadHeader
+}
+
 // UnmarshalJSON for Genesis.
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	data []byte,
