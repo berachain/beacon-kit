@@ -118,9 +118,6 @@ func (h *ABCIMiddleware[
 		startTime     = time.Now()
 		sidecarsBz    []byte
 		beaconBlockBz []byte
-		logger        = ctx.Logger().With(
-			"service", "prepare-proposal",
-		)
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
@@ -128,7 +125,7 @@ func (h *ABCIMiddleware[
 	blk, blobs, err := h.validatorService.RequestBlockForProposal(
 		ctx, math.Slot(req.GetHeight()))
 	if err != nil || blk.IsNil() {
-		logger.Error(
+		h.logger.Error(
 			"failed to assemble proposal", "error", err, "block", blk)
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
@@ -139,7 +136,7 @@ func (h *ABCIMiddleware[
 		var localErr error
 		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
 		if localErr != nil {
-			logger.Error("failed to publish blobs", "error", err)
+			h.logger.Error("failed to publish blobs", "error", err)
 		}
 		return err
 	})
@@ -148,7 +145,7 @@ func (h *ABCIMiddleware[
 		var localErr error
 		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
 		if localErr != nil {
-			logger.Error("failed to publish beacon block", "error", err)
+			h.logger.Error("failed to publish beacon block", "error", err)
 		}
 		return err
 	})
@@ -190,9 +187,6 @@ func (h *ABCIMiddleware[
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
 		startTime = time.Now()
-		logger    = ctx.Logger().With(
-			"service", "prepare-proposal",
-		)
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
@@ -207,7 +201,7 @@ func (h *ABCIMiddleware[
 		args[3] = false
 	}
 
-	logger.Info("received proposal with", args...)
+	h.logger.Info("received proposal with", args...)
 	if err = h.chainService.ReceiveBlockAndBlobs(
 		ctx, blk, sidecars,
 	); errors.IsFatal(err) {
