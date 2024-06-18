@@ -44,8 +44,12 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
-		privValKeyFile := cast.ToString(in.AppOpts.Get("priv_validator_key_file"))
-		privValStateFile := cast.ToString(in.AppOpts.Get("priv_validator_state_file"))
+		privValKeyFile := cast.ToString(
+			in.AppOpts.Get("priv_validator_key_file"),
+		)
+		privValStateFile := cast.ToString(
+			in.AppOpts.Get("priv_validator_state_file"),
+		)
 		return signer.NewBLSSigner(
 			filepath.Join(homeDir, privValKeyFile),
 			filepath.Join(homeDir, privValStateFile),
