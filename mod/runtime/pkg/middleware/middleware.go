@@ -66,7 +66,6 @@ type ABCIMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	]
-
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -83,13 +82,11 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
-
 	// resChannel is used to communicate the validator updates to the
 	// EndBlock method.
 	valUpdatesChannel chan transition.ValidatorUpdates
 	// errChannel is used to communicate errors to the EndBlock method.
 	errChannel chan error
-
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 }
