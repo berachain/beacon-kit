@@ -173,7 +173,7 @@ func (s *Service[
 	return blk, sidecars, nil
 }
 
-// GetEmptyBlock creates a new empty block.
+// getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositStoreT, ForkDataT,
