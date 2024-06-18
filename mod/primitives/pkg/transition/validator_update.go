@@ -44,7 +44,7 @@ type ValidatorUpdate struct {
 func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
 	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
 	j := len(vu) - 1
-	for i := len(vu) - 1; i >= 0; i-- {
+	for i := j; i >= 0; i-- {
 		update := vu[i]
 		if _, exists := duplicateCheck[update.Pubkey]; !exists {
 			duplicateCheck[update.Pubkey] = struct{}{}
