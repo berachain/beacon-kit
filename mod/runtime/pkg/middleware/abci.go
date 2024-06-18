@@ -67,7 +67,7 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	data := new(
-		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb],
+		genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader],
 	)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
