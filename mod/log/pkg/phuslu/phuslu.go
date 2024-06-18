@@ -26,18 +26,25 @@ import (
 	"github.com/phuslu/log"
 )
 
+// Logger is a wrapper around phuslogger.
 type Logger[KeyValT, ImplT any] struct {
 	logger *log.Logger
+	// context is a map of key-value pairs that are added to every log entry.
+	context log.Fields
 }
 
-func NewLogger[KeyValT, ImplT any](level string, out io.Writer) *Logger[KeyValT, ImplT] {
+// NewLogger creates a new logger with the given log level, ConsoleWriter, and
+// default configuration.
+func NewLogger[KeyValT, ImplT any](
+	level string, out io.Writer) *Logger[KeyValT, ImplT] {
+	cfg := DefaultConfig()
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
-		TimeFormat: "15:04:05",
+		TimeFormat: cfg.TimeFormat,
 		Writer: &log.ConsoleWriter{
-			ColorOutput:    true,
-			QuoteString:    true,
-			EndWithMessage: true,
+			ColorOutput:    cfg.ColorOutput,
+			QuoteString:    cfg.QuoteString,
+			EndWithMessage: cfg.EndWithMessage,
 			Writer:         out,
 		},
 	}
@@ -46,27 +53,72 @@ func NewLogger[KeyValT, ImplT any](level string, out io.Writer) *Logger[KeyValT,
 	}
 }
 
-func (l *Logger[KeyValT, ImplT]) Info(msg string, keyVals ...KeyValT) {
-	l.logger.Info().Msg(msg)
+// Info logs a message at level Info.
+func (l *Logger[KeyValT, ImplT]) Info(msg string, keyVals ...any) {
+	e := l.logger.Info()
+	e = l.addContext(e)
+	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e.Msg(msg)
 }
 
-func (l *Logger[KeyValT, ImplT]) Warn(msg string, keyVals ...KeyValT) {
-	l.logger.Warn().Msg(msg)
+// Warn logs a message at level Warn.
+func (l *Logger[KeyValT, ImplT]) Warn(msg string, keyVals ...any) {
+	e := l.logger.Warn()
+	e = l.addContext(e)
+	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e.Msg(msg)
 }
 
-func (l *Logger[KeyValT, ImplT]) Error(msg string, keyVals ...KeyValT) {
-	l.logger.Error().Msg(msg)
+// Error logs a message at level Error.
+func (l *Logger[KeyValT, ImplT]) Error(msg string, keyVals ...any) {
+	e := l.logger.Error()
+	e = l.addContext(e)
+	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e.Msg(msg)
 }
 
-func (l *Logger[KeyValT, ImplT]) Debug(msg string, keyVals ...KeyValT) {
-	l.logger.Debug().Msg(msg)
+// Debug logs a message at level Debug.
+func (l *Logger[KeyValT, ImplT]) Debug(msg string, keyVals ...any) {
+	e := l.logger.Debug()
+	e = l.addContext(e)
+	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e.Msg(msg)
 }
 
+// Impl returns the underlying logger implementation.
 func (l *Logger[KeyValT, ImplT]) Impl() any {
 	return l.logger
 }
 
-func (l *Logger[KeyValT, ImplT]) With(keyVals ...KeyValT) ImplT {
+// With returns a new wrapped logger with additional context provided by a set.
+func (l *Logger[KeyValT, ImplT]) With(keyVals ...any) ImplT {
 	newLogger := *l
+	fields := keyValToFields(keyVals...)
+	// Copy existing context
+	for k, v := range l.context {
+		fields[k] = v
+	}
+
+	// return a new logger with the new fields
+	newLogger.context = fields
 	return any(&newLogger).(ImplT)
+}
+
+// addContext adds the context to the entry
+func (l *Logger[KeyValT, ImplT]) addContext(e *log.Entry) *log.Entry {
+	return e.Fields(log.Fields(l.context))
+}
+
+// keyValToFields converts a list of key-value pairs to a map.
+func keyValToFields(keyVals ...any) log.Fields {
+	if len(keyVals)%2 != 0 {
+		panic("missing value for key")
+	}
+	// allocate a new fields map
+	fields := make(log.Fields)
+	// populate the fields map with the key-value pairs
+	for i := 0; i < len(keyVals); i += 2 {
+		fields[keyVals[i].(string)] = keyVals[i+1]
+	}
+	return fields
 }
