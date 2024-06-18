@@ -107,7 +107,7 @@ func (g *Genesis[
 	return g.ExecutionPayloadHeader
 }
 
-// DefaultGenesis returns a the default genesis.
+// DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
 	*types.Deposit, *types.ExecutionPayloadHeader,
 ] {
