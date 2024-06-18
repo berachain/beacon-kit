@@ -23,6 +23,7 @@ package components
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/beacon"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -94,11 +95,9 @@ type (
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
-		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
-		*Withdrawal,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -168,7 +167,7 @@ type (
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
-	StorageBackend = blockchain.StorageBackend[
+	StorageBackend = beacon.StorageBackend[
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		BeaconState,
@@ -181,7 +180,6 @@ type (
 	ValidatorService = validator.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,

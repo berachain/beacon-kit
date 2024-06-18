@@ -35,7 +35,6 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BlobProcessor  *BlobProcessor
 	Cfg            *config.Config
 	ChainSpec      primitives.ChainSpec
 	LocalBuilder   *LocalBuilder
@@ -54,7 +53,6 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
@@ -68,7 +66,6 @@ func ProvideValidatorService(
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
 		in.StorageBackend,
-		in.BlobProcessor,
 		in.StateProcessor,
 		in.Signer,
 		dablob.NewSidecarFactory[*BeaconBlock, *BeaconBlockBody](

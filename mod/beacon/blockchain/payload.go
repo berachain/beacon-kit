@@ -36,12 +36,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -75,12 +73,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -109,12 +105,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -179,7 +173,7 @@ func (s *Service[
 		// We can say that the payload from the previous block is *finalized*,
 		// TODO: This is making an assumption about the consensus rules
 		// and possibly should be made more explicit later on.
-		lph.GetBlockHash(),
+		lph.GetParentHash(),
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
@@ -197,12 +191,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -225,12 +217,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

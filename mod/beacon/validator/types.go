@@ -52,15 +52,8 @@ type BeaconBlock[
 		parentBlockRoot common.Root,
 		forkVersion uint32,
 	) (BeaconBlockT, error)
-
-	// IsNil checks if the beacon block is nil.
-	IsNil() bool
-	// Version returns the version of the beacon block.
-	Version() uint32
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
-	// GetProposerIndex returns the proposer index of the beacon block.
-	GetProposerIndex() math.ValidatorIndex
 	// GetParentBlockRoot returns the parent block root of the beacon block.
 	GetParentBlockRoot() common.Root
 	// SetStateRoot sets the state root of the beacon block.
@@ -82,46 +75,23 @@ type BeaconBlockBody[
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(Eth1DataT)
-	// GetDeposits returns the deposits of the beacon block body.
-	GetDeposits() []DepositT
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
-	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon
-	// block body.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	// GetExecutionPayload returns the execution payload of the beacon block
-	// body.
-	GetExecutionPayload() ExecutionPayloadT
-}
-
-// BeaconBlockHeader represents a beacon block header interface.
-type BeaconBlockHeader interface {
-	ssz.Marshallable
 }
 
 // BeaconState represents a beacon state interface.
-type BeaconState[
-	BeaconBlockHeaderT interface{ HashTreeRoot() ([32]byte, error) },
-	BeaconStateT, ExecutionPayloadHeaderT any,
-] interface {
-	// Copy creates a copy of the beacon state.
-	Copy() BeaconStateT
+type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
-	)
-	// GetLatestBlockHeader returns the latest block header.
-	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
-		error,
 	)
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
@@ -144,7 +114,7 @@ type BlobFactory[
 	BeaconBlockBodyT BeaconBlockBody[
 		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BlobSidecarsT BlobSidecars,
+	BlobSidecarsT,
 	DepositT,
 	Eth1DataT,
 	ExecutionPayloadT any,
@@ -154,27 +124,6 @@ type BlobFactory[
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
-}
-
-// BlobProcessor represents a blob processor interface.
-type BlobProcessor[
-	BlobSidecarsT BlobSidecars,
-] interface {
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
-// BlobSidecars represents a blob sidecars interface.
-type BlobSidecars interface {
-	// BlobSidecars must be ssz.Marshallable.
-	ssz.Marshallable
-	// IsNil checks if the blob sidecars is nil.
-	IsNil() bool
-	// Len returns the length of the blob sidecars.
-	Len() int
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -206,28 +155,29 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 }
 
+// ForkData represents the fork data interface.
+type ForkData[T any] interface {
+	// New creates a new fork data with the given parameters.
+	New(
+		primitives.Version,
+		primitives.Root,
+	) T
+	// ComputeRandaoSigningRoot computes the Randao signing root.
+	ComputeRandaoSigningRoot(
+		primitives.DomainType,
+		math.Epoch,
+	) (primitives.Root, error)
+}
+
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
-	// Enabled returns true if the payload builder is enabled.
-	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// RequestPayloadAsync requests a payload for the given slot and returns
-	// immediately.
-	RequestPayloadAsync(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot primitives.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -239,31 +189,19 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// SendForceHeadFCU sends a force head FCU to the execution client.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-	) error
 }
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT BeaconState[
-		BeaconBlockHeaderT,
-		BeaconStateT,
-		ExecutionPayloadHeaderT,
-	],
-	ContextT any,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ContextT,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st BeaconStateT, slot math.Slot,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
@@ -274,12 +212,7 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT BeaconState[
-		BeaconBlockHeaderT,
-		BeaconStateT,
-		ExecutionPayloadHeaderT,
-	],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadHeaderT any,

@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -38,28 +37,14 @@ type Service[
 	BeaconBlockBodyT BeaconBlockBody[
 		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT BeaconState[
-		BeaconBlockHeaderT,
-		BeaconStateT,
-		ExecutionPayloadHeaderT,
-	],
-	BlobSidecarsT BlobSidecars,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	ForkDataT ForkData[ForkDataT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -76,15 +61,11 @@ type Service[
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[
-		BeaconBlockHeaderT, BeaconStateT, DepositT,
-		DepositStoreT, ExecutionPayloadHeaderT,
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	]
-	// blobProcessor is used to process blobs.
-	blobProcessor BlobProcessor[BlobSidecarsT]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		*transition.Context,
 		ExecutionPayloadHeaderT,
@@ -109,40 +90,23 @@ func NewService[
 	BeaconBlockBodyT BeaconBlockBody[
 		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT BeaconState[
-		BeaconBlockHeaderT,
-		BeaconStateT,
-		ExecutionPayloadHeaderT,
-	],
-	BlobSidecarsT BlobSidecars,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	ForkDataT ForkData[ForkDataT],
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
 	bsb StorageBackend[
-		BeaconBlockHeaderT, BeaconStateT, DepositT,
-		DepositStoreT, ExecutionPayloadHeaderT,
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	],
-	blobProcessor BlobProcessor[BlobSidecarsT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		*transition.Context,
 		ExecutionPayloadHeaderT,
@@ -156,18 +120,17 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+		BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
-		blobProcessor:         blobProcessor,
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
@@ -181,8 +144,8 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
 ]) Name() string {
 	return "validator"
@@ -190,8 +153,8 @@ func (s *Service[
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
 ]) Start(
 	context.Context,
