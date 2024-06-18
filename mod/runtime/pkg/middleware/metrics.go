@@ -24,23 +24,23 @@ import (
 	"time"
 )
 
-// validatorMiddlewareMetrics is a struct that contains metrics for the chain.
-type validatorMiddlewareMetrics struct {
+// ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
+type ABCIMiddlewareMetrics struct {
 	// sink is the sink for the metrics.
 	sink TelemetrySink
 }
 
-// newValidatorMiddlewareMetrics creates a new validatorMiddlewareMetrics.
-func newValidatorMiddlewareMetrics(
+// newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
+func newABCIMiddlewareMetrics(
 	sink TelemetrySink,
-) *validatorMiddlewareMetrics {
-	return &validatorMiddlewareMetrics{
+) *ABCIMiddlewareMetrics {
+	return &ABCIMiddlewareMetrics{
 		sink: sink,
 	}
 }
 
 // measurePrepareProposalDuration measures the time to prepare.
-func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(
+func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
 	start time.Time,
 ) {
 	cm.sink.MeasureSince(
@@ -49,7 +49,7 @@ func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(
 }
 
 // measureProcessProposalDuration measures the time to process.
-func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(
+func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
 	start time.Time,
 ) {
 	cm.sink.MeasureSince(

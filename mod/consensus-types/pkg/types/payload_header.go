@@ -71,11 +71,15 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 	return e, nil
 }
 
-// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
-func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
-	// TODO: Generalize somehow.
-	e = e.Empty(version.Deneb)
-	return e.InnerExecutionPayloadHeader.UnmarshalJSON(bz)
+// NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
+func (e *ExecutionPayloadHeader) NewFromJSON(
+	bz []byte, forkVersion uint32,
+) (*ExecutionPayloadHeader, error) {
+	e = e.Empty(forkVersion)
+	if err := e.UnmarshalJSON(bz); err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.

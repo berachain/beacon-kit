@@ -52,15 +52,15 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		t.Errorf("Expected ExecutionPayloadHeader to be non-nil")
 	}
 
-	require.Equal(t, common.ZeroHash, payloadHeader.ParentHash,
+	require.Equal(t, common.ZeroHash, payloadHeader.GetParentHash(),
 		"Unexpected ParentHash")
-	require.Equal(t, common.ZeroAddress, payloadHeader.FeeRecipient,
+	require.Equal(t, common.ZeroAddress, payloadHeader.GetFeeRecipient(),
 		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000), payloadHeader.GasLimit,
+	require.Equal(t, math.U64(30000000), payloadHeader.GetGasLimit(),
 		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0), payloadHeader.GasUsed,
+	require.Equal(t, math.U64(0), payloadHeader.GetGasUsed(),
 		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0), payloadHeader.Timestamp,
+	require.Equal(t, math.U64(0), payloadHeader.GetTimestamp(),
 		"Unexpected Timestamp")
 }
 

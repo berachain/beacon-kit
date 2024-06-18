@@ -22,12 +22,17 @@ package middleware
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
+	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
 
-// ABCIMiddleware is a middleware between ABCI and Beacon logic.
+// ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
@@ -44,17 +49,93 @@ type ABCIMiddleware[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
-	StorageBackendT any,
 ] struct {
-	FinalizeBlock *FinalizeBlockMiddleware[
-		BeaconBlockT, BeaconStateT, BlobSidecarsT,
-	]
-
-	Validator *ValidatorMiddleware[
-		AvailabilityStoreT,
+	// chainSpec is the chain specification.
+	chainSpec primitives.ChainSpec
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	// validatorService is the service responsible for building beacon blocks.
+	validatorService ValidatorService[
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
 	]
+	// TODO: we will eventually gossip the blobs separately from
+	// CometBFT, but for now, these are no-op gossipers.
+	blobGossiper p2p.PublisherReceiver[
+		BlobSidecarsT,
+		[]byte,
+		encoding.ABCIRequest,
+		BlobSidecarsT,
+	]
+	// TODO: we will eventually gossip the blocks separately from
+	// CometBFT, but for now, these are no-op gossipers.
+	beaconBlockGossiper p2p.PublisherReceiver[
+		BeaconBlockT,
+		[]byte,
+		encoding.ABCIRequest,
+		BeaconBlockT,
+	]
+	// resChannel is used to communicate the validator updates to the
+	// EndBlock method.
+	valUpdatesCh chan transition.ValidatorUpdates
+	// errCh is used to communicate errors to the EndBlock method.
+	errCh chan error
+	// metrics is the metrics emitter.
+	metrics *ABCIMiddlewareMetrics
+}
+
+// NewABCIMiddleware creates a new instance of the Handler struct.
+func NewABCIMiddleware[
+	AvailabilityStoreT any,
+	BeaconBlockT interface {
+		types.RawBeaconBlock[BeaconBlockBodyT]
+		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+		NewWithVersion(
+			math.Slot,
+			math.ValidatorIndex,
+			primitives.Root,
+			uint32,
+		) (BeaconBlockT, error)
+		Empty(uint32) BeaconBlockT
+	},
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconStateT interface {
+		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
+		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
+		ValidatorIndexByCometBFTAddress(
+			cometBFTAddress []byte,
+		) (math.ValidatorIndex, error)
+	},
+	BlobSidecarsT ssz.Marshallable,
+](
+	chainSpec primitives.ChainSpec,
+	validatorService ValidatorService[
+		BeaconBlockT,
+		BeaconStateT,
+		BlobSidecarsT,
+	],
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	telemetrySink TelemetrySink,
+) *ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT,
+] {
+	return &ABCIMiddleware[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT,
+	]{
+		chainSpec:        chainSpec,
+		validatorService: validatorService,
+		chainService:     chainService,
+		blobGossiper: rp2p.NewNoopBlobHandler[
+			BlobSidecarsT, encoding.ABCIRequest](),
+		beaconBlockGossiper: rp2p.
+			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
+			chainSpec,
+		),
+		valUpdatesCh: make(chan transition.ValidatorUpdates),
+		errCh:        make(chan error),
+		metrics:      newABCIMiddlewareMetrics(telemetrySink),
+	}
 }

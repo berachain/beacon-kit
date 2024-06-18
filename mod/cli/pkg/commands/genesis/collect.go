@@ -73,7 +73,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 
 			genesisInfo := &genesis.Genesis[
 				*types.Deposit,
-				*types.ExecutionPayloadHeaderDeneb,
+				*types.ExecutionPayloadHeader,
 			]{}
 
 			if err = json.Unmarshal(
