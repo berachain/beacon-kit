@@ -129,7 +129,7 @@ func (h *ABCIMiddleware[
 		if localErr != nil {
 			logger.Error("failed to publish blobs", "error", err)
 		}
-		return err
+		return localErr
 	})
 
 	g.Go(func() error {
@@ -138,7 +138,7 @@ func (h *ABCIMiddleware[
 		if localErr != nil {
 			logger.Error("failed to publish beacon block", "error", err)
 		}
-		return err
+		return localErr
 	})
 
 	return &cmtabci.PrepareProposalResponse{
@@ -175,7 +175,7 @@ func (h *ABCIMiddleware[
 	var (
 		startTime = time.Now()
 		logger    = ctx.Logger().With(
-			"service", "prepare-proposal",
+			"service", "process-proposal",
 		)
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
