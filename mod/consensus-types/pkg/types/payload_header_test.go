@@ -480,22 +480,29 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 	}
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 	t.Helper()
-	testCases := []struct {
+	type testCase struct {
 		name          string
 		data          []byte
+		header        *types.ExecutionPayloadHeader
 		expectedError error
-	}{
-		{
-			name: "Valid JSON",
-			data: func() []byte {
-				header := generateExecutionPayloadHeaderDeneb()
-				data, err := json.Marshal(header)
-				require.NoError(t, err)
-				return data
-			}(),
-		},
+	}
+	testCases := []testCase{
+		func() testCase {
+			header := &types.ExecutionPayloadHeader{
+				InnerExecutionPayloadHeader: generateExecutionPayloadHeaderDeneb(),
+			}
+			return testCase{
+				name:   "Valid JSON",
+				header: header,
+				data: func() []byte {
+					data, err := json.Marshal(header)
+					require.NoError(t, err)
+					return data
+				}(),
+			}
+		}(),
 		{
 			name:          "Invalid JSON",
 			data:          []byte{},
@@ -505,13 +512,18 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			header := new(types.ExecutionPayloadHeader)
-			err := header.UnmarshalJSON(tc.data)
+			header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
+				tc.data,
+				version.Deneb,
+			)
 			if tc.expectedError != nil {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.expectedError.Error())
 			} else {
 				require.NoError(t, err)
+			}
+			if tc.header != nil {
+				require.Equal(t, tc.header, header)
 			}
 		})
 	}
