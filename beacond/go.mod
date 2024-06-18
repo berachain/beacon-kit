@@ -12,7 +12,7 @@ replace (
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240614154006-a5defa6198f5
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617040308-8f08818d38a4
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240614135647-9814c0c41144
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
@@ -48,7 +48,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240614154006-a5defa6198f5 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617161612-ab1257fcf5a1 // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5 // indirect
