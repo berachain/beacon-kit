@@ -61,7 +61,6 @@ type Genesis[
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	data []byte,
 ) error {
-	
 	type genesisMarshalable[Deposit any] struct {
 		ForkVersion            primitives.Version `json:"fork_version"`
 		Deposits               []DepositT         `json:"deposits"`
