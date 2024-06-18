@@ -91,15 +91,15 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 	return bz
 }
 
-// ValidateGenesis performs genesis state validation for the evm module.
+// ValidateGenesis performs genesis state validation for the beacon module.
 func (AppModule) ValidateGenesis(
 	_ json.RawMessage,
 ) error {
 	return nil
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
+// ExportGenesis returns the exported genesis state as raw bytes for the
+// beacon module.
 func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
@@ -110,8 +110,8 @@ func (am AppModule) ExportGenesis(
 	)
 }
 
-// InitGenesis
-// TODO: InitGenesis should be calling into the StateProcessor.
+// InitGenesis initializes the beacon module's state from a provided genesis
+// state.
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
