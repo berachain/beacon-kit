@@ -36,7 +36,7 @@ type BLSSigner struct {
 }
 
 func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
-	filePV := privval.LoadOrGenFilePV(keyFilePath, stateFilePath)
+	filePV := privval.LoadFilePV(keyFilePath, stateFilePath)
 	return &BLSSigner{PrivValidator: filePV}
 }
 
