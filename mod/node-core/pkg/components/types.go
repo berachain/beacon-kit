@@ -50,12 +50,9 @@ type (
 	ABCIMiddleware = middleware.ABCIMiddleware[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
-		*types.Eth1Data,
 		*ExecutionPayload,
 		*Genesis,
 	]

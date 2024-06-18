@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -44,9 +43,8 @@ func ProvideABCIMiddleware(
 ) *ABCIMiddleware {
 	return middleware.
 		NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-		*BeaconBlockHeader, BeaconState, *BlobSidecars, *Deposit,
-		*types.Eth1Data, *ExecutionPayload, *Genesis,
+		*AvailabilityStore, *BeaconBlock, BeaconState,
+		*BlobSidecars, *Deposit, *ExecutionPayload, *Genesis,
 	](
 		in.ChainSpec,
 		in.ValidatorService,

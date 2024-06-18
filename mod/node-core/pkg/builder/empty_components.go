@@ -40,12 +40,9 @@ func emptyABCIMiddleware() *components.ABCIMiddleware {
 	return &middleware.ABCIMiddleware[
 		*dastore.Store[*types.BeaconBlockBody],
 		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		components.BeaconState,
 		*datypes.BlobSidecars,
 		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader],
 	]{}

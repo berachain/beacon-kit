@@ -32,22 +32,10 @@ import (
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
-		DepositT,
-		Eth1DataT,
-		ExecutionPayloadT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
-	],
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 	DepositT,
-	Eth1DataT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
 ] struct {
@@ -91,22 +79,10 @@ type ABCIMiddleware[
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
-		DepositT,
-		Eth1DataT,
-		ExecutionPayloadT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
-	],
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 	DepositT,
-	Eth1DataT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
 ](
@@ -121,14 +97,12 @@ func NewABCIMiddleware[
 	],
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT, DepositT,
-	Eth1DataT, ExecutionPayloadT, GenesisT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT, DepositT,
-		Eth1DataT, ExecutionPayloadT, GenesisT,
+		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
