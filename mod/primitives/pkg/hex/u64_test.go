@@ -44,7 +44,13 @@ func TestMarshalText(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.MarshalText(test.input)
 			require.NoError(t, err, "Test case %s", test.name)
-			require.Equal(t, test.expected, string(result), "Test case %s", test.name)
+			require.Equal(
+				t,
+				test.expected,
+				string(result),
+				"Test case %s",
+				test.name,
+			)
 		})
 	}
 }
