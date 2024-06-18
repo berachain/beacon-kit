@@ -40,7 +40,8 @@ func WithCometParamStore(
 
 // WithPrepareProposal sets the prepare proposal handler to the baseapp.
 func WithPrepareProposal(
-	handler sdk.PrepareProposalHandler) func(bApp *baseapp.BaseApp) {
+	handler sdk.PrepareProposalHandler,
+) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
 		bApp.SetPrepareProposal(handler)
 	}
@@ -48,7 +49,8 @@ func WithPrepareProposal(
 
 // WithProcessProposal sets the process proposal handler to the baseapp.
 func WithProcessProposal(
-	handler sdk.ProcessProposalHandler) func(bApp *baseapp.BaseApp) {
+	handler sdk.ProcessProposalHandler,
+) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
 		bApp.SetProcessProposal(handler)
 	}

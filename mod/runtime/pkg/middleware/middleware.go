@@ -21,10 +21,7 @@
 package middleware
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -33,9 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -144,105 +138,4 @@ func NewABCIMiddleware[
 		errChannel:        make(chan error),
 		metrics:           newABCIMiddlewareMetrics(telemetrySink),
 	}
-}
-
-// PrepareProposalHandler is a wrapper around the prepare proposal handler
-// that injects the beacon block into the proposal.
-func (h *ABCIMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-]) PrepareProposalHandler(
-	ctx sdk.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
-	var (
-		startTime     = time.Now()
-		sidecarsBz    []byte
-		beaconBlockBz []byte
-		logger        = ctx.Logger().With(
-			"service", "prepare-proposal",
-		)
-	)
-	defer h.metrics.measurePrepareProposalDuration(startTime)
-
-	// Get the best block and blobs.
-	blk, blobs, err := h.validatorService.RequestBlockForProposal(
-		ctx, math.Slot(req.GetHeight()))
-	if err != nil || blk.IsNil() {
-		logger.Error(
-			"failed to assemble proposal", "error", err, "block", blk)
-		return &cmtabci.PrepareProposalResponse{}, err
-	}
-
-	// "Publish" the blobs and the beacon block.
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
-		if localErr != nil {
-			logger.Error("failed to publish blobs", "error", err)
-		}
-		return err
-	})
-
-	g.Go(func() error {
-		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
-		if localErr != nil {
-			logger.Error("failed to publish beacon block", "error", err)
-		}
-		return err
-	})
-
-	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{beaconBlockBz, sidecarsBz},
-	}, g.Wait()
-}
-
-// ProcessProposalHandler is a wrapper around the process proposal handler
-// that extracts the beacon block from the proposal and processes it.
-func (h *ABCIMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-]) ProcessProposalHandler(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		startTime = time.Now()
-		logger    = ctx.Logger().With(
-			"service", "prepare-proposal",
-		)
-	)
-	defer h.metrics.measureProcessProposalDuration(startTime)
-
-	args := []any{"beacon_block", true, "blob_sidecars", true}
-	blk, err := h.beaconBlockGossiper.Request(ctx, req)
-	if err != nil {
-		args[1] = false
-	}
-
-	sidecars, err := h.blobGossiper.Request(ctx, req)
-	if err != nil {
-		args[3] = false
-	}
-
-	logger.Info("received proposal with", args...)
-	if err = h.chainService.ReceiveBlockAndBlobs(
-		ctx, blk, sidecars,
-	); errors.IsFatal(err) {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
-	}
-
-	return &cmtabci.ProcessProposalResponse{
-		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-	}, nil
 }

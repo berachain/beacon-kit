@@ -80,8 +80,8 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 			append(
 				server.DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(abciMiddleware.PrepareProposalHandler),
-				WithProcessProposal(abciMiddleware.ProcessProposalHandler),
+				WithPrepareProposal(abciMiddleware.PrepareProposal),
+				WithProcessProposal(abciMiddleware.ProcessProposal),
 				WithPreBlocker(abciMiddleware.PreBlock),
 			)...,
 		),
