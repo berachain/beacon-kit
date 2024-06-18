@@ -45,8 +45,6 @@ type CLIBuilder[T servertypes.Application] struct {
 	// supplies is a list of suppliers for depinject.
 	supplies   []any
 	runHandler runHandler
-	// rootCmdSetup is a function that sets up the root command.
-	rootCmdSetup rootCmdSetup[T]
 }
 
 // New returns a new CLIBuilder with the given options.

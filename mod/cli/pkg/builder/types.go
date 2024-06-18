@@ -21,19 +21,8 @@
 package builder
 
 import (
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
-)
-
-// rootCmdSetup is a function that sets up the root command.
-type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
-	mm *module.Manager,
-	appCreator servertypes.AppCreator[T],
-	chainSpec primitives.ChainSpec,
 )
 
 // runHandler is a function that sets up run handlers for the root command.
