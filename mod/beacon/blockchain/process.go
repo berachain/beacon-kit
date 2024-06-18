@@ -46,15 +46,13 @@ func (s *Service[
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
-		DepositT, *types.ExecutionPayloadHeaderDeneb,
+		DepositT, *types.ExecutionPayloadHeader,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		&types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
-		},
+		genesisData.ExecutionPayloadHeader,
 		genesisData.ForkVersion,
 	)
 }
