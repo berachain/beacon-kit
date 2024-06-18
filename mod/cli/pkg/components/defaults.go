@@ -26,5 +26,6 @@ func DefaultClientComponents() []any {
 	return []any{
 		ProvideClientContext,
 		ProvideKeyring,
+		ProvideLogger,
 	}
 }

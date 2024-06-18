@@ -21,33 +21,10 @@
 package commands
 
 import (
-	"context"
-	"os"
-
-	"cosmossdk.io/log"
-	confixcmd "cosmossdk.io/tools/confix/cmd"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	beaconconfig "github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	sdkclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	"github.com/rs/zerolog"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 // Root is a wrapper around cobra.Command.
@@ -97,16 +74,7 @@ func New(name string,
 				return err
 			}
 
-// logdi
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: beaconconfig.AddBeaconKitFlags,
-		PostSetup: func(app T, svrCtx *server.Context, clientCtx sdkclient.Context, ctx context.Context, g *errgroup.Group) error {
-			svrCtx.Logger = log.NewCustomLogger(zerolog.New(os.Stdout).With().Timestamp().Logger()).With("module", "HENLO OOGA")
-			return nil
-// ======
 			return runHandler(cmd)
-// main
 		},
 	}
 	return &Root{

@@ -6,7 +6,7 @@ import (
 
 type Logger[KeyValT, ImplT any] struct {
 	logger *log.Logger
-	r      map[string]interface{}
+	// r      map[string]interface{}
 }
 
 func NewLogger[KeyValT, ImplT any](level string) *Logger[KeyValT, ImplT] {
@@ -39,9 +39,10 @@ func (l *Logger[KeyValT, ImplT]) Impl() any {
 
 func (l *Logger[KeyValT, ImplT]) With(keyVals ...KeyValT) ImplT {
 	newLogger := *l
-	r := make(map[string]interface{})
-	for _, keyVal := range keyVals {
-		r[keyVal.Key()] = keyVal.Value()
-	}
+	// r := make(map[string]interface{})
+	// for _, keyVal := range keyVals {
+	// 	r[keyVal.Key()] = keyVal.Value()
+	// }
+	// newLogger.r = r
 	return any(&newLogger).(ImplT)
 }
