@@ -39,8 +39,8 @@ import (
 // need to start the beacon chain.
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT interface {
-		NewFromJSON([]byte, uint32) (ExecutonPayloadHeaderT, error)
+	ExecutionPayloadHeaderT interface {
+		NewFromJSON([]byte, uint32) (ExecutionPayloadHeaderT, error)
 	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
@@ -52,7 +52,7 @@ type Genesis[
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
-	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
+	ExecutionPayloadHeader ExecutionPayloadHeaderT `json:"execution_payload_header"`
 }
 
 // UnmarshalJSON for Genesis.
