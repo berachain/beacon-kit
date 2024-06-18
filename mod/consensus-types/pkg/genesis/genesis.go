@@ -22,6 +22,7 @@ package genesis
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -36,9 +37,13 @@ import (
 
 // Genesis is a struct that contains the genesis information
 // need to start the beacon chain.
+//
+//nolint:lll
 type Genesis[
 	DepositT any,
-	ExecutonPayloadHeaderT any,
+	ExecutionPayloadHeaderT interface {
+		NewFromJSON([]byte, uint32) (ExecutionPayloadHeaderT, error)
+	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion primitives.Version `json:"fork_version"`
@@ -49,12 +54,44 @@ type Genesis[
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
-	ExecutionPayloadHeader ExecutonPayloadHeaderT `json:"execution_payload_header"`
+	ExecutionPayloadHeader ExecutionPayloadHeaderT `json:"execution_payload_header"`
 }
 
-// DefaultGenesis returns a the default genesis.
+// UnmarshalJSON for Genesis.
+func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
+	data []byte,
+) error {
+	type genesisMarshalable[Deposit any] struct {
+		ForkVersion            primitives.Version `json:"fork_version"`
+		Deposits               []DepositT         `json:"deposits"`
+		ExecutionPayloadHeader json.RawMessage    `json:"execution_payload_header"`
+	}
+	var g2 genesisMarshalable[DepositT]
+	if err := json.Unmarshal(data, &g2); err != nil {
+		return err
+	}
+
+	var (
+		payloadHeader ExecutionPayloadHeaderT
+		err           error
+	)
+	payloadHeader, err = payloadHeader.NewFromJSON(
+		g2.ExecutionPayloadHeader,
+		version.ToUint32(g2.ForkVersion),
+	)
+	if err != nil {
+		return err
+	}
+
+	g.Deposits = g2.Deposits
+	g.ForkVersion = g2.ForkVersion
+	g.ExecutionPayloadHeader = payloadHeader
+	return nil
+}
+
+// DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
-	*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+	*types.Deposit, *types.ExecutionPayloadHeader,
 ] {
 	defaultHeader, err :=
 		DefaultGenesisExecutionPayloadHeaderDeneb()
@@ -63,12 +100,14 @@ func DefaultGenesisDeneb() *Genesis[
 	}
 
 	// TODO: Uncouple from deneb.
-	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeaderDeneb]{
+	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeader]{
 		ForkVersion: version.FromUint32[primitives.Version](
 			version.Deneb,
 		),
-		Deposits:               make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: defaultHeader,
+		Deposits: make([]*types.Deposit, 0),
+		ExecutionPayloadHeader: &types.ExecutionPayloadHeader{
+			InnerExecutionPayloadHeader: defaultHeader,
+		},
 	}
 }
 

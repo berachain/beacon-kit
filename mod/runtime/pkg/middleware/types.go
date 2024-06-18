@@ -35,14 +35,15 @@ import (
 
 // BeaconState is an interface for accessing the beacon state.
 type BeaconState interface {
+	// ValidatorIndexByPubkey returns the validator index for the given pubkey.
 	ValidatorIndexByPubkey(
 		pubkey crypto.BLSPubkey,
 	) (math.ValidatorIndex, error)
-
+	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(
 		index uint64,
 	) (primitives.Root, error)
-
+	// ValidatorIndexByCometBFTAddress returns the validator index for the given
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
@@ -58,7 +59,7 @@ type BlockchainService[
 	ProcessGenesisData(
 		context.Context,
 		*genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+			*types.Deposit, *types.ExecutionPayloadHeader,
 		],
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated

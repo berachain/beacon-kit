@@ -27,8 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
-// ValidatorMiddlewareInput is the input for the validator middleware provider.
-type ValidatorMiddlewareInput struct {
+// ABCIMiddlewareInput is the input for the validator middleware provider.
+type ABCIMiddlewareInput struct {
 	depinject.In
 	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
@@ -36,13 +36,13 @@ type ValidatorMiddlewareInput struct {
 	ValidatorService *ValidatorService
 }
 
-// ProvideValidatorMiddleware is a depinject provider for the validator
+// ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
-func ProvideValidatorMiddleware(
-	in ValidatorMiddlewareInput,
-) *ValidatorMiddleware {
+func ProvideABCIMiddleware(
+	in ABCIMiddlewareInput,
+) *ABCIMiddleware {
 	return middleware.
-		NewValidatorMiddleware[
+		NewABCIMiddleware[
 		*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 		BeaconState, *BlobSidecars,
 	](
@@ -56,36 +56,6 @@ func ProvideValidatorMiddleware(
 // FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
 type FinalizeBlockMiddlewareInput struct {
 	depinject.In
-	ChainService  *ChainService
-	ChainSpec     primitives.ChainSpec
-	TelemetrySink *metrics.TelemetrySink
-}
-
-// ProvideFinalizeBlockMiddleware is a depinject provider for the finalize block
-// middleware.
-func ProvideFinalizeBlockMiddleware(
-	in FinalizeBlockMiddlewareInput,
-) *FinalizeBlockMiddleware {
-	return middleware.NewFinalizeBlockMiddleware[
-		*BeaconBlock, BeaconState, *BlobSidecars,
-	](
-		in.ChainSpec,
-		in.ChainService,
-		in.TelemetrySink,
-	)
-}
-
-// ABCIMiddlewareInput is the input for the ABCI middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	FinalizeBlock *FinalizeBlockMiddleware
-	Validator     *ValidatorMiddleware
-}
-
-// ProvideABCIMiddleware is a depinject provider for the ABCI middleware.
-func ProvideABCIMiddleware(in ABCIMiddlewareInput) *ABCIMiddleware {
-	return &ABCIMiddleware{
-		FinalizeBlock: in.FinalizeBlock,
-		Validator:     in.Validator,
-	}
+	ChainService *ChainService
+	ChainSpec    primitives.ChainSpec
 }
