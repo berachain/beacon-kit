@@ -38,18 +38,21 @@ type ValidatorUpdate struct {
 	EffectiveBalance math.Gwei
 }
 
-// RemoveDuplicates removes duplicate validator updates.
+// RemoveDuplicates removes duplicate validator updates. We
+// iterate through the list backwards since we want the last
+// update to be the one that is kept.
 func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
 	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
-	j := 0
-	for i, update := range vu {
+	j := len(vu) - 1
+	for i := len(vu) - 1; i >= 0; i-- {
+		update := vu[i]
 		if _, exists := duplicateCheck[update.Pubkey]; !exists {
 			duplicateCheck[update.Pubkey] = struct{}{}
 			vu[j] = vu[i]
-			j++
+			j--
 		}
 	}
-	vu = vu[:j]
+	vu = vu[j+1:]
 	return vu
 }
 
