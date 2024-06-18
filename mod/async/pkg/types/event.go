@@ -20,7 +20,10 @@
 
 package types
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // EventID represents the type of an event.
 type EventID string
@@ -33,16 +36,21 @@ type Event[DataT any] struct {
 	eventType EventID
 	// event is the actual beacon event.
 	data DataT
+	// error is the error associated with the event.
+	err error
 }
 
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
-](ctx context.Context, eventType EventID, data DataT) *Event[DataT] {
+](
+	ctx context.Context, eventType EventID, data DataT, errs ...error,
+) *Event[DataT] {
 	return &Event[DataT]{
 		ctx:       ctx,
 		eventType: eventType,
 		data:      data,
+		err:       errors.Join(errs...),
 	}
 }
 
@@ -59,6 +67,11 @@ func (e Event[DataT]) Context() context.Context {
 // Event returns the beacon event.
 func (e Event[DataT]) Data() DataT {
 	return e.data
+}
+
+// Error returns the error associated with the event.
+func (e Event[DataT]) Error() error {
+	return e.err
 }
 
 // Is returns true if the event has the given type.
