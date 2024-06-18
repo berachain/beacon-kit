@@ -22,35 +22,38 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
-		ProvideAvailibilityStore[*types.BeaconBlockBody],
-		ProvideBlsSigner,
-		ProvideTrustedSetup,
-		ProvideDepositStore[*types.Deposit],
-		ProvideConfig,
-		ProvideEngineClient[*types.ExecutionPayload],
-		ProvideJWTSecret,
-		ProvideBlobProofVerifier,
-		ProvideBlobProcessor[*types.BeaconBlockBody],
-		ProvideTelemetrySink,
-		ProvideExecutionEngine[*types.ExecutionPayload],
-		ProvideBeaconDepositContract[
-			*types.Deposit,
-			*types.ExecutionPayload,
-			*engineprimitives.Withdrawal,
-			types.WithdrawalCredentials,
-		],
-		ProvideLocalBuilder,
-		ProvideStateProcessor,
-		ProvideBlockFeed[*types.BeaconBlock],
-		ProvideDepositPruner,
+		ProvideABCIMiddleware,
 		ProvideAvailabilityPruner,
+		ProvideAvailibilityStore[*BeaconBlockBody],
+		ProvideBlsSigner,
+		ProvideBlockFeed,
+		ProvideBlobProcessor[*BeaconBlockBody],
+		ProvideBlobProofVerifier,
+		ProvideChainService,
+		ProvideChainSpec,
+		ProvideConfig,
 		ProvideDBManager,
+		ProvideDepositPruner,
 		ProvideDepositService,
-		ProvideRuntime,
+		ProvideDepositStore[*Deposit],
+		ProvideBeaconDepositContract[
+			*Deposit, *ExecutionPayload,
+			*Withdrawal, types.WithdrawalCredentials,
+		],
+		ProvideEngineClient[*ExecutionPayload],
+		ProvideExecutionEngine[*ExecutionPayload],
+		ProvideJWTSecret,
+		ProvideLocalBuilder,
+		ProvideServiceRegistry,
+		ProvideStateProcessor,
+		ProvideStatusFeed,
+		ProvideStorageBackend,
+		ProvideTelemetrySink,
+		ProvideTrustedSetup,
+		ProvideValidatorService,
 	}
 }

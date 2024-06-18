@@ -45,17 +45,18 @@ var (
 	_ module.HasABCIEndBlock = AppModule{}
 )
 
-// AppModule implements an application module for the evm module.
+// AppModule implements an application module for the beacon module.
+// It is a wrapper around the ABCIMiddleware.
 type AppModule struct {
-	*components.BeaconKitRuntime
+	ABCIMiddleware *components.ABCIMiddleware
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	runtime *components.BeaconKitRuntime,
+	abciMiddleware *components.ABCIMiddleware,
 ) AppModule {
 	return AppModule{
-		BeaconKitRuntime: runtime,
+		ABCIMiddleware: abciMiddleware,
 	}
 }
 
@@ -90,21 +91,37 @@ func (AppModule) DefaultGenesis() json.RawMessage {
 	return bz
 }
 
-// ValidateGenesis performs genesis state validation for the evm module.
+// ValidateGenesis performs genesis state validation for the beacon module.
 func (AppModule) ValidateGenesis(
 	_ json.RawMessage,
 ) error {
 	return nil
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
+// ExportGenesis returns the exported genesis state as raw bytes for the
+// beacon module.
 func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
 	return json.Marshal(
 		&genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeaderDeneb,
+			*types.Deposit, *types.ExecutionPayloadHeader,
 		]{},
 	)
+}
+
+// InitGenesis initializes the beacon module's state from a provided genesis
+// state.
+func (am AppModule) InitGenesis(
+	ctx context.Context,
+	bz json.RawMessage,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIMiddleware.InitGenesis(ctx, bz)
+}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (am AppModule) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return am.ABCIMiddleware.EndBlock(ctx)
 }

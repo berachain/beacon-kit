@@ -43,58 +43,85 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/rs/zerolog"
+	sdkclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
 
-// DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[T servertypes.Application](
-	rootCmd *cobra.Command,
-	mm *module.Manager,
-	newApp servertypes.AppCreator[T],
-	chainSpec primitives.ChainSpec,
-) {
-	// Add the ToS Flag to the root command.
-	beaconconfig.AddToSFlag(rootCmd)
+// Root is a wrapper around cobra.Command.
+type Root struct {
+	cmd *cobra.Command
+}
 
+// New returns a new root command with the provided configuration.
+func New(name string,
+	description string,
+	runHandler runHandler,
+	clientCtx sdkclient.Context,
+) *Root {
+	// create the underlying cobra command
+	cmd := &cobra.Command{
+		Use:   name,
+		Short: description,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			var err error
+			// Update the client context with the flags from the command
+			clientCtx, err = sdkclient.ReadPersistentCommandFlags(
+				clientCtx,
+				cmd.Flags(),
+			)
+			if err != nil {
+				return err
+			}
+
+			customClientTemplate, customClientConfig := InitClientConfig()
+			// Update the client context with the default custom config
+			clientCtx, err = config.CreateClientConfig(
+				clientCtx,
+				customClientTemplate,
+				customClientConfig,
+			)
+			if err != nil {
+				return err
+			}
+
+			if err = sdkclient.SetCmdClientContextHandler(
+				clientCtx, cmd,
+			); err != nil {
+				return err
+			}
+
+// logdi
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
 		AddFlags: beaconconfig.AddBeaconKitFlags,
 		PostSetup: func(app T, svrCtx *server.Context, clientCtx sdkclient.Context, ctx context.Context, g *errgroup.Group) error {
 			svrCtx.Logger = log.NewCustomLogger(zerolog.New(os.Stdout).With().Timestamp().Logger()).With("module", "HENLO OOGA")
 			return nil
+// ======
+			return runHandler(cmd)
+// main
 		},
 	}
+	return &Root{
+		cmd: cmd,
+	}
+}
 
-	// Add all the commands to the root command.
-	rootCmd.AddCommand(
-		// `comet`
-		cometbft.Commands(newApp),
-		// `client`
-		client.Commands[T](),
-		// `config`
-		confixcmd.ConfigCommand(),
-		// `init`
-		genutilcli.InitCmd(mm),
-		// `genesis`
-		genesis.Commands(chainSpec),
-		// `deposit`
-		deposit.Commands(chainSpec),
-		// `jwt`
-		jwt.Commands(),
-		// `keys`
-		keys.Commands(),
-		// `prune`
-		pruning.Cmd(newApp),
-		// `rollback`
-		server.NewRollbackCmd(newApp),
-		// `snapshots`
-		snapshot.Cmd(newApp),
-		// `start`
-		server.StartCmdWithOptions(newApp, startCmdOptions),
-		// `status`
-		server.StatusCommand(),
-		// `version`
-		version.NewVersionCommand(),
+// Run executes the root command.
+func (root *Root) Run(defaultNodeHome string) error {
+	return svrcmd.Execute(
+		root.cmd, "", defaultNodeHome,
 	)
+}
+
+// Enhance applies the given enhancer to the root command.
+func (root *Root) Enhance(enhance enhancer) error {
+	return enhance(root.cmd)
 }

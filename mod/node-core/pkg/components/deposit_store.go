@@ -24,17 +24,16 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
@@ -62,28 +61,30 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](&depositstore.KVStoreProvider{
-		KVStoreWithBatch: kvp,
-	}), nil
+	return depositstore.NewStore[DepositT](
+		&depositstore.KVStoreProvider{
+			KVStoreWithBatch: kvp,
+		},
+	), nil
 }
 
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	Logger       log.Logger
+	BlockFeed    *BlockFeed
 	ChainSpec    primitives.ChainSpec
-	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	DepositStore *depositstore.KVStore[*types.Deposit]
+	DepositStore *DepositStore
+	Logger       log.Logger
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner(
 	in DepositPrunerInput,
-) pruner.Pruner[*depositstore.KVStore[*types.Deposit]] {
+) pruner.Pruner[*DepositStore] {
 	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*depositstore.KVStore[*types.Deposit],
+		*BeaconBlock,
+		*BlockEvent,
+		*DepositStore,
 		event.Subscription,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
@@ -91,11 +92,11 @@ func ProvideDepositPruner(
 		manager.DepositPrunerName,
 		in.BlockFeed,
 		deposit.BuildPruneRangeFn[
-			*types.BeaconBlockBody,
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-			*types.Deposit,
-			*types.ExecutionPayload,
+			*BeaconBlockBody,
+			*BeaconBlock,
+			*BlockEvent,
+			*Deposit,
+			*ExecutionPayload,
 			types.WithdrawalCredentials,
 		](in.ChainSpec),
 	)

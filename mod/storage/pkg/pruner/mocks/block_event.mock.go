@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	types "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	pruner "github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -66,7 +67,7 @@ func (_c *BlockEvent_Data_Call[BeaconBlockT]) RunAndReturn(run func() BeaconBloc
 }
 
 // Is provides a mock function with given fields: _a0
-func (_m *BlockEvent[BeaconBlockT]) Is(_a0 string) bool {
+func (_m *BlockEvent[BeaconBlockT]) Is(_a0 types.EventID) bool {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -74,7 +75,7 @@ func (_m *BlockEvent[BeaconBlockT]) Is(_a0 string) bool {
 	}
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string) bool); ok {
+	if rf, ok := ret.Get(0).(func(types.EventID) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -89,14 +90,14 @@ type BlockEvent_Is_Call[BeaconBlockT pruner.BeaconBlock] struct {
 }
 
 // Is is a helper method to define mock.On call
-//   - _a0 string
+//   - _a0 types.EventID
 func (_e *BlockEvent_Expecter[BeaconBlockT]) Is(_a0 interface{}) *BlockEvent_Is_Call[BeaconBlockT] {
 	return &BlockEvent_Is_Call[BeaconBlockT]{Call: _e.mock.On("Is", _a0)}
 }
 
-func (_c *BlockEvent_Is_Call[BeaconBlockT]) Run(run func(_a0 string)) *BlockEvent_Is_Call[BeaconBlockT] {
+func (_c *BlockEvent_Is_Call[BeaconBlockT]) Run(run func(_a0 types.EventID)) *BlockEvent_Is_Call[BeaconBlockT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		run(args[0].(types.EventID))
 	})
 	return _c
 }
@@ -106,7 +107,7 @@ func (_c *BlockEvent_Is_Call[BeaconBlockT]) Return(_a0 bool) *BlockEvent_Is_Call
 	return _c
 }
 
-func (_c *BlockEvent_Is_Call[BeaconBlockT]) RunAndReturn(run func(string) bool) *BlockEvent_Is_Call[BeaconBlockT] {
+func (_c *BlockEvent_Is_Call[BeaconBlockT]) RunAndReturn(run func(types.EventID) bool) *BlockEvent_Is_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }

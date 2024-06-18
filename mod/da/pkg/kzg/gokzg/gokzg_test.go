@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // this is a test.
 var baseDir = "../../../../../testing/files/"
 
 func TestVerifyBlobProof(t *testing.T) {
@@ -125,6 +124,14 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 
 	err = verifier.VerifyBlobProofBatch(args)
 	require.NoError(t, err)
+}
+
+func TestGetImplementation(t *testing.T) {
+	verifier, err := setupVerifier()
+	require.NoError(t, err)
+
+	impl := verifier.GetImplementation()
+	require.Equal(t, gokzg.Implementation, impl)
 }
 
 // setupVerifier reads the trusted setup file and creates a new GoKZGVerifier.

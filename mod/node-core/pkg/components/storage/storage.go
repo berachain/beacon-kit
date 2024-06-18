@@ -27,7 +27,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -41,13 +41,26 @@ type KVStore = beacondb.KVStore[
 	*types.Eth1Data, *types.Validator,
 ]
 
+// The AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		context.Context, math.Slot, BeaconBlockBodyT,
+	) bool
+	// Persist makes sure that the sidecar remains accessible for data
+	// availability checks throughout the beacon node's operation.
+	Persist(math.Slot, BlobSidecarsT) error
+}
+
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
 type Backend[
-	AvailabilityStoreT runtime.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlock types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
@@ -61,10 +74,9 @@ type Backend[
 }
 
 func NewBackend[
-	AvailabilityStoreT runtime.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, *datypes.BlobSidecars,
 	],
-	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT core.BeaconState[
 		*types.BeaconBlockHeader, *types.Eth1Data,
@@ -76,11 +88,9 @@ func NewBackend[
 	as AvailabilityStoreT,
 	bs *KVStore,
 	ds DepositStoreT,
-) *Backend[AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
-] {
+) *Backend[AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT] {
 	return &Backend[
-		AvailabilityStoreT, BeaconBlockT,
+		AvailabilityStoreT,
 		BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 	]{
 		cs: cs,
@@ -90,11 +100,12 @@ func NewBackend[
 	}
 }
 
-// AvailabilityStore returns the availability store struct initialized with a.
+// AvailabilityStore returns the availability store struct initialized with a
+// given context.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
-]) AvailabilityStore(
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
+],
+) AvailabilityStore(
 	_ context.Context,
 ) AvailabilityStoreT {
 	return k.as
@@ -103,8 +114,7 @@ func (k Backend[
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositT,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
@@ -115,16 +125,14 @@ func (k Backend[
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 ]) BeaconStore() *KVStore {
 	return k.bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT, DepositStoreT,
 ]) DepositStore(
 	_ context.Context,
 ) DepositStoreT {

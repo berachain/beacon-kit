@@ -34,7 +34,6 @@ import (
 )
 
 var (
-	//nolint:gochecknoglobals // this is a test
 	p = &prompt.Prompt{
 		Cmd:  &cobra.Command{},
 		Text: "test",

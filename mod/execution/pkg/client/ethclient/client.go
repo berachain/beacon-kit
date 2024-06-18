@@ -25,10 +25,7 @@ import (
 	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -40,6 +37,7 @@ type Eth1Client[
 		json.Marshaler
 		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
+		Version() uint32
 	},
 ] struct {
 	*ethclient.Client
@@ -52,6 +50,7 @@ func NewEth1Client[
 		json.Marshaler
 		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
+		Version() uint32
 	},
 ](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	c := &Eth1Client[ExecutionPayloadT]{
@@ -66,81 +65,10 @@ func NewFromRPCClient[
 		json.Marshaler
 		json.Unmarshaler
 		Empty(uint32) ExecutionPayloadT
+		Version() uint32
 	},
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	return NewEth1Client[ExecutionPayloadT](ethclient.NewClient(rpcClient))
-}
-
-// NewPayloadV3 calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
-	ctx context.Context,
-	payload any,
-	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *primitives.Root,
-) (*engineprimitives.PayloadStatusV1, error) {
-	result := &engineprimitives.PayloadStatusV1{}
-	if err := s.Client.Client().CallContext(
-		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
-		(*common.ExecutionHash)(parentBlockRoot),
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-// ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
-	ctx context.Context,
-	state *engineprimitives.ForkchoiceStateV1,
-	attrs engineprimitives.PayloadAttributer,
-) (*engineprimitives.ForkchoiceResponseV1, error) {
-	return s.forkchoiceUpdateCall(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
-}
-
-// forkchoiceUpdateCall is a helper function to call to any version
-// of the forkchoiceUpdates method.
-func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdateCall(
-	ctx context.Context,
-	method string,
-	state *engineprimitives.ForkchoiceStateV1,
-	attrs any,
-) (*engineprimitives.ForkchoiceResponseV1, error) {
-	result := &engineprimitives.ForkchoiceResponseV1{}
-
-	if err := s.Client.Client().CallContext(
-		ctx, result, method, state, attrs,
-	); err != nil {
-		return nil, err
-	}
-
-	if (result.PayloadStatus == engineprimitives.PayloadStatusV1{}) {
-		return nil, ErrNilResponse
-	}
-
-	return result, nil
-}
-
-// GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
-	ctx context.Context, payloadID engineprimitives.PayloadID,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	var t ExecutionPayloadT
-	result := &engineprimitives.ExecutionPayloadEnvelope[
-		ExecutionPayloadT,
-		*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
-		],
-	]{
-		ExecutionPayload: t.Empty(version.Deneb),
-	}
-
-	if err := s.Client.Client().CallContext(
-		ctx, result, GetPayloadMethodV3, payloadID,
-	); err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
@@ -163,32 +91,4 @@ func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
-}
-
-// GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
-	ctx context.Context,
-) ([]engineprimitives.ClientVersionV1, error) {
-	result := make([]engineprimitives.ClientVersionV1, 0)
-	if err := s.Client.Client().CallContext(
-		ctx, &result, GetClientVersionV1, nil,
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-// ExchangeCapabilities calls the engine_exchangeCapabilities method via
-// JSON-RPC.
-func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
-	ctx context.Context,
-	capabilities []string,
-) ([]string, error) {
-	result := make([]string, 0)
-	if err := s.Client.Client().CallContext(
-		ctx, &result, ExchangeCapabilities, &capabilities,
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
 }

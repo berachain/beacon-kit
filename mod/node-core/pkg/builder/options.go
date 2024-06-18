@@ -23,26 +23,10 @@ package builder
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // Opt is a type that defines a function that modifies NodeBuilder.
 type Opt[NodeT types.NodeI] func(*NodeBuilder[NodeT])
-
-// WithChainSpec is a function that sets the chain specification for the
-// NodeBuilder.
-func WithChainSpec[NodeT types.NodeI](cs primitives.ChainSpec) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
-		nb.chainSpec = cs
-	}
-}
-
-// WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[NodeT types.NodeI](components []any) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
-		nb.components = components
-	}
-}
 
 // WithDepInjectConfig is a function that sets the dependency injection
 // configuration for the NodeBuilder.
@@ -52,18 +36,9 @@ func WithDepInjectConfig[NodeT types.NodeI](cfg depinject.Config) Opt[NodeT] {
 	}
 }
 
-// WithDescription is a function that sets the description for the NodeBuilder.
-func WithDescription[NodeT types.NodeI](description string) Opt[NodeT] {
+// WithComponents is a function that sets the components for the NodeBuilder.
+func WithComponents[NodeT types.NodeI](components []any) Opt[NodeT] {
 	return func(nb *NodeBuilder[NodeT]) {
-		nb.node.SetAppDescription(description)
-		nb.description = description
-	}
-}
-
-// WithName is a function that sets the name for the NodeBuilder.
-func WithName[NodeT types.NodeI](name string) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
-		nb.node.SetAppName(name)
-		nb.name = name
+		nb.components = components
 	}
 }

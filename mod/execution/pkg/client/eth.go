@@ -29,7 +29,7 @@ import (
 )
 
 // HeaderByNumber retrieves the block header by its number.
-func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByNumber(
+func (s *EngineClient[ExecutionPayloadT]) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
 ) (*engineprimitives.Header, error) {
@@ -59,7 +59,7 @@ func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByNumber(
 }
 
 // HeaderByHash retrieves the block header by its hash.
-func (s *EngineClient[ExecutionPayloadDenebT]) HeaderByHash(
+func (s *EngineClient[ExecutionPayloadT]) HeaderByHash(
 	ctx context.Context,
 	hash common.ExecutionHash,
 ) (*engineprimitives.Header, error) {

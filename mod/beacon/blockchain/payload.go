@@ -115,7 +115,7 @@ func (s *Service[
 	s.logger.Info("rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is unmodified state.
+	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
 	// previous block and it's root.
 	latestHeader, err := st.GetLatestBlockHeader()
@@ -160,7 +160,7 @@ func (s *Service[
 		),
 		// We set the parent root to the previous block root.
 		prevBlockRoot,
-		// We set the head of our chain to previous finalized block.
+		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
 		// TODO: This is making an assumption about the consensus rules
@@ -192,7 +192,7 @@ func (s *Service[
 	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
 		s.logger.Error(
 			"failed to build optimistic payload",
-			"for_slot", blk.GetSlot()+1,
+			"for_slot", (blk.GetSlot() + 1).Base10(),
 			"error", err,
 		)
 	}
@@ -218,7 +218,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", slot,
+		"next_slot", slot.Base10(),
 	)
 
 	// We know that this block was properly formed so we can

@@ -65,19 +65,6 @@ func (m *DBManager[
 	return "db-manager"
 }
 
-// TODO: fr implementation
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) Status() error {
-	return nil
-}
-
-// TODO: fr implementation
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) WaitForHealthy(_ context.Context) {
-}
-
 // Start starts all pruners.
 func (m *DBManager[
 	BeaconBlockT, BlockEventT, SubscriptionT,

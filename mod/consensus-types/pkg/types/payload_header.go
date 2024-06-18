@@ -28,13 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// ExecutionPayload represents an execution payload across
+// ExecutionPayloadHeader represents an execution payload across
 // all fork versions.
 type ExecutionPayloadHeader struct {
 	InnerExecutionPayloadHeader
 }
 
-// ExecutionPayloadBody is the interface for the execution data of a block.
+// InnerExecutionPayloadHeader is the interface for the execution
+// data of a block.
 // It contains all the fields that are part of both an execution payload header
 // and a full execution payload.
 type InnerExecutionPayloadHeader interface {
@@ -70,17 +71,21 @@ func (e *ExecutionPayloadHeader) NewFromSSZ(
 	return e, nil
 }
 
-// UnmarshalJSON unmarshals the JSON bytes into the ExecutionPayloadHeader.
-func (e *ExecutionPayloadHeader) UnmarshalJSON(bz []byte) error {
-	// TODO: Generalize somehow.
-	e = e.Empty(version.Deneb)
-	return e.InnerExecutionPayloadHeader.UnmarshalJSON(bz)
+// NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
+func (e *ExecutionPayloadHeader) NewFromJSON(
+	bz []byte, forkVersion uint32,
+) (*ExecutionPayloadHeader, error) {
+	e = e.Empty(forkVersion)
+	if err := e.UnmarshalJSON(bz); err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -out payload_header.json.go -field-override executionPayloadHeaderDenebMarshaling
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/mod.go,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,$GOPATH/pkg/mod/github.com/holiman/uint256@v1.2.4 -output payload_header.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/mod.go,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload_header.ssz.go
 //nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       common.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`

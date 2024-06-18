@@ -22,8 +22,10 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/sourcegraph/conc/iter"
 )
 
+// processSyncCommitteeUpdates processes the sync committee updates.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
@@ -37,16 +39,14 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Create a list of validator updates.
-	//
-	// TODO: This is a trivial implementation that is to improved upon later.
-	updates := make([]*transition.ValidatorUpdate, 0)
-	for _, val := range vals {
-		updates = append(updates, &transition.ValidatorUpdate{
-			Pubkey:           val.GetPubkey(),
-			EffectiveBalance: val.GetEffectiveBalance(),
-		})
-	}
-
-	return updates, nil
+	return iter.MapErr(
+		vals,
+		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
+			v := (*val)
+			return &transition.ValidatorUpdate{
+				Pubkey:           v.GetPubkey(),
+				EffectiveBalance: v.GetEffectiveBalance(),
+			}, nil
+		},
+	)
 }

@@ -37,9 +37,6 @@ type BlsSignerInput struct {
 	PrivKey LegacyKey `optional:"true"`
 }
 
-// LegacyKey type alias to LegacyKey used for LegacySinger construction.
-type LegacyKey = signer.LegacyKey
-
 // ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
@@ -51,8 +48,4 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		), nil
 	}
 	return signer.NewLegacySigner(in.PrivKey)
-}
-
-func GetLegacyKey(privKey string) (LegacyKey, error) {
-	return signer.LegacyKeyFromString(privKey)
 }

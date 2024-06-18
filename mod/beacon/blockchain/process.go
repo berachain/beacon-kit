@@ -24,10 +24,10 @@ import (
 	"context"
 	"time"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"golang.org/x/sync/errgroup"
@@ -46,15 +46,13 @@ func (s *Service[
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData *genesis.Genesis[
-		DepositT, *types.ExecutionPayloadHeaderDeneb,
+		DepositT, *types.ExecutionPayloadHeader,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,
-		&types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: genesisData.ExecutionPayloadHeader,
-		},
+		genesisData.ExecutionPayloadHeader,
 		genesisData.ForkVersion,
 	)
 }
@@ -116,19 +114,17 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
-	// emit new block event
-	s.blockFeed.Send(
-		// TODO: decouple from feed package.
-		feed.NewEvent(ctx, events.BeaconBlockFinalized, (blk)),
-	)
-
 	// If required, we want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-
-	go s.sendPostBlockFCU(ctx, st, blk)
+	go func() {
+		s.blockFeed.Send(
+			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
+		)
+		s.sendPostBlockFCU(ctx, st, blk)
+	}()
 
 	return valUpdates, nil
 }

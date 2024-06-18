@@ -25,16 +25,15 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
@@ -75,10 +74,10 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput struct {
 	depinject.In
-	Logger            log.Logger
+	AvailabilityStore *AvailabilityStore
+	BlockFeed         *BlockFeed
 	ChainSpec         primitives.ChainSpec
-	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	Logger            log.Logger
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
@@ -89,8 +88,8 @@ func ProvideAvailabilityPruner(
 	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*BeaconBlock,
+		*BlockEvent,
 		*filedb.RangeDB,
 		event.Subscription,
 	](
@@ -99,8 +98,8 @@ func ProvideAvailabilityPruner(
 		manager.AvailabilityPrunerName,
 		in.BlockFeed,
 		dastore.BuildPruneRangeFn[
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
+			*BeaconBlock,
+			*BlockEvent,
 		](in.ChainSpec),
 	)
 }

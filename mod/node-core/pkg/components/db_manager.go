@@ -23,33 +23,27 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	dastore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // DBManagerInput is the input for the dep inject framework.
 type DBManagerInput struct {
 	depinject.In
-	Logger             log.Logger
-	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
 	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
+	DepositPruner      pruner.Pruner[*DepositStore]
+	Logger             log.Logger
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
 func ProvideDBManager(
 	in DBManagerInput,
-) (*manager.DBManager[*types.BeaconBlock,
-	*feed.Event[*types.BeaconBlock],
-	event.Subscription,
-], error) {
+) (*DBManager, error) {
 	return manager.NewDBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
+		*BeaconBlock,
+		*BlockEvent,
 		event.Subscription,
 	](
 		in.Logger.With("service", "db-manager"),

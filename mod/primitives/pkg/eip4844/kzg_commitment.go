@@ -21,11 +21,11 @@
 package eip4844
 
 import (
-	"crypto/sha256"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
