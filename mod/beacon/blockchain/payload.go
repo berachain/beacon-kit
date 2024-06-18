@@ -122,7 +122,7 @@ func (s *Service[
 	var (
 		prevStateRoot primitives.Root
 		prevBlockRoot primitives.Root
-		lph           ExecutionPayloadHeader
+		lph           ExecutionPayloadHeaderT
 		slot          math.Slot
 	)
 

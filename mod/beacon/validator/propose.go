@@ -47,6 +47,7 @@ func (s *Service[
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
+		eth1Data  Eth1DataT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
@@ -132,7 +133,6 @@ func (s *Service[
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
-	var eth1Data Eth1DataT
 	body.SetEth1Data(eth1Data.New(
 		primitives.Bytes32{},
 		0,
