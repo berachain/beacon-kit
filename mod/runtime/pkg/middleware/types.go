@@ -39,14 +39,8 @@ type BeaconBlock[
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 ] interface {
 	types.RawBeaconBlock[BeaconBlockBodyT]
+	// NewFromSSZ creates a new beacon block from the given SSZ bytes.
 	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	NewWithVersion(
-		math.Slot,
-		math.ValidatorIndex,
-		primitives.Root,
-		uint32,
-	) (BeaconBlockT, error)
-	Empty(uint32) BeaconBlockT
 }
 
 // BeaconState is an interface for accessing the beacon state.
