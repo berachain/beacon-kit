@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -39,14 +38,16 @@ import (
 //
 //nolint:funlen // todo:fix.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) RequestBlockForProposal(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
+		eth1Data  Eth1DataT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
@@ -132,11 +133,11 @@ func (s *Service[
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
 	// TODO: assemble real eth1data.
-	body.SetEth1Data(&types.Eth1Data{
-		DepositRoot:  primitives.Bytes32{},
-		DepositCount: 0,
-		BlockHash:    common.ZeroHash,
-	})
+	body.SetEth1Data(eth1Data.New(
+		primitives.Bytes32{},
+		0,
+		common.ZeroHash,
+	))
 
 	// Set the execution data.
 	if err = body.SetExecutionData(
@@ -175,8 +176,9 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -214,8 +216,9 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -244,11 +247,12 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -267,7 +271,7 @@ func (s *Service[
 
 		// The latest execution payload header will be from the previous block
 		// during the block building phase.
-		var lph *types.ExecutionPayloadHeader
+		var lph ExecutionPayloadHeaderT
 		lph, err = st.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return nil, err

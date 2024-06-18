@@ -25,8 +25,6 @@ import (
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -39,21 +37,22 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) ProcessGenesisData(
 	ctx context.Context,
-	genesisData *genesis.Genesis[
-		DepositT, *types.ExecutionPayloadHeader,
-	],
+	genesisData GenesisT,
 ) ([]*transition.ValidatorUpdate, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
-		genesisData.Deposits,
-		genesisData.ExecutionPayloadHeader,
-		genesisData.ForkVersion,
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
 	)
 }
 
@@ -63,10 +62,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -134,10 +136,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -175,10 +180,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,
