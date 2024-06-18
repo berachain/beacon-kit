@@ -50,8 +50,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 	// variables to hold the components needed to set up BeaconApp
 	var chainSpec primitives.ChainSpec
 	appBuilder := emptyAppBuilder()
-	validatorMiddleware := emptyValidatorMiddleware()
-	finalizeBlockMiddleware := emptyFinalizeBlockMiddlware()
+	abciMiddleware := emptyABCIMiddleware()
 	serviceRegistry := emptyServiceRegistry()
 
 	// build all node components using depinject
@@ -68,8 +67,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 		),
 		&appBuilder,
 		&chainSpec,
-		&validatorMiddleware,
-		&finalizeBlockMiddleware,
+		&abciMiddleware,
 		&serviceRegistry,
 	); err != nil {
 		panic(err)
@@ -82,9 +80,9 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 			append(
 				server.DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(validatorMiddleware.PrepareProposalHandler),
-				WithProcessProposal(validatorMiddleware.ProcessProposalHandler),
-				WithPreBlocker(finalizeBlockMiddleware.PreBlock),
+				WithPrepareProposal(abciMiddleware.PrepareProposal),
+				WithProcessProposal(abciMiddleware.ProcessProposal),
+				WithPreBlocker(abciMiddleware.PreBlock),
 			)...,
 		),
 	)

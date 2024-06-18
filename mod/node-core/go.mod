@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617185735-42326b5546a8
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240614154006-a5defa6198f5
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5
