@@ -145,6 +145,7 @@ func TestSafeCopy(t *testing.T) {
 		{name: "Another normal case", original: []byte{6, 6, 6, 6, 6}},
 		{name: "Another single element slice", original: []byte{5}},
 		{name: "Another large slice", original: make([]byte, 200)},
+		{name: "32-bit input", original: make([]byte, 32)},
 	}
 
 	for _, tt := range tests {
@@ -173,6 +174,10 @@ func TestSafeCopy2D(t *testing.T) {
 		name     string
 		original [][]byte
 	}{
+		{
+			name:     "nil input",
+			original: [][]byte{},
+		},
 		{
 			name: "Normal case",
 			original: [][]byte{
@@ -446,6 +451,113 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
+func TestBytes8UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B8
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: `"0x0102030405060708"`,
+			want:  bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   `"0102030405060708"`,
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   `"0x010203040506"`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B8
+			err := json.Unmarshal([]byte(tt.input), &got)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bytes8.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bytes8.UnmarshalJSON() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBytes8MarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		h       bytes.B8
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "valid bytes",
+			h:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			want: "0x0102030405060708",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.h.MarshalText()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bytes8.MarshalText() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if string(got) != tt.want {
+				t.Errorf("Bytes8.MarshalText() = %v, want %v", string(got), tt.want)
+			}
+		})
+	}
+}
+
+func TestBytes8UnmarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B8
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: "0x0102030405060708",
+			want:  bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   "0102030405060708",
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   "0x010203040506",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B8
+			err := got.UnmarshalText([]byte(tt.input))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bytes8.UnmarshalText() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bytes8.UnmarshalText() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestBytes32UnmarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
