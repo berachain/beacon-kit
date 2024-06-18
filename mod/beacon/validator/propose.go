@@ -75,20 +75,20 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
-	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
-	if err != nil {
-		return blk, sidecars, err
-	} else if envelope == nil {
-		return blk, sidecars, ErrNilPayload
-	}
-
 	// Create a new empty block from the current state.
 	blk, err = s.getEmptyBeaconBlockForSlot(
 		st, requestedSlot,
 	)
 	if err != nil {
 		return blk, sidecars, err
+	}
+
+	// Get the payload for the block.
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
+	if err != nil {
+		return blk, sidecars, err
+	} else if envelope == nil {
+		return blk, sidecars, ErrNilPayload
 	}
 
 	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
