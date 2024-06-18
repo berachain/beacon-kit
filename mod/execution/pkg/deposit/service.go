@@ -27,6 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// failedBlocksChannelCap defines the default capacity of the channel's buffer.
+const failedBlocksChannelCap = 100
+
 // Service represents the deposit service that processes deposit events.
 type Service[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
@@ -60,9 +63,9 @@ type Service[
 	]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
-	// failedBlocks is a map of blocks that failed to be processed to be
-	// retried.
-	failedBlocks map[math.U64]struct{}
+	// failedBlocks is a buffered channel of blocks that failed to be
+	// processed to be retried.
+	failedBlocks chan math.U64
 }
 
 // NewService creates a new instance of the Service struct.
@@ -105,7 +108,7 @@ func NewService[
 		metrics:            newMetrics(telemetrySink),
 		dc:                 dc,
 		ds:                 ds,
-		failedBlocks:       make(map[math.Slot]struct{}),
+		failedBlocks:       make(chan math.U64, failedBlocksChannelCap),
 	}
 }
 
