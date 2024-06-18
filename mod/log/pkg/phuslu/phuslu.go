@@ -28,6 +28,7 @@ import (
 
 // Logger is a wrapper around phuslogger.
 type Logger[ImplT any] struct {
+	// logger is the underlying logger implementation.
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
 	context log.Fields
@@ -36,7 +37,8 @@ type Logger[ImplT any] struct {
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
 // default configuration.
 func NewLogger[ImplT any](
-	level string, out io.Writer) *Logger[ImplT] {
+	level string, out io.Writer,
+) *Logger[ImplT] {
 	cfg := DefaultConfig()
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
@@ -70,6 +72,14 @@ func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
 
 // Debug logs a message at level Debug.
 func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
+	// In a special case for debug, we check to see if the
+	// logger level is set to debug before logging the message.
+	// We don't do this in other log levels since they are more common
+	// and we would add the overhead of the if check, when the happy
+	// path in their case, is to print out the line.
+	if l.logger.Level > log.DebugLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Debug(), keyVals...)
 }
 
@@ -80,7 +90,6 @@ func (l *Logger[ImplT]) Impl() any {
 
 // With returns a new wrapped logger with additional context provided by a set.
 func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
-	newLogger := *l
 	fields := keyValToFields(keyVals...)
 	// Copy existing context
 	for k, v := range l.context {
@@ -88,8 +97,8 @@ func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 	}
 
 	// return a new logger with the new fields
-	newLogger.context = fields
-	return any(&newLogger).(ImplT)
+	l.context = fields
+	return any(l).(ImplT)
 }
 
 // addContext adds the context to the entry
@@ -99,7 +108,8 @@ func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
 
 // msgWithContext logs a message with keyVals and current context
 func (l *Logger[ImplT]) msgWithContext(
-	msg string, e *log.Entry, keyVals ...any) {
+	msg string, e *log.Entry, keyVals ...any,
+) {
 	e = l.addContext(e)
 	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
 	e.Msg(msg)

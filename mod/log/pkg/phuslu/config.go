@@ -27,7 +27,7 @@ import (
 // DefaultConfig returns a new Config with default values.
 func DefaultConfig() *Config {
 	return &Config{
-		TimeFormat:     time.Kitchen,
+		TimeFormat:     time.RFC3339,
 		ColorOutput:    true,
 		QuoteString:    true,
 		EndWithMessage: true,
