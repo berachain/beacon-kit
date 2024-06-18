@@ -33,27 +33,10 @@ import (
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
-<<<<<<< HEAD
 type BeaconBlock[T any] interface {
 	ssz.Marshallable
 	IsNil() bool
 	NewFromSSZ([]byte, uint32) (T, error)
-=======
-type BeaconBlock[
-	BeaconBlockT any,
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-] interface {
-	types.RawBeaconBlock[BeaconBlockBodyT]
-	// NewFromSSZ creates a new beacon block from the given SSZ bytes.
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	// NewWithVersion creates a new beacon block with the given version.
-	NewWithVersion(
-		math.Slot,
-		math.ValidatorIndex,
-		primitives.Root,
-		uint32,
-	) (BeaconBlockT, error)
->>>>>>> origin/main
 }
 
 // BeaconState is an interface for accessing the beacon state.

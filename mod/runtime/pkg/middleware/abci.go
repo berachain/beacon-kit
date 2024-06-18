@@ -26,12 +26,7 @@ import (
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-<<<<<<< HEAD
-=======
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
->>>>>>> origin/main
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -123,32 +118,10 @@ func (h *ABCIMiddleware[
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	// "Publish" the blobs and the beacon block.
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
-		if localErr != nil {
-			h.logger.Error("failed to publish blobs", "error", err)
-		}
-		return localErr
-	})
-
-	g.Go(func() error {
-		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
-		if localErr != nil {
-			h.logger.Error("failed to publish beacon block", "error", err)
-		}
-		return localErr
-	})
-=======
 	sidecarsBz, err = h.waitForSidecars(ctx)
 	if err != nil {
 		return nil, err
 	}
->>>>>>> origin/main
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
@@ -157,11 +130,8 @@ func (h *ABCIMiddleware[
 
 // waitForSidecars waits for the sidecars to be built and returns them.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ]) waitForSidecars(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():
@@ -179,11 +149,8 @@ func (h *ABCIMiddleware[
 
 // waitforBeaconBlk waits for the beacon block to be built and returns it.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():

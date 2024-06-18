@@ -21,14 +21,10 @@
 package middleware
 
 import (
-<<<<<<< HEAD
-=======
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
->>>>>>> origin/main
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -175,16 +171,16 @@ func NewABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ]) Name() string {
 	return "abci-middleware"
 }
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ]) Start(ctx context.Context) error {
 	go am.start(ctx)
 	return nil
@@ -192,8 +188,8 @@ func (am *ABCIMiddleware[
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ]) start(ctx context.Context) {
 	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
 	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
