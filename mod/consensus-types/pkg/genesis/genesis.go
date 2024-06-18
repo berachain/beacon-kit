@@ -37,6 +37,8 @@ import (
 
 // Genesis is a struct that contains the genesis information
 // need to start the beacon chain.
+//
+//nolint:lll
 type Genesis[
 	DepositT any,
 	ExecutionPayloadHeaderT interface {
@@ -59,6 +61,7 @@ type Genesis[
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	data []byte,
 ) error {
+	
 	type genesisMarshalable[Deposit any] struct {
 		ForkVersion            primitives.Version `json:"fork_version"`
 		Deposits               []DepositT         `json:"deposits"`
