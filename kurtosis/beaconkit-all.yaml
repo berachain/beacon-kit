@@ -58,7 +58,7 @@ network_configuration:
       - el_type: besu
         replicas: 0
       - el_type: erigon
-        replicas: 0
+        replicas: 1
       - el_type: ethereumjs
         replicas: 0
   seed_nodes:
@@ -118,3 +118,5 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
+  - name: "otterscan"
+    client: "el-full-erigon-3"  

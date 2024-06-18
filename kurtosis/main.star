@@ -17,6 +17,7 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
+otterscan = import_module("./src/services/otterscan/launcher.star")
 
 def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -223,5 +224,11 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
                 s.client,
                 False,
             )
-
+        elif s.name == "otterscan":
+            plan.print("Launching otterscan")
+            otterscan.launch_otterscan(
+                plan,
+                full_node_el_clients,
+                s.client,
+            )
     plan.print("Successfully launched development network")
