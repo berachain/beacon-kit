@@ -30,6 +30,15 @@ import (
 // ValidatorUpdates is a list of validator updates.
 type ValidatorUpdates []*ValidatorUpdate
 
+// ValidatorUpdate is a struct that holds the validator update.
+type ValidatorUpdate struct {
+	// Pubkey is the public key of the validator.
+	Pubkey crypto.BLSPubkey
+
+	// EffectiveBalance is the effective balance of the validator.
+	EffectiveBalance math.Gwei
+}
+
 // RemoveDuplicates removes duplicate validator updates.
 func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
 	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
@@ -51,13 +60,4 @@ func (vu ValidatorUpdates) Sort() ValidatorUpdates {
 		return string((vu)[i].Pubkey[:]) < string((vu)[j].Pubkey[:])
 	})
 	return vu
-}
-
-// ValidatorUpdate is a struct that holds the validator update.
-type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
-	Pubkey crypto.BLSPubkey
-
-	// EffectiveBalance is the effective balance of the validator.
-	EffectiveBalance math.Gwei
 }
