@@ -76,30 +76,41 @@ func (h *ABCIMiddleware[
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
-	// Call the function asynchronously
-	go func() {
-		blk, blobs, err := encoding.
-			ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
-			BeaconBlockTxIndex,
-			BlobSidecarsTxIndex,
-			h.chainSpec.ActiveForkVersionForSlot(
-				math.Slot(req.Height),
-			))
-
-		if err != nil {
-			h.errChannel <- errors.Join(err, ErrBadExtractBlockAndBlocks)
-			return
-		}
-
-		result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
-		if err != nil {
-			h.errChannel <- err
-		} else {
-			h.valUpdatesChannel <- result
-		}
-	}()
-
+	go h.handlePreBlock(ctx, req)
 	return nil
+}
+
+// HandlePreBlock is called by the base app before the block is finalized. It
+// is responsible for aggregating oracle data from each validator and writing
+// the oracle data to the store.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) handlePreBlock(
+	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
+) {
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		h.chainSpec.ActiveForkVersionForSlot(
+			math.Slot(req.Height),
+		))
+
+	if err != nil {
+		h.errChannel <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		return
+	}
+
+	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
+	if err != nil {
+		h.errChannel <- err
+	} else {
+		h.valUpdatesChannel <- result
+	}
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -112,8 +123,6 @@ func (h *ABCIMiddleware[
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	// Deduplicate h.valUpdates by pubkey, keeping the later element over any
-	// earlier ones
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()

@@ -34,7 +34,6 @@ type ValidatorUpdates []*ValidatorUpdate
 type ValidatorUpdate struct {
 	// Pubkey is the public key of the validator.
 	Pubkey crypto.BLSPubkey
-
 	// EffectiveBalance is the effective balance of the validator.
 	EffectiveBalance math.Gwei
 }
