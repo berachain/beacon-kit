@@ -35,21 +35,11 @@ import (
 // addresses for constructed depinject values.
 
 // emptyBeaconState return an address pointing to an empty BeaconState.
-func emptyValidatorMiddleware() *components.ValidatorMiddleware {
-	return &middleware.ValidatorMiddleware[
+func emptyABCIMiddleware() *components.ABCIMiddleware {
+	return &middleware.ABCIMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
-		*datypes.BlobSidecars,
-	]{}
-}
-
-// emptyFinalizeBlockMiddleware returns an address pointing to an empty
-// FinalizeBlockMiddleware.
-func emptyFinalizeBlockMiddlware() *components.FinalizeBlockMiddleware {
-	return &middleware.FinalizeBlockMiddleware[
-		*consensustypes.BeaconBlock,
 		components.BeaconState,
 		*datypes.BlobSidecars,
 	]{}

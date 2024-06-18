@@ -46,7 +46,7 @@ var (
 )
 
 // AppModule implements an application module for the evm module.
-// It is a wrapper around the FinalizeBlockMiddleware and ValidatorMiddleware.
+// It is a wrapper around the FinalizeBlockMiddleware and ABCIMiddleware.
 type AppModule struct {
 	ABCIMiddleware *components.ABCIMiddleware
 }
@@ -116,12 +116,12 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.ABCIMiddleware.FinalizeBlock.InitGenesis(ctx, bz)
+	return am.ABCIMiddleware.InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.ABCIMiddleware.FinalizeBlock.EndBlock(ctx)
+	return am.ABCIMiddleware.EndBlock(ctx)
 }

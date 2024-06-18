@@ -52,7 +52,6 @@ type (
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
-		StorageBackend,
 	]
 
 	// AvailabilityStore is a type alias for the availability store.
@@ -130,10 +129,6 @@ type (
 	ExecutionPayload       = types.ExecutionPayload
 	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
-	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
-		*BeaconBlock, BeaconState, *BlobSidecars,
-	]
-
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
 		*types.Fork, *BeaconBlockHeader, *ExecutionPayloadHeader,
@@ -170,15 +165,6 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-	]
-
-	// ValidatorMiddleware is a type alias for the validator middleware.
-	ValidatorMiddleware = middleware.ValidatorMiddleware[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		BeaconState,
-		*BlobSidecars,
 	]
 
 	// ValidatorService is a type alias for the validator service.

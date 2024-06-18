@@ -28,65 +28,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
-// FinalizeBlockMiddleware is a struct that encapsulates the necessary
-// components to handle
-// the proposal processes.
-type FinalizeBlockMiddleware[
-	BeaconBlockT interface {
-		ssz.Marshallable
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	},
-	BeaconStateT any,
-	BlobSidecarsT ssz.Marshallable,
-] struct {
-	// chainSpec is the chain specification.
-	chainSpec primitives.ChainSpec
-	// chainService represents the blockchain service.
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
-	// resChannel is used to communicate the validator updates to the
-	// EndBlock method.
-	valUpdatesChannel chan []*transition.ValidatorUpdate
-	// errChannel is used to communicate errors to the EndBlock method.
-	errChannel chan error
-}
-
-// NewFinalizeBlockMiddleware creates a new instance of the Handler struct.
-func NewFinalizeBlockMiddleware[
-	BeaconBlockT interface {
-		ssz.Marshallable
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	},
-	BeaconStateT any, BlobSidecarsT ssz.Marshallable,
-](
-	chainSpec primitives.ChainSpec,
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
-) *FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT] {
-	// This is just for nilaway, TODO: remove later.
-	if chainService == nil {
-		panic("chain service is nil")
-	}
-
-	return &FinalizeBlockMiddleware[BeaconBlockT, BeaconStateT, BlobSidecarsT]{
-		chainSpec:         chainSpec,
-		chainService:      chainService,
-		valUpdatesChannel: make(chan []*transition.ValidatorUpdate),
-		errChannel:        make(chan error),
-	}
-}
-
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *FinalizeBlockMiddleware[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -112,8 +67,12 @@ func (h *FinalizeBlockMiddleware[
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *FinalizeBlockMiddleware[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
@@ -144,8 +103,12 @@ func (h *FinalizeBlockMiddleware[
 }
 
 // EndBlock returns the validator set updates from the beacon state.
-func (h FinalizeBlockMiddleware[
-	BeaconBlockT, BeaconStateT, BlobSidecarsT,
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {

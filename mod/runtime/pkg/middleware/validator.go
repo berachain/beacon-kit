@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -37,8 +38,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ValidatorMiddleware is a middleware between ABCI and the validator logic.
-type ValidatorMiddleware[
+// ABCIMiddleware is a middleware between ABCI and the validator logic.
+type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
 		types.RawBeaconBlock[BeaconBlockBodyT]
@@ -57,14 +58,14 @@ type ValidatorMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
+	// chainService represents the blockchain service.
+	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
 		BlobSidecarsT,
 	]
-
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
 
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
@@ -82,12 +83,19 @@ type ValidatorMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
+
+	// resChannel is used to communicate the validator updates to the
+	// EndBlock method.
+	valUpdatesChannel chan []*transition.ValidatorUpdate
+	// errChannel is used to communicate errors to the EndBlock method.
+	errChannel chan error
+
 	// metrics is the metrics emitter.
-	metrics *validatorMiddlewareMetrics
+	metrics *ABCIMiddlewareMetrics
 }
 
-// NewValidatorMiddleware creates a new instance of the Handler struct.
-func NewValidatorMiddleware[
+// NewABCIMiddleware creates a new instance of the Handler struct.
+func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT interface {
 		types.RawBeaconBlock[BeaconBlockBodyT]
@@ -118,11 +126,11 @@ func NewValidatorMiddleware[
 	],
 	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
 	telemetrySink TelemetrySink,
-) *ValidatorMiddleware[
+) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
 ] {
-	return &ValidatorMiddleware[
+	return &ABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT,
 	]{
@@ -135,13 +143,15 @@ func NewValidatorMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		metrics: newValidatorMiddlewareMetrics(telemetrySink),
+		valUpdatesChannel: make(chan []*transition.ValidatorUpdate),
+		errChannel:        make(chan error),
+		metrics:           newABCIMiddlewareMetrics(telemetrySink),
 	}
 }
 
 // PrepareProposalHandler is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
-func (h *ValidatorMiddleware[
+func (h *ABCIMiddleware[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
@@ -197,7 +207,7 @@ func (h *ValidatorMiddleware[
 
 // ProcessProposalHandler is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
-func (h *ValidatorMiddleware[
+func (h *ABCIMiddleware[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
