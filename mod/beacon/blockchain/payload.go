@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -34,10 +33,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
+	WithdrawalT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -68,10 +72,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
+	WithdrawalT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -97,10 +106,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
+	WithdrawalT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -108,7 +122,7 @@ func (s *Service[
 	var (
 		prevStateRoot primitives.Root
 		prevBlockRoot primitives.Root
-		lph           *types.ExecutionPayloadHeader
+		lph           ExecutionPayloadHeader
 		slot          math.Slot
 	)
 
@@ -133,7 +147,7 @@ func (s *Service[
 		return err
 	}
 
-	latestHeader.StateRoot = prevStateRoot
+	latestHeader.SetStateRoot(prevStateRoot)
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
@@ -180,10 +194,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
+	WithdrawalT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -203,10 +222,15 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
+	WithdrawalT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

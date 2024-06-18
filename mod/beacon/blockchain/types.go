@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -48,39 +47,63 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// ReadOnlyBeaconState defines the interface for accessing various components of
-// the
-// beacon state.
-type ReadOnlyBeaconState[T any] interface {
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
-	// GetLatestExecutionPayloadHeader returns the most recent execution payload
-	// header.
-	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader,
-		error,
-	)
-	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
-	GetEth1DepositIndex() (uint64, error)
-	// GetLatestBlockHeader returns the most recent block header.
-	GetLatestBlockHeader() (
-		*types.BeaconBlockHeader,
-		error,
-	)
-	// HashTreeRoot returns the hash tree root of the beacon state.
+// BeaconBlock represents a beacon block interface.
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	DepositT,
+	ExecutionPayloadT any,
+] interface {
+	ssz.Marshallable
+	// NewWithVersion creates a new beacon block with the given parameters.
+	NewWithVersion(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		forkVersion uint32,
+	) (BeaconBlockT, error)
+
+	// IsNil checks if the beacon block is nil.
+	IsNil() bool
+	// Version returns the version of the beacon block.
+	Version() uint32
+	// GetSlot returns the slot of the beacon block.
+	GetSlot() math.Slot
+	// GetProposerIndex returns the proposer index of the beacon block.
+	GetProposerIndex() math.ValidatorIndex
+	// GetParentBlockRoot returns the parent block root of the beacon block.
+	GetParentBlockRoot() common.Root
+	// SetStateRoot sets the state root of the beacon block.
+	SetStateRoot(common.Root)
+	// GetStateRoot returns the state root of the beacon block.
+	GetStateRoot() common.Root
+
+	// GetBody returns the body of the beacon block.
+	GetBody() BeaconBlockBodyT
+}
+
+type BeaconBlockBody[
+	ExecutionPayloadT any,
+] interface {
+	ssz.Marshallable
+	// IsNil checks if the beacon block body is nil.
+	IsNil() bool
+	// GetExecutionPayload returns the execution payload of the beacon block
+	// body.
+	GetExecutionPayload() ExecutionPayloadT
+}
+
+type BeaconBlockHeader interface {
+	SetStateRoot(common.Root)
 	HashTreeRoot() ([32]byte, error)
-	// Copy creates a copy of the beacon state.
-	Copy() T
-	// ValidatorIndexByPubkey finds the index of a validator based on their
-	// public key.
-	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 }
 
 // BlobVerifier is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BlobSidecarsT any,
+	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	BlobSidecarsT,
+	ExecutionPayloadT any,
 ] interface {
 	// ProcessBlobs processes the blobs and ensures they match the local state.
 	ProcessBlobs(
@@ -112,12 +135,15 @@ type DepositStore[DepositT any] interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	WithdrawalT Withdrawal,
+] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest,
-	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
@@ -129,7 +155,8 @@ type ExecutionEngine interface {
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
 		req *engineprimitives.NewPayloadRequest[
-			*types.ExecutionPayload, *engineprimitives.Withdrawal],
+			ExecutionPayloadT, WithdrawalT,
+		],
 	) error
 }
 
@@ -138,6 +165,44 @@ type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
 	Send(event EventT) int
+}
+
+// ExecutionPayload is the interface for the execution payload.
+type ExecutionPayload[T any, WithdrawalT Withdrawal] interface {
+	Empty(uint32) T
+	IsNil() bool
+	Version() uint32
+	GetPrevRandao() primitives.Bytes32
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetNumber() math.U64
+	GetGasLimit() math.U64
+	GetGasUsed() math.U64
+	GetTimestamp() math.U64
+	GetExtraData() []byte
+	GetBaseFeePerGas() math.Wei
+	GetFeeRecipient() common.ExecutionAddress
+	GetStateRoot() primitives.Bytes32
+	GetReceiptsRoot() primitives.Bytes32
+	GetLogsBloom() []byte
+	GetBlobGasUsed() math.U64
+	GetExcessBlobGas() math.U64
+	GetWithdrawals() []WithdrawalT
+	GetTransactions() [][]byte
+}
+
+// ExecutionPayloadHeader is the interface for the execution payload header.
+type ExecutionPayloadHeader interface {
+	GetTimestamp() math.U64
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+}
+
+// Genesis is the interface for the genesis.
+type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+	GetForkVersion() primitives.Version
+	GetDeposits() []DepositT
+	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -161,6 +226,38 @@ type LocalBuilder[BeaconStateT any] interface {
 	) error
 }
 
+// ReadOnlyBeaconState defines the interface for accessing various components of
+// the
+// beacon state.
+type ReadOnlyBeaconState[
+	T any,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	ExecutionPayloadHeaderT any,
+] interface {
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
+	// GetLatestExecutionPayloadHeader returns the most recent execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (
+		ExecutionPayloadHeaderT,
+		error,
+	)
+	// GetEth1DepositIndex returns the index of the most recent eth1 deposit.
+	GetEth1DepositIndex() (uint64, error)
+	// GetLatestBlockHeader returns the most recent block header.
+	GetLatestBlockHeader() (
+		BeaconBlockHeaderT,
+		error,
+	)
+	// HashTreeRoot returns the hash tree root of the beacon state.
+	HashTreeRoot() ([32]byte, error)
+	// Copy creates a copy of the beacon state.
+	Copy() T
+	// ValidatorIndexByPubkey finds the index of a validator based on their
+	// public key.
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+}
+
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor[
@@ -168,7 +265,8 @@ type StateProcessor[
 	BeaconStateT,
 	BlobSidecarsT,
 	ContextT,
-	DepositT any,
+	DepositT,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -176,7 +274,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
 		[]DepositT,
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 		primitives.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlots processes the state transition for a range of slots.
@@ -200,7 +298,6 @@ type StorageBackend[
 	BlobSidecarsT,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore(context.Context) AvailabilityStoreT
@@ -219,4 +316,12 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+// Withdrawal is the interface for the withdrawal.
+type Withdrawal interface {
+	GetIndex() math.U64
+	GetAmount() math.U64
+	GetAddress() common.ExecutionAddress
+	GetValidatorIndex() math.U64
 }

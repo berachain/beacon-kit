@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,9 +35,15 @@ import (
 )
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
-	*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
-]] interface {
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
+] interface {
 	ssz.Marshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
@@ -94,6 +99,11 @@ type BeaconBlockBody[
 	GetExecutionPayload() ExecutionPayloadT
 }
 
+// BeaconBlockHeader represents a beacon block header interface.
+type BeaconBlockHeader interface {
+	HashTreeRoot() ([32]byte, error)
+}
+
 // BeaconState represents a beacon state interface.
 type BeaconState[
 	BeaconBlockHeader interface{ HashTreeRoot() ([32]byte, error) },
@@ -128,11 +138,16 @@ type BeaconState[
 
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
 	BlobSidecarsT BlobSidecars,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -171,6 +186,22 @@ type DepositStore[DepositT any] interface {
 	) ([]DepositT, error)
 }
 
+// Eth1Data represents the eth1 data interface.
+type Eth1Data[T any] interface {
+	New(
+		depositRoot common.Root,
+		depositCount math.U64,
+		blockHash common.ExecutionHash,
+	) T
+}
+
+// ExecutionPayloadHeader represents the execution payload header interface.
+type ExecutionPayloadHeader interface {
+	GetTimestamp() math.U64
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
+}
+
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
@@ -203,7 +234,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// SendForceHeadFCU sends a force head FCU to the execution client.
 	SendForceHeadFCU(
 		ctx context.Context,
@@ -215,12 +246,14 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
+	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	],
 	ContextT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
@@ -237,13 +270,15 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
+	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT,
 	],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore(context.Context) DepositStoreT

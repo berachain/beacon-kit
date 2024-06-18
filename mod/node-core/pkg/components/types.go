@@ -25,6 +25,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -89,10 +90,15 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Genesis,
+		*Withdrawal,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -129,6 +135,9 @@ type (
 	ExecutionPayload       = types.ExecutionPayload
 	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
+	// Genesis is a type alias for the genesis.
+	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeader]
+
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
 		*types.Fork, *BeaconBlockHeader, *ExecutionPayloadHeader,
@@ -150,6 +159,7 @@ type (
 		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
+		*ExecutionPayloadHeader,
 	]
 
 	// StatusFeed is a type alias for the status feed.
@@ -171,9 +181,14 @@ type (
 	ValidatorService = validator.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.ForkData,
 	]
 
