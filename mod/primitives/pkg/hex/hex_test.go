@@ -331,7 +331,11 @@ func TestUnmarshalJSONText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := hex.UnmarshalJSONText(tt.input, tt.unmarshaler, reflect.TypeOf(tt.unmarshaler))
+			err := hex.UnmarshalJSONText(
+				tt.input,
+				tt.unmarshaler,
+				reflect.TypeOf(tt.unmarshaler),
+			)
 			if tt.expectErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {

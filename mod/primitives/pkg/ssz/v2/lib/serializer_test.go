@@ -105,8 +105,16 @@ func TestGetArrayDimensionality(t *testing.T) {
 	}{
 		{"3D empty array", [0][0][0]int32{}, 3},
 		{"3D empty slice", [][][]int32{}, 3},
-		{"3D non-empty array", [2][2][2]int32{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, 3},
-		{"3D non-empty slice", [][][]int32{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, 3},
+		{
+			"3D non-empty array",
+			[2][2][2]int32{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}},
+			3,
+		},
+		{
+			"3D non-empty slice",
+			[][][]int32{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}},
+			3,
+		},
 	}
 
 	t.Run("1D", func(t *testing.T) {
@@ -115,7 +123,11 @@ func TestGetArrayDimensionality(t *testing.T) {
 				val := reflect.ValueOf(tt.input)
 				result := sszv2.GetArrayDimensionality(val)
 				if result != tt.expected {
-					t.Errorf("Expected dimensionality %d, but got %d", tt.expected, result)
+					t.Errorf(
+						"Expected dimensionality %d, but got %d",
+						tt.expected,
+						result,
+					)
 				}
 			})
 		}
@@ -127,7 +139,11 @@ func TestGetArrayDimensionality(t *testing.T) {
 				val := reflect.ValueOf(tt.input)
 				result := sszv2.GetArrayDimensionality(val)
 				if result != tt.expected {
-					t.Errorf("Expected dimensionality %d, but got %d", tt.expected, result)
+					t.Errorf(
+						"Expected dimensionality %d, but got %d",
+						tt.expected,
+						result,
+					)
 				}
 			})
 		}
@@ -139,7 +155,11 @@ func TestGetArrayDimensionality(t *testing.T) {
 				val := reflect.ValueOf(tt.input)
 				result := sszv2.GetArrayDimensionality(val)
 				if result != tt.expected {
-					t.Errorf("Expected dimensionality %d, but got %d", tt.expected, result)
+					t.Errorf(
+						"Expected dimensionality %d, but got %d",
+						tt.expected,
+						result,
+					)
 				}
 			})
 		}
