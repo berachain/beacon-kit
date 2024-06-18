@@ -192,7 +192,6 @@ func (s *Service[
 	BlobSidecarsT,
 	DepositT,
 	DepositStoreT,
-	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,

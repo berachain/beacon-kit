@@ -108,24 +108,6 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	return nil
 }
 
-func (g *Genesis[
-	DepositT, ExecutionPayloadHeaderT,
-]) GetForkVersion() primitives.Version {
-	return g.ForkVersion
-}
-
-func (g *Genesis[
-	DepositT, ExecutionPayloadHeaderT,
-]) GetDeposits() []DepositT {
-	return g.Deposits
-}
-
-func (g *Genesis[
-	DepositT, ExecutionPayloadHeaderT,
-]) GetExecutionPayloadHeader() ExecutionPayloadHeaderT {
-	return g.ExecutionPayloadHeader
-}
-
 // DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
 	*types.Deposit, *types.ExecutionPayloadHeader,
