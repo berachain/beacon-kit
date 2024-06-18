@@ -41,6 +41,13 @@ type BeaconBlock[
 	types.RawBeaconBlock[BeaconBlockBodyT]
 	// NewFromSSZ creates a new beacon block from the given SSZ bytes.
 	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	// NewWithVersion creates a new beacon block with the given version.
+	NewWithVersion(
+		math.Slot,
+		math.ValidatorIndex,
+		primitives.Root,
+		uint32,
+	) (BeaconBlockT, error)
 }
 
 // BeaconState is an interface for accessing the beacon state.

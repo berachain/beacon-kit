@@ -25,6 +25,8 @@ import "github.com/ethereum/go-ethereum/event"
 // Subscription is a subscription to a feed.
 type Subscription = event.Subscription
 
+type Feed = event.Feed
+
 // FeedOf is a feed of events.
 // It is a wrapper around the event.FeedOf type.
 type FeedOf[
