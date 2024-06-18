@@ -32,12 +32,8 @@ import (
 
 // Service is the blockchain service.
 type Service[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT,
-	],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
@@ -45,11 +41,9 @@ type Service[
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -58,15 +52,13 @@ type Service[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
-		DepositT,
-		DepositStoreT,
 	]
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
 	// cs holds the chain specifications.
 	cs primitives.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
-	ee ExecutionEngine[ExecutionPayloadT, WithdrawalT]
+	ee ExecutionEngine
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
@@ -95,12 +87,8 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, ExecutionPayloadT,
-	],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
@@ -108,23 +96,19 @@ func NewService[
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
-		DepositT,
-		DepositStoreT,
 	],
 	logger log.Logger[any],
 	cs primitives.ChainSpec,
-	ee ExecutionEngine[ExecutionPayloadT, WithdrawalT],
+	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -142,14 +126,13 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT, WithdrawalT,
+	BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, GenesisT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT, DepositT,
-		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, WithdrawalT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, GenesisT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -173,12 +156,10 @@ func (s *Service[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -195,7 +176,6 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-	WithdrawalT,
 ]) Start(
 	context.Context,
 ) error {
