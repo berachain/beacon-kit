@@ -157,7 +157,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case sidecars := <-h.sidecarsCh:
+	case sidecars := <-h.prepareProposalSidecarsCh:
 		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
@@ -179,7 +179,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case beaconBlock := <-h.blkCh:
+	case beaconBlock := <-h.prepareProposalBlkCh:
 		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
 		if err != nil {
 			h.logger.Error("failed to publish beacon block", "error", err)
@@ -291,13 +291,13 @@ func (h *ABCIMiddleware[
 		))
 
 	if err != nil {
-		h.errCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		h.finalizeBlockErrCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
 		return
 	}
 
 	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
 	if err != nil {
-		h.errCh <- err
+		h.finalizeBlockErrCh <- err
 	} else {
 		h.valUpdatesCh <- result
 	}
@@ -329,7 +329,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case err := <-h.errCh:
+	case err := <-h.finalizeBlockErrCh:
 		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
 			err = nil
 		}

@@ -71,26 +71,41 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
-	// resChannel is used to communicate the validator updates to the
-	// EndBlock method.
-	valUpdatesCh chan transition.ValidatorUpdates
-	// errCh is used to communicate errors to the EndBlock method.
-	errCh                chan error
-	prepareProposalErrCh chan error
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
 
-	blkCh      chan BeaconBlockT
-	sidecarsCh chan BlobSidecarsT
-
+	// Feeds
+	//
 	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
-	slotFeed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]]
+
+	// Channels
+	//
+	// PrepareProposal
+	//
+	// prepareProposalErrCh is used to communicate errors to the EndBlock method.
+	prepareProposalErrCh chan error
+	// blkCh is used to communicate the beacon block to the EndBlock method.
+	prepareProposalBlkCh chan BeaconBlockT
+	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
+	prepareProposalSidecarsCh chan BlobSidecarsT
+	//
+	// FinalizeBlock
+	//
+	// valUpdatesCh is used to communicate the validator updates to the
+	// EndBlock method.
+	valUpdatesCh chan transition.ValidatorUpdates
+	// errCh is used to communicate errors to the EndBlock method.
+	finalizeBlockErrCh chan error
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -133,16 +148,16 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:               logger,
-		metrics:              newABCIMiddlewareMetrics(telemetrySink),
-		valUpdatesCh:         make(chan transition.ValidatorUpdates),
-		errCh:                make(chan error, 1),
-		blkCh:                make(chan BeaconBlockT, 1),
-		sidecarsCh:           make(chan BlobSidecarsT, 1),
-		prepareProposalErrCh: make(chan error, 1),
-		blkFeed:              blkFeed,
-		sidecarsFeed:         sidecarsFeed,
-		slotFeed:             slotFeed,
+		logger:                    logger,
+		metrics:                   newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:                   blkFeed,
+		sidecarsFeed:              sidecarsFeed,
+		slotFeed:                  slotFeed,
+		valUpdatesCh:              make(chan transition.ValidatorUpdates),
+		finalizeBlockErrCh:        make(chan error, 1),
+		prepareProposalBlkCh:      make(chan BeaconBlockT, 1),
+		prepareProposalSidecarsCh: make(chan BlobSidecarsT, 1),
+		prepareProposalErrCh:      make(chan error, 1),
 	}
 }
 
@@ -154,7 +169,7 @@ func (am *ABCIMiddleware[
 	return "abci-middleware"
 }
 
-// Start the middleware
+// Start the middleware.
 func (am *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT,
@@ -185,14 +200,14 @@ func (am *ABCIMiddleware[
 					am.prepareProposalErrCh <- blk.Error()
 					continue
 				}
-				am.blkCh <- blk.Data()
+				am.prepareProposalBlkCh <- blk.Data()
 			}
 		case sidecars := <-subSidecarsCh:
 			if sidecars.Error() != nil {
 				am.prepareProposalErrCh <- sidecars.Error()
 				continue
 			}
-			am.sidecarsCh <- sidecars.Data()
+			am.prepareProposalSidecarsCh <- sidecars.Data()
 		}
 	}
 }
