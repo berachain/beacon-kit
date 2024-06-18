@@ -45,7 +45,6 @@ func (s *Service[
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
-		eth1Data  Eth1DataT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
@@ -256,14 +255,15 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
-	envelope engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload],
+	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -300,8 +300,9 @@ func (s *Service[
 	// Set the deposits on the block body.
 	body.SetDeposits(deposits)
 
+	var eth1Data Eth1DataT
 	// TODO: assemble real eth1data.
-  body.SetEth1Data(eth1Data.New(
+	body.SetEth1Data(eth1Data.New(
 		primitives.Bytes32{},
 		0,
 		common.ZeroHash,
