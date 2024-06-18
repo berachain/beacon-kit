@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -31,6 +33,8 @@ import (
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type ABCIMiddlewareInput struct {
 	depinject.In
+	BlkFeed          *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BeaconBlock]]
+	SidecarsFeed     *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
 	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
 	Logger           log.Logger[any]
@@ -53,5 +57,7 @@ func ProvideABCIMiddleware(
 		in.ChainService,
 		in.Logger,
 		in.TelemetrySink,
+		in.BlkFeed,
+		in.SidecarsFeed,
 	)
 }

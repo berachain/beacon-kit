@@ -23,6 +23,8 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -35,6 +37,9 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
+	BlkFeed        *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BeaconBlock]]
+	SidecarsFeed   *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
+	BlobProcessor  *BlobProcessor
 	Cfg            *config.Config
 	ChainSpec      primitives.ChainSpec
 	LocalBuilder   *LocalBuilder
@@ -78,5 +83,7 @@ func ProvideValidatorService(
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
+		in.BlkFeed,
+		in.SidecarsFeed,
 	)
 }

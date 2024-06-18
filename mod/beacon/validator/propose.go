@@ -52,6 +52,7 @@ func (s *Service[
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
+
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 	s.logger.Info(
 		"requesting beacon block assembly 🙈",

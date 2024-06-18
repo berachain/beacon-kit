@@ -26,6 +26,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
+// ProvideBlobFeed provides a blob feed for the depinject framework.
+func ProvideBlobFeed() *event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]] {
+	return &event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]{}
+}
+
+// ProvideBlockFeed provides a block feed for the depinject framework.
+func ProvideBlockFeed() *BlockFeed {
+	return &BlockFeed{}
+}
+
 // ProvideStatusFeed provides a status feed.
 func ProvideStatusFeed() *event.FeedOf[
 	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],

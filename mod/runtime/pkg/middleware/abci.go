@@ -26,9 +26,12 @@ import (
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -115,44 +118,87 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
+		blk           BeaconBlockT
+		err           error
 		startTime     = time.Now()
 		sidecarsBz    []byte
 		beaconBlockBz []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	// Get the best block and blobs.
-	blk, blobs, err := h.validatorService.RequestBlockForProposal(
-		ctx, math.Slot(req.GetHeight()))
-	if err != nil || blk.IsNil() {
-		h.logger.Error(
-			"failed to assemble proposal", "error", err, "block", blk)
+	// TODO: BeaconBlockOrSlot
+	blk, err = blk.NewWithVersion(
+		math.Slot(req.GetHeight()),
+		0, primitives.Bytes32{}, 4,
+	)
+	if err != nil {
 		return &cmtabci.PrepareProposalResponse{}, err
 	}
 
-	// "Publish" the blobs and the beacon block.
+	// Send a request to the validator service to give us a beacon block
+	// and blob sidecards to pass to ABCI.
+	h.blkFeed.Send(asynctypes.NewEvent(
+		ctx, events.BeaconBlockRequest, blk,
+	))
+
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
-		if localErr != nil {
-			h.logger.Error("failed to publish blobs", "error", err)
-		}
+		sidecarsBz, err = h.waitForSidecars(gCtx)
 		return err
 	})
 
 	g.Go(func() error {
-		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
-		if localErr != nil {
-			h.logger.Error("failed to publish beacon block", "error", err)
-		}
+		beaconBlockBz, err = h.waitforBeaconBlk(gCtx)
 		return err
 	})
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
 	}, g.Wait()
+}
+
+// waitForSidecars waits for the sidecars to be built and returns them.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) waitForSidecars(gCtx context.Context) ([]byte, error) {
+	select {
+	case <-gCtx.Done():
+		return nil, gCtx.Err()
+	case sidecars := <-h.sidecarsCh:
+		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
+		if err != nil {
+			h.logger.Error("failed to publish blobs", "error", err)
+		}
+		return sidecarsBz, err
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
+	}
+}
+
+// waitforBeaconBlk waits for the beacon block to be built and returns it.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
+	select {
+	case <-gCtx.Done():
+		return nil, gCtx.Err()
+	case beaconBlock := <-h.blkCh:
+		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
+		if err != nil {
+			h.logger.Error("failed to publish beacon block", "error", err)
+		}
+		return beaconBlockBz, err
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
+	}
 }
 
 /* -------------------------------------------------------------------------- */

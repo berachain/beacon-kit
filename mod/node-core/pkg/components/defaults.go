@@ -30,6 +30,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore[*BeaconBlockBody],
 		ProvideBlsSigner,
+		ProvideBlobFeed,
 		ProvideBlockFeed,
 		ProvideBlobProcessor[*BeaconBlockBody],
 		ProvideBlobProofVerifier,
