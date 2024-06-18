@@ -102,9 +102,9 @@ func InitClientConfig() (string, interface{}) {
 }
 
 // customLoggerSetup sets up a custom logger for the application.
-func customLoggerSetup[T servertypes.Application](app T, svrCtx *server.Context,
-	clientCtx sdkclient.Context, ctx context.Context,
-	g *errgroup.Group) error {
+func customLoggerSetup[T servertypes.Application](_ T, svrCtx *server.Context,
+	_ sdkclient.Context, ctx context.Context,
+	_ *errgroup.Group) error {
 	svrCtx.Logger = log.NewCustomLogger(
 		zerolog.New(os.Stdout).With().Timestamp().Logger()).
 		With("module", "HENLO OOGA")
