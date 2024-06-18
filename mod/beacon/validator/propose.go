@@ -302,9 +302,5 @@ func (s *Service[
 		BlockHash:    common.ZeroHash,
 	})
 
-	if err = body.SetExecutionData(envelope.GetExecutionPayload()); err != nil {
-		return err
-	}
-
-	return nil
+	return body.SetExecutionData(envelope.GetExecutionPayload())
 }
