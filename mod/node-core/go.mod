@@ -15,22 +15,22 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.3
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618161752-38d39cfe07b9
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240618183531-522d694f4024
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240618161752-38d39cfe07b9
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-db v1.0.2
@@ -52,7 +52,7 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240607081129-ca14b2847836 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6 // indirect
