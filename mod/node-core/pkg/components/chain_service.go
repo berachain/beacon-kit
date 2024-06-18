@@ -60,7 +60,7 @@ func ProvideChainService(
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*ExecutionPayloadHeaderDeneb,
+		*ExecutionPayloadHeader,
 		*Genesis,
 	](
 		in.StorageBackend,

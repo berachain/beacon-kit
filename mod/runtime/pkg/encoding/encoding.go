@@ -68,7 +68,9 @@ func ExtractBlobsAndBlockFromRequest[
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
-func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT BeaconBlock[BeaconBlockT]](
+func UnmarshalBeaconBlockFromABCIRequest[
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+](
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,

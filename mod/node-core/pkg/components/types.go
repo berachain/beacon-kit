@@ -57,8 +57,7 @@ type (
 		*Deposit,
 		*types.Eth1Data,
 		*ExecutionPayload,
-		*ExecutionPayloadHeaderDeneb,
-		StorageBackend,
+		*Genesis,
 	]
 
 	// AvailabilityStore is a type alias for the availability store.
@@ -100,7 +99,7 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*ExecutionPayloadHeaderDeneb,
+		*ExecutionPayloadHeader,
 		*Genesis,
 	]
 
@@ -139,13 +138,8 @@ type (
 	ExecutionPayloadHeader      = types.ExecutionPayloadHeader
 	ExecutionPayloadHeaderDeneb = types.ExecutionPayloadHeaderDeneb
 
-	FinalizeBlockMiddleware = middleware.FinalizeBlockMiddleware[
-		*BeaconBlock, BeaconState, *BlobSidecars,
-		*Deposit, *ExecutionPayloadHeaderDeneb,
-	]
-
 	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeaderDeneb]
+	Genesis = genesis.Genesis[*Deposit, *ExecutionPayloadHeader]
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
@@ -183,21 +177,6 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-	]
-
-	// ValidatorMiddleware is a type alias for the validator middleware.
-	ValidatorMiddleware = middleware.ValidatorMiddleware[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		BeaconState,
-		*BlobSidecars,
-		*Deposit,
-		*types.Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeaderDeneb,
-		StorageBackend,
 	]
 
 	// ValidatorService is a type alias for the validator service.

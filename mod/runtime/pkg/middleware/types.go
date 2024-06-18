@@ -22,9 +22,9 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -111,16 +111,14 @@ type BeaconState interface {
 type BlockchainService[
 	BeaconBlockT any,
 	BlobSidecarsT ssz.Marshallable,
-	DepositT,
-	ExecutionPayloadHeaderT any,
+	DepositT any,
+	GenesisT Genesis,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
 	ProcessGenesisData(
 		context.Context,
-		*genesis.Genesis[
-			DepositT, ExecutionPayloadHeaderT,
-		],
+		GenesisT,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessBlockAndBlobs processes the given beacon block and associated
 	// blobs sidecars.
@@ -139,14 +137,13 @@ type BlockchainService[
 	) error
 }
 
+type ExecutionPayloadHeader[T any] interface {
+	NewFromJSON([]byte, uint32) (T, error)
+}
+
 // Genesis is the interface for the genesis data.
-type Genesis[
-	DepositT,
-	ExecutionPayloadHeaderT any,
-] interface {
-	GetForkVersion() primitives.Version
-	GetDeposits() []DepositT
-	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+type Genesis interface {
+	json.Unmarshaler
 }
 
 // ValidatorService is responsible for building beacon blocks.

@@ -21,6 +21,8 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -36,11 +38,16 @@ import (
 // emptyABCIMiddleware return an address pointing to an empty BeaconState.
 func emptyABCIMiddleware() *components.ABCIMiddleware {
 	return &middleware.ABCIMiddleware[
-		*dastore.Store[*consensustypes.BeaconBlockBody],
-		*consensustypes.BeaconBlock,
-		*consensustypes.BeaconBlockBody,
+		*dastore.Store[*types.BeaconBlockBody],
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
 		components.BeaconState,
 		*datypes.BlobSidecars,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader],
 	]{}
 }
 

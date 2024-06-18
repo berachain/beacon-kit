@@ -51,11 +51,6 @@ func (s *Service[
 		DepositT, *types.ExecutionPayloadHeader,
 	],
 ) ([]*transition.ValidatorUpdate, error) {
-	header := genesisData.GetExecutionPayloadHeader()
-	payloadHeader, ok := any(header).(types.InnerExecutionPayloadHeader)
-	if !ok {
-		panic("REE")
-	}
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.Deposits,

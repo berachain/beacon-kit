@@ -21,11 +21,8 @@
 package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -49,11 +46,17 @@ type ABCIMiddleware[
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
+	GenesisT Genesis,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 	// chainService represents the blockchain service.
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	]
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		BeaconBlockT,
@@ -88,26 +91,24 @@ type ABCIMiddleware[
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT interface {
-		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
-		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(
-			cometBFTAddress []byte,
-		) (math.ValidatorIndex, error)
-	},
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
+	GenesisT Genesis,
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -115,15 +116,19 @@ func NewABCIMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	],
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	],
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT, DepositT,
+	Eth1DataT, ExecutionPayloadT, GenesisT,
 ] {
 	return &ABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT,
+		BeaconBlockHeaderT, BeaconStateT, BlobSidecarsT, DepositT,
+		Eth1DataT, ExecutionPayloadT, GenesisT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
