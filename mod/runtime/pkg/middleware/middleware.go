@@ -92,7 +92,8 @@ type ABCIMiddleware[
 	//
 	// PrepareProposal
 	//
-	// prepareProposalErrCh is used to communicate errors to the EndBlock method.
+	// prepareProposalErrCh is used to communicate errors to the EndBlock
+	// method.
 	prepareProposalErrCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
 	prepareProposalBlkCh chan BeaconBlockT

@@ -36,7 +36,6 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
-	"golang.org/x/sync/errgroup"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -130,20 +129,19 @@ func (h *ABCIMiddleware[
 		ctx, events.NewSlot, math.Slot(req.Height),
 	))
 
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		sidecarsBz, err = h.waitForSidecars(gCtx)
-		return err
-	})
+	beaconBlockBz, err = h.waitforBeaconBlk(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	g.Go(func() error {
-		beaconBlockBz, err = h.waitforBeaconBlk(gCtx)
-		return err
-	})
+	sidecarsBz, err = h.waitForSidecars(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
-	}, g.Wait()
+	}, nil
 }
 
 // waitForSidecars waits for the sidecars to be built and returns them.
@@ -157,14 +155,14 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
 	case sidecars := <-h.prepareProposalSidecarsCh:
 		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
 		}
 		return sidecarsBz, err
-	case err := <-h.prepareProposalErrCh:
-		return nil, err
 	}
 }
 
@@ -179,14 +177,14 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
 	case beaconBlock := <-h.prepareProposalBlkCh:
 		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
 		if err != nil {
 			h.logger.Error("failed to publish beacon block", "error", err)
 		}
 		return beaconBlockBz, err
-	case err := <-h.prepareProposalErrCh:
-		return nil, err
 	}
 }
 
