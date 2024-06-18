@@ -22,6 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -32,6 +33,7 @@ type ABCIMiddlewareInput struct {
 	depinject.In
 	ChainService     *ChainService
 	ChainSpec        primitives.ChainSpec
+	Logger           log.Logger[any]
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *ValidatorService
 }
@@ -49,13 +51,7 @@ func ProvideABCIMiddleware(
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
+		in.Logger,
 		in.TelemetrySink,
 	)
-}
-
-// FinalizeBlockMiddlewareInput is the input for the finalize block middleware.
-type FinalizeBlockMiddlewareInput struct {
-	depinject.In
-	ChainService *ChainService
-	ChainSpec    primitives.ChainSpec
 }

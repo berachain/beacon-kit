@@ -656,7 +656,13 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Check if the original and unmarshaled validators are equal
-			require.Equal(t, tt.validator, &unmarshaled, "Test case: %s", tt.name)
+			require.Equal(
+				t,
+				tt.validator,
+				&unmarshaled,
+				"Test case: %s",
+				tt.name,
+			)
 		})
 	}
 }
