@@ -78,9 +78,9 @@ type ABCIMiddleware[
 	]
 	// resChannel is used to communicate the validator updates to the
 	// EndBlock method.
-	valUpdatesChannel chan transition.ValidatorUpdates
-	// errChannel is used to communicate errors to the EndBlock method.
-	errChannel chan error
+	valUpdatesCh chan transition.ValidatorUpdates
+	// errCh is used to communicate errors to the EndBlock method.
+	errCh chan error
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 }
@@ -134,8 +134,8 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		valUpdatesChannel: make(chan transition.ValidatorUpdates),
-		errChannel:        make(chan error),
-		metrics:           newABCIMiddlewareMetrics(telemetrySink),
+		valUpdatesCh: make(chan transition.ValidatorUpdates),
+		errCh:        make(chan error),
+		metrics:      newABCIMiddlewareMetrics(telemetrySink),
 	}
 }

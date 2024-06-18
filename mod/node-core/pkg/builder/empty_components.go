@@ -34,7 +34,7 @@ import (
 // Typically used when supplying empty values to depinject, or as receiving
 // addresses for constructed depinject values.
 
-// emptyBeaconState return an address pointing to an empty BeaconState.
+// emptyABCIMiddleware return an address pointing to an empty BeaconState.
 func emptyABCIMiddleware() *components.ABCIMiddleware {
 	return &middleware.ABCIMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],

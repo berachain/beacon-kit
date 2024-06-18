@@ -262,15 +262,15 @@ func (h *ABCIMiddleware[
 		))
 
 	if err != nil {
-		h.errChannel <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		h.errCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
 		return
 	}
 
 	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
 	if err != nil {
-		h.errChannel <- err
+		h.errCh <- err
 	} else {
-		h.valUpdatesChannel <- result
+		h.valUpdatesCh <- result
 	}
 }
 
@@ -300,12 +300,12 @@ func (h *ABCIMiddleware[
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case err := <-h.errChannel:
+	case err := <-h.errCh:
 		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
 			err = nil
 		}
 		return nil, err
-	case result := <-h.valUpdatesChannel:
+	case result := <-h.valUpdatesCh:
 		return iter.MapErr(
 			result.RemoveDuplicates().Sort(), convertValidatorUpdate,
 		)
