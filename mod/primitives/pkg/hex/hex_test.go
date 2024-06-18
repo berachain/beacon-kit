@@ -23,11 +23,14 @@ package hex_test
 
 import (
 	"bytes"
+	"encoding"
 	"math/big"
+	"reflect"
 	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/stretchr/testify/require"
 )
 
 // ====================== Constructors ===========================.
@@ -68,13 +71,10 @@ func TestNewStringStrictInvariants(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			str, err := hex.NewStringStrict(test.input)
-			if (err != nil) != test.expectErr {
-				t.Errorf(
-					"NewStringStrict() error = %v, expectErr %v",
-					err,
-					test.expectErr,
-				)
-			} else if err == nil {
+			if test.expectErr {
+				require.Error(t, err, "Test case: %s", test.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", test.name)
 				verifyInvariants(t, "NewStringStrict()", str)
 			}
 		})
@@ -293,5 +293,169 @@ func verifyInvariants(t *testing.T, invoker string, s hex.String) {
 	}
 	if s.IsEmpty() {
 		t.Errorf(invoker+"result is empty: %v", s)
+	}
+}
+
+func TestUnmarshalJSONText(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       []byte
+		unmarshaler encoding.TextUnmarshaler
+		expectErr   bool
+	}{
+		{
+			name:        "Valid JSON text",
+			input:       []byte(`"0x48656c6c6f"`),
+			unmarshaler: new(hex.String),
+			expectErr:   false,
+		},
+		{
+			name:        "Invalid JSON text",
+			input:       []byte(`"invalid"`),
+			unmarshaler: new(hex.String),
+			expectErr:   true,
+		},
+		{
+			name:        "Invalid quoted JSON text",
+			input:       []byte(`"0x`),
+			unmarshaler: new(hex.String),
+			expectErr:   true,
+		},
+		{
+			name:        "Empty JSON text",
+			input:       []byte(`""`),
+			unmarshaler: new(hex.String),
+			expectErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := hex.UnmarshalJSONText(
+				tt.input,
+				tt.unmarshaler,
+				reflect.TypeOf(tt.unmarshaler),
+			)
+			if tt.expectErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestString_MustToBytes(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    hex.String
+		expected []byte
+		panics   bool
+	}{
+		{"Valid hex string", "0x68656c6c6f", []byte("hello"), false},
+		{"Another valid hex string", "0x776f726c64", []byte("world"), false},
+		{"Invalid hex string", "0xinvalid", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("MustToBytes did not panic on invalid input")
+					}
+				}()
+				tt.input.MustToBytes()
+			} else {
+				result := tt.input.MustToBytes()
+				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestString_ToUint64(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     hex.String
+		expected  uint64
+		expectErr bool
+	}{
+		{"Single digit", "0x1", 1, false},
+		{"Two digits", "0x10", 16, false},
+		{"Mixed digits and letters", "0x1a", 26, false},
+		{"Invalid hex string", "0xinvalid", 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.ToUint64()
+			if tt.expectErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestString_MustToUInt64(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    hex.String
+		expected uint64
+		panics   bool
+	}{
+		{"Single digit", "0x1", 1, false},
+		{"Two digits", "0x10", 16, false},
+		{"Mixed digits and letters", "0x1a", 26, false},
+		{"Invalid hex string", "0xinvalid", 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("MustToUInt64 did not panic on invalid input")
+					}
+				}()
+				tt.input.MustToUInt64()
+			} else {
+				result := tt.input.MustToUInt64()
+				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestString_MustToBigInt(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    hex.String
+		expected *big.Int
+		panics   bool
+	}{
+		{"Valid hex string", "0x1", big.NewInt(1), false},
+		{"Another valid hex string", "0x10", big.NewInt(16), false},
+		{"Large valid hex string", "0x1a", big.NewInt(26), false},
+		{"Invalid hex string", "0xinvalid", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.panics {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("MustToBigInt did not panic on invalid input")
+					}
+				}()
+				tt.input.MustToBigInt()
+			} else {
+				result := tt.input.MustToBigInt()
+				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			}
+		})
 	}
 }

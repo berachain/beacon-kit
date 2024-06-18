@@ -166,10 +166,7 @@ func TestParityBellatrix(t *testing.T) {
 	res, err4 := sszState.MarshalSSZ()
 	require.NoError(t, err4)
 
-	// TODO: Fixme - doesnt match fastssz 100%
-	// debugDiff(res, o2)
-	// require.Equal(t, o2, res, defaultErrMsg)
-
+	require.Equal(t, o2, res, defaultErrMsg)
 	require.Equal(t, len(o2), len(res), defaultErrMsg)
 }
 

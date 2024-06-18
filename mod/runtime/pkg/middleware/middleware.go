@@ -21,6 +21,8 @@
 package middleware
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -74,6 +76,8 @@ type ABCIMiddleware[
 	errCh chan error
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
+	// logger is the logger for the middleware.
+	logger log.Logger[any]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -95,6 +99,7 @@ func NewABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
+	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
@@ -113,6 +118,7 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
+		logger:       logger,
 		valUpdatesCh: make(chan transition.ValidatorUpdates),
 		errCh:        make(chan error),
 		metrics:      newABCIMiddlewareMetrics(telemetrySink),

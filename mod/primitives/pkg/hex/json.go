@@ -25,8 +25,9 @@ import (
 	"reflect"
 )
 
-// UnmarshalJSONText unmarshals a JSON string with 0x prefix into a
-// TextUnmarshaler.
+// UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
+// TextUnmarshaler. It validates the input and then removes the surrounding
+// quotes before passing the inner content to the UnmarshalText method.
 func UnmarshalJSONText(input []byte,
 	u encoding.TextUnmarshaler,
 	t reflect.Type,
