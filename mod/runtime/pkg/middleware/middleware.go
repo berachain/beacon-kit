@@ -25,8 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -36,17 +34,7 @@ import (
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
@@ -91,25 +79,9 @@ type ABCIMiddleware[
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT interface {
-		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
-		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(
-			cometBFTAddress []byte,
-		) (math.ValidatorIndex, error)
-	},
+	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
 ](
 	chainSpec primitives.ChainSpec,
