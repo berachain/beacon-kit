@@ -1,6 +1,8 @@
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
+port_spec_lib = import_module("../../lib/port_spec.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 
 RPC_PORT_NUM = 8545
 ENGINE_RPC_PORT_NUM = 8551

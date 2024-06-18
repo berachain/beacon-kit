@@ -93,7 +93,7 @@ node_settings:
       max_memory: 2048
     images:
       besu: hyperledger/besu:24.5.4
-      erigon: thorax/erigon:v2.60.1
+      erigon: thorax/erigon:2.60.1-arm64
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
@@ -112,11 +112,11 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 16
-  - name: "prometheus"
-  - name: "grafana"
-  - name: "pyroscope"
-  - name: "blockscout"
-    client: "el-full-reth-0"
+    replicas: 5
+  # - name: "prometheus"
+  # - name: "grafana"
+  # - name: "pyroscope"
+  # - name: "blockscout"
+  #   client: "el-full-reth-0"
   - name: "otterscan"
     client: "el-full-erigon-3"  

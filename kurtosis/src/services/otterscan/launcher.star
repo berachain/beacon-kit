@@ -1,7 +1,7 @@
 shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 
 SERVICE_NAME = "otterscan"
-IMAGE_NAME = "otterscan/otterscan:latest"
+IMAGE_NAME = "otterscan/otterscan:develop"
 HTTP_PORT_ID = "http"
 HTTP_PORT_NUMBER = 80
 USED_PORTS = {
@@ -45,7 +45,7 @@ def get_config(RPC_Url):
 
 def get_el_client_info(ip_addr, rpc_port_num, full_name):
     el_client_rpc_url = "http://{}:{}/".format(
-        ip_addr,
+        "localhost",
         rpc_port_num,
     )
     el_client_type = full_name.split("-")[2]

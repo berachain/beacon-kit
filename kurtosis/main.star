@@ -104,7 +104,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
-        full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs)
+        full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs, True)
 
     for n, full in enumerate(full_nodes):
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, full, full.el_service_name, full_node_el_clients[full.el_service_name], node_modules)
@@ -118,7 +118,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         services = plan.add_services(
             configs = full_node_configs,
         )
-
     for n, full_node in enumerate(full_nodes):
         # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
         peer_info = beacond.get_peer_info(plan, full_node.cl_service_name)
