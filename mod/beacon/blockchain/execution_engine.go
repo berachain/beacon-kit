@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -33,10 +32,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -58,21 +60,24 @@ func (s *Service[
 	}
 }
 
-// sendForkchoiceUpdateWithAttributes sends a forkchoice update to the execution
+// sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
 	stCopy := st.Copy()
 	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
@@ -109,22 +114,25 @@ func (s *Service[
 	}
 }
 
-// sendForkchoiceUpdateWithoutAttributes sends a forkchoice update to the
+// sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
-	lph *types.ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
-	_, _, err := s.ee.NotifyForkchoiceUpdate(
+	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
 		engineprimitives.BuildForkchoiceUpdateRequest(
 			&engineprimitives.ForkchoiceStateV1{
@@ -135,8 +143,7 @@ func (s *Service[
 			nil,
 			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
-	)
-	if err != nil {
+	); err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update without attributes",
 			"error", err,
@@ -152,10 +159,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
 	DepositT,
-	DepositStoreT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

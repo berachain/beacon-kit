@@ -182,17 +182,20 @@ func InterleaveOffsets(
 		)
 	}
 
-	// Interleave offsets of variable-size parts with fixed-size parts.
-	// variable_offsets = [serialize(uint32(sum(fixed_lengths +
-	// variable_lengths[:i]))) for i in range(len(value))].
+	// Compute the offsets for the variable-size parts by summing up the fixed
+	// lengthsand the variable lengths up to each index. The offsets are then
+	// serialized as uint32 values and stored in the variableOffsets slice.
 	offsetSum := sumIntArr(fixedLengths)
 	variableOffsets := make([][]byte, len(variableParts))
+
 	for i := range len(variableParts) {
-		offsetSum += variableLengths[i]
 		// #nosec:G701 // converting an int of max is 4294967295 to uint64 max
 		// of 2147483647.
 		// Wont realisticially overflow.
 		variableOffsets[i] = ssz.MarshalU32(uint32(offsetSum))
+
+		// Increment offsetSum by the length of the current variable part.
+		offsetSum += variableLengths[i]
 	}
 
 	fixedPartsWithOffsets := make([][]byte, len(fixedParts))

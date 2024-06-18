@@ -11,6 +11,7 @@ replace (
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618161752-38d39cfe07b9
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
@@ -21,7 +22,6 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.7.0
 )
 
 require (
@@ -138,6 +138,7 @@ require (
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20240528184218-531527333157 // indirect

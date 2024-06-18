@@ -33,6 +33,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// BeaconBlock is an interface for accessing the beacon block.
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+] interface {
+	types.RawBeaconBlock[BeaconBlockBodyT]
+	// NewFromSSZ creates a new beacon block from the given SSZ bytes.
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	// NewWithVersion creates a new beacon block with the given version.
+	NewWithVersion(
+		math.Slot,
+		math.ValidatorIndex,
+		primitives.Root,
+		uint32,
+	) (BeaconBlockT, error)
+}
+
 // BeaconState is an interface for accessing the beacon state.
 type BeaconState interface {
 	// ValidatorIndexByPubkey returns the validator index for the given pubkey.
