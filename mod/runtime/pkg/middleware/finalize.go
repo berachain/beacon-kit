@@ -76,11 +76,11 @@ func (h *ABCIMiddleware[
 ]) PreBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) error {
-	go h.handlePreBlock(ctx, req)
+	go h.preBlock(ctx, req)
 	return nil
 }
 
-// HandlePreBlock is called by the base app before the block is finalized. It
+// handlePreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *ABCIMiddleware[
@@ -89,7 +89,7 @@ func (h *ABCIMiddleware[
 	BeaconBlockBodyT,
 	BeaconStateT,
 	BlobSidecarsT,
-]) handlePreBlock(
+]) preBlock(
 	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
 ) {
 	blk, blobs, err := encoding.
@@ -121,6 +121,19 @@ func (h *ABCIMiddleware[
 	BeaconStateT,
 	BlobSidecarsT,
 ]) EndBlock(
+	ctx context.Context,
+) ([]appmodulev2.ValidatorUpdate, error) {
+	return h.endBlock(ctx)
+}
+
+// endBlock returns the validator set updates from the beacon state.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) endBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	select {
