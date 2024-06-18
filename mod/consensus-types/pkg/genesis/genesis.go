@@ -89,7 +89,7 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	return nil
 }
 
-// DefaultGenesis returns a the default genesis.
+// DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
 	*types.Deposit, *types.ExecutionPayloadHeader,
 ] {
