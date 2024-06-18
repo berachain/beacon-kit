@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
@@ -236,7 +235,7 @@ func (h *ABCIMiddleware[
 	BeaconStateT,
 	BlobSidecarsT,
 ]) PreBlock(
-	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
+	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
 	go h.preBlock(ctx, req)
 	return nil
@@ -252,7 +251,7 @@ func (h *ABCIMiddleware[
 	BeaconStateT,
 	BlobSidecarsT,
 ]) preBlock(
-	ctx sdk.Context, req *cometabci.FinalizeBlockRequest,
+	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) {
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
