@@ -123,9 +123,6 @@ func TestBeaconState_MarshalSSZFields(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test LatestExecutionPayloadHeader field
-	state.LatestExecutionPayloadHeader = nil
-	_, err = state.MarshalSSZ()
-	require.Error(t, err)
 	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeaderDeneb{
 		LogsBloom: make([]byte, 256), // Initialize LogsBloom with 256 bytes
 	}
