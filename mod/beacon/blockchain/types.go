@@ -62,7 +62,6 @@ type BeaconBlock[
 		parentBlockRoot common.Root,
 		forkVersion uint32,
 	) (BeaconBlockT, error)
-
 	// IsNil checks if the beacon block is nil.
 	IsNil() bool
 	// Version returns the version of the beacon block.
@@ -77,7 +76,6 @@ type BeaconBlock[
 	SetStateRoot(common.Root)
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
-
 	// GetBody returns the body of the beacon block.
 	GetBody() BeaconBlockBodyT
 }

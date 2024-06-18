@@ -101,12 +101,12 @@ type BeaconBlockBody[
 
 // BeaconBlockHeader represents a beacon block header interface.
 type BeaconBlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
+	ssz.Marshallable
 }
 
 // BeaconState represents a beacon state interface.
 type BeaconState[
-	BeaconBlockHeader interface{ HashTreeRoot() ([32]byte, error) },
+	BeaconBlockHeaderT interface{ HashTreeRoot() ([32]byte, error) },
 	BeaconStateT, ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
@@ -120,7 +120,7 @@ type BeaconState[
 	)
 	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (
-		BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		error,
 	)
 	// GetSlot returns the current slot of the beacon state.
@@ -188,6 +188,7 @@ type DepositStore[DepositT any] interface {
 
 // Eth1Data represents the eth1 data interface.
 type Eth1Data[T any] interface {
+	// New creates a new eth1 data with the given parameters.
 	New(
 		depositRoot common.Root,
 		depositCount math.U64,
@@ -197,8 +198,11 @@ type Eth1Data[T any] interface {
 
 // ExecutionPayloadHeader represents the execution payload header interface.
 type ExecutionPayloadHeader interface {
+	// GetTimestamp returns the timestamp of the execution payload header.
 	GetTimestamp() math.U64
+	// GetBlockHash returns the block hash of the execution payload header.
 	GetBlockHash() common.ExecutionHash
+	// GetParentHash returns the parent hash of the execution payload header.
 	GetParentHash() common.ExecutionHash
 }
 

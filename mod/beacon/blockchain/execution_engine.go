@@ -81,7 +81,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	lph ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
 	stCopy := st.Copy()
 	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
@@ -136,7 +136,7 @@ func (s *Service[
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
-	lph ExecutionPayloadHeader,
+	lph ExecutionPayloadHeaderT,
 ) {
 	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
