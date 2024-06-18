@@ -44,18 +44,10 @@ import (
 func DefaultRootCommandSetup[T servertypes.Application](
 	root *Root,
 	mm *module.Manager,
-	appCreator servertypes.AppCreator[T],
 	chainSpec primitives.ChainSpec,
 ) {
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: flags.AddBeaconKitFlags,
-	}
-
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
-		// `comet`
-		cometbft.Commands(appCreator),
 		// `client`
 		client.Commands[T](),
 		// `config`
@@ -70,6 +62,25 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		jwt.Commands(),
 		// `keys`
 		keys.Commands(),
+		// `status`
+		server.StatusCommand(),
+		// `version`
+		version.NewVersionCommand(),
+	)
+}
+
+// SetupRootCmdWithNode sets up the root command with the node.
+func SetupRootCmdWithNode[NodeT servertypes.Application](
+	root *Root,
+	appCreator servertypes.AppCreator[NodeT],
+) {
+	// Setup the custom start command options.
+	startCmdOptions := server.StartCmdOptions[NodeT]{
+		AddFlags: flags.AddBeaconKitFlags,
+	}
+	root.cmd.AddCommand(
+		// `comet`
+		cometbft.Commands(appCreator),
 		// `prune`
 		pruning.Cmd(appCreator),
 		// `rollback`
@@ -78,10 +89,6 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		snapshot.Cmd(appCreator),
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
-		// `status`
-		server.StatusCommand(),
-		// `version`
-		version.NewVersionCommand(),
 	)
 }
 

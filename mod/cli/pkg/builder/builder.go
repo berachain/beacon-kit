@@ -45,10 +45,6 @@ type CLIBuilder[T servertypes.Application] struct {
 	// supplies is a list of suppliers for depinject.
 	supplies   []any
 	runHandler runHandler
-	// appCreator is a function that builds the Node, eventually called by the
-	// cosmos-sdk.
-	// TODO: CLI should not know about the AppCreator
-	appCreator servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]
 }
@@ -106,10 +102,9 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	}
 
 	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup(
+	cmdlib.DefaultRootCommandSetup[T](
 		rootCmd,
 		mm,
-		cb.appCreator,
 		chainSpec,
 	)
 

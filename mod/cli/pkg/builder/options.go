@@ -22,7 +22,6 @@ package builder
 
 import (
 	"cosmossdk.io/depinject"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
@@ -78,21 +77,5 @@ func WithRunHandler[T servertypes.Application](
 ) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.runHandler = runHandler
-	}
-}
-
-// WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[T servertypes.Application]() Opt[T] {
-	return func(cb *CLIBuilder[T]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup
-	}
-}
-
-// WithAppCreator sets the cosmos app creator for the CLIBuilder.
-func WithAppCreator[T servertypes.Application](
-	appCreator servertypes.AppCreator[T],
-) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
-		cb.appCreator = appCreator
 	}
 }

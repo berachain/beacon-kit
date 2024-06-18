@@ -26,6 +26,7 @@ import (
 
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/runner"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
@@ -80,21 +81,20 @@ func run() error {
 		clibuilder.WithRunHandler[types.NodeI](
 			server.InterceptConfigsPreRunHandler,
 		),
-		// Set the AppCreator to the NodeBuilder AppCreator.
-		clibuilder.WithAppCreator[types.NodeI](nb.AppCreator),
 	)
 
 	// we never have to call nb.build() because this function is passed
-	// to the cli through the clibuilder.WithAppCreator option, eventually to be
-	// called by the cosmos-sdk
+	// to the runner through the constructor, eventually to be called by the
+	// cosmos-sdk
 
 	cmd, err := cb.Build()
 	if err != nil {
 		return err
 	}
 
-	// eventually we want to decouple from cosmos cli, and just pass in a built
-	// Node and Cmd to a runner
+	// Create the runner
+	runner := runner.New(cmd, nb.AppCreator)
+	runner.Run()
 
 	// for now, running the cmd will start the node
 	return cmd.Run(clicomponents.DefaultNodeHome)
