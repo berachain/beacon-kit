@@ -8,17 +8,18 @@ import (
 
 type Logger[KeyValT, ImplT any] struct {
 	logger *log.Logger
-	// r      map[string]interface{}
 }
 
 func NewLogger[KeyValT, ImplT any](level string) *Logger[KeyValT, ImplT] {
-	logger := &log.DefaultLogger
-	logger.SetLevel(log.ParseLevel(level))
-	logger.Writer = &log.ConsoleWriter{
-		ColorOutput:    true,
-		QuoteString:    true,
-		EndWithMessage: true,
-		Writer:         os.Stdout,
+	logger := &log.Logger{
+		Level:      log.ParseLevel(level),
+		TimeFormat: "15:04:05",
+		Writer: &log.ConsoleWriter{
+			ColorOutput:    true,
+			QuoteString:    true,
+			EndWithMessage: true,
+			Writer:         os.Stdout,
+		},
 	}
 	return &Logger[KeyValT, ImplT]{
 		logger: logger,
