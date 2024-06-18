@@ -21,9 +21,37 @@
 package transition
 
 import (
+	"sort"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// ValidatorUpdates is a list of validator updates.
+type ValidatorUpdates []*ValidatorUpdate
+
+// RemoveDuplicates removes duplicate validator updates.
+func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
+	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
+	j := 0
+	for i, update := range vu {
+		if _, exists := duplicateCheck[update.Pubkey]; !exists {
+			duplicateCheck[update.Pubkey] = struct{}{}
+			vu[j] = vu[i]
+			j++
+		}
+	}
+	vu = vu[:j]
+	return vu
+}
+
+// Sort sorts the validator updates.
+func (vu ValidatorUpdates) Sort() ValidatorUpdates {
+	sort.SliceStable(vu, func(i, j int) bool {
+		return string((vu)[i].Pubkey[:]) < string((vu)[j].Pubkey[:])
+	})
+	return vu
+}
 
 // ValidatorUpdate is a struct that holds the validator update.
 type ValidatorUpdate struct {

@@ -123,6 +123,8 @@ func (h *ABCIMiddleware[
 		}
 		return nil, err
 	case result := <-h.valUpdatesChannel:
-		return handleValUpdateConversion(result)
+		return iter.MapErr(
+			result.RemoveDuplicates().Sort(), convertValidatorUpdate,
+		)
 	}
 }
