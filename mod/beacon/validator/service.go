@@ -84,7 +84,6 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-
 	// blkFeed is a feed for blocks.
 	blkFeed *event.FeedOf[
 		asynctypes.EventID,
