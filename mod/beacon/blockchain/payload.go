@@ -120,7 +120,7 @@ func (s *Service[
 		slot          math.Slot
 	)
 
-	s.logger.Info("rebuilding payload for rejected block ⏳ ")
+	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is an unmodified state.
@@ -202,7 +202,7 @@ func (s *Service[
 ) {
 	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
 		s.logger.Error(
-			"failed to build optimistic payload",
+			"Failed to build optimistic payload",
 			"for_slot", (blk.GetSlot() + 1).Base10(),
 			"error", err,
 		)
@@ -231,7 +231,7 @@ func (s *Service[
 	slot := blk.GetSlot() + 1
 
 	s.logger.Info(
-		"optimistically triggering payload build for next slot 🛩️ ",
+		"Optimistically triggering payload build for next slot 🛩️ ",
 		"next_slot", slot.Base10(),
 	)
 

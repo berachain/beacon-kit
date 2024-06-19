@@ -63,9 +63,9 @@ func NewRegistry(opts ...RegistryOption) *Registry {
 
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) error {
-	s.logger.Info("starting services", "num", len(s.serviceTypes))
+	s.logger.Info("Starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
-		s.logger.Info("starting service", "type", typeName)
+		s.logger.Info("Starting service", "type", typeName)
 		svc := s.services[typeName]
 		if svc == nil {
 			s.logger.Error("service not found", "type", typeName)

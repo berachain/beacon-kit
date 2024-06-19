@@ -41,7 +41,7 @@ func (s *Service[
 ) error {
 	slot := blk.GetSlot()
 	s.logger.Info(
-		"computing state root for block 🌲",
+		"Computing state root for block 🌲",
 		"slot", slot.Base10(),
 	)
 
@@ -56,7 +56,7 @@ func (s *Service[
 		return err
 	}
 
-	s.logger.Info("state root computed for block 💻 ",
+	s.logger.Info("State root computed for block 💻 ",
 		"slot", slot.Base10(),
 		"state_root", stateRoot,
 	)
