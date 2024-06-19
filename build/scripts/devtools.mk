@@ -61,8 +61,9 @@ tidy-sync-check:
 	@{ \
 	pre_tidy_diff=$$(git diff --ignore-space-change); \
 	$(MAKE) repo-rinse tidy sync; \
-	git diff --ignore-space-change > post_tidy.diff; \
+	post_tidy_diff=$$(git diff --ignore-space-change); \
 	echo "$$pre_tidy_diff" > pre_tidy.diff; \
+	echo "$$post_tidy_diff" > post_tidy.diff; \
 	cmp -s pre_tidy.diff post_tidy.diff; \
 	diff_status=$$?; \
 	if [ $$diff_status -ne 0 ]; then \
