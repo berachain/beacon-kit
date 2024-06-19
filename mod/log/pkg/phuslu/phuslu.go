@@ -103,6 +103,11 @@ func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 	// return a new logger with the new fields
 	newLogger.context = fields
 	return any(&newLogger).(ImplT)
+	newImplT, ok := any(&newLogger).(*Logger[ImplT])
+	if !ok {
+	    panic("incompatible type for ImplT")
+	}
+	return newImplT
 }
 
 // addContext adds the context to the entry.
