@@ -133,13 +133,7 @@ func printWithColor(args *log.FormatterArgs,
 	color, level string,
 	quoteString, endWithMessage bool) {
 	// header
-	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, reset, color, level,
-		reset)
-	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, reset)
-	} else {
-		fmt.Fprintf(b, "%s💦%s", cyan, reset)
-	}
+	formatHeader(args, b, true, color, level)
 	if !endWithMessage {
 		fmt.Fprintf(b, " %s", args.Message)
 	}
@@ -157,6 +151,19 @@ func printWithColor(args *log.FormatterArgs,
 	// message
 	if endWithMessage {
 		fmt.Fprintf(b, "%s %s", reset, args.Message)
+	}
+}
+
+func formatHeader(args *log.FormatterArgs, b *byteBuffer, colorEnabled bool, color, level string) {
+	headerColor, resetColor := "", ""
+	if colorEnabled {
+		headerColor, resetColor = color, reset
+	}
+	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, resetColor, headerColor, level, resetColor)
+	if args.Caller != "" {
+		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, resetColor)
+	} else {
+		fmt.Fprintf(b, "%s💦%s", cyan, resetColor)
 	}
 }
 
