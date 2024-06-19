@@ -163,18 +163,24 @@ func (sp *StateProcessor[
 		err                   error
 	)
 
-	// Get the genesis validators root to be used to find fork data later.
-	genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return err
-	}
-
 	// Get the current epoch.
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
+
+	// At genesis, the validdators sign over a root of 0.
+	if slot == 0 {
+		genesisValidatorsRoot = primitives.Root{}
+	} else {
+		// Get the genesis validators root to be used to find fork data later.
+		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
+		if err != nil {
+			return err
+		}
+	}
+
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.

@@ -100,11 +100,6 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Prime the db so that processDeposit doesn't fail.
-	if err = st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
-		return nil, err
-	}
-
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
