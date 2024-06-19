@@ -37,7 +37,7 @@ type LoggerInput struct {
 	AppOpts servertypes.AppOptions
 }
 
-// CreateSDKLogger creates a the default SDK logger.
+// ProvideLogger creates a the default phuslu logger.
 // It reads the log level and format from the server context.
 func ProvideLogger(
 	in LoggerInput,

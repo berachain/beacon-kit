@@ -18,9 +18,9 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619005002-353d4c2f8179
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617185735-42326b5546a8
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
@@ -33,7 +33,10 @@ require (
 	golang.org/x/sync v0.7.0
 )
 
-require github.com/rs/zerolog v1.33.0 // indirect
+require (
+	github.com/phuslu/log v1.0.106 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
+)
 
 require (
 	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.1-20240312114316-c0d3497e35d6.1 // indirect
@@ -66,7 +69,6 @@ require (
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240617161612-ab1257fcf5a1 // indirect
