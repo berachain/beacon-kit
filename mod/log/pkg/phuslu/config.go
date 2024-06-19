@@ -20,11 +20,25 @@
 
 package phuslu
 
-import (
-	"time"
-)
+import "time"
 
-// DefaultConfig returns a new Config with default values.
+// Config is a structure that defines the configuration for the logger.
+type Config struct {
+	// TimeFormat is a string that defines the format of the time in
+	// the logger.
+	TimeFormat string
+	// ColorOutput is a boolean that determines if the output of the
+	// logger should be in color.
+	ColorOutput bool
+	// QuoteString is a boolean that determines if the strings in
+	// the logger should be quoted.
+	QuoteString bool
+	// EndWithMessage is a boolean that determines if the logger
+	// should end with a message.
+	EndWithMessage bool
+}
+
+// DefaultConfig is a function that returns a new Config with default values.
 func DefaultConfig() *Config {
 	return &Config{
 		TimeFormat:     time.RFC3339,
@@ -32,12 +46,4 @@ func DefaultConfig() *Config {
 		QuoteString:    true,
 		EndWithMessage: true,
 	}
-}
-
-// Config defines configuration for the logger.
-type Config struct {
-	TimeFormat     string
-	ColorOutput    bool
-	QuoteString    bool
-	EndWithMessage bool
 }
