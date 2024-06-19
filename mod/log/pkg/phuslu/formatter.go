@@ -154,12 +154,14 @@ func printWithColor(args *log.FormatterArgs,
 	}
 }
 
-func formatHeader(args *log.FormatterArgs, b *byteBuffer, colorEnabled bool, color, level string) {
+func formatHeader(args *log.FormatterArgs, b *byteBuffer, colorEnabled bool,
+	color, level string) {
 	headerColor, resetColor := "", ""
 	if colorEnabled {
 		headerColor, resetColor = color, reset
 	}
-	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, resetColor, headerColor, level, resetColor)
+	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, resetColor, headerColor,
+		level, resetColor)
 	if args.Caller != "" {
 		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, resetColor)
 	} else {
