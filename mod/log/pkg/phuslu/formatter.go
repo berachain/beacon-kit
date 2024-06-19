@@ -130,7 +130,6 @@ func (f *Formatter) printWithColor(
 			b.Bytes = append(b.Bytes, kv.Value...)
 			b.Bytes = append(b.Bytes, reset...)
 		} else {
-			b.Bytes = append(b.Bytes, reset...)
 			b.Bytes = append(b.Bytes, kv.Key...)
 			b.Bytes = append(b.Bytes, '=')
 			b.Bytes = append(b.Bytes, kv.Value...)
