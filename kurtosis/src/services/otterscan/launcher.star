@@ -18,6 +18,7 @@ def launch_otterscan(
         client_from_user):
     el_client_info = {}
 
+    # TODO: If client_from_user is other than erigon node, give error or something to user.
     # Get the full_node_el_clients that match the client_from_user
     for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
         if full_node_el_client_name in client_from_user:

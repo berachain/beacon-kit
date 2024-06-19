@@ -34,6 +34,8 @@ def get_default_service_config(node_struct, node_module):
     }
 
     # Check if the node_struct.el_image has erigon keyword in it
+    # For otterscan, we need erigon RPC URL to connect to. By default, kurtosis assigns random public port to the service.
+    # We need to assign a specific port to the service to connect to the RPC URL.
     # Note : public port is not supported on kubenernetes
     if "erigon" in node_struct.el_image:
         # Update common parameters with erigon-specific ones
