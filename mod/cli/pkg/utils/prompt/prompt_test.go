@@ -40,48 +40,89 @@ var (
 	}
 )
 
-func TestAsk(t *testing.T) {
-	// Failure Case
+func setupPromptWithInput(input string) {
+	inputBuffer := bytes.NewReader([]byte(input + "\n"))
+	p.Cmd.SetIn(inputBuffer)
+}
+
+func setupPromptWithErrorReader() {
 	errReader := &mocks.Reader{}
 	errReader.On("Read", mock.Anything).Return(0, errors.New("error"))
-
-	p.Cmd.SetOut(os.NewFile(0, os.DevNull))
 	p.Cmd.SetIn(errReader)
-	_, err := p.Ask()
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	p.Cmd.SetOut(os.NewFile(0, os.DevNull))
+}
+
+func TestAsk(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func()
+		expected    string
+		expectError bool
+	}{
+		{
+			name: "Failure Case",
+			setup: func() {
+				setupPromptWithErrorReader()
+			},
+			expectError: true,
+		},
+		{
+			name: "Success Case",
+			setup: func() {
+				setupPromptWithInput("response")
+			},
+			expected:    "response",
+			expectError: false,
+		},
 	}
 
-	// Success Case
-	inputBuffer := bytes.NewReader([]byte("response\n"))
-	p.Cmd.SetIn(inputBuffer)
-	input, err := p.Ask()
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-	if input != "response" {
-		t.Errorf("Expected response, got %s", input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			input, err := p.Ask()
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, input)
+			}
+		})
 	}
 }
 
 func TestAskWithDefault(t *testing.T) {
-	p.Default = "default"
-	input, err := p.Ask()
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-	if input != "default" {
-		t.Errorf("Expected default, got %s", input)
+	tests := []struct {
+		name        string
+		setup       func()
+		expected    string
+		expectError bool
+	}{
+		{
+			name: "No Input",
+			setup: func() {
+				p.Default = "default"
+			},
+			expected:    "default",
+			expectError: false,
+		},
+		{
+			name: "With Input",
+			setup: func() {
+				p.Default = "default"
+				setupPromptWithInput("response")
+			},
+			expected:    "response",
+			expectError: false,
+		},
 	}
 
-	inputBuffer := bytes.NewReader([]byte("response\n"))
-	p.Cmd.SetIn(inputBuffer)
-	input, err = p.Ask()
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-	if input != "response" {
-		t.Errorf("Expected response, got %s", input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			input, err := p.Ask()
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, input)
+		})
 	}
 }
 
@@ -94,13 +135,39 @@ func TestAskAndValidate(t *testing.T) {
 		return failedValidationErr
 	}
 
-	p.Default = "default"
-	_, err := p.AskAndValidate()
-	require.Error(t, err)
-	require.Equal(t, failedValidationErr, err)
+	tests := []struct {
+		name        string
+		setup       func()
+		expectError bool
+		expectedErr error
+	}{
+		{
+			name: "Failed Validation",
+			setup: func() {
+				p.Default = "default"
+			},
+			expectError: true,
+			expectedErr: failedValidationErr,
+		},
+		{
+			name: "Success",
+			setup: func() {
+				setupPromptWithInput("response")
+			},
+			expectError: false,
+		},
+	}
 
-	inputBuffer := bytes.NewReader([]byte("response\n"))
-	p.Cmd.SetIn(inputBuffer)
-	_, err = p.AskAndValidate()
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			_, err := p.AskAndValidate()
+			if tt.expectError {
+				require.Error(t, err)
+				require.Equal(t, tt.expectedErr, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
