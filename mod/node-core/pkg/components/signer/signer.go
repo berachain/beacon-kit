@@ -35,6 +35,10 @@ type BLSSigner struct {
 	types.PrivValidator
 }
 
+// NewBLSSigner creates a new BLSSigner instance using the provided key and
+// state
+// file paths.
+// If the key file does not exist, the program will exit.
 func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
 	filePV := privval.LoadFilePV(keyFilePath, stateFilePath)
 	return &BLSSigner{PrivValidator: filePV}
