@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -100,10 +101,10 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		err           error
-		startTime     = time.Now()
-		sidecarsBz    []byte
-		beaconBlockBz []byte
+		wg                          sync.WaitGroup
+		startTime                   = time.Now()
+		beaconBlockErr, sidecarsErr error
+		beaconBlockBz, sidecarsBz   []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
@@ -113,14 +114,25 @@ func (h *ABCIMiddleware[
 		ctx, events.NewSlot, math.Slot(req.Height),
 	))
 
-	beaconBlockBz, err = h.waitforBeaconBlk(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// Using a wait group instead of an errgroup to ensure we drain
+	// the associated channels for the beacon block and sidecars.
+	//nolint:mnd // bet.
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
+	}()
 
-	sidecarsBz, err = h.waitForSidecars(ctx)
-	if err != nil {
-		return nil, err
+	go func() {
+		defer wg.Done()
+		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
+	}()
+
+	wg.Wait()
+	if beaconBlockErr != nil {
+		return nil, beaconBlockErr
+	} else if sidecarsErr != nil {
+		return nil, sidecarsErr
 	}
 
 	return &cmtabci.PrepareProposalResponse{
@@ -139,7 +151,11 @@ func (h *ABCIMiddleware[
 	case err := <-h.prepareProposalErrCh:
 		return nil, err
 	case sidecars := <-h.prepareProposalSidecarsCh:
-		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
+		if sidecars.Error() != nil {
+			return nil, sidecars.Error()
+		}
+
+		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars.Data())
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
 		}
@@ -158,7 +174,13 @@ func (h *ABCIMiddleware[
 	case err := <-h.prepareProposalErrCh:
 		return nil, err
 	case beaconBlock := <-h.prepareProposalBlkCh:
-		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
+		if beaconBlock.Error() != nil {
+			return nil, beaconBlock.Error()
+		}
+		beaconBlockBz, err := h.beaconBlockGossiper.Publish(
+			gCtx,
+			beaconBlock.Data(),
+		)
 		if err != nil {
 			h.logger.Error("failed to publish beacon block", "error", err)
 		}
