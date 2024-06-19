@@ -120,20 +120,33 @@ func (f *Formatter) printWithColor(
 ) {
 	f.formatHeader(args, b, true, color, level)
 	if !f.EndWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, args.Message...)
 	}
 	for _, kv := range args.KeyValues {
 		if f.QuoteString && kv.ValueType == 's' {
 			kv.Value = strconv.Quote(kv.Value)
 		}
+		b.Bytes = append(b.Bytes, ' ')
 		if kv.Key == "error" {
-			fmt.Fprintf(b, " %s%s=%s%s", red, kv.Key, kv.Value, reset)
+			b.Bytes = append(b.Bytes, red...)
+			b.Bytes = append(b.Bytes, kv.Key...)
+			b.Bytes = append(b.Bytes, '=')
+			b.Bytes = append(b.Bytes, kv.Value...)
+			b.Bytes = append(b.Bytes, reset...)
 		} else {
-			fmt.Fprintf(b, " %s%s=%s%s%s", cyan, kv.Key, gray, kv.Value, reset)
+			b.Bytes = append(b.Bytes, cyan...)
+			b.Bytes = append(b.Bytes, kv.Key...)
+			b.Bytes = append(b.Bytes, '=')
+			b.Bytes = append(b.Bytes, gray...)
+			b.Bytes = append(b.Bytes, kv.Value...)
+			b.Bytes = append(b.Bytes, reset...)
 		}
 	}
 	if f.EndWithMessage {
-		fmt.Fprintf(b, "%s %s", reset, args.Message)
+		b.Bytes = append(b.Bytes, reset...)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, args.Message...)
 	}
 }
 
