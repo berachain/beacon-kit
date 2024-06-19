@@ -63,14 +63,14 @@ tidy-sync-check:
 	$(MAKE) repo-rinse tidy sync; \
 	git diff > post_tidy.diff; \
 	echo "$$pre_tidy_diff" > pre_tidy.diff; \
-	diff pre_tidy.diff post_tidy.diff > diff_comparison.diff || true; \
-	if [ -s diff_comparison.diff ]; then \
+	cmp -s pre_tidy.diff post_tidy.diff; \
+	diff_status=$$?; \
+	if [ $$diff_status -ne 0 ]; then \
 		echo "Tidy and sync operations resulted in changes"; \
 		diff pre_tidy.diff post_tidy.diff; \
-		rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
-		exit 1; \
 	fi; \
-	rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
+	rm -f pre_tidy.diff post_tidy.diff; \
+	exit $$diff_status; \
 	}
 
 .PHONY: format build test-unit bet
