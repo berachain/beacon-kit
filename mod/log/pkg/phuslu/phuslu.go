@@ -48,6 +48,7 @@ func NewLogger[ImplT any](
 			QuoteString:    cfg.QuoteString,
 			EndWithMessage: cfg.EndWithMessage,
 			Writer:         out,
+			Formatter:      customFormatter,
 		},
 	}
 	return &Logger[ImplT]{
@@ -90,15 +91,17 @@ func (l *Logger[ImplT]) Impl() any {
 
 // With returns a new wrapped logger with additional context provided by a set.
 func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
+	newLogger := *l
 	fields := keyValToFields(keyVals...)
+
 	// Copy existing context
 	for k, v := range l.context {
 		fields[k] = v
 	}
 
 	// return a new logger with the new fields
-	l.context = fields
-	return any(l).(ImplT)
+	newLogger.context = fields
+	return any(&newLogger).(ImplT)
 }
 
 // addContext adds the context to the entry
@@ -111,7 +114,7 @@ func (l *Logger[ImplT]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
 	e = l.addContext(e)
-	e = e.Fields(log.Fields(keyValToFields(keyVals...)))
+	e = e.KeysAndValues(keyVals...)
 	e.Msg(msg)
 }
 

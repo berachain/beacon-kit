@@ -50,7 +50,6 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
 		AddFlags: flags.AddBeaconKitFlags,
-		// PostSetup: customLoggerSetup[T],
 	}
 
 	// Add all the commands to the root command.
@@ -93,13 +92,3 @@ func InitClientConfig() (string, interface{}) {
 	clientCfg.KeyringBackend = "test"
 	return config.DefaultClientConfigTemplate, clientCfg
 }
-
-// customLoggerSetup sets up a custom logger for the application.
-// func customLoggerSetup[T servertypes.Application](app T, svrCtx *server.Context,
-// 	_ sdkclient.Context, ctx context.Context,
-// 	_ *errgroup.Group) error {
-// 	svrCtx.Logger = log.NewCustomLogger(
-// 		zerolog.New(os.Stdout).With().Timestamp().Logger()).
-// 		With("module", "HENLO OOGA")
-// 	return nil
-// }
