@@ -18,14 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package phuslu
 
-// DefaultClientComponents returns the default components for
-// the client.
-func DefaultClientComponents() []any {
-	return []any{
-		ProvideClientContext,
-		ProvideKeyring,
-		ProvideLogger,
+import "time"
+
+// Config is a structure that defines the configuration for the logger.
+type Config struct {
+	// TimeFormat is a string that defines the format of the time in
+	// the logger.
+	TimeFormat string
+	// ColorOutput is a boolean that determines if the output of the
+	// logger should be in color.
+	ColorOutput bool
+	// QuoteString is a boolean that determines if the strings in
+	// the logger should be quoted.
+	QuoteString bool
+	// EndWithMessage is a boolean that determines if the logger
+	// should end with a message.
+	EndWithMessage bool
+}
+
+// DefaultConfig is a function that returns a new Config with default values.
+func DefaultConfig() *Config {
+	return &Config{
+		TimeFormat:     time.RFC3339,
+		ColorOutput:    true,
+		QuoteString:    true,
+		EndWithMessage: true,
 	}
 }

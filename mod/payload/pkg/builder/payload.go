@@ -85,7 +85,7 @@ func (pb *PayloadBuilder[
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
 		pb.logger.Info(
-			"bob the builder; can we forkchoice update it?;"+
+			"Bob the builder; can we forkchoice update it?;"+
 				" bob the builder; yes we can 🚧",
 			"head_eth1_hash",
 			headEth1BlockHash,
@@ -138,7 +138,7 @@ func (pb *PayloadBuilder[
 
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
-		"waiting for local payload to be delivered to execution client",
+		"Waiting for local payload to be delivered to execution client",
 		"for_slot", slot.Base10(), "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
@@ -214,13 +214,13 @@ func (pb *PayloadBuilder[
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	pb.logger.Info("payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("Payload retrieved from local builder 🏗️ ", args...)
 
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
-			"payload fee recipient does not match suggested fee recipient - "+
+			"Payload fee recipient does not match suggested fee recipient - "+
 				"please check both your CL and EL configuration",
 			"payload_fee_recipient", payload.GetFeeRecipient(),
 			"suggested_fee_recipient", pb.cfg.SuggestedFeeRecipient,
@@ -247,7 +247,7 @@ func (pb *PayloadBuilder[
 	}
 
 	pb.logger.Info(
-		"sending startup forkchoice update to execution client 🚀 ",
+		"Sending startup forkchoice update to execution client 🚀 ",
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),

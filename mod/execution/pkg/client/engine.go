@@ -99,7 +99,7 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 	if attrs != nil && !attrs.IsNil() &&
 		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(
-			"suggested fee recipient is not configured 🔆",
+			"Suggested fee recipient is not configured 🔆",
 			"fee-recipent", common.DisplayBytes(
 				common.ZeroAddress[:]).TerminalString(),
 		)
@@ -174,7 +174,7 @@ func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 
 	// Capture and log the capabilities that the execution client has.
 	for _, capability := range result {
-		s.logger.Info("exchanged capability", "capability", capability)
+		s.logger.Info("Exchanged capability", "capability", capability)
 		s.capabilities[capability] = struct{}{}
 	}
 
@@ -182,7 +182,7 @@ func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
 	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
 		if _, exists := s.capabilities[capability]; !exists {
 			s.logger.Warn(
-				"your execution client may require an update 🚸",
+				"Your execution client may require an update 🚸",
 				"unsupported_capability", capability,
 			)
 		}

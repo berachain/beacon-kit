@@ -72,7 +72,7 @@ func (s *Service[
 				continue
 			}
 			s.logger.Warn(
-				"failed to get deposits from block(s), retrying...",
+				"Failed to get deposits from block(s), retrying...",
 				"num_blocks",
 				s.failedBlocks,
 			)
@@ -99,7 +99,7 @@ func (s *Service[
 
 	if len(deposits) > 0 {
 		s.logger.Info(
-			"found deposits on execution layer",
+			"Found deposits on execution layer",
 			"block", blockNum, "deposits", len(deposits),
 		)
 	}
