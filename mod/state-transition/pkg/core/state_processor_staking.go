@@ -76,6 +76,7 @@ func (sp *StateProcessor[
 	deposits []DepositT,
 ) error {
 	// Ensure the deposits match the local state.
+	fmt.Println("PROCESSING DEPOSITS", len(deposits))
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
