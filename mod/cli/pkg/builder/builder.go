@@ -21,14 +21,19 @@
 package builder
 
 import (
+	"io"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
@@ -51,12 +56,16 @@ type CLIBuilder[T servertypes.Application] struct {
 	appCreator servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]
+	// logger is the logger
+	// logger log.Logger
 }
 
 // New returns a new CLIBuilder with the given options.
 func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
-		supplies: []any{log.NewLogger(os.Stdout), viper.GetViper()},
+		supplies: []any{
+			os.Stdout, // supply io.Writer for logger
+			viper.GetViper()},
 	}
 	for _, opt := range opts {
 		opt(cb)
@@ -96,7 +105,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	rootCmd := cmdlib.New(
 		cb.name,
 		cb.description,
-		defaultRunHandler(cb.runHandler),
+		cb.defaultRunHandler(),
 		clientCtx,
 	)
 
@@ -116,14 +125,45 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	return rootCmd, nil
 }
 
-// defaultRunHandler returns a runHandler that uses the default configuration.
-func defaultRunHandler(runHandler runHandler) func(cmd *cobra.Command) error {
+// defaultRunHandler returns the default run handler for the CLIBuilder.
+func (cb *CLIBuilder[T]) defaultRunHandler() func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
-		return runHandler(
+		return cb.InterceptConfigsPreRunHandler(
 			cmd,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
 			DefaultCometConfig(),
 		)
 	}
+}
+
+// InterceptConfigsPreRunHandler is identical to
+// InterceptConfigsAndCreateContext except it also sets the server context on
+// the command and the server logger.
+func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
+	cmd *cobra.Command, customAppConfigTemplate string,
+	customAppConfig interface{}, cmtConfig *cmtcfg.Config) error {
+	serverCtx, err := server.InterceptConfigsAndCreateContext(
+		cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
+	if err != nil {
+		return err
+	}
+
+	// overwrite default server logger
+	logger, err := CreatePhusluLogger(serverCtx, cmd.OutOrStdout())
+	if err != nil {
+		return err
+	}
+	serverCtx.Logger = logger.With(log.ModuleKey, "server")
+
+	// set server context
+	return server.SetCmdServerContext(cmd, serverCtx)
+}
+
+// CreatePhusluLogger creates a a phuslu logger with the given output.
+// It reads the log level and format from the server context.
+func CreatePhusluLogger(ctx *server.Context, out io.Writer) (log.Logger,
+	error) {
+	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
+	return phuslu.NewLogger[log.Logger](logLvlStr, out), nil
 }
