@@ -24,10 +24,8 @@ def launch_otterscan(
         if full_node_el_client_name in client_from_user:
             rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
             name = full_node_el_client_name
-            ip_address = full_node_el_client_service.ip_address
 
             el_client_info = get_el_client_info(
-                ip_address,
                 rpc_port,
                 name,
             )
@@ -44,9 +42,8 @@ def get_config(RPC_Url):
         },
     )
 
-def get_el_client_info(ip_addr, rpc_port_num, full_name):
-    el_client_rpc_url = "http://{}:{}/".format(
-        "localhost",
+def get_el_client_info(rpc_port_num, full_name):
+    el_client_rpc_url = "http://localhost:{}/".format(
         rpc_port_num,
     )
     el_client_type = full_name.split("-")[2]

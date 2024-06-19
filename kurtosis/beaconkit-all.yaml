@@ -118,5 +118,5 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
-  - name: "otterscan" #otterscan supports only erigon nodes
-    client: "el-full-erigon-3"  
+  - name: "otterscan" # otterscan supports only erigon nodes
+    client: "el-full-erigon-3"
