@@ -219,19 +219,20 @@ func (s *Service[
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
 ]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
-	if blk, sidecars, err := s.RequestBlockForProposal(
+	blk, sidecars, err := s.RequestBlockForProposal(
 		req.Context(), req.Data(),
-	); err != nil {
-		s.logger.Error("failed to build block", "err", err)
-	} else {
-		// Send the built block back on the feed.
-		s.blkFeed.Send(asynctypes.NewEvent(
-			req.Context(), events.BeaconBlockBuilt, blk, err,
-		))
+	)
 
-		// Send the sidecars on the feed.
-		s.sidecarsFeed.Send(asynctypes.NewEvent(
-			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
-		))
+	if err != nil {
+		s.logger.Error("failed to build block", "err", err)
 	}
+	// Send the built block back on the feed.
+	s.blkFeed.Send(asynctypes.NewEvent(
+		req.Context(), events.BeaconBlockBuilt, blk, err,
+	))
+
+	// Send the sidecars on the feed.
+	s.sidecarsFeed.Send(asynctypes.NewEvent(
+		req.Context(), events.BlobSidecarsBuilt, sidecars, err,
+	))
 }
