@@ -40,7 +40,7 @@ CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
 CONSENSUS_KEY_ALGO="bls12_381"
-HOMEDIR="./.tmp/beacond"
+HOMEDIR="./.tmp2/beacond"
 
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json

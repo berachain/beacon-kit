@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -127,9 +129,11 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
+	fmt.Println("ENTERING CREATE VALIDATOR")
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
+		fmt.Println("ERR IS NIL, UPDATING BALANCE NOT CREATING NEW")
 		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -144,6 +148,7 @@ func (sp *StateProcessor[
 
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
+	fmt.Println("CREATING NEW", dep.GetPubkey())
 	return sp.createValidator(st, dep)
 }
 
@@ -173,6 +178,7 @@ func (sp *StateProcessor[
 	// At genesis, the validators sign over an empty root.
 	if slot == 0 {
 		genesisValidatorsRoot = primitives.Root{}
+
 	} else {
 		// Get the genesis validators root to be used to find fork data later.
 		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
@@ -180,6 +186,8 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
+
+	fmt.Println("GENESIS ROOT", genesisValidatorsRoot, "slot", slot)
 
 	epoch = sp.cs.SlotToEpoch(slot)
 
@@ -196,6 +204,8 @@ func (sp *StateProcessor[
 	); err != nil {
 		return err
 	}
+
+	fmt.Println("SIG VERIFICATION SUCCESSFUL")
 
 	// Add the validator to the registry.
 	return sp.addValidatorToRegistry(st, dep)
