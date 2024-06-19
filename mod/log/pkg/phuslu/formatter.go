@@ -85,9 +85,9 @@ func (f *Formatter) Format(
 	case "error":
 		color, level = red, "ERRR"
 	case "fatal":
-		color, level = red, " FTAL"
+		color, level = red, "FATAL"
 	case "panic":
-		color, level = red, " PANC"
+		color, level = red, "PANIC"
 	default:
 		color, level = gray, " ???"
 	}
