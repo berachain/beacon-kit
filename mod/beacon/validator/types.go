@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,9 +35,15 @@ import (
 )
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
-	*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
-]] interface {
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
+] interface {
 	ssz.Marshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
@@ -47,15 +52,8 @@ type BeaconBlock[BeaconBlockT any, BeaconBlockBodyT BeaconBlockBody[
 		parentBlockRoot common.Root,
 		forkVersion uint32,
 	) (BeaconBlockT, error)
-
-	// IsNil checks if the beacon block is nil.
-	IsNil() bool
-	// Version returns the version of the beacon block.
-	Version() uint32
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
-	// GetProposerIndex returns the proposer index of the beacon block.
-	GetProposerIndex() math.ValidatorIndex
 	// GetParentBlockRoot returns the parent block root of the beacon block.
 	GetParentBlockRoot() common.Root
 	// SetStateRoot sets the state root of the beacon block.
@@ -77,41 +75,23 @@ type BeaconBlockBody[
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(Eth1DataT)
-	// GetDeposits returns the deposits of the beacon block body.
-	GetDeposits() []DepositT
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
-	// GetBlobKzgCommitments returns the blob KZG commitments of the beacon
-	// block body.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	// GetExecutionPayload returns the execution payload of the beacon block
-	// body.
-	GetExecutionPayload() ExecutionPayloadT
 }
 
 // BeaconState represents a beacon state interface.
-type BeaconState[
-	BeaconBlockHeader interface{ HashTreeRoot() ([32]byte, error) },
-	BeaconStateT, ExecutionPayloadHeaderT any,
-] interface {
-	// Copy creates a copy of the beacon state.
-	Copy() BeaconStateT
+type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (primitives.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
-	)
-	// GetLatestBlockHeader returns the latest block header.
-	GetLatestBlockHeader() (
-		BeaconBlockHeader,
-		error,
 	)
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
@@ -128,38 +108,22 @@ type BeaconState[
 
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BlobSidecarsT BlobSidecars,
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BlobSidecarsT,
+	DepositT,
+	Eth1DataT,
+	ExecutionPayloadT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 	) (BlobSidecarsT, error)
-}
-
-// BlobProcessor represents a blob processor interface.
-type BlobProcessor[
-	BlobSidecarsT BlobSidecars,
-] interface {
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
-// BlobSidecars represents a blob sidecars interface.
-type BlobSidecars interface {
-	// BlobSidecars must be ssz.Marshallable.
-	ssz.Marshallable
-	// IsNil checks if the blob sidecars is nil.
-	IsNil() bool
-	// Len returns the length of the blob sidecars.
-	Len() int
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -171,28 +135,49 @@ type DepositStore[DepositT any] interface {
 	) ([]DepositT, error)
 }
 
+// Eth1Data represents the eth1 data interface.
+type Eth1Data[T any] interface {
+	// New creates a new eth1 data with the given parameters.
+	New(
+		depositRoot common.Root,
+		depositCount math.U64,
+		blockHash common.ExecutionHash,
+	) T
+}
+
+// ExecutionPayloadHeader represents the execution payload header interface.
+type ExecutionPayloadHeader interface {
+	// GetTimestamp returns the timestamp of the execution payload header.
+	GetTimestamp() math.U64
+	// GetBlockHash returns the block hash of the execution payload header.
+	GetBlockHash() common.ExecutionHash
+	// GetParentHash returns the parent hash of the execution payload header.
+	GetParentHash() common.ExecutionHash
+}
+
+// ForkData represents the fork data interface.
+type ForkData[T any] interface {
+	// New creates a new fork data with the given parameters.
+	New(
+		primitives.Version,
+		primitives.Root,
+	) T
+	// ComputeRandaoSigningRoot computes the Randao signing root.
+	ComputeRandaoSigningRoot(
+		primitives.DomainType,
+		math.Epoch,
+	) (primitives.Root, error)
+}
+
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
-	// Enabled returns true if the payload builder is enabled.
-	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot primitives.Root,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// RequestPayloadAsync requests a payload for the given slot and returns
-	// immediately.
-	RequestPayloadAsync(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot primitives.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -203,30 +188,20 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot primitives.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv[*types.ExecutionPayload], error)
-	// SendForceHeadFCU sends a force head FCU to the execution client.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-	) error
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 }
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
-	],
-	ContextT any,
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	ContextT,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st BeaconStateT, slot math.Slot,
 	) ([]*transition.ValidatorUpdate, error)
-
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
@@ -237,13 +212,10 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
-	],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore(context.Context) DepositStoreT
