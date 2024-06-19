@@ -75,19 +75,19 @@ func (f *Formatter) Format(
 	var color, level string
 	switch args.Level {
 	case "trace":
-		color, level = magenta, "TRACE"
+		color, level = magenta, "TRCE"
 	case "debug":
-		color, level = yellow, "DEBUG"
+		color, level = yellow, "DBUG"
 	case "info":
-		color, level = green, " BET"
+		color, level = green, "INFO"
 	case "warn":
 		color, level = yellow, "WARN"
 	case "error":
-		color, level = red, "ERROR"
+		color, level = red, "ERRR"
 	case "fatal":
-		color, level = red, " FTL"
+		color, level = red, " FTAL"
 	case "panic":
-		color, level = red, " PNC"
+		color, level = red, " PANC"
 	default:
 		color, level = gray, " ???"
 	}
