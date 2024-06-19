@@ -170,7 +170,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// At genesis, the validdators sign over a root of 0.
+	// At genesis, the validators sign over an empty root.
 	if slot == 0 {
 		genesisValidatorsRoot = primitives.Root{}
 	} else {
