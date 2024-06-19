@@ -35,12 +35,12 @@ type slotT uint64
 type cometBFTConfigT struct{}
 
 // Create an instance of chainSpec with test data
-var spec = chainSpec[domainTypeT, epochT, executionAddressT, slotT, cometBFTConfigT] {
+var spec = chainSpec[domainTypeT, epochT, executionAddressT, slotT, cometBFTConfigT]{
 	Data: SpecData[
 		domainTypeT, epochT, executionAddressT, slotT, cometBFTConfigT,
 	]{
-		ElectraForkEpoch: 10,
-		SlotsPerEpoch: 32,
+		ElectraForkEpoch:                10,
+		SlotsPerEpoch:                   32,
 		MinEpochsForBlobsSidecarsRequest: 5,
 	},
 }
@@ -49,18 +49,21 @@ var spec = chainSpec[domainTypeT, epochT, executionAddressT, slotT, cometBFTConf
 func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
+		name     string
 		epoch    epochT
 		expected uint32
 	}{
-		{epoch: 9, expected: version.Deneb},
-		{epoch: 10, expected: version.Electra},
-		{epoch: 11, expected: version.Electra},
+		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb},
+		{name: "At Electra Fork", epoch: 10, expected: version.Electra},
+		{name: "After Electra Fork", epoch: 11, expected: version.Electra},
 	}
 
 	// Run test cases
 	for _, tc := range testCases {
-		result := spec.ActiveForkVersionForEpoch(tc.epoch)
-		require.Equal(t, tc.expected, result, "unexpected active fork version for epoch %d", tc.epoch)
+		t.Run(tc.name, func(t *testing.T) {
+			result := spec.ActiveForkVersionForEpoch(tc.epoch)
+			require.Equal(t, tc.expected, result, "unexpected active fork version for epoch %d", tc.epoch)
+		})
 	}
 }
 
@@ -68,21 +71,24 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 func TestSlotToEpoch(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
+		name     string
 		slot     slotT
 		expected epochT
 	}{
-		{slot: 0, expected: 0},
-		{slot: 31, expected: 0},
-		{slot: 32, expected: 1},
-		{slot: 63, expected: 1},
-		{slot: 64, expected: 2},
-		{slot: 95, expected: 2},
+		{name: "Epoch 0, Slot 0", slot: 0, expected: 0},
+		{name: "Epoch 0, Slot 31", slot: 31, expected: 0},
+		{name: "Epoch 1, Slot 32", slot: 32, expected: 1},
+		{name: "Epoch 1, Slot 63", slot: 63, expected: 1},
+		{name: "Epoch 2, Slot 64", slot: 64, expected: 2},
+		{name: "Epoch 2, Slot 95", slot: 95, expected: 2},
 	}
 
 	// Run test cases
 	for _, tc := range testCases {
-		result := spec.SlotToEpoch(tc.slot)
-		require.Equal(t, tc.expected, result, "unexpected epoch for slot %d", tc.slot)
+		t.Run(tc.name, func(t *testing.T) {
+			result := spec.SlotToEpoch(tc.slot)
+			require.Equal(t, tc.expected, result, "unexpected epoch for slot %d", tc.slot)
+		})
 	}
 }
 
@@ -90,19 +96,22 @@ func TestSlotToEpoch(t *testing.T) {
 func TestActiveForkVersionForSlot(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
+		name     string
 		slot     slotT
 		expected uint32
 	}{
-		{slot: 0, expected: version.Deneb},
-		{slot: 319, expected: version.Deneb},
-		{slot: 320, expected: version.Electra},
-		{slot: 640, expected: version.Electra},
+		{name: "Before Electra Fork", slot: 0, expected: version.Deneb},
+		{name: "Just Before Electra Fork", slot: 319, expected: version.Deneb},
+		{name: "At Electra Fork", slot: 320, expected: version.Electra},
+		{name: "After Electra Fork", slot: 640, expected: version.Electra},
 	}
 
 	// Run test cases
 	for _, tc := range testCases {
-		result := spec.ActiveForkVersionForSlot(tc.slot)
-		require.Equal(t, tc.expected, result, "unexpected fork version for slot %d", tc.slot)
+		t.Run(tc.name, func(t *testing.T) {
+			result := spec.ActiveForkVersionForSlot(tc.slot)
+			require.Equal(t, tc.expected, result, "unexpected fork version for slot %d", tc.slot)
+		})
 	}
 }
 
@@ -110,19 +119,22 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 func TestWithinDAPeriod(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
+		name     string
 		block    slotT
 		current  slotT
 		expected bool
 	}{
-		{block: 0, current: 160, expected: true},    // Block is within DA period (5 epochs)
-		{block: 0, current: 192, expected: false},   // Block is outside DA period (>5 epochs)
-		{block: 160, current: 320, expected: true},  // Block is within DA period
-		{block: 160, current: 352, expected: false}, // Block is outside DA period
+		{name: "Within DA Period", block: 0, current: 160, expected: true},    // Block is within DA period (5 epochs)
+		{name: "Outside DA Period", block: 0, current: 192, expected: false},  // Block is outside DA period (>5 epochs)
+		{name: "Within DA Period 2", block: 160, current: 320, expected: true}, // Block is within DA period
+		{name: "Outside DA Period 2", block: 160, current: 352, expected: false}, // Block is outside DA period
 	}
 
 	// Run test cases
 	for _, tc := range testCases {
-		result := spec.WithinDAPeriod(tc.block, tc.current)
-		require.Equal(t, tc.expected, result, "unexpected DA period result for block %d and current %d", tc.block, tc.current)
+		t.Run(tc.name, func(t *testing.T) {
+			result := spec.WithinDAPeriod(tc.block, tc.current)
+			require.Equal(t, tc.expected, result, "unexpected DA period result for block %d and current %d", tc.block, tc.current)
+		})
 	}
 }
