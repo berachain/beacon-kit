@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/testing
 go 1.22.4
 
 require (
-	cosmossdk.io/log v1.3.1
+	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240619160923-72a9b26aa13d
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240619160923-72a9b26aa13d
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619152304-c7f6759c3dc8

@@ -29,10 +29,8 @@ import (
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
-	BeaconBlockT interface {
-		ssz.Marshallable
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	}, BlobSidecarsT ssz.Marshallable,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BlobSidecarsT ssz.Marshallable,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
@@ -70,10 +68,9 @@ func ExtractBlobsAndBlockFromRequest[
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
-func UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT interface {
-	ssz.Marshallable
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-}](
+func UnmarshalBeaconBlockFromABCIRequest[
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+](
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
