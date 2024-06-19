@@ -101,6 +101,7 @@ func (sp *StateProcessor[
 	}
 
 	// Prime the db so that processDeposit doesn't fail.
+	// TODO: Fix this in a hard-fork or before mainnet.
 	if err = st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
 		return nil, err
 	}
