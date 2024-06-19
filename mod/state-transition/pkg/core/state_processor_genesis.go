@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -132,12 +130,6 @@ func (sp *StateProcessor[
 
 	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
-	}
-
-	fmt.Println("😀 the genesis validators root is: ", validatorsRoot)
-
-	for _, validator := range validators {
-		fmt.Println("😀 the validator is: ", validator)
 	}
 
 	if err = st.SetLatestExecutionPayloadHeader(

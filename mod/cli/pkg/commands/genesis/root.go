@@ -22,16 +22,14 @@ package genesis
 
 import (
 	"encoding/json"
-	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -39,15 +37,13 @@ import (
 type Genesis struct {
 	AppState struct {
 		Beacon struct {
-			ForkVersion bytes.B4 `json:"fork_version"`
-			Deposits    []struct {
+			Deposits []struct {
 				Pubkey      bytes.B48 `json:"pubkey"`
 				Credentials bytes.B32 `json:"credentials"`
 				Amount      math.U64  `json:"amount"`
 				Signature   string    `json:"signature"`
 				Index       int       `json:"index"`
 			} `json:"deposits"`
-			ExecutionPayloadHeader types.ExecutionPayloadHeaderDeneb `json:"execution_payload_header"`
 		} `json:"beacon"`
 	} `json:"app_state"`
 }
@@ -71,74 +67,31 @@ func GetGenesisValidatorRootCmd(cs primitives.ChainSpec) *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal JSON")
 			}
 
-			var fork *types.Fork
-			fork = fork.New(
-				genesis.AppState.Beacon.ForkVersion,
-				genesis.AppState.Beacon.ForkVersion,
-				math.U64(0),
-			)
-
-			var blkBody *types.BeaconBlockBody
-			bodyRoot, err := blkBody.Empty(
-				version.ToUint32(genesis.AppState.Beacon.ForkVersion)).HashTreeRoot()
-			if err != nil {
-				return errors.Wrap(err, "failed to get body root")
-			}
-
-			var blkHeader *types.BeaconBlockHeader
-			blkHeader = blkHeader.New(
-				0, 0, common.Root{}, common.Root{}, bodyRoot,
-			)
-
-			var eth1Data *types.Eth1Data
 			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			eth1BlockHash := genesis.AppState.Beacon.ExecutionPayloadHeader.BlockHash
-			eth1Data = eth1Data.New(
-				bytes.B32{},
-				math.U64(depositCount),
-				genesis.AppState.Beacon.ExecutionPayloadHeader.BlockHash,
-			)
-
-			var randaoMixes []primitives.Bytes32
-			epochsPerHistoricalVector := cs.EpochsPerHistoricalVector()
-			randaoMixes = make([]primitives.Bytes32, epochsPerHistoricalVector)
-			for i := range randaoMixes {
-				randaoMixes[i] = bytes.B32(eth1BlockHash)
-			}
-
-			validators := make([]types.Validator, depositCount)
+			validators := make([]*types.Validator, depositCount)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				validators[i] = types.Validator{
-					Pubkey:                     deposit.Pubkey,
-					WithdrawalCredentials:      types.WithdrawalCredentials(deposit.Credentials),
-					EffectiveBalance:           deposit.Amount,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.U64(0),
-					ActivationEpoch:            math.U64(0),
-					ExitEpoch:                  math.U64(0),
-					WithdrawableEpoch:          math.U64(0),
-				}
+				var val *types.Validator
+				validators[i] = val.New(
+					deposit.Pubkey,
+					types.WithdrawalCredentials(deposit.Credentials),
+					deposit.Amount,
+					math.Gwei(cs.EffectiveBalanceIncrement()),
+					math.Gwei(cs.MaxEffectiveBalance()),
+				)
 			}
 
-			st := deneb.BeaconState{
-				Fork:                         fork,
-				LatestBlockHeader:            blkHeader,
-				Eth1Data:                     eth1Data,
-				RandaoMixes:                  randaoMixes,
-				LatestExecutionPayloadHeader: &genesis.AppState.Beacon.ExecutionPayloadHeader,
-			}
-
-			root, err := st.HashTreeRoot()
+			var validatorsRoot primitives.Root
+			validatorsRoot, err = ssz.MerkleizeListComposite[
+				common.ChainSpec, math.U64,
+			](validators, uint64(len(validators)))
 			if err != nil {
-				return errors.Wrap(err, "failed to get hash tree root")
+				return errors.Wrap(err, "failed to get validators root")
 			}
 
-			rootHex := fmt.Sprintf("%x", root)
-			cmd.Printf("%s\n", rootHex)
+			cmd.Printf("%s\n", validatorsRoot)
 			return nil
 		},
 	}
 
 	return cmd
-
 }
