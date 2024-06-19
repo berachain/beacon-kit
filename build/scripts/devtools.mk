@@ -66,10 +66,11 @@ tidy-sync-check:
 	diff pre_tidy.diff post_tidy.diff > diff_comparison.diff || true; \
 	if [ -s diff_comparison.diff ]; then \
 		echo "Tidy and sync operations resulted in changes"; \
-		cat diff_comparison.diff; \
+		diff pre_tidy.diff post_tidy.diff; \
+		rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
 		exit 1; \
 	fi; \
+	rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
 	}
-	@rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
 
 .PHONY: format build test-unit bet
