@@ -42,7 +42,10 @@ func BenchmarkPhusluLoggerInfo(b *testing.B) {
 func BenchmarkSDKLoggerInfo(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Info")
-	logger, _ := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
+	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
+	if err != nil {
+		b.Fatalf("failed to create cosmos logger: %v", err)
+	}
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)

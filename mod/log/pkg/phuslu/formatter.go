@@ -29,7 +29,7 @@ import (
 	"github.com/phuslu/log"
 )
 
-// colours.
+// colours
 const (
 	reset   = "\x1b[0m"
 	black   = "\x1b[30m"
@@ -63,14 +63,22 @@ var byteBufferPool = sync.Pool{
 	},
 }
 
+func resetBuffer(b *byteBuffer) {
+	if b.Bytes != nil {
+		b.Bytes = b.Bytes[:0]
+	} else {
+		b.Bytes = make([]byte, 0)
+	}
+}
+
 // customFormatter is a custom Formatter to pass into the ConsoleWriter.
 func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
-	b, ok := byteBufferPool.Get().(*byteBuffer)
+	buffer, ok := byteBufferPool.Get().(*byteBuffer)
 	if !ok {
 		panic("failed to get byte buffer from pool")
 	}
-	b.Bytes = b.Bytes[:0]
-	defer byteBufferPool.Put(b)
+	resetBuffer(buffer)
+	defer byteBufferPool.Put(buffer)
 
 	// TODO: pull out of config
 	var color, level string
@@ -100,25 +108,25 @@ func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
 
 	// pretty console writer
 	if colorOutput {
-		printWithColor(args, b, color, level, quoteString, endWithMessage)
+		printWithColor(args, buffer, color, level, quoteString, endWithMessage)
 	} else {
-		printWithoutColor(args, b, level, quoteString, endWithMessage)
+		printWithoutColor(args, buffer, level, quoteString, endWithMessage)
 	}
 
 	// add line break if needed
-	if b.Bytes[len(b.Bytes)-1] != '\n' {
-		b.Bytes = append(b.Bytes, '\n')
+	if buffer.Bytes[len(buffer.Bytes)-1] != '\n' {
+		buffer.Bytes = append(buffer.Bytes, '\n')
 	}
 
 	// stack
 	if args.Stack != "" {
-		b.Bytes = append(b.Bytes, args.Stack...)
+		buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		if args.Stack[len(args.Stack)-1] != '\n' {
-			b.Bytes = append(b.Bytes, '\n')
+			buffer.Bytes = append(buffer.Bytes, '\n')
 		}
 	}
 
-	return out.Write(b.Bytes)
+	return out.Write(buffer.Bytes)
 }
 
 // printWithColor prints the log message with color.
