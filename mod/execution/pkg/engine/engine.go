@@ -23,6 +23,8 @@ package engine
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -30,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -46,6 +49,11 @@ type Engine[
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
+	// statusFeed is the status feed for the engine.
+	statusFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[*service.StatusEvent],
+	]
 }
 
 // New creates a new Engine.
@@ -56,12 +64,17 @@ func New[
 ](
 	ec *client.EngineClient[ExecutionPayloadT],
 	logger log.Logger[any],
-	ts TelemetrySink,
+	statusFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[*service.StatusEvent],
+	],
+	telemtrySink TelemetrySink,
 ) *Engine[ExecutionPayloadT] {
 	return &Engine[ExecutionPayloadT]{
-		ec:      ec,
-		logger:  logger,
-		metrics: newEngineMetrics(ts, logger),
+		ec:         ec,
+		logger:     logger,
+		metrics:    newEngineMetrics(telemtrySink, logger),
+		statusFeed: statusFeed,
 	}
 }
 
@@ -76,11 +89,6 @@ func (ee *Engine[ExecutionPayloadT]) Start(
 		}
 	}()
 	return nil
-}
-
-// Status returns error if the service is not considered healthy.
-func (ee *Engine[ExecutionPayloadT]) Status() error {
-	return ee.ec.Status()
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.

@@ -34,27 +34,12 @@ import (
 // Typically used when supplying empty values to depinject, or as receiving
 // addresses for constructed depinject values.
 
+// emptyABCIMiddleware return an address pointing to an empty BeaconState.
 func emptyABCIMiddleware() *components.ABCIMiddleware {
-	return &components.ABCIMiddleware{}
-}
-
-// emptyBeaconState return an address pointing to an empty BeaconState.
-func emptyValidatorMiddleware() *components.ValidatorMiddleware {
-	return &middleware.ValidatorMiddleware[
+	return &middleware.ABCIMiddleware[
 		*dastore.Store[*consensustypes.BeaconBlockBody],
 		*consensustypes.BeaconBlock,
 		*consensustypes.BeaconBlockBody,
-		components.BeaconState,
-		*datypes.BlobSidecars,
-		components.StorageBackend,
-	]{}
-}
-
-// emptyFinalizeBlockMiddleware returns an address pointing to an empty
-// FinalizeBlockMiddleware.
-func emptyFinalizeBlockMiddlware() *components.FinalizeBlockMiddleware {
-	return &middleware.FinalizeBlockMiddleware[
-		*consensustypes.BeaconBlock,
 		components.BeaconState,
 		*datypes.BlobSidecars,
 	]{}

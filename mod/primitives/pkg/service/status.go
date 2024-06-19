@@ -18,41 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package service
 
-import (
-	"time"
-)
-
-// validatorMiddlewareMetrics is a struct that contains metrics for the chain.
-type validatorMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// StatusEvent represents a service status event.
+type StatusEvent struct {
+	// name represents the name of the service.
+	name string
+	// healthy indicates whether the service is in a healthy state.
+	healthy bool
 }
 
-// newValidatorMiddlewareMetrics creates a new validatorMiddlewareMetrics.
-func newValidatorMiddlewareMetrics(
-	sink TelemetrySink,
-) *validatorMiddlewareMetrics {
-	return &validatorMiddlewareMetrics{
-		sink: sink,
+// NewStatusEvent creates a new status service.
+func NewStatusEvent(name string, healthy bool) *StatusEvent {
+	return &StatusEvent{
+		name:    name,
+		healthy: healthy,
 	}
 }
 
-// measurePrepareProposalDuration measures the time to prepare.
-func (cm *validatorMiddlewareMetrics) measurePrepareProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.prepare_proposal_duration", start,
-	)
+// Name returns the name of the service.
+func (s *StatusEvent) Name() string {
+	return s.name
 }
 
-// measureProcessProposalDuration measures the time to process.
-func (cm *validatorMiddlewareMetrics) measureProcessProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.process_proposal_duration", start,
-	)
+// IsHealthy returns the health status of the service.
+func (s *StatusEvent) IsHealthy() bool {
+	return s.healthy
 }

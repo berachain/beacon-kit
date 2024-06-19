@@ -18,32 +18,34 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package components
 
 import (
-	"time"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
-// finalizeMiddlewareMetrics is a struct that contains metrics for the chain.
-type finalizeMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// ProvideBlobFeed provides a blob feed for the depinject framework.
+func ProvideBlobFeed() *BlobFeed {
+	return &BlobFeed{}
 }
 
-// newFinalizeMiddlewareMetrics creates a new finalizeMiddlewareMetrics.
-func newFinalizeMiddlewareMetrics(
-	sink TelemetrySink,
-) *finalizeMiddlewareMetrics {
-	return &finalizeMiddlewareMetrics{
-		sink: sink,
-	}
+// ProvideBlockFeed provides a block feed for the depinject framework.
+func ProvideBlockFeed() *BlockFeed {
+	return &BlockFeed{}
 }
 
-// measureEndBlockDuration measures the time to run end block.
-func (cm *finalizeMiddlewareMetrics) measureEndBlockDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.end_block_duration", start,
-	)
+// ProvideSlotFeed provides a slot feed for the depinject framework.
+func ProvideSlotFeed() *SlotFeed {
+	return &SlotFeed{}
+}
+
+// ProvideStatusFeed provides a status feed.
+func ProvideStatusFeed() *event.FeedOf[
+	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
+] {
+	return &event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
+	]{}
 }

@@ -23,37 +23,32 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
-	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore[*types.Deposit],
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT Eth1Data[Eth1DataT],
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkDataT ForkData[ForkDataT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -66,76 +61,100 @@ type Service[
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
 	]
 	// bsb is the beacon state backend.
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
-	// blobProcessor is used to process blobs.
-	blobProcessor BlobProcessor[BlobSidecarsT]
+	bsb StorageBackend[
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	]
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
+		ExecutionPayloadHeaderT,
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
-	// Building blocks is done by submitting forkchoice updates through.
+	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
+	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// blkFeed is a feed for blocks.
+	blkFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[BeaconBlockT],
+	]
+	// sidecarsFeed is a feed for sidecars.
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[BlobSidecarsT],
+	]
+	slotFeed *event.FeedOf[
+		asynctypes.EventID,
+		*asynctypes.Event[math.Slot],
+	]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore[*types.Deposit],
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	BeaconBlockBodyT BeaconBlockBody[
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT Eth1Data[Eth1DataT],
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkDataT ForkData[ForkDataT],
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec primitives.ChainSpec,
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
-	blobProcessor BlobProcessor[BlobSidecarsT],
-	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
+	bsb StorageBackend[
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	],
+	stateProcessor StateProcessor[
+		BeaconBlockT,
+		BeaconStateT,
+		*transition.Context,
+		ExecutionPayloadHeaderT,
+	],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
 		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
+	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT, ForkDataT,
+		BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
-		blobProcessor:         blobProcessor,
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
@@ -144,35 +163,75 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
+		blkFeed:               blkFeed,
+		sidecarsFeed:          sidecarsFeed,
+		slotFeed:              slotFeed,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) Start(
-	context.Context,
+	ctx context.Context,
 ) error {
-	s.logger.Info(
-		"starting validator service 🛜 ",
-		"optimistic_payload_builds", s.cfg.EnableOptimisticPayloadBuilds,
-	)
+	go s.start(ctx)
 	return nil
 }
 
-// Status returns the status of the service.
+// start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) Status() error {
-	return nil
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) start(
+	ctx context.Context,
+) {
+	newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
+	sub := s.slotFeed.Subscribe(newSlotCh)
+	defer sub.Unsubscribe()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case req := <-newSlotCh:
+			if req.Type() == events.NewSlot {
+				s.handleNewSlot(req)
+			}
+		}
+	}
+}
+
+// handleBlockRequest handles a block request.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
+	if blk, sidecars, err := s.RequestBlockForProposal(
+		req.Context(), req.Data(),
+	); err != nil {
+		s.logger.Error("failed to build block", "err", err)
+	} else {
+		// Send the built block back on the feed.
+		s.blkFeed.Send(asynctypes.NewEvent(
+			req.Context(), events.BeaconBlockBuilt, blk, err,
+		))
+
+		// Send the sidecars on the feed.
+		s.sidecarsFeed.Send(asynctypes.NewEvent(
+			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
+		))
+	}
 }

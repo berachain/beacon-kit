@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -34,10 +33,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -68,10 +70,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -97,10 +102,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -108,14 +116,14 @@ func (s *Service[
 	var (
 		prevStateRoot primitives.Root
 		prevBlockRoot primitives.Root
-		lph           *types.ExecutionPayloadHeader
+		lph           ExecutionPayloadHeaderT
 		slot          math.Slot
 	)
 
 	s.logger.Info("rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is unmodified state.
+	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
 	// previous block and it's root.
 	latestHeader, err := st.GetLatestBlockHeader()
@@ -133,7 +141,7 @@ func (s *Service[
 		return err
 	}
 
-	latestHeader.StateRoot = prevStateRoot
+	latestHeader.SetStateRoot(prevStateRoot)
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
@@ -160,12 +168,12 @@ func (s *Service[
 		),
 		// We set the parent root to the previous block root.
 		prevBlockRoot,
-		// We set the head of our chain to previous finalized block.
+		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
 		// TODO: This is making an assumption about the consensus rules
 		// and possibly should be made more explicit later on.
-		lph.GetBlockHash(),
+		lph.GetParentHash(),
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
@@ -180,10 +188,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -203,10 +214,13 @@ func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
 	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
 	BeaconStateT,
 	BlobSidecarsT,
-	DepositStoreT,
 	DepositT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	GenesisT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

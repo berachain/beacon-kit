@@ -23,12 +23,13 @@ package bytes_test
 
 import (
 	stdbytes "bytes"
-	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFromHex(t *testing.T) {
@@ -73,12 +74,11 @@ func TestFromHex(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := bytes.FromHex(tt.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FromHex() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !stdbytes.Equal(got, tt.want) {
-				t.Errorf("FromHex() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.True(t, stdbytes.Equal(got, tt.want), "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -125,9 +125,7 @@ func TestMustFromHex(t *testing.T) {
 				_ = bytes.MustFromHex(test.input)
 			} else {
 				result := bytes.MustFromHex(test.input)
-				if !stdbytes.Equal(result, test.expected) {
-					t.Errorf("Unexpected result for input %s. Expected: %v, Got: %v", test.input, test.expected, result)
-				}
+				require.True(t, stdbytes.Equal(result, test.expected), "Test case %s", test.name)
 			}
 		})
 	}
@@ -137,33 +135,50 @@ func TestSafeCopy(t *testing.T) {
 	tests := []struct {
 		name     string
 		original []byte
+		expected []byte
 	}{
-		{name: "Normal case", original: []byte{1, 2, 3, 4, 5}},
-		{name: "Empty slice", original: []byte{}},
-		{name: "Single element slice", original: []byte{9}},
-		{name: "Large slice", original: make([]byte, 100)},
-		{name: "Another normal case", original: []byte{6, 6, 6, 6, 6}},
-		{name: "Another single element slice", original: []byte{5}},
-		{name: "Another large slice", original: make([]byte, 200)},
+		{
+			name:     "Normal case",
+			original: []byte{1, 2, 3, 4, 5},
+			expected: []byte{1, 2, 3, 4, 5},
+		},
+		{name: "Empty slice", original: []byte{}, expected: []byte{}},
+		{
+			name:     "Single element slice",
+			original: []byte{9},
+			expected: []byte{9},
+		},
+		{
+			name:     "Large slice",
+			original: make([]byte, 100),
+			expected: make([]byte, 100),
+		},
+		{
+			name:     "Another normal case",
+			original: []byte{6, 6, 6, 6, 6},
+			expected: []byte{6, 6, 6, 6, 6},
+		},
+		{
+			name:     "Another single element slice",
+			original: []byte{5},
+			expected: []byte{5},
+		},
+		{
+			name:     "Another large slice",
+			original: make([]byte, 200),
+			expected: make([]byte, 200),
+		},
+		{
+			name:     "Slice of length 32",
+			original: make([]byte, 32),
+			expected: make([]byte, 32),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			copied := bytes.SafeCopy(tt.original)
-
-			if !stdbytes.Equal(tt.original, copied) {
-				t.Errorf("SafeCopy did not copy the slice correctly")
-			}
-
-			// Modifying the copied slice should not affect the original slice
-			if len(copied) > 0 {
-				copied[0] = 10
-				if tt.original[0] == copied[0] {
-					t.Errorf(
-						"Modifying the copied slice affected the original slice",
-					)
-				}
-			}
+			require.Equal(t, tt.expected, copied, "Test case %s", tt.name)
 		})
 	}
 }
@@ -172,6 +187,7 @@ func TestSafeCopy2D(t *testing.T) {
 	tests := []struct {
 		name     string
 		original [][]byte
+		expected [][]byte
 	}{
 		{
 			name: "Normal case",
@@ -180,20 +196,34 @@ func TestSafeCopy2D(t *testing.T) {
 				{4, 5, 6},
 				{7, 8, 9},
 			},
+			expected: [][]byte{
+				{1, 2, 3},
+				{4, 5, 6},
+				{7, 8, 9},
+			},
 		},
 		{
 			name:     "Empty slice",
 			original: [][]byte{},
+			expected: [][]byte{},
 		},
 		{
 			name: "Single element slice",
 			original: [][]byte{
 				{9},
 			},
+			expected: [][]byte{
+				{9},
+			},
 		},
 		{
 			name: "Mixed lengths",
 			original: [][]byte{
+				{1, 2, 3},
+				{4},
+				{5, 6},
+			},
+			expected: [][]byte{
 				{1, 2, 3},
 				{4},
 				{5, 6},
@@ -205,26 +235,22 @@ func TestSafeCopy2D(t *testing.T) {
 				nil,
 				{1, 2, 3},
 			},
+			expected: [][]byte{
+				nil,
+				{1, 2, 3},
+			},
+		},
+		{
+			name:     "Nil slice",
+			original: nil,
+			expected: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			copied := bytes.SafeCopy2D(tt.original)
-
-			if !reflect.DeepEqual(tt.original, copied) {
-				t.Errorf("SafeCopy2D did not copy the slice correctly")
-			}
-
-			// Modifying the copied slice should not affect the original slice
-			if len(copied) > 0 && len(copied[0]) > 0 {
-				copied[0][0] = 10
-				if tt.original[0][0] == copied[0][0] {
-					t.Errorf(
-						"Modifying the copied slice affected the original slice",
-					)
-				}
-			}
+			require.Equal(t, tt.expected, copied, "Test case: %s", tt.name)
 		})
 	}
 }
@@ -252,11 +278,7 @@ func TestReverseEndianness(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.CopyAndReverseEndianess(tt.input)
-			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf(
-					"ReverseEndianness(%v) = %v, want %v",
-					tt.name, result, tt.expected)
-			}
+			require.Equal(t, tt.expected, result, "Test case %s", tt.name)
 		})
 	}
 }
@@ -289,11 +311,7 @@ func TestPrependExtendToSize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.PrependExtendToSize(tt.input, tt.length)
-			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf(
-					"PrependExtendToSize(%v, %v) = %v, want %v",
-					tt.input, tt.length, result, tt.expected)
-			}
+			require.Equal(t, tt.expected, result, "Test case %s", tt.name)
 		})
 	}
 }
@@ -306,9 +324,10 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "valid input",
-			input: `"0x01020304"`,
-			want:  bytes.B4{0x01, 0x02, 0x03, 0x04},
+			name:    "valid input",
+			input:   `"0x01020304"`,
+			want:    bytes.B4{0x01, 0x02, 0x03, 0x04},
+			wantErr: false,
 		},
 		{
 			name:    "invalid input - not hex",
@@ -326,16 +345,11 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B4
 			err := got.UnmarshalJSON([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes4.UnmarshalJSON() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes4.UnmarshalJSON() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case %s", tt.name)
 			}
 		})
 	}
@@ -361,45 +375,45 @@ func TestBytes4String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.h.String(); got != tt.want {
-				t.Errorf("Bytes4.String() = %v, want %v", got, tt.want)
-			}
+			got := tt.h.String()
+			require.Equal(t, tt.want, got, "Test case %s", tt.name)
 		})
 	}
 }
 
 func TestBytes4MarshalText(t *testing.T) {
 	tests := []struct {
-		name    string
-		h       bytes.B4
-		want    string
-		wantErr bool
+		name string
+		h    bytes.B4
+		want string
 	}{
 		{
 			name: "valid bytes",
 			h:    bytes.B4{0x01, 0x02, 0x03, 0x04},
 			want: "0x01020304",
 		},
+		{
+			name: "all zeros",
+			h:    bytes.B4{0x00, 0x00, 0x00, 0x00},
+			want: "0x00000000",
+		},
+		{
+			name: "all ones",
+			h:    bytes.B4{0xFF, 0xFF, 0xFF, 0xFF},
+			want: "0xffffffff",
+		},
+		{
+			name: "mixed bytes",
+			h:    bytes.B4{0xAA, 0xBB, 0xCC, 0xDD},
+			want: "0xaabbccdd",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.h.MarshalText()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes4.MarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if string(got) != tt.want {
-				t.Errorf(
-					"Bytes4.MarshalText() = %v, want %v",
-					string(got),
-					tt.want,
-				)
-			}
+			require.NoError(t, err, "Test case %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case %s", tt.name)
 		})
 	}
 }
@@ -412,9 +426,10 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "valid input",
-			input: "0x01020304",
-			want:  bytes.B4{0x01, 0x02, 0x03, 0x04},
+			name:    "valid input",
+			input:   "0x01020304",
+			want:    bytes.B4{0x01, 0x02, 0x03, 0x04},
+			wantErr: false,
 		},
 		{
 			name:    "invalid input - not hex",
@@ -432,17 +447,47 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B4
 			err := got.UnmarshalText([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes4.UnmarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
+			if tt.wantErr {
+				require.Error(t, err, "Test case %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case %s", tt.name)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes4.UnmarshalText() = %v, want %v", got, tt.want)
-			}
+		})
+	}
+}
+func TestToBytes4(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B4
+	}{
+		{
+			name:     "Input less than 4 bytes",
+			input:    []byte{0x01, 0x02},
+			expected: bytes.B4{0x01, 0x02, 0x00, 0x00},
+		},
+		{
+			name:     "Input exactly 4 bytes",
+			input:    []byte{0x01, 0x02, 0x03, 0x04},
+			expected: bytes.B4{0x01, 0x02, 0x03, 0x04},
+		},
+		{
+			name:     "Input more than 4 bytes",
+			input:    []byte{0x01, 0x02, 0x03, 0x04, 0x05},
+			expected: bytes.B4{0x01, 0x02, 0x03, 0x04},
+		},
+		{
+			name:     "Empty input",
+			input:    []byte{},
+			expected: bytes.B4{0x00, 0x00, 0x00, 0x00},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes4(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
 		})
 	}
 }
@@ -490,6 +535,7 @@ func TestBytes32UnmarshalText(t *testing.T) {
 				0x1f,
 				0x20,
 			},
+			wantErr: false,
 		},
 		{
 			name:    "invalid input - not hex",
@@ -507,16 +553,11 @@ func TestBytes32UnmarshalText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B32
 			err := got.UnmarshalText([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes32.UnmarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes32.UnmarshalText() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case %s", tt.name)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got, "Test case %s", tt.name)
 			}
 		})
 	}
@@ -566,6 +607,7 @@ func TestBytes32UnmarshalJSON(t *testing.T) {
 				0x1f,
 				0x20,
 			},
+			wantErr: false,
 		},
 		{
 			name:    "invalid input - not hex",
@@ -587,17 +629,12 @@ func TestBytes32UnmarshalJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B32
-			err := json.Unmarshal([]byte(tt.input), &got)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes32.UnmarshalJSON() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes32.UnmarshalJSON() = %v, want %v", got, tt.want)
+			err := got.UnmarshalJSON([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -605,10 +642,9 @@ func TestBytes32UnmarshalJSON(t *testing.T) {
 
 func TestBytes32MarshalText(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   bytes.B32
-		want    string
-		wantErr bool
+		name  string
+		input bytes.B32
+		want  string
 	}{
 		{
 			name: "valid input",
@@ -628,21 +664,8 @@ func TestBytes32MarshalText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalText()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes32.MarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if string(got) != tt.want {
-				t.Errorf(
-					"Bytes32.MarshalText() = %v, want %v",
-					string(got),
-					tt.want,
-				)
-			}
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
 		})
 	}
 }
@@ -670,12 +693,70 @@ func TestBytes32String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.input.String(); got != tt.want {
-				t.Errorf("Bytes32.String() = %v, want %v", got, tt.want)
-			}
+			got := tt.input.String()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
 }
+
+func TestToBytes32(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B32
+	}{
+		{
+			name:     "Input less than 32 bytes",
+			input:    []byte{1, 2, 3},
+			expected: bytes.B32{1, 2, 3},
+		},
+		{
+			name:     "Input exactly 32 bytes",
+			input:    make([]byte, 32),
+			expected: bytes.B32{},
+		},
+		{
+			name:     "Input more than 32 bytes",
+			input:    make([]byte, 40),
+			expected: bytes.B32{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes32(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestHashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    bytes.B32
+		expected [32]byte
+	}{
+		{
+			name:     "Non-empty input",
+			input:    bytes.B32{1, 2, 3},
+			expected: [32]byte{1, 2, 3},
+		},
+		{
+			name:     "Empty input",
+			input:    bytes.B32{},
+			expected: [32]byte{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.HashTreeRoot()
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
 func TestBytes48String(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -745,19 +826,17 @@ func TestBytes48String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.input.String(); got != tt.want {
-				t.Errorf("Bytes48.String() = %v, want %v", got, tt.want)
-			}
+			got := tt.input.String()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
 }
 
 func TestBytes48MarshalText(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   bytes.B48
-		want    string
-		wantErr bool
+		name  string
+		input bytes.B48
+		want  string
 	}{
 		{
 			name: "valid input",
@@ -823,21 +902,8 @@ func TestBytes48MarshalText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalText()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes48.MarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if string(got) != tt.want {
-				t.Errorf(
-					"Bytes48.MarshalText() = %s, want %s",
-					string(got),
-					tt.want,
-				)
-			}
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
 		})
 	}
 }
@@ -919,20 +985,94 @@ func TestBytes48UnmarshalText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B48
 			err := got.UnmarshalText([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes48.UnmarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes48.UnmarshalText() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 			}
 		})
 	}
 }
+
+func TestToBytes48(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B48
+	}{
+		{
+			name:     "Input less than 48 bytes",
+			input:    []byte{1, 2, 3},
+			expected: bytes.B48{1, 2, 3},
+		},
+		{
+			name:     "Input exactly 48 bytes",
+			input:    make([]byte, 48),
+			expected: bytes.B48{},
+		},
+		{
+			name:     "Input more than 48 bytes",
+			input:    make([]byte, 60),
+			expected: bytes.B48{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes48(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bytes.B48
+		wantErr  bool
+	}{
+		{
+			name:     "Valid input",
+			input:    `"0x010203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"`,
+			expected: bytes.B48{1, 2, 3},
+			wantErr:  false,
+		},
+		{
+			name:     "Empty input",
+			input:    `"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"`,
+			expected: bytes.B48{},
+			wantErr:  false,
+		},
+		{
+			name:     "Invalid input - not hex",
+			input:    `"invalid"`,
+			expected: bytes.B48{},
+			wantErr:  true,
+		},
+		{
+			name:     "Invalid input - odd length",
+			input:    `"0x010203"`,
+			expected: bytes.B48{},
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B48
+			err := got.UnmarshalJSON([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, got, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
 func TestBytes96UnmarshalText(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -967,16 +1107,11 @@ func TestBytes96UnmarshalText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B96
 			err := got.UnmarshalText([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes96.UnmarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes96.UnmarshalText() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -1016,26 +1151,20 @@ func TestBytes96UnmarshalJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got bytes.B96
 			err := got.UnmarshalJSON([]byte(tt.input))
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes96.UnmarshalJSON() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bytes96.UnmarshalJSON() = %v, want %v", got, tt.want)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 			}
 		})
 	}
 }
 func TestBytes96MarshalText(t *testing.T) {
 	tests := []struct {
-		name    string
-		h       bytes.B96
-		want    string
-		wantErr bool
+		name string
+		h    bytes.B96
+		want string
 	}{
 		{
 			name: "valid bytes",
@@ -1048,26 +1177,35 @@ func TestBytes96MarshalText(t *testing.T) {
 			}(),
 			want: "0x" + strings.Repeat("01", 96),
 		},
+		{
+			name: "empty bytes",
+			h:    bytes.B96{},
+			want: "0x" + strings.Repeat("00", 96),
+		},
+		{
+			name: "mixed bytes",
+			h: func() bytes.B96 {
+				var b bytes.B96
+				for i := 0; i < len(b); i++ {
+					b[i] = byte(i % 256)
+				}
+				return b
+			}(),
+			want: "0x" + func() string {
+				var s string
+				for i := range 96 {
+					s += fmt.Sprintf("%02x", i%256)
+				}
+				return s
+			}(),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.h.MarshalText()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Bytes96.MarshalText() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if string(got) != tt.want {
-				t.Errorf(
-					"Bytes96.MarshalText() = %v, want %v",
-					string(got),
-					tt.want,
-				)
-			}
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
 		})
 	}
 }
@@ -1098,8 +1236,406 @@ func TestBytes96String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.h.String(); got != tt.want {
-				t.Errorf("Bytes96.String() = %v, want %v", got, tt.want)
+			got := tt.h.String()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestToBytes96(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B96
+	}{
+		{
+			name:     "Input less than 96 bytes",
+			input:    []byte{1, 2, 3},
+			expected: bytes.B96{1, 2, 3},
+		},
+		{
+			name:     "Input exactly 96 bytes",
+			input:    make([]byte, 96),
+			expected: bytes.B96{},
+		},
+		{
+			name:     "Input more than 96 bytes",
+			input:    make([]byte, 100),
+			expected: bytes.B96{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes96(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestBytes8UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B8
+		wantErr bool
+	}{
+		{
+			name:    "valid input",
+			input:   `"0x0102030405060708"`,
+			want:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			wantErr: false,
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   `"0102030405060708"`,
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   `"0x01020304"`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B8
+			err := got.UnmarshalJSON([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestBytes8String(t *testing.T) {
+	tests := []struct {
+		name string
+		h    bytes.B8
+		want string
+	}{
+		{
+			name: "non-empty bytes",
+			h:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			want: "0x0102030405060708",
+		},
+		{
+			name: "empty bytes",
+			h:    bytes.B8{},
+			want: "0x0000000000000000",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.h.String()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestBytes8MarshalText(t *testing.T) {
+	tests := []struct {
+		name string
+		h    bytes.B8
+		want string
+	}{
+		{
+			name: "valid bytes",
+			h:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			want: "0x0102030405060708",
+		},
+		{
+			name: "empty bytes",
+			h:    bytes.B8{},
+			want: "0x0000000000000000",
+		},
+		{
+			name: "all zeros",
+			h:    bytes.B8{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			want: "0x0000000000000000",
+		},
+		{
+			name: "all ones",
+			h:    bytes.B8{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+			want: "0xffffffffffffffff",
+		},
+		{
+			name: "mixed bytes",
+			h:    bytes.B8{0xaa, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22},
+			want: "0xaabbccddeeff1122",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.h.MarshalText()
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestBytes8UnmarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B8
+		wantErr bool
+	}{
+		{
+			name:    "valid input",
+			input:   "0x0102030405060708",
+			want:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+			wantErr: false,
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   "0102030405060708",
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   "0x01020304",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B8
+			err := got.UnmarshalText([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+func TestToBytes8(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B8
+	}{
+		{
+			name:     "Exact 8 bytes",
+			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+		},
+		{
+			name:     "Less than 8 bytes",
+			input:    []byte{1, 2, 3, 4},
+			expected: bytes.B8{1, 2, 3, 4, 0, 0, 0, 0},
+		},
+		{
+			name:     "Two bytes",
+			input:    []byte{1, 2},
+			expected: bytes.B8{1, 2, 0, 0, 0, 0, 0, 0},
+		},
+		{
+			name:     "Empty input",
+			input:    []byte{},
+			expected: bytes.B8{0, 0, 0, 0, 0, 0, 0, 0},
+		},
+		{
+			name:     "More than 8 bytes",
+			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes8(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestUnmarshalFixedJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		typ      reflect.Type
+		input    []byte
+		out      []byte
+		expected []byte
+		wantErr  bool
+	}{
+		{
+			name:     "Valid input",
+			typ:      reflect.TypeOf([4]byte{}),
+			input:    []byte(`"0x01020304"`),
+			out:      make([]byte, 4),
+			expected: []byte{0x01, 0x02, 0x03, 0x04},
+			wantErr:  false,
+		},
+		{
+			name:     "Invalid input - not hex",
+			typ:      reflect.TypeOf([4]byte{}),
+			input:    []byte(`"01020304"`),
+			out:      make([]byte, 4),
+			expected: nil,
+			wantErr:  true,
+		},
+		{
+			name:     "Invalid input - wrong length",
+			typ:      reflect.TypeOf([4]byte{}),
+			input:    []byte(`"0x010203"`),
+			out:      make([]byte, 4),
+			expected: nil,
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := bytes.UnmarshalFixedJSON(tt.typ, tt.input, tt.out)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestUnmarshalFixedText(t *testing.T) {
+	tests := []struct {
+		name     string
+		typename string
+		input    []byte
+		out      []byte
+		expected []byte
+		wantErr  bool
+	}{
+		{
+			name:     "Valid input",
+			typename: "B4",
+			input:    []byte("0x01020304"),
+			out:      make([]byte, 4),
+			expected: []byte{0x01, 0x02, 0x03, 0x04},
+			wantErr:  false,
+		},
+		{
+			name:     "Invalid input - not hex",
+			typename: "B4",
+			input:    []byte("01020304"),
+			out:      make([]byte, 4),
+			expected: nil,
+			wantErr:  true,
+		},
+		{
+			name:     "Invalid input - wrong length",
+			typename: "B4",
+			input:    []byte("0x010203"),
+			out:      make([]byte, 4),
+			expected: nil,
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := bytes.UnmarshalFixedText(tt.typename, tt.input, tt.out)
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestBytes_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    bytes.Bytes
+		expected string
+	}{
+		{
+			name:     "Empty bytes",
+			input:    bytes.Bytes{},
+			expected: "0x",
+		},
+		{
+			name:     "Single byte",
+			input:    bytes.Bytes{0x01},
+			expected: "0x01",
+		},
+		{
+			name:     "Multiple bytes",
+			input:    bytes.Bytes{0x01, 0x02, 0x03, 0x04},
+			expected: "0x01020304",
+		},
+		{
+			name:     "Bytes with leading zeros",
+			input:    bytes.Bytes{0x00, 0x00, 0x01, 0x02},
+			expected: "0x00000102",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.input.String()
+			require.Equal(
+				t,
+				tt.expected,
+				string(result),
+				"Test case: %s",
+				tt.name,
+			)
+		})
+	}
+}
+
+func TestBytes_MarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   bytes.Bytes
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Empty slice",
+			input:   bytes.Bytes{},
+			want:    "0x",
+			wantErr: false,
+		},
+		{
+			name:    "Single byte",
+			input:   bytes.Bytes{0x01},
+			want:    "0x01",
+			wantErr: false,
+		},
+		{
+			name:    "Multiple bytes",
+			input:   bytes.Bytes{0x01, 0x02, 0x03},
+			want:    "0x010203",
+			wantErr: false,
+		},
+		{
+			name:    "Nil slice",
+			input:   nil,
+			want:    "0x",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.input.MarshalText()
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
 			}
 		})
 	}

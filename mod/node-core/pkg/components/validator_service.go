@@ -23,6 +23,8 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -30,20 +32,24 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BlobProcessor  *BlobProcessor
-	Cfg            *config.Config
-	ChainSpec      primitives.ChainSpec
-	LocalBuilder   *LocalBuilder
-	Logger         log.Logger
-	StateProcessor StateProcessor
-	StorageBackend StorageBackend
-	Signer         crypto.BLSSigner
-	TelemetrySink  *metrics.TelemetrySink
+	BeaconBlockFeed *BlockFeed
+	BlobProcessor   *BlobProcessor
+	Cfg             *config.Config
+	ChainSpec       primitives.ChainSpec
+	LocalBuilder    *LocalBuilder
+	Logger          log.Logger
+	StateProcessor  StateProcessor
+	StorageBackend  StorageBackend
+	Signer          crypto.BLSSigner
+	SidecarsFeed    *BlobFeed
+	SlotFeed        *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
@@ -56,14 +62,17 @@ func ProvideValidatorService(
 		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
 		*DepositStore,
+		*types.Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
 		*types.ForkData,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
 		in.StorageBackend,
-		in.BlobProcessor,
 		in.StateProcessor,
 		in.Signer,
 		dablob.NewSidecarFactory[*BeaconBlock, *BeaconBlockBody](
@@ -76,5 +85,8 @@ func ProvideValidatorService(
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
+		in.BeaconBlockFeed,
+		in.SidecarsFeed,
+		in.SlotFeed,
 	)
 }

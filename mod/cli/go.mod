@@ -5,7 +5,6 @@ go 1.22.4
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
-	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 
@@ -18,14 +17,13 @@ require (
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240614170055-80f843fefa51
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240614135647-9814c0c41144
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240614170055-80f843fefa51
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240617185735-42326b5546a8
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
-	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
@@ -58,15 +56,16 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240614154006-a5defa6198f5 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8 // indirect
+	// indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240614154006-a5defa6198f5 // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240614135647-9814c0c41144 // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240617161612-ab1257fcf5a1 // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
@@ -199,7 +198,6 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.12 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

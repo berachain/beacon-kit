@@ -25,9 +25,9 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	sha256 "github.com/minio/sha256-simd"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -113,10 +113,22 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 	} else {
 		m.leaves[index] = item
 	}
-	neighbor := [32]byte{}
-	input := [64]byte{}
-	currentIndex := index
-	root := item
+
+	var (
+		hashFn       func([]byte) [32]byte
+		neighbor     = [32]byte{}
+		input        = [64]byte{}
+		currentIndex = index
+		root         = item
+	)
+
+	//nolint:mnd // 5 as defined by the library.
+	if m.depth > 5 {
+		hashFn = sha256.CustomSHA256Hasher()
+	} else {
+		hashFn = sha256.Sum256
+	}
+
 	for i := range m.depth {
 		if neighborIdx := currentIndex ^ 1; neighborIdx >= len(m.branches[i]) {
 			neighbor = zero.Hashes[i]
@@ -132,7 +144,7 @@ func (m *Tree[LeafT, RootT]) Insert(item [32]byte, index int) error {
 			copy(input[0:32], neighbor[:])
 			copy(input[32:64], root[:])
 		}
-		root = sha256.Sum256(input[:])
+		root = hashFn(input[:])
 
 		//nolint:mnd // 2 is allowed.
 		parentIdx := currentIndex / 2

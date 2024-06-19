@@ -62,7 +62,7 @@ func (sp *StateProcessor[
 	return sp.processDeposits(st, deposits)
 }
 
-// ProcessDeposits processes the deposits and ensures they match the
+// processDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -117,7 +117,7 @@ func (sp *StateProcessor[
 	return sp.applyDeposit(st, dep)
 }
 
-// processDeposit processes the deposit and ensures it matches the local state.
+// applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
@@ -163,18 +163,24 @@ func (sp *StateProcessor[
 		err                   error
 	)
 
-	// Get the genesis validators root to be used to find fork data later.
-	genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return err
-	}
-
 	// Get the current epoch.
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
+
+	// At genesis, the validators sign over an empty root.
+	if slot == 0 {
+		genesisValidatorsRoot = primitives.Root{}
+	} else {
+		// Get the genesis validators root to be used to find fork data later.
+		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
+		if err != nil {
+			return err
+		}
+	}
+
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.

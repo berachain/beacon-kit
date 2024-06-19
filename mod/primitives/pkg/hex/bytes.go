@@ -46,11 +46,9 @@ func UnmarshalByteText(input []byte) ([]byte, error) {
 	return dec, nil
 }
 
-// UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length
+// DecodeFixedJSON decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
-
-// UnmarshalFixedJSON decodes the input as a string with 0x prefix.
 func DecodeFixedJSON(typ reflect.Type,
 	bytesT reflect.Type,
 	input,
@@ -63,7 +61,7 @@ func DecodeFixedJSON(typ reflect.Type,
 	)
 }
 
-// UnmarshalFixedText decodes the input as a string with 0x prefix. The length
+// DecodeFixedText decodes the input as a string with 0x prefix. The length
 // of out determines the required input length.
 func DecodeFixedText(typename string, input, out []byte) error {
 	raw, err := formatAndValidateText(input)

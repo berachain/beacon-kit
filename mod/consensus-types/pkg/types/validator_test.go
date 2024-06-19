@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -552,6 +553,183 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 				tt.want,
 				tt.validator.HasMaxEffectiveBalance(maxEffectiveBalance),
 			)
+		})
+	}
+}
+
+func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+	}{
+		{
+			name: "normal case",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x01},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x01},
+					),
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+			},
+		},
+		{
+			name: "slashed validator",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x02},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x02},
+					),
+				EffectiveBalance:           32e9,
+				Slashed:                    true,
+				ActivationEligibilityEpoch: 5,
+				ActivationEpoch:            6,
+				ExitEpoch:                  10,
+				WithdrawableEpoch:          15,
+			},
+		},
+		{
+			name: "validator with zero balance",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x03},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x03},
+					),
+				EffectiveBalance: 0,
+				Slashed:          false,
+				ActivationEligibilityEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+			},
+		},
+		{
+			name: "validator with non-default epochs",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x04},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x04},
+					),
+				EffectiveBalance:           16e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: 10,
+				ActivationEpoch:            12,
+				ExitEpoch:                  20,
+				WithdrawableEpoch:          25,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Marshal the validator
+			marshaled, err := tt.validator.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal into a new validator
+			var unmarshaled types.Validator
+			err = unmarshaled.UnmarshalSSZ(marshaled)
+			require.NoError(t, err)
+
+			// Check if the original and unmarshaled validators are equal
+			require.Equal(
+				t,
+				tt.validator,
+				&unmarshaled,
+				"Test case: %s",
+				tt.name,
+			)
+		})
+	}
+}
+
+func TestValidator_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+	}{
+		{
+			name: "normal case",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x01},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x01},
+					),
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+			},
+		},
+		{
+			name: "slashed validator",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x02},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						common.ExecutionAddress{0x02},
+					),
+				EffectiveBalance:           32e9,
+				Slashed:                    true,
+				ActivationEligibilityEpoch: 5,
+				ActivationEpoch:            6,
+				ExitEpoch:                  10,
+				WithdrawableEpoch:          15,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test HashTreeRoot
+			root, err := tt.validator.HashTreeRoot()
+			require.NoError(t, err)
+			require.NotEqual(t, [32]byte{}, root)
+
+			// Test HashTreeRootWith
+			hh := ssz.NewHasher()
+			err = tt.validator.HashTreeRootWith(hh)
+			require.NoError(t, err)
+
+			// Test GetTree
+			tree, err := tt.validator.GetTree()
+			require.NoError(t, err)
+			require.NotNil(t, tree)
 		})
 	}
 }

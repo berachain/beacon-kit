@@ -18,9 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package builder
 
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *BlockFeed {
-	return &BlockFeed{}
-}
+import (
+	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/primitives"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/spf13/cobra"
+)
+
+// rootCmdSetup is a function that sets up the root command.
+type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
+	mm *module.Manager,
+	appCreator servertypes.AppCreator[T],
+	chainSpec primitives.ChainSpec,
+)
+
+// runHandler is a function that sets up run handlers for the root command.
+// It takes in custom configs for our app and cometbft.
+type runHandler func(cmd *cobra.Command,
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) error

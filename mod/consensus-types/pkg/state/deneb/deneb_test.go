@@ -102,3 +102,38 @@ func TestBeaconState_MarshalSSZTo(t *testing.T) {
 	// The two byte slices should be equal
 	require.Equal(t, data, buf)
 }
+
+func TestBeaconState_MarshalSSZFields(t *testing.T) {
+	state := generateValidBeaconState()
+
+	// Test BlockRoots field
+	state.BlockRoots = make([]primitives.Root, 8193) // Exceeding the limit
+	_, err := state.MarshalSSZ()
+	require.Error(t, err)
+	state.BlockRoots = make([]primitives.Root, 8192) // Within the limit
+	_, err = state.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Test StateRoots field
+	state.StateRoots = make([]primitives.Root, 8193) // Exceeding the limit
+	_, err = state.MarshalSSZ()
+	require.Error(t, err)
+	state.StateRoots = make([]primitives.Root, 8192) // Within the limit
+	_, err = state.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Test LatestExecutionPayloadHeader field
+	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeaderDeneb{
+		LogsBloom: make([]byte, 256), // Initialize LogsBloom with 256 bytes
+	}
+	_, err = state.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Test RandaoMixes field
+	state.RandaoMixes = make([]primitives.Bytes32, 65537) // Exceeding the limit
+	_, err = state.MarshalSSZ()
+	require.Error(t, err)
+	state.RandaoMixes = make([]primitives.Bytes32, 65536) // Within the limit
+	_, err = state.MarshalSSZ()
+	require.NoError(t, err)
+}

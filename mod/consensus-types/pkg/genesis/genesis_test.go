@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:lll // long strings.
 package genesis_test
 
 import (
@@ -25,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -52,15 +54,15 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		t.Errorf("Expected ExecutionPayloadHeader to be non-nil")
 	}
 
-	require.Equal(t, common.ZeroHash, payloadHeader.ParentHash,
+	require.Equal(t, common.ZeroHash, payloadHeader.GetParentHash(),
 		"Unexpected ParentHash")
-	require.Equal(t, common.ZeroAddress, payloadHeader.FeeRecipient,
+	require.Equal(t, common.ZeroAddress, payloadHeader.GetFeeRecipient(),
 		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000), payloadHeader.GasLimit,
+	require.Equal(t, math.U64(30000000), payloadHeader.GetGasLimit(),
 		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0), payloadHeader.GasUsed,
+	require.Equal(t, math.U64(0), payloadHeader.GetGasUsed(),
 		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0), payloadHeader.Timestamp,
+	require.Equal(t, math.U64(0), payloadHeader.GetTimestamp(),
 		"Unexpected Timestamp")
 }
 
@@ -68,4 +70,125 @@ func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
 	header, err := genesis.DefaultGenesisExecutionPayloadHeaderDeneb()
 	require.NoError(t, err)
 	require.NotNil(t, header)
+}
+
+func TestGenesisUnmarshalJSON(t *testing.T) {
+	t.Helper()
+	testCases := []struct {
+		name                string
+		jsonInput           string
+		expectedError       bool
+		expectedFork        bytes.B4
+		expectedDepositsLen int
+	}{
+		{
+			name: "Valid JSON with empty deposits",
+			jsonInput: `{
+				  "fork_version": "0x04000000",
+				  "deposits": [],
+				  "execution_payload_header": {
+					"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"feeRecipient": "0x0000000000000000000000000000000000000000",
+					"stateRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"receiptsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+					"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"blockNumber": "0x0",
+					"gasLimit": "0x0",
+					"gasUsed": "0x0",
+					"timestamp": "0x0",
+					"extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"baseFeePerGas": "0x0",
+					"blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"transactionsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"withdrawalsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"blobGasUsed": "0x0",
+					"excessBlobGas": "0x0"
+				  }
+				}`,
+			expectedError:       false,
+			expectedFork:        bytes.B4{0x4, 0x0, 0x0, 0x0},
+			expectedDepositsLen: 0,
+		},
+		{
+			name: "Valid JSON with non-empty deposits",
+			jsonInput: `{
+				  "fork_version": "0x04000000",
+				  "deposits": [{"key": "value"}],
+				  "execution_payload_header": {
+					"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"feeRecipient": "0x0000000000000000000000000000000000000000",
+					"stateRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"receiptsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+					"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"blockNumber": "0x0",
+					"gasLimit": "0x0",
+					"gasUsed": "0x0",
+					"timestamp": "0x0",
+					"extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"baseFeePerGas": "0x0",
+					"blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"transactionsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"withdrawalsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"blobGasUsed": "0x0",
+					"excessBlobGas": "0x0"
+				  }
+				}`,
+			expectedError:       false,
+			expectedFork:        bytes.B4{0x4, 0x0, 0x0, 0x0},
+			expectedDepositsLen: 1,
+		},
+		{
+			name: "Invalid JSON input",
+			jsonInput: `{
+				"fork_version": 12345,
+				"deposits": [],
+				"execution_payload_header": {
+				}
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "Missing fields in JSON input",
+			jsonInput: `{
+				  "fork_version": "0x04000000",
+				  "deposits": [{"key": "value"}],
+				  "execution_payload_header": {
+					"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"feeRecipient": "0x0000000000000000000000000000000000000000",
+					"stateRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"receiptsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+					"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"gasLimit": "0x1c9c380",
+					"gasUsed": "0x0",
+					"timestamp": "0x0",
+					"extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"baseFeePerGas": "0x3b9aca",
+					"blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"transactionsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"withdrawalsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"blobGasUsed": "0x0",
+					"excessBlobGas": "0x0"
+				  }
+				}`,
+			expectedError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := genesis.DefaultGenesisDeneb()
+			err := g.UnmarshalJSON([]byte(tc.jsonInput))
+			if tc.expectedError {
+				require.Error(t, err, "Expected error but got none")
+			} else {
+				require.NoError(t, err, "Unexpected error")
+				require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
+				require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
+				require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
+			}
+		})
+	}
 }
