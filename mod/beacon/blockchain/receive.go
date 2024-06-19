@@ -134,7 +134,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"State root verification succeeded - accepting incoming beacon block 🏎️",
+		"State root verification succeeded - accepting incoming beacon block 🏎️ ",
 		"state_root",
 		blk.GetStateRoot(),
 	)

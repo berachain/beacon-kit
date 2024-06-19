@@ -44,11 +44,8 @@ func NewLogger[ImplT any](
 		Level:      log.ParseLevel(level),
 		TimeFormat: cfg.TimeFormat,
 		Writer: &log.ConsoleWriter{
-			Writer: out,
-			Formatter: (&Formatter{
-				QuoteString:    cfg.QuoteString,
-				EndWithMessage: cfg.EndWithMessage,
-			}).Format,
+			Writer:    out,
+			Formatter: (NewFormatter().Format),
 		},
 	}
 	return &Logger[ImplT]{

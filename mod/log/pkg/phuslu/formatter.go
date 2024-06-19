@@ -27,20 +27,19 @@ import (
 	"github.com/phuslu/log"
 )
 
-const divider = "|"
-
 // colours.
 const (
-	reset   = "\x1b[0m"
-	black   = "\x1b[30m"
-	red     = "\x1b[31m"
-	green   = "\x1b[32m"
-	yellow  = "\x1b[33m"
-	blue    = "\x1b[34m"
-	magenta = "\x1b[35m"
-	cyan    = "\x1b[36m"
-	white   = "\x1b[37m"
-	gray    = "\x1b[90m"
+	reset      = "\x1b[0m"
+	black      = "\x1b[30m"
+	red        = "\x1b[31m"
+	green      = "\x1b[32m"
+	yellow     = "\x1b[33m"
+	blue       = "\x1b[34m"
+	magenta    = "\x1b[35m"
+	cyan       = "\x1b[36m"
+	white      = "\x1b[37m"
+	gray       = "\x1b[90m"
+	lightWhite = "\x1b[97m"
 )
 
 // Formatter is a custom formatter for log messages.
@@ -69,6 +68,7 @@ func (f *Formatter) Format(
 	if !ok {
 		panic("failed to get byte buffer from pool")
 	}
+
 	buffer.Reset()
 	defer byteBufferPool.Put(buffer)
 
@@ -97,7 +97,9 @@ func (f *Formatter) Format(
 
 	if args.Stack != "" {
 		if args.Stack[len(args.Stack)-1] != '\n' {
-			buffer.Bytes = append(buffer.Bytes, append([]byte(args.Stack), '\n')...)
+			buffer.Bytes = append(
+				buffer.Bytes,
+				append([]byte(args.Stack), '\n')...)
 		} else {
 			buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		}
@@ -121,7 +123,7 @@ func (f *Formatter) printWithColor(
 			kv.Value = strconv.Quote(kv.Value)
 		}
 		b.Bytes = append(b.Bytes, ' ')
-		if kv.Key == "error" {
+		if kv.Key == "error" || kv.Key == "err" {
 			b.Bytes = append(b.Bytes, red...)
 			b.Bytes = append(b.Bytes, kv.Key...)
 			b.Bytes = append(b.Bytes, '=')
@@ -156,19 +158,14 @@ func (f *Formatter) formatHeader(
 	b.Bytes = append(b.Bytes, headerColor...)
 	b.Bytes = append(b.Bytes, level...)
 	b.Bytes = append(b.Bytes, resetColor...)
-	b.Bytes = append(b.Bytes, ' ')
 
 	if args.Caller != "" {
 		b.Bytes = append(b.Bytes, args.Goid...)
 		b.Bytes = append(b.Bytes, ' ')
 		b.Bytes = append(b.Bytes, args.Caller...)
 		b.Bytes = append(b.Bytes, ' ')
-		b.Bytes = append(b.Bytes, cyan...)
-		b.Bytes = append(b.Bytes, divider...)
 		b.Bytes = append(b.Bytes, resetColor...)
 	} else {
-		b.Bytes = append(b.Bytes, cyan...)
-		b.Bytes = append(b.Bytes, divider...)
 		b.Bytes = append(b.Bytes, resetColor...)
 	}
 }
