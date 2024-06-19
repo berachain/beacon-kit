@@ -222,10 +222,10 @@ func (s *Service[
 	blk, sidecars, err := s.RequestBlockForProposal(
 		req.Context(), req.Data(),
 	)
-
 	if err != nil {
 		s.logger.Error("failed to build block", "err", err)
 	}
+
 	// Send the built block back on the feed.
 	s.blkFeed.Send(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,

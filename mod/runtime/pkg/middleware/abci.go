@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -100,7 +101,7 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		err           error
+		// err           error
 		startTime     = time.Now()
 		sidecarsBz    []byte
 		beaconBlockBz []byte
@@ -113,16 +114,31 @@ func (h *ABCIMiddleware[
 		ctx, events.NewSlot, math.Slot(req.Height),
 	))
 
-	beaconBlockBz, err = h.waitforBeaconBlk(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// Using a wait group instead of an err group to ensure we drain
+	// the associated channels.
+	var wg sync.WaitGroup
+	var beaconBlockErr, sidecarsErr error
 
-	sidecarsBz, err = h.waitForSidecars(ctx)
-	if err != nil {
-		return nil, err
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
+	}()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
+	}()
+
+	wg.Wait()
+
+	if beaconBlockErr != nil {
+		return nil, beaconBlockErr
+	}
+	if sidecarsErr != nil {
+		return nil, sidecarsErr
+	}
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
 	}, nil
@@ -139,7 +155,11 @@ func (h *ABCIMiddleware[
 	case err := <-h.prepareProposalErrCh:
 		return nil, err
 	case sidecars := <-h.prepareProposalSidecarsCh:
-		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
+		if sidecars.Error() != nil {
+			return nil, sidecars.Error()
+		}
+
+		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars.Data())
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
 		}
@@ -158,7 +178,10 @@ func (h *ABCIMiddleware[
 	case err := <-h.prepareProposalErrCh:
 		return nil, err
 	case beaconBlock := <-h.prepareProposalBlkCh:
-		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
+		if beaconBlock.Error() != nil {
+			return nil, beaconBlock.Error()
+		}
+		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock.Data())
 		if err != nil {
 			h.logger.Error("failed to publish beacon block", "error", err)
 		}
