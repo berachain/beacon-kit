@@ -100,11 +100,6 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Prime the db so that processDeposit doesn't fail.
-	if err = st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
-		return nil, err
-	}
-
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
@@ -121,7 +116,7 @@ func (sp *StateProcessor[
 
 	var validatorsRoot primitives.Root
 	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64, [32]byte,
+		common.ChainSpec, math.U64,
 	](validators, uint64(len(validators)))
 	if err != nil {
 		return nil, err
