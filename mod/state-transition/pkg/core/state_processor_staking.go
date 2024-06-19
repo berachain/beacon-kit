@@ -48,6 +48,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+
 	eth1Data, err := st.GetEth1Data()
 	if err != nil {
 		return err
@@ -57,6 +58,8 @@ func (sp *StateProcessor[
 		uint64(eth1Data.GetDepositCount())-index,
 	)
 	_ = depositCount
+	fmt.Println("DEPOSIT-CHECK DEPOSIT-INDEX", index, "DEPOSIT-COUNT", depositCount, "ETH1-DATA-DEPOSIT-COUNT", eth1Data.GetDepositCount(), "DEPOSITS", deposits)
+	fmt.Println("DEPOSIT-CHECK PROCESSING DEPOSITS", depositCount)
 	// TODO: Update eth1data count and check this.
 	// if uint64(len(deposits)) != depositCount {
 	// 	return errors.New("deposit count mismatch")
@@ -76,7 +79,7 @@ func (sp *StateProcessor[
 	deposits []DepositT,
 ) error {
 	// Ensure the deposits match the local state.
-	fmt.Println("PROCESSING DEPOSITS", len(deposits))
+	fmt.Println("DEPOSIT-CHECK PROCESSING DEPOSITS", len(deposits))
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
@@ -111,7 +114,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	fmt.Println("DEPOSIT INDEX", depositIndex)
+	fmt.Println("DEPOSIT-CHECK DEPOSIT INDEX", depositIndex)
 
 	if err = st.SetEth1DepositIndex(
 		depositIndex + 1,
@@ -119,7 +122,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	fmt.Println("SET ETH DEPOSIT INDEX TO DEPOSIT INDEX", depositIndex+1)
+	fmt.Println("DEPOSIT-CHECK SET ETH DEPOSIT INDEX TO DEPOSIT INDEX", depositIndex+1)
 
 	return sp.applyDeposit(st, dep)
 }
@@ -134,11 +137,11 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	fmt.Println("ENTERING CREATE VALIDATOR")
+	fmt.Println("DEPOSIT-CHECK ENTERING CREATE VALIDATOR")
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	// If the validator already exists, we update the balance.
 	if err == nil {
-		fmt.Println("ERR IS NIL, UPDATING BALANCE NOT CREATING NEW")
+		fmt.Println("DEPOSIT-CHECK ERR IS NIL, UPDATING BALANCE NOT CREATING NEW")
 		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -153,7 +156,7 @@ func (sp *StateProcessor[
 
 	// If the validator does not exist, we add the validator.
 	// Add the validator to the registry.
-	fmt.Println("CREATING NEW", dep.GetPubkey())
+	fmt.Println("DEPOSIT-CHECK CREATING NEW", dep.GetPubkey())
 	return sp.createValidator(st, dep)
 }
 
@@ -192,7 +195,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	fmt.Println("GENESIS ROOT", genesisValidatorsRoot, "slot", slot)
+	fmt.Println("DEPOSIT-CHECK GENESIS ROOT", genesisValidatorsRoot, "slot", slot)
 
 	epoch = sp.cs.SlotToEpoch(slot)
 
@@ -210,7 +213,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	fmt.Println("SIG VERIFICATION SUCCESSFUL")
+	fmt.Println("DEPOSIT-CHECK SIG VERIFICATION SUCCESSFUL")
 
 	// Add the validator to the registry.
 	return sp.addValidatorToRegistry(st, dep)
