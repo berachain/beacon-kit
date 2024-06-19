@@ -283,6 +283,48 @@ func TestMustNewU256L(t *testing.T) {
 			input: make([]byte, 33),
 			panic: true,
 		},
+		{
+			name:     "valid input - single byte",
+			input:    []byte{1},
+			expected: []byte{1},
+			panic:    false,
+		},
+		{
+			name:     "valid input - all zeros",
+			input:    []byte{0, 0, 0, 0},
+			expected: []byte{0, 0, 0, 0},
+			panic:    false,
+		},
+		{
+			name:     "valid input - max uint256",
+			input:    bytes.Repeat([]byte{255}, 32),
+			expected: bytes.Repeat([]byte{255}, 32),
+			panic:    false,
+		},
+		{
+			name:     "valid input - arbitrary value",
+			input:    []byte{0xde, 0xad, 0xbe, 0xef},
+			expected: []byte{0xef, 0xbe, 0xad, 0xde},
+			panic:    false,
+		},
+		{
+			name:     "valid input - 32 bytes",
+			input:    bytes.Repeat([]byte{1}, 32),
+			expected: bytes.Repeat([]byte{1}, 32),
+			panic:    false,
+		},
+		{
+			name:     "valid input - 31 bytes",
+			input:    bytes.Repeat([]byte{1}, 31),
+			expected: bytes.Repeat([]byte{1}, 31),
+			panic:    false,
+		},
+		{
+			name:     "valid input - 30 bytes",
+			input:    bytes.Repeat([]byte{1}, 30),
+			expected: bytes.Repeat([]byte{1}, 30),
+			panic:    false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -318,16 +360,40 @@ func TestNewU256LFromBigEndian(t *testing.T) {
 			input: make([]byte, 33),
 			err:   math.ErrUnexpectedInputLengthBase,
 		},
+		{
+			name:     "valid input - all zeros",
+			input:    []byte{0, 0, 0, 0},
+			expected: []byte{0, 0, 0, 0},
+			err:      nil,
+		},
+		{
+			name:     "valid input - single byte",
+			input:    []byte{1},
+			expected: []byte{1},
+			err:      nil,
+		},
+		{
+			name:     "valid input - max uint256",
+			input:    bytes.Repeat([]byte{255}, 32),
+			expected: bytes.Repeat([]byte{255}, 32),
+			err:      nil,
+		},
+		{
+			name:     "valid input - arbitrary value",
+			input:    []byte{0xde, 0xad, 0xbe, 0xef},
+			expected: []byte{0xde, 0xad, 0xbe, 0xef},
+			err:      nil,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := math.NewU256LFromBigEndian(tt.input)
+			expected := new(huint256.Int).SetBytes(tt.expected)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err, "Test case: %s", tt.name)
 			} else {
 				require.NoError(t, err, "Test case: %s", tt.name)
-				expected := new(huint256.Int).SetBytes(tt.expected)
 				require.Equal(t, expected, result.UnwrapU256(), "Test case: %s", tt.name)
 			}
 		})
