@@ -46,7 +46,6 @@ func NewLogger[ImplT any](
 		Writer: &log.ConsoleWriter{
 			Writer: out,
 			Formatter: (&Formatter{
-				ColorOutput:    cfg.ColorOutput,
 				QuoteString:    cfg.QuoteString,
 				EndWithMessage: cfg.EndWithMessage,
 			}).Format,

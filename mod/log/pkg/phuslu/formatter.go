@@ -21,12 +21,13 @@
 package phuslu
 
 import (
-	"fmt"
 	"io"
 	"strconv"
 
 	"github.com/phuslu/log"
 )
+
+const divider = "|"
 
 // colours.
 const (
@@ -44,8 +45,6 @@ const (
 
 // Formatter is a custom formatter for log messages.
 type Formatter struct {
-	// ColorOutput enables or disables color output.
-	ColorOutput bool
 	// QuoteString enables or disables quoting of string values.
 	QuoteString bool
 	// EndWithMessage enables or disables ending the log message with the
@@ -56,7 +55,6 @@ type Formatter struct {
 // NewFormatter creates a new Formatter with default settings.
 func NewFormatter() *Formatter {
 	return &Formatter{
-		ColorOutput:    true,
 		QuoteString:    true,
 		EndWithMessage: false,
 	}
@@ -94,12 +92,7 @@ func (f *Formatter) Format(
 		color, level = gray, " ???"
 	}
 
-	if f.ColorOutput {
-		f.printWithColor(args, buffer, color, level)
-	} else {
-		f.printWithoutColor(args, buffer, level)
-	}
-
+	f.printWithColor(args, buffer, color, level)
 	f.ensureLineBreak(buffer)
 
 	if args.Stack != "" {
@@ -119,10 +112,9 @@ func (f *Formatter) printWithColor(
 	color, level string,
 ) {
 	f.formatHeader(args, b, true, color, level)
-	if !f.EndWithMessage {
-		b.Bytes = append(b.Bytes, ' ')
-		b.Bytes = append(b.Bytes, args.Message...)
-	}
+
+	b.Bytes = append(b.Bytes, ' ')
+	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
 		if f.QuoteString && kv.ValueType == 's' {
 			kv.Value = strconv.Quote(kv.Value)
@@ -143,11 +135,6 @@ func (f *Formatter) printWithColor(
 			b.Bytes = append(b.Bytes, reset...)
 		}
 	}
-	if f.EndWithMessage {
-		b.Bytes = append(b.Bytes, reset...)
-		b.Bytes = append(b.Bytes, ' ')
-		b.Bytes = append(b.Bytes, args.Message...)
-	}
 }
 
 // formatHeader formats the header of the log message.
@@ -161,20 +148,27 @@ func (f *Formatter) formatHeader(
 	if colorEnabled {
 		headerColor, resetColor = color, reset
 	}
-	fmt.Fprintf(
-		b,
-		"%s%s%s %s%s%s ",
-		gray,
-		args.Time,
-		resetColor,
-		headerColor,
-		level,
-		resetColor,
-	)
+	b.Bytes = append(b.Bytes, gray...)
+	b.Bytes = append(b.Bytes, args.Time...)
+	b.Bytes = append(b.Bytes, resetColor...)
+	b.Bytes = append(b.Bytes, ' ')
+	b.Bytes = append(b.Bytes, headerColor...)
+	b.Bytes = append(b.Bytes, level...)
+	b.Bytes = append(b.Bytes, resetColor...)
+	b.Bytes = append(b.Bytes, ' ')
+
 	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, resetColor)
+		b.Bytes = append(b.Bytes, args.Goid...)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, args.Caller...)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, cyan...)
+		b.Bytes = append(b.Bytes, divider...)
+		b.Bytes = append(b.Bytes, resetColor...)
 	} else {
-		fmt.Fprintf(b, "%s💦%s", cyan, resetColor)
+		b.Bytes = append(b.Bytes, cyan...)
+		b.Bytes = append(b.Bytes, divider...)
+		b.Bytes = append(b.Bytes, resetColor...)
 	}
 }
 
@@ -185,35 +179,5 @@ func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 	}
 	if len(b.Bytes) == 0 || b.Bytes[len(b.Bytes)-1] != '\n' {
 		b.Bytes = append(b.Bytes, '\n')
-	}
-}
-
-// printWithoutColor prints the log message without color.
-func (f *Formatter) printWithoutColor(
-	args *log.FormatterArgs,
-	b *byteBuffer,
-	level string,
-) {
-	fmt.Fprintf(b, "%s %s ", args.Time, level)
-	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s 💦", args.Goid, args.Caller)
-	} else {
-		fmt.Fprint(b, "💦")
-	}
-	if !f.EndWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
-	}
-	for _, kv := range args.KeyValues {
-		if f.QuoteString && kv.ValueType == 's' {
-			b.Bytes = append(b.Bytes, ' ')
-			b.Bytes = append(b.Bytes, kv.Key...)
-			b.Bytes = append(b.Bytes, '=')
-			b.Bytes = strconv.AppendQuote(b.Bytes, kv.Value)
-		} else {
-			fmt.Fprintf(b, " %s=%s", kv.Key, kv.Value)
-		}
-	}
-	if f.EndWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
 	}
 }
