@@ -110,11 +110,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	fmt.Println("DEPOSIT INDEX", depositIndex)
+
 	if err = st.SetEth1DepositIndex(
 		depositIndex + 1,
 	); err != nil {
 		return err
 	}
+
+	fmt.Println("SET ETH DEPOSIT INDEX TO DEPOSIT INDEX", depositIndex+1)
 
 	return sp.applyDeposit(st, dep)
 }
