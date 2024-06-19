@@ -59,9 +59,9 @@ yap: ## the yap cave
 
 tidy-sync-check:
 	@{ \
-	pre_tidy_diff=$$(git diff); \
+	pre_tidy_diff=$$(git diff --ignore-space-change); \
 	$(MAKE) repo-rinse tidy sync; \
-	git diff > post_tidy.diff; \
+	git diff --ignore-space-change > post_tidy.diff; \
 	echo "$$pre_tidy_diff" > pre_tidy.diff; \
 	cmp -s pre_tidy.diff post_tidy.diff; \
 	diff_status=$$?; \
